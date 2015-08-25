@@ -7,6 +7,23 @@ body, html {
 .navbar {
   margin-bottom: 0;
 }
+.navbar-static-bottom {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border-radius: 0px;
+  border-top-left-radius: 0px;
+  border-top-right-radius: 0px;
+  border-bottom-right-radius: 0px;
+  border-bottom-left-radius: 0px;
+  z-index: 1000;
+  border-width: 0px 0px 1px;
+  border-top-width: 1px;
+  border-right-width: 0px;
+  border-bottom-width: 0px;
+  border-left-width: 0px;
+}
 .close-left-slider {
   cursor: pointer;
 }
@@ -17,16 +34,16 @@ body, html {
   height:100%;
   overflow:hidden;
 }
-#main .navbar button {
+#main #top-nav button {
   margin-right: 15px;
 }
-#main #alerts {
+#main #top-nav #alerts {
   width: auto;
   overflow: hidden;
   padding: 10px 15px;
   height: 50px;
 }
-#main #alerts .alert {
+#main #top-nav #alerts .alert {
   margin: 0;
   padding: 0 10px;
   height: 30px;
@@ -34,6 +51,16 @@ body, html {
   vertical-align: middle;
   text-align: center;
   overflow: hidden;
+}
+#main #bottom-nav {
+  padding-left: 0;
+  padding-right: 0;
+}
+#main #bottom-nav form {
+  margin-left: 0;
+  margin-right: 0;
+  padding-left: 0;
+  padding-right: 0;
 }
 #main #viewer {
   position:absolute;
