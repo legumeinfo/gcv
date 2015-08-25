@@ -7,6 +7,9 @@ body, html {
 .navbar {
   margin-bottom: 0;
 }
+.close-left-slider {
+  cursor: pointer;
+}
 /* horizontally stretch main to remaining area: http://stackoverflow.com/questions/1260122/expand-div-to-take-remaining-width */
 #main {
   position:relative;

@@ -21,6 +21,12 @@ $('body').on('click', 'a.open-parameters', function(e) {
   e.preventDefault();
 });
 
+// add left slider closing links
+$('body').on('click', '.close-left-slider', function(e) {
+  hideHorizontalSlider('.left-slider');
+  e.preventDefault();
+});
+
 // add tab functionality
 $('ul.tabs').each(function() {
   // For each set of tabs, we want to keep track of
