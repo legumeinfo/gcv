@@ -9,6 +9,22 @@ function _update(src, dest) {
 }
 
 contextControllers
+.controller('DataCtrl', ['$scope', '$routeParams', 'Context',
+function($scope, $routeParams, Context) {
+  $scope.focusName = $routeParams.focusName;
+  $scope.data = Context.get({focusName: $routeParams.focusName},
+  // success callback
+  function(data) {
+    // each gene will need x and y attributes
+    // each group (track) will need a group number for repeat inversions
+    // generate plot data + clear global plot data
+  // error callback
+  }, function(data, status) {
+    // show the user an error message
+  });
+}]);
+
+contextControllers
 .controller('ContextCtrl', ['$scope', '$location', '$cookies', 'Context',
 function($scope, $location, $cookies, Context) {
   // initialize the form
@@ -45,14 +61,7 @@ function($scope, $location, $cookies, Context) {
           !$scope.form.numMatchedFamilies.$pristine ||
           !$scope.form.numNonFamily.$pristine) {
         var focusName = 'araip.Araip.12YZL';
-        Context.get({focus: focusName},
-        function(data) { // success callback
-          // each gene will need x and y attributes
-          // each group (track) will need a group number for repeat inversions
-          // generate plot data + clear global plot data
-        }, function(data, status) { // error callback
-          // show the user an error message
-        });
+        // trigger the get in the focus controller
       }
       // align the results
       // redraw context viewer

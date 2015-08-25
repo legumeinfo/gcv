@@ -1,9 +1,21 @@
 // all the modules that the app depends on
 var contextApp = angular.module('contextApp', [
+  'ngRoute',
   'contextControllers',
   'contextServices',
   'ngCookies'
 ]);
+
+// request the routeProvider to be injected into our config function
+contextApp.config(['$routeProvider',
+  // define our routes
+  function($routeProvider) {
+    $routeProvider.
+      when('/:focusName', {
+        templateUrl: 'partials/data.html',
+        controller: 'DataCtrl'
+      });
+  }]);
 
 // custom validation used to ensure that form inputs are integers
 var INTEGER_REGEXP = /^\-?\d+$/;
