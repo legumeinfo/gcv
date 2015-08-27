@@ -92,6 +92,15 @@ function showAlert(type, message, link) {
   $('#alerts').html(html);
 }
 
+// make the slide up/down w/ mouse over/out
+$(function(){
+  $("#bottom-nav").hide();
+  $("#footer").hover( 
+    function(){ $("#bottom-nav").slideDown(slideSpeed); },
+    function(){ $("#bottom-nav").slideUp(slideSpeed); }
+  );
+});
+
 // when the document has been loaded
 $(document).ready(function() {
   // left sliders are hidden by default

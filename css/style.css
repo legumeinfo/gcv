@@ -7,17 +7,20 @@ body, html {
 .navbar {
   margin-bottom: 0;
 }
-.navbar-static-bottom {
+#footer {
   position: absolute;
   left: 0;
   right: 0;
   bottom: 0;
+  height: 50px;
+}
+.navbar-static-bottom {
   border-radius: 0px;
   border-top-left-radius: 0px;
   border-top-right-radius: 0px;
   border-bottom-right-radius: 0px;
   border-bottom-left-radius: 0px;
-  z-index: 1000;
+  /*z-index: 1000;*/
   border-width: 0px 0px 1px;
   border-top-width: 1px;
   border-right-width: 0px;
