@@ -87,93 +87,100 @@
     </nav>
     <div id="viewer">viewer</div>
     <div id="plots">plots</div>
-    <div id="footer">
-      <nav id="bottom-nav" class="navbar navbar-default navbar-static-bottom">
-        <div class="container-fluid">
-          <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
-            <form class="navbar-form navbar-left" role="search">
-              <button type="submit" class="btn btn-default">
-                <span class="glyphicon glyphicon-chevron-left" aria-hidden="true"></span>
-              </button>
-              <input type="text" class="form-control" placeholder="Search">
-            </form>
-            <form class="navbar-form navbar-right" role="search">
-              <input type="text" class="form-control" placeholder="Search">
-              <button type="button" class="btn btn-default">
-                <span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span>
-              </button>
-            </form>
-          </div>
-        </div>
-      </nav>
-    </div>
   </div>
   <div id="parameters" class="left-slider col-md-3">
-    <span class="glyphicon glyphicon glyphicon-remove pull-right close-left-slider" aria-hidden="true"></span>
-    <form name="form" method="get" ng-submit="submit()" ng-init="init()" novalidate>
-      <fieldset>
-        <legend>Query Parameters</legend>
-        <div class="form-group" show-errors>
-          <label>Neighbors</label>
-          <input type="number" min="1" name="numNeighbors" class="form-control" ng-model="formData.numNeighbors" integer required>
-          <span id="helpBlock" class="help-block">A positive integer</span>
+    <nav id="parameters-nav" class="navbar navbar-default navbar-static-top">
+      <div class="container-fluid">
+        <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+          <form class="navbar-form navbar-left form-inline">
+            <div class="input-group">
+              <span class="input-group-btn">
+                <button class="btn btn-default" type="button">
+                  &nbsp;<span class="glyphicon glyphicon-chevron-left" aria-hidden="true"></span>&nbsp;
+                </button>
+              </span>
+              <input type="text" class="form-control">
+              <span class="input-group-btn">
+                <button class="btn btn-default" type="button">
+                  &nbsp;<span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span>&nbsp;
+                </button>
+              </span>
+            </div>
+          </form>
+          <ul class="nav navbar-nav navbar-right">
+            <li><a href="#">
+              <span class="glyphicon glyphicon glyphicon-remove pull-right close-left-slider" aria-hidden="true"></span>
+            </a></li>
+          </ul>
         </div>
-        <div class="form-group" show-errors>
-          <label>Matched Families</label>
-          <input type="number" min="1" name="numMatchedFamilies" class="form-control" ng-model="formData.numMatchedFamilies" integer required>
-          <span id="helpBlock" class="help-block">A positive integer</span>
-        </div>
-        <div class="form-group" show-errors>
-          <label>Intermediate genes</label>
-          <input type="number" min="0" name="numNonFamily" class="form-control" ng-model="formData.numNonFamily" integer required>
-          <span id="helpBlock" class="help-block">A positive integer or 0</span>
-        </div>
-        <legend>Alignment Parameters</legend>
-        <div class="form-group">
-          <label>Algorithm</label>
-          <div class="radio">
-            <label>
-              <input type="radio" name="algorithm" value="smith" ng-model="formData.algorithm">
-              Smith-Waterman
-            </label>
+      </div>
+    </nav>
+    <div id="parameters-form">
+      <form name="form" method="get" ng-submit="submit()" ng-init="init()" novalidate>
+        <fieldset>
+          <legend>Query Parameters</legend>
+          <div class="form-group" show-errors>
+            <label>Neighbors</label>
+            <input type="number" min="1" name="numNeighbors" class="form-control" ng-model="formData.numNeighbors" integer required>
+            <span id="helpBlock" class="help-block">A positive integer</span>
           </div>
-          <div class="radio">
-            <label>
-              <input type="radio" name="algorithm" value="repeat" ng-model="formData.algorithm">
-              Repeat
-            </label>
+          <div class="form-group" show-errors>
+            <label>Matched Families</label>
+            <input type="number" min="1" name="numMatchedFamilies" class="form-control" ng-model="formData.numMatchedFamilies" integer required>
+            <span id="helpBlock" class="help-block">A positive integer</span>
           </div>
-        </div>
-        <div class="form-group" show-errors>
-          <label>Match</label>
-          <input type="number" name="match" class="form-control" ng-model="formData.match" integer required>
-          <span id="helpBlock" class="help-block">An integer</span>
-        </div>
-        <div class="form-group" show-errors>
-          <label>Mismatch</label>
-          <input type="number" name="mismatch" class="form-control" ng-model="formData.mismatch" integer required>
-          <span id="helpBlock" class="help-block">An integer</span>
-        </div>
-        <div class="form-group" show-errors>
-          <label>Gap</label>
-          <input type="number" name="gap" class="form-control" ng-model="formData.gap" integer required>
-          <span id="helpBlock" class="help-block">An integer</span>
-        </div>
-        <div class="form-group" show-errors>
-          <label>Threshold</label>
-          <input type="number" name="threshold" class="form-control" ng-model="formData.threshold" integer required>
-          <span id="helpBlock" class="help-block">An integer</span>
-        </div>
-        <div class="form-group">
-          <label>Order</label>
-          <select class="form-control" id="ordering">
-            <option>Chromosome</option>
-            <option>Edit distance</option>
-          </select>
-        </div>
-        <button type="submit" class="btn btn-primary col-sm-12">Submit</button>
-      </fieldset>
-    </form>
+          <div class="form-group" show-errors>
+            <label>Intermediate genes</label>
+            <input type="number" min="0" name="numNonFamily" class="form-control" ng-model="formData.numNonFamily" integer required>
+            <span id="helpBlock" class="help-block">A positive integer or 0</span>
+          </div>
+          <legend>Alignment Parameters</legend>
+          <div class="form-group">
+            <label>Algorithm</label>
+            <div class="radio">
+              <label>
+                <input type="radio" name="algorithm" value="smith" ng-model="formData.algorithm">
+                Smith-Waterman
+              </label>
+            </div>
+            <div class="radio">
+              <label>
+                <input type="radio" name="algorithm" value="repeat" ng-model="formData.algorithm">
+                Repeat
+              </label>
+            </div>
+          </div>
+          <div class="form-group" show-errors>
+            <label>Match</label>
+            <input type="number" name="match" class="form-control" ng-model="formData.match" integer required>
+            <span id="helpBlock" class="help-block">An integer</span>
+          </div>
+          <div class="form-group" show-errors>
+            <label>Mismatch</label>
+            <input type="number" name="mismatch" class="form-control" ng-model="formData.mismatch" integer required>
+            <span id="helpBlock" class="help-block">An integer</span>
+          </div>
+          <div class="form-group" show-errors>
+            <label>Gap</label>
+            <input type="number" name="gap" class="form-control" ng-model="formData.gap" integer required>
+            <span id="helpBlock" class="help-block">An integer</span>
+          </div>
+          <div class="form-group" show-errors>
+            <label>Threshold</label>
+            <input type="number" name="threshold" class="form-control" ng-model="formData.threshold" integer required>
+            <span id="helpBlock" class="help-block">An integer</span>
+          </div>
+          <div class="form-group">
+            <label>Order</label>
+            <select class="form-control" id="ordering">
+              <option>Chromosome</option>
+              <option>Edit distance</option>
+            </select>
+          </div>
+          <button type="submit" class="btn btn-primary col-sm-12">Submit</button>
+        </fieldset>
+      </form>
+    </div>
   </div>
   <div ng-view></div>
   <script src="js/ui.js"></script>

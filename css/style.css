@@ -7,29 +7,6 @@ body, html {
 .navbar {
   margin-bottom: 0;
 }
-#footer {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  height: 50px;
-}
-.navbar-static-bottom {
-  border-radius: 0px;
-  border-top-left-radius: 0px;
-  border-top-right-radius: 0px;
-  border-bottom-right-radius: 0px;
-  border-bottom-left-radius: 0px;
-  /*z-index: 1000;*/
-  border-width: 0px 0px 1px;
-  border-top-width: 1px;
-  border-right-width: 0px;
-  border-bottom-width: 0px;
-  border-left-width: 0px;
-}
-.close-left-slider {
-  cursor: pointer;
-}
 /* horizontally stretch main to remaining area: http://stackoverflow.com/questions/1260122/expand-div-to-take-remaining-width */
 #main {
   position:relative;
@@ -55,16 +32,6 @@ body, html {
   text-align: center;
   overflow: hidden;
 }
-#main #bottom-nav {
-  padding-left: 0;
-  padding-right: 0;
-}
-#main #bottom-nav form {
-  margin-left: 0;
-  margin-right: 0;
-  padding-left: 0;
-  padding-right: 0;
-}
 #main #viewer {
   position:absolute;
   top:50px;
@@ -72,6 +39,7 @@ body, html {
   overflow-y:auto;
 }
 .left-slider {
+  padding: 0;
   position:fixed;
   top:50px;
   left:0;
@@ -90,7 +58,24 @@ body, html {
     startColorstr=#BBF8F8F8, endColorstr=#BBF8F8F8
   )";
 }
-#parameters {
+#parameters-nav {
+  margin: 1 0 0 0;
+}
+#parameters-nav form {
+  padding: 0;
+}
+#parameters-nav form input {
+  z-index: 1000;
+}
+#parameters-nav form button {
+  cursor: pointer;
+}
+#parameters-form {
+  position: absolute;
+  top: 50px;
+  left: 0;
+  bottom: 0;
+  right: 0;
   padding: 15px;
   overflow-y: auto;
 }
@@ -173,17 +158,9 @@ body, html {
 .grey-screen .spinner img {
   margin: -16px 0 0 -16px;
 }
-/* form field errors */
-/*input.ng-invalid.ng-touched {
-  background-color: #FA787E;
-}
-input.ng-valid.ng-touched {
-  background-color: #78FA89;
-}*/
 .form-group .help-block {
   display: none;
 }
-
 .form-group.has-error .help-block {
   display: block;
 }
