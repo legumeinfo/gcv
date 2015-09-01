@@ -12,15 +12,14 @@ contextApp.config(['$routeProvider',
   function($routeProvider) {
     $routeProvider.
       when('/:focusName', {
-        templateUrl: 'partials/data.html',
-        controller: 'DataCtrl'
+        template: ' ', // just fires the controller
+        controller: 'ContextCtrl'
       });
   }]);
 
 // custom validation used to ensure that form inputs are integers
 var INTEGER_REGEXP = /^\-?\d+$/;
 contextApp.directive('integer', function() {
-  console.log('integer');
   return {
     require: 'ngModel',
     link: function(scope, elm, attrs, ctrl) {
