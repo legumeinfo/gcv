@@ -36,7 +36,10 @@ function($scope, $routeParams, $location, $cookies, Context) {
 
   // get data from the service
   function getData() {
-    Context.get({focusName: $routeParams.focusName},
+    Context.get({focusName: $routeParams.focusName,
+                 numNeighbors: $scope.formData.numNeighbors,
+                 numMatchedFamilies: $scope.formData.numMatchedFamilies,
+                 numNonFamily: $scope.formData.numNonFamily},
     // success callback
     function(data) {
       // each gene will need x and y attributes
