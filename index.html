@@ -67,17 +67,17 @@
         </div>
         <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
           <ul class="nav navbar-nav tabs">
-            <li><button type="button" class="btn btn-default navbar-btn horizontal-slider" data-target="#parameters">Parameters</button></li>
+            <li><button type="button" class="btn btn-default navbar-btn horizontal-slider" data-slider="#parameters">Parameters</button></li>
             <li><a href="#viewer">Viewer</a></li>
             <li><a href="#plots">Dot Plots</a></li>
           </ul>
           <div>
             <ul class="nav navbar-nav navbar-right">
-              <li><button type="button" class="btn btn-default navbar-btn horizontal-slider" data-target="#dashboard">Legend</button></li>
+              <li><button type="button" class="btn btn-default navbar-btn horizontal-slider" data-slider="#dashboard">Legend</button></li>
             </ul>
             <div id="alerts">
               <!--<div class="alert alert-success" role="alert">10 tracks returned. 3 aligned</div>-->
-              <div class="alert alert-info" role="alert">10 tracks returned. 0 aligned (<a href="#" class="open-parameters">Revise Alignment Parameters</a>)</div>
+              <div class="alert alert-info" role="alert">10 tracks returned. 0 aligned (<a href="#" class="open-parameters horizontal-slider" data-slider="#parameters">Revise Alignment Parameters</a>)</div>
               <!--<div class="alert alert-warning" role="alert">0 tracks returned (<a href="#" class="open-parameters">Revise Query Parameters</a>)</div>-->
               <!--<div class="alert alert-danger alert-dismissible" role="alert">Failed to retrieve data</div>-->
             </div>
@@ -109,7 +109,7 @@
           </form>
           <ul class="nav navbar-nav navbar-right">
             <li><a href="#">
-              <span class="glyphicon glyphicon glyphicon-remove pull-right close-left-slider" aria-hidden="true"></span>
+              <span class="glyphicon glyphicon glyphicon-remove pull-right horizontal-slider" data-slider="#parameters" aria-hidden="true"></span>
             </a></li>
           </ul>
         </div>

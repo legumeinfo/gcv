@@ -54,7 +54,7 @@ function($scope, $routeParams, $location, $cookies, Context) {
   // gets data and updates the view when the form is submitted
   $scope.submit = function() {
     if ($scope.form.$valid) {
-      hideHorizontalSlider('#parameters');
+      toggleSlider('#parameters');
       // in case the form is submitted with invalid values
       $scope.$broadcast('show-errors-check-validity');
       // update the url to reflect the changes

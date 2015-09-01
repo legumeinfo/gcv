@@ -1,30 +1,13 @@
-var slideSpeed= 350;
-
-function hideHorizontalSlider(element) {
-  $(element).hide(slideSpeed);
-}
-
-function showHorizontalSlider(element) {
-  $(element).show(slideSpeed);
+function toggleSlider(target) {
+  $(target).animate({width:'toggle'}, 350);
 }
 
 // add sliding functionality to buttons
-$(':button.horizontal-slider').each(function() {
+$('.horizontal-slider').each(function() {
   $(this).on('click', function(e) {
-    $($(this).attr('data-target')).animate({width:'toggle'}, slideSpeed);
+    toggleSlider($(this).attr('data-slider'));
+    e.preventDefault();
   });
-});
-
-// add parameter-opening links
-$('body').on('click', 'a.open-parameters', function(e) {
-  showHorizontalSlider('#parameters');
-  e.preventDefault();
-});
-
-// add left slider closing links
-$('body').on('click', '.close-left-slider', function(e) {
-  hideHorizontalSlider('.left-slider');
-  e.preventDefault();
 });
 
 // add tab functionality
@@ -91,9 +74,3 @@ function showAlert(type, message, link) {
             + link+'</a>)' : '')+'</div>';
   $('#alerts').html(html);
 }
-
-// when the document has been loaded
-$(document).ready(function() {
-  // left sliders are hidden by default
-  hideHorizontalSlider('#parameters');
-});
