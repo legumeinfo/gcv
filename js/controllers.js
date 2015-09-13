@@ -13,7 +13,7 @@ contextControllers
                             'Context',
 function($scope, $routeParams, $location, $cookies, Context) {
   // controller variables
-  var data;
+  var json;
 
   // initialize the form
   $scope.init = function() {
@@ -40,17 +40,19 @@ function($scope, $routeParams, $location, $cookies, Context) {
 
   // get data from the service
   function getData() {
-    Context.get($routeParams.focusName,
-                {numNeighbors: $scope.formData.numNeighbors,
-                 numMatchedFamilies: $scope.formData.numMatchedFamilies,
-                 numNonFamily: $scope.formData.numNonFamily},
-    function(json) {
-      // each gene will need x and y attributes
-      // each group (track) will need a group number for repeat inversions
-      // generate plot data + clear global plot data
-    }, function(response) {
-      // show the user an error message
-    });
+    if ($routeParams.focusName !== undefined) {
+      Context.get($routeParams.focusName,
+                  {numNeighbors: $scope.formData.numNeighbors,
+                   numMatchedFamilies: $scope.formData.numMatchedFamilies,
+                   numNonFamily: $scope.formData.numNonFamily},
+      function(json) {
+        // each gene will need x and y attributes
+        // each group (track) will need a group number for repeat inversions
+        // generate plot data + clear global plot data
+      }, function(response) {
+        // show the user an error message
+      });
+    }
   }
 
   // gets data and updates the view when the form is submitted
@@ -66,7 +68,7 @@ function($scope, $routeParams, $location, $cookies, Context) {
       // only three params require a db query
       if (!($scope.form.numNeighbors.$pristine &&
             $scope.form.numMatchedFamilies.$pristine &&
-            $scope.form.numNonFamily.$pristine) || data === undefined) {
+            $scope.form.numNonFamily.$pristine) || json === undefined) {
         // trigger the get in the focus controller
         getData();
       }
@@ -78,13 +80,9 @@ function($scope, $routeParams, $location, $cookies, Context) {
       showAlert(alertEnum.DANGER, "Invalid input parameters");
     }
   }
-
-  // all the things that will trigger an update when the parameter form is
-  // submitted when the url changes, i.e. scrolling
-  $scope.$on('$locationChangeStart', function(event) {
-    if ($scope.form.$invalid) {
-      event.preventDefault();
-    } else {
-      $scope.submit();
-  }});
+  
+  // try to fetch new data whenever the controller is initialized
+  if ($routeParams.focusName) {
+    $scope.submit();
+  }
 }]);
