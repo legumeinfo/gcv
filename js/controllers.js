@@ -40,17 +40,15 @@ function($scope, $routeParams, $location, $cookies, Context) {
 
   // get data from the service
   function getData() {
-    Context.get({focusName: $routeParams.focusName,
-                 numNeighbors: $scope.formData.numNeighbors,
+    Context.get($routeParams.focusName,
+                {numNeighbors: $scope.formData.numNeighbors,
                  numMatchedFamilies: $scope.formData.numMatchedFamilies,
                  numNonFamily: $scope.formData.numNonFamily},
-    // success callback
-    function(data) {
+    function(json) {
       // each gene will need x and y attributes
       // each group (track) will need a group number for repeat inversions
       // generate plot data + clear global plot data
-    // error callback
-    }, function(data, status) {
+    }, function(response) {
       // show the user an error message
     });
   }
