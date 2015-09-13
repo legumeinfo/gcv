@@ -28,10 +28,14 @@ function($scope, $routeParams, $location, $cookies, Context) {
                        threshold: 45};
     // override with values from cookie
     var cookie = $cookies.getObject('context');
-    _updateObj(cookie, $scope.formData);
+    if (cookie !== undefined) {
+      _updateObj(cookie, $scope.formData);
+    }
     // override with values from url
     var search = $location.search();
-    _updateObj(search, $scope.formData);
+    if (search !== undefined) {
+      _updateObj(search, $scope.formData);
+    }
   }
 
   // get data from the service
