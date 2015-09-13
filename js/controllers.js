@@ -41,15 +41,18 @@ function($scope, $routeParams, $location, $cookies, Context) {
   // get data from the service
   function getData() {
     if ($routeParams.focusName !== undefined) {
+      showSpinners();
       Context.get($routeParams.focusName,
                   {numNeighbors: $scope.formData.numNeighbors,
                    numMatchedFamilies: $scope.formData.numMatchedFamilies,
                    numNonFamily: $scope.formData.numNonFamily},
       function(json) {
+        hideSpinners();
         // each gene will need x and y attributes
         // each group (track) will need a group number for repeat inversions
         // generate plot data + clear global plot data
       }, function(response) {
+        hideSpinners();
         // show the user an error message
       });
     }

@@ -41,20 +41,27 @@ $('ul.tabs').each(function() {
 });
 
 // what to do at the beginning and end of window resizing
+function showSpinners() {
+  $('#main').append(spinner);
+  $('#legend .vertical-scroll').append(spinner);
+  $('#plot .inner-ratio').append(spinner);
+}
+function hideSpinners() {
+  $('.grey-screen').remove();
+}
 var resizeTimeout;
 var spinner = '<div class="grey-screen">'
             + '<div class="spinner"><img src="img/spinner.gif" /></div>'
             + '</div>';
 $(window).on('resize', function() {
   if (resizeTimeout === undefined) {
-    $('#main').append(spinner);
-    $('#plot .inner-ratio').append(spinner);
+    showSpinners();
   }
   clearTimeout(resizeTimeout);
   resizeTimeout = setTimeout(function() {
     clearTimeout(resizeTimeout);
     resizeTimeout = undefined;
-    $('.grey-screen').remove();
+    hideSpinners();
   }, 1000);
 });
 
