@@ -1,5 +1,14 @@
 function toggleSlider(target) {
-  $(target).animate({width:'toggle'}, 350);
+  if (target == '#dashboard') {
+    showSpinners();
+  }
+  $(target).animate({width:'toggle'}, 350,
+                    function() {
+                      if (target == '#dashboard') {
+                        hideSpinners();
+                        dataStore.plot();
+                      }
+                    });
 }
 
 // add sliding functionality to buttons
@@ -62,6 +71,7 @@ $(window).on('resize', function() {
     clearTimeout(resizeTimeout);
     resizeTimeout = undefined;
     hideSpinners();
+    dataStore.plot();
   }, 1000);
 });
 

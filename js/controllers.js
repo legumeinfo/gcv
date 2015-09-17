@@ -12,11 +12,13 @@ var dataStore = {
   json: undefined,
   tracks: undefined,
   scores: undefined,
+  params: undefined,
   color: context_color,
-  align: function(match, mismatch, gap, threshold, algorithm) {
+  align: function(inParams) {
+    params = inParams;
     tracks = JSON.parse(this.json);
     scores = {};
-    var align = algorithm == "repeat" ? repeat : smith;
+    var align = params.algorithm == "repeat" ? repeat : smith;
     // align all the tracks with the query track
     var alignments = [],
         result_tracks = [];
@@ -24,10 +26,7 @@ var dataStore = {
       var al = align(tracks.groups[0].genes,
                      tracks.groups[i].genes,
                      function get_family( item ) { return item.family; },
-                     {match: match,
-                      mismatch: mismatch,
-                      gap: gap,
-                      threshold: threshold});
+                     params);
       var id = tracks.groups[i].species_id+":"+
                tracks.groups[i].chromosome_id;
       if (al !== null) {
@@ -35,7 +34,7 @@ var dataStore = {
           scores[id] = 0;
         }
         scores[id] += al[1];
-        if (algorithm == "repeat") {
+        if (params.algorithm == "repeat") {
           for (var j = 0; j < al[0].length; j++) {
             result_tracks.push(clone(tracks.groups[i]));
             alignments.push(al[0][j]);
@@ -47,13 +46,12 @@ var dataStore = {
       }
     }
     // merge the alignments
-    //contextData = JSON.parse(json);
     tracks.groups = [tracks.groups[0]];
     merge_alignments(tracks, result_tracks, alignments);
   },
   plotData: {local: undefined,
              global: undefined},
-  plot: function(params) {
+  plot: function() {
     // helper functions for sorting tracks in viewer
     function sortChromosomes(a, b) {
       if( a.chromosome_name > b.chromosome_name ) {
@@ -122,14 +120,8 @@ function($scope, $routeParams, $location, $cookies, Context) {
       function(json) {
         hideSpinners();
         dataStore.json = json;
-        dataStore.align($scope.formData.match,
-                        $scope.formData.mismath,
-                        $scope.formData.gap,
-                        $scope.formData.threshold);
-        dataStore.plot($scope.formData);
-        // each gene will need x and y attributes
-        // each group (track) will need a group number for repeat inversions
-        // generate plot data + clear global plot data
+        dataStore.align($scope.formData);
+        dataStore.plot();
       }, function(response) {
         hideSpinners();
         showAlert(alertEnum.DANGER, "Failed to retrieve data");
