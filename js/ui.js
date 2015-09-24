@@ -1,23 +1,14 @@
-function toggleSlider(target) {
-  if (target == '#dashboard') {
-    showSpinners();
+function toggleSlider(target, pre, post) {
+  if (pre !== undefined) {
+    pre();
   }
   $(target).animate({width:'toggle'}, 350,
                     function() {
-                      if (target == '#dashboard') {
-                        hideSpinners();
-                        dataStore.plot();
+                      if (post !== undefined) {
+                        post();
                       }
                     });
 }
-
-// add sliding functionality to buttons
-$('.horizontal-slider').each(function() {
-  $(this).on('click', function(e) {
-    toggleSlider($(this).attr('data-slider'));
-    e.preventDefault();
-  });
-});
 
 // add tab functionality
 $('ul.tabs').each(function() {

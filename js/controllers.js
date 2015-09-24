@@ -111,7 +111,6 @@ function($scope, $routeParams, $location, $cookies, Viewer, Broadcast) {
   // listen for redraw events
   $scope.$on('redraw', function(event) {
     drawViewer();
-    console.log("drawing!");
   });
 }]);
 
@@ -146,7 +145,6 @@ function($scope, Gene) {
   // listen for gene click events
   $scope.$on('geneClicked', function(event) {
     drawViewer();
-    console.log("drawing!");
   });
 }]);
 
@@ -179,4 +177,18 @@ function($scope, Broadcast) {
       Broadcast.redraw();
     }, 1000);
   });
+
+  // parameters click action
+  $scope.toggleParameters = function() {
+    toggleSlider('#parameters');
+  };
+
+  // legend click action
+  $scope.toggleLegend = function() {
+    toggleSlider('#dashboard', showSpinners,
+      function() {
+        hideSpinners();
+        Broadcast.redraw();
+    });
+  };
 }]);

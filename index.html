@@ -21,7 +21,7 @@
   <script src="js/services.js"></script>
   <script src="js/jquery-2.1.4.min.js"></script>
 </head>
-<body ng-app="contextApp">
+<body ng-app="contextApp" ng-controller="UICtrl">
   <div id="dashboard" class="right-slider col-md-3">
     <div id="legend">
       <div class=vertical-scroll>
@@ -56,7 +56,7 @@
     </div>
   </div>
   <div id="main">
-    <nav id="top-nav" class="navbar navbar-default navbar-static-top" ng-controller="UICtrl">
+    <nav id="top-nav" class="navbar navbar-default navbar-static-top">
       <div class="container-fluid">
         <div class="navbar-header">
           <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
@@ -68,18 +68,18 @@
         </div>
         <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
           <ul class="nav navbar-nav tabs">
-            <li><button type="button" class="btn btn-default navbar-btn horizontal-slider" data-slider="#parameters">Parameters</button></li>
+            <li><button type="button" class="btn btn-default navbar-btn" ng-click="toggleParameters()">Parameters</button></li>
             <li><a href="#viewer">Viewer</a></li>
             <li><a href="#plots">Dot Plots</a></li>
             <li><a href="#help">Help</a></li>
           </ul>
           <div>
             <ul class="nav navbar-nav navbar-right">
-              <li><button type="button" class="btn btn-default navbar-btn horizontal-slider" data-slider="#dashboard">Legend</button></li>
+              <li><button type="button" class="btn btn-default navbar-btn" ng-click="toggleLegend()">Legend</button></li>
             </ul>
             <div id="alerts">
               <!--<div class="alert alert-success" role="alert">10 tracks returned. 3 aligned</div>-->
-              <div class="alert alert-info" role="alert">10 tracks returned. 0 aligned (<a href="#" class="open-parameters horizontal-slider" data-slider="#parameters">Revise Alignment Parameters</a>)</div>
+              <div class="alert alert-info" role="alert">10 tracks returned. 0 aligned (<a href="#" class="open-parameters" ng-click="toggleParameters()">Revise Alignment Parameters</a>)</div>
               <!--<div class="alert alert-warning" role="alert">0 tracks returned (<a href="#" class="open-parameters">Revise Query Parameters</a>)</div>-->
               <!--<div class="alert alert-danger alert-dismissible" role="alert">Failed to retrieve data</div>-->
             </div>
@@ -116,7 +116,7 @@
           </form>
           <ul class="nav navbar-nav navbar-right">
             <li><a href="#">
-              <span class="glyphicon glyphicon glyphicon-remove pull-right horizontal-slider" data-slider="#parameters" aria-hidden="true"></span>
+              <span class="glyphicon glyphicon glyphicon-remove pull-right" ng-click="toggleParameters()" aria-hidden="true"></span>
             </a></li>
           </ul>
         </div>
