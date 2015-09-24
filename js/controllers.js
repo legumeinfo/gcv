@@ -8,84 +8,10 @@ function _updateObj(src, dest) {
   }
 }
 
-var dataStore = {
-  json: undefined,
-  tracks: undefined,
-  scores: undefined,
-  params: undefined,
-  color: context_color,
-  align: function(inParams) {
-    params = inParams;
-    tracks = JSON.parse(this.json);
-    scores = {};
-    var align = params.algorithm == "repeat" ? repeat : smith;
-    // align all the tracks with the query track
-    var alignments = [],
-        result_tracks = [];
-    for (var i = 1; i < tracks.groups.length; i++) {
-      var al = align(tracks.groups[0].genes,
-                     tracks.groups[i].genes,
-                     function get_family( item ) { return item.family; },
-                     params);
-      var id = tracks.groups[i].species_id+":"+
-               tracks.groups[i].chromosome_id;
-      if (al !== null) {
-        if (scores[id] === undefined) {
-          scores[id] = 0;
-        }
-        scores[id] += al[1];
-        if (params.algorithm == "repeat") {
-          for (var j = 0; j < al[0].length; j++) {
-            result_tracks.push(clone(tracks.groups[i]));
-            alignments.push(al[0][j]);
-          }
-        } else {
-          result_tracks.push(clone(tracks.groups[i]));
-          alignments.push(al);
-        }
-      }
-    }
-    // merge the alignments
-    tracks.groups = [tracks.groups[0]];
-    merge_alignments(tracks, result_tracks, alignments);
-  },
-  plotData: {local: undefined,
-             global: undefined},
-  plot: function() {
-    // helper functions for sorting tracks in viewer
-    function sortChromosomes(a, b) {
-      if( a.chromosome_name > b.chromosome_name ) {
-        return 1;
-      } else if ( a.chromosome_name < b.chromosome_name ) {
-        return -1;
-      } else {
-        return 0;
-      }
-    }
-    function sortScores(a, b) {
-      var a_id = a.species_id+":"+a.chromosome_id,
-          b_id = b.species_id+":"+b.chromosome_id;
-      return scores[b_id]-scores[a_id];
-    }
-    // make the context viewer
-    context_viewer('viewer', this.color, tracks,
-                   {"gene_clicked":function(){},
-                    "left_axis_clicked":function(){},
-                    "right_axis_clicked":function(){},
-                    "selective_coloring":true,
-                    "inter_track":true,
-                    "merge":true,
-                    "sort":params.ordering==0 ? sortChromosomes:sortScores});
-  },
-  getGlobalPlot: function() {
-
-  }
-}
-
 contextControllers
 .controller('ContextCtrl', ['$scope', '$routeParams', '$location', '$cookies',
-                            'Context',
-function($scope, $routeParams, $location, $cookies, Context) {
+                            'Context', 'Broadcast',
+function($scope, $routeParams, $location, $cookies, Context, Broadcast) {
   // initialize the form
   $scope.init = function() {
     // radio options
@@ -116,26 +42,6 @@ function($scope, $routeParams, $location, $cookies, Context) {
     }
   }
 
-  // get data from the service
-  function getData() {
-    if ($routeParams.focusName !== undefined) {
-      showSpinners();
-      Context.get($routeParams.focusName,
-                  {numNeighbors: $scope.formData.numNeighbors,
-                   numMatchedFamilies: $scope.formData.numMatchedFamilies,
-                   numNonFamily: $scope.formData.numNonFamily},
-      function(json) {
-        hideSpinners();
-        dataStore.json = json;
-        dataStore.align($scope.formData);
-        dataStore.plot();
-      }, function(response) {
-        hideSpinners();
-        showAlert(alertEnum.DANGER, "Failed to retrieve data");
-      });
-    }
-  }
-
   // gets data and updates the view when the form is submitted
   $scope.submit = function() {
     if ($scope.form.$valid) {
@@ -150,14 +56,11 @@ function($scope, $routeParams, $location, $cookies, Context) {
       if (!($scope.form.numNeighbors.$pristine &&
             $scope.form.numMatchedFamilies.$pristine &&
             $scope.form.numNonFamily.$pristine) ||
-          dataStore.json === undefined) {
-        // trigger the get in the focus controller
+          json === undefined) {
         getData();
+      } else {
+        align();
       }
-      // align the results
-      // redraw context viewer
-      // redraw plots
-      // redraw legend
     } else {
       showAlert(alertEnum.DANGER, "Invalid input parameters");
     }
@@ -166,6 +69,122 @@ function($scope, $routeParams, $location, $cookies, Context) {
   // try to fetch new data whenever the controller is initialized
   if ($routeParams.focusName) {
     $scope.submit();
+  }
+
+  // controller data
+  var json; // data for the current search params
+  var tracks; // aligned tracks
+  var scores; // scores of aligned tracks
+  var colors = contextColors; //TODO: load color from cookie
+  var familyNames; // family id-name map
+
+  // private function that fetches data
+  function getData() {
+    Context.get($routeParams.focusName,
+                {numNeighbors: $scope.formData.numNeighbors,
+                 numMatchedFamilies: $scope.formData.numMatchedFamilies,
+                 numNonFamily: $scope.formData.numNonFamily},
+                function(newJson) {
+                  json = newJson;
+                  // TODO: clear gene cache, clear plot cache
+                  alignTracks();
+                },
+                function(response) {
+                  showAlert(alertEnum.DANGER, "Failed to retrieve data");
+                });
+  }
+
+  // private function that performs alignments
+  function alignTracks() {
+    tracks = JSON.parse(json);
+    scores = {};
+    var aligner = $scope.formData.algorithm == "repeat" ? repeat : smith;
+    // align all the tracks with the query track
+    var alignments = [],
+        resultTracks = [];
+    for (var i = 1; i < tracks.groups.length; i++) {
+      var al = aligner(tracks.groups[0].genes,
+                       tracks.groups[i].genes,
+                       function(item) { return item.family; },
+                       $scope.formData);
+      var id = tracks.groups[i].species_id+":"+
+               tracks.groups[i].chromosome_id;
+      if (al !== null) {
+        if (scores[id] === undefined) {
+          scores[id] = 0;
+        }
+        scores[id] += al[1];
+        if ($scope.formData.algorithm == "repeat") {
+          for (var j = 0; j < al[0].length; j++) {
+            resultTracks.push(clone(tracks.groups[i]));
+            alignments.push(al[0][j]);
+          }
+        } else {
+          resultTracks.push(clone(tracks.groups[i]));
+          alignments.push(al);
+        }
+      }
+    }
+    // merge the alignments
+    tracks.groups = [tracks.groups[0]];
+    mergeAlignments(tracks, resultTracks, alignments);
+    familyNames = getFamilyNameMap(tracks);
+    // draw viewer with new alignments
+    $scope.drawViewer();
+  }
+  // success: clear gene cache, clear plot cache
+
+  // draw viewer
+  $scope.drawViewer = function() {
+    // callback functions
+    function geneClicked(gene) {
+      Gene.get(gene.name, {}, function(json) {
+        links = JSON.parse(json);
+        var html = '<h4>'+gene.name+'</h4>' // TODO: link to tripal
+        html += 'Family: ';
+        if (gene.family != '') {
+        	html += familyNames[gene.family]; // TODO: link to tripal
+        } else {
+        	html += 'None';
+        }
+        html += '<br />';
+        // for switching over to json provided by tripal_linkout
+        for (var i = 0; i < links.length; i++) {
+          html += '<a href="'+links[i].href+'">'+links[i].text+'</a><br/>'
+        }
+        if (links.meta) {
+          html += '<p>'+links.meta+'</p>'
+        }
+        $('#toggle').html(html);
+      }, function(response) {
+        showAlert(alertEnum.DANGER, "Failed to retrieve gene data");
+      });
+    }
+    // helper functions for sorting tracks
+    function byChromosome(a, b) {
+      if( a.chromosome_name > b.chromosome_name ) {
+        return 1;
+      } else if ( a.chromosome_name < b.chromosome_name ) {
+        return -1;
+      } else {
+        return 0;
+      }
+    }
+    function byDistance(a, b) {
+      var a_id = a.species_id+":"+a.chromosome_id,
+          b_id = b.species_id+":"+b.chromosome_id;
+      return scores[b_id]-scores[a_id];
+    }
+    // make the context viewer
+    contextViewer('viewer', colors, tracks,
+                  {"geneClicked": Broadcast.geneClicked,
+                   "leftAxisClicked": function(){},
+                   "rightAxisClicked": function(){},
+                   "selectiveColoring": true,
+                   "interTrack": true,
+                   "merge": true,
+                   "sort": $scope.formData.order == "chromosome" ?
+                           byChromosome : byDistance});
   }
 }]);
 

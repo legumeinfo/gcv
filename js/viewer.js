@@ -1,4 +1,4 @@
-function context_viewer(container_id, color, data, optional_parameters) {
+function contextViewer(container_id, color, data, optional_parameters) {
   // clear the contents of the target element first
   document.getElementById(container_id).innerHTML = "";
   
@@ -95,10 +95,10 @@ function context_viewer(container_id, color, data, optional_parameters) {
   }
   
   // get the family size map
-  var family_sizes = get_family_size_map(data);
+  var family_sizes = getFamilySizeMap(data);
   
   // get the family id name map
-  var family_names = get_family_name_map(data);
+  var family_names = getFamilyNameMap(data);
   
   // define dimensions of graph and a bunch of other stuff
   var w = d3.max([1000,document.getElementById(container_id).offsetWidth]),
