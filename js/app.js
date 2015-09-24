@@ -13,7 +13,7 @@ contextApp.config(['$routeProvider',
     $routeProvider.
       when('/:focusName', {
         template: ' ', // just fires the controller
-        controller: 'ContextCtrl'
+        controller: 'ViewerCtrl'
       });
   }]);
 

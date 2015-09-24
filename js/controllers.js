@@ -1,7 +1,7 @@
 var contextControllers = angular.module('contextControllers', []);
 
 contextControllers
-.controller('ContextCtrl', ['$scope', '$routeParams', '$location', '$cookies',
+.controller('ViewerCtrl', ['$scope', '$routeParams', '$location', '$cookies',
                             'Viewer', 'Broadcast',
 function($scope, $routeParams, $location, $cookies, Viewer, Broadcast) {
   // initialize the form
