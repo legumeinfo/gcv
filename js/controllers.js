@@ -1,13 +1,5 @@
 var contextControllers = angular.module('contextControllers', []);
 
-function _updateObj(src, dest) {
-  for (var key in dest) {
-    if (dest.hasOwnProperty(key) && src.hasOwnProperty(key)) {
-      dest[key] = isNumber(src[key]) ? parseInt(src[key]) : src[key]
-    }
-  }
-}
-
 contextControllers
 .controller('ContextCtrl', ['$scope', '$routeParams', '$location', '$cookies',
                             'Viewer', 'Broadcast',
@@ -33,12 +25,12 @@ function($scope, $routeParams, $location, $cookies, Viewer, Broadcast) {
     // override with values from cookie
     var cookie = $cookies.getObject('context');
     if (cookie !== undefined) {
-      _updateObj(cookie, $scope.formData);
+      updateObj(cookie, $scope.formData);
     }
     // override with values from url
     var search = $location.search();
     if (search !== undefined) {
-      _updateObj(search, $scope.formData);
+      updateObj(search, $scope.formData);
     }
   }
 

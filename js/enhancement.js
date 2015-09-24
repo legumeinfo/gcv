@@ -74,3 +74,12 @@ function clone(obj) {
 function isNumber(n) {
   return !isNaN(parseInt(n)) && isFinite(n);
 }
+
+// copy attributes that are shared from one object to another
+function updateObj(src, dest) {
+  for (var key in dest) {
+    if (dest.hasOwnProperty(key) && src.hasOwnProperty(key)) {
+      dest[key] = isNumber(src[key]) ? parseInt(src[key]) : src[key]
+    }
+  }
+}
