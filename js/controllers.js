@@ -10,8 +10,8 @@ function _updateObj(src, dest) {
 
 contextControllers
 .controller('ContextCtrl', ['$scope', '$routeParams', '$location', '$cookies',
-                            'Context', 'Broadcast',
-function($scope, $routeParams, $location, $cookies, Context, Broadcast) {
+                            'Viewer', 'Broadcast',
+function($scope, $routeParams, $location, $cookies, Viewer, Broadcast) {
   // initialize the form
   $scope.init = function() {
     // radio options
@@ -56,10 +56,10 @@ function($scope, $routeParams, $location, $cookies, Context, Broadcast) {
       if (!($scope.form.numNeighbors.$pristine &&
             $scope.form.numMatchedFamilies.$pristine &&
             $scope.form.numNonFamily.$pristine) ||
-          json === undefined) {
+          Viewer.tracks() === undefined) {
         getData();
       } else {
-        align();
+        Viewer.align($scope.formData);
       }
     } else {
       showAlert(alertEnum.DANGER, "Invalid input parameters");
@@ -71,95 +71,23 @@ function($scope, $routeParams, $location, $cookies, Context, Broadcast) {
     $scope.submit();
   }
 
-  // controller data
-  var json; // data for the current search params
-  var tracks; // aligned tracks
-  var scores; // scores of aligned tracks
-  var colors = contextColors; //TODO: load color from cookie
-  var familyNames; // family id-name map
-
   // private function that fetches data
   function getData() {
-    Context.get($routeParams.focusName,
-                {numNeighbors: $scope.formData.numNeighbors,
-                 numMatchedFamilies: $scope.formData.numMatchedFamilies,
-                 numNonFamily: $scope.formData.numNonFamily},
-                function(newJson) {
-                  json = newJson;
-                  // TODO: clear gene cache, clear plot cache
-                  alignTracks();
-                },
-                function(response) {
-                  showAlert(alertEnum.DANGER, "Failed to retrieve data");
-                });
+    Viewer.get($routeParams.focusName,
+                  {numNeighbors: $scope.formData.numNeighbors,
+                   numMatchedFamilies: $scope.formData.numMatchedFamilies,
+                   numNonFamily: $scope.formData.numNonFamily},
+                  function() {
+                    Viewer.align($scope.formData);
+                    drawViewer();
+                  },
+                  function(response) {
+                    showAlert(alertEnum.DANGER, "Failed to retrieve data");
+                  });
   }
-
-  // private function that performs alignments
-  function alignTracks() {
-    tracks = JSON.parse(json);
-    scores = {};
-    var aligner = $scope.formData.algorithm == "repeat" ? repeat : smith;
-    // align all the tracks with the query track
-    var alignments = [],
-        resultTracks = [];
-    for (var i = 1; i < tracks.groups.length; i++) {
-      var al = aligner(tracks.groups[0].genes,
-                       tracks.groups[i].genes,
-                       function(item) { return item.family; },
-                       $scope.formData);
-      var id = tracks.groups[i].species_id+":"+
-               tracks.groups[i].chromosome_id;
-      if (al !== null) {
-        if (scores[id] === undefined) {
-          scores[id] = 0;
-        }
-        scores[id] += al[1];
-        if ($scope.formData.algorithm == "repeat") {
-          for (var j = 0; j < al[0].length; j++) {
-            resultTracks.push(clone(tracks.groups[i]));
-            alignments.push(al[0][j]);
-          }
-        } else {
-          resultTracks.push(clone(tracks.groups[i]));
-          alignments.push(al);
-        }
-      }
-    }
-    // merge the alignments
-    tracks.groups = [tracks.groups[0]];
-    mergeAlignments(tracks, resultTracks, alignments);
-    familyNames = getFamilyNameMap(tracks);
-    // draw viewer with new alignments
-    $scope.drawViewer();
-  }
-  // success: clear gene cache, clear plot cache
 
   // draw viewer
-  $scope.drawViewer = function() {
-    // callback functions
-    function geneClicked(gene) {
-      Gene.get(gene.name, {}, function(json) {
-        links = JSON.parse(json);
-        var html = '<h4>'+gene.name+'</h4>' // TODO: link to tripal
-        html += 'Family: ';
-        if (gene.family != '') {
-        	html += familyNames[gene.family]; // TODO: link to tripal
-        } else {
-        	html += 'None';
-        }
-        html += '<br />';
-        // for switching over to json provided by tripal_linkout
-        for (var i = 0; i < links.length; i++) {
-          html += '<a href="'+links[i].href+'">'+links[i].text+'</a><br/>'
-        }
-        if (links.meta) {
-          html += '<p>'+links.meta+'</p>'
-        }
-        $('#toggle').html(html);
-      }, function(response) {
-        showAlert(alertEnum.DANGER, "Failed to retrieve gene data");
-      });
-    }
+  var drawViewer = function() {
     // helper functions for sorting tracks
     function byChromosome(a, b) {
       if( a.chromosome_name > b.chromosome_name ) {
@@ -176,7 +104,8 @@ function($scope, $routeParams, $location, $cookies, Context, Broadcast) {
       return scores[b_id]-scores[a_id];
     }
     // make the context viewer
-    contextViewer('viewer', colors, tracks,
+    var colors = contextColors; //TODO: load color from cookie
+    contextViewer('viewer', colors, Viewer.tracks(),
                   {"geneClicked": Broadcast.geneClicked,
                    "leftAxisClicked": function(){},
                    "rightAxisClicked": function(){},
@@ -186,12 +115,47 @@ function($scope, $routeParams, $location, $cookies, Context, Broadcast) {
                    "sort": $scope.formData.order == "chromosome" ?
                            byChromosome : byDistance});
   }
+
+  // listen for redraw events
+  $scope.$on('redraw', function(event) {
+    drawViewer();
+    console.log("drawing!");
+  });
 }]);
 
 contextControllers
 .controller('GeneCtrl', ['$scope', 'Gene',
 function($scope, Gene) {
+  function geneClicked(gene) {
+    Gene.get(gene.name, {}, function(json) {
+      links = JSON.parse(json);
+      var familyNames = getFamilyNameMap(tracks); // TODO: move to service
+      var html = '<h4>'+gene.name+'</h4>' // TODO: link to tripal
+      html += 'Family: ';
+      if (gene.family != '') {
+      	html += familyNames[gene.family]; // TODO: link to tripal
+      } else {
+      	html += 'None';
+      }
+      html += '<br />';
+      // for switching over to json provided by tripal_linkout
+      for (var i = 0; i < links.length; i++) {
+        html += '<a href="'+links[i].href+'">'+links[i].text+'</a><br/>'
+      }
+      if (links.meta) {
+        html += '<p>'+links.meta+'</p>'
+      }
+      $('#toggle').html(html);
+    }, function(response) {
+      showAlert(alertEnum.DANGER, "Failed to retrieve gene data");
+    });
+  }
 
+  // listen for gene click events
+  $scope.$on('geneClicked', function(event) {
+    drawViewer();
+    console.log("drawing!");
+  });
 }]);
 
 contextControllers
@@ -208,6 +172,19 @@ function($scope, Plot) {
 
 contextControllers
 .controller('UICtrl', ['$scope', 'Broadcast',
-function($scope, UI) {
-
+function($scope, Broadcast) {
+  // listen for window resizing
+  var resizeTimeout;
+  $(window).on('resize', function() {
+    if (resizeTimeout === undefined) {
+      showSpinners();
+    }
+    clearTimeout(resizeTimeout);
+    resizeTimeout = setTimeout(function() {
+      clearTimeout(resizeTimeout);
+      resizeTimeout = undefined;
+      hideSpinners();
+      Broadcast.redraw();
+    }, 1000);
+  });
 }]);

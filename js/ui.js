@@ -58,22 +58,9 @@ function showSpinners() {
 function hideSpinners() {
   $('.grey-screen').remove();
 }
-var resizeTimeout;
 var spinner = '<div class="grey-screen">'
             + '<div class="spinner"><img src="img/spinner.gif" /></div>'
             + '</div>';
-$(window).on('resize', function() {
-  if (resizeTimeout === undefined) {
-    showSpinners();
-  }
-  clearTimeout(resizeTimeout);
-  resizeTimeout = setTimeout(function() {
-    clearTimeout(resizeTimeout);
-    resizeTimeout = undefined;
-    hideSpinners();
-    dataStore.plot();
-  }, 1000);
-});
 
 // display alerts
 var alertEnum = {SUCCESS: 0,
