@@ -186,3 +186,9 @@ contextControllers
 function($scope, Plot) {
 
 }]);
+
+contextControllers
+.controller('UICtrl', ['$scope', 'Broadcast',
+function($scope, UI) {
+
+}]);

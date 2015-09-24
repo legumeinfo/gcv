@@ -37,3 +37,15 @@ function($http){
          .then(function(response) { successCallback(response.data); },
                function(response) { errorCallback(response); });
 }}}]);
+
+contextServices.factory('Broadcast', ['$rootScope',
+function($rootScope) {
+  return {
+    redraw: function() {
+      $rootScope.$broadcast('redraw');
+    },
+    geneClicked: function(gene) {
+      $rootScope.$broadcast('geneClicked', gene);
+    }
+  }
+}]);
