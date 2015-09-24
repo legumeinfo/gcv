@@ -88,6 +88,12 @@ contextControllers
 function($scope, $routeParams, $location, $cookies, Context) {
   // initialize the form
   $scope.init = function() {
+    // radio options
+    $scope.algorithms = [{id: "smith", name: "Smith-Watermn"},
+                         {id: "repeat", name: "Repeat"}];
+    // select options
+    $scope.orderings = [{id: "chromosome", name: "Chromosome"},
+                        {id: "distance", name: "Edit distance"}];
     // default form values
     $scope.formData = {numNeighbors: 5,
                        numMatchedFamilies: 3,
@@ -96,7 +102,8 @@ function($scope, $routeParams, $location, $cookies, Context) {
                        match: 5,
                        mismatch: -1,
                        gap: -1,
-                       threshold: 45};
+                       threshold: 45,
+                       order: "chromosome"};
     // override with values from cookie
     var cookie = $cookies.getObject('context');
     if (cookie !== undefined) {

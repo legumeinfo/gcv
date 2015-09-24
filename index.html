@@ -138,17 +138,15 @@
           <legend>Alignment Parameters</legend>
           <div class="form-group">
             <label>Algorithm</label>
-            <div class="radio">
-              <label>
-                <input type="radio" name="algorithm" value="smith" ng-model="formData.algorithm">
-                Smith-Waterman
-              </label>
-            </div>
-            <div class="radio">
-              <label>
-                <input type="radio" name="algorithm" value="repeat" ng-model="formData.algorithm">
-                Repeat
-              </label>
+            <div class="radio" data-ng-repeat="a in algorithms">
+            <label>
+                <input
+                    name="algorithm"
+                    type="radio"
+                    value="{{a.id}}"
+                    ng-model="formData.algorithm" />
+                    {{a.name}}
+            </label>
             </div>
           </div>
           <div class="form-group" show-errors>
@@ -173,9 +171,9 @@
           </div>
           <div class="form-group">
             <label>Order</label>
-            <select class="form-control" id="ordering">
-              <option>Chromosome</option>
-              <option>Edit distance</option>
+            <select class="form-control"
+             ng-options="o.id as o.name for o in orderings"
+             ng-model="formData.order">
             </select>
           </div>
           <button type="submit" class="btn btn-primary col-sm-12">Submit</button>
