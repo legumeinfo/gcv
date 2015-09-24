@@ -43,14 +43,9 @@ function(DataStore) {
                   scores[id] = 0;
                 }
                 scores[id] += al[1];
-                if (params.algorithm == "repeat") {
-                  for (var j = 0; j < al[0].length; j++) {
-                    resultTracks.push(clone(tracks.groups[i]));
-                    alignments.push(al[0][j]);
-                  }
-                } else {
+                for (var j = 0; j < al[0].length; j++) {
                   resultTracks.push(clone(tracks.groups[i]));
-                  alignments.push(al);
+                  alignments.push(al[0][j]);
                 }
               }
             }

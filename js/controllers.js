@@ -37,6 +37,7 @@ function($scope, $routeParams, $location, $cookies, Viewer, Broadcast) {
   // gets data and updates the view when the form is submitted
   $scope.submit = function() {
     if ($scope.form.$valid) {
+      console.log("valid");
       toggleSlider('#parameters');
       // in case the form is submitted with invalid values
       $scope.$broadcast('show-errors-check-validity');
@@ -52,6 +53,7 @@ function($scope, $routeParams, $location, $cookies, Viewer, Broadcast) {
         getData();
       } else {
         Viewer.align($scope.params);
+        drawViewer();
       }
     } else {
       showAlert(alertEnum.DANGER, "Invalid input parameters");
