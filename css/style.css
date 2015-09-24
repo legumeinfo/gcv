@@ -4,6 +4,11 @@ body, html {
   min-width:400px;
   overflow: hidden;
 }
+
+a {
+  cursor: pointer;
+}
+
 .navbar {
   margin-bottom: 0;
 }

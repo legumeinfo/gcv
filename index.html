@@ -68,18 +68,18 @@
         </div>
         <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
           <ul class="nav navbar-nav tabs">
-            <li><button type="button" class="btn btn-default navbar-btn" ng-click="toggleParameters()">Parameters</button></li>
+            <li><button type="button" class="btn btn-default navbar-btn" ng-click="toggleParameters($event)">Parameters</button></li>
             <li><a href="#viewer">Viewer</a></li>
             <li><a href="#plots">Dot Plots</a></li>
             <li><a href="#help">Help</a></li>
           </ul>
           <div>
             <ul class="nav navbar-nav navbar-right">
-              <li><button type="button" class="btn btn-default navbar-btn" ng-click="toggleLegend()">Legend</button></li>
+              <li><button type="button" class="btn btn-default navbar-btn" ng-click="toggleLegend($event)">Legend</button></li>
             </ul>
             <div id="alerts">
               <!--<div class="alert alert-success" role="alert">10 tracks returned. 3 aligned</div>-->
-              <div class="alert alert-info" role="alert">10 tracks returned. 0 aligned (<a href="#" class="open-parameters" ng-click="toggleParameters()">Revise Alignment Parameters</a>)</div>
+              <div class="alert alert-info" role="alert">10 tracks returned. 0 aligned (<a class="open-parameters" ng-click="toggleParameters($event)">Revise Alignment Parameters</a>)</div>
               <!--<div class="alert alert-warning" role="alert">0 tracks returned (<a href="#" class="open-parameters">Revise Query Parameters</a>)</div>-->
               <!--<div class="alert alert-danger alert-dismissible" role="alert">Failed to retrieve data</div>-->
             </div>
@@ -116,7 +116,7 @@
           </form>
           <ul class="nav navbar-nav navbar-right">
             <li><a href="#">
-              <span class="glyphicon glyphicon glyphicon-remove pull-right" ng-click="toggleParameters()" aria-hidden="true"></span>
+              <span class="glyphicon glyphicon glyphicon-remove pull-right" ng-click="toggleParameters($event)" aria-hidden="true"></span>
             </a></li>
           </ul>
         </div>
@@ -128,17 +128,17 @@
           <legend>Query Parameters</legend>
           <div class="form-group" show-errors>
             <label>Neighbors</label>
-            <input type="number" min="1" name="numNeighbors" class="form-control" ng-model="formData.numNeighbors" integer required>
+            <input type="number" min="1" name="numNeighbors" class="form-control" ng-model="params.numNeighbors" integer required>
             <span id="helpBlock" class="help-block">A positive integer</span>
           </div>
           <div class="form-group" show-errors>
             <label>Matched Families</label>
-            <input type="number" min="1" name="numMatchedFamilies" class="form-control" ng-model="formData.numMatchedFamilies" integer required>
+            <input type="number" min="1" name="numMatchedFamilies" class="form-control" ng-model="params.numMatchedFamilies" integer required>
             <span id="helpBlock" class="help-block">A positive integer</span>
           </div>
           <div class="form-group" show-errors>
             <label>Intermediate genes</label>
-            <input type="number" min="0" name="numNonFamily" class="form-control" ng-model="formData.numNonFamily" integer required>
+            <input type="number" min="0" name="numNonFamily" class="form-control" ng-model="params.numNonFamily" integer required>
             <span id="helpBlock" class="help-block">A positive integer or 0</span>
           </div>
           <legend>Alignment Parameters</legend>
@@ -150,36 +150,36 @@
                     name="algorithm"
                     type="radio"
                     value="{{a.id}}"
-                    ng-model="formData.algorithm" />
+                    ng-model="params.algorithm" />
                     {{a.name}}
             </label>
             </div>
           </div>
           <div class="form-group" show-errors>
             <label>Match</label>
-            <input type="number" name="match" class="form-control" ng-model="formData.match" integer required>
+            <input type="number" name="match" class="form-control" ng-model="params.match" integer required>
             <span id="helpBlock" class="help-block">An integer</span>
           </div>
           <div class="form-group" show-errors>
             <label>Mismatch</label>
-            <input type="number" name="mismatch" class="form-control" ng-model="formData.mismatch" integer required>
+            <input type="number" name="mismatch" class="form-control" ng-model="params.mismatch" integer required>
             <span id="helpBlock" class="help-block">An integer</span>
           </div>
           <div class="form-group" show-errors>
             <label>Gap</label>
-            <input type="number" name="gap" class="form-control" ng-model="formData.gap" integer required>
+            <input type="number" name="gap" class="form-control" ng-model="params.gap" integer required>
             <span id="helpBlock" class="help-block">An integer</span>
           </div>
           <div class="form-group" show-errors>
             <label>Threshold</label>
-            <input type="number" name="threshold" class="form-control" ng-model="formData.threshold" integer required>
+            <input type="number" name="threshold" class="form-control" ng-model="params.threshold" integer required>
             <span id="helpBlock" class="help-block">An integer</span>
           </div>
           <div class="form-group">
             <label>Order</label>
             <select class="form-control"
              ng-options="o.id as o.name for o in orderings"
-             ng-model="formData.order">
+             ng-model="params.order">
             </select>
           </div>
           <button type="submit" class="btn btn-primary col-sm-12">Submit</button>

@@ -13,7 +13,7 @@ function($scope, $routeParams, $location, $cookies, Viewer, Broadcast) {
     $scope.orderings = [{id: "chromosome", name: "Chromosome"},
                         {id: "distance", name: "Edit distance"}];
     // default form values
-    $scope.formData = {numNeighbors: 5,
+    $scope.params = {numNeighbors: 5,
                        numMatchedFamilies: 3,
                        numNonFamily: 5,
                        algorithm: "repeat",
@@ -25,12 +25,12 @@ function($scope, $routeParams, $location, $cookies, Viewer, Broadcast) {
     // override with values from cookie
     var cookie = $cookies.getObject('context');
     if (cookie !== undefined) {
-      updateObj(cookie, $scope.formData);
+      updateObj(cookie, $scope.params);
     }
     // override with values from url
     var search = $location.search();
     if (search !== undefined) {
-      updateObj(search, $scope.formData);
+      updateObj(search, $scope.params);
     }
   }
 
@@ -41,9 +41,9 @@ function($scope, $routeParams, $location, $cookies, Viewer, Broadcast) {
       // in case the form is submitted with invalid values
       $scope.$broadcast('show-errors-check-validity');
       // update the url to reflect the changes
-      $location.search($scope.formData);
+      $location.search($scope.params);
       // save the new params to the cookie
-      $cookies.putObject('context', $scope.formData);
+      $cookies.putObject('context', $scope.params);
       // only three params require a db query
       if (!($scope.form.numNeighbors.$pristine &&
             $scope.form.numMatchedFamilies.$pristine &&
@@ -51,7 +51,7 @@ function($scope, $routeParams, $location, $cookies, Viewer, Broadcast) {
           Viewer.tracks() === undefined) {
         getData();
       } else {
-        Viewer.align($scope.formData);
+        Viewer.align($scope.params);
       }
     } else {
       showAlert(alertEnum.DANGER, "Invalid input parameters");
@@ -66,11 +66,11 @@ function($scope, $routeParams, $location, $cookies, Viewer, Broadcast) {
   // private function that fetches data
   function getData() {
     Viewer.get($routeParams.focusName,
-                  {numNeighbors: $scope.formData.numNeighbors,
-                   numMatchedFamilies: $scope.formData.numMatchedFamilies,
-                   numNonFamily: $scope.formData.numNonFamily},
+                  {numNeighbors: $scope.params.numNeighbors,
+                   numMatchedFamilies: $scope.params.numMatchedFamilies,
+                   numNonFamily: $scope.params.numNonFamily},
                   function() {
-                    Viewer.align($scope.formData);
+                    Viewer.align($scope.params);
                     drawViewer();
                   },
                   function(response) {
@@ -104,7 +104,7 @@ function($scope, $routeParams, $location, $cookies, Viewer, Broadcast) {
                    "selectiveColoring": true,
                    "interTrack": true,
                    "merge": true,
-                   "sort": $scope.formData.order == "chromosome" ?
+                   "sort": $scope.params.order == "chromosome" ?
                            byChromosome : byDistance});
   }
 
@@ -179,12 +179,14 @@ function($scope, Broadcast) {
   });
 
   // parameters click action
-  $scope.toggleParameters = function() {
+  $scope.toggleParameters = function(event) {
+    event.stopPropagation();
     toggleSlider('#parameters');
   };
 
   // legend click action
-  $scope.toggleLegend = function() {
+  $scope.toggleLegend = function(event) {
+    event.stopPropagation();
     toggleSlider('#dashboard', showSpinners,
       function() {
         hideSpinners();
