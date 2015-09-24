@@ -168,3 +168,21 @@ function($scope, $routeParams, $location, $cookies, Context) {
     $scope.submit();
   }
 }]);
+
+contextControllers
+.controller('GeneCtrl', ['$scope', 'Gene',
+function($scope, Gene) {
+
+}]);
+
+contextControllers
+.controller('FamilyCtrl', ['$scope', 'Family',
+function($scope, Family) {
+
+}]);
+
+contextControllers
+.controller('PlotCtrl', ['$scope', 'Plot',
+function($scope, Plot) {
+
+}]);

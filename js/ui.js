@@ -91,3 +91,8 @@ function showAlert(type, message, link) {
             + link+'</a>)' : '')+'</div>';
   $('#alerts').html(html);
 }
+
+$(document).ready(function() {
+  toggleSlider('#genes');
+  toggleSlider('#families');
+});

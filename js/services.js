@@ -10,3 +10,30 @@ function($http){
          .then(function(response) { successCallback(response.data); },
                function(response) { errorCallback(response); });
 }}}]);
+
+contextServices.factory('Gene', ['$http',
+function($http){
+  return {get: function(geneName, successCallback, errorCallback) {
+    $http({url: '#'+geneName, // TODO: use correct url
+           method: "GET"})
+         .then(function(response) { successCallback(response.data); },
+               function(response) { errorCallback(response); });
+}}}]);
+
+contextServices.factory('Family', ['$http',
+function($http){
+  return {get: function(familyName, successCallback, errorCallback) {
+    $http({url: '#'+familyName, // TODO: use correct url
+           method: "GET"})
+         .then(function(response) { successCallback(response.data); },
+               function(response) { errorCallback(response); });
+}}}]);
+
+contextServices.factory('Plot', ['$http',
+function($http){
+  return {get: function(geneName, successCallback, errorCallback) {
+    $http({url: '#'+geneName, // TODO: use correct url
+           method: "GET"})
+         .then(function(response) { successCallback(response.data); },
+               function(response) { errorCallback(response); });
+}}}]);

@@ -21,7 +21,7 @@
   <script src="js/services.js"></script>
   <script src="js/jquery-2.1.4.min.js"></script>
 </head>
-<body ng-app="contextApp" ng-controller="ContextCtrl">
+<body ng-app="contextApp">
   <div id="dashboard" class="right-slider col-md-3">
     <div id="legend">
       <div class=vertical-scroll>
@@ -29,7 +29,7 @@
         </div>
       </div>
     </div>
-    <div id="plot">
+    <div id="plot" ng-controller="PlotCtrl">
       <nav class="navbar navbar-default navbar-static-top">
         <div class="container-fluid">
           <div class="navbar-header">
@@ -91,7 +91,11 @@
     <div id="plots">plots</div>
     <div id="help">help</div>
   </div>
-  <div id="parameters" class="left-slider col-md-3">
+  <div id="genes" class="left-slider col-md-3" ng-controller="GeneCtrl">
+  </div>
+  <div id="families" class="left-slider col-md-3" ng-controller="FamilyCtrl">
+  </div>
+  <div id="parameters" class="left-slider col-md-3" ng-controller="ContextCtrl">
     <nav id="parameters-nav" class="navbar navbar-default navbar-static-top">
       <div class="container-fluid">
         <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
@@ -182,8 +186,8 @@
         </fieldset>
       </form>
     </div>
+    <div ng-view></div>
   </div>
-  <div ng-view></div>
   <script src="js/ui.js"></script>
 </body>
 </html>
