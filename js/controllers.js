@@ -37,7 +37,7 @@ function($scope, $routeParams, $location, $cookies, Viewer, Broadcast) {
   // gets data and updates the view when the form is submitted
   $scope.submit = function() {
     if ($scope.form.$valid) {
-      toggleSlider('#parameters');
+      $scope.hideParameters();
       // in case the form is submitted with invalid values
       $scope.$broadcast('show-errors-check-validity');
       // update the url to reflect the changes
@@ -186,6 +186,18 @@ function($scope, Broadcast) {
   $scope.toggleParameters = function(event) {
     event.stopPropagation();
     toggleSlider('#parameters');
+  };
+
+  // parameters show/hide functionality
+  $scope.showParameters = function() {
+    if ($('#parameters').is(':hidden')) {
+      toggleSlider('#parameters');
+    }
+  };
+  $scope.hideParameters = function() {
+    if (!$('#parameters').is(':hidden')) {
+      toggleSlider('#parameters');
+    }
   };
 
   // legend click action
