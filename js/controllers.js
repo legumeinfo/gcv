@@ -37,7 +37,6 @@ function($scope, $routeParams, $location, $cookies, Viewer, Broadcast) {
   // gets data and updates the view when the form is submitted
   $scope.submit = function() {
     if ($scope.form.$valid) {
-      console.log("valid");
       toggleSlider('#parameters');
       // in case the form is submitted with invalid values
       $scope.$broadcast('show-errors-check-validity');
@@ -61,7 +60,7 @@ function($scope, $routeParams, $location, $cookies, Viewer, Broadcast) {
   }
   
   // try to fetch new data whenever the controller is initialized
-  if ($routeParams.focusName) {
+  if ($routeParams.focusName !== undefined && Viewer.tracks() === undefined) {
     $scope.submit();
   }
 
@@ -71,10 +70,6 @@ function($scope, $routeParams, $location, $cookies, Viewer, Broadcast) {
                   {numNeighbors: $scope.params.numNeighbors,
                    numMatchedFamilies: $scope.params.numMatchedFamilies,
                    numNonFamily: $scope.params.numNonFamily},
-                  function() {
-                    Viewer.align($scope.params);
-                    drawViewer();
-                  },
                   function(response) {
                     showAlert(alertEnum.DANGER, "Failed to retrieve data");
                   });
@@ -109,6 +104,12 @@ function($scope, $routeParams, $location, $cookies, Viewer, Broadcast) {
                    "sort": $scope.params.order == "chromosome" ?
                            byChromosome : byDistance});
   }
+
+  // listen for new data event
+  $scope.$on('newData', function(event) {
+    Viewer.align($scope.params);
+    drawViewer();
+  });
 
   // listen for redraw events
   $scope.$on('redraw', function(event) {
