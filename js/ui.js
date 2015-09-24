@@ -40,19 +40,6 @@ $('ul.tabs').each(function() {
   });
 });
 
-// what to do at the beginning and end of window resizing
-function showSpinners() {
-  $('#main').append(spinner);
-  $('#legend .vertical-scroll').append(spinner);
-  $('#plot .inner-ratio').append(spinner);
-}
-function hideSpinners() {
-  $('.grey-screen').remove();
-}
-var spinner = '<div class="grey-screen">'
-            + '<div class="spinner"><img src="img/spinner.gif" /></div>'
-            + '</div>';
-
 $(document).ready(function() {
   toggleSlider('#genes');
   toggleSlider('#families');

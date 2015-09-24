@@ -37,6 +37,7 @@ function($scope, $routeParams, $location, $cookies, Viewer, Broadcast) {
   // gets data and updates the view when the form is submitted
   $scope.submit = function() {
     if ($scope.form.$valid) {
+      $scope.showSpinners();
       $scope.hideParameters();
       // in case the form is submitted with invalid values
       $scope.$broadcast('show-errors-check-validity');
@@ -72,6 +73,7 @@ function($scope, $routeParams, $location, $cookies, Viewer, Broadcast) {
                    numNonFamily: $scope.params.numNonFamily},
                   function(response) {
                     $scope.alert("danger", "Failed to retrieve data");
+                    $scope.hideSpinners();
                   });
   }
 
@@ -103,6 +105,7 @@ function($scope, $routeParams, $location, $cookies, Viewer, Broadcast) {
                    "merge": true,
                    "sort": $scope.params.order == "chromosome" ?
                            byChromosome : byDistance});
+    $scope.hideSpinners();
   }
 
   // listen for new data event
@@ -171,13 +174,13 @@ function($scope, Broadcast) {
   var resizeTimeout;
   $(window).on('resize', function() {
     if (resizeTimeout === undefined) {
-      showSpinners();
+      $scope.showSpinners();
     }
     clearTimeout(resizeTimeout);
     resizeTimeout = setTimeout(function() {
       clearTimeout(resizeTimeout);
       resizeTimeout = undefined;
-      hideSpinners();
+      $scope.hideSpinners();
       Broadcast.redraw();
     }, 1000);
   });
@@ -203,9 +206,9 @@ function($scope, Broadcast) {
   // legend click action
   $scope.toggleLegend = function(event) {
     event.stopPropagation();
-    toggleSlider('#dashboard', showSpinners,
+    toggleSlider('#dashboard', $scope.showSpinners,
       function() {
-        hideSpinners();
+        $scope.hideSpinners();
         Broadcast.redraw();
     });
   };
@@ -216,5 +219,18 @@ function($scope, Broadcast) {
     $scope.alertClass = "alert-"+type;
     $scope.alertMessage = message;
   }
+
+  // what to do at the beginning and end of window resizing
+  $scope.showSpinners = function() {
+    $('#main').append(spinner);
+    $('#legend .vertical-scroll').append(spinner);
+    $('#plot .inner-ratio').append(spinner);
+  }
+  $scope.hideSpinners = function() {
+    $('.grey-screen').remove();
+  }
+  var spinner = '<div class="grey-screen">'
+              + '<div class="spinner"><img src="img/spinner.gif" /></div>'
+              + '</div>';
   // 10 tracks returned. 0 aligned (<a class="open-parameters" ng-click="toggleParameters($event)">Revise Alignment Parameters</a>)
 }]);
