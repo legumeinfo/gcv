@@ -53,23 +53,6 @@ var spinner = '<div class="grey-screen">'
             + '<div class="spinner"><img src="img/spinner.gif" /></div>'
             + '</div>';
 
-// display alerts
-var alertEnum = {SUCCESS: 0,
-              INFO: 1,
-              WARNING: 2,
-              DANGER: 3},
-    alertClasses = ["alert-success",
-                    "alert-info",
-                    "alert-warning",
-                    "alert-danger"];
-function showAlert(type, message, link) {
-  var html = '<div class="alert '+alertClasses[type]+'" role="alert">'
-           + message
-           + (link ? ' (<a href="#" class="open-parameters">'
-            + link+'</a>)' : '')+'</div>';
-  $('#alerts').html(html);
-}
-
 $(document).ready(function() {
   toggleSlider('#genes');
   toggleSlider('#families');

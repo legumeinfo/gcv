@@ -79,7 +79,7 @@
             </ul>
             <div id="alerts">
               <!--<div class="alert alert-success" role="alert">10 tracks returned. 3 aligned</div>-->
-              <div class="alert alert-info" role="alert">10 tracks returned. 0 aligned (<a class="open-parameters" ng-click="toggleParameters($event)">Revise Alignment Parameters</a>)</div>
+              <div class="alert" ng-class="alertClass" role="alert">{{alertMessage}}</div>
               <!--<div class="alert alert-warning" role="alert">0 tracks returned (<a href="#" class="open-parameters">Revise Query Parameters</a>)</div>-->
               <!--<div class="alert alert-danger alert-dismissible" role="alert">Failed to retrieve data</div>-->
             </div>

@@ -55,7 +55,7 @@ function($scope, $routeParams, $location, $cookies, Viewer, Broadcast) {
         drawViewer();
       }
     } else {
-      showAlert(alertEnum.DANGER, "Invalid input parameters");
+      $scope.alert("danger", "Invalid input parameters");
     }
   }
   
@@ -71,7 +71,7 @@ function($scope, $routeParams, $location, $cookies, Viewer, Broadcast) {
                    numMatchedFamilies: $scope.params.numMatchedFamilies,
                    numNonFamily: $scope.params.numNonFamily},
                   function(response) {
-                    showAlert(alertEnum.DANGER, "Failed to retrieve data");
+                    $scope.alert("danger", "Failed to retrieve data");
                   });
   }
 
@@ -109,6 +109,7 @@ function($scope, $routeParams, $location, $cookies, Viewer, Broadcast) {
   $scope.$on('newData', function(event) {
     Viewer.align($scope.params);
     drawViewer();
+    $scope.alert("success", "Success!");
   });
 
   // listen for redraw events
@@ -141,7 +142,7 @@ function($scope, Gene) {
       }
       $('#toggle').html(html);
     }, function(response) {
-      showAlert(alertEnum.DANGER, "Failed to retrieve gene data");
+      $scope.alert("danger", "Failed to retrieve gene data");
     });
   }
 
@@ -196,4 +197,12 @@ function($scope, Broadcast) {
         Broadcast.redraw();
     });
   };
+
+  $scope.alertClass = "alert-info";
+  $scope.alertMessage = "Your context is loading";
+  $scope.alert = function(type, message, link) {
+    $scope.alertClass = "alert-"+type;
+    $scope.alertMessage = message;
+  }
+  // 10 tracks returned. 0 aligned (<a class="open-parameters" ng-click="toggleParameters($event)">Revise Alignment Parameters</a>)
 }]);
