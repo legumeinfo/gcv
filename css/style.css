@@ -45,7 +45,7 @@ a {
   overflow-x:hidden;
   overflow-y:auto;
 }
-.left-slider {
+#left-slider {
   padding: 0;
   position:fixed;
   top:50px;
@@ -65,19 +65,19 @@ a {
     startColorstr=#BBF8F8F8, endColorstr=#BBF8F8F8
   )";
 }
-#parameters-nav {
+#left-slider nav {
   margin: 1 0 0 0;
 }
-#parameters-nav form {
+#left-slider nav form {
   padding: 0;
 }
-#parameters-nav form input {
+#left-slider nav form input {
   z-index: 1000;
 }
-#parameters-nav form button {
+#left-slider nav form button {
   cursor: pointer;
 }
-#parameters-form {
+#left-slider-content {
   position: absolute;
   top: 50px;
   left: 0;
@@ -86,32 +86,30 @@ a {
   padding: 15px;
   overflow-y: auto;
 }
-.right-slider {
+#right-slider {
   margin: 0;
   padding: 0;
   height: 100%;
   float: right;
   border-left: #E7E7E7 solid 1px;
-}
-#dashboard {
   display: table;
 }
-#dashboard .navbar {
+#right-slider .navbar {
   border-top: #E7E7E7 solid 1px;
 }
 /* vertically stretch legend to remaining area: http://stackoverflow.com/questions/8555820/set-div-to-remaining-height-using-css-with-unknown-height-divs-above-and-below */
-#dashboard #legend {
+#right-slider #legend-wrapper {
   display: table-row;
   width: 100%;
   height: 100%;
   overflow: hidden;
 }
 /* add y scrolling to div with dynamical height: http://www.roelvanlisdonk.nl/?p=3854 */
-#dashboard #legend .vertical-scroll {
+#right-slider #legend-wrapper .vertical-scroll {
   position:relative;
   height: 100%
 }
-#dashboard #legend .vertical-scroll .content {
+#right-slider #legend-wrapper .vertical-scroll #legend {
   overflow-y: scroll;
   position: absolute;
   top: 0;
@@ -119,17 +117,17 @@ a {
   bottom: 0;
   left: 0;
 }
-#dashboard #plot {
+#right-slider #plot {
   display: table-row;
   width: 100%;
 }
 /* maintain plot ratio: http://stackoverflow.com/questions/17195656/in-fluid-container-can-i-make-elements-as-tall-as-they-are-wide */
-#dashboard #plot .outer-ratio {
+#right-slider #plot .outer-ratio {
   position: relative;
   height: 0;
   padding-bottom: 100%;
 }
-#dashboard #plot .out .inner-ratio {
+#right-slider #plot .out .inner-ratio {
   position: absolute;
   top: 0;
   bottom: 0;

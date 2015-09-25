@@ -1,6 +1,6 @@
 
-//function context_legend( container_id, color, data, legend_click, selective_coloring ) {
-function context_legend( container_id, color, data, optional_parameters ) {
+//function context_legend( container_id, color, data, legendClick, selective_coloring ) {
+function contextLegend( container_id, color, data, optional_parameters ) {
     // make sure optional parameters is at least defined
     if( optional_parameters === undefined ) {
         optional_parameters = {};
@@ -9,13 +9,13 @@ function context_legend( container_id, color, data, optional_parameters ) {
 	document.getElementById(container_id).innerHTML = "";
 
 	// get the family id name map
-	var family_names = get_family_name_map( data );
+	var family_names = getFamilyNameMap( data );
 
 
     // omit any family that don't have a name
     var fams = [];
 	// determine how many families will be in the legend
-	var family_size_map = get_family_size_map( data );
+	var family_size_map = getFamilySizeMap( data );
 	var num_fams = 0;
     if( optional_parameters.selective_coloring === undefined || optional_parameters.selective_coloring !== undefined && optional_parameters.selective_coloring ) {
 	    for( fam in family_size_map ) {
@@ -89,8 +89,8 @@ function context_legend( container_id, color, data, optional_parameters ) {
 				return e.family == d;
 			});
 			var family = d3.select(this);
-            if( optional_parameters.legend_click !== undefined ) {
-			    legend_click( d, selection );
+            if( optional_parameters.legendClick !== undefined ) {
+			    optional_parameters.legendClick( d, selection );
             }
 		});
 	

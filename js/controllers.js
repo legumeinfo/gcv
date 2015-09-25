@@ -38,7 +38,7 @@ function($scope, $routeParams, $location, $cookies, Viewer, Broadcast) {
   $scope.submit = function() {
     if ($scope.form.$valid) {
       $scope.showSpinners();
-      $scope.hideParameters();
+      $scope.hideLeftSlider();
       // in case the form is submitted with invalid values
       $scope.$broadcast('show-errors-check-validity');
       // update the url to reflect the changes
@@ -105,6 +105,8 @@ function($scope, $routeParams, $location, $cookies, Viewer, Broadcast) {
                    "merge": true,
                    "sort": $scope.params.order == "chromosome" ?
                            byChromosome : byDistance});
+	contextLegend('legend', colors, Viewer.tracks(),
+                  {"legendClick": Broadcast.familyClicked});
     $scope.hideSpinners();
   }
 
@@ -158,7 +160,19 @@ function($scope, Gene) {
 contextControllers
 .controller('FamilyCtrl', ['$scope', 'Family',
 function($scope, Family) {
-
+  $scope.$on('familyClicked', function(event, family, genes) {
+    var familyNames = Family.familyNames();
+    html = '<h4><a href="#'+familyNames[family]+'/">' +
+           familyNames[family]+'</a></h4>'; // TODO: link to tripal
+    html += 'Genes:<ul>';
+    genes.each(function(f) {
+      html += '<li><a href="#'+f.name+'/">'+f.name+'</a>: ' +
+              f.fmin+' - '+f.fmax+'</li>';
+    });
+    html += '</ul>';
+    $('#family').html(html);
+    $scope.showLeftSlider('#family');
+  });
 }]);
 
 contextControllers
@@ -184,47 +198,45 @@ function($scope, Broadcast) {
       Broadcast.redraw();
     }, 1000);
   });
-  
-  // local slider function
-  function toggleSlider(target, pre, post) {
-  if (pre !== undefined) {
-    pre();
-  }
-  $(target).animate({width:'toggle'}, 350,
-                    function() {
-                      if (post !== undefined) {
-                        post();
-                      }
-                    });
-  }
 
-  // parameters click action
-  $scope.toggleParameters = function(event) {
-    event.stopPropagation();
-    toggleSlider('#parameters');
-  };
-
-  // parameters show/hide functionality
-  $scope.showParameters = function() {
-    if ($('#parameters').is(':hidden')) {
-      toggleSlider('#parameters');
-    }
-  };
-  $scope.hideParameters = function() {
-    if (!$('#parameters').is(':hidden')) {
-      toggleSlider('#parameters');
-    }
-  };
-
-  // legend click action
-  $scope.toggleLegend = function(event) {
-    event.stopPropagation();
-    toggleSlider('#dashboard', $scope.showSpinners,
-      function() {
-        $scope.hideSpinners();
-        Broadcast.redraw();
+  // make all divs in the left slider except the target
+  function switchActive(target) {
+    $.each(['#parameters', '#gene', '#family'], function(i, e) {
+      if (e == target) { $(e).show(); }
+      else { $(e).hide(); }
     });
+    $(target).show();
   };
+  
+  // slider animation
+  $scope.toggleLeftSlider = function(event) {
+    if (event !== undefined) {
+      event.stopPropagation();
+    }
+    $('#left-slider').animate({width:'toggle'}, 350);
+  }
+  $scope.showLeftSlider = function(target, event) {
+    if (target == '#parameters' && $('#parameters').is(':visible')) {
+      $scope.hideLeftSlider(event);
+    } else {
+      switchActive(target);
+      if ($('#left-slider').is(':hidden')) {
+        $scope.toggleLeftSlider(event);
+      }
+    }
+  }
+  $scope.hideLeftSlider = function(event) {
+    if ($('#left-slider').is(':visible')) {
+      $scope.toggleLeftSlider(event);
+    }
+  }
+  $scope.toggleRightSlider = function(event) {
+    $scope.showSpinners();
+    $('#right-slider').animate({width:'toggle'}, 350,
+                               function() {
+                                   $scope.hideSpinners();
+                                 });
+  }
 
   $scope.alertClass = "alert-info";
   $scope.alertMessage = "Your context is loading";
@@ -236,7 +248,7 @@ function($scope, Broadcast) {
   // what to do at the beginning and end of window resizing
   $scope.showSpinners = function() {
     $('#main').append(spinner);
-    $('#legend .vertical-scroll').append(spinner);
+    $('#legend-wrapper .vertical-scroll').append(spinner);
     $('#plot .inner-ratio').append(spinner);
   }
   $scope.hideSpinners = function() {
@@ -275,11 +287,5 @@ function($scope, Broadcast) {
       // Prevent the anchor's default click action
       e.preventDefault();
     });
-  });
-  
-  // when the document is ready
-  $(document).ready(function() {
-    toggleSlider('#genes');
-    toggleSlider('#families');
   });
 }]);

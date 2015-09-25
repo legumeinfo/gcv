@@ -3,6 +3,7 @@ var contextServices = angular.module('contextServices', []);
 contextServices.service('DataStore', ['$http', '$rootScope',
 function($http, $rootScope){
   var json;
+  var familyNames;
   return {get: function(focusName, params, errorCallback) {
                  $http({url: 'http://localhost:8000/chado/context_viewer' +
                              '/search_tracks_service/'+focusName, 
@@ -10,12 +11,14 @@ function($http, $rootScope){
                         params: params})
                       .then(function(response) {
                               json = response.data;
+                              familyNames = getFamilyNameMap(JSON.parse(json));
                               // controllers should listen for the broadcast
                               // instead of passing a success callback
                               $rootScope.$broadcast('newData');
                             },
                             function(response) { errorCallback(response); });},
-          json: function() { return json; }
+          json: function() { return json; },
+          familyNames: function() { return familyNames; }
 }}]);
 
 contextServices.service('Viewer', ['DataStore',
@@ -60,8 +63,8 @@ function(DataStore) {
 }]);
 
 // TODO: cache clicked gene data
-contextServices.factory('Gene', ['$http',
-function($http){
+contextServices.factory('Gene', ['$http', 'DataStore',
+function($http, DataStore){
   return {get: function(geneName, successCallback, errorCallback) {
     $http({url: '#'+geneName, // TODO: use correct url
            method: "GET"})
@@ -70,14 +73,15 @@ function($http){
 }}}]);
 
 // TODO: cache clicked family data
-contextServices.factory('Family', ['$http',
-function($http){
+contextServices.factory('Family', ['$http', 'DataStore',
+function($http, DataStore){
   return {get: function(familyName, successCallback, errorCallback) {
-    $http({url: '#'+familyName, // TODO: use correct url
-           method: "GET"})
-         .then(function(response) { successCallback(response.data); },
-               function(response) { errorCallback(response); });
-}}}]);
+            $http({url: '#'+familyName, // TODO: use correct url
+                   method: "GET"})
+            .then(function(response) { successCallback(response.data); },
+                  function(response) { errorCallback(response); });},
+           familyNames: function() { return DataStore.familyNames(); }
+}}]);
 
 // TODO: cache global plot data
 contextServices.factory('Plot', ['$http', 'DataStore',
@@ -97,6 +101,9 @@ function($rootScope) {
     },
     geneClicked: function(gene) {
       $rootScope.$broadcast('geneClicked', gene);
+    },
+    familyClicked: function(family, genes) {
+      $rootScope.$broadcast('familyClicked', family, genes);
     }
   }
 }]);
