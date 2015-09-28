@@ -231,10 +231,12 @@ function($scope, Broadcast) {
     }
   }
   $scope.toggleRightSlider = function(event) {
+    event.stopPropagation();
     $scope.showSpinners();
     $('#right-slider').animate({width:'toggle'}, 350,
                                function() {
                                    $scope.hideSpinners();
+                                   Broadcast.redraw();
                                  });
   }
 
