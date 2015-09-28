@@ -126,7 +126,8 @@ function($scope, $routeParams, $location, $cookies, Viewer, Broadcast) {
 contextControllers
 .controller('GeneCtrl', ['$scope', 'Gene',
 function($scope, Gene) {
-  function geneClicked(gene) {
+  // listen for gene click events
+  $scope.$on('geneClicked', function(event, gene) {
     Gene.get(gene.name, {}, function(json) {
       links = JSON.parse(json);
       var familyNames = getFamilyNameMap(tracks); // TODO: move to service
@@ -145,15 +146,11 @@ function($scope, Gene) {
       if (links.meta) {
         html += '<p>'+links.meta+'</p>'
       }
-      $('#toggle').html(html);
+      $('#gene').html(html);
+      $scope.showLeftSlider('#gene');
     }, function(response) {
       $scope.alert("danger", "Failed to retrieve gene data");
     });
-  }
-
-  // listen for gene click events
-  $scope.$on('geneClicked', function(event) {
-    drawViewer();
   });
 }]);
 

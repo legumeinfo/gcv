@@ -189,8 +189,8 @@ function contextViewer(container_id, color, data, optional_parameters) {
   	    hide_tips(d3.select(this));
   	  })
   	  .on('click', function (d) {
-        if (optional_parameters.gene_clicked !== undefined) {
-  	  	   optional_parameters.gene_clicked(d);
+        if (optional_parameters.geneClicked !== undefined) {
+  	  	   optional_parameters.geneClicked(d);
         }
   	  });
   

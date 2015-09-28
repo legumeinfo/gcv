@@ -66,7 +66,7 @@ function(DataStore) {
 contextServices.factory('Gene', ['$http', 'DataStore',
 function($http, DataStore){
   return {get: function(geneName, successCallback, errorCallback) {
-    $http({url: '#'+geneName, // TODO: use correct url
+    $http({url: 'http://legumeinfo.org/gene_links/'+geneName+'/json',
            method: "GET"})
          .then(function(response) { successCallback(response.data); },
                function(response) { errorCallback(response); });
