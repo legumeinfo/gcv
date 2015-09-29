@@ -107,6 +107,16 @@ function($scope, $routeParams, $location, $cookies, Viewer, Broadcast) {
                            byChromosome : byDistance});
 	contextLegend('legend', colors, Viewer.tracks(),
                   {"legendClick": Broadcast.familyClicked});
+    // report how things went
+    var returned = Viewer.returned();
+    var aligned = Viewer.aligned();
+    if (returned > 0 && aligned > 0) {
+      $scope.alert("success", returned+" tracks returned. "+aligned+" aligned");
+    } else if (returned > 0 && aligned == 0) {
+      $scope.alert("warning", returned+' tracks returned. 0 aligned (<a ng-click="showLeftSlider(\'#parameters\', $event)">Alignment Parameters</a>)');
+    } else {
+      $scope.alert("danger", 'No tracks returned (<a ng-click="showLeftSlider(\'#parameters\', $event)">Query Parameters</a>)');
+    }
     $scope.hideSpinners();
   }
 
@@ -114,7 +124,6 @@ function($scope, $routeParams, $location, $cookies, Viewer, Broadcast) {
   $scope.$on('newData', function(event) {
     Viewer.align($scope.params);
     drawViewer();
-    $scope.alert("success", "Success!");
   });
 
   // listen for redraw events

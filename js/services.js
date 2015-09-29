@@ -44,12 +44,16 @@ contextServices.service('Viewer', ['DataStore',
 function(DataStore) {
   var tracks;
   var scores;
+  var returned;
+  var aligned;
   return {get: function(focusName, params, successCallback, errorCallback) {
             DataStore.get(focusName, params, successCallback, errorCallback);
           },
           align: function(params) {
             tracks = DataStore.parsedData();
+            returned = tracks.groups.length-1;
             scores = {};
+            aligned = 0;
             var aligner = params.algorithm == "repeat" ? repeat : smith;
             // align all the tracks with the query track
             var alignments = [],
@@ -59,8 +63,7 @@ function(DataStore) {
                                tracks.groups[i].genes,
                                function(item) { return item.family; },
                                params);
-              var id = tracks.groups[i].species_id+":"+
-                       tracks.groups[i].chromosome_id;
+              var id = tracks.groups[i].id;
               if (al !== null) {
                 if (scores[id] === undefined) {
                   scores[id] = 0;
@@ -70,18 +73,19 @@ function(DataStore) {
                   resultTracks.push(clone(tracks.groups[i]));
                   alignments.push(al[0][j]);
                 }
+                if (al[0].length > 0) {
+                  aligned++;
+                }
               }
             }
             // merge the alignments
             tracks.groups = [tracks.groups[0]];
             mergeAlignments(tracks, resultTracks, alignments);
           },
-          tracks: function() {
-            return tracks;
-          },
-          colors: function() {
-            return DataStore.colors();
-          }
+          tracks: function() { return tracks; },
+          colors: function() { return DataStore.colors(); },
+          returned: function() { return returned; },
+          aligned: function() { return aligned; }
 }}]);
 
 // TODO: cache clicked gene data
