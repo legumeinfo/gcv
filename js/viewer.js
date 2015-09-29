@@ -333,6 +333,11 @@ function contextViewer(container_id, color, data, optionalParameters) {
   
   // interact with the y-axes
   d3.selectAll(".axis_left text")
+    .style("font-weight", function(d, y) {
+      if (optionalParameters.boldFirst !== undefined &&
+          optionalParameters.boldFirst && y == 0) {
+        return "bold";
+      } return "normal"; })
   	.style("cursor", "pointer")
       .on("mouseover", function (d, y) {
   		var gene_selection = gene_groups.filter(function (e) {

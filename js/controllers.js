@@ -103,6 +103,7 @@ function($scope, $routeParams, $location, $cookies, Viewer, Broadcast) {
                    "selectiveColoring": true,
                    "interTrack": true,
                    "merge": true,
+                   "boldFirst": true,
                    "sort": $scope.params.order == "chromosome" ?
                            byChromosome : byDistance});
 	contextLegend('legend', colors, Viewer.tracks(),
@@ -321,7 +322,6 @@ function($scope, Broadcast) {
   var spinner = '<div class="grey-screen">'
               + '<div class="spinner"><img src="img/spinner.gif" /></div>'
               + '</div>';
-  // 10 tracks returned. 0 aligned (<a class="open-parameters" ng-click="toggleParameters($event)">Revise Alignment Parameters</a>)
 
   // add tab functionality
   $('ul.tabs').each(function() {
