@@ -83,6 +83,7 @@ function(DataStore) {
             mergeAlignments(tracks, resultTracks, alignments);
           },
           tracks: function() { return tracks; },
+          scores: function() { return scores; },
           colors: function() { return DataStore.colors(); },
           returned: function() { return returned; },
           aligned: function() { return aligned; }

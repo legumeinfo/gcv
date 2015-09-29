@@ -81,17 +81,12 @@ function($scope, $routeParams, $location, $cookies, Viewer, Broadcast) {
   var drawViewer = function() {
     // helper functions for sorting tracks
     function byChromosome(a, b) {
-      if( a.chromosome_name > b.chromosome_name ) {
-        return 1;
-      } else if ( a.chromosome_name < b.chromosome_name ) {
-        return -1;
-      } else {
-        return 0;
-      }
+      return a.chromosome_name.localeCompare(b.chromosome_name);
     }
     function byDistance(a, b) {
-      var a_id = a.species_id+":"+a.chromosome_id,
-          b_id = b.species_id+":"+b.chromosome_id;
+      var scores = Viewer.scores();
+      var a_id = a.id,
+          b_id = b.id;
       return scores[b_id]-scores[a_id];
     }
     // make the context viewer
