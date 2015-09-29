@@ -2,16 +2,6 @@ function contextViewer(container_id, color, data, optionalParameters) {
   // clear the contents of the target element first
   document.getElementById(container_id).innerHTML = "";
   
-  // sort the result tracks by some user defined function
-  if (optionalParameters.sort !== undefined) {
-    // remove the query from the groups array
-    var query = data.groups.splice(0, 1);
-    // sort the results with the user defined function
-    data.groups.sort(optionalParameters.sort);
-    // set the groups array to the query concatenated with the sorted results
-    data.groups = query.concat(data.groups);
-  }
-  
   // data preprocessing
   var begin_genes = {};
   var end_genes = {};
@@ -92,6 +82,16 @@ function contextViewer(container_id, color, data, optionalParameters) {
         data.groups.push(partition_groups[i]);
       }
     }
+  }
+  
+  // sort the result tracks by some user defined function
+  if (optionalParameters.sort !== undefined) {
+    // remove the query from the groups array
+    var query = data.groups.splice(0, 1);
+    // sort the results with the user defined function
+    data.groups.sort(optionalParameters.sort);
+    // set the groups array to the query concatenated with the sorted results
+    data.groups = query.concat(data.groups);
   }
   
   // get the family size map
