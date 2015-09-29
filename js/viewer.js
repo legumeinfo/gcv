@@ -1,13 +1,13 @@
-function contextViewer(container_id, color, data, optional_parameters) {
+function contextViewer(container_id, color, data, optionalParameters) {
   // clear the contents of the target element first
   document.getElementById(container_id).innerHTML = "";
   
   // sort the result tracks by some user defined function
-  if (optional_parameters.sort !== undefined) {
+  if (optionalParameters.sort !== undefined) {
     // remove the query from the groups array
     var query = data.groups.splice(0, 1);
     // sort the results with the user defined function
-    data.groups.sort(optional_parameters.sort);
+    data.groups.sort(optionalParameters.sort);
     // set the groups array to the query concatenated with the sorted results
     data.groups = query.concat(data.groups);
   }
@@ -27,9 +27,9 @@ function contextViewer(container_id, color, data, optional_parameters) {
     begin_genes[begin.name] = begin;
     end_genes[end.name] = end;
     // prepare to merge partitions
-    if (optional_parameters.merge !== undefined &&
-        optional_parameters.merge == true) {
-      var id = data.groups[i].species_id+":"+data.groups[i].chromosome_id;
+    if (optionalParameters.merge !== undefined &&
+        optionalParameters.merge == true) {
+      var id = data.groups[i].id;
       if (partitions[id] === undefined) {
         partitions[id] = [];
         groups[id] = clone(data.groups[i]);
@@ -41,8 +41,8 @@ function contextViewer(container_id, color, data, optional_parameters) {
   
   // merge partitions from same chromosome with the interval scheduling greedy
   // algorithm
-  if (optional_parameters.merge !== undefined &&
-      optional_parameters.merge == true) {
+  if (optionalParameters.merge !== undefined &&
+      optionalParameters.merge == true) {
     data.groups = [];
     var group_y = 0;
     for (var id in partitions) {
@@ -158,14 +158,14 @@ function contextViewer(container_id, color, data, optional_parameters) {
   	gene_groups.append("path")
   	  .attr("d", d3.svg.symbol().type("triangle-up").size(200))
   	  .attr("class", function (d) {
-  	  	if (optional_parameters.focus !== undefined &&
-            optional_parameters.focus == d.family) {
+  	  	if (optionalParameters.focus !== undefined &&
+            optionalParameters.focus == d.family) {
   	  	  return "point focus";
   	  	} else if (d.family == '') {
   	  	  return "point no_fam";
   	  	} else if (family_sizes[d.family] == 1 && 
-                   optional_parameters.selective_coloring !== undefined &&
-                   optional_parameters.selective_coloring == true) {
+                   optionalParameters.selective_coloring !== undefined &&
+                   optionalParameters.selective_coloring == true) {
   	  	  return "point single";
   	  	} return "point";
       })
@@ -174,8 +174,8 @@ function contextViewer(container_id, color, data, optional_parameters) {
       })
   	  .style("fill", function (d) {
   	  	if (d.family == '' ||
-            (optional_parameters.selective_coloring !== undefined &&
-             optional_parameters.selective_coloring == true &&
+            (optionalParameters.selective_coloring !== undefined &&
+             optionalParameters.selective_coloring == true &&
              family_sizes[d.family] == 1)) {
   	  	  return "#ffffff";
   	  	} return color(d.family);
@@ -189,8 +189,8 @@ function contextViewer(container_id, color, data, optional_parameters) {
   	    hide_tips(d3.select(this));
   	  })
   	  .on('click', function (d) {
-        if (optional_parameters.geneClicked !== undefined) {
-  	  	   optional_parameters.geneClicked(d);
+        if (optionalParameters.geneClicked !== undefined) {
+  	  	   optionalParameters.geneClicked(d);
         }
   	  });
   
@@ -249,8 +249,8 @@ function contextViewer(container_id, color, data, optional_parameters) {
   	  });
   	  if (closest !== undefined) {
         // draw inter-track lines
-        if (optional_parameters.inter_track !== undefined &&
-            optional_parameters.inter_track == true) {
+        if (optionalParameters.interTrack !== undefined &&
+            optionalParameters.interTrack == true) {
   	      if (end_genes[d.name] !== undefined && end_genes[d.name].y != d.y) {
             partition = true;
             draw_line(closest, end_genes[d.name]);
@@ -297,15 +297,14 @@ function contextViewer(container_id, color, data, optional_parameters) {
     .tickValues(tick_values) // we don't want d3 taking liberties
     .tickFormat(function (d, i) {
       var l = data.groups[d].genes.length;
-      if (d > 0 &&
-          data.groups[d-1].species_id+":"+data.groups[d-1].chromosome_id ===
-          data.groups[d].species_id+":"+data.groups[d].chromosome_id) {
+      if (d > 0 && data.groups[d-1].id === data.groups[d].id) {
         return (l > 0 ?
-        (data.groups[d].genes[0].fmin+"-"+data.groups[d].genes[l-1].fmax) :
-        "");
+          (data.groups[d].genes[0].fmin+"-"+data.groups[d].genes[l-1].fmax) :
+          "");
       }
       return data.groups[d].chromosome_name +":"+(l > 0 ?
-      (data.groups[d].genes[0].fmin+"-"+data.groups[d].genes[l-1].fmax) : "");
+        (data.groups[d].genes[0].fmin+"-"+data.groups[d].genes[l-1].fmax) :
+        "");
     });
   
   // draw the axes of the graph
@@ -314,13 +313,11 @@ function contextViewer(container_id, color, data, optional_parameters) {
     .attr("transform", "translate("+(left_pad-pad)+", 0)")
     .call(yAxis_left);
   
-  if (optional_parameters.right_axis_clicked !== undefined) {
+  if (optionalParameters.rightAxisClicked !== undefined) {
     var yAxis_right = d3.svg.axis().scale(y).orient("right")
       .tickValues(tick_values) // we don't want d3 taking liberties
       .tickFormat(function (d, i) {
-        if (d > 0 &&
-            data.groups[d-1].species_id+":"+data.groups[d-1].chromosome_id ===
-            data.groups[d].species_id+":"+data.groups[d].chromosome_id) {
+        if (d > 0 && data.groups[d-1].id === data.groups[d].id) {
           return "";
         }
         return "plot";
@@ -365,8 +362,8 @@ function contextViewer(container_id, color, data, optional_parameters) {
   		var rail_selection = rail_groups.filter(function (e) {
   		  return d3.select(this).attr("y") == y;
   	    });
-        if (optional_parameters.left_axis_clicked !== undefined) {
-  		  optional_parameters.left_axis_clicked(d, gene_selection,
+        if (optionalParameters.leftAxisClicked !== undefined) {
+  		  optionalParameters.leftAxisClicked(d, gene_selection,
                                                 rail_selection);
         }
   	  });
@@ -379,8 +376,7 @@ function contextViewer(container_id, color, data, optional_parameters) {
       var rail_selection = rail_groups.filter(function (e) {
       	return d3.select(this).attr("y") == y;
       });
-      // called if optional_parameters.right_axis_clicked !== undefined
-      optional_parameters.right_axis_clicked(d, gene_selection,
-                                             rail_selection);
+      // called if optionalParameters.rightAxisClicked !== undefined
+      optionalParameters.rightAxisClicked(data.groups[d].id);
     });
 }

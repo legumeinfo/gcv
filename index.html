@@ -11,7 +11,7 @@
   <script src="js/legend.js"></script>
   <script src="js/smith.js"></script>
   <script src="js/repeat.js"></script>
-  <script src="js/dot-plot.js"></script>
+  <script src="js/synteny.js"></script>
   <script src="js/angular-1.4.3.min.js"></script>
   <script src="js/angular-route.min.js"></script>
   <script src="js/angular-resource.min.js"></script>
@@ -41,16 +41,16 @@
           </div>
           <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
             <ul class="nav navbar-nav tabs">
-              <li><a href="#local-plot">Local</a></li>
-              <li><a href="#global-plot">Global</a></li>
+              <li><a href="#local-plot" ng-click="plotLocal()">Local</a></li>
+              <li><a href="#global-plot" ng-click="plotGlobal()">Global</a></li>
             </ul>
           </div>
         </div>
       </nav>
       <div class="outer-ratio">
         <div class="inner-ratio">
-          <div id="local-plot">local</div>
-          <div id="global-plot">global</div>
+          <div id="local-plot"></div>
+          <div id="global-plot"></div>
         </div>
       </div>
     </div>
@@ -87,7 +87,7 @@
         </div>
       </div>
     </nav>
-    <div id="viewer">viewer</div>
+    <div id="viewer"></div>
     <div id="plots">plots</div>
     <div id="help">help</div>
   </div>

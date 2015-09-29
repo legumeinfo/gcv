@@ -95,11 +95,11 @@ function($scope, $routeParams, $location, $cookies, Viewer, Broadcast) {
       return scores[b_id]-scores[a_id];
     }
     // make the context viewer
-    var colors = contextColors; //TODO: load color from cookie
+    var colors = Viewer.colors();
     contextViewer('viewer', colors, Viewer.tracks(),
                   {"geneClicked": Broadcast.geneClicked,
                    "leftAxisClicked": function(){},
-                   "rightAxisClicked": function(){},
+                   "rightAxisClicked": Broadcast.rightAxisClicked,
                    "selectiveColoring": true,
                    "interTrack": true,
                    "merge": true,
@@ -175,7 +175,47 @@ function($scope, Family) {
 contextControllers
 .controller('PlotCtrl', ['$scope', 'Plot',
 function($scope, Plot) {
-
+  var familySizes;
+  var colors;
+  var selectedTrack;
+  $scope.$on('newData', function(event) {
+    Plot.plot();
+    familySizes = Plot.familySizes();
+    colors = Plot.colors();
+  });
+  $scope.$on('rightAxisClicked', function(event, trackID) {
+    $scope.showRightSlider();
+    selectedTrack = trackID;
+    if ($('#local-plot').is(':visible')) {
+      $scope.plotLocal();
+    } else if ($('#global-plot').is(':visible')) {
+      $scope.plotGlobal();
+    }
+  });
+  $scope.plotLocal = function() {
+    if (selectedTrack !== undefined) {
+      Plot.getLocal(selectedTrack,
+        function(data) {
+          synteny('local-plot', familySizes, colors, data,
+                  {"width": $('#right-slider .inner-ratio').innerWidth(),
+                   "height": $('#right-slider .inner-ratio').innerHeight()});
+        }, function() {
+          $scope.alert("danger", "Failed to retrieve plot data");
+      });
+    }
+  };
+  $scope.plotGlobal = function() {
+    if (selectedTrack !== undefined) {
+      Plot.getGlobal(selectedTrack,
+        function(data) {
+          synteny('global-plot', familySizes, colors, data,
+                  {"width": $('#right-slider .inner-ratio').innerWidth(),
+                   "height": $('#right-slider .inner-ratio').innerHeight()});
+        }, function() {
+          $scope.alert("danger", "Failed to retrieve plot data");
+      });
+    }
+  }
 }]);
 
 contextControllers
@@ -213,28 +253,44 @@ function($scope, Broadcast) {
     $('#left-slider').animate({width:'toggle'}, 350);
   }
   $scope.showLeftSlider = function(target, event) {
+    if (event !== undefined) {
+      event.stopPropagation();
+    }
     if (target == '#parameters' && $('#parameters').is(':visible')) {
-      $scope.hideLeftSlider(event);
+      $scope.hideLeftSlider();
     } else {
       switchActive(target);
       if ($('#left-slider').is(':hidden')) {
-        $scope.toggleLeftSlider(event);
+        $scope.toggleLeftSlider();
       }
     }
   }
   $scope.hideLeftSlider = function(event) {
+    if (event !== undefined) {
+      event.stopPropagation();
+    }
     if ($('#left-slider').is(':visible')) {
-      $scope.toggleLeftSlider(event);
+      $scope.toggleLeftSlider();
     }
   }
   $scope.toggleRightSlider = function(event) {
-    event.stopPropagation();
+    if (event !== undefined) {
+      event.stopPropagation();
+    }
     $scope.showSpinners();
     $('#right-slider').animate({width:'toggle'}, 350,
                                function() {
                                    $scope.hideSpinners();
                                    Broadcast.redraw();
                                  });
+  }
+  $scope.showRightSlider = function(target, event) {
+    if (event !== undefined) {
+      event.stopPropagation();
+    }
+    if ($('#right-slider').is(':hidden')) {
+      $scope.toggleRightSlider();
+    }
   }
 
   $scope.alertClass = "alert-info";

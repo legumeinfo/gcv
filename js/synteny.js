@@ -1,22 +1,22 @@
-function context_synteny( container_id, color, data, i, optional_parameters ) {
+function synteny(containerID, familySizes, color, points, optionalParameters) {
 
     // get the optional parameters
     var gene_clicked = function( selection ) { },
         brush_callback = function( selected_group ) { },
         selective_coloring = true,
-        w = document.getElementById(container_id).offsetWidth;
-    if( optional_parameters !== undefined ) {
-        if( optional_parameters.gene_clicked !== undefined ) {
-            gene_clicked = optional_parameters.gene_clicked;
+        w = document.getElementById(containerID).offsetWidth;
+    if( optionalParameters !== undefined ) {
+        if( optionalParameters.gene_clicked !== undefined ) {
+            gene_clicked = optionalParameters.gene_clicked;
         }
-        if( optional_parameters.brush_callback !== undefined ) {
-            brush_callback = optional_parameters.brush_callback;
+        if( optionalParameters.brush_callback !== undefined ) {
+            brush_callback = optionalParameters.brush_callback;
         }
-        if( optional_parameters.selective_coloring !== undefined ) {
-            selective_coloring = optional_parameters.selective_coloring;
+        if( optionalParameters.selective_coloring !== undefined ) {
+            selective_coloring = optionalParameters.selective_coloring;
         }
-        if( optional_parameters.width !== undefined ) {
-            w = optional_parameters.width;
+        if( optionalParameters.width !== undefined ) {
+            w = optionalParameters.width;
         }
     }
 
@@ -25,20 +25,15 @@ function context_synteny( container_id, color, data, i, optional_parameters ) {
         l = w-2*p,
         h = l;
 
-	// get the family size map
-	var family_sizes = get_family_size_map( data );
-
 	// clear the contents of the target element first
-	document.getElementById(container_id).innerHTML = "";
+	document.getElementById(containerID).innerHTML = "";
 
 	// the plot matrix svg
-	var matrix = d3.select("#"+container_id).append("svg")
+	var matrix = d3.select("#"+containerID).append("svg")
 	    .attr("width", w )
 	    .attr("height", w )
 	  .append("g")
 	    .attr("transform", "translate(" + 0 + ",0)");
-	
-    d = data.groups[ i ]; // there must be a better way to do this
 
 	// where is the plot located?
 	//var plot_x = p,
@@ -47,8 +42,8 @@ function context_synteny( container_id, color, data, i, optional_parameters ) {
         plot_y = p;
 	
 	// the x axis
-	var min_x = d3.min(d.genes, function(e) { return e.x; }),
-	    max_x = d3.max(d.genes, function(e) { return e.x; }),
+	var min_x = d3.min(points.genes, function(e) { return e.x; }),
+	    max_x = d3.max(points.genes, function(e) { return e.x; }),
 		x_pad = (max_x - min_x)/10;
 	
 	min_x = min_x-x_pad;
@@ -73,12 +68,12 @@ function context_synteny( container_id, color, data, i, optional_parameters ) {
 	    .attr("x", (p+(l/2)))
 	    .attr("y", 15)
 	    .style("text-anchor", "middle")
-	    .text(d.chromosome_name);
+	    .text(points.chromosome_name);
 	
 	// the y axis
     var outliers = false;
-	var min_y = d3.min(d.genes.filter(function(e, i) { if( e.y >= 0 ) { outliers = true; }; return e.y >= 0; }), function(e) { return e.y; }),
-	    max_y = d3.max(d.genes, function(e) { return e.y; });
+	var min_y = d3.min(points.genes.filter(function(e, i) { if( e.y >= 0 ) { outliers = true; }; return e.y >= 0; }), function(e) { return e.y; }),
+	    max_y = d3.max(points.genes, function(e) { return e.y; });
 	
 	var y = d3.scale.linear()
 	    .domain([max_y, min_y])
@@ -95,9 +90,9 @@ function context_synteny( container_id, color, data, i, optional_parameters ) {
 	    .call(yAxis)
 	  .append("text")
 	    .attr("class", "label")
-	    .attr("transform", "translate(-10,"+((l/2)+p)+") rotate(-90)")
+	    .attr("transform", "translate(-10,"+((l+p)/2)+") rotate(-90)")
 	    .style("text-anchor", "end")
-	    .text(data.groups[0].chromosome_name);
+	    .text(points.reference);
 
     if( outliers ) {
         matrix.append('text')
@@ -109,8 +104,8 @@ function context_synteny( container_id, color, data, i, optional_parameters ) {
     }
 
     // bind the chromosome's data to an element that doesn't... and never will exist
-	var ch_data = matrix.selectAll("chr_"+d.chromosome_id)
-	    .data(d.genes);
+	var ch_data = matrix.selectAll("chr_"+points.chromosome_id)
+	    .data(points.genes);
 	
 	// the plot's brush
 	var brush = d3.svg.brush().x(x).y(y)
@@ -148,7 +143,7 @@ function context_synteny( container_id, color, data, i, optional_parameters ) {
 				return "no_fam";
 			} return ""; })
 		.style("fill", function(e) {
-			if( e.family == '' || ( selective_coloring && family_sizes[ e.family ] == 1 ) ) {
+			if( e.family == '' || ( selective_coloring && familySizes[ e.family ] == 1 ) ) {
 				return "#ffffff";
 			} return color(e.family);
 		});
@@ -249,7 +244,7 @@ function context_synteny( container_id, color, data, i, optional_parameters ) {
             selected_genes.push(e);
         });
         // create a duplicate of the current group object to return
-        var duplicate_group = clone(d);
+        var duplicate_group = clone(points);
         // give the duplicate the selected genes
         duplicate_group.genes = selected_genes;
         // hand the group object to the callback

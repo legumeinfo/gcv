@@ -1,9 +1,11 @@
 var contextServices = angular.module('contextServices', []);
 
 contextServices.service('DataStore', ['$http', '$rootScope',
-function($http, $rootScope){
+function($http, $rootScope) {
   var json;
   var familyNames;
+  var familySizes;
+  var colors = contextColors; //TODO: load color from cookie
   return {get: function(focusName, params, errorCallback) {
                  $http({url: 'http://localhost:8000/chado/context_viewer' +
                              '/search_tracks_service/'+focusName, 
@@ -12,13 +14,30 @@ function($http, $rootScope){
                       .then(function(response) {
                               json = response.data;
                               familyNames = getFamilyNameMap(JSON.parse(json));
+                              familySizes = getFamilySizeMap(JSON.parse(json));
                               // controllers should listen for the broadcast
                               // instead of passing a success callback
                               $rootScope.$broadcast('newData');
                             },
                             function(response) { errorCallback(response); });},
-          json: function() { return json; },
-          familyNames: function() { return familyNames; }
+          parsedData: function() {
+            var data = JSON.parse(json);
+            var reference = data.groups[0].chromosome_name;
+            for (var i = 0; i < data.groups.length; i++) {
+              // guarantee each track has a unique id and the reference name
+              data.groups[i].reference = reference;
+              data.groups[i].id = i;
+              for (var j = 0; j < data.groups[i].genes.length; j++) {
+                // guarantee each gene has x and y attributes
+                data.groups[i].genes[j].x = j;
+                data.groups[i].genes[j].y = i;
+              }
+            }
+            return data;
+          },
+          familyNames: function() { return familyNames; },
+          familySizes: function() { return familySizes; },
+          colors: function() { return colors; }
 }}]);
 
 contextServices.service('Viewer', ['DataStore',
@@ -29,7 +48,7 @@ function(DataStore) {
             DataStore.get(focusName, params, successCallback, errorCallback);
           },
           align: function(params) {
-            tracks = JSON.parse(DataStore.json());
+            tracks = DataStore.parsedData();
             scores = {};
             var aligner = params.algorithm == "repeat" ? repeat : smith;
             // align all the tracks with the query track
@@ -59,12 +78,15 @@ function(DataStore) {
           },
           tracks: function() {
             return tracks;
-          }}
-}]);
+          },
+          colors: function() {
+            return DataStore.colors();
+          }
+}}]);
 
 // TODO: cache clicked gene data
 contextServices.factory('Gene', ['$http', 'DataStore',
-function($http, DataStore){
+function($http, DataStore) {
   return {get: function(geneName, successCallback, errorCallback) {
     $http({url: 'http://legumeinfo.org/gene_links/'+geneName+'/json',
            method: "GET"})
@@ -74,7 +96,7 @@ function($http, DataStore){
 
 // TODO: cache clicked family data
 contextServices.factory('Family', ['$http', 'DataStore',
-function($http, DataStore){
+function($http, DataStore) {
   return {get: function(familyName, successCallback, errorCallback) {
             $http({url: '#'+familyName, // TODO: use correct url
                    method: "GET"})
@@ -84,14 +106,87 @@ function($http, DataStore){
 }}]);
 
 // TODO: cache global plot data
-contextServices.factory('Plot', ['$http', 'DataStore',
-function($http){
-  return {get: function(geneName, successCallback, errorCallback) {
-    $http({url: '#'+geneName, // TODO: use correct url
-           method: "GET"})
-         .then(function(response) { successCallback(response.data); },
-               function(response) { errorCallback(response); });
-}}}]);
+contextServices.service('Plot', ['$http', 'DataStore',
+function($http, DataStore) {
+  var localPlots;
+  var globalPlots;
+  var numNeighbors;
+  var focusID;
+  // a helper function that plots genes against genes
+  var familyMap;
+  function plotPoints(group) {
+    var plot_genes = [];
+    for (var j = 0; j < group.genes.length; j++) {
+      if (group.genes[j].family in familyMap) {
+        for (var k = 0; k < familyMap[group.genes[j].family].length; k++) {
+          group.genes[j].x = ((group.genes[j].fmin/2)+(group.genes[j].fmax/2));
+          group.genes[j].y = familyMap[group.genes[j].family][k];
+        }
+      } else {
+          group.genes[j].x = ((group.genes[j].fmin/2)+(group.genes[j].fmax/2));
+          group.genes[j].y = -1;
+      }
+      plot_genes.push(group.genes[j]);
+    }
+    return plot_genes;
+  }
+  return {getLocal: function(trackID, successCallback, errorCallback) {
+            if (localPlots[trackID] !== undefined) {
+              successCallback(localPlots[trackID]);
+            } else {
+              errorCallback();
+            }
+          },
+          getGlobal: function(trackID, successCallback, errorCallback) {
+            if (globalPlots[trackID] !== undefined) {
+              successCallback(globalPlots[trackID]);
+            } else {
+              if (localPlots[trackID] !== undefined) {
+                $http({url: 'http://localhost:8000/chado/context_viewer' +
+                             '/global_plot_service/',
+                       method: "GET",
+                       params:{focusID: focusID,
+                               numNeighbors: numNeighbors,
+                               chromosomeID: localPlots[trackID].chromosome_id}
+                })
+                .then(function(response) {
+                  var group = clone(localPlots[trackID]);
+                  globalPlots[trackID] = group;
+                  group.genes = response.data;
+                  globalPlots[trackID].genes = plotPoints(group);
+                  successCallback(globalPlots[trackID]);
+                }, function(response) { errorCallback(); });
+              } else {
+                errorCallback();
+              }
+            }
+          },
+          plot: function() {
+            // prepare the plots data for show and tell
+            localPlots = {};
+            globalPlots = {};
+            var plotData = DataStore.parsedData();
+            numNeighbors = (plotData.groups[0].genes.length-1)/2;
+            focusID = plotData.groups[0].genes[numNeighbors].id;
+            // make a map of points all genes will be plotted against
+            familyMap = {};
+            for (var i = 0; i < plotData.groups[0].genes.length; i++) {
+              var g = plotData.groups[0].genes[i];
+              if (g.family in familyMap) {
+                familyMap[g.family].push((g.fmin/2)+(g.fmax/2));
+              } else if (g.family != '') {
+                familyMap[g.family] = [(g.fmin/2)+(g.fmax/2)];
+              }
+            }
+            // plot all the genes against the list of points
+            for (var i = 0; i < plotData.groups.length; i++) {
+              plotData.groups[i].genes = plotPoints(plotData.groups[i]);
+              localPlots[plotData.groups[i].id] = plotData.groups[i];
+            }
+          },
+          familySizes: function() { return DataStore.familySizes; },
+          colors: function() { return DataStore.colors(); }
+}}]);
 
 contextServices.factory('Broadcast', ['$rootScope',
 function($rootScope) {
@@ -104,6 +199,9 @@ function($rootScope) {
     },
     familyClicked: function(family, genes) {
       $rootScope.$broadcast('familyClicked', family, genes);
+    },
+    rightAxisClicked: function(trackID) {
+      $rootScope.$broadcast('rightAxisClicked', trackID);
     }
   }
 }]);
