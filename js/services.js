@@ -97,7 +97,29 @@ function($http, DataStore) {
            method: "GET"})
          .then(function(response) { successCallback(response.data); },
                function(response) { errorCallback(response); });
-}}}]);
+         },
+         familyNames: function() { return DataStore.familyNames(); }
+}}]);
+
+// TODO: cache clicked family data
+contextServices.service('Track', ['$http', 'DataStore',
+function($http, DataStore) {
+  return {get: function(trackID, successCallback, errorCallback) {
+            var data = DataStore.parsedData();
+            var track;
+            for (var i = 0; i < data.groups.length; i++) {
+              if (data.groups[i].id == trackID) {             
+                track = data.groups[i];
+                break;
+              }
+            }
+            if (track !== undefined) {
+              successCallback(track);
+            } else {
+              errorCallback();
+            }},
+           familyNames: function() { return DataStore.familyNames(); }
+}}]);
 
 // TODO: cache clicked family data
 contextServices.factory('Family', ['$http', 'DataStore',
@@ -204,6 +226,9 @@ function($rootScope) {
     },
     familyClicked: function(family, genes) {
       $rootScope.$broadcast('familyClicked', family, genes);
+    },
+    leftAxisClicked: function(trackID) {
+      $rootScope.$broadcast('leftAxisClicked', trackID);
     },
     rightAxisClicked: function(trackID) {
       $rootScope.$broadcast('rightAxisClicked', trackID);

@@ -93,7 +93,7 @@ function($scope, $routeParams, $location, $cookies, Viewer, Broadcast) {
     var colors = Viewer.colors();
     contextViewer('viewer', colors, Viewer.tracks(),
                   {"geneClicked": Broadcast.geneClicked,
-                   "leftAxisClicked": function(){},
+                   "leftAxisClicked": Broadcast.leftAxisClicked,
                    "rightAxisClicked": Broadcast.rightAxisClicked,
                    "selectiveColoring": true,
                    "interTrack": true,
@@ -133,9 +133,8 @@ contextControllers
 function($scope, Gene) {
   // listen for gene click events
   $scope.$on('geneClicked', function(event, gene) {
-    Gene.get(gene.name, {}, function(json) {
-      links = JSON.parse(json);
-      var familyNames = getFamilyNameMap(tracks); // TODO: move to service
+    Gene.get(gene.name, function(links) {
+      var familyNames = Gene.familyNames();
       var html = '<h4>'+gene.name+'</h4>' // TODO: link to tripal
       html += 'Family: ';
       if (gene.family != '') {
@@ -157,6 +156,31 @@ function($scope, Gene) {
       $scope.alert("danger", "Failed to retrieve gene data");
     });
   });
+}]);
+
+contextControllers
+.controller('TrackCtrl', ['$scope', 'Track',
+function($scope, Track) {
+  // listen for track click events
+  $scope.$on('leftAxisClicked', function(event, trackID) {
+    Track.get(trackID, function(track) {
+      var familyNames = Track.familyNames();
+      var html = '<h4><a href="/chado/organism/'+track.species_id+'/">'+track.species_name+'</a> - <a href="/chado/feature/'+track.chromosome_id+'/">'+track.chromosome_name+'</a></h4>';
+      var genes = '<ul>';
+      var families = [];
+      track.genes.forEach(function(g) {
+      	genes += '<li><a href="/chado/feature/'+g.name+'/">'+g.name+'</a>: '+g.fmin+' - '+g.fmax+'</li>';
+      	if (g.family != '') {
+      		genes += '<ul><li>Family: <a href="/chado_phylotree/'+familyNames[g.family]+'/">'+familyNames[g.family]+'</a></li></ul>'
+      	}
+      });
+      genes += '</ul>';
+      html += 'Genes:'+genes;
+      $('#track').html(html);
+      $scope.showLeftSlider('#track');
+    }, function() {
+      $scope.alert("danger", "Failed to retrieve track data");
+    })});
 }]);
 
 contextControllers
