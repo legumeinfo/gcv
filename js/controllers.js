@@ -267,7 +267,7 @@ function($scope, Broadcast) {
 
   // make all divs in the left slider except the target
   function switchActive(target) {
-    $.each(['#parameters', '#gene', '#family'], function(i, e) {
+    $.each(['#parameters', '#gene', '#family', '#track'], function(i, e) {
       if (e == target) { $(e).show(); }
       else { $(e).hide(); }
     });
