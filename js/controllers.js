@@ -207,10 +207,34 @@ function($scope, Plot) {
   var familySizes;
   var colors;
   var selectedTrack;
-  $scope.$on('newData', function(event) {
-    Plot.plot();
+  function drawPlots() {
     familySizes = Plot.familySizes();
     colors = Plot.colors();
+    localPlots = Plot.getAllLocal();
+    $('#plots').html('');
+    var dim = $('#main').innerWidth()/3;
+    for (var trackID in localPlots) {
+        var id = "plot"+trackID;
+        $('#plots').append('<div id="'+id+'" class="col-lg-4">derp</div>');
+        synteny(id, familySizes, colors, localPlots[trackID],
+                {"width": dim,
+                 "height": dim});
+    }
+  }
+  $scope.$on('newData', function(event) {
+    Plot.plot();
+    drawPlots();
+  });
+  $scope.$on('redraw', function(event) {
+    $('#plots').html('');
+    $('#local-plot').html('');
+    $('#global-plot').html('');
+    drawPlots();
+    if ($('#local-plot').is(':visible')) {
+      $scope.plotLocal();
+    } else if ($('#global-plot').is(':visible')) {
+      $scope.plotGlobal();
+    }
   });
   $scope.$on('rightAxisClicked', function(event, trackID) {
     $scope.showRightSlider();

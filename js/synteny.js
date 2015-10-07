@@ -29,6 +29,7 @@ function synteny(containerID, familySizes, color, points, optionalParameters) {
 	document.getElementById(containerID).innerHTML = "";
 
 	// the plot matrix svg
+    console.log(containerID);
 	var matrix = d3.select("#"+containerID).append("svg")
 	    .attr("width", w )
 	    .attr("height", w )

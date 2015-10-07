@@ -1,7 +1,7 @@
 var contextServices = angular.module('contextServices', []);
 
-contextServices.service('DataStore', ['$http', '$rootScope',
-function($http, $rootScope) {
+contextServices.service('DataStore', ['$http', 'Broadcast',
+function($http, Broadcast) {
   var json;
   var familyNames;
   var familySizes;
@@ -17,7 +17,7 @@ function($http, $rootScope) {
                               familySizes = getFamilySizeMap(JSON.parse(json));
                               // controllers should listen for the broadcast
                               // instead of passing a success callback
-                              $rootScope.$broadcast('newData');
+                              Broadcast.newData();
                             },
                             function(response) { errorCallback(response); });},
           parsedData: function() {
@@ -164,6 +164,9 @@ function($http, DataStore) {
               errorCallback();
             }
           },
+          getAllLocal: function() {
+            return localPlots;
+          },
           getGlobal: function(trackID, successCallback, errorCallback) {
             if (globalPlots[trackID] !== undefined) {
               successCallback(globalPlots[trackID]);
@@ -218,6 +221,9 @@ function($http, DataStore) {
 contextServices.factory('Broadcast', ['$rootScope',
 function($rootScope) {
   return {
+    newData: function() {
+      $rootScope.$broadcast('newData');
+    },
     redraw: function() {
       $rootScope.$broadcast('redraw');
     },
