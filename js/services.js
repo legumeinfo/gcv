@@ -14,12 +14,10 @@ function($http, Broadcast) {
                       .then(function(response) {
                               json = response.data;
                               familyNames = getFamilyNameMap(JSON.parse(json));
-                              familySizes = getFamilySizeMap(JSON.parse(json));
-                              // controllers should listen for the broadcast
-                              // instead of passing a success callback
                               Broadcast.newData();
                             },
-                            function(response) { errorCallback(response); });},
+                            function(response) { errorCallback(response); });
+          },
           parsedData: function() {
             var data = JSON.parse(json);
             var reference = data.groups[0].chromosome_name;
@@ -48,6 +46,17 @@ function(DataStore) {
   var aligned;
   return {get: function(focusName, params, successCallback, errorCallback) {
             DataStore.get(focusName, params, successCallback, errorCallback);
+          },
+          getQueryGene: function(index, successCallback, errorCallback) {
+            var names = [];
+            tracks.groups[0].genes.forEach(function(gene) {
+              names.push(gene.name);
+            });
+            if (index >= 0 && index < tracks.groups[0].genes.length) {
+              successCallback(tracks.groups[0].genes[index].name);
+            } else {
+              errorCallback();
+            }
           },
           align: function(params) {
             tracks = DataStore.parsedData();

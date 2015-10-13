@@ -4,6 +4,7 @@ contextControllers
 .controller('ViewerCtrl', ['$scope', '$routeParams', '$location', '$cookies',
                             'Viewer', 'Broadcast',
 function($scope, $routeParams, $location, $cookies, Viewer, Broadcast) {
+  var focusName;
   // initialize the form
   $scope.init = function() {
     // radio options
@@ -49,7 +50,10 @@ function($scope, $routeParams, $location, $cookies, Viewer, Broadcast) {
       if (!($scope.form.numNeighbors.$pristine &&
             $scope.form.numMatchedFamilies.$pristine &&
             $scope.form.numNonFamily.$pristine) ||
-          Viewer.tracks() === undefined) {
+          Viewer.tracks() === undefined ||
+          ($routeParams.focusName !== undefined &&
+           focusName != $routeParams.focusName)) {
+        focusName = $routeParams.focusName;
         getData();
       } else {
         Viewer.align($scope.params);
@@ -77,7 +81,7 @@ function($scope, $routeParams, $location, $cookies, Viewer, Broadcast) {
                   });
   }
 
-  // draw viewer
+  // private function that draws viewer
   var drawViewer = function() {
     // helper functions for sorting tracks
     function byChromosome(a, b) {
@@ -126,6 +130,40 @@ function($scope, $routeParams, $location, $cookies, Viewer, Broadcast) {
   $scope.$on('redraw', function(event) {
     drawViewer();
   });
+
+  // scroll stuff
+  $scope.step;
+  function scroll(index) {
+    Viewer.getQueryGene(index,
+      function(geneName) {
+        $location.path(geneName);
+        $routeParams.focusName = geneName;
+        $scope.submit();
+      }, function() {
+        $scope.alert("danger", "Failed to scroll");
+      });
+  }
+
+  // scroll left
+  $scope.scrollLeft = function(event) {
+    event.stopPropagation();
+    var step = parseInt($scope.step);
+    if (step <= $scope.params.numNeighbors) {
+      scroll($scope.params.numNeighbors-step);
+    } else {
+      $scope.alert("danger", "Invalid scroll size");
+    }
+  };
+  // scroll right
+  $scope.scrollRight =function(event) {
+    event.stopPropagation();
+    var step = parseInt($scope.step);
+    if (step <= $scope.params.numNeighbors) {
+      scroll(step+$scope.params.numNeighbors);
+    } else {
+      $scope.alert("danger", "Invalid scroll size");
+    }
+  };
 }]);
 
 contextControllers

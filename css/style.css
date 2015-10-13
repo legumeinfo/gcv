@@ -68,13 +68,26 @@ a {
 #left-slider nav {
   margin: 1 0 0 0;
 }
-#left-slider nav form {
+#left-slider nav #form-wrapper {
+  width: auto;
+  overflow: hidden;
+}
+#left-slider nav #form-wrapper form {
+  width: 100%;
   padding: 0;
 }
-#left-slider nav form input {
-  z-index: 1000;
+#left-slider nav #form-wrapper form .input-group {
+  overflow: hidden;
 }
-#left-slider nav form button {
+#left-slider nav #form-wrapper form .input-group input {
+  z-index: 1000;
+  text-align: center;
+}
+#left-slider nav #form-wrapper form .input-group .input-group-btn {
+  width: 48px;
+}
+#left-slider nav #form-wrapper form .input-group button {
+  width: 48px;
   cursor: pointer;
 }
 #left-slider-content {
