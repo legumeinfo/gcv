@@ -13,14 +13,14 @@ function($scope, $routeParams, $location, $cookies, Viewer, Broadcast) {
     $scope.orderings = [{id: "chromosome", name: "Chromosome"},
                         {id: "distance", name: "Edit distance"}];
     // default form values
-    $scope.params = {numNeighbors: 5,
-                       numMatchedFamilies: 3,
+    $scope.params = {numNeighbors: 8,
+                       numMatchedFamilies: 6,
                        numNonFamily: 5,
                        algorithm: "repeat",
                        match: 5,
                        mismatch: -1,
                        gap: -1,
-                       threshold: 45,
+                       threshold: 25,
                        order: "chromosome"};
     // override with values from cookie
     var cookie = $cookies.getObject('context');
