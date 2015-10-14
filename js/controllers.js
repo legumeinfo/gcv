@@ -143,7 +143,6 @@ function($scope, $routeParams, $location, $cookies, Viewer, Broadcast) {
       function(geneName) {
         $location.path(geneName);
         $routeParams.focusName = geneName;
-        $scope.submit();
       }, function() {
         $scope.alert("danger", "Failed to scroll");
       });
