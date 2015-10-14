@@ -107,7 +107,10 @@ function contextViewer(container_id, color, data, optionalParameters) {
   var family_names = getFamilyNameMap(data);
   
   // define dimensions of graph and a bunch of other stuff
-  var w = d3.max([1000,document.getElementById(container_id).offsetWidth]),
+  var targetWidth = ((optionalParameters.width !== undefined) ?
+                     optionalParameters.width :
+                     document.getElementById(container_id).offsetWidth);
+  var w = d3.max([1000, targetWidth]),
       rect_h = 18,
       rect_pad = 2,
       top_pad = 200,
@@ -170,8 +173,8 @@ function contextViewer(container_id, color, data, optionalParameters) {
   	  	} else if (d.family == '') {
   	  	  return "point no_fam";
   	  	} else if (family_sizes[d.family] == 1 && 
-                   optionalParameters.selective_coloring !== undefined &&
-                   optionalParameters.selective_coloring == true) {
+                   optionalParameters.selectiveColoring !== undefined &&
+                   optionalParameters.selectiveColoring == true) {
   	  	  return "point single";
   	  	} return "point";
       })
@@ -180,8 +183,8 @@ function contextViewer(container_id, color, data, optionalParameters) {
       })
   	  .style("fill", function (d) {
   	  	if (d.family == '' ||
-            (optionalParameters.selective_coloring !== undefined &&
-             optionalParameters.selective_coloring == true &&
+            (optionalParameters.selectiveColoring !== undefined &&
+             optionalParameters.selectiveColoring == true &&
              family_sizes[d.family] == 1)) {
   	  	  return "#ffffff";
   	  	} return color(d.family);

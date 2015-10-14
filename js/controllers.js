@@ -97,7 +97,8 @@ function($scope, $routeParams, $location, $cookies, Viewer, Broadcast) {
     // make the context viewer
     var colors = Viewer.colors();
     contextViewer('viewer', colors, Viewer.tracks(),
-                  {"geneClicked": Broadcast.geneClicked,
+                  {"width": $('#main').innerWidth(),
+                   "geneClicked": Broadcast.geneClicked,
                    "leftAxisClicked": Broadcast.leftAxisClicked,
                    "rightAxisClicked": Broadcast.rightAxisClicked,
                    "selectiveColoring": true,
