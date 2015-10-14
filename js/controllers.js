@@ -177,6 +177,7 @@ function($scope, Gene) {
   $scope.geneHtml = '';
   // listen for gene click events
   $scope.$on('geneClicked', function(event, gene) {
+    $scope.showLeftSpinner();
     Gene.get(gene.name, function(links) {
       var familyNames = Gene.familyNames();
       var html = '<h4>'+gene.name+'</h4>' // TODO: link to tripal
@@ -199,8 +200,10 @@ function($scope, Gene) {
       $scope.geneHtml = html;
       $scope.$apply();
       $scope.showLeftSlider('#gene');
+      $scope.hideSpinners();
     }, function(response) {
       $scope.alert("danger", "Failed to retrieve gene data");
+      $scope.hideSpinners();
     });
   });
 }]);
@@ -211,6 +214,7 @@ function($scope, Track) {
   $scope.trackHtml = '';
   // listen for track click events
   $scope.$on('leftAxisClicked', function(event, trackID) {
+    $scope.showLeftSpinner();
     Track.get(trackID, function(track) {
       var familyNames = Track.familyNames();
       var html = '<h4><a href="/chado/organism/'+track.species_id+'/">' +
@@ -236,8 +240,10 @@ function($scope, Track) {
       $scope.trackHtml = html;
       $scope.$apply();
       $scope.showLeftSlider('#track');
+      $scope.hideSpinners();
     }, function() {
       $scope.alert("danger", "Failed to retrieve track data");
+      $scope.hideSpinners();
     })});
 }]);
 
@@ -246,6 +252,7 @@ contextControllers
 function($scope, Family) {
   $scope.familyHtml = '';
   $scope.$on('familyClicked', function(event, family, genes) {
+    $scope.showLeftSpinner();
     var familyNames = Family.familyNames();
     html = '<h4><a href="#'+familyNames[family]+'/">' +
            familyNames[family]+'</a></h4>'; // TODO: link to tripal
@@ -258,6 +265,7 @@ function($scope, Family) {
     $scope.familyHtml = html;
     $scope.$apply();
     $scope.showLeftSlider('#family');
+    $scope.hideSpinners();
   });
 }]);
 
@@ -319,13 +327,16 @@ function($scope, Plot, Broadcast) {
   };
   $scope.plotGlobal = function() {
     if (selectedTrack !== undefined) {
+      $scope.showPlotSpinner();
       Plot.getGlobal(selectedTrack,
         function(data) {
           synteny('global-plot', familySizes, colors, data,
                   {"geneClicked": Broadcast.geneClicked,
                    "width": $('#right-slider .inner-ratio').innerWidth()});
+          $scope.hideSpinners();
         }, function() {
           $scope.alert("danger", "Failed to retrieve plot data");
+          $scope.hideSpinners();
       });
     }
   }
@@ -413,6 +424,12 @@ function($scope, Broadcast) {
   }
 
   // what to do at the beginning and end of window resizing
+  $scope.showLeftSpinner = function() {
+    $('#left-slider-content').append(spinner);
+  }
+  $scope.showPlotSpinner = function() {
+    $('#plot-wrapper').append(spinner);
+  }
   $scope.showSpinners = function() {
     $('#main').append(spinner);
     $('#legend-wrapper .vertical-scroll').append(spinner);
