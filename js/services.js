@@ -111,7 +111,7 @@ function($http, DataStore) {
 }}]);
 
 // TODO: cache clicked family data
-contextServices.service('Track', ['$http', 'DataStore',
+contextServices.factory('Track', ['$http', 'DataStore',
 function($http, DataStore) {
   return {get: function(trackID, successCallback, errorCallback) {
             var data = DataStore.parsedData();

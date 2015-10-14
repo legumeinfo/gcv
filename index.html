@@ -183,9 +183,9 @@
         </form>
         <div ng-view></div>
       </div>
-      <div id="gene" ng-controller="GeneCtrl"></div>
-      <div id="family" ng-controller="FamilyCtrl"></div>
-      <div id="track" ng-controller="TrackCtrl"></div>
+      <div id="gene" ng-controller="GeneCtrl" compile="geneHtml"></div>
+      <div id="family" ng-controller="FamilyCtrl" compile="familyHtml"></div>
+      <div id="track" ng-controller="TrackCtrl" compile="trackHtml"></div>
     </div>
   </div>
 </body>

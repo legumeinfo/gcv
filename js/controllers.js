@@ -65,7 +65,8 @@ function($scope, $routeParams, $location, $cookies, Viewer, Broadcast) {
   }
   
   // try to fetch new data whenever the controller is initialized
-  if ($routeParams.focusName !== undefined && Viewer.tracks() === undefined) {
+  if ($routeParams.focusName !== undefined && Viewer.tracks() === undefined ||
+      focusName != $routeParams.focusName) {
     $scope.submit();
   }
 
@@ -173,6 +174,7 @@ function($scope, $routeParams, $location, $cookies, Viewer, Broadcast) {
 contextControllers
 .controller('GeneCtrl', ['$scope', 'Gene',
 function($scope, Gene) {
+  $scope.geneHtml = '';
   // listen for gene click events
   $scope.$on('geneClicked', function(event, gene) {
     Gene.get(gene.name, function(links) {
@@ -185,6 +187,8 @@ function($scope, Gene) {
       	html += 'None';
       }
       html += '<br />';
+      // add track search link
+      html += '<a href="#/'+gene.name+'">Search for similar contexts</a><br/>';
       // for switching over to json provided by tripal_linkout
       for (var i = 0; i < links.length; i++) {
         html += '<a href="'+links[i].href+'">'+links[i].text+'</a><br/>'
@@ -192,7 +196,8 @@ function($scope, Gene) {
       if (links.meta) {
         html += '<p>'+links.meta+'</p>'
       }
-      $('#gene').html(html);
+      $scope.geneHtml = html;
+      $scope.$apply();
       $scope.showLeftSlider('#gene');
     }, function(response) {
       $scope.alert("danger", "Failed to retrieve gene data");
@@ -203,6 +208,7 @@ function($scope, Gene) {
 contextControllers
 .controller('TrackCtrl', ['$scope', 'Track',
 function($scope, Track) {
+  $scope.trackHtml = '';
   // listen for track click events
   $scope.$on('leftAxisClicked', function(event, trackID) {
     Track.get(trackID, function(track) {
@@ -210,6 +216,10 @@ function($scope, Track) {
       var html = '<h4><a href="/chado/organism/'+track.species_id+'/">' +
                  track.species_name+'</a> - <a href="/chado/feature/' +
                  track.chromosome_id+'/">'+track.chromosome_name+'</a></h4>';
+      // add track search link
+      var focus = track.genes[track.genes.length/2];
+      html += '<a href="#/'+focus.name+'">Search for similar contexts</a><br/>';
+      // add a link for each gene
       var genes = '<ul>';
       var families = [];
       track.genes.forEach(function(g) {
@@ -223,7 +233,8 @@ function($scope, Track) {
       });
       genes += '</ul>';
       html += 'Genes:'+genes;
-      $('#track').html(html);
+      $scope.trackHtml = html;
+      $scope.$apply();
       $scope.showLeftSlider('#track');
     }, function() {
       $scope.alert("danger", "Failed to retrieve track data");
@@ -233,6 +244,7 @@ function($scope, Track) {
 contextControllers
 .controller('FamilyCtrl', ['$scope', 'Family',
 function($scope, Family) {
+  $scope.familyHtml = '';
   $scope.$on('familyClicked', function(event, family, genes) {
     var familyNames = Family.familyNames();
     html = '<h4><a href="#'+familyNames[family]+'/">' +
@@ -243,7 +255,8 @@ function($scope, Family) {
               f.fmin+' - '+f.fmax+'</li>';
     });
     html += '</ul>';
-    $('#family').html(html);
+    $scope.familyHtml = html;
+    $scope.$apply();
     $scope.showLeftSlider('#family');
   });
 }]);
@@ -342,7 +355,6 @@ function($scope, Broadcast) {
       if (e == target) { $(e).show(); }
       else { $(e).hide(); }
     });
-    $(target).show();
   };
   
   // slider animation
