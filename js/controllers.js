@@ -65,8 +65,8 @@ function($scope, $routeParams, $location, $cookies, Viewer, Broadcast) {
   }
   
   // try to fetch new data whenever the controller is initialized
-  if ($routeParams.focusName !== undefined && Viewer.tracks() === undefined ||
-      focusName != $routeParams.focusName) {
+  if ($routeParams.focusName !== undefined && Viewer.tracks() === undefined) {
+    console.log("new submit");
     $scope.submit();
   }
 
@@ -144,6 +144,7 @@ function($scope, $routeParams, $location, $cookies, Viewer, Broadcast) {
       function(geneName) {
         $location.path(geneName);
         $routeParams.focusName = geneName;
+        $scope.submit();
       }, function() {
         $scope.alert("danger", "Failed to scroll");
       });
