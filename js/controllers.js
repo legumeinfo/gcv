@@ -113,9 +113,13 @@ function($scope, $routeParams, $location, $cookies, Viewer, Broadcast) {
     if (returned > 0 && aligned > 0) {
       $scope.alert("success", returned+" tracks returned. "+aligned+" aligned");
     } else if (returned > 0 && aligned == 0) {
-      $scope.alert("warning", returned+' tracks returned. 0 aligned (<a ng-click="showLeftSlider(\'#parameters\', $event)">Alignment Parameters</a>)');
+      $scope.alert("warning", returned+' tracks returned. 0 aligned (<a ' +
+                   'ng-click="showLeftSlider(\'#parameters\', $event)">' +
+                   'Alignment Parameters</a>)');
     } else {
-      $scope.alert("danger", 'No tracks returned (<a ng-click="showLeftSlider(\'#parameters\', $event)">Query Parameters</a>)');
+      $scope.alert("danger", 'No tracks returned (<a ' +
+                   'ng-click="showLeftSlider(\'#parameters\', $event)">' +
+                   'Query Parameters</a>)');
     }
     $scope.hideSpinners();
   }
@@ -203,13 +207,18 @@ function($scope, Track) {
   $scope.$on('leftAxisClicked', function(event, trackID) {
     Track.get(trackID, function(track) {
       var familyNames = Track.familyNames();
-      var html = '<h4><a href="/chado/organism/'+track.species_id+'/">'+track.species_name+'</a> - <a href="/chado/feature/'+track.chromosome_id+'/">'+track.chromosome_name+'</a></h4>';
+      var html = '<h4><a href="/chado/organism/'+track.species_id+'/">' +
+                 track.species_name+'</a> - <a href="/chado/feature/' +
+                 track.chromosome_id+'/">'+track.chromosome_name+'</a></h4>';
       var genes = '<ul>';
       var families = [];
       track.genes.forEach(function(g) {
-      	genes += '<li><a href="/chado/feature/'+g.name+'/">'+g.name+'</a>: '+g.fmin+' - '+g.fmax+'</li>';
+      	genes += '<li><a href="/chado/feature/'+g.name+'/">'+g.name+'</a>: ' +
+                 g.fmin+' - '+g.fmax+'</li>';
       	if (g.family != '') {
-      		genes += '<ul><li>Family: <a href="/chado_phylotree/'+familyNames[g.family]+'/">'+familyNames[g.family]+'</a></li></ul>'
+      		genes += '<ul><li>Family: <a href="/chado_phylotree/' +
+                     familyNames[g.family]+'/">'+familyNames[g.family] +
+                     '</a></li></ul>';
       	}
       });
       genes += '</ul>';
@@ -240,8 +249,8 @@ function($scope, Family) {
 }]);
 
 contextControllers
-.controller('PlotCtrl', ['$scope', 'Plot',
-function($scope, Plot) {
+.controller('PlotCtrl', ['$scope', 'Plot', 'Broadcast',
+function($scope, Plot, Broadcast) {
   var familySizes;
   var colors;
   var selectedTrack;
@@ -255,8 +264,8 @@ function($scope, Plot) {
         var id = "plot"+trackID;
         $('#plots').append('<div id="'+id+'" class="col-lg-4">derp</div>');
         synteny(id, familySizes, colors, localPlots[trackID],
-                {"width": dim,
-                 "height": dim});
+                {"geneClicked": Broadcast.geneClicked,
+                 "width": dim});
     }
   }
   $scope.$on('newData', function(event) {
@@ -288,8 +297,8 @@ function($scope, Plot) {
       Plot.getLocal(selectedTrack,
         function(data) {
           synteny('local-plot', familySizes, colors, data,
-                  {"width": $('#right-slider .inner-ratio').innerWidth(),
-                   "height": $('#right-slider .inner-ratio').innerHeight()});
+                  {"geneClicked": Broadcast.geneClicked,
+                   "width": $('#right-slider .inner-ratio').innerWidth()});
         }, function() {
           $scope.alert("danger", "Failed to retrieve plot data");
       });
@@ -300,8 +309,8 @@ function($scope, Plot) {
       Plot.getGlobal(selectedTrack,
         function(data) {
           synteny('global-plot', familySizes, colors, data,
-                  {"width": $('#right-slider .inner-ratio').innerWidth(),
-                   "height": $('#right-slider .inner-ratio').innerHeight()});
+                  {"geneClicked": Broadcast.geneClicked,
+                   "width": $('#right-slider .inner-ratio').innerWidth()});
         }, function() {
           $scope.alert("danger", "Failed to retrieve plot data");
       });
@@ -406,11 +415,11 @@ function($scope, Broadcast) {
 
   // add tab functionality
   $('ul.tabs').each(function() {
-    // For each set of tabs, we want to keep track of
+    // for each set of tabs, we want to keep track of
     // which tab is active and it's associated content
     var $active, $content, $links = $(this).find('a');
-    // If the location.hash matches one of the links, use that as the active tab.
-    // If no match is found, use the first link as the initial active tab.
+    // if the location.hash matches one of the links, use that as the active tab
+    // if no match is found, use the first link as the initial active tab
     $active = $($links.filter('[href="'+location.hash+'"]')[0] || $links[0]);
     $active.closest('li').addClass('active');
     $content = $($active[0].hash);
