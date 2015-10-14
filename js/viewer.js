@@ -92,6 +92,12 @@ function contextViewer(container_id, color, data, optionalParameters) {
     data.groups.sort(optionalParameters.sort);
     // set the groups array to the query concatenated with the sorted results
     data.groups = query.concat(data.groups);
+    // give each track the correct y value
+    for (var i = 0; i < data.groups.length; i++) {
+      for (var j = 0; j < data.groups[i].genes.length; j++) {
+        data.groups[i].genes[j].y = i;
+      }
+    }
   }
   
   // get the family size map
