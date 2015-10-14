@@ -90,6 +90,11 @@ a {
   width: 48px;
   cursor: pointer;
 }
+#left-slider nav .glyphicon-remove {
+  display: inline-block;
+  vertical-align: middle;
+  line-height: normal;
+}
 #left-slider-content {
   position: absolute;
   top: 50px;
