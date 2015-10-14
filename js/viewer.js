@@ -374,8 +374,8 @@ function contextViewer(container_id, color, data, optionalParameters) {
   		  return d3.select(this).attr("y") == y;
   	    });
         if (optionalParameters.leftAxisClicked !== undefined) {
-  		  optionalParameters.leftAxisClicked(d, gene_selection,
-                                                rail_selection);
+  		  optionalParameters.leftAxisClicked(data.groups[d].id,
+            gene_selection, rail_selection);
         }
   	  });
   d3.selectAll(".axis_right text")

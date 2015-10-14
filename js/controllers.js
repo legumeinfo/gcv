@@ -220,7 +220,7 @@ function($scope, Track) {
                  track.species_name+'</a> - <a href="/chado/feature/' +
                  track.chromosome_id+'/">'+track.chromosome_name+'</a></h4>';
       // add track search link
-      var focus = track.genes[track.genes.length/2];
+      var focus = track.genes[Math.floor(track.genes.length/2)];
       html += '<a href="#/'+focus.name+'">Search for similar contexts</a><br/>';
       // add a link for each gene
       var genes = '<ul>';
