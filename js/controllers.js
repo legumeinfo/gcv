@@ -291,6 +291,9 @@ function($scope, Plot, Broadcast) {
   $scope.$on('newData', function(event) {
     Plot.plot();
     drawPlots();
+    selectedTrack = undefined;
+    $('#local-plot').html('');
+    $('#global-plot').html('');
   });
   $scope.$on('redraw', function(event) {
     $('#plots').html('');
