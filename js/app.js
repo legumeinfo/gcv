@@ -11,7 +11,7 @@ contextApp.config(['$routeProvider',
   // define our routes
   function($routeProvider) {
     $routeProvider.
-      when('/:focusName', {
+      when('/search/:focusName', {
         template: ' ', // just fires the controller
         controller: 'ViewerCtrl'
       });

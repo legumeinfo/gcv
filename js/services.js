@@ -6,7 +6,7 @@ function($http, Broadcast) {
   var familyNames;
   var familySizes;
   var colors = contextColors; //TODO: load color from cookie
-  return {get: function(focusName, params, errorCallback) {
+  return {get: function(focusName, params, successCallback, errorCallback) {
                  $http({url: 'http://localhost:8000/chado/context_viewer' +
                              '/search_tracks_service/'+focusName, 
                         method: "GET",
@@ -14,6 +14,7 @@ function($http, Broadcast) {
                       .then(function(response) {
                               json = response.data;
                               familyNames = getFamilyNameMap(JSON.parse(json));
+                              successCallback();
                               Broadcast.newData();
                             },
                             function(response) { errorCallback(response); });
@@ -44,8 +45,12 @@ function(DataStore) {
   var scores;
   var returned;
   var aligned;
-  return {get: function(focusName, params, successCallback, errorCallback) {
-            DataStore.get(focusName, params, successCallback, errorCallback);
+  var currentFocus;
+  return {get: function(focusName, params, errorCallback) {
+            DataStore.get(focusName, params,
+              function() {
+                currentFocus = focusName;
+              }, errorCallback);
           },
           getQueryGene: function(index, successCallback, errorCallback) {
             var names = [];
@@ -95,7 +100,8 @@ function(DataStore) {
           scores: function() { return scores; },
           colors: function() { return DataStore.colors(); },
           returned: function() { return returned; },
-          aligned: function() { return aligned; }
+          aligned: function() { return aligned; },
+          currentFocus: function() { return currentFocus; }
 }}]);
 
 // TODO: cache clicked gene data
