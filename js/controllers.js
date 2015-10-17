@@ -1,9 +1,14 @@
 var contextControllers = angular.module('contextControllers', []);
 
+// the generic controller that drives the app
 contextControllers
-.controller('ViewerCtrl', ['$scope', '$routeParams', '$location', '$cookies',
+.controller('ViewerCtrl', ['$scope', '$route', '$routeParams', '$location', '$cookies',
                             'Viewer', 'Broadcast',
-function($scope, $routeParams, $location, $cookies, Viewer, Broadcast) {
+function($scope, $route, $routeParams, $location, $cookies, Viewer, Broadcast) {
+  // is it a basic or search view?
+  var searchView = ($route.current) ? $route.current.$$route.search : false;
+  Broadcast.viewChanged(searchView);
+
   // initialize the form
   $scope.init = function() {
     // radio options
@@ -13,15 +18,15 @@ function($scope, $routeParams, $location, $cookies, Viewer, Broadcast) {
     $scope.orderings = [{id: "chromosome", name: "Chromosome"},
                         {id: "distance", name: "Edit distance"}];
     // default form values
-    $scope.params = {numNeighbors: 5,
-                       numMatchedFamilies: 3,
-                       numNonFamily: 5,
-                       algorithm: "repeat",
-                       match: 5,
-                       mismatch: -1,
-                       gap: -1,
-                       threshold: 45,
-                       order: "chromosome"};
+    $scope.params = {numNeighbors: 8,
+                     numMatchedFamilies: 6,
+                     numNonFamily: 5,
+                     algorithm: "repeat",
+                     match: 5,
+                     mismatch: -1,
+                     gap: -1,
+                     threshold: 25,
+                     order: "chromosome"};
     // override with values from cookie
     var cookie = $cookies.getObject('context');
     if (cookie !== undefined) {
@@ -34,95 +39,146 @@ function($scope, $routeParams, $location, $cookies, Viewer, Broadcast) {
     }
   }
 
+  function updateSearch() {
+    $location.search($scope.params);
+  }
+
   // gets data and updates the view when the form is submitted
   $scope.submit = function() {
     if ($scope.form.$valid) {
-      $scope.showSpinners();
-      $scope.hideLeftSlider();
       // in case the form is submitted with invalid values
       $scope.$broadcast('show-errors-check-validity');
-      // update the url to reflect the changes
-      $location.search($scope.params);
       // save the new params to the cookie
       $cookies.putObject('context', $scope.params);
-      // only three params require a db query
-      if (!($scope.form.numNeighbors.$pristine &&
-            $scope.form.numMatchedFamilies.$pristine &&
-            $scope.form.numNonFamily.$pristine) ||
-          Viewer.tracks() === undefined) {
-        getData();
-      } else {
-        Viewer.align($scope.params);
-        drawViewer();
-      }
+      // update the url to reflect the changes
+      // triggers the route provider
+      updateSearch();
     } else {
       $scope.alert("danger", "Invalid input parameters");
     }
   }
-  
-  // try to fetch new data whenever the controller is initialized
-  if ($routeParams.focusName !== undefined && Viewer.tracks() === undefined) {
-    $scope.submit();
-  }
 
-  // private function that fetches data
-  function getData() {
-    Viewer.get($routeParams.focusName,
-                  {numNeighbors: $scope.params.numNeighbors,
-                   numMatchedFamilies: $scope.params.numMatchedFamilies,
-                   numNonFamily: $scope.params.numNonFamily},
-                  function(response) {
-                    $scope.alert("danger", "Failed to retrieve data");
-                    $scope.hideSpinners();
-                  });
-  }
-
-  // draw viewer
-  var drawViewer = function() {
-    // helper functions for sorting tracks
-    function byChromosome(a, b) {
-      if( a.chromosome_name > b.chromosome_name ) {
-        return 1;
-      } else if ( a.chromosome_name < b.chromosome_name ) {
-        return -1;
-      } else {
-        return 0;
+  // check search has all params we need and copy them to params
+  function searchVsParams() {
+    for (var key in $scope.params) {
+      if (!($scope.params.hasOwnProperty(key) &&
+            $location.search().hasOwnProperty(key))) {
+        return false;
       }
     }
-    function byDistance(a, b) {
-      var a_id = a.species_id+":"+a.chromosome_id,
-          b_id = b.species_id+":"+b.chromosome_id;
-      return scores[b_id]-scores[a_id];
-    }
-    // make the context viewer
-    var colors = Viewer.colors();
-    contextViewer('viewer', colors, Viewer.tracks(),
-                  {"geneClicked": Broadcast.geneClicked,
-                   "leftAxisClicked": function(){},
-                   "rightAxisClicked": Broadcast.rightAxisClicked,
-                   "selectiveColoring": true,
-                   "interTrack": true,
-                   "merge": true,
-                   "sort": $scope.params.order == "chromosome" ?
-                           byChromosome : byDistance});
-	contextLegend('legend', colors, Viewer.tracks(),
-                  {"legendClick": Broadcast.familyClicked});
-    // report how things went
-    var returned = Viewer.returned();
-    var aligned = Viewer.aligned();
-    if (returned > 0 && aligned > 0) {
-      $scope.alert("success", returned+" tracks returned. "+aligned+" aligned");
-    } else if (returned > 0 && aligned == 0) {
-      $scope.alert("warning", returned+' tracks returned. 0 aligned (<a ng-click="showLeftSlider(\'#parameters\', $event)">Alignment Parameters</a>)');
+    updateObj($location.search(), $scope.params);
+    return true;
+  }
+
+  if ($routeParams.query !== undefined) {
+    if (searchVsParams()) {
+      getData();
     } else {
-      $scope.alert("danger", 'No tracks returned (<a ng-click="showLeftSlider(\'#parameters\', $event)">Query Parameters</a>)');
+      updateSearch();
+    }
+  }
+
+  // private function that draws viewer
+  function drawViewer() {
+    var tracks = Viewer.tracks();
+    if (tracks != undefined) {
+      // helper functions for sorting tracks
+      function byChromosome(a, b) {
+        return a.chromosome_name.localeCompare(b.chromosome_name);
+      }
+      function byDistance(a, b) {
+        var scores = Viewer.scores();
+        var a_id = a.id,
+            b_id = b.id;
+        return scores[b_id]-scores[a_id];
+      }
+      // make the context viewer
+      var colors = Viewer.colors();
+      if (searchView) {
+        contextViewer('viewer', colors, tracks,
+                      {"width": $('#main').innerWidth(),
+                       "geneClicked": Broadcast.geneClicked,
+                       "leftAxisClicked": Broadcast.leftAxisClicked,
+                       "rightAxisClicked": Broadcast.rightAxisClicked,
+                       "selectiveColoring": true,
+                       "interTrack": true,
+                       "merge": true,
+                       "boldFirst": true,
+                       "sort": $scope.params.order == "chromosome" ?
+                               byChromosome : byDistance});
+	    contextLegend('legend', colors, Viewer.tracks(),
+                      {"legendClick": Broadcast.familyClicked});
+        // report how things went
+        var returned = Viewer.returned();
+        var aligned = Viewer.aligned();
+        if (returned > 0 && aligned > 0) {
+          $scope.alert("success", returned+" tracks returned. "+aligned+" aligned");
+        } else if (returned > 0 && aligned == 0) {
+          $scope.alert("warning", returned+' tracks returned. 0 aligned (<a ' +
+                       'ng-click="showLeftSlider(\'#parameters\', $event)">' +
+                       'Alignment Parameters</a>)');
+        } else {
+          $scope.alert("danger", 'No tracks returned (<a ' +
+                       'ng-click="showLeftSlider(\'#parameters\', $event)">' +
+                       'Query Parameters</a>)');
+        }
+      } else {
+        contextViewer('viewer', colors, tracks,
+                      {"width": $('#main').innerWidth(),
+                       "focus": Viewer.family(),
+                       "geneClicked": Broadcast.geneClicked,
+                       "leftAxisClicked": Broadcast.leftAxisClicked,
+                       "selectiveColoring": true});
+	    contextLegend('legend', colors, Viewer.tracks(),
+                      {"legendClick": Broadcast.familyClicked});
+        $scope.alert("success", Viewer.returned()+" tracks returned");
+      }
     }
     $scope.hideSpinners();
   }
 
+  // private function that fetches data
+  function getData() {
+    // only three params require a db query
+    if ($routeParams.query !== undefined && (
+        !($scope.form.numNeighbors.$pristine &&
+          $scope.form.numMatchedFamilies.$pristine &&
+          $scope.form.numNonFamily.$pristine) ||
+        Viewer.tracks() === undefined ||
+        $routeParams.query != Viewer.lastQuery())) {
+      $scope.showSpinners();
+      if (searchView) {
+        Viewer.search($routeParams.query,
+                      {numNeighbors: $scope.params.numNeighbors,
+                       numMatchedFamilies: $scope.params.numMatchedFamilies,
+                       numNonFamily: $scope.params.numNonFamily},
+                      function(response) {
+                        $scope.alert("danger", "Failed to retrieve data");
+                        $scope.hideSpinners();
+                      });
+      } else {
+        Viewer.basic($routeParams.query,
+                      {numNeighbors: $scope.params.numNeighbors},
+                      drawViewer,
+                      function(response) {
+                        $scope.alert("danger", "Failed to retrieve data");
+                        $scope.hideSpinners();
+                      });
+        }
+    } else {
+      if (searchView) {
+        Viewer.align($scope.params);
+      }
+      drawViewer();
+    }
+    $scope.hideLeftSlider();
+  }
+
   // listen for new data event
   $scope.$on('newData', function(event) {
-    Viewer.align($scope.params);
+    if (searchView) {
+      Viewer.align($scope.params);
+    }
     drawViewer();
   });
 
@@ -130,16 +186,50 @@ function($scope, $routeParams, $location, $cookies, Viewer, Broadcast) {
   $scope.$on('redraw', function(event) {
     drawViewer();
   });
+
+  // initiates new search
+  $scope.newSearch = function(geneName) {
+    $location.path('/search/'+geneName).search($scope.params);
+  }
+
+  // scroll stuff
+  function scroll(index) {
+    Viewer.getQueryGene(index, $scope.newSearch, function() {
+        $scope.alert("danger", "Failed to scroll");
+      });
+  }
+
+  // scroll left
+  $scope.step;
+  $scope.scrollLeft = function(event) {
+    event.stopPropagation();
+    var step = parseInt($scope.step);
+    if (step <= $scope.params.numNeighbors) {
+      scroll($scope.params.numNeighbors-step);
+    } else {
+      $scope.alert("danger", "Invalid scroll size");
+    }
+  };
+  // scroll right
+  $scope.scrollRight =function(event) {
+    event.stopPropagation();
+    var step = parseInt($scope.step);
+    if (step <= $scope.params.numNeighbors) {
+      scroll(step+$scope.params.numNeighbors);
+    } else {
+      $scope.alert("danger", "Invalid scroll size");
+    }
+  };
 }]);
 
 contextControllers
-.controller('GeneCtrl', ['$scope', 'Gene',
-function($scope, Gene) {
-  // listen for gene click events
+.controller('GeneCtrl', ['$scope', '$location', '$routeParams', 'Gene',
+function($scope, $location, $routeParams, Gene) {
+  $scope.geneHtml = '';
   $scope.$on('geneClicked', function(event, gene) {
-    Gene.get(gene.name, {}, function(json) {
-      links = JSON.parse(json);
-      var familyNames = getFamilyNameMap(tracks); // TODO: move to service
+    $scope.showLeftSpinner();
+    Gene.get(gene.name, function(links) {
+      var familyNames = Gene.familyNames();
       var html = '<h4>'+gene.name+'</h4>' // TODO: link to tripal
       html += 'Family: ';
       if (gene.family != '') {
@@ -148,6 +238,8 @@ function($scope, Gene) {
       	html += 'None';
       }
       html += '<br />';
+      // add track search link
+      html += '<a ng-click="newSearch(\''+gene.name+'\')">Search for similar contexts</a><br/>';
       // for switching over to json provided by tripal_linkout
       for (var i = 0; i < links.length; i++) {
         html += '<a href="'+links[i].href+'">'+links[i].text+'</a><br/>'
@@ -155,18 +247,61 @@ function($scope, Gene) {
       if (links.meta) {
         html += '<p>'+links.meta+'</p>'
       }
-      $('#gene').html(html);
+      $scope.geneHtml = html;
       $scope.showLeftSlider('#gene');
+      $scope.hideSpinners();
     }, function(response) {
       $scope.alert("danger", "Failed to retrieve gene data");
+      $scope.hideSpinners();
     });
   });
 }]);
 
 contextControllers
+.controller('TrackCtrl', ['$scope', 'Track',
+function($scope, Track) {
+  $scope.trackHtml = '';
+  // listen for track click events
+  $scope.$on('leftAxisClicked', function(event, trackID) {
+    $scope.showLeftSpinner();
+    Track.get(trackID, function(track) {
+      var familyNames = Track.familyNames();
+      var html = '<h4><a href="/chado/organism/'+track.species_id+'/">' +
+                 track.species_name+'</a> - <a href="/chado/feature/' +
+                 track.chromosome_id+'/">'+track.chromosome_name+'</a></h4>';
+      // add track search link
+      var focus = track.genes[Math.floor(track.genes.length/2)];
+      html += '<a ng-click="newSearch(\''+focus.name+'\')">Search for similar contexts</a><br/>';
+      // add a link for each gene
+      var genes = '<ul>';
+      var families = [];
+      track.genes.forEach(function(g) {
+      	genes += '<li><a href="/chado/feature/'+g.name+'/">'+g.name+'</a>: ' +
+                 g.fmin+' - '+g.fmax+'</li>';
+      	if (g.family != '') {
+      		genes += '<ul><li>Family: <a href="/chado_phylotree/' +
+                     familyNames[g.family]+'/">'+familyNames[g.family] +
+                     '</a></li></ul>';
+      	}
+      });
+      genes += '</ul>';
+      html += 'Genes:'+genes;
+      $scope.trackHtml = html;
+      $scope.$apply();
+      $scope.showLeftSlider('#track');
+      $scope.hideSpinners();
+    }, function() {
+      $scope.alert("danger", "Failed to retrieve track data");
+      $scope.hideSpinners();
+    })});
+}]);
+
+contextControllers
 .controller('FamilyCtrl', ['$scope', 'Family',
 function($scope, Family) {
+  $scope.familyHtml = '';
   $scope.$on('familyClicked', function(event, family, genes) {
+    $scope.showLeftSpinner();
     var familyNames = Family.familyNames();
     html = '<h4><a href="#'+familyNames[family]+'/">' +
            familyNames[family]+'</a></h4>'; // TODO: link to tripal
@@ -176,21 +311,52 @@ function($scope, Family) {
               f.fmin+' - '+f.fmax+'</li>';
     });
     html += '</ul>';
-    $('#family').html(html);
+    $scope.familyHtml = html;
+    $scope.$apply();
     $scope.showLeftSlider('#family');
+    $scope.hideSpinners();
   });
 }]);
 
 contextControllers
-.controller('PlotCtrl', ['$scope', 'Plot',
-function($scope, Plot) {
+.controller('PlotCtrl', ['$scope', 'Plot', 'Broadcast',
+function($scope, Plot, Broadcast) {
   var familySizes;
   var colors;
   var selectedTrack;
+  function drawPlots() {
+    var localPlots = Plot.getAllLocal();
+      if (localPlots !== undefined) {
+      familySizes = Plot.familySizes();
+      colors = Plot.colors();
+      $('#plots').html('');
+      var dim = $('#main').innerWidth()/3;
+      for (var trackID in localPlots) {
+          var id = "plot"+trackID;
+          $('#plots').append('<div id="'+id+'" class="col-lg-4">derp</div>');
+          synteny(id, familySizes, colors, localPlots[trackID],
+                  {"geneClicked": Broadcast.geneClicked,
+                   "width": dim});
+      }
+    }
+  }
   $scope.$on('newData', function(event) {
     Plot.plot();
-    familySizes = Plot.familySizes();
-    colors = Plot.colors();
+    drawPlots();
+    selectedTrack = undefined;
+    $('#local-plot').html('');
+    $('#global-plot').html('');
+  });
+  $scope.$on('redraw', function(event) {
+    $('#plots').html('');
+    $('#local-plot').html('');
+    $('#global-plot').html('');
+    drawPlots();
+    if ($('#local-plot').is(':visible')) {
+      $scope.plotLocal();
+    } else if ($('#global-plot').is(':visible')) {
+      $scope.plotGlobal();
+    }
   });
   $scope.$on('rightAxisClicked', function(event, trackID) {
     $scope.showRightSlider();
@@ -206,8 +372,8 @@ function($scope, Plot) {
       Plot.getLocal(selectedTrack,
         function(data) {
           synteny('local-plot', familySizes, colors, data,
-                  {"width": $('#right-slider .inner-ratio').innerWidth(),
-                   "height": $('#right-slider .inner-ratio').innerHeight()});
+                  {"geneClicked": Broadcast.geneClicked,
+                   "width": $('#right-slider .inner-ratio').innerWidth()});
         }, function() {
           $scope.alert("danger", "Failed to retrieve plot data");
       });
@@ -215,13 +381,16 @@ function($scope, Plot) {
   };
   $scope.plotGlobal = function() {
     if (selectedTrack !== undefined) {
+      $scope.showPlotSpinner();
       Plot.getGlobal(selectedTrack,
         function(data) {
           synteny('global-plot', familySizes, colors, data,
-                  {"width": $('#right-slider .inner-ratio').innerWidth(),
-                   "height": $('#right-slider .inner-ratio').innerHeight()});
+                  {"geneClicked": Broadcast.geneClicked,
+                   "width": $('#right-slider .inner-ratio').innerWidth()});
+          $scope.hideSpinners();
         }, function() {
           $scope.alert("danger", "Failed to retrieve plot data");
+          $scope.hideSpinners();
       });
     }
   }
@@ -247,11 +416,10 @@ function($scope, Broadcast) {
 
   // make all divs in the left slider except the target
   function switchActive(target) {
-    $.each(['#parameters', '#gene', '#family'], function(i, e) {
+    $.each(['#parameters', '#gene', '#family', '#track'], function(i, e) {
       if (e == target) { $(e).show(); }
       else { $(e).hide(); }
     });
-    $(target).show();
   };
   
   // slider animation
@@ -310,6 +478,12 @@ function($scope, Broadcast) {
   }
 
   // what to do at the beginning and end of window resizing
+  $scope.showLeftSpinner = function() {
+    $('#left-slider-content').append(spinner);
+  }
+  $scope.showPlotSpinner = function() {
+    $('#plot-wrapper').append(spinner);
+  }
   $scope.showSpinners = function() {
     $('#main').append(spinner);
     $('#legend-wrapper .vertical-scroll').append(spinner);
@@ -321,15 +495,14 @@ function($scope, Broadcast) {
   var spinner = '<div class="grey-screen">'
               + '<div class="spinner"><img src="img/spinner.gif" /></div>'
               + '</div>';
-  // 10 tracks returned. 0 aligned (<a class="open-parameters" ng-click="toggleParameters($event)">Revise Alignment Parameters</a>)
 
   // add tab functionality
   $('ul.tabs').each(function() {
-    // For each set of tabs, we want to keep track of
+    // for each set of tabs, we want to keep track of
     // which tab is active and it's associated content
     var $active, $content, $links = $(this).find('a');
-    // If the location.hash matches one of the links, use that as the active tab.
-    // If no match is found, use the first link as the initial active tab.
+    // if the location.hash matches one of the links, use that as the active tab
+    // if no match is found, use the first link as the initial active tab
     $active = $($links.filter('[href="'+location.hash+'"]')[0] || $links[0]);
     $active.closest('li').addClass('active');
     $content = $($active[0].hash);
@@ -351,5 +524,16 @@ function($scope, Broadcast) {
       // Prevent the anchor's default click action
       e.preventDefault();
     });
+  });
+
+  // listen for the view to change
+  $scope.searchView = false;
+  $scope.$on('viewChanged', function(event, searchView) {
+    $scope.searchView = searchView;
+  });
+
+  // switch to the viewer element when the location is changing
+  $scope.$on('$routeChangeStart', function(event, next, current) {
+    $('#viewer-button').trigger('click');
   });
 }]);

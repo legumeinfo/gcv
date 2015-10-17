@@ -10,10 +10,16 @@ var contextApp = angular.module('contextApp', [
 contextApp.config(['$routeProvider',
   // define our routes
   function($routeProvider) {
-    $routeProvider.
-      when('/:focusName', {
+    $routeProvider
+      .when('/search/:query', { // query = focus name
         template: ' ', // just fires the controller
-        controller: 'ViewerCtrl'
+        controller: 'ViewerCtrl',
+        search: true
+      })
+      .when('/basic/:query', { // query = internal node id
+        template: ' ', //just fires the controller
+        controller: 'ViewerCtrl',
+        search: false
       });
   }]);
 

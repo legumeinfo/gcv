@@ -2,16 +2,6 @@ function contextViewer(container_id, color, data, optionalParameters) {
   // clear the contents of the target element first
   document.getElementById(container_id).innerHTML = "";
   
-  // sort the result tracks by some user defined function
-  if (optionalParameters.sort !== undefined) {
-    // remove the query from the groups array
-    var query = data.groups.splice(0, 1);
-    // sort the results with the user defined function
-    data.groups.sort(optionalParameters.sort);
-    // set the groups array to the query concatenated with the sorted results
-    data.groups = query.concat(data.groups);
-  }
-  
   // data preprocessing
   var begin_genes = {};
   var end_genes = {};
@@ -94,6 +84,22 @@ function contextViewer(container_id, color, data, optionalParameters) {
     }
   }
   
+  // sort the result tracks by some user defined function
+  if (optionalParameters.sort !== undefined) {
+    // remove the query from the groups array
+    var query = data.groups.splice(0, 1);
+    // sort the results with the user defined function
+    data.groups.sort(optionalParameters.sort);
+    // set the groups array to the query concatenated with the sorted results
+    data.groups = query.concat(data.groups);
+    // give each track the correct y value
+    for (var i = 0; i < data.groups.length; i++) {
+      for (var j = 0; j < data.groups[i].genes.length; j++) {
+        data.groups[i].genes[j].y = i;
+      }
+    }
+  }
+  
   // get the family size map
   var family_sizes = getFamilySizeMap(data);
   
@@ -101,7 +107,10 @@ function contextViewer(container_id, color, data, optionalParameters) {
   var family_names = getFamilyNameMap(data);
   
   // define dimensions of graph and a bunch of other stuff
-  var w = d3.max([1000,document.getElementById(container_id).offsetWidth]),
+  var targetWidth = ((optionalParameters.width !== undefined) ?
+                     optionalParameters.width :
+                     document.getElementById(container_id).offsetWidth);
+  var w = d3.max([1000, targetWidth]),
       rect_h = 18,
       rect_pad = 2,
       top_pad = 200,
@@ -164,8 +173,8 @@ function contextViewer(container_id, color, data, optionalParameters) {
   	  	} else if (d.family == '') {
   	  	  return "point no_fam";
   	  	} else if (family_sizes[d.family] == 1 && 
-                   optionalParameters.selective_coloring !== undefined &&
-                   optionalParameters.selective_coloring == true) {
+                   optionalParameters.selectiveColoring !== undefined &&
+                   optionalParameters.selectiveColoring == true) {
   	  	  return "point single";
   	  	} return "point";
       })
@@ -174,8 +183,8 @@ function contextViewer(container_id, color, data, optionalParameters) {
       })
   	  .style("fill", function (d) {
   	  	if (d.family == '' ||
-            (optionalParameters.selective_coloring !== undefined &&
-             optionalParameters.selective_coloring == true &&
+            (optionalParameters.selectiveColoring !== undefined &&
+             optionalParameters.selectiveColoring == true &&
              family_sizes[d.family] == 1)) {
   	  	  return "#ffffff";
   	  	} return color(d.family);
@@ -333,6 +342,11 @@ function contextViewer(container_id, color, data, optionalParameters) {
   
   // interact with the y-axes
   d3.selectAll(".axis_left text")
+    .style("font-weight", function(d, y) {
+      if (optionalParameters.boldFirst !== undefined &&
+          optionalParameters.boldFirst && y == 0) {
+        return "bold";
+      } return "normal"; })
   	.style("cursor", "pointer")
       .on("mouseover", function (d, y) {
   		var gene_selection = gene_groups.filter(function (e) {
@@ -363,8 +377,8 @@ function contextViewer(container_id, color, data, optionalParameters) {
   		  return d3.select(this).attr("y") == y;
   	    });
         if (optionalParameters.leftAxisClicked !== undefined) {
-  		  optionalParameters.leftAxisClicked(d, gene_selection,
-                                                rail_selection);
+  		  optionalParameters.leftAxisClicked(data.groups[d].id,
+            gene_selection, rail_selection);
         }
   	  });
   d3.selectAll(".axis_right text")

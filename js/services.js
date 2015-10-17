@@ -1,12 +1,27 @@
 var contextServices = angular.module('contextServices', []);
 
-contextServices.service('DataStore', ['$http', '$rootScope',
-function($http, $rootScope) {
+contextServices.service('DataStore', ['$http', 'Broadcast',
+function($http, Broadcast) {
   var json;
+  var family;
   var familyNames;
   var familySizes;
   var colors = contextColors; //TODO: load color from cookie
-  return {get: function(focusName, params, errorCallback) {
+  return {basic: function(nodeID, params, successCallback, errorCallback) {
+                 $http({url: 'http://localhost:8000/chado/context_viewer' +
+                             '/basic_tracks_service/'+nodeID, 
+                        method: "GET",
+                        params: params})
+                      .then(function(response) {
+                              var data = JSON.parse(response.data);
+                              json = JSON.stringify(data.tracks);
+                              family = data.family;
+                              familyNames = getFamilyNameMap(data.tracks);
+                              successCallback();
+                            },
+                            function(response) { errorCallback(response); });
+          },
+          search: function(focusName, params, successCallback, errorCallback) {
                  $http({url: 'http://localhost:8000/chado/context_viewer' +
                              '/search_tracks_service/'+focusName, 
                         method: "GET",
@@ -14,12 +29,11 @@ function($http, $rootScope) {
                       .then(function(response) {
                               json = response.data;
                               familyNames = getFamilyNameMap(JSON.parse(json));
-                              familySizes = getFamilySizeMap(JSON.parse(json));
-                              // controllers should listen for the broadcast
-                              // instead of passing a success callback
-                              $rootScope.$broadcast('newData');
+                              successCallback();
+                              Broadcast.newData();
                             },
-                            function(response) { errorCallback(response); });},
+                            function(response) { errorCallback(response); });
+          },
           parsedData: function() {
             var data = JSON.parse(json);
             var reference = data.groups[0].chromosome_name;
@@ -37,7 +51,8 @@ function($http, $rootScope) {
           },
           familyNames: function() { return familyNames; },
           familySizes: function() { return familySizes; },
-          colors: function() { return colors; }
+          colors: function() { return colors; },
+          family: function() { return family; }
 }}]);
 
 contextServices.service('Viewer', ['DataStore',
@@ -46,8 +61,33 @@ function(DataStore) {
   var scores;
   var returned;
   var aligned;
-  return {get: function(focusName, params, successCallback, errorCallback) {
-            DataStore.get(focusName, params, successCallback, errorCallback);
+  var query;
+  return {basic: function(nodeID, params, successCallback ,errorCallback) {
+            DataStore.basic(nodeID, params,
+              function() {
+                query = nodeID;
+                tracks = DataStore.parsedData();
+                returned = tracks.groups.length;
+                successCallback();
+              }, errorCallback);
+          },
+          search: function(focusName, params, errorCallback) {
+            DataStore.search(focusName, params,
+              function() {
+                query = focusName;
+                tracks = DataStore.parsedData();
+              }, errorCallback);
+          },
+          getQueryGene: function(index, successCallback, errorCallback) {
+            var names = [];
+            tracks.groups[0].genes.forEach(function(gene) {
+              names.push(gene.name);
+            });
+            if (index >= 0 && index < tracks.groups[0].genes.length) {
+              successCallback(tracks.groups[0].genes[index].name);
+            } else {
+              errorCallback();
+            }
           },
           align: function(params) {
             tracks = DataStore.parsedData();
@@ -83,9 +123,12 @@ function(DataStore) {
             mergeAlignments(tracks, resultTracks, alignments);
           },
           tracks: function() { return tracks; },
+          scores: function() { return scores; },
           colors: function() { return DataStore.colors(); },
           returned: function() { return returned; },
-          aligned: function() { return aligned; }
+          aligned: function() { return aligned; },
+          lastQuery: function() { return query; },
+          family: function() { return DataStore.family(); }
 }}]);
 
 // TODO: cache clicked gene data
@@ -96,7 +139,29 @@ function($http, DataStore) {
            method: "GET"})
          .then(function(response) { successCallback(response.data); },
                function(response) { errorCallback(response); });
-}}}]);
+         },
+         familyNames: function() { return DataStore.familyNames(); }
+}}]);
+
+// TODO: cache clicked family data
+contextServices.factory('Track', ['$http', 'DataStore',
+function($http, DataStore) {
+  return {get: function(trackID, successCallback, errorCallback) {
+            var data = DataStore.parsedData();
+            var track;
+            for (var i = 0; i < data.groups.length; i++) {
+              if (data.groups[i].id == trackID) {             
+                track = data.groups[i];
+                break;
+              }
+            }
+            if (track !== undefined) {
+              successCallback(track);
+            } else {
+              errorCallback();
+            }},
+           familyNames: function() { return DataStore.familyNames(); }
+}}]);
 
 // TODO: cache clicked family data
 contextServices.factory('Family', ['$http', 'DataStore',
@@ -140,6 +205,9 @@ function($http, DataStore) {
             } else {
               errorCallback();
             }
+          },
+          getAllLocal: function() {
+            return localPlots;
           },
           getGlobal: function(trackID, successCallback, errorCallback) {
             if (globalPlots[trackID] !== undefined) {
@@ -195,6 +263,9 @@ function($http, DataStore) {
 contextServices.factory('Broadcast', ['$rootScope',
 function($rootScope) {
   return {
+    newData: function() {
+      $rootScope.$broadcast('newData');
+    },
     redraw: function() {
       $rootScope.$broadcast('redraw');
     },
@@ -204,8 +275,14 @@ function($rootScope) {
     familyClicked: function(family, genes) {
       $rootScope.$broadcast('familyClicked', family, genes);
     },
+    leftAxisClicked: function(trackID) {
+      $rootScope.$broadcast('leftAxisClicked', trackID);
+    },
     rightAxisClicked: function(trackID) {
       $rootScope.$broadcast('rightAxisClicked', trackID);
+    },
+    viewChanged: function(searchView) {
+      $rootScope.$broadcast('viewChanged', searchView);
     }
   }
 }]);
