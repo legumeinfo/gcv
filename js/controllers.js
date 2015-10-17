@@ -1,9 +1,14 @@
 var contextControllers = angular.module('contextControllers', []);
 
+// the generic controller that drives the app
 contextControllers
-.controller('ViewerCtrl', ['$scope', '$routeParams', '$location', '$cookies',
+.controller('ViewerCtrl', ['$scope', '$route', '$routeParams', '$location', '$cookies',
                             'Viewer', 'Broadcast',
-function($scope, $routeParams, $location, $cookies, Viewer, Broadcast) {
+function($scope, $route, $routeParams, $location, $cookies, Viewer, Broadcast) {
+  // is it a basic or search view?
+  var searchView = ($route.current) ? $route.current.$$route.search : false;
+  Broadcast.viewChanged(searchView);
+
   // initialize the form
   $scope.init = function() {
     // radio options
@@ -14,14 +19,14 @@ function($scope, $routeParams, $location, $cookies, Viewer, Broadcast) {
                         {id: "distance", name: "Edit distance"}];
     // default form values
     $scope.params = {numNeighbors: 8,
-                       numMatchedFamilies: 6,
-                       numNonFamily: 5,
-                       algorithm: "repeat",
-                       match: 5,
-                       mismatch: -1,
-                       gap: -1,
-                       threshold: 25,
-                       order: "chromosome"};
+                     numMatchedFamilies: 6,
+                     numNonFamily: 5,
+                     algorithm: "repeat",
+                     match: 5,
+                     mismatch: -1,
+                     gap: -1,
+                     threshold: 25,
+                     order: "chromosome"};
     // override with values from cookie
     var cookie = $cookies.getObject('context');
     if (cookie !== undefined) {
@@ -65,7 +70,7 @@ function($scope, $routeParams, $location, $cookies, Viewer, Broadcast) {
     return true;
   }
 
-  if ($routeParams.focusName !== undefined) {
+  if ($routeParams.query !== undefined) {
     if (searchVsParams()) {
       getData();
     } else {
@@ -89,32 +94,44 @@ function($scope, $routeParams, $location, $cookies, Viewer, Broadcast) {
       }
       // make the context viewer
       var colors = Viewer.colors();
-      contextViewer('viewer', colors, tracks,
-                    {"width": $('#main').innerWidth(),
-                     "geneClicked": Broadcast.geneClicked,
-                     "leftAxisClicked": Broadcast.leftAxisClicked,
-                     "rightAxisClicked": Broadcast.rightAxisClicked,
-                     "selectiveColoring": true,
-                     "interTrack": true,
-                     "merge": true,
-                     "boldFirst": true,
-                     "sort": $scope.params.order == "chromosome" ?
-                             byChromosome : byDistance});
-	  contextLegend('legend', colors, Viewer.tracks(),
-                    {"legendClick": Broadcast.familyClicked});
-      // report how things went
-      var returned = Viewer.returned();
-      var aligned = Viewer.aligned();
-      if (returned > 0 && aligned > 0) {
-        $scope.alert("success", returned+" tracks returned. "+aligned+" aligned");
-      } else if (returned > 0 && aligned == 0) {
-        $scope.alert("warning", returned+' tracks returned. 0 aligned (<a ' +
-                     'ng-click="showLeftSlider(\'#parameters\', $event)">' +
-                     'Alignment Parameters</a>)');
+      if (searchView) {
+        contextViewer('viewer', colors, tracks,
+                      {"width": $('#main').innerWidth(),
+                       "geneClicked": Broadcast.geneClicked,
+                       "leftAxisClicked": Broadcast.leftAxisClicked,
+                       "rightAxisClicked": Broadcast.rightAxisClicked,
+                       "selectiveColoring": true,
+                       "interTrack": true,
+                       "merge": true,
+                       "boldFirst": true,
+                       "sort": $scope.params.order == "chromosome" ?
+                               byChromosome : byDistance});
+	    contextLegend('legend', colors, Viewer.tracks(),
+                      {"legendClick": Broadcast.familyClicked});
+        // report how things went
+        var returned = Viewer.returned();
+        var aligned = Viewer.aligned();
+        if (returned > 0 && aligned > 0) {
+          $scope.alert("success", returned+" tracks returned. "+aligned+" aligned");
+        } else if (returned > 0 && aligned == 0) {
+          $scope.alert("warning", returned+' tracks returned. 0 aligned (<a ' +
+                       'ng-click="showLeftSlider(\'#parameters\', $event)">' +
+                       'Alignment Parameters</a>)');
+        } else {
+          $scope.alert("danger", 'No tracks returned (<a ' +
+                       'ng-click="showLeftSlider(\'#parameters\', $event)">' +
+                       'Query Parameters</a>)');
+        }
       } else {
-        $scope.alert("danger", 'No tracks returned (<a ' +
-                     'ng-click="showLeftSlider(\'#parameters\', $event)">' +
-                     'Query Parameters</a>)');
+        contextViewer('viewer', colors, tracks,
+                      {"width": $('#main').innerWidth(),
+                       "focus": Viewer.family(),
+                       "geneClicked": Broadcast.geneClicked,
+                       "leftAxisClicked": Broadcast.leftAxisClicked,
+                       "selectiveColoring": true});
+	    contextLegend('legend', colors, Viewer.tracks(),
+                      {"legendClick": Broadcast.familyClicked});
+        $scope.alert("success", Viewer.returned()+" tracks returned");
       }
     }
     $scope.hideSpinners();
@@ -123,23 +140,35 @@ function($scope, $routeParams, $location, $cookies, Viewer, Broadcast) {
   // private function that fetches data
   function getData() {
     // only three params require a db query
-    if ($routeParams.focusName !== undefined && (
+    if ($routeParams.query !== undefined && (
         !($scope.form.numNeighbors.$pristine &&
           $scope.form.numMatchedFamilies.$pristine &&
           $scope.form.numNonFamily.$pristine) ||
         Viewer.tracks() === undefined ||
-        $routeParams.focusName != Viewer.currentFocus())) {
+        $routeParams.query != Viewer.lastQuery())) {
       $scope.showSpinners();
-      Viewer.get($routeParams.focusName,
-                    {numNeighbors: $scope.params.numNeighbors,
-                     numMatchedFamilies: $scope.params.numMatchedFamilies,
-                     numNonFamily: $scope.params.numNonFamily},
-                    function(response) {
-                      $scope.alert("danger", "Failed to retrieve data");
-                      $scope.hideSpinners();
-                    });
+      if (searchView) {
+        Viewer.search($routeParams.query,
+                      {numNeighbors: $scope.params.numNeighbors,
+                       numMatchedFamilies: $scope.params.numMatchedFamilies,
+                       numNonFamily: $scope.params.numNonFamily},
+                      function(response) {
+                        $scope.alert("danger", "Failed to retrieve data");
+                        $scope.hideSpinners();
+                      });
+      } else {
+        Viewer.basic($routeParams.query,
+                      {numNeighbors: $scope.params.numNeighbors},
+                      drawViewer,
+                      function(response) {
+                        $scope.alert("danger", "Failed to retrieve data");
+                        $scope.hideSpinners();
+                      });
+        }
     } else {
-      Viewer.align($scope.params);
+      if (searchView) {
+        Viewer.align($scope.params);
+      }
       drawViewer();
     }
     $scope.hideLeftSlider();
@@ -147,7 +176,9 @@ function($scope, $routeParams, $location, $cookies, Viewer, Broadcast) {
 
   // listen for new data event
   $scope.$on('newData', function(event) {
-    Viewer.align($scope.params);
+    if (searchView) {
+      Viewer.align($scope.params);
+    }
     drawViewer();
   });
 
@@ -156,14 +187,14 @@ function($scope, $routeParams, $location, $cookies, Viewer, Broadcast) {
     drawViewer();
   });
 
-  // scroll stuff
-  $scope.newFocus = function(geneName) {
+  // initiates new search
+  $scope.newSearch = function(geneName) {
     $location.path('/search/'+geneName).search($scope.params);
-    $routeParams.focusName = geneName;
   }
 
+  // scroll stuff
   function scroll(index) {
-    Viewer.getQueryGene(index, $scope.newFocus, function() {
+    Viewer.getQueryGene(index, $scope.newSearch, function() {
         $scope.alert("danger", "Failed to scroll");
       });
   }
@@ -208,7 +239,7 @@ function($scope, $location, $routeParams, Gene) {
       }
       html += '<br />';
       // add track search link
-      html += '<a ng-click="newFocus(\''+gene.name+'\')">Search for similar contexts</a><br/>';
+      html += '<a ng-click="newSearch(\''+gene.name+'\')">Search for similar contexts</a><br/>';
       // for switching over to json provided by tripal_linkout
       for (var i = 0; i < links.length; i++) {
         html += '<a href="'+links[i].href+'">'+links[i].text+'</a><br/>'
@@ -240,7 +271,7 @@ function($scope, Track) {
                  track.chromosome_id+'/">'+track.chromosome_name+'</a></h4>';
       // add track search link
       var focus = track.genes[Math.floor(track.genes.length/2)];
-      html += '<a ng-click="newFocus(\''+focus.name+'\')">Search for similar contexts</a><br/>';
+      html += '<a ng-click="newSearch(\''+focus.name+'\')">Search for similar contexts</a><br/>';
       // add a link for each gene
       var genes = '<ul>';
       var families = [];
@@ -493,5 +524,16 @@ function($scope, Broadcast) {
       // Prevent the anchor's default click action
       e.preventDefault();
     });
+  });
+
+  // listen for the view to change
+  $scope.searchView = false;
+  $scope.$on('viewChanged', function(event, searchView) {
+    $scope.searchView = searchView;
+  });
+
+  // switch to the viewer element when the location is changing
+  $scope.$on('$routeChangeStart', function(event, next, current) {
+    $('#viewer-button').trigger('click');
   });
 }]);

@@ -29,7 +29,7 @@
         </div>
       </div>
     </div>
-    <div id="plot" ng-controller="PlotCtrl">
+    <div id="plot" ng-controller="PlotCtrl" ng-show="searchView">
       <nav class="navbar navbar-default navbar-static-top">
         <div class="container-fluid">
           <div class="navbar-header">
@@ -69,8 +69,8 @@
         <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
           <ul class="nav navbar-nav tabs">
             <li><button type="button" class="btn btn-default navbar-btn" ng-click="showLeftSlider('#parameters', $event)">Parameters</button></li>
-            <li><a href="#viewer">Viewer</a></li>
-            <li><a href="#plots">Dot Plots</a></li>
+            <li><a id="viewer-button" href="#viewer">Viewer</a></li>
+            <li ng-show="searchView"><a href="#plots">Dot Plots</a></li>
             <li><a href="#help">Help</a></li>
           </ul>
           <div>
@@ -97,7 +97,7 @@
               <span class="glyphicon glyphicon glyphicon-remove pull-right" ng-click="hideLeftSlider($event)" aria-hidden="true"></span>
             </a></li>
           </ul>
-          <div id="form-wrapper">
+          <div id="form-wrapper" ng-show="searchView">
           <form class="navbar-form navbar-left form-inline">
             <div class="input-group col-lg-12">
               <span class="input-group-btn">
@@ -127,6 +127,7 @@
               <input type="number" min="1" name="numNeighbors" class="form-control" ng-model="params.numNeighbors" integer required>
               <span id="helpBlock" class="help-block">A positive integer</span>
             </div>
+            <div ng-show="searchView">
             <div class="form-group" show-errors>
               <label>Matched Families</label>
               <input type="number" min="1" name="numMatchedFamilies" class="form-control" ng-model="params.numMatchedFamilies" integer required>
@@ -177,6 +178,7 @@
                ng-options="o.id as o.name for o in orderings"
                ng-model="params.order">
               </select>
+            </div>
             </div>
             <button type="submit" class="btn btn-primary col-sm-12">Submit</button>
           </fieldset>

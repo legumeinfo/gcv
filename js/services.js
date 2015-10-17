@@ -3,10 +3,25 @@ var contextServices = angular.module('contextServices', []);
 contextServices.service('DataStore', ['$http', 'Broadcast',
 function($http, Broadcast) {
   var json;
+  var family;
   var familyNames;
   var familySizes;
   var colors = contextColors; //TODO: load color from cookie
-  return {get: function(focusName, params, successCallback, errorCallback) {
+  return {basic: function(nodeID, params, successCallback, errorCallback) {
+                 $http({url: 'http://localhost:8000/chado/context_viewer' +
+                             '/basic_tracks_service/'+nodeID, 
+                        method: "GET",
+                        params: params})
+                      .then(function(response) {
+                              var data = JSON.parse(response.data);
+                              json = JSON.stringify(data.tracks);
+                              family = data.family;
+                              familyNames = getFamilyNameMap(data.tracks);
+                              successCallback();
+                            },
+                            function(response) { errorCallback(response); });
+          },
+          search: function(focusName, params, successCallback, errorCallback) {
                  $http({url: 'http://localhost:8000/chado/context_viewer' +
                              '/search_tracks_service/'+focusName, 
                         method: "GET",
@@ -36,7 +51,8 @@ function($http, Broadcast) {
           },
           familyNames: function() { return familyNames; },
           familySizes: function() { return familySizes; },
-          colors: function() { return colors; }
+          colors: function() { return colors; },
+          family: function() { return family; }
 }}]);
 
 contextServices.service('Viewer', ['DataStore',
@@ -45,11 +61,21 @@ function(DataStore) {
   var scores;
   var returned;
   var aligned;
-  var currentFocus;
-  return {get: function(focusName, params, errorCallback) {
-            DataStore.get(focusName, params,
+  var query;
+  return {basic: function(nodeID, params, successCallback ,errorCallback) {
+            DataStore.basic(nodeID, params,
               function() {
-                currentFocus = focusName;
+                query = nodeID;
+                tracks = DataStore.parsedData();
+                returned = tracks.groups.length;
+                successCallback();
+              }, errorCallback);
+          },
+          search: function(focusName, params, errorCallback) {
+            DataStore.search(focusName, params,
+              function() {
+                query = focusName;
+                tracks = DataStore.parsedData();
               }, errorCallback);
           },
           getQueryGene: function(index, successCallback, errorCallback) {
@@ -101,7 +127,8 @@ function(DataStore) {
           colors: function() { return DataStore.colors(); },
           returned: function() { return returned; },
           aligned: function() { return aligned; },
-          currentFocus: function() { return currentFocus; }
+          lastQuery: function() { return query; },
+          family: function() { return DataStore.family(); }
 }}]);
 
 // TODO: cache clicked gene data
@@ -253,6 +280,9 @@ function($rootScope) {
     },
     rightAxisClicked: function(trackID) {
       $rootScope.$broadcast('rightAxisClicked', trackID);
+    },
+    viewChanged: function(searchView) {
+      $rootScope.$broadcast('viewChanged', searchView);
     }
   }
 }]);
