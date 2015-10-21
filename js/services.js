@@ -22,6 +22,7 @@ function($http, $cookies, Broadcast) {
                               family = data.family;
                               familyNames = getFamilyNameMap(data.tracks);
                               successCallback();
+                              Broadcast.newData();
                             },
                             function(response) { errorCallback(response); });
           },
@@ -69,19 +70,11 @@ function(DataStore) {
   var returned;
   var aligned;
   var query;
-  return {basic: function(nodeID, params, successCallback ,errorCallback) {
-            DataStore.basic(nodeID, params,
+  return {get: function(search, query, params, errorCallback) {
+            var call = search ? DataStore.search : DataStore.basic;
+            call(query, params,
               function() {
-                query = nodeID;
-                tracks = DataStore.parsedData();
-                returned = tracks.groups.length;
-                successCallback();
-              }, errorCallback);
-          },
-          search: function(focusName, params, errorCallback) {
-            DataStore.search(focusName, params,
-              function() {
-                query = focusName;
+                query = query;
                 tracks = DataStore.parsedData();
               }, errorCallback);
           },
@@ -128,6 +121,32 @@ function(DataStore) {
             // merge the alignments
             tracks.groups = [tracks.groups[0]];
             mergeAlignments(tracks, resultTracks, alignments);
+          },
+          center: function(params) {
+            tracks = DataStore.parsedData();
+            returned = tracks.groups.length;
+            var length = params.numNeighbors*2+1;
+            var family = DataStore.family();
+            var centered = {};
+            for (var i = 0; i < tracks.groups.length; i++) {
+              // does the track need to be centered?
+              if (tracks.groups[i].genes.length < length) {
+                // find the gene it should be centered on
+                var j;
+                for (j = 0; j < tracks.groups[i].genes.length; j++) {
+                  if (tracks.groups[i].genes[j].family == family &&
+                      centered[tracks.groups[i].genes[j].id] === undefined) {
+                    centered[tracks.groups[i].genes[j].id] = true;
+                    break;
+                  }
+                }
+                // center the track
+                var offset = params.numNeighbors-j;
+                for (j = 0; j < tracks.groups[i].genes.length; j++) {
+                  tracks.groups[i].genes[j].x = offset+j;
+                }
+              }
+            }
           },
           tracks: function() { return tracks; },
           scores: function() { return scores; },

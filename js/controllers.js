@@ -150,24 +150,14 @@ function($scope, $route, $routeParams, $location, $cookies, Viewer, Broadcast) {
         Viewer.tracks() === undefined ||
         $routeParams.query != Viewer.lastQuery())) {
       $scope.showSpinners();
-      if (searchView) {
-        Viewer.search($routeParams.query,
-                      {numNeighbors: $scope.params.numNeighbors,
-                       numMatchedFamilies: $scope.params.numMatchedFamilies,
-                       numNonFamily: $scope.params.numNonFamily},
-                      function(response) {
-                        $scope.alert("danger", "Failed to retrieve data");
-                        $scope.hideSpinners();
-                      });
-      } else {
-        Viewer.basic($routeParams.query,
-                      {numNeighbors: $scope.params.numNeighbors},
-                      drawViewer,
-                      function(response) {
-                        $scope.alert("danger", "Failed to retrieve data");
-                        $scope.hideSpinners();
-                      });
-        }
+      Viewer.get(searchView, $routeParams.query,
+                 {numNeighbors: $scope.params.numNeighbors,
+                  numMatchedFamilies: $scope.params.numMatchedFamilies,
+                  numNonFamily: $scope.params.numNonFamily},
+                 function(response) {
+                   $scope.alert("danger", "Failed to retrieve data");
+                   $scope.hideSpinners();
+                 });
     } else {
       if (searchView) {
         Viewer.align($scope.params);
@@ -181,6 +171,8 @@ function($scope, $route, $routeParams, $location, $cookies, Viewer, Broadcast) {
   $scope.$on('newData', function(event) {
     if (searchView) {
       Viewer.align($scope.params);
+    } else {
+      Viewer.center($scope.params);
     }
     drawViewer();
   });
