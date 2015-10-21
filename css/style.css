@@ -37,7 +37,7 @@ a {
   text-align: center;
   overflow: hidden;
 }
-#main #viewer, #main #plots {
+#main #viewer, #main #plots, #main #help {
   width: 100%;
   position:absolute;
   top:50px;
