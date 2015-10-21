@@ -2,8 +2,8 @@ var contextControllers = angular.module('contextControllers', []);
 
 // the generic controller that drives the app
 contextControllers
-.controller('ViewerCtrl', ['$scope', '$route', '$routeParams', '$location', '$cookies',
-                            'Viewer', 'Broadcast',
+.controller('ViewerCtrl', ['$scope', '$route', '$routeParams', '$location',
+                           '$cookies', 'Viewer', 'Broadcast',
 function($scope, $route, $routeParams, $location, $cookies, Viewer, Broadcast) {
   // is it a basic or search view?
   var searchView = ($route.current) ? $route.current.$$route.search : false;
@@ -106,13 +106,15 @@ function($scope, $route, $routeParams, $location, $cookies, Viewer, Broadcast) {
                        "boldFirst": true,
                        "sort": $scope.params.order == "chromosome" ?
                                byChromosome : byDistance});
+        Viewer.saveColors();
 	    contextLegend('legend', colors, Viewer.tracks(),
                       {"legendClick": Broadcast.familyClicked});
         // report how things went
         var returned = Viewer.returned();
         var aligned = Viewer.aligned();
         if (returned > 0 && aligned > 0) {
-          $scope.alert("success", returned+" tracks returned. "+aligned+" aligned");
+          $scope.alert("success",
+                       returned+" tracks returned. "+aligned+" aligned");
         } else if (returned > 0 && aligned == 0) {
           $scope.alert("warning", returned+' tracks returned. 0 aligned (<a ' +
                        'ng-click="showLeftSlider(\'#parameters\', $event)">' +
@@ -129,6 +131,7 @@ function($scope, $route, $routeParams, $location, $cookies, Viewer, Broadcast) {
                        "geneClicked": Broadcast.geneClicked,
                        "leftAxisClicked": Broadcast.leftAxisClicked,
                        "selectiveColoring": true});
+        Viewer.saveColors();
 	    contextLegend('legend', colors, Viewer.tracks(),
                       {"legendClick": Broadcast.familyClicked});
         $scope.alert("success", Viewer.returned()+" tracks returned");
@@ -239,7 +242,8 @@ function($scope, $location, $routeParams, Gene) {
       }
       html += '<br />';
       // add track search link
-      html += '<a ng-click="newSearch(\''+gene.name+'\')">Search for similar contexts</a><br/>';
+      html += '<a ng-click="newSearch(\''+gene.name+'\')">Search for similar ' +
+              'contexts</a><br/>';
       // for switching over to json provided by tripal_linkout
       for (var i = 0; i < links.length; i++) {
         html += '<a href="'+links[i].href+'">'+links[i].text+'</a><br/>'
@@ -271,7 +275,8 @@ function($scope, Track) {
                  track.chromosome_id+'/">'+track.chromosome_name+'</a></h4>';
       // add track search link
       var focus = track.genes[Math.floor(track.genes.length/2)];
-      html += '<a ng-click="newSearch(\''+focus.name+'\')">Search for similar contexts</a><br/>';
+      html += '<a ng-click="newSearch(\''+focus.name+'\')">Search for ' +
+              'similar contexts</a><br/>';
       // add a link for each gene
       var genes = '<ul>';
       var families = [];

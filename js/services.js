@@ -1,12 +1,16 @@
 var contextServices = angular.module('contextServices', []);
 
-contextServices.service('DataStore', ['$http', 'Broadcast',
-function($http, Broadcast) {
+contextServices.service('DataStore', ['$http', '$cookies', 'Broadcast',
+function($http, $cookies, Broadcast) {
   var json;
   var family;
   var familyNames;
   var familySizes;
-  var colors = contextColors; //TODO: load color from cookie
+  var colors = contextColors;
+  var domain = $cookies.getObject('contextColors');
+  if (domain !== undefined) {
+    colors.domain(domain); //TODO: load color from cookie
+  }
   return {basic: function(nodeID, params, successCallback, errorCallback) {
                  $http({url: 'http://localhost:8000/chado/context_viewer' +
                              '/basic_tracks_service/'+nodeID, 
@@ -52,6 +56,9 @@ function($http, Broadcast) {
           familyNames: function() { return familyNames; },
           familySizes: function() { return familySizes; },
           colors: function() { return colors; },
+          saveColors: function() {
+            $cookies.putObject('contextColors', colors.domain());
+          },
           family: function() { return family; }
 }}]);
 
@@ -125,6 +132,7 @@ function(DataStore) {
           tracks: function() { return tracks; },
           scores: function() { return scores; },
           colors: function() { return DataStore.colors(); },
+          saveColors: function() { DataStore.saveColors(); },
           returned: function() { return returned; },
           aligned: function() { return aligned; },
           lastQuery: function() { return query; },
