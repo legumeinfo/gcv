@@ -300,12 +300,10 @@ function($scope, Family) {
   $scope.$on('familyClicked', function(event, family, genes) {
     $scope.showLeftSpinner();
     var familyNames = Family.familyNames();
-    html = '<h4><a href="#'+familyNames[family]+'/">' +
-           familyNames[family]+'</a></h4>'; // TODO: link to tripal
+    html = '<h4>'+familyNames[family]+'</h4>'; // TODO: link to tripal
     html += 'Genes:<ul>';
     genes.each(function(f) {
-      html += '<li><a href="#'+f.name+'/">'+f.name+'</a>: ' +
-              f.fmin+' - '+f.fmax+'</li>';
+      html += '<li>'+f.name+': '+f.fmin+' - '+f.fmax+'</li>'; // TODO: link to tripal
     });
     html += '</ul>';
     $scope.familyHtml = html;
