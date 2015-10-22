@@ -129,10 +129,16 @@ function synteny(containerID, familySizes, color, points, optionalParameters) {
       }
       return "translate("+x(e.x)+", "+y(e.y)+")" })
   	.on("mouseover", function(e) {
-  	  show_tips(d3.select(this));
+	  var selection = d3.selectAll(".gene").filter(function(d) {
+	    return e.id == d.id;
+	  });
+  	  showTips(selection);
   	})
   	.on("mouseout", function(e) {
-  	  hide_tips(d3.select(this));
+	  var selection = d3.selectAll(".gene").filter(function(d) {
+	    return e.id == d.id;
+	  });
+  	  hideTips(selection);
   	})
   	.on("click", function(e) {
   	  geneClicked(e);

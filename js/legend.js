@@ -68,7 +68,7 @@ function contextLegend( container_id, color, data, optional_parameters ) {
 			var selection = d3.selectAll(".gene").filter(function(e) {
 				return e.family == d;
 			});
-			show_tips( selection );
+			showTips( selection );
 	    })
 	    .on("mouseout",  function(d) {
 			// fade the legend
@@ -81,7 +81,7 @@ function contextLegend( container_id, color, data, optional_parameters ) {
 			var selection = d3.selectAll(".gene").filter(function(e) {
 				return e.family == d;
 			});
-			hide_tips( selection );
+			hideTips( selection );
 		})
 	    .on('click', function (d) {
 			// call the callback

@@ -9,7 +9,7 @@ d3.selection.prototype.moveToBack = function() {
 };
 
 // show tips in all plots
-function show_tips(gene_selection, rail_selection) {
+function showTips(gene_selection, rail_selection) {
   d3.selectAll(".gene").style("opacity", .1);
   if (gene_selection !== undefined) {
   	gene_selection.style("opacity", 1);
@@ -23,7 +23,7 @@ function show_tips(gene_selection, rail_selection) {
 }
 
 // hide tips in all plots
-function hide_tips(gene_selection, rail_selection) {
+function hideTips(gene_selection, rail_selection) {
   d3.selectAll(".gene").style("opacity", 1);
   if (gene_selection !== undefined) {
   	gene_selection.selectAll(".tip").style("visibility", "hidden");
