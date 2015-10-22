@@ -262,9 +262,7 @@ function($scope, Track) {
     $scope.showLeftSpinner();
     Track.get(trackID, function(track) {
       var familyNames = Track.familyNames();
-      var html = '<h4><a href="/chado/organism/'+track.species_id+'/">' +
-                 track.species_name+'</a> - <a href="/chado/feature/' +
-                 track.chromosome_id+'/">'+track.chromosome_name+'</a></h4>';
+      var html = '<h4>'+track.species_name+' - '+track.chromosome_name+'</h4>';
       // add track search link
       var focus = track.genes[Math.floor(track.genes.length/2)];
       html += '<a ng-click="newSearch(\''+focus.name+'\')">Search for ' +
@@ -273,12 +271,10 @@ function($scope, Track) {
       var genes = '<ul>';
       var families = [];
       track.genes.forEach(function(g) {
-      	genes += '<li><a href="/chado/feature/'+g.name+'/">'+g.name+'</a>: ' +
+      	genes += '<li>'+g.name+': ' +
                  g.fmin+' - '+g.fmax+'</li>';
       	if (g.family != '') {
-      		genes += '<ul><li>Family: <a href="/chado_phylotree/' +
-                     familyNames[g.family]+'/">'+familyNames[g.family] +
-                     '</a></li></ul>';
+      		genes += '<ul><li>Family: '+familyNames[g.family]+'</li></ul>';
       	}
       });
       genes += '</ul>';
