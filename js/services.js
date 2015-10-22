@@ -69,12 +69,12 @@ function(DataStore) {
   var scores;
   var returned;
   var aligned;
-  var query;
+  var lastQuery;
   return {get: function(search, query, params, errorCallback) {
             var call = search ? DataStore.search : DataStore.basic;
             call(query, params,
               function() {
-                query = query;
+                lastQuery = query;
                 tracks = DataStore.parsedData();
               }, errorCallback);
           },
@@ -154,7 +154,7 @@ function(DataStore) {
           saveColors: function() { DataStore.saveColors(); },
           returned: function() { return returned; },
           aligned: function() { return aligned; },
-          lastQuery: function() { return query; },
+          lastQuery: function() { return lastQuery; },
           family: function() { return DataStore.family(); }
 }}]);
 
