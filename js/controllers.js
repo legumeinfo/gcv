@@ -327,11 +327,13 @@ function($scope, Plot, Broadcast) {
           $('#plots').append('<div id="'+id+'" class="col-lg-4">derp</div>');
           synteny(id, familySizes, colors, localPlots[trackID],
                   {"geneClicked": Broadcast.geneClicked,
+                   "plotClicked": Broadcast.rightAxisClicked,
                    "width": dim});
       }
     }
   }
   $scope.$on('newData', function(event) {
+    $scope.hidePlot();
     Plot.plot();
     drawPlots();
     selectedTrack = undefined;
@@ -350,6 +352,7 @@ function($scope, Plot, Broadcast) {
     }
   });
   $scope.$on('rightAxisClicked', function(event, trackID) {
+    $scope.showPlot();
     $scope.showRightSlider();
     selectedTrack = trackID;
     if ($('#local-plot').is(':visible')) {
@@ -461,6 +464,15 @@ function($scope, Broadcast) {
     }
   }
 
+  // toggle the plot element
+  $scope.hidePlot = function() {
+    $('#plot').hide();
+  }
+  $scope.showPlot = function() {
+    $('#plot').show();
+  }
+
+  // control the alert element
   $scope.alertClass = "alert-info";
   $scope.alertMessage = "Your context is loading";
   $scope.alert = function(type, message, link) {
