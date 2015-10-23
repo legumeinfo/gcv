@@ -12,6 +12,27 @@ a {
 .navbar {
   margin-bottom: 0;
 }
+.navbar-brand {
+  line-height:12px;
+  padding-left: 50px;
+  padding-top:15px;
+  padding-bottom:10px;
+}
+.navbar-brand img {
+  width: 50px;
+  height: 50px;
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+.navbar-brand span {
+  white-space: nowrap;
+  padding-left: 10px;
+}
+.navbar-brand small {
+  display:block;
+  font-size:10px;
+}
 /* horizontally stretch main to remaining area: http://stackoverflow.com/questions/1260122/expand-div-to-take-remaining-width */
 #main {
   position:relative;
@@ -37,7 +58,7 @@ a {
   text-align: center;
   overflow: hidden;
 }
-#main #viewer {
+#main #viewer, #main #plots, #main #help {
   width: 100%;
   position:absolute;
   top:50px;

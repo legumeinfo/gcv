@@ -2,6 +2,7 @@ function synteny(containerID, familySizes, color, points, optionalParameters) {
   // get the optional parameters
   var geneClicked = function(selection) { },
       brushCallback = function(selected_group) { },
+      plotClick = function(trackID) { },
       selectiveColoring = true,
       w = document.getElementById(containerID).offsetWidth;
   if (optionalParameters !== undefined) {
@@ -10,6 +11,9 @@ function synteny(containerID, familySizes, color, points, optionalParameters) {
     }
     if (optionalParameters.brushCallback !== undefined ) {
       brushCallback = optionalParameters.brushCallback;
+    }
+    if (optionalParameters.plotClicked !== undefined) {
+      plotClicked = optionalParameters.plotClicked;
     }
     if (optionalParameters.selectiveColoring !== undefined) {
       selectiveColoring = optionalParameters.selectiveColoring;
@@ -125,10 +129,16 @@ function synteny(containerID, familySizes, color, points, optionalParameters) {
       }
       return "translate("+x(e.x)+", "+y(e.y)+")" })
   	.on("mouseover", function(e) {
-  	  show_tips(d3.select(this));
+	  var selection = d3.selectAll(".gene").filter(function(d) {
+	    return e.id == d.id;
+	  });
+  	  showTips(selection);
   	})
   	.on("mouseout", function(e) {
-  	  hide_tips(d3.select(this));
+	  var selection = d3.selectAll(".gene").filter(function(d) {
+	    return e.id == d.id;
+	  });
+  	  hideTips(selection);
   	})
   	.on("click", function(e) {
   	  geneClicked(e);
@@ -171,35 +181,39 @@ function synteny(containerID, familySizes, color, points, optionalParameters) {
   
   var clear_button;
   function brushend() {
-    get_button = d3.selectAll(".clear-button").filter(function() {
-      if (clear_button) {
-        return this == clear_button[0][0];
-      } return false; });
-    if (get_button.empty() === true) {
-      clear_button = matrix.append('text')
-          .attr("y", (l+p+30))
-          .attr("x", (p+(l/2)))
-          .attr("class", "clear-button")
-          .text("Clear Brush")
-          .style("text-anchor", "middle")
-          .style("cursor", "pointer");
+    if (extent[0][0] == extent[1][0]) {
+        plotClicked(points.id);
+    } else {
+      get_button = d3.selectAll(".clear-button").filter(function() {
+        if (clear_button) {
+          return this == clear_button[0][0];
+        } return false; });
+      if (get_button.empty() === true) {
+        clear_button = matrix.append('text')
+            .attr("y", (l+p+30))
+            .attr("x", (p+(l/2)))
+            .attr("class", "clear-button")
+            .text("Clear Brush")
+            .style("text-anchor", "middle")
+            .style("cursor", "pointer");
+      }
+      
+      x.domain([extent[0][0], extent[1][0]]);
+      
+      transition_data();
+      reset_axis();
+  	  call_brushCallback();
+        
+      groups.classed("selected", false);
+  	  brush_g.call(brush.clear());
+        
+      clear_button.on('click', function(){
+        x.domain([min_x, max_x]);
+        transition_data();
+        reset_axis();
+        clear_button.remove();
+      });
     }
-    
-    x.domain([extent[0][0], extent[1][0]]);
-    
-    transition_data();
-    reset_axis();
-  	call_brushCallback();
-      
-    groups.classed("selected", false);
-  	brush_g.call(brush.clear());
-      
-   clear_button.on('click', function(){
-     x.domain([min_x, max_x]);
-     transition_data();
-     reset_axis();
-     clear_button.remove();
-   });
   }
   
   function transition_data() {

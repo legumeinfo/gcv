@@ -192,10 +192,16 @@ function contextViewer(container_id, color, data, optionalParameters) {
   	  .style("cursor", "pointer");
   
   	gene_groups.on("mouseover", function (d) {
-  	    show_tips(d3.select(this));
+		var selection = d3.selectAll(".gene").filter(function(e) {
+		  return e.id == d.id;
+		});
+  	    showTips(selection);
   	  })
   	  .on("mouseout", function (d) {
-  	    hide_tips(d3.select(this));
+		var selection = d3.selectAll(".gene").filter(function(e) {
+		  return e.id == d.id;
+		});
+  	    hideTips(selection);
   	  })
   	  .on('click', function (d) {
         if (optionalParameters.geneClicked !== undefined) {
@@ -358,7 +364,7 @@ function contextViewer(container_id, color, data, optionalParameters) {
           d3.select(this).select("line").attr("y1") == 0 &&
           d3.select(this).select("line").attr("y2") == 0);
   		});
-  		show_tips(gene_selection, rail_selection);
+  		showTips(gene_selection, rail_selection);
       })
       .on("mouseout",  function (d, y) {
   		var gene_selection = gene_groups.filter(function (e) {
@@ -367,7 +373,7 @@ function contextViewer(container_id, color, data, optionalParameters) {
   		var rail_selection = rail_groups.filter(function (e) {
   		  return d3.select(this).attr("y") == y;
   		});
-  		hide_tips(gene_selection, rail_selection);
+  		hideTips(gene_selection, rail_selection);
       })
       .on("click", function (d, y){
   		var gene_selection = gene_groups.filter(function (e) {

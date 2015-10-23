@@ -2,8 +2,8 @@ var contextControllers = angular.module('contextControllers', []);
 
 // the generic controller that drives the app
 contextControllers
-.controller('ViewerCtrl', ['$scope', '$route', '$routeParams', '$location', '$cookies',
-                            'Viewer', 'Broadcast',
+.controller('ViewerCtrl', ['$scope', '$route', '$routeParams', '$location',
+                           '$cookies', 'Viewer', 'Broadcast',
 function($scope, $route, $routeParams, $location, $cookies, Viewer, Broadcast) {
   // is it a basic or search view?
   var searchView = ($route.current) ? $route.current.$$route.search : false;
@@ -106,13 +106,16 @@ function($scope, $route, $routeParams, $location, $cookies, Viewer, Broadcast) {
                        "boldFirst": true,
                        "sort": $scope.params.order == "chromosome" ?
                                byChromosome : byDistance});
+        Viewer.saveColors();
 	    contextLegend('legend', colors, Viewer.tracks(),
-                      {"legendClick": Broadcast.familyClicked});
+                      {"legendClick": Broadcast.familyClicked,
+                       "selectiveColoring":true});
         // report how things went
         var returned = Viewer.returned();
         var aligned = Viewer.aligned();
         if (returned > 0 && aligned > 0) {
-          $scope.alert("success", returned+" tracks returned. "+aligned+" aligned");
+          $scope.alert("success",
+                       returned+" tracks returned. "+aligned+" aligned");
         } else if (returned > 0 && aligned == 0) {
           $scope.alert("warning", returned+' tracks returned. 0 aligned (<a ' +
                        'ng-click="showLeftSlider(\'#parameters\', $event)">' +
@@ -129,8 +132,10 @@ function($scope, $route, $routeParams, $location, $cookies, Viewer, Broadcast) {
                        "geneClicked": Broadcast.geneClicked,
                        "leftAxisClicked": Broadcast.leftAxisClicked,
                        "selectiveColoring": true});
+        Viewer.saveColors();
 	    contextLegend('legend', colors, Viewer.tracks(),
-                      {"legendClick": Broadcast.familyClicked});
+                      {"legendClick": Broadcast.familyClicked,
+                       "selectiveColoring":true});
         $scope.alert("success", Viewer.returned()+" tracks returned");
       }
     }
@@ -147,24 +152,14 @@ function($scope, $route, $routeParams, $location, $cookies, Viewer, Broadcast) {
         Viewer.tracks() === undefined ||
         $routeParams.query != Viewer.lastQuery())) {
       $scope.showSpinners();
-      if (searchView) {
-        Viewer.search($routeParams.query,
-                      {numNeighbors: $scope.params.numNeighbors,
-                       numMatchedFamilies: $scope.params.numMatchedFamilies,
-                       numNonFamily: $scope.params.numNonFamily},
-                      function(response) {
-                        $scope.alert("danger", "Failed to retrieve data");
-                        $scope.hideSpinners();
-                      });
-      } else {
-        Viewer.basic($routeParams.query,
-                      {numNeighbors: $scope.params.numNeighbors},
-                      drawViewer,
-                      function(response) {
-                        $scope.alert("danger", "Failed to retrieve data");
-                        $scope.hideSpinners();
-                      });
-        }
+      Viewer.get(searchView, $routeParams.query,
+                 {numNeighbors: $scope.params.numNeighbors,
+                  numMatchedFamilies: $scope.params.numMatchedFamilies,
+                  numNonFamily: $scope.params.numNonFamily},
+                 function(response) {
+                   $scope.alert("danger", "Failed to retrieve data");
+                   $scope.hideSpinners();
+                 });
     } else {
       if (searchView) {
         Viewer.align($scope.params);
@@ -178,6 +173,8 @@ function($scope, $route, $routeParams, $location, $cookies, Viewer, Broadcast) {
   $scope.$on('newData', function(event) {
     if (searchView) {
       Viewer.align($scope.params);
+    } else {
+      Viewer.center($scope.params);
     }
     drawViewer();
   });
@@ -239,7 +236,8 @@ function($scope, $location, $routeParams, Gene) {
       }
       html += '<br />';
       // add track search link
-      html += '<a ng-click="newSearch(\''+gene.name+'\')">Search for similar contexts</a><br/>';
+      html += '<a ng-click="newSearch(\''+gene.name+'\')">Search for similar ' +
+              'contexts</a><br/>';
       // for switching over to json provided by tripal_linkout
       for (var i = 0; i < links.length; i++) {
         html += '<a href="'+links[i].href+'">'+links[i].text+'</a><br/>'
@@ -266,22 +264,19 @@ function($scope, Track) {
     $scope.showLeftSpinner();
     Track.get(trackID, function(track) {
       var familyNames = Track.familyNames();
-      var html = '<h4><a href="/chado/organism/'+track.species_id+'/">' +
-                 track.species_name+'</a> - <a href="/chado/feature/' +
-                 track.chromosome_id+'/">'+track.chromosome_name+'</a></h4>';
+      var html = '<h4>'+track.species_name+' - '+track.chromosome_name+'</h4>';
       // add track search link
       var focus = track.genes[Math.floor(track.genes.length/2)];
-      html += '<a ng-click="newSearch(\''+focus.name+'\')">Search for similar contexts</a><br/>';
+      html += '<a ng-click="newSearch(\''+focus.name+'\')">Search for ' +
+              'similar contexts</a><br/>';
       // add a link for each gene
       var genes = '<ul>';
       var families = [];
       track.genes.forEach(function(g) {
-      	genes += '<li><a href="/chado/feature/'+g.name+'/">'+g.name+'</a>: ' +
+      	genes += '<li>'+g.name+': ' +
                  g.fmin+' - '+g.fmax+'</li>';
       	if (g.family != '') {
-      		genes += '<ul><li>Family: <a href="/chado_phylotree/' +
-                     familyNames[g.family]+'/">'+familyNames[g.family] +
-                     '</a></li></ul>';
+      		genes += '<ul><li>Family: '+familyNames[g.family]+'</li></ul>';
       	}
       });
       genes += '</ul>';
@@ -303,14 +298,17 @@ function($scope, Family) {
   $scope.$on('familyClicked', function(event, family, genes) {
     $scope.showLeftSpinner();
     var familyNames = Family.familyNames();
-    html = '<h4><a href="#'+familyNames[family]+'/">' +
-           familyNames[family]+'</a></h4>'; // TODO: link to tripal
-    html += 'Genes:<ul>';
-    genes.each(function(f) {
-      html += '<li><a href="#'+f.name+'/">'+f.name+'</a>: ' +
-              f.fmin+' - '+f.fmax+'</li>';
+    html = '<h4>'+familyNames[family]+'</h4>'; // TODO: link to tripal
+    geneNames = [];
+    geneLinks = 'Genes:<ul>';
+    genes.each(function(g) {
+      geneNames.push(g.name);
+      geneLinks += '<li>'+g.name+': '+g.fmin+' - '+g.fmax+'</li>'; // TODO: link to tripal
     });
-    html += '</ul>';
+    geneLinks += '</ul>';
+    html += '<a href="/chado_gene_phylotree_v2/'+geneNames.join(',')+'">' +
+            'View genes in phylogram</a><br />';
+    html += geneLinks;
     $scope.familyHtml = html;
     $scope.$apply();
     $scope.showLeftSlider('#family');
@@ -336,11 +334,13 @@ function($scope, Plot, Broadcast) {
           $('#plots').append('<div id="'+id+'" class="col-lg-4">derp</div>');
           synteny(id, familySizes, colors, localPlots[trackID],
                   {"geneClicked": Broadcast.geneClicked,
+                   "plotClicked": Broadcast.rightAxisClicked,
                    "width": dim});
       }
     }
   }
   $scope.$on('newData', function(event) {
+    $scope.hidePlot();
     Plot.plot();
     drawPlots();
     selectedTrack = undefined;
@@ -359,6 +359,7 @@ function($scope, Plot, Broadcast) {
     }
   });
   $scope.$on('rightAxisClicked', function(event, trackID) {
+    $scope.showPlot();
     $scope.showRightSlider();
     selectedTrack = trackID;
     if ($('#local-plot').is(':visible')) {
@@ -470,6 +471,15 @@ function($scope, Broadcast) {
     }
   }
 
+  // toggle the plot element
+  $scope.hidePlot = function() {
+    $('#plot').hide();
+  }
+  $scope.showPlot = function() {
+    $('#plot').show();
+  }
+
+  // control the alert element
   $scope.alertClass = "alert-info";
   $scope.alertMessage = "Your context is loading";
   $scope.alert = function(type, message, link) {
@@ -536,4 +546,17 @@ function($scope, Broadcast) {
   $scope.$on('$routeChangeStart', function(event, next, current) {
     $('#viewer-button').trigger('click');
   });
+
+  // hide/show the logo text with logo image mouseover
+  $('#top-nav .navbar-brand span').hide();
+  $('#top-nav .navbar-brand img').hover(
+    function(){
+      console.log("in");
+      $('#top-nav .navbar-brand span').animate({width:'toggle'}, 350);
+    },
+    function(){
+      console.log("out");
+      $('#top-nav .navbar-brand span').animate({width:'toggle'}, 350);
+    }
+  )
 }]);
