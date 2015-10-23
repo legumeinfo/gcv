@@ -546,4 +546,17 @@ function($scope, Broadcast) {
   $scope.$on('$routeChangeStart', function(event, next, current) {
     $('#viewer-button').trigger('click');
   });
+
+  // hide/show the logo text with logo image mouseover
+  $('#top-nav .navbar-brand span').hide();
+  $('#top-nav .navbar-brand img').hover(
+    function(){
+      console.log("in");
+      $('#top-nav .navbar-brand span').animate({width:'toggle'}, 350);
+    },
+    function(){
+      console.log("out");
+      $('#top-nav .navbar-brand span').animate({width:'toggle'}, 350);
+    }
+  )
 }]);
