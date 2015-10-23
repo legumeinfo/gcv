@@ -12,7 +12,7 @@ function($scope, $route, $routeParams, $location, $cookies, Viewer, Broadcast) {
   // initialize the form
   $scope.init = function() {
     // radio options
-    $scope.algorithms = [{id: "smith", name: "Smith-Watermn"},
+    $scope.algorithms = [{id: "smith", name: "Smith-Waterman"},
                          {id: "repeat", name: "Repeat"}];
     // select options
     $scope.orderings = [{id: "chromosome", name: "Chromosome"},
