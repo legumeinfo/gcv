@@ -297,11 +297,16 @@ function($scope, Family) {
     $scope.showLeftSpinner();
     var familyNames = Family.familyNames();
     html = '<h4>'+familyNames[family]+'</h4>'; // TODO: link to tripal
-    html += 'Genes:<ul>';
-    genes.each(function(f) {
-      html += '<li>'+f.name+': '+f.fmin+' - '+f.fmax+'</li>'; // TODO: link to tripal
+    geneNames = [];
+    geneLinks = 'Genes:<ul>';
+    genes.each(function(g) {
+      geneNames.push(g.name);
+      geneLinks += '<li>'+g.name+': '+g.fmin+' - '+g.fmax+'</li>'; // TODO: link to tripal
     });
-    html += '</ul>';
+    geneLinks += '</ul>';
+    html += '<a href="/chado_gene_phylotree_v2/'+geneNames.join(',')+'">' +
+            'View genes in phylogram</a><br />';
+    html += geneLinks;
     $scope.familyHtml = html;
     $scope.$apply();
     $scope.showLeftSlider('#family');
