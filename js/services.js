@@ -12,7 +12,7 @@ function($http, $cookies, Broadcast) {
     colors.domain(domain); //TODO: load color from cookie
   }
   return {basic: function(nodeID, params, successCallback, errorCallback) {
-                 $http({url: 'http://localhost:8000/chado/context_viewer' +
+                 $http({url: '/chado/context_viewer' +
                              '/basic_tracks_service/'+nodeID, 
                         method: "GET",
                         params: params})
@@ -27,7 +27,7 @@ function($http, $cookies, Broadcast) {
                             function(response) { errorCallback(response); });
           },
           search: function(focusName, params, successCallback, errorCallback) {
-                 $http({url: 'http://localhost:8000/chado/context_viewer' +
+                 $http({url: '/chado/context_viewer' +
                              '/search_tracks_service/'+focusName, 
                         method: "GET",
                         params: params})
@@ -241,7 +241,7 @@ function($http, DataStore) {
               successCallback(globalPlots[trackID]);
             } else {
               if (localPlots[trackID] !== undefined) {
-                $http({url: 'http://localhost:8000/chado/context_viewer' +
+                $http({url: '/chado/context_viewer' +
                              '/global_plot_service/',
                        method: "GET",
                        params:{focusID: focusID,
