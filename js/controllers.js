@@ -108,7 +108,8 @@ function($scope, $route, $routeParams, $location, $cookies, Viewer, Broadcast) {
                                byChromosome : byDistance});
         Viewer.saveColors();
 	    contextLegend('legend', colors, Viewer.tracks(),
-                      {"legendClick": Broadcast.familyClicked});
+                      {"legendClick": Broadcast.familyClicked,
+                       "selectiveColoring":true});
         // report how things went
         var returned = Viewer.returned();
         var aligned = Viewer.aligned();
@@ -133,7 +134,8 @@ function($scope, $route, $routeParams, $location, $cookies, Viewer, Broadcast) {
                        "selectiveColoring": true});
         Viewer.saveColors();
 	    contextLegend('legend', colors, Viewer.tracks(),
-                      {"legendClick": Broadcast.familyClicked});
+                      {"legendClick": Broadcast.familyClicked,
+                       "selectiveColoring":true});
         $scope.alert("success", Viewer.returned()+" tracks returned");
       }
     }
