@@ -14,7 +14,7 @@ a {
 }
 .navbar-brand {
   line-height:12px;
-  padding-left: 60px;
+  padding-left: 50px;
   padding-top:15px;
   padding-bottom:10px;
 }
@@ -24,6 +24,10 @@ a {
   position: absolute;
   top: 0;
   left: 0;
+}
+.navbar-brand span {
+  white-space: nowrap;
+  padding-left: 10px;
 }
 .navbar-brand small {
   display:block;
@@ -57,7 +61,7 @@ a {
 #main #viewer, #main #plots, #main #help {
   width: 100%;
   position:absolute;
-  top:50px;
+  top:51px;
   bottom:0;
   overflow-x:hidden;
   overflow-y:auto;

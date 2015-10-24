@@ -1,7 +1,7 @@
 var contextServices = angular.module('contextServices', []);
 
-contextServices.service('DataStore', ['$http', '$cookies', 'Broadcast',
-function($http, $cookies, Broadcast) {
+contextServices.service('DataStore', ['$http', '$cookies',
+function($http, $cookies) {
   var json;
   var family;
   var familyNames;
@@ -22,7 +22,6 @@ function($http, $cookies, Broadcast) {
                               family = data.family;
                               familyNames = getFamilyNameMap(data.tracks);
                               successCallback();
-                              Broadcast.newData();
                             },
                             function(response) { errorCallback(response); });
           },
@@ -35,7 +34,6 @@ function($http, $cookies, Broadcast) {
                               json = response.data;
                               familyNames = getFamilyNameMap(JSON.parse(json));
                               successCallback();
-                              Broadcast.newData();
                             },
                             function(response) { errorCallback(response); });
           },
@@ -63,19 +61,32 @@ function($http, $cookies, Broadcast) {
           family: function() { return family; }
 }}]);
 
-contextServices.service('Viewer', ['DataStore',
-function(DataStore) {
+contextServices.service('Viewer', ['DataStore', 'Broadcast',
+function(DataStore, Broadcast) {
   var tracks;
   var scores;
   var returned;
   var aligned;
   var lastQuery;
-  return {get: function(search, query, params, errorCallback) {
+  // helper functions for sorting tracks
+  function byChromosome(a, b) {
+    return a.chromosome_name.localeCompare(b.chromosome_name);
+  }
+  function byDistance(a, b) {
+    var a_id = a.id,
+        b_id = b.id;
+    return scores[b_id]-scores[a_id];
+  }
+  function sorter(selection) {
+    return selection == "chromosome" ? byChromosome : byDistance
+  }
+  return {get: function(search, query, params, successCallback, errorCallback) {
             var call = search ? DataStore.search : DataStore.basic;
             call(query, params,
               function() {
                 lastQuery = query;
                 tracks = DataStore.parsedData();
+                successCallback();
               }, errorCallback);
           },
           getQueryGene: function(index, successCallback, errorCallback) {
@@ -105,15 +116,15 @@ function(DataStore) {
                                params);
               var id = tracks.groups[i].id;
               if (al !== null) {
-                if (scores[id] === undefined) {
-                  scores[id] = 0;
-                }
-                scores[id] += al[1];
                 for (var j = 0; j < al[0].length; j++) {
                   resultTracks.push(clone(tracks.groups[i]));
                   alignments.push(al[0][j]);
                 }
                 if (al[0].length > 0) {
+                  if (scores[id] === undefined) {
+                    scores[id] = 0;
+                  }
+                  scores[id] += al[1];
                   aligned++;
                 }
               }
@@ -121,6 +132,7 @@ function(DataStore) {
             // merge the alignments
             tracks.groups = [tracks.groups[0]];
             mergeAlignments(tracks, resultTracks, alignments);
+            Broadcast.processed(sorter(params.order), scores);
           },
           center: function(params) {
             tracks = DataStore.parsedData();
@@ -155,7 +167,10 @@ function(DataStore) {
           returned: function() { return returned; },
           aligned: function() { return aligned; },
           lastQuery: function() { return lastQuery; },
-          family: function() { return DataStore.family(); }
+          family: function() { return DataStore.family(); },
+          getSorter: function(selection) {
+            return sorter(selection);
+          }
 }}]);
 
 // TODO: cache clicked gene data
@@ -205,6 +220,7 @@ function($http, DataStore) {
 contextServices.service('Plot', ['$http', 'DataStore',
 function($http, DataStore) {
   var localPlots;
+  var idPlotMap;
   var globalPlots;
   var numNeighbors;
   var focusID;
@@ -227,8 +243,8 @@ function($http, DataStore) {
     return plot_genes;
   }
   return {getLocal: function(trackID, successCallback, errorCallback) {
-            if (localPlots[trackID] !== undefined) {
-              successCallback(localPlots[trackID]);
+            if (idPlotMap[trackID] !== undefined) {
+              successCallback(localPlots[idPlotMap[trackID]]);
             } else {
               errorCallback();
             }
@@ -246,10 +262,11 @@ function($http, DataStore) {
                        method: "GET",
                        params:{focusID: focusID,
                                numNeighbors: numNeighbors,
-                               chromosomeID: localPlots[trackID].chromosome_id}
+                               chromosomeID:
+                               localPlots[idPlotMap[trackID]].chromosome_id}
                 })
                 .then(function(response) {
-                  var group = clone(localPlots[trackID]);
+                  var group = clone(localPlots[idPlotMap[trackID]]);
                   globalPlots[trackID] = group;
                   group.genes = response.data;
                   globalPlots[trackID].genes = plotPoints(group);
@@ -260,17 +277,29 @@ function($http, DataStore) {
               }
             }
           },
-          plot: function() {
+          plot: function(sorter, scores) {
             // prepare the plots data for show and tell
-            localPlots = {};
+            localPlots = [];
+            idPlotMap = {};
             globalPlots = {};
-            var plotData = DataStore.parsedData();
-            numNeighbors = (plotData.groups[0].genes.length-1)/2;
-            focusID = plotData.groups[0].genes[numNeighbors].id;
+            var rawData = DataStore.parsedData();
+            numNeighbors = (rawData.groups[0].genes.length-1)/2;
+            focusID = rawData.groups[0].genes[numNeighbors].id;
+            // filter the tracks we don't want and order them
+            for (var i = 1; i < rawData.groups.length; i++) {
+              if (scores[rawData.groups[i].id] !== undefined) {
+                localPlots.push(rawData.groups[i]);
+              }
+            }
+            localPlots.sort(sorter);
+            localPlots.unshift(rawData.groups[0]);
+            for (var i = 0; i < localPlots.length; i++) {
+              idPlotMap[localPlots[i].id] = i;
+            }
             // make a map of points all genes will be plotted against
             familyMap = {};
-            for (var i = 0; i < plotData.groups[0].genes.length; i++) {
-              var g = plotData.groups[0].genes[i];
+            for (var i = 0; i < rawData.groups[0].genes.length; i++) {
+              var g = rawData.groups[0].genes[i];
               if (g.family in familyMap) {
                 familyMap[g.family].push((g.fmin/2)+(g.fmax/2));
               } else if (g.family != '') {
@@ -278,9 +307,8 @@ function($http, DataStore) {
               }
             }
             // plot all the genes against the list of points
-            for (var i = 0; i < plotData.groups.length; i++) {
-              plotData.groups[i].genes = plotPoints(plotData.groups[i]);
-              localPlots[plotData.groups[i].id] = plotData.groups[i];
+            for (var i = 0; i < localPlots.length; i++) {
+              localPlots[i].genes = plotPoints(localPlots[i]);
             }
           },
           familySizes: function() { return DataStore.familySizes; },
@@ -290,9 +318,6 @@ function($http, DataStore) {
 contextServices.factory('Broadcast', ['$rootScope',
 function($rootScope) {
   return {
-    newData: function() {
-      $rootScope.$broadcast('newData');
-    },
     redraw: function() {
       $rootScope.$broadcast('redraw');
     },
@@ -310,6 +335,9 @@ function($rootScope) {
     },
     viewChanged: function(searchView) {
       $rootScope.$broadcast('viewChanged', searchView);
+    },
+    processed: function(ordering, scores) {
+      $rootScope.$broadcast('processed', ordering, scores);
     }
   }
 }]);
