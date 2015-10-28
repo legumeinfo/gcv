@@ -279,8 +279,8 @@ function($scope, Track) {
 }]);
 
 contextControllers
-.controller('FamilyCtrl', ['$scope', 'Family',
-function($scope, Family) {
+.controller('FamilyCtrl', ['$scope', '$cookies', 'Family',
+function($scope, $cookies, Family) {
   $scope.familyHtml = '';
   $scope.$on('familyClicked', function(event, family, genes) {
     $scope.showLeftSpinner();
@@ -293,8 +293,9 @@ function($scope, Family) {
       geneLinks += '<li>'+g.name+': '+g.fmin+' - '+g.fmax+'</li>'; // TODO: link to tripal
     });
     geneLinks += '</ul>';
-    html += '<a href="/chado_gene_phylotree_v2/'+geneNames.join(',')+'">' +
-            'View genes in phylogram</a><br />';
+    html += '<a href="/chado_gene_phylotree_v2/?gene_name='+
+            geneNames.join(',')+'">'+'View genes in phylogram</a><br />';
+    $cookies.putObject('phylogramGeneNames', geneNames);
     html += geneLinks;
     $scope.familyHtml = html;
     $scope.$apply();
