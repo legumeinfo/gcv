@@ -1,9 +1,9 @@
 // all the modules that the app depends on
 var contextApp = angular.module('contextApp', [
   'ngRoute',
+  'ngCookies',
   'contextControllers',
-  'contextServices',
-  'ngCookies'
+  'contextServices'
 ]);
 
 // request the routeProvider to be injected into our config function
