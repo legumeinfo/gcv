@@ -279,8 +279,8 @@ function($scope, Track) {
 }]);
 
 contextControllers
-.controller('FamilyCtrl', ['$scope', '$cookies', 'Family',
-function($scope, $cookies, Family) {
+.controller('FamilyCtrl', ['$scope', 'Family',
+function($scope, Family) {
   $scope.familyHtml = '';
   $scope.$on('familyClicked', function(event, family, genes) {
     $scope.showLeftSpinner();
@@ -293,9 +293,24 @@ function($scope, $cookies, Family) {
       geneLinks += '<li>'+g.name+': '+g.fmin+' - '+g.fmax+'</li>'; // TODO: link to tripal
     });
     geneLinks += '</ul>';
-    html += '<a href="/chado_gene_phylotree_v2/?gene_name='+
-            geneNames.join(',')+'">'+'View genes in phylogram</a><br />';
-    $cookies.putObject('phylogramGeneNames', geneNames);
+    var phyloUrl = '/chado_gene_phylotree_v2/?gene_name='+geneNames.join(',');
+    var message = 'View genes in phylogram';
+    // is the uri too big?
+    var uri = encodeURI(phyloUrl);
+    var count;  // bytes
+    if (uri.indexOf("%") != -1) {
+        count = uri.split("%").length-1;
+        count = count == 0 ? 1 : count;
+        count = count+(url.length-(count*3));
+    }
+    else {
+        count = uri.length;
+    }
+    if (count/1000 >=8) {  // kilobytes
+        phyloUrl = '/chado_phylotree/'+familyNames[family];
+        message = 'View phylogram'
+    }
+    html += '<a href="'+phyloUrl+'">'+message+'</a><br />';
     html += geneLinks;
     $scope.familyHtml = html;
     $scope.$apply();
