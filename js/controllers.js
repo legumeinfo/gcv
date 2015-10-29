@@ -217,7 +217,7 @@ function($scope, $location, $routeParams, Gene) {
       var html = '<h4>'+gene.name+'</h4>' // TODO: link to tripal
       html += 'Family: ';
       if (gene.family != '') {
-      	html += familyNames[gene.family]; // TODO: link to tripal
+        html += '<a href="/chado_phylotree_v2/'+familyNames[gene.family]+'?gene_name='+gene.name+'">'+familyNames[gene.family]+'</a>';
       } else {
       	html += 'None';
       }
