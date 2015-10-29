@@ -12,7 +12,7 @@ function($http, $cookies) {
     colors.domain(domain); //TODO: load color from cookie
   }
   return {basic: function(nodeID, params, successCallback, errorCallback) {
-                 $http({url: 'http://localhost:8884/lis_gene_families/chado/context_viewer' +
+                 $http({url: 'http://localhost:8000/lis_gene_families/chado/context_viewer' +
                              '/basic_tracks_service/'+nodeID, 
                         method: "GET",
                         params: params})
@@ -26,7 +26,7 @@ function($http, $cookies) {
                             function(response) { errorCallback(response); });
           },
           search: function(focusName, params, successCallback, errorCallback) {
-                 $http({url: 'http://localhost:8884/lis_gene_families/chado/context_viewer' +
+                 $http({url: 'http://localhost:8000/lis_gene_families/chado/context_viewer' +
                              '/search_tracks_service/'+focusName, 
                         method: "GET",
                         params: params})
