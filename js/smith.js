@@ -58,16 +58,15 @@ var smith_align = function( sequence, reference, accessor, scoring ) {
     var score = max,
         score_diag,
         score_up,
-        scroe_left;
+        score_left;
     var ref = [];
     var seq = [];
-	var total_score = 0;
     while( i>0 && j>0 ) {
         score = a[i][j];
         if( score == 0 ) {
             break;
         }
-		total_score += score;
+		//total_score += score;
         score_diag = a[i-1][j-1];
         score_up = a[i][j-1];
         score_left = a[i-1][j];
@@ -95,7 +94,7 @@ var smith_align = function( sequence, reference, accessor, scoring ) {
         j -= 1;
     }
     
-    return [seq, ref, total_score];
+    return [seq, ref, max];
 };
 
 // returns the higher scoring alignment - forward or reverse
