@@ -82,16 +82,6 @@ function($scope, $route, $routeParams, $location, $cookies, Viewer, Broadcast) {
   function drawViewer() {
     var tracks = Viewer.tracks();
     if (tracks != undefined) {
-      // helper functions for sorting tracks
-      function byChromosome(a, b) {
-        return a.chromosome_name.localeCompare(b.chromosome_name);
-      }
-      function byDistance(a, b) {
-        var scores = Viewer.scores();
-        var a_id = a.id,
-            b_id = b.id;
-        return scores[b_id]-scores[a_id];
-      }
       // make the context viewer
       var colors = Viewer.colors();
       if (searchView) {
@@ -104,8 +94,7 @@ function($scope, $route, $routeParams, $location, $cookies, Viewer, Broadcast) {
                        "interTrack": true,
                        "merge": true,
                        "boldFirst": true,
-                       "sort": $scope.params.order == "chromosome" ?
-                               byChromosome : byDistance});
+                       "sort": Viewer.getSorter($scope.params.order)});
         Viewer.saveColors();
 	    contextLegend('legend', colors, Viewer.tracks(),
                       {"legendClick": Broadcast.familyClicked,
@@ -156,28 +145,26 @@ function($scope, $route, $routeParams, $location, $cookies, Viewer, Broadcast) {
                  {numNeighbors: $scope.params.numNeighbors,
                   numMatchedFamilies: $scope.params.numMatchedFamilies,
                   numNonFamily: $scope.params.numNonFamily},
+                 processAndDraw,
                  function(response) {
                    $scope.alert("danger", "Failed to retrieve data");
                    $scope.hideSpinners();
                  });
     } else {
-      if (searchView) {
-        Viewer.align($scope.params);
-      }
-      drawViewer();
+      processAndDraw();
     }
     $scope.hideLeftSlider();
   }
 
-  // listen for new data event
-  $scope.$on('newData', function(event) {
+  // helper for the data fetcher
+  function processAndDraw() {
     if (searchView) {
       Viewer.align($scope.params);
     } else {
       Viewer.center($scope.params);
     }
     drawViewer();
-  });
+  }
 
   // listen for redraw events
   $scope.$on('redraw', function(event) {
@@ -306,8 +293,24 @@ function($scope, Family) {
       geneLinks += '<li>'+g.name+': '+g.fmin+' - '+g.fmax+'</li>'; // TODO: link to tripal
     });
     geneLinks += '</ul>';
-    html += '<a href="/chado_gene_phylotree_v2/'+geneNames.join(',')+'">' +
-            'View genes in phylogram</a><br />';
+    var phyloUrl = '/chado_gene_phylotree_v2/?gene_name='+geneNames.join(',');
+    var message = 'View genes in phylogram';
+    // is the uri too big?
+    var uri = encodeURI(phyloUrl);
+    var count;  // bytes
+    if (uri.indexOf("%") != -1) {
+        count = uri.split("%").length-1;
+        count = count == 0 ? 1 : count;
+        count = count+(url.length-(count*3));
+    }
+    else {
+        count = uri.length;
+    }
+    if (count/1000 >=8) {  // kilobytes
+        phyloUrl = '/chado_phylotree/'+familyNames[family];
+        message = 'View phylogram'
+    }
+    html += '<a href="'+phyloUrl+'">'+message+'</a><br />';
     html += geneLinks;
     $scope.familyHtml = html;
     $scope.$apply();
@@ -324,24 +327,24 @@ function($scope, Plot, Broadcast) {
   var selectedTrack;
   function drawPlots() {
     var localPlots = Plot.getAllLocal();
-      if (localPlots !== undefined) {
+    if (localPlots !== undefined) {
       familySizes = Plot.familySizes();
       colors = Plot.colors();
       $('#plots').html('');
       var dim = $('#main').innerWidth()/3;
-      for (var trackID in localPlots) {
-          var id = "plot"+trackID;
+      for (var i = 0; i < localPlots.length; i++) {
+          var id = "plot"+i;
           $('#plots').append('<div id="'+id+'" class="col-lg-4">derp</div>');
-          synteny(id, familySizes, colors, localPlots[trackID],
+          synteny(id, familySizes, colors, localPlots[i],
                   {"geneClicked": Broadcast.geneClicked,
                    "plotClicked": Broadcast.rightAxisClicked,
                    "width": dim});
       }
     }
   }
-  $scope.$on('newData', function(event) {
+  $scope.$on('processed', function(event, ordering, score) {
     $scope.hidePlot();
-    Plot.plot();
+    Plot.plot(ordering, score);
     drawPlots();
     selectedTrack = undefined;
     $('#local-plot').html('');
@@ -551,12 +554,10 @@ function($scope, Broadcast) {
   $('#top-nav .navbar-brand span').hide();
   $('#top-nav .navbar-brand img').hover(
     function(){
-      console.log("in");
-      $('#top-nav .navbar-brand span').animate({width:'toggle'}, 350);
+      $('#top-nav .navbar-brand span').animate({width:'toggle'}, 150);
     },
     function(){
-      console.log("out");
-      $('#top-nav .navbar-brand span').animate({width:'toggle'}, 350);
+      $('#top-nav .navbar-brand span').animate({width:'toggle'}, 150);
     }
   )
 }]);

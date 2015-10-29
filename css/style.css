@@ -61,7 +61,7 @@ a {
 #main #viewer, #main #plots, #main #help {
   width: 100%;
   position:absolute;
-  top:50px;
+  top:51px;
   bottom:0;
   overflow-x:hidden;
   overflow-y:auto;
