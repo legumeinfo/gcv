@@ -263,7 +263,7 @@ function($scope, Track) {
       	genes += '<li>'+g.name+': ' +
                  g.fmin+' - '+g.fmax+'</li>';
       	if (g.family != '') {
-      		genes += '<ul><li>Family: '+familyNames[g.family]+'</li></ul>';
+      		genes += '<ul><li>Family: <a href="/chado_gene_phylotree_v2/'+familyNames[g.family]+'?gene_name='+g.name+'">'+familyNames[g.family]+'</a></li></ul>';
       	}
       });
       genes += '</ul>';
