@@ -4,8 +4,14 @@ function contextLegend(containerID, color, data, optionalParameters) {
   if (optionalParameters === undefined) {
     optionalParameters = {};
   }
-  // clear the contents of the target element first
-  document.getElementById(containerID).innerHTML = "";
+  // set the initial contents of the target element first
+  var helptext = "";
+  helptext += "<h4>Gene Family Legend</h4>";
+  helptext += "<ul>";
+  helptext += "<li>Hover to highlight family's members.</li>";
+  helptext += "<li>Click to list members and link to gene tree.</li>";
+  helptext += "</ul>";
+  document.getElementById(containerID).innerHTML = helptext;
   
   // get the family id name map
   var family_names = getFamilyNameMap( data );

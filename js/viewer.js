@@ -1,6 +1,14 @@
 function contextViewer(container_id, color, data, optionalParameters) {
-  // clear the contents of the target element first
-  document.getElementById(container_id).innerHTML = "";
+  // set the initial contents of the target element first
+  var helptext = "";
+  helptext += "<h4>Genome Contexts</h4>";
+  helptext += "<ul>";
+  helptext += "<li>Hover gene to see name, highlight in dotplots</li>";
+  helptext += "<li>Click gene for links to more info</li>";
+  helptext += "<li>Hover track for all gene names</li>";
+  helptext += "<li>Click track to list all genes and track options</li>";
+  helptext += "</ul>";
+  document.getElementById(container_id).innerHTML = helptext;
   
   // data preprocessing
   var begin_genes = {};
@@ -113,8 +121,8 @@ function contextViewer(container_id, color, data, optionalParameters) {
   var w = d3.max([1000, targetWidth]),
       rect_h = 18,
       rect_pad = 2,
-      top_pad = 200,
-      bottom_pad = 50,
+      top_pad = 50,
+      bottom_pad = 200,
       pad = 20,
       left_pad = 250,
       right_pad = 150,
@@ -212,7 +220,7 @@ function contextViewer(container_id, color, data, optionalParameters) {
   	// add the tooltips
   	gene_groups.append("text")
   	  .attr("class", "tip")
-  	  .attr("transform", "translate(3, -14) rotate(-45)")
+  	  .attr("transform", "translate(3, 14) rotate(45)")
   	  .attr("text-anchor", "left")
   	  .text(function (d) {
   	    return d.name+": "+d.fmin+" - "+d.fmax;
@@ -241,7 +249,7 @@ function contextViewer(container_id, color, data, optionalParameters) {
   	  	.attr("y2", y(a.y)-y(b.y));
   	  rail_group.append("text")
   	  	.attr("class", "tip")
-  	  	.attr("transform", "translate("+(length/2)+", 10) rotate(45)")
+  	  	.attr("transform", "translate("+(length/2)+", -10) rotate(-45)")
   	  	.attr("text-anchor", "left")
   	  	.text(function (d) {
   	      return rail_group.data();
