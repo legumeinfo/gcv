@@ -85,7 +85,7 @@ function($scope, $route, $routeParams, $location, $cookies, Viewer, Broadcast) {
       // make the context viewer
       var colors = Viewer.colors();
       if (searchView) {
-        contextViewer('viewer', colors, tracks,
+        contextViewer('viewer-content', colors, tracks,
                       {"width": $('#main').innerWidth(),
                        "geneClicked": Broadcast.geneClicked,
                        "leftAxisClicked": Broadcast.leftAxisClicked,
@@ -96,7 +96,7 @@ function($scope, $route, $routeParams, $location, $cookies, Viewer, Broadcast) {
                        "boldFirst": true,
                        "sort": Viewer.getSorter($scope.params.order)});
         Viewer.saveColors();
-	    contextLegend('legend', colors, Viewer.tracks(),
+	    contextLegend('legend-content', colors, Viewer.tracks(),
                       {"legendClick": Broadcast.familyClicked,
                        "selectiveColoring":true});
         // report how things went
@@ -115,14 +115,14 @@ function($scope, $route, $routeParams, $location, $cookies, Viewer, Broadcast) {
                        'Query Parameters</a>)');
         }
       } else {
-        contextViewer('viewer', colors, tracks,
+        contextViewer('viewer-content', colors, tracks,
                       {"width": $('#main').innerWidth(),
                        "focus": Viewer.family(),
                        "geneClicked": Broadcast.geneClicked,
                        "leftAxisClicked": Broadcast.leftAxisClicked,
                        "selectiveColoring": true});
         Viewer.saveColors();
-	    contextLegend('legend', colors, Viewer.tracks(),
+	    contextLegend('legend-content', colors, Viewer.tracks(),
                       {"legendClick": Broadcast.familyClicked,
                        "selectiveColoring":true});
         $scope.alert("success", Viewer.returned()+" tracks returned");
