@@ -66,6 +66,9 @@ a {
   overflow-x:hidden;
   overflow-y:auto;
 }
+.alert-dismissible {
+  margin: 20px;
+}
 #left-slider {
   padding: 0;
   position:fixed;

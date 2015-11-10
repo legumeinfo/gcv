@@ -1,14 +1,6 @@
 function contextViewer(container_id, color, data, optionalParameters) {
-  // set the initial contents of the target element first
-  var helptext = "";
-  helptext += "<h4>Genome Contexts</h4>";
-  helptext += "<ul>";
-  helptext += "<li>Hover gene to see name, highlight in dotplots</li>";
-  helptext += "<li>Click gene for links to more info</li>";
-  helptext += "<li>Hover track for all gene names</li>";
-  helptext += "<li>Click track to list all genes and track options</li>";
-  helptext += "</ul>";
-  document.getElementById(container_id).innerHTML = helptext;
+
+  document.getElementById(container_id).innerHTML = '';
   
   // data preprocessing
   var begin_genes = {};
