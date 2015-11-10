@@ -330,11 +330,11 @@ function($scope, Plot, Broadcast) {
     if (localPlots !== undefined) {
       familySizes = Plot.familySizes();
       colors = Plot.colors();
-      $('#plots').html('');
+      $('#plots-content').html('');
       var dim = $('#main').innerWidth()/3;
       for (var i = 0; i < localPlots.length; i++) {
           var id = "plot"+i;
-          $('#plots').append('<div id="'+id+'" class="col-lg-4">derp</div>');
+          $('#plots-content').append('<div id="'+id+'" class="col-lg-4">derp</div>');
           synteny(id, familySizes, colors, localPlots[i],
                   {"geneClicked": Broadcast.geneClicked,
                    "plotClicked": Broadcast.rightAxisClicked,
@@ -351,7 +351,7 @@ function($scope, Plot, Broadcast) {
     $('#global-plot').html('');
   });
   $scope.$on('redraw', function(event) {
-    $('#plots').html('');
+    $('#plots-content').html('');
     $('#local-plot').html('');
     $('#global-plot').html('');
     drawPlots();
