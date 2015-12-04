@@ -26,6 +26,7 @@ function($scope, $route, $routeParams, $location, $cookies, Viewer, Broadcast) {
                      mismatch: -1,
                      gap: -1,
                      threshold: 25,
+                     track_regexp: "",
                      order: "chromosome"};
     // override with values from cookie
     var cookie = $cookies.getObject('context');
