@@ -213,8 +213,13 @@
               <span id="helpBlock" class="help-block">A negative integer</span>
             </div>
             <div class="form-group" show-errors>
+              <label>Score</label>
+              <input type="number" min="1" name="score" class="form-control" ng-model="params.score" min="1" positive-integer required>
+              <span id="helpBlock" class="help-block">A positive integer</span>
+            </div>
+            <div class="form-group" show-errors>
               <label>Threshold</label>
-              <input type="number" min="1" name="threshold" class="form-control" ng-model="params.threshold" min="1" positive-integer required>
+              <input type="number" min="1" name="threshold" class="form-control" ng-model="params.threshold" min="1" positive-integer required ng-disabled="repeat()">
               <span id="helpBlock" class="help-block">A positive integer</span>
             </div>
             <div class="form-group">

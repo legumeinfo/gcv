@@ -128,7 +128,7 @@ function(DataStore, Broadcast) {
                                function(item) { return item.family; },
                                params);
               var id = tracks.groups[i].id;
-              if (al !== null && al[1] >= params.threshold) {
+              if (al !== null && al[1] >= params.score) {
                 for (var j = 0; j < al[0].length; j++) {
                   resultTracks.push(clone(tracks.groups[i]));
                   alignments.push(al[0][j]);

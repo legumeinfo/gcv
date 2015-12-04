@@ -25,6 +25,7 @@ function($scope, $route, $routeParams, $location, $cookies, Viewer, Broadcast) {
                      match: 5,
                      mismatch: -1,
                      gap: -1,
+                     score: 25,
                      threshold: 25,
                      order: "chromosome"};
     // override with values from cookie
@@ -37,6 +38,10 @@ function($scope, $route, $routeParams, $location, $cookies, Viewer, Broadcast) {
     if (search !== undefined) {
       updateObj(search, $scope.params);
     }
+  }
+
+  $scope.repeat = function() {
+    return $scope.params.algorithm != "repeat";
   }
 
   function updateSearch() {
