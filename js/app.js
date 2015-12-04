@@ -24,8 +24,7 @@ contextApp.config(['$routeProvider',
   }]);
 
 // custom validation used to ensure that form inputs are integers
-var INTEGER_REGEXP = /^\-?\d+$/;
-contextApp.directive('integer', function() {
+function regexpDirective(regexp) {
   return {
     require: 'ngModel',
     link: function(scope, elm, attrs, ctrl) {
@@ -34,7 +33,7 @@ contextApp.directive('integer', function() {
           // consider empty models to be valid
           return true;
         }
-        if (INTEGER_REGEXP.test(viewValue)) {
+        if (regexp.test(viewValue)) {
           // it is valid
           return true;
         }
@@ -43,7 +42,11 @@ contextApp.directive('integer', function() {
       };
     }
   };
-});
+}
+contextApp.directive('integer', regexpDirective(/^\-?\d+$/));
+contextApp.directive('positive-integer', regexpDirective(/^[1-9]\d*$/));
+contextApp.directive('positive-integer-or-zero', regexpDirective(/^\d+$/));
+contextApp.directive('negative-integer', regexpDirective(/^-\d+$/));
 
 // propagate angular error classes to twitter bootstrap groups
 contextApp

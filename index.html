@@ -169,18 +169,18 @@
             <legend>Query Parameters</legend>
             <div class="form-group" show-errors>
               <label>Neighbors</label>
-              <input type="number" min="1" name="numNeighbors" class="form-control" ng-model="params.numNeighbors" integer required>
+              <input type="number" min="1" name="numNeighbors" class="form-control" ng-model="params.numNeighbors" positive-integer required>
               <span id="helpBlock" class="help-block">A positive integer</span>
             </div>
             <div ng-show="searchView">
             <div class="form-group" show-errors>
               <label>Matched Families</label>
-              <input type="number" min="1" name="numMatchedFamilies" class="form-control" ng-model="params.numMatchedFamilies" integer required>
+              <input type="number" min="1" name="numMatchedFamilies" class="form-control" ng-model="params.numMatchedFamilies" positive-integer required>
               <span id="helpBlock" class="help-block">A positive integer</span>
             </div>
             <div class="form-group" show-errors>
               <label>Intermediate genes</label>
-              <input type="number" min="0" name="numNonFamily" class="form-control" ng-model="params.numNonFamily" integer required>
+              <input type="number" min="0" name="numNonFamily" class="form-control" ng-model="params.numNonFamily" positive-integer-or-zero required>
               <span id="helpBlock" class="help-block">A positive integer or 0</span>
             </div>
             <legend>Alignment Parameters</legend>
@@ -199,22 +199,22 @@
             </div>
             <div class="form-group" show-errors>
               <label>Match</label>
-              <input type="number" name="match" class="form-control" ng-model="params.match" integer required>
-              <span id="helpBlock" class="help-block">An integer</span>
+              <input type="number" min="1" name="match" class="form-control" ng-model="params.match" positive-integer required>
+              <span id="helpBlock" class="help-block">A positive integer</span>
             </div>
             <div class="form-group" show-errors>
               <label>Mismatch</label>
-              <input type="number" name="mismatch" class="form-control" ng-model="params.mismatch" integer required>
-              <span id="helpBlock" class="help-block">An integer</span>
+              <input type="number" max="-1" name="mismatch" class="form-control" ng-model="params.mismatch" negative-integer required>
+              <span id="helpBlock" class="help-block">A negative integer</span>
             </div>
             <div class="form-group" show-errors>
               <label>Gap</label>
-              <input type="number" name="gap" class="form-control" ng-model="params.gap" integer required>
-              <span id="helpBlock" class="help-block">An integer</span>
+              <input type="number" max="-1" name="gap" class="form-control" ng-model="params.gap" negative-integer required>
+              <span id="helpBlock" class="help-block">A negative integer</span>
             </div>
             <div class="form-group" show-errors>
               <label>Threshold</label>
-              <input type="number" name="threshold" class="form-control" ng-model="params.threshold" min="1" integer required>
+              <input type="number" min="1" name="threshold" class="form-control" ng-model="params.threshold" min="1" positive-integer required>
               <span id="helpBlock" class="help-block">A positive integer</span>
             </div>
             <div class="form-group">
