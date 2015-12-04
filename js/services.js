@@ -73,9 +73,22 @@ function(DataStore, Broadcast) {
     return a.chromosome_name.localeCompare(b.chromosome_name);
   }
   function byDistance(a, b) {
-    var a_id = a.id,
-        b_id = b.id;
-    return scores[b_id]-scores[a_id];
+    var diff = scores[b.id]-scores[a.id];
+    // if group have the same score
+    if (diff == 0) {
+      // if sorting alphabetically doesn't resolve the ordering
+      if (a.chromosome_name == b.chromosome_name) {
+        // try and sort by group?
+        if (a.id == b.id) {
+          // sort by track start position
+          // assumes genes list is already sorted by x location
+          return a.genes[0].x-b.genes[0].x;
+        }
+        return a.id-b.id;
+      }
+      return (a.chromosome_name > b.chromosome_name) ? 1 : -1;
+    }
+    return diff;
   }
   function sorter(selection) {
     return selection == "chromosome" ? byChromosome : byDistance
