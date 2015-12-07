@@ -59,15 +59,25 @@ var repeatAlign = function(sequence, reference, accessor, scoring) {
     var alignments = [];
     var index = -1;
     var score_diag, score_up, scroe_left;
-    var saving;
+    var saving = false;
     var total_score = 0;
+    var sub_score = 0;
+    var alignment_length = 0;
 
     while (!(i == 0 && j == 0)) {
         if (saving) {
-            total_score += a[i][j];
+            sub_score += a[i][j];
         }
         if (j == 0) {
+            if (saving && alignment_length < 2) {
+              alignments.pop();
+              index--;
+              alignment_length = 0;
+            } else if (saving) {
+              total_score += sub_score;
+            }
             saving = false;
+            sub_score = 0;
             var max = a[i].max();
             var max_j = a[i].lastIndexOf(max);
             // start a new alignment only if j is a match and the alignment's
@@ -75,6 +85,7 @@ var repeatAlign = function(sequence, reference, accessor, scoring) {
             if (max_j > 0 && i > 0 &&
                accessor(reference[i-1]) === accessor(sequence[max_j-1]) &&
                max >= scoring.threshold) {
+                alignment_length = 1;
                 saving = true;
                 j = max_j;
                 alignments.push([[],[]]);
@@ -119,6 +130,7 @@ var repeatAlign = function(sequence, reference, accessor, scoring) {
                         if (saving && j > 0 && i > 0) {
                             alignments[index][0].unshift(clone(sequence[j-1]));
                             alignments[index][1].unshift(clone(reference[i-1]));
+                            alignment_length++;
                         }
                         break;
                     // up
@@ -140,6 +152,13 @@ var repeatAlign = function(sequence, reference, accessor, scoring) {
                 }
             }
         }
+    }
+    if (saving && alignment_length < 2) {
+      alignments.pop();
+      index--;
+      alignment_length = 0;
+    } else if (saving) {
+      total_score += sub_score;
     }
     
     return [alignments, total_score];
