@@ -11,7 +11,7 @@ function default_accessor(item) {
 
 // let's compute scores over and over again...
 var s = function(first, second, scoring) {
-	if (first === second) {
+	if (first === second && first != '') {
 		return scoring.match;
 	} return scoring.mismatch; // passed value should be negative
 }
