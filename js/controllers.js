@@ -3,8 +3,9 @@ var contextControllers = angular.module('contextControllers', []);
 // the generic controller that drives the app
 contextControllers
 .controller('ViewerCtrl', ['$scope', '$route', '$routeParams', '$location',
-                           '$cookies', 'Viewer', 'Broadcast',
-function($scope, $route, $routeParams, $location, $cookies, Viewer, Broadcast) {
+                           '$localStorage', 'Viewer', 'Broadcast',
+function($scope, $route, $routeParams, $location, $localStorage, Viewer,
+         Broadcast) {
   // is it a basic or search view?
   var searchView = ($route.current) ? $route.current.$$route.search : false;
   Broadcast.viewChanged(searchView);
@@ -28,10 +29,9 @@ function($scope, $route, $routeParams, $location, $cookies, Viewer, Broadcast) {
                      score: 25,
                      threshold: 25,
                      order: "chromosome"};
-    // override with values from cookie
-    var cookie = $cookies.getObject('context');
-    if (cookie !== undefined) {
-      updateObj(cookie, $scope.params);
+    // override with values from storage
+    if ($localStorage.context === undefined) {
+      $localStorage.context = $scope.params;
     }
     // override with values from url
     var search = $location.search();
@@ -53,8 +53,8 @@ function($scope, $route, $routeParams, $location, $cookies, Viewer, Broadcast) {
     if ($scope.form.$valid) {
       // in case the form is submitted with invalid values
       $scope.$broadcast('show-errors-check-validity');
-      // save the new params to the cookie
-      $cookies.putObject('context', $scope.params);
+      // save the new params to local storage
+      $localStorage.context = $scope.params;
       // update the url to reflect the changes
       // triggers the route provider
       updateSearch();

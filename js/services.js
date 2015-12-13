@@ -1,15 +1,15 @@
 var contextServices = angular.module('contextServices', []);
 
-contextServices.service('DataStore', ['$http', '$cookies',
-function($http, $cookies) {
+contextServices.service('DataStore', ['$http', '$localStorage',
+function($http, $localStorage) {
   var json;
   var family;
   var familyNames;
   var familySizes;
   var colors = contextColors;
-  var domain = $cookies.getObject('contextColors');
+  var domain = $localStorage.contextColors;
   if (domain !== undefined) {
-    colors.domain(domain); //TODO: load color from cookie
+    colors.domain(domain);
   }
   return {basic: function(nodeID, params, successCallback, errorCallback) {
                  $http({url: 'http://localhost:8000/lis_gene_families/chado/context_viewer' +
@@ -56,7 +56,7 @@ function($http, $cookies) {
           familySizes: function() { return familySizes; },
           colors: function() { return colors; },
           saveColors: function() {
-            $cookies.putObject('contextColors', colors.domain());
+            $localStorage.contextColors = colors.domain();
           },
           family: function() { return family; }
 }}]);

@@ -1,7 +1,7 @@
 // all the modules that the app depends on
 var contextApp = angular.module('contextApp', [
   'ngRoute',
-  'ngCookies',
+  'ngStorage',
   'contextControllers',
   'contextServices'
 ]);
