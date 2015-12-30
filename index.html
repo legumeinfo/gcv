@@ -24,7 +24,7 @@
   <script src="js/hopscotch.js"></script>
   <script src="js/demotour.js"></script>
   <script src="js/alert.js"></script>
-</head>
+  </head>
 <body ng-app="contextApp" ng-controller="UICtrl">
   <div id="right-slider" class="col-md-3">
     <div id="legend-wrapper">
@@ -55,7 +55,7 @@
           <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
             <ul class="nav navbar-nav tabs">
               <li><a href="#local-plot" ng-click="plotLocal()">Local</a></li>
-              <li><a href="#global-plot" ng-click="plotGlobal()">Global</a></li>
+              <li><a href="#global-plot" id="gloplot" ng-click="plotGlobal()">Global</a></li>
             </ul>
             <ul class="nav navbar-nav navbar-right">
               <li><a>
@@ -91,10 +91,10 @@
         <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
           <ul class="nav navbar-nav tabs">
             <li><button id="parambtn" type="button" class="btn btn-default navbar-btn" ng-click="showLeftSlider('#parameters', $event)">Parameters</button></li>
-            <li><a id="viewer-button" href="#viewer">Viewer</a></li>
+	    <li><button id="helpbtn" class="btn btn-default navbar-btn" onclick="alert('Hello World')">Help</button></li>
+	    <li><a id="viewer-button" href="#viewer">Viewer</a></li>
             <li ng-show="searchView"><a href="#plots">Dot Plots</a></li>
-            <li><a href="#help">Help</a></li>
-	    <li><button onclick="hopscotch.startTour(tour)">Tutorial</button></li> 
+	       <li><button onclick="hopscotch.startTour(tour)">Tutorial</button></li> 
 	       </ul>
 	       <div>
             <ul class="nav navbar-nav navbar-right">
@@ -133,10 +133,7 @@
       </div>
       <div id="plots-content"></div>
     </div>
-    <div id="help">
-      <a href="https://github.com/ncgr/lis_context_viewer/wiki/User-help" target="_blank">View help docs on GitHub</a>
     </div>
-  </div>
   <div id="left-slider" class="col-md-3" ng-controller="ViewerCtrl">
     <nav class="navbar navbar-default navbar-static-top">
       <div class="container-fluid">

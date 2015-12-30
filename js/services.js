@@ -270,7 +270,7 @@ function($http, DataStore) {
             if (globalPlots[trackID] !== undefined) {
               successCallback(globalPlots[trackID]);
             } else {
-              if (localPlots[trackID] !== undefined) {
+              if (idPlotMap[trackID] !== undefined) {
                 $http({url: '/lis_gene_families/chado/context_viewer' +
                              '/global_plot_service/',
                        method: "GET",
