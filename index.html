@@ -24,8 +24,7 @@
   <script src="js/hopscotch.js"></script>
   <script src="js/demotour.js"></script>
   <script src="js/alert.js"></script>
-  </head>
-<body ng-app="contextApp" ng-controller="UICtrl">
+ <body ng-app="contextApp" ng-controller="UICtrl">
   <div id="right-slider" class="col-md-3">
     <div id="legend-wrapper">
       <div class=vertical-scroll>
@@ -91,10 +90,10 @@
         <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
           <ul class="nav navbar-nav tabs">
             <li><button id="parambtn" type="button" class="btn btn-default navbar-btn" ng-click="showLeftSlider('#parameters', $event)">Parameters</button></li>
-	    <li><button id="helpbtn" class="btn btn-default navbar-btn" onclick="alert('Hello World')">Help</button></li>
+	    <li><button id="helpbtn" class="btn btn-default navbar-btn" onclick="hopscotch.startTour(tour)">Help</button></li>
 	    <li><a id="viewer-button" href="#viewer">Viewer</a></li>
             <li ng-show="searchView"><a href="#plots">Dot Plots</a></li>
-	       <li><button onclick="hopscotch.startTour(tour)">Tutorial</button></li> 
+	    <!--   <li><button onclick="hopscotch.startTour(tour)">Tutorial</button></li> --> 
 	       </ul>
 	       <div>
             <ul class="nav navbar-nav navbar-right">
@@ -132,7 +131,7 @@
         </ul>
       </div>
       <div id="plots-content"></div>
-    </div>
+       </div>
     </div>
   <div id="left-slider" class="col-md-3" ng-controller="ViewerCtrl">
     <nav class="navbar navbar-default navbar-static-top">
@@ -241,6 +240,5 @@
       <div id="track" ng-controller="TrackCtrl" compile="trackHtml"></div>
     </div>
   </div>
-  <!--  <script src="js/demotour.js"></script> -->
- </body>
+  </body>
 </html>
