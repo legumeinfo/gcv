@@ -33,6 +33,14 @@ var tour = {
 	id: tourId,
 
 	steps: [
+		{
+	title: "Need Help?",
+	content: "Click \
+	<a href='https://github.com/ncgr/lis_context_viewer/wiki/User-help' \
+	target='_blank' style='text-decoration: underline'>here</a> to view help documentation, or click 'next' to take a quick tour.",
+	target: "helpbtn",
+	placement: "bottom",
+		},	
 	 {
 	      title: "Welcome!",
 	      content: "The Genome Context Viewer allows you to view a region of a genome considered only with respect to the ordering and orientation of its annotated gene content.",
@@ -53,7 +61,7 @@ var tour = {
  	      },	
        {
 	      title: "Context Viewer",
-	      content: "The context viewer displays corresponding regions around a selected gene or set of genes in a subtree. It makes it easy to find functional gene groups as well as help make hypotheses about species' phylogenies.",
+	      content: "The context viewer displays corresponding regions around a selected gene or set of genes in a subtree. It makes it easy to find functional gene groups as well as help make hypotheses about species' phylogenies. The thicker the connecting line between the genes, the longer the distance on the chromosome.",
 	      target: ".rail",
 	      placement: "bottom",
 	     },	  
@@ -70,7 +78,7 @@ var tour = {
 		if (! $('#plot').is(':visible')) {
 		setTimeout(waitForplot, 900);	
 		} 
-		else { return hopscotch.startTour(tour, 5)}
+		else { return hopscotch.startTour(tour, 6)}
 					}}
              },    
       	{
@@ -86,7 +94,7 @@ var tour = {
 		if (! $('#global-plot').is(':visible')) {
 		setTimeout(waitForglobal, 900);
 					} 
-		else { return hopscotch.startTour(tour, 6)}
+		else { return hopscotch.startTour(tour, 7)}
 					}}
 	    },	     
 	{   
@@ -110,7 +118,7 @@ var tour = {
 		setTimeout(waitForslider, 1000);
 		}
 		else {
-		return hopscotch.startTour(tour, 8);
+		return hopscotch.startTour(tour, 9);
 			}}
                	     },
 	     multipage: true
@@ -142,16 +150,13 @@ var tour = {
 	    },
 	{
 	     title: "Want to know more?",
-	     content: "You can view additional\
-	     documentation <a href='https://github.com/ncgr/lis_context_viewer/wiki/User-help' \
-		    target='_blank'> \
-		    by clicking this link</a>.",
+	     content: "This\
+	     documentation <a href='http://legumeinfo.org' \
+		    target='_blank'>link</a> will take you back to the LIS homepage.",
 	     target: "helpbtn",
 	     placement: "bottom"
  	    }
-
-	]
-}	
+	]}	
 
 
 
