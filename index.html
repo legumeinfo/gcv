@@ -4,6 +4,7 @@
   <link rel="stylesheet" href="css/bootstrap.min.css">
   <link rel="stylesheet" href="css/style.css">
   <link rel="stylesheet" href="css/context.css">
+  <link rel="stylesheet" href="css/hopscotch.css">
   <script src="js/d3-3.5.6.min.js"></script>
   <script src="js/enhancement.js"></script>
   <script src="js/context.js"></script>
@@ -15,14 +16,15 @@
   <script src="js/angular-1.4.3.min.js"></script>
   <script src="js/angular-route.min.js"></script>
   <script src="js/angular-resource.min.js"></script>
-  <script src="js/angular-cookies.min.js"></script>
+  <script src="js/angular-storage.min.js"></script>
   <script src="js/app.js"></script>
   <script src="js/controllers.js"></script>
   <script src="js/services.js"></script>
   <script src="js/jquery-2.1.4.min.js"></script>
+  <script src="js/hopscotch.js"></script>
+  <script src="js/demotour.js"></script>
   <script src="js/alert.js"></script>
-</head>
-<body ng-app="contextApp" ng-controller="UICtrl">
+ <body ng-app="contextApp" ng-controller="UICtrl">
   <div id="right-slider" class="col-md-3">
     <div id="legend-wrapper">
       <div class=vertical-scroll>
@@ -52,7 +54,7 @@
           <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
             <ul class="nav navbar-nav tabs">
               <li><a href="#local-plot" ng-click="plotLocal()">Local</a></li>
-              <li><a href="#global-plot" ng-click="plotGlobal()">Global</a></li>
+              <li><a href="#global-plot" id="gloplot" ng-click="plotGlobal()">Global</a></li>
             </ul>
             <ul class="nav navbar-nav navbar-right">
               <li><a>
@@ -87,12 +89,13 @@
         </div>
         <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
           <ul class="nav navbar-nav tabs">
-            <li><button type="button" class="btn btn-default navbar-btn" ng-click="showLeftSlider('#parameters', $event)">Parameters</button></li>
-            <li><a id="viewer-button" href="#viewer">Viewer</a></li>
+            <li><button id="parambtn" type="button" class="btn btn-default navbar-btn" ng-click="showLeftSlider('#parameters', $event)">Parameters</button></li>
+	    <li><button id="helpbtn" class="btn btn-default navbar-btn" onclick="hopscotch.startTour(tour)">Help</button></li>
+	    <li><a id="viewer-button" href="#viewer">Viewer</a></li>
             <li ng-show="searchView"><a href="#plots">Dot Plots</a></li>
-            <li><a href="#help">Help</a></li>
-          </ul>
-          <div>
+	    <!--   <li><button onclick="hopscotch.startTour(tour)">Tutorial</button></li> --> 
+	       </ul>
+	       <div>
             <ul class="nav navbar-nav navbar-right">
               <li><button type="button" class="btn btn-default navbar-btn" ng-click="toggleRightSlider($event)">Legend</button></li>
             </ul>
@@ -128,11 +131,8 @@
         </ul>
       </div>
       <div id="plots-content"></div>
+       </div>
     </div>
-    <div id="help">
-      <a href="https://github.com/ncgr/lis_context_viewer/wiki/User-help" target="_blank">View help docs on GitHub</a>
-    </div>
-  </div>
   <div id="left-slider" class="col-md-3" ng-controller="ViewerCtrl">
     <nav class="navbar navbar-default navbar-static-top">
       <div class="container-fluid">
@@ -169,22 +169,22 @@
             <legend>Query Parameters</legend>
             <div class="form-group" show-errors>
               <label>Neighbors</label>
-              <input type="number" min="1" name="numNeighbors" class="form-control" ng-model="params.numNeighbors" integer required>
+              <input type="number" min="1" name="numNeighbors" id="neighborpane" class="form-control" ng-model="params.numNeighbors" integer required>
               <span id="helpBlock" class="help-block">A positive integer</span>
             </div>
             <div ng-show="searchView">
             <div class="form-group" show-errors>
               <label>Matched Families</label>
-              <input type="number" min="1" name="numMatchedFamilies" class="form-control" ng-model="params.numMatchedFamilies" integer required>
+              <input type="number" min="1" name="numMatchedFamilies" class="form-control" ng-model="params.numMatchedFamilies" positive-integer required>
               <span id="helpBlock" class="help-block">A positive integer</span>
             </div>
             <div class="form-group" show-errors>
               <label>Intermediate genes</label>
-              <input type="number" min="0" name="numNonFamily" class="form-control" ng-model="params.numNonFamily" integer required>
+              <input type="number" min="0" name="numNonFamily" class="form-control" ng-model="params.numNonFamily" positive-integer-or-zero required>
               <span id="helpBlock" class="help-block">A positive integer or 0</span>
             </div>
             <legend>Alignment Parameters</legend>
-            <div class="form-group">
+            <div id="algpar" class="form-group">
               <label>Algorithm</label>
               <div class="radio" data-ng-repeat="a in algorithms">
               <label>
@@ -199,30 +199,35 @@
             </div>
             <div class="form-group" show-errors>
               <label>Match</label>
-              <input type="number" name="match" class="form-control" ng-model="params.match" integer required>
-              <span id="helpBlock" class="help-block">An integer</span>
-            </div>
-            <div class="form-group" show-errors>
-              <label>Mismatch</label>
-              <input type="number" name="mismatch" class="form-control" ng-model="params.mismatch" integer required>
-              <span id="helpBlock" class="help-block">An integer</span>
-            </div>
-            <div class="form-group" show-errors>
-              <label>Gap</label>
-              <input type="number" name="gap" class="form-control" ng-model="params.gap" integer required>
-              <span id="helpBlock" class="help-block">An integer</span>
-            </div>
-            <div class="form-group" show-errors>
-              <label>Threshold</label>
-              <input type="number" name="threshold" class="form-control" ng-model="params.threshold" min="1" integer required>
+              <input type="number" min="1" name="match" class="form-control" ng-model="params.match" positive-integer required>
               <span id="helpBlock" class="help-block">A positive integer</span>
             </div>
             <div class="form-group" show-errors>
+              <label>Mismatch</label>
+              <input type="number" max="-1" name="mismatch" class="form-control" ng-model="params.mismatch" negative-integer required>
+              <span id="helpBlock" class="help-block">A negative integer</span>
+            </div>
+            <div class="form-group" show-errors>
+              <label>Gap</label>
+              <input type="number" max="-1" name="gap" class="form-control" ng-model="params.gap" negative-integer required>
+              <span id="helpBlock" class="help-block">A negative integer</span>
+            </div>
+            <div class="form-group" show-errors>
+              <label>Score</label>
+              <input type="number" min="1" name="score" class="form-control" ng-model="params.score" min="1" positive-integer required>
+              <span id="helpBlock" class="help-block">A positive integer</span>
+            </div>
+            <div class="form-group" show-errors>
+              <label>Threshold</label>
+              <input type="number" min="{{ params.match }}" name="threshold" class="form-control" ng-model="params.threshold" min="1" positive-integer required ng-disabled="repeat()">
+              <span id="helpBlock" class="help-block">Greater than or equal to Match</span>
+            </div>
+            <div class="form-group">
               <label>Track filter</label>
               <input type="regexp" name="track_filter" class="form-control" ng-model="params.track_regexp">
               <span id="helpBlock" class="help-block">A regular expression</span>
             </div>
-            <div class="form-group">
+            <div id="order" class="form-group">
               <label>Order</label>
               <select class="form-control"
                ng-options="o.id as o.name for o in orderings"
@@ -240,5 +245,5 @@
       <div id="track" ng-controller="TrackCtrl" compile="trackHtml"></div>
     </div>
   </div>
-</body>
+  </body>
 </html>
