@@ -24,6 +24,7 @@
   <script src="js/hopscotch.js"></script>
   <script src="js/demotour.js"></script>
   <script src="js/alert.js"></script>
+ </head>
  <body ng-app="contextApp" ng-controller="UICtrl">
   <div id="right-slider" class="col-md-3">
     <div id="legend-wrapper">
@@ -218,14 +219,14 @@
               <span id="helpBlock" class="help-block">A positive integer</span>
             </div>
             <div class="form-group" show-errors>
-              <label>Track filter</label>
-              <input type="regexp" name="track_filter" class="form-control" ng-model="params.track_regexp">
-              <span id="helpBlock" class="help-block">A regular expression</span>
-            </div>
-            <div class="form-group">
               <label>Threshold</label>
               <input type="number" min="{{ params.match }}" name="threshold" class="form-control" ng-model="params.threshold" min="1" positive-integer required ng-disabled="repeat()">
               <span id="helpBlock" class="help-block">Greater than or equal to Match</span>
+            </div>
+            <div class="form-group">
+              <label>Track filter</label>
+              <input type="regexp" name="track_filter" class="form-control" ng-model="params.track_regexp">
+              <span id="helpBlock" class="help-block">A regular expression</span>
             </div>
             <div id="order" class="form-group">
               <label>Order</label>
