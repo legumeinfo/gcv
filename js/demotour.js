@@ -156,7 +156,9 @@ var tour = {
 	     target: "helpbtn",
 	     placement: "bottom"
  	    }
-	]}	
+	],
+	showPrevButton: true,
+}	
 
 
 

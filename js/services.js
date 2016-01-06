@@ -122,13 +122,14 @@ function(DataStore, Broadcast) {
             // align all the tracks with the query track
             var alignments = [],
                 resultTracks = [];
+            var track_filter = (params.track_regexp === undefined ? undefined : new RegExp(params.track_regexp));
             for (var i = 1; i < tracks.groups.length; i++) {
               var al = aligner(tracks.groups[0].genes,
                                tracks.groups[i].genes,
                                function(item) { return item.family; },
                                params);
               var id = tracks.groups[i].id;
-              if (al !== null && al[1] >= params.score) {
+              if (al !== null && al[1] >= params.score && (track_filter === undefined || track_filter.test(tracks.groups[i].chromosome_name))) {
                 for (var j = 0; j < al[0].length; j++) {
                   resultTracks.push(clone(tracks.groups[i]));
                   alignments.push(al[0][j]);

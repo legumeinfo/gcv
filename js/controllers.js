@@ -28,6 +28,7 @@ function($scope, $route, $routeParams, $location, $localStorage, Viewer,
                      gap: -1,
                      score: 25,
                      threshold: 25,
+                     track_regexp: "",
                      order: "chromosome"};
     // override with values from storage
     if ($localStorage.context === undefined) {

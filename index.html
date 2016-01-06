@@ -221,6 +221,11 @@
               <label>Threshold</label>
               <input type="number" min="{{ params.match }}" name="threshold" class="form-control" ng-model="params.threshold" min="1" positive-integer required ng-disabled="repeat()">
               <span id="helpBlock" class="help-block">Greater than or equal to Match</span>
+            <div class="form-group">
+            </div>
+              <label>Track filter</label>
+              <input type="regexp" name="track_filter" class="form-control" ng-model="params.track_regexp">
+              <span id="helpBlock" class="help-block">A regular expression</span>
             </div>
             <div id="order" class="form-group">
               <label>Order</label>
