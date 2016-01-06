@@ -12,7 +12,7 @@ function($http, $localStorage) {
     colors.domain(domain);
   }
   return {basic: function(nodeID, params, successCallback, errorCallback) {
-                 $http({url: 'http://legumeinfo.org/lis_gene_families/chado/context_viewer' +
+                 $http({url: 'http://localhost:8080/lis_gene_families/chado/context_viewer' +
                              '/basic_tracks_service/'+nodeID, 
                         method: "GET",
                         params: params})
@@ -26,7 +26,7 @@ function($http, $localStorage) {
                             function(response) { errorCallback(response); });
           },
           search: function(focusName, params, successCallback, errorCallback) {
-                 $http({url: 'http://legumeinfo.org/lis_gene_families/chado/context_viewer' +
+                 $http({url: 'http://localhost:8080/lis_gene_families/chado/context_viewer' +
                              '/search_tracks_service/'+focusName, 
                         method: "GET",
                         params: params})
@@ -270,7 +270,7 @@ function($http, DataStore) {
               successCallback(globalPlots[trackID]);
             } else {
               if (idPlotMap[trackID] !== undefined) {
-                $http({url: 'http://legumeinfo.org/lis_gene_families/chado/context_viewer' +
+                $http({url: 'http://localhost:8080/lis_gene_families/chado/context_viewer' +
                              '/global_plot_service/',
                        method: "GET",
                        params:{focusID: focusID,
