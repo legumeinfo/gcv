@@ -1,18 +1,18 @@
 var contextServices = angular.module('contextServices', []);
 
-contextServices.service('DataStore', ['$http', '$cookies',
-function($http, $cookies) {
+contextServices.service('DataStore', ['$http', '$localStorage',
+function($http, $localStorage) {
   var json;
   var family;
   var familyNames;
   var familySizes;
   var colors = contextColors;
-  var domain = $cookies.getObject('contextColors');
+  var domain = $localStorage.contextColors;
   if (domain !== undefined) {
-    colors.domain(domain); //TODO: load color from cookie
+    colors.domain(domain);
   }
   return {basic: function(nodeID, params, successCallback, errorCallback) {
-                 $http({url: 'http://localhost:8000/lis_gene_families/chado/context_viewer' +
+                 $http({url: 'http://legumeinfo.org/lis_gene_families/chado/context_viewer' +
                              '/basic_tracks_service/'+nodeID, 
                         method: "GET",
                         params: params})
@@ -26,7 +26,7 @@ function($http, $cookies) {
                             function(response) { errorCallback(response); });
           },
           search: function(focusName, params, successCallback, errorCallback) {
-                 $http({url: 'http://localhost:8000/lis_gene_families/chado/context_viewer' +
+                 $http({url: 'http://legumeinfo.org/lis_gene_families/chado/context_viewer' +
                              '/search_tracks_service/'+focusName, 
                         method: "GET",
                         params: params})
@@ -56,7 +56,7 @@ function($http, $cookies) {
           familySizes: function() { return familySizes; },
           colors: function() { return colors; },
           saveColors: function() {
-            $cookies.putObject('contextColors', colors.domain());
+            $localStorage.contextColors = colors.domain();
           },
           family: function() { return family; }
 }}]);
@@ -73,9 +73,22 @@ function(DataStore, Broadcast) {
     return a.chromosome_name.localeCompare(b.chromosome_name);
   }
   function byDistance(a, b) {
-    var a_id = a.id,
-        b_id = b.id;
-    return scores[b_id]-scores[a_id];
+    var diff = scores[b.id]-scores[a.id];
+    // if group have the same score
+    if (diff == 0) {
+      // if sorting alphabetically doesn't resolve the ordering
+      if (a.chromosome_name == b.chromosome_name) {
+        // try and sort by group?
+        if (a.id == b.id) {
+          // sort by track start position
+          // assumes genes list is already sorted by x location
+          return a.genes[0].x-b.genes[0].x;
+        }
+        return a.id-b.id;
+      }
+      return (a.chromosome_name > b.chromosome_name) ? 1 : -1;
+    }
+    return diff;
   }
   function sorter(selection) {
     return selection == "chromosome" ? byChromosome : byDistance
@@ -116,7 +129,7 @@ function(DataStore, Broadcast) {
                                function(item) { return item.family; },
                                params);
               var id = tracks.groups[i].id;
-              if (al !== null && al[1] >= params.threshold && (track_filter === undefined || track_filter.test(tracks.groups[i].chromosome_name))) {
+              if (al !== null && al[1] >= params.score && (track_filter === undefined || track_filter.test(tracks.groups[i].chromosome_name))) {
                 for (var j = 0; j < al[0].length; j++) {
                   resultTracks.push(clone(tracks.groups[i]));
                   alignments.push(al[0][j]);
@@ -258,7 +271,7 @@ function($http, DataStore) {
               successCallback(globalPlots[trackID]);
             } else {
               if (idPlotMap[trackID] !== undefined) {
-                $http({url: 'http://localhost:8000/chado/context_viewer' +
+                $http({url: 'http://legumeinfo.org/lis_gene_families/chado/context_viewer' +
                              '/global_plot_service/',
                        method: "GET",
                        params:{focusID: focusID,
