@@ -157,7 +157,7 @@ var tour = {
 	     placement: "bottom"
  	    }
 	],
-        showPrevButton: "true",
+	showPrevButton: true,
 }	
 
 
