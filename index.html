@@ -169,7 +169,7 @@
             <legend>Query Parameters</legend>
             <div class="form-group" show-errors>
               <label>Neighbors</label>
-              <input type="number" min="1" name="numNeighbors" id="neighborpane" class="form-control" ng-model="params.numNeighbors" integer required>
+              <input type="number" min="1" name="numNeighbors" id="neighborpane" class="form-control" ng-model="params.numNeighbors" positive-integer required>
               <span id="helpBlock" class="help-block">A positive integer</span>
             </div>
             <div ng-show="searchView">
