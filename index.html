@@ -31,8 +31,7 @@
   Date();a=s.createElement(o),
 
   m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
-     })(window,document,'script','//www.google-analytics.com/analytics.js
-  <http://www.google-analytics.com/analytics.js>','ga');
+     })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
 
      ga('create', 'UA-49655154-1', 'auto');
      ga('send', 'pageview');
@@ -184,7 +183,7 @@
             <legend>Query Parameters</legend>
             <div class="form-group" show-errors>
               <label>Neighbors</label>
-              <input type="number" min="1" name="numNeighbors" id="neighborpane" class="form-control" ng-model="params.numNeighbors" integer required>
+              <input type="number" min="1" name="numNeighbors" id="neighborpane" class="form-control" ng-model="params.numNeighbors" positive-integer required>
               <span id="helpBlock" class="help-block">A positive integer</span>
             </div>
             <div ng-show="searchView">
