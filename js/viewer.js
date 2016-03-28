@@ -265,7 +265,7 @@ function contextViewer(container_id, color, in_data, opt) {
   	gene_groups.append("path")
   	  .attr("d", d3.svg.symbol().type("triangle-up").size(200))
   	  .attr("class", function (d) {
-  	  	if (opt.focus !== undefined && opt.focus == d.family) {
+  	  	if (opt.focus !== undefined && (opt.focus == d.family || opt.focus == d.name)) {
   	  	  return "point focus";
   	  	} else if (d.family == '') {
   	  	  return "point no_fam";

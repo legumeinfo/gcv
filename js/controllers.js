@@ -93,6 +93,7 @@ function($scope, $route, $routeParams, $location, $localStorage, Viewer,
       if (searchView) {
         contextViewer('viewer-content', colors, tracks,
                       {"width": $('#main').innerWidth(),
+                       "focus": Viewer.lastQuery(),
                        "geneClicked": Broadcast.geneClicked,
                        "leftAxisClicked": Broadcast.leftAxisClicked,
                        "rightAxisClicked": Broadcast.rightAxisClicked,

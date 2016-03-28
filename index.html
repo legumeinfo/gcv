@@ -5,7 +5,10 @@
   <link rel="stylesheet" href="css/style.css">
   <link rel="stylesheet" href="css/context.css">
   <link rel="stylesheet" href="css/hopscotch.css">
+  <!-- shared -->
   <script src="js/d3-3.5.6.min.js"></script>
+  <script src="js/jquery-2.1.4.min.js"></script>
+  <!-- viewer -->
   <script src="js/enhancement.js"></script>
   <script src="js/context.js"></script>
   <script src="js/viewer.js"></script>
@@ -13,6 +16,7 @@
   <script src="js/smith.js"></script>
   <script src="js/repeat.js"></script>
   <script src="js/synteny.js"></script>
+  <!-- angular -->
   <script src="js/angular-1.4.3.min.js"></script>
   <script src="js/angular-route.min.js"></script>
   <script src="js/angular-resource.min.js"></script>
@@ -20,11 +24,12 @@
   <script src="js/app.js"></script>
   <script src="js/controllers.js"></script>
   <script src="js/services.js"></script>
-  <script src="js/jquery-2.1.4.min.js"></script>
+  <!-- hopscotch -->
   <script src="js/hopscotch.js"></script>
   <script src="js/demotour.js"></script>
   <script src="js/alert.js"></script>
- <body ng-app="contextApp" ng-controller="UICtrl">
+</head>
+<body ng-app="contextApp" ng-controller="UICtrl">
   <div id="right-slider" class="col-md-3">
     <div id="legend-wrapper">
       <div class=vertical-scroll>
@@ -37,7 +42,7 @@
               <li>Click to list members and link to gene tree.</li>
             </ul>
           </div>
-        <div id="legend-content"></div>
+          <div id="legend-content"></div>
         </div>
       </div>
     </div>
@@ -57,9 +62,7 @@
               <li><a href="#global-plot" id="gloplot" ng-click="plotGlobal()">Global</a></li>
             </ul>
             <ul class="nav navbar-nav navbar-right">
-              <li><a>
-                <span class="glyphicon glyphicon glyphicon-remove pull-right" ng-click="hidePlot()" aria-hidden="true"></span>
-              </a></li>
+              <li><a><span class="glyphicon glyphicon glyphicon-remove pull-right" ng-click="hidePlot()" aria-hidden="true"></span></a></li>
             </ul>
           </div>
         </div>
@@ -90,12 +93,11 @@
         <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
           <ul class="nav navbar-nav tabs">
             <li><button id="parambtn" type="button" class="btn btn-default navbar-btn" ng-click="showLeftSlider('#parameters', $event)">Parameters</button></li>
-	    <li><button id="helpbtn" class="btn btn-default navbar-btn" onclick="hopscotch.startTour(tour)">Help</button></li>
-	    <li><a id="viewer-button" href="#viewer">Viewer</a></li>
+            <li><button id="helpbtn" class="btn btn-default navbar-btn" onclick="hopscotch.startTour(tour)">Help</button></li>
+            <li><a id="viewer-button" href="#viewer">Viewer</a></li>
             <li ng-show="searchView"><a href="#plots">Dot Plots</a></li>
-	    <!--   <li><button onclick="hopscotch.startTour(tour)">Tutorial</button></li> --> 
-	       </ul>
-	       <div>
+	      </ul>
+	      <div>
             <ul class="nav navbar-nav navbar-right">
               <li><button type="button" class="btn btn-default navbar-btn" ng-click="toggleRightSlider($event)">Legend</button></li>
             </ul>
@@ -131,8 +133,8 @@
         </ul>
       </div>
       <div id="plots-content"></div>
-       </div>
     </div>
+  </div>
   <div id="left-slider" class="col-md-3" ng-controller="ViewerCtrl">
     <nav class="navbar navbar-default navbar-static-top">
       <div class="container-fluid">
@@ -187,14 +189,14 @@
             <div id="algpar" class="form-group">
               <label>Algorithm</label>
               <div class="radio" data-ng-repeat="a in algorithms">
-              <label>
+                <label>
                   <input
                       name="algorithm"
                       type="radio"
                       value="{{a.id}}"
                       ng-model="params.algorithm" />
                       {{a.name}}
-              </label>
+                </label>
               </div>
             </div>
             <div class="form-group" show-errors>
@@ -245,5 +247,5 @@
       <div id="track" ng-controller="TrackCtrl" compile="trackHtml"></div>
     </div>
   </div>
-  </body>
+</body>
 </html>

@@ -1,7 +1,7 @@
 var contextServices = angular.module('contextServices', []);
 
-contextServices.service('DataStore', ['$http', '$localStorage',
-function($http, $localStorage) {
+contextServices.service('DataStore', ['$http', '$q', '$localStorage',
+function($http, $q, $localStorage) {
   var json;
   var family;
   var familyNames;
@@ -12,30 +12,64 @@ function($http, $localStorage) {
     colors.domain(domain);
   }
   return {basic: function(nodeID, params, successCallback, errorCallback) {
-                 $http({url: 'http://legumeinfo.org/lis_gene_families/chado/context_viewer' +
-                             '/basic_tracks_service/'+nodeID, 
-                        method: "GET",
-                        params: params})
-                      .then(function(response) {
-                              var data = JSON.parse(response.data);
-                              json = JSON.stringify(data.tracks);
-                              family = data.family;
-                              familyNames = getFamilyNameMap(data.tracks);
-                              successCallback();
-                            },
-                            function(response) { errorCallback(response); });
+            // list of all services
+            var sources = [
+              'http://legumeinfo.org/lis_gene_families/chado/context_viewer/basic_tracks_service/'+nodeID,
+            ];
+            // generate a promise for each service
+            var promises = [];
+            for(var i = 0; i < sources.length; i++) {
+              promises.push(
+                $http({url: sources[i], method: "GET", params: params})
+              );
+            }
+            // wait for all the promises to be fulfilled
+            $q.all(promises).then(function(dataset) {
+                // aggregate all the results into a single object
+                var data = {'family':'', 'tracks':{'families':[], 'groups':[]}};
+                for(var i = 0; i < sources.length; i++) {
+                  var d = JSON.parse(dataset[i].data);
+                  data.family = d.family;
+                  data.tracks.families =
+                    data.tracks.families.concat(d.tracks.families);
+                  data.tracks.groups =
+                    data.tracks.groups.concat(d.tracks.groups);
+                }
+                json = JSON.stringify(data.tracks);
+                family = data.family;
+                familyNames = getFamilyNameMap(data.tracks);
+                successCallback();
+              },
+              function(reason) { errorCallback(reason); });
           },
           search: function(focusName, params, successCallback, errorCallback) {
-                 $http({url: 'http://legumeinfo.org/lis_gene_families/chado/context_viewer' +
-                             '/search_tracks_service/'+focusName, 
-                        method: "GET",
-                        params: params})
-                      .then(function(response) {
-                              json = response.data;
-                              familyNames = getFamilyNameMap(JSON.parse(json));
-                              successCallback();
-                            },
-                            function(response) { errorCallback(response); });
+            // list of all services
+            var sources = [
+              'http://legumeinfo.org/lis_gene_families/chado/context_viewer/search_tracks_service/'+focusName, 
+            ];
+            // generate a promise for each service
+            var promises = [];
+            for(var i = 0; i < sources.length; i++) {
+              promises.push(
+                $http({url: sources[i], method: "GET", params: params})
+              );
+            }
+            // wait for all the promises to be fulfilled
+            $q.all(promises).then(function(dataset) {
+                // aggregate all the results into a single object
+                var data = {'families':[], 'groups':[]};
+                for(var i = 0; i < sources.length; i++) {
+                  var d = JSON.parse(dataset[i].data);
+                  data.families =
+                    data.families.concat(d.families);
+                  data.groups =
+                    data.groups.concat(d.groups);
+                }
+                json = JSON.stringify(data);
+                familyNames = getFamilyNameMap(data);
+                successCallback();
+              },
+              function(reason) { errorCallback(reason); });
           },
           parsedData: function() {
             var data = JSON.parse(json);
@@ -271,7 +305,7 @@ function($http, DataStore) {
               successCallback(globalPlots[trackID]);
             } else {
               if (idPlotMap[trackID] !== undefined) {
-                $http({url: 'http://legumeinfo.org/lis_gene_families/chado/context_viewer' +
+                $http({url: 'http://localhost:8000/chado/context_viewer' +
                              '/global_plot_service/',
                        method: "GET",
                        params:{focusID: focusID,
