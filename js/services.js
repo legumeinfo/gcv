@@ -2,6 +2,7 @@ var contextServices = angular.module('contextServices', []);
 
 contextServices.service('DataStore', ['$http', '$q', '$localStorage',
 function($http, $q, $localStorage) {
+  var ERROR = -1;
   var json;
   var family;
   var familyNames;
@@ -20,25 +21,37 @@ function($http, $q, $localStorage) {
             var promises = [];
             for(var i = 0; i < sources.length; i++) {
               promises.push(
-                $http({url: sources[i], method: "GET", params: params})
+                $http({url: sources[i], method: "GET", params: params}).then(
+                    function(response) { return response; },
+                    function(response) { return ERROR; }
+                )
               );
             }
             // wait for all the promises to be fulfilled
             $q.all(promises).then(function(dataset) {
+                var error_count = 0;
                 // aggregate all the results into a single object
                 var data = {'family':'', 'tracks':{'families':[], 'groups':[]}};
                 for(var i = 0; i < sources.length; i++) {
-                  var d = JSON.parse(dataset[i].data);
-                  data.family = d.family;
-                  data.tracks.families =
-                    data.tracks.families.concat(d.tracks.families);
-                  data.tracks.groups =
-                    data.tracks.groups.concat(d.tracks.groups);
+                  if (dataset[i] !== ERROR) {
+                    var d = JSON.parse(dataset[i].data);
+                    data.family = d.family;
+                    data.tracks.families =
+                      data.tracks.families.concat(d.tracks.families);
+                    data.tracks.groups =
+                      data.tracks.groups.concat(d.tracks.groups);
+                  } else {
+                    error_count++;
+                  }
                 }
-                json = JSON.stringify(data.tracks);
-                family = data.family;
-                familyNames = getFamilyNameMap(data.tracks);
-                successCallback();
+                if (error_count < promises.length) {
+                  json = JSON.stringify(data.tracks);
+                  family = data.family;
+                  familyNames = getFamilyNameMap(data.tracks);
+                  successCallback();
+                } else {
+                  errorCallback('Failed to retrieve data');
+                }
               },
               function(reason) { errorCallback(reason); });
           },
@@ -51,23 +64,35 @@ function($http, $q, $localStorage) {
             var promises = [];
             for(var i = 0; i < sources.length; i++) {
               promises.push(
-                $http({url: sources[i], method: "GET", params: params})
+                $http({url: sources[i], method: "GET", params: params}).then(
+                    function(response) { return response; },
+                    function(response) { return ERROR; }
+                )
               );
             }
             // wait for all the promises to be fulfilled
             $q.all(promises).then(function(dataset) {
+                var error_count = 0;
                 // aggregate all the results into a single object
                 var data = {'families':[], 'groups':[]};
                 for(var i = 0; i < sources.length; i++) {
-                  var d = JSON.parse(dataset[i].data);
-                  data.families =
-                    data.families.concat(d.families);
-                  data.groups =
-                    data.groups.concat(d.groups);
+                  if (dataset[i] !== ERROR) {
+                    var d = JSON.parse(dataset[i].data);
+                    data.families =
+                      data.families.concat(d.families);
+                    data.groups =
+                      data.groups.concat(d.groups);
+                  } else {
+                    error_count++;
+                  }
                 }
-                json = JSON.stringify(data);
-                familyNames = getFamilyNameMap(data);
-                successCallback();
+                if (error_count < promises.length) {
+                  json = JSON.stringify(data);
+                  familyNames = getFamilyNameMap(data);
+                  successCallback();
+                } else {
+                  errorCallback('Failed to retrieve data');
+                }
               },
               function(reason) { errorCallback(reason); });
           },
