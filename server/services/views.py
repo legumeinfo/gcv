@@ -15,6 +15,175 @@ import operator
 # these are services for the stand alone context viewer #
 #########################################################
 
+# returns contexts centered at genes in the list provided
+def basic_tracks_tree_agnostic(request):
+    # make sure the request type is POST and that it contains a list of genes
+    if request.method == 'POST' and 'genes' in request.POST:
+        # how many genes will be displayed?
+        num = 8
+        if 'numNeighbors' in request.POST:
+            try:
+                num = int(request.GET['numNeighbors'])
+            except:
+                pass
+        # work our way to the genes and their locations
+        gene_ids = request.POST.getlist('genes')
+        focus_genes = Feature.objects.only('organism_id', 'name').filter(
+            pk__in=gene_ids
+        )
+
+        #######################
+        # begin fetching data #
+        #######################
+
+        # what we'll use to construct the json
+        groups = []
+        families = {}
+
+        # the gene_family cvterm
+        y = 0
+        family_term = list(Cvterm.objects.filter(name='gene family')[:1])[0]
+        focus_family_id = None
+
+        # get the focus gene locations
+        focus_locs = Featureloc.objects.only(
+            'feature_id',
+            'srcfeature_id',
+            'fmin',
+            'fmax',
+            'strand'
+        ).filter(feature__in=focus_genes)
+        focus_loc_map = dict((o.feature_id, o) for o in focus_locs)
+
+        # get the source feature names of the feature locs
+        srcfeatures = Feature.objects.only('name').filter(
+            pk__in=focus_locs.values_list('srcfeature_id', flat=True)
+        )
+        srcfeature_map = dict((o.pk, o) for o in srcfeatures)
+
+        # get the organisms for all the focus gene
+        organisms = Organism.objects.only('genus', 'species').filter(
+            pk__in=focus_genes.values_list('organism_id', flat=True)
+        )
+        organism_map = dict((o.pk, o) for o in organisms)
+
+        # get the focus genes family ids
+        family_ids = GeneFamilyAssignment.objects.only('gene_id', 'family_label')\
+            .filter(gene_id__in=focus_genes)
+        family_map = dict((o.gene_id, o.family_label) for o in family_ids)
+
+        # get the orders for the focus genes
+        orders = list(GeneOrder.objects.filter(gene__in=focus_genes))
+        order_map = dict((o.gene_id, o) for o in orders)
+
+        # get the orders for all the genes surrounding the focus genes
+        gene_queries = dict((o.pk,
+            Q(chromosome_id=o.chromosome_id,
+              number__lte=o.number+num,
+              number__gte=o.number-num)
+            ) for o in orders)
+        gene_pool = list(GeneOrder.objects.filter(
+            reduce(operator.or_, gene_queries.values())
+        ))
+        gene_pool_ids = map(lambda g: g.gene_id, gene_pool)
+        group_by_chromosome = {}
+        for g in gene_pool:
+            if g.chromosome_id not in group_by_chromosome:
+                group_by_chromosome[g.chromosome_id] = [g]
+            else:
+                group_by_chromosome[g.chromosome_id].append(g)
+
+        def getNumber(g):
+            return g.number
+
+        track_gene_map = {}
+        for o in orders:
+            if o.chromosome_id in group_by_chromosome:
+                track_gene_map[o.pk] = []
+                for g in group_by_chromosome[o.chromosome_id]:
+                    if g.number <= o.number+num and g.number >= o.number-num:
+                        track_gene_map[o.pk].append(g)
+                track_gene_map[o.pk] = sorted(track_gene_map[o.pk], key=getNumber)
+
+        # get the feature names for all the genes surrounding the focus genes
+        feature_pool = Feature.objects.only('name').filter(pk__in=gene_pool_ids)
+        feature_name_map = dict((o.pk, o.name) for o in feature_pool)
+
+        # get the feature locations for all the genes surrounding the focus genes
+        loc_queries = dict((o.pk,
+            Q(chromosome=o.chromosome_id,
+              number__lte=o.number+num,
+              number__gte=o.number-num)
+            ) for o in orders)
+        loc_pool = Featureloc.objects.only('feature_id', 'fmin', 'fmax', 'strand')\
+            .filter(feature__in=gene_pool_ids)
+        gene_loc_map = dict((o.feature_id, o) for o in loc_pool)
+        track_loc_map = {}
+        for o in orders:
+            track_loc_map[o.pk] = []
+            for g in track_gene_map[o.pk]:
+                track_loc_map[o.pk].append(gene_loc_map[g.gene_id])
+            track_loc_map[o.pk] = sorted(
+                track_loc_map[o.pk],
+                key=lambda loc: loc.fmin
+            )
+
+        # get the families for all the genes surrounding the focus genes
+        gene_families = GeneFamilyAssignment.objects.only('gene_id', 'family_label')\
+            .filter(gene_id__in=gene_pool_ids)
+        gene_family_map = dict((o.gene_id, o.family_label) for o in gene_families)
+
+        #######################
+        # begin generate json #
+        #######################
+
+        for gene in focus_genes:
+            if gene.pk not in focus_loc_map:
+                continue
+            focus_loc = focus_loc_map[gene.pk]
+            srcfeature = srcfeature_map[focus_loc.srcfeature_id]
+            organism = organism_map[gene.organism_id]
+            family_id = family_map[gene.pk]
+            if len(family_id) > 0:
+                focus_family_id = family_id
+                if family_id not in families:
+                    families[family_id] = ('{"name":"' + family_id + '", "id":"' +
+                        family_id + '"}')
+            group = ('{"chromosome_name":"' + srcfeature.name +
+                '", "chromosome_id":' + str(srcfeature.feature_id) +
+                ', "species_name":"' + organism.genus[0] + '.' + organism.species +
+                '", "species_id":' + str(gene.organism_id)+', "genes":[')
+            order = order_map[gene.pk]
+            track_genes = track_gene_map[order.pk]
+            track_locs = track_loc_map[order.pk]
+
+            # add gene entries for the track_locs
+            genes = []
+            for l in track_locs:
+                family_id = '' if l.feature_id not in gene_family_map\
+                               else gene_family_map[l.feature_id]
+                if family_id != '':
+                    if family_id not in families:
+                            families[family_id] = ('{"name":"' + family_id +
+                                '", "id":"' + family_id + '"}')
+                genes.append('{"name":"' + feature_name_map[l.feature_id] + '",' +
+                             '"id":' + str(l.feature_id) + ',' +
+                             '"fmin":' + str(l.fmin) + ',' +
+                             '"fmax":' + str(l.fmax) + ',' +
+                             '"strand":' + str(l.strand) + ',' +
+                             '"family":"' + family_id + '"}')
+            group += ','.join(genes) + ']}'
+            groups.append(group)
+
+        # write the contents of the file
+        view_json = ('{"family":"' + focus_family_id + '", "tracks":{"families":[' +
+            ','.join(families.values()) + '], "groups":[' + ','.join(groups) + ']}}')
+
+        return HttpResponse(
+            json.dumps(view_json),
+            content_type='application/json; charset=utf8'
+        )
+
 # returns contexts centered at genes in the subtree rooted at the given node
 def basic_tracks(request, node_id):
     # make sure the node actually exists

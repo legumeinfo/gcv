@@ -6,6 +6,10 @@ urlpatterns = patterns('services.views',
         r'^basic_tracks/(?P<node_id>\d+)/$', 'basic_tracks', name='basic_tracks'
     ),
     url(
+        r'^basic_tracks_tree_agnostic/$', 'basic_tracks_tree_agnostic',
+        name='basic_tracks'
+    ),
+    url(
         r'^search_tracks/(?P<focus_name>[^\/]+)/$',
         'search_tracks',
         name='search_tracks'
