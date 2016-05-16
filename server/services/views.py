@@ -9,6 +9,8 @@ FeatureRelationship, GeneOrder, Featureprop, GeneFamilyAssignment
 from django.db.models import Q
 # context view
 import operator
+# so anyone can use the services
+from django.views.decorators.csrf import csrf_exempt
 
 
 #########################################################
@@ -16,21 +18,31 @@ import operator
 #########################################################
 
 # returns contexts centered at genes in the list provided
+@csrf_exempt
 def basic_tracks_tree_agnostic(request):
+    # parse the POST data
+    POST = json.loads(request.body)
+
     # make sure the request type is POST and that it contains a list of genes
-    if request.method == 'POST' and 'genes' in request.POST:
+    if request.method == 'POST' and 'genes' in POST:
+        # prepare a generic response
+        generic = HttpResponse(
+            json.dumps('{"family":"", "tracks":{"families":[], "groups":[]}}'),
+            content_type='application/json; charset=utf8'
+        )
+
         # how many genes will be displayed?
         num = 8
-        if 'numNeighbors' in request.POST:
+        if 'numNeighbors' in POST:
             try:
-                num = int(request.GET['numNeighbors'])
+                num = int(POST['numNeighbors'])
             except:
                 pass
         # work our way to the genes and their locations
-        gene_ids = request.POST.getlist('genes')
-        focus_genes = Feature.objects.only('organism_id', 'name').filter(
-            pk__in=gene_ids
-        )
+        focus_genes = Feature.objects.only('organism_id', 'name')\
+        .filter(name__in=POST['genes'])
+        if not focus_genes:
+            return generic
 
         #######################
         # begin fetching data #
@@ -54,27 +66,38 @@ def basic_tracks_tree_agnostic(request):
             'strand'
         ).filter(feature__in=focus_genes)
         focus_loc_map = dict((o.feature_id, o) for o in focus_locs)
+        if not focus_loc_map:
+            return generic
 
         # get the source feature names of the feature locs
         srcfeatures = Feature.objects.only('name').filter(
             pk__in=focus_locs.values_list('srcfeature_id', flat=True)
         )
         srcfeature_map = dict((o.pk, o) for o in srcfeatures)
+        if not srcfeature_map:
+            return generic
 
         # get the organisms for all the focus gene
         organisms = Organism.objects.only('genus', 'species').filter(
             pk__in=focus_genes.values_list('organism_id', flat=True)
         )
         organism_map = dict((o.pk, o) for o in organisms)
+        if not organism_map:
+            return generic
 
         # get the focus genes family ids
-        family_ids = GeneFamilyAssignment.objects.only('gene_id', 'family_label')\
-            .filter(gene_id__in=focus_genes)
+        family_ids = GeneFamilyAssignment.objects.only(
+            'gene_id', 'family_label'
+        ).filter(gene_id__in=focus_genes)
         family_map = dict((o.gene_id, o.family_label) for o in family_ids)
+        if not family_map:
+            return generic
 
         # get the orders for the focus genes
         orders = list(GeneOrder.objects.filter(gene__in=focus_genes))
         order_map = dict((o.gene_id, o) for o in orders)
+        if not orders:
+            return generic
 
         # get the orders for all the genes surrounding the focus genes
         gene_queries = dict((o.pk,
@@ -103,20 +126,28 @@ def basic_tracks_tree_agnostic(request):
                 for g in group_by_chromosome[o.chromosome_id]:
                     if g.number <= o.number+num and g.number >= o.number-num:
                         track_gene_map[o.pk].append(g)
-                track_gene_map[o.pk] = sorted(track_gene_map[o.pk], key=getNumber)
+                track_gene_map[o.pk] = sorted(
+                    track_gene_map[o.pk],
+                    key=getNumber
+                )
 
         # get the feature names for all the genes surrounding the focus genes
-        feature_pool = Feature.objects.only('name').filter(pk__in=gene_pool_ids)
+        feature_pool = Feature.objects.only('name')\
+        .filter(pk__in=gene_pool_ids)
         feature_name_map = dict((o.pk, o.name) for o in feature_pool)
 
-        # get the feature locations for all the genes surrounding the focus genes
+        # get feature locations for all the genes surrounding the focus genes
         loc_queries = dict((o.pk,
             Q(chromosome=o.chromosome_id,
               number__lte=o.number+num,
               number__gte=o.number-num)
             ) for o in orders)
-        loc_pool = Featureloc.objects.only('feature_id', 'fmin', 'fmax', 'strand')\
-            .filter(feature__in=gene_pool_ids)
+        loc_pool = Featureloc.objects.only(
+            'feature_id',
+            'fmin',
+            'fmax',
+            'strand'
+        ).filter(feature__in=gene_pool_ids)
         gene_loc_map = dict((o.feature_id, o) for o in loc_pool)
         track_loc_map = {}
         for o in orders:
@@ -129,9 +160,13 @@ def basic_tracks_tree_agnostic(request):
             )
 
         # get the families for all the genes surrounding the focus genes
-        gene_families = GeneFamilyAssignment.objects.only('gene_id', 'family_label')\
-            .filter(gene_id__in=gene_pool_ids)
-        gene_family_map = dict((o.gene_id, o.family_label) for o in gene_families)
+        gene_families = GeneFamilyAssignment.objects.only(
+            'gene_id',
+            'family_label'
+        ).filter(gene_id__in=gene_pool_ids)
+        gene_family_map = dict(
+            (o.gene_id, o.family_label) for o in gene_families
+        )
 
         #######################
         # begin generate json #
@@ -147,11 +182,12 @@ def basic_tracks_tree_agnostic(request):
             if len(family_id) > 0:
                 focus_family_id = family_id
                 if family_id not in families:
-                    families[family_id] = ('{"name":"' + family_id + '", "id":"' +
-                        family_id + '"}')
+                    families[family_id] = ('{"name":"' + family_id +
+                        '", "id":"' + family_id + '"}')
             group = ('{"chromosome_name":"' + srcfeature.name +
                 '", "chromosome_id":' + str(srcfeature.feature_id) +
-                ', "species_name":"' + organism.genus[0] + '.' + organism.species +
+                ', "species_name":"' + organism.genus[0] +
+                '.' + organism.species +
                 '", "species_id":' + str(gene.organism_id)+', "genes":[')
             order = order_map[gene.pk]
             track_genes = track_gene_map[order.pk]
@@ -166,8 +202,8 @@ def basic_tracks_tree_agnostic(request):
                     if family_id not in families:
                             families[family_id] = ('{"name":"' + family_id +
                                 '", "id":"' + family_id + '"}')
-                genes.append('{"name":"' + feature_name_map[l.feature_id] + '",' +
-                             '"id":' + str(l.feature_id) + ',' +
+                genes.append('{"name":"' + feature_name_map[l.feature_id] +
+                             '", "id":' + str(l.feature_id) + ',' +
                              '"fmin":' + str(l.fmin) + ',' +
                              '"fmax":' + str(l.fmax) + ',' +
                              '"strand":' + str(l.strand) + ',' +
@@ -176,13 +212,15 @@ def basic_tracks_tree_agnostic(request):
             groups.append(group)
 
         # write the contents of the file
-        view_json = ('{"family":"' + focus_family_id + '", "tracks":{"families":[' +
-            ','.join(families.values()) + '], "groups":[' + ','.join(groups) + ']}}')
+        view_json = ('{"family":"' + focus_family_id + '", "tracks":' +
+            '{"families":[' + ','.join(families.values()) + '], "groups":[' +
+            ','.join(groups) + ']}}')
 
         return HttpResponse(
             json.dumps(view_json),
             content_type='application/json; charset=utf8'
         )
+    return HttpResponseBadRequest
 
 # returns contexts centered at genes in the subtree rooted at the given node
 def basic_tracks(request, node_id):

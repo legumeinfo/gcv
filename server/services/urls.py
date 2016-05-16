@@ -7,7 +7,7 @@ urlpatterns = patterns('services.views',
     ),
     url(
         r'^basic_tracks_tree_agnostic/$', 'basic_tracks_tree_agnostic',
-        name='basic_tracks'
+        name='basic_tracks_tree_agnostic'
     ),
     url(
         r'^search_tracks/(?P<focus_name>[^\/]+)/$',
