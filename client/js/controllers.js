@@ -137,6 +137,7 @@ function($scope, $routeParams, Basic, Viewer, UI) {
   }
 
   // initialize the parameters form
+  var previous_sources = [];
   basic.init = function() {
     // multiselect
     basic.sources = Basic.getSources();
@@ -158,6 +159,7 @@ function($scope, $routeParams, Basic, Viewer, UI) {
           'source', basic.sources.map(function(s) { return s.id; })
         )
       };
+      previous_sources = basic.params.sources.slice();
     });
     UI.saveParams(basic.params);
     getData();
@@ -166,10 +168,17 @@ function($scope, $routeParams, Basic, Viewer, UI) {
   // submit parameters form
   basic.submit = function() {
     if (basic.form.$valid) {
-      UI.saveParams(basic.params);
-      UI.hideLeftSlider();
-      getData();
+      if (basic.form.numNeighbors.$pristine &&
+          basic.params.sources.compare(previous_sources)) {  // enhancement.js
+        // filter only
+      } else {
+        previous_sources = basic.params.sources.slice();
+        UI.saveParams(basic.params);
+        UI.hideLeftSlider();
+        getData();
+      }
     } else {
+      UI.hideLeftSlider();
       UI.alert("danger", "Invalid input parameters");
     }
   }
@@ -297,7 +306,7 @@ function($scope, $routeParams, Search, Viewer, UI) {
       if (search.form.numNeighbors.$pristine &&
           search.form.numMatchedFamilies.$pristine &&
           search.form.numNonFamily.$pristine &&
-          searchsearch..params.sources.compare(previous_sources)) {  // enhancement.js
+          search.params.sources.compare(previous_sources)) {  // enhancement.js
         Search.align(search.params, draw);
       } else {
         // manually check if the sources changed since $pristine is always false
