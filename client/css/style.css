@@ -211,3 +211,7 @@ a {
 .form-group.has-error .help-block {
   display: block;
 }
+
+#instructions {
+  margin: 20px;
+}

@@ -1,416 +1,784 @@
 var contextServices = angular.module('contextServices', []);
 
-contextServices.service('DataStore', ['$http', '$q', '$localStorage',
-function($http, $q, $localStorage) {
-  var ERROR = -1;
-  var json;
-  var family;
-  var familyNames;
-  var familySizes;
-  var colors = contextColors;
-  var domain = $localStorage.contextColors;
-  if (domain !== undefined) {
-    colors.domain(domain);
-  }
-  return {basic: function(nodeID, params, successCallback, errorCallback) {
-            // list of all services
-            var sources = [
-              'http://legumeinfo.org/lis_gene_families/chado/context_viewer/basic_tracks_service/'+nodeID,
-            ];
-            // generate a promise for each service
-            var promises = [];
-            for(var i = 0; i < sources.length; i++) {
-              promises.push(
-                $http({url: sources[i], method: "GET", params: params}).then(
-                    function(response) { return response; },
-                    function(response) { return ERROR; }
-                )
-              );
-            }
-            // wait for all the promises to be fulfilled
-            $q.all(promises).then(function(dataset) {
-                var error_count = 0;
-                // aggregate all the results into a single object
-                var data = {'family':'', 'tracks':{'families':[], 'groups':[]}};
-                for(var i = 0; i < sources.length; i++) {
-                  if (dataset[i] !== ERROR) {
-                    var d = JSON.parse(dataset[i].data);
-                    data.family = d.family;
-                    data.tracks.families =
-                      data.tracks.families.concat(d.tracks.families);
-                    data.tracks.groups =
-                      data.tracks.groups.concat(d.tracks.groups);
-                  } else {
-                    error_count++;
-                  }
-                }
-                if (error_count < promises.length) {
-                  json = JSON.stringify(data.tracks);
-                  family = data.family;
-                  familyNames = getFamilyNameMap(data.tracks);
-                  successCallback();
-                } else {
-                  errorCallback('Failed to retrieve data');
-                }
-              },
-              function(reason) { errorCallback(reason); });
-          },
-          search: function(focusName, params, successCallback, errorCallback) {
-            // list of all services
-            var sources = [
-              'http://legumeinfo.org/lis_gene_families/chado/context_viewer/search_tracks_service/'+focusName, 
-            ];
-            // generate a promise for each service
-            var promises = [];
-            for(var i = 0; i < sources.length; i++) {
-              promises.push(
-                $http({url: sources[i], method: "GET", params: params}).then(
-                    function(response) { return response; },
-                    function(response) { return ERROR; }
-                )
-              );
-            }
-            // wait for all the promises to be fulfilled
-            $q.all(promises).then(function(dataset) {
-                var error_count = 0;
-                // aggregate all the results into a single object
-                var data = {'families':[], 'groups':[]};
-                for(var i = 0; i < sources.length; i++) {
-                  if (dataset[i] !== ERROR) {
-                    var d = JSON.parse(dataset[i].data);
-                    data.families =
-                      data.families.concat(d.families);
-                    data.groups =
-                      data.groups.concat(d.groups);
-                  } else {
-                    error_count++;
-                  }
-                }
-                if (error_count < promises.length) {
-                  json = JSON.stringify(data);
-                  familyNames = getFamilyNameMap(data);
-                  successCallback();
-                } else {
-                  errorCallback('Failed to retrieve data');
-                }
-              },
-              function(reason) { errorCallback(reason); });
-          },
-          parsedData: function() {
-            var data = JSON.parse(json);
-            var reference = data.groups[0].chromosome_name;
-            for (var i = 0; i < data.groups.length; i++) {
-              // guarantee each track has a unique id and the reference name
-              data.groups[i].reference = reference;
-              data.groups[i].id = i;
-              for (var j = 0; j < data.groups[i].genes.length; j++) {
-                // guarantee each gene has x and y attributes
-                data.groups[i].genes[j].x = j;
-                data.groups[i].genes[j].y = i;
-              }
-            }
-            return data;
-          },
-          familyNames: function() { return familyNames; },
-          familySizes: function() { return familySizes; },
-          colors: function() { return colors; },
-          saveColors: function() {
-            $localStorage.contextColors = colors.domain();
-          },
-          family: function() { return family; }
-}}]);
+// provides ANGULAR DEPENDENT ui events for all controllers
+contextServices.service('UI', function($localStorage, $location, $rootScope) {
+  // the UI services available
+  var ui = {};
 
-contextServices.service('Viewer', ['DataStore', 'Broadcast',
-function(DataStore, Broadcast) {
-  var tracks;
-  var scores;
-  var returned;
-  var aligned;
-  var lastQuery;
-  // helper functions for sorting tracks
-  function byChromosome(a, b) {
-    return a.chromosome_name.localeCompare(b.chromosome_name);
+  // alerts
+  ui.alertClass = 'alert-info';
+  ui.alertMessage = 'Genomic Context Viewer';
+  ui.alert = function(type, message) {
+    ui.alertClass = "alert-"+type;
+    ui.alertMessage = message;
   }
-  function byDistance(a, b) {
-    var diff = scores[b.id]-scores[a.id];
-    // if group have the same score
-    if (diff == 0) {
-      // if sorting alphabetically doesn't resolve the ordering
-      if (a.chromosome_name == b.chromosome_name) {
-        // try and sort by group?
-        if (a.id == b.id) {
-          // sort by track start position
-          // assumes genes list is already sorted by x location
-          return a.genes[0].x-b.genes[0].x;
-        }
-        return a.id-b.id;
-      }
-      return (a.chromosome_name > b.chromosome_name) ? 1 : -1;
+
+  // sliders
+  ui.subscribeToParametersClick = function(scope, callback) {
+    var handler = $rootScope.$on('parameters-click-event', callback);
+    scope.$on('$destroy', handler);
+  }
+  ui.showParameters = function() {
+    $rootScope.$broadcast(
+      'parameters-click-event',
+      $('#left-slider').is(':visible')
+    );
+  }
+  ui.toggleLeftSlider = function() {
+    $('#left-slider').animate({width:'toggle'}, 350);
+  }
+  ui.showLeftSlider = function() {
+    if ($('#left-slider').is(':hidden')) {
+      ui.toggleLeftSlider();
     }
-    return diff;
+  }
+  ui.hideLeftSlider = function() {
+    if ($('#left-slider').is(':visible')) {
+      ui.toggleLeftSlider();
+    }
+  }
+  ui.toggleRightSlider = function() {
+    ui.showSpinners();
+    $('#right-slider').animate({width:'toggle'}, 350, function() {
+      ui.hideSpinners();
+      resizeEvent();
+    });
+  }
+  ui.showRightSlider = function() {
+    if ($('#right-slider').is(':hidden')) {
+      ui.toggleRightSlider();
+    }
+  }
+  ui.hideRightSlider = function() {
+    if ($('#right-slider').is(':visible')) {
+      ui.toggleRightSlider();
+    }
+  }
+  ui.sliders = true;
+  ui.enableSliders = function() {
+    ui.sliders = true;
+  }
+  ui.disableSliders = function() {
+    ui.sliders = false;
+    ui.hideLeftSlider();
+    ui.hideRightSlider();
+  }
+
+  // the plot element
+  ui.hidePlot = function() {
+    $('#plot').hide();
+  }
+  ui.showPlot = function() {
+    $('#plot').show();
+  }
+
+  // spinners
+  var spinner = '<div class="grey-screen">'
+    + '<div class="spinner"><img src="img/spinner.gif" /></div></div>';
+  ui.showSpinners = function() {
+    $('#main').append(spinner);
+    $('#legend-wrapper .vertical-scroll').append(spinner);
+    ui.showPlotSpinner();
+  }
+  ui.showPlotSpinner = function() {
+    $('#plot .inner-ratio').append(spinner);
+  }
+  ui.hideSpinners = function() {
+    $('.grey-screen').remove();
+  }
+  ui.showLeftSpinner = function() {
+    $('#left-slider-content').append(spinner);
+  }
+
+  // resize events
+  function resizeEvent() {
+    $rootScope.$emit('resize-event');
+  }
+  ui.subscribeToResize = function(scope, callback) {
+    var handler = $rootScope.$on('resize-event', callback);
+    scope.$on('$destroy', handler);
+  }
+  var resizeTimeout;
+  $(window).on('resize', function() {
+    if (resizeTimeout === undefined) {
+      ui.showSpinners();
+    }
+    clearTimeout(resizeTimeout);
+    resizeTimeout = setTimeout(function() {
+      clearTimeout(resizeTimeout);
+      resizeTimeout = undefined;
+      ui.hideSpinners();
+      resizeEvent();
+    }, 10);
+  });
+
+  // loads existing paramters
+  ui.loadParams = function(callback) {
+    // from memory
+    var params = ($localStorage.context) ? $localStorage.context : {};
+    // from the url
+    params = $.extend(true, params, $location.search());
+    callback(params);
+  }
+
+  // saves parameters
+  ui.saveParams = function(params) {
+    // to memory
+    if ($localStorage.context === undefined) {
+      $localStorage.context = $.extend(true, {}, params);
+    } else {
+      $localStorage.context = $.extend(true, $localStorage.context, params);
+    }
+    // to the url without deleting other parameters!
+    $location.search($.extend(true, $location.search(), params));
+  }
+
+  return ui;
+});
+
+// responsible for storing context viewer data and drawing the viewer and legend
+contextServices.service('Viewer',
+function($rootScope, UI) {
+  var scope;
+  var tracks;
+  var args;
+  var colors = contextColors;  // context.js
+
+  // the services provided by Viewer
+  var services = {};
+
+  // whether the current viewer is for a search or not
+  services.enableSearch = function() {
+    $rootScope.$broadcast('search-mode-event', true);
+  }
+  services.disableSearch = function() {
+    $rootScope.$broadcast('search-mode-event', false);
+  }
+  services.subscribeToSearchModeChange = function(scope, callback) {
+    var handler = $rootScope.$on('search-mode-event', callback);
+    scope.$on('$destroy', handler);
+  }
+
+  // how new track data is loaded for the context viewer
+  services.init = function(new_tracks, new_args) {
+    // initialize the new tracks
+    tracks = new_tracks;
+    // save the new viewer arguments
+    args = new_args;
+    // draw the viewer
+    services.draw();
+  }
+
+  services.equip = function(tracks) {
+    var reference = tracks.groups[0].chromosome_name;
+    for (var i = 0; i < tracks.groups.length; i++) {
+      // guarantee each track has a unique id and the reference name
+      tracks.groups[i].reference = reference;
+      tracks.groups[i].id = i;
+      for (var j = 0; j < tracks.groups[i].genes.length; j++) {
+        // guarantee each gene has x and y attributes
+        tracks.groups[i].genes[j].x = j;
+        tracks.groups[i].genes[j].y = i;
+      }
+    }
+  }
+
+  // (re)draws the context viewer
+  services.draw = function() {
+    if (tracks !== undefined && args !== undefined) {
+      // arguments the controllers need not know about
+      args.width = $('#main').innerWidth();
+      if (args.hasOwnProperty('geneClicked')) {
+        args.geneClicked = function(gene) {
+          services.geneClickEvent(gene);
+        };
+      }
+      if (args.hasOwnProperty('leftAxisClicked')) {
+        args.leftAxisClicked = function(trackID) {
+          $rootScope.$broadcast('left-axis-click-event', trackID);
+        };
+      }
+      if (args.hasOwnProperty('rightAxisClicked')) {
+        args.rightAxisClicked = function(trackID) {
+          services.rightAxisClickEvent(trackID);
+        };
+      }
+      // draw the viewer
+      contextViewer('viewer-content', colors, tracks, args);  // context.js
+      // draw the legend
+      contextLegend('legend-content', colors, tracks, {  // context.js
+        "legendClick": function(family, genes) {
+          $rootScope.$broadcast('family-click-event', family, genes);
+        },
+        "selectiveColoring": true
+      });
+    }
+  }
+
+  // resolves a track id to a track
+  services.getTrack = function(trackID, successCallback, errorCallback) {
+    var track;
+    for (var i = 0; i < tracks.groups.length; i++) {
+      if (tracks.groups[i].id == trackID) {             
+        track = tracks.groups[i];
+        break;
+      }
+    }
+    if (track !== undefined) {
+      // the center of the track is considered the focus
+      track.focus = track.genes[~~((track.genes.length-1)/2)];
+      successCallback(track);
+    } else {
+      errorCallback();
+    }
+  }
+
+  // publications controllers can subscribe to
+  services.subscribeToGeneClick = function(scope, callback) {
+    var handler = $rootScope.$on('gene-click-event', callback);
+    scope.$on('$destroy', handler);
+  };
+  services.geneClickEvent = function(gene) {
+    $rootScope.$broadcast('gene-click-event', gene);
+  };
+  services.subscribeToLeftAxisClick = function(scope, callback) {
+    var handler = $rootScope.$on('left-axis-click-event', callback);
+    scope.$on('$destroy', handler);
+  };
+  services.subscribeToRightAxisClick = function(scope, callback) {
+    var handler = $rootScope.$on('right-axis-click-event', callback);
+    scope.$on('$destroy', handler);
+  };
+  services.rightAxisClickEvent = function(trackID) {
+    $rootScope.$broadcast('right-axis-click-event', trackID);
+  }
+  services.subscribeToFamilyClick = function(scope, callback) {
+    var handler = $rootScope.$on('family-click-event', callback);
+    scope.$on('$destroy', handler);
+  };
+
+  return services;
+});
+
+// responsible for curating data for the basic viewer
+contextServices.service('Basic', function($http, $q, Viewer) {
+  var ERROR = -1;
+
+  // the services provided
+  var services = {};
+
+  // where tracks can be loaded from
+  var sources = {
+    lis: {
+      name: "Legume Information System",
+      get: 'http://localhost:8000/services/basic_tracks_tree_agnostic/'
+    }
+  };
+  services.getSources = function() {
+    return Object.keys(sources).map(function(value, index) {
+      return {id: value, name: sources[value].name};
+    });
+  }
+
+  // centers the given set of tracks on the focus family
+  function center(tracks, params) {
+    returned = tracks.groups.length;
+    var length = params.numNeighbors*2+1;
+    var centered = {};
+    for (var i = 0; i < tracks.groups.length; i++) {
+      // does the track need to be centered?
+      if (tracks.groups[i].genes.length < length) {
+        // find the gene it should be centered on
+        var j;
+        for (j = 0; j < tracks.groups[i].genes.length; j++) {
+          if (tracks.groups[i].genes[j].family == tracks.focus &&
+              centered[tracks.groups[i].genes[j].id] === undefined) {
+            centered[tracks.groups[i].genes[j].id] = true;
+            break;
+          }
+        }
+        // center the track
+        var offset = params.numNeighbors-j;
+        for (j = 0; j < tracks.groups[i].genes.length; j++) {
+          tracks.groups[i].genes[j].x = offset+j;
+        }
+      }
+    }
+  }
+
+  // get the tracks to display
+  services.get = function(genes, params, successCallback, errorCallback) {
+    // generate a promise for each service
+    var args = {
+      genes: genes,
+      numNeighbors: params.numNeighbors
+    }
+    var promises = []; 
+    for (var i in params.sources) {
+      var src = params.sources[i];
+      if (sources.hasOwnProperty(src) &&
+          sources[src].hasOwnProperty('get')) {
+        promises.push(
+          $http({url: sources[src].get, method: "POST", data: args}).then(
+            (function(src) {  // gotta have that source
+              return function(response) {
+                return {source: src, response: response};
+              }
+            })(src),
+            function(response) { return ERROR; }
+          )
+        );
+      }
+    }
+    // wait for all the promises to be fulfilled
+    $q.all(promises).then(function(dataset) {
+      var error_count = 0;
+      // aggregate all the results into a single object
+      var tracks = {'families': [], 'groups': []};
+      for (var i = 0; i < dataset.length; i++) {
+        if (dataset[i] !== ERROR) {
+          var src = dataset[i].source;
+          var d = JSON.parse(dataset[i].response.data);
+          // tag each track and its genes with their source
+          for (var j = 0; j < d.tracks.groups.length; j++) {
+              d.tracks.groups[j].source = src;
+              for (var k in d.tracks.groups[j].genes) {
+                d.tracks.groups[j].genes[k].source = src;
+              }
+          }
+          if (d.family !== undefined) {
+            tracks.focus = d.family;
+          }
+          // aggregate the result tracks
+          tracks.families = tracks.families.concat(d.tracks.families);
+          tracks.groups = tracks.groups.concat(d.tracks.groups);
+        } else {
+          error_count++;
+        }
+      }
+      if (error_count < promises.length) {
+        if (tracks.groups.length > 0) {
+          // equip the tracks for the viewer
+          Viewer.equip(tracks);
+          // center the tracks on the focus family
+          center(tracks, params);
+          // return the tracks to the controller
+          successCallback(tracks);
+        } else {
+          errorCallback('No tracks returned');
+        }
+      } else {
+        errorCallback('Failed to retrieve data');
+      }
+    },
+    function(reason) { errorCallback(reason); });
+  }
+
+  return services;
+});
+
+// responsible for curating data for the search viewer
+contextServices.service('Search', function($http, $q, $rootScope, Viewer) {
+  var ERROR = -1;
+  var source;
+  var gene;
+  var query;
+  var tracks;
+
+  // the services provided by Search
+  var services = {};
+
+  // available alignment algorithms
+  var aligners = {
+    smith: {
+      name: "Smith-Waterman",
+      algorithm: smith  // smith.js
+    },
+    repeat: {
+      name: "Repeat",
+      algorithm: repeat  // repeat.js
+    }
+  };
+  services.getAligners = function() {
+    return Object.keys(aligners).map(function(value, index) {
+      return {id: value, name: aligners[value].name};
+    });
+  }
+
+  // how result tracks can be ordered
+  var orderings = {
+    chromosome: {
+      name: "Chromosome",
+      algorithm: function(a, b) {
+        return a.chromosome_name.localeCompare(b.chromosome_name);
+      }
+    },
+    distance: {
+      name: "Edit distance",
+      algorithm: function(a, b) {
+        var diff = b.score-a.score
+        // if group have the same score
+        if (diff == 0) {
+          // if sorting alphabetically doesn't resolve the ordering
+          if (a.chromosome_name == b.chromosome_name) {
+            // try and sort by group?
+            if (a.id == b.id) {
+              // sort by track start position
+              // assumes genes list is already sorted by x location
+              return a.genes[0].x-b.genes[0].x;
+            }
+            return a.id-b.id;
+          }
+          return (a.chromosome_name > b.chromosome_name) ? 1 : -1;
+        }
+        return diff;
+      }
+    }
+  };
+  services.getOrderings = function() {
+    return Object.keys(orderings).map(function(value, index) {
+      return {id: value, name: orderings[value].name};
+    });
+  }
+
+  // where tracks can be loaded from
+  var sources = {
+    lis: {
+      name: "Legume Information System",
+      init: 'http://localhost:8000/services/gene_to_query/',
+      get: 'http://localhost:8000/services/search_tracks_tree_agnostic/'
+    }
+  };
+  services.getSources = function() {
+    return Object.keys(sources).map(function(value, index) {
+      return {id: value, name: sources[value].name};
+    });
+  }
+
+  // override with values from storage and url
+  //Viewer.loadParams(services.params);
+
+  // align the result tracks to the query
+  function align(params) {
+    var aligned = $.extend(true, {}, tracks);
+    var scores = {};
+    var num_aligned = 0;
+    var aligner = aligners[params.algorithm].algorithm;
+    // align all the tracks with the query track
+    var alignments = [],
+        resultTracks = [];
+    var track_filter = (params.track_regexp === undefined ? undefined :
+                        new RegExp(params.track_regexp));
+    for (var i = 1; i < aligned.groups.length; i++) {
+      var al = aligner(aligned.groups[0].genes,
+                       aligned.groups[i].genes,
+                       function(item) { return item.family; },
+                       params);
+      var id = aligned.groups[i].id;
+      if (al !== null && al[1] >= params.score &&
+      (track_filter === undefined ||
+      track_filter.test(aligned.groups[i].chromosome_name))) {
+        for (var j = 0; j < al[0].length; j++) {
+          resultTracks.push(clone(aligned.groups[i]));
+          alignments.push(al[0][j]);
+        }
+        if (al[0].length > 0) {
+          if (scores[id] === undefined) {
+            scores[id] = 0;
+          }
+          scores[id] += al[1];
+          num_aligned++;
+        }
+      }
+    }
+    // merge the alignments
+    aligned.groups = [aligned.groups[0]];
+    mergeAlignments(aligned, resultTracks, alignments);  // context.js
+    // add scores to tracks
+    for (var i = 1; i < aligned.groups.length; i++) {
+      aligned.groups[i].score = scores[aligned.groups[i].id];
+    }
+    // filter the original tracks by which ones were aligned
+    var filtered_tracks = {
+      groups: tracks.groups.filter(function(track) {
+        return scores.hasOwnProperty(track.id);
+      }),
+      numNeighbors: params.numNeighbors
+    };
+    filtered_tracks.groups.sort(orderings[params.order].algorithm);
+    // send the tracks into the wild
+    $rootScope.$broadcast('new-filtered-tracks-event', filtered_tracks);
+    return {num: num_aligned, tracks: aligned};
   }
   function sorter(selection) {
     return selection == "chromosome" ? byChromosome : byDistance
   }
-  return {get: function(search, query, params, successCallback, errorCallback) {
-            var call = search ? DataStore.search : DataStore.basic;
-            call(query, params,
-              function() {
-                lastQuery = query;
-                tracks = DataStore.parsedData();
-                successCallback();
-              }, errorCallback);
-          },
-          getQueryGene: function(index, successCallback, errorCallback) {
-            var names = [];
-            tracks.groups[0].genes.forEach(function(gene) {
-              names.push(gene.name);
-            });
-            if (index >= 0 && index < tracks.groups[0].genes.length) {
-              successCallback(tracks.groups[0].genes[index].name);
-            } else {
-              errorCallback();
-            }
-          },
-          align: function(params) {
-            tracks = DataStore.parsedData();
-            returned = tracks.groups.length-1;
-            scores = {};
-            aligned = 0;
-            var aligner = params.algorithm == "repeat" ? repeat : smith;
-            // align all the tracks with the query track
-            var alignments = [],
-                resultTracks = [];
-            var track_filter = (params.track_regexp === undefined ? undefined : new RegExp(params.track_regexp));
-            for (var i = 1; i < tracks.groups.length; i++) {
-              var al = aligner(tracks.groups[0].genes,
-                               tracks.groups[i].genes,
-                               function(item) { return item.family; },
-                               params);
-              var id = tracks.groups[i].id;
-              if (al !== null && al[1] >= params.score && (track_filter === undefined || track_filter.test(tracks.groups[i].chromosome_name))) {
-                for (var j = 0; j < al[0].length; j++) {
-                  resultTracks.push(clone(tracks.groups[i]));
-                  alignments.push(al[0][j]);
-                }
-                if (al[0].length > 0) {
-                  if (scores[id] === undefined) {
-                    scores[id] = 0;
-                  }
-                  scores[id] += al[1];
-                  aligned++;
-                }
-              }
-            }
-            // merge the alignments
-            tracks.groups = [tracks.groups[0]];
-            mergeAlignments(tracks, resultTracks, alignments);
-            Broadcast.processed(sorter(params.order), scores);
-          },
-          center: function(params) {
-            tracks = DataStore.parsedData();
-            returned = tracks.groups.length;
-            var length = params.numNeighbors*2+1;
-            var family = DataStore.family();
-            var centered = {};
-            for (var i = 0; i < tracks.groups.length; i++) {
-              // does the track need to be centered?
-              if (tracks.groups[i].genes.length < length) {
-                // find the gene it should be centered on
-                var j;
-                for (j = 0; j < tracks.groups[i].genes.length; j++) {
-                  if (tracks.groups[i].genes[j].family == family &&
-                      centered[tracks.groups[i].genes[j].id] === undefined) {
-                    centered[tracks.groups[i].genes[j].id] = true;
-                    break;
-                  }
-                }
-                // center the track
-                var offset = params.numNeighbors-j;
-                for (j = 0; j < tracks.groups[i].genes.length; j++) {
-                  tracks.groups[i].genes[j].x = offset+j;
-                }
-              }
-            }
-          },
-          tracks: function() { return tracks; },
-          scores: function() { return scores; },
-          colors: function() { return DataStore.colors(); },
-          saveColors: function() { DataStore.saveColors(); },
-          returned: function() { return returned; },
-          aligned: function() { return aligned; },
-          lastQuery: function() { return lastQuery; },
-          family: function() { return DataStore.family(); },
-          getSorter: function(selection) {
-            return sorter(selection);
-          }
-}}]);
 
-// TODO: cache clicked gene data
-contextServices.factory('Gene', ['$http', 'DataStore',
-function($http, DataStore) {
-  return {get: function(geneName, successCallback, errorCallback) {
-    $http({url: 'http://legumeinfo.org/gene_links/'+geneName+'/json',
+  // initializes a new query by resolving a focus gene into a query track
+  services.init = function(source, gene, params, successCallback, errorCallback) {
+    if (sources.hasOwnProperty(source) &&
+        sources[source].hasOwnProperty('init')) {
+      var args = {
+        gene: gene,
+        numNeighbors: params.numNeighbors
+      };
+      $http({url: sources[source].init, method: "POST", data: args})
+      .then(
+        function(response) {
+          query = JSON.parse(response.data);
+          query.source = source;
+          for (var i in query.genes) {
+            query.genes[i].source = source;
+          }
+          return successCallback();
+        }, function(response) { return errorCallback(response); }
+      );
+    } else {
+      errorCallback('"'+source+'" is not a valid service provider');
+    }
+  }
+
+  // queries all the selected providers
+  services.get = function(params, successCallback, errorCallback) {
+    // generate a promise for each service
+    var args = {
+      query: query.genes.map(function(g) { return g.family; }),
+      numNeighbors: params.numNeighbors,
+      numMatchedFamilies: params.numMatchedFamilies,
+      numNonFamily: params.numNonFamily
+    };
+    var promises = [];
+    for (var i in params.sources) {
+      var src = params.sources[i];
+      if (sources.hasOwnProperty(src) &&
+          sources[src].hasOwnProperty('get')) {
+        promises.push(
+          $http({url: sources[src].get, method: "POST", data: args}).then(
+            (function(src) {  // gotta have that source
+              return function(response) {
+                return {source: src, response: response};
+              }
+            })(src),
+            function(response) { return ERROR; }
+          )
+        );
+      }
+    }
+    // wait for all the promises to be fulfilled
+    $q.all(promises).then(function(dataset) {
+      var error_count = 0;
+      // aggregate all the results into a single object
+      var new_tracks = {'families': [], 'groups': [query]};
+      for (var i = 0; i < dataset.length; i++) {
+        if (dataset[i] != ERROR) {
+          var src = dataset[i].source;
+          var d = JSON.parse(dataset[i].response.data);
+          // tag each track and its genes with their source
+          for (var j = 0; j < d.groups.length; j++) {
+            d.groups[j].source = src;
+            for (var k in d.groups[j].genes) {
+              d.groups[j].genes[k].source = src;
+            }
+          }
+          // remove the query if present
+          if (src == query.source) {
+            d.groups = d.groups.filter(function(track) {
+              if (track.species_id == query.species_id &&
+                  track.chromosome_id == query.chromosome_id &&
+                  track.genes.length == query.genes.length) {
+                for (var j = track.genes.length; j--;) {
+                  if (track.genes[j].id !== query.genes[j].id)
+                    return true;
+                } return false
+              } return true;
+            });
+          }
+          // aggregate the remaining tracks
+          new_tracks.families = new_tracks.families.concat(d.families);
+          new_tracks.groups = new_tracks.groups.concat(d.groups);
+        } else {
+          error_count++;
+        }
+      }
+      if (error_count < promises.length) {
+        tracks = new_tracks;
+        // equip the tracks for the viewer
+        Viewer.equip(tracks);
+        var aligned = align(params);
+        successCallback(
+          tracks.groups.length-1,
+          aligned.num,
+          aligned.tracks,
+          orderings[params.order].algorithm
+        );
+      } else {
+        errorCallback('Failed to retrieve data');
+      }
+    },
+    function(reason) { errorCallback(reason); });
+  }
+
+  // distributes the new set of tracks filtered by which were aligned
+  services.subscribeToNewFilteredTracks = function(scope, callback) {
+    var handler = $rootScope.$on('new-filtered-tracks-event', callback);
+    scope.$on('$destroy', handler);
+  }
+
+  // scroll the query track
+  function scroll(step, m, successCallback, errorCallback) {
+    var half = ~~(query.genes.length/2);
+    if (step > 0 && step <= half) {
+      successCallback(query.source, query.genes[half+(m*step)].name);
+    } else {
+      errorCallback();
+    }
+  }
+  services.scrollLeft = function(step, successCallback, errorCallback) {
+    scroll(step, -1, successCallback, errorCallback)
+  }
+  services.scrollRight = function(step, successCallback, errorCallback) {
+    scroll(step, 1, successCallback, errorCallback)
+  }
+  
+  return services;
+});
+
+contextServices.factory('Gene', function($http) {
+  return {
+    get: function(geneName, successCallback, errorCallback) {
+      $http({url: 'http://legumeinfo.org/gene_links/'+geneName+'/json',
            method: "GET"})
          .then(function(response) { successCallback(response.data); },
                function(response) { errorCallback(response); });
-         },
-         familyNames: function() { return DataStore.familyNames(); }
-}}]);
+    },
+  }
+});
 
-// TODO: cache clicked family data
-contextServices.factory('Track', ['$http', 'DataStore',
-function($http, DataStore) {
-  return {get: function(trackID, successCallback, errorCallback) {
-            var data = DataStore.parsedData();
-            var track;
-            for (var i = 0; i < data.groups.length; i++) {
-              if (data.groups[i].id == trackID) {             
-                track = data.groups[i];
-                break;
-              }
-            }
-            if (track !== undefined) {
-              successCallback(track);
-            } else {
-              errorCallback();
-            }},
-           familyNames: function() { return DataStore.familyNames(); }
-}}]);
-
-// TODO: cache clicked family data
-contextServices.factory('Family', ['$http', 'DataStore',
-function($http, DataStore) {
-  return {get: function(familyName, successCallback, errorCallback) {
-            $http({url: '#'+familyName, // TODO: use correct url
-                   method: "GET"})
-            .then(function(response) { successCallback(response.data); },
-                  function(response) { errorCallback(response); });},
-           familyNames: function() { return DataStore.familyNames(); }
-}}]);
-
-// TODO: cache global plot data
-contextServices.service('Plot', ['$http', 'DataStore',
-function($http, DataStore) {
+contextServices.service('Plot', function($http, Viewer, UI) {
+  var query;
   var localPlots;
-  var idPlotMap;
+  var localIdToIndex;
   var globalPlots;
-  var numNeighbors;
-  var focusID;
-  // a helper function that plots genes against genes
-  var familyMap;
-  function plotPoints(group) {
+  var familySizes;
+  var familyMap = {};
+  var colors = contextColors;  // context.js
+
+  // plots a track against the query
+  function plot(track) {
     var plot_genes = [];
-    for (var j = 0; j < group.genes.length; j++) {
-      if (group.genes[j].family in familyMap) {
-        for (var k = 0; k < familyMap[group.genes[j].family].length; k++) {
-          group.genes[j].x = ((group.genes[j].fmin/2)+(group.genes[j].fmax/2));
-          group.genes[j].y = familyMap[group.genes[j].family][k];
+    for (var j = 0; j < track.genes.length; j++) {
+      if (track.genes[j].family in familyMap) {
+        for (var k = 0; k < familyMap[track.genes[j].family].length; k++) {
+          track.genes[j].x = ((track.genes[j].fmin/2)+(track.genes[j].fmax/2));
+          track.genes[j].y = familyMap[track.genes[j].family][k];
         }
       } else {
-          group.genes[j].x = ((group.genes[j].fmin/2)+(group.genes[j].fmax/2));
-          group.genes[j].y = -1;
+          track.genes[j].x = ((track.genes[j].fmin/2)+(track.genes[j].fmax/2));
+          track.genes[j].y = -1;
       }
-      plot_genes.push(group.genes[j]);
+      plot_genes.push(track.genes[j]);
     }
     return plot_genes;
   }
-  return {getLocal: function(trackID, successCallback, errorCallback) {
-            if (idPlotMap[trackID] !== undefined) {
-              successCallback(localPlots[idPlotMap[trackID]]);
-            } else {
-              errorCallback();
-            }
-          },
-          getAllLocal: function() {
-            return localPlots;
-          },
-          getGlobal: function(trackID, successCallback, errorCallback) {
-            if (globalPlots[trackID] !== undefined) {
-              successCallback(globalPlots[trackID]);
-            } else {
-              if (idPlotMap[trackID] !== undefined) {
-                $http({url: 'http://localhost:8000/chado/context_viewer' +
-                             '/global_plot_service/',
-                       method: "GET",
-                       params:{focusID: focusID,
-                               numNeighbors: numNeighbors,
-                               chromosomeID:
-                               localPlots[idPlotMap[trackID]].chromosome_id}
-                })
-                .then(function(response) {
-                  var group = clone(localPlots[idPlotMap[trackID]]);
-                  globalPlots[trackID] = group;
-                  group.genes = response.data;
-                  globalPlots[trackID].genes = plotPoints(group);
-                  successCallback(globalPlots[trackID]);
-                }, function(response) { errorCallback(); });
-              } else {
-                errorCallback();
-              }
-            }
-          },
-          plot: function(sorter, scores) {
-            // prepare the plots data for show and tell
-            localPlots = [];
-            idPlotMap = {};
-            globalPlots = {};
-            var rawData = DataStore.parsedData();
-            numNeighbors = (rawData.groups[0].genes.length-1)/2;
-            focusID = rawData.groups[0].genes[numNeighbors].id;
-            // filter the tracks we don't want and order them
-            for (var i = 1; i < rawData.groups.length; i++) {
-              if (scores[rawData.groups[i].id] !== undefined) {
-                localPlots.push(rawData.groups[i]);
-              }
-            }
-            localPlots.sort(sorter);
-            localPlots.unshift(rawData.groups[0]);
-            for (var i = 0; i < localPlots.length; i++) {
-              idPlotMap[localPlots[i].id] = i;
-            }
-            // make a map of points all genes will be plotted against
-            familyMap = {};
-            for (var i = 0; i < rawData.groups[0].genes.length; i++) {
-              var g = rawData.groups[0].genes[i];
-              if (g.family in familyMap) {
-                familyMap[g.family].push((g.fmin/2)+(g.fmax/2));
-              } else if (g.family != '') {
-                familyMap[g.family] = [(g.fmin/2)+(g.fmax/2)];
-              }
-            }
-            // plot all the genes against the list of points
-            for (var i = 0; i < localPlots.length; i++) {
-              localPlots[i].genes = plotPoints(localPlots[i]);
-            }
-          },
-          familySizes: function() { return DataStore.familySizes; },
-          colors: function() { return DataStore.colors(); }
-}}]);
+  
+  // prepare the local tracks for plotting
+  function plotLocals(tracks) {
+    localPlots = [];
+    localIdToIndex = {};
+    globalPlots = {};
 
-contextServices.factory('Broadcast', ['$rootScope',
-function($rootScope) {
-  return {
-    redraw: function() {
-      $rootScope.$broadcast('redraw');
-    },
-    geneClicked: function(gene) {
-      $rootScope.$broadcast('geneClicked', gene);
-    },
-    familyClicked: function(family, genes) {
-      $rootScope.$broadcast('familyClicked', family, genes);
-    },
-    leftAxisClicked: function(trackID) {
-      $rootScope.$broadcast('leftAxisClicked', trackID);
-    },
-    rightAxisClicked: function(trackID) {
-      $rootScope.$broadcast('rightAxisClicked', trackID);
-    },
-    viewChanged: function(searchView) {
-      $rootScope.$broadcast('viewChanged', searchView);
-    },
-    processed: function(ordering, scores) {
-      $rootScope.$broadcast('processed', ordering, scores);
+    // make a map of points all genes will be plotted against
+    familyMap = {};
+    for (var i = 0; i < tracks.groups[0].genes.length; i++) {
+      var g = tracks.groups[0].genes[i];
+      if (g.family in familyMap) {
+        familyMap[g.family].push((g.fmin/2)+(g.fmax/2));
+      } else if (g.family != '') {
+        familyMap[g.family] = [(g.fmin/2)+(g.fmax/2)];
+      }
+    }
+    // plot all the genes against the list of points
+    for (var i = 0; i < tracks.groups.length; i++) {
+      var id = tracks.groups[i].id;
+      var index = localPlots.length;
+      localIdToIndex[id] = index;
+      localPlots.push($.extend(true, {}, tracks.groups[i]));
+      localPlots[index].genes = plot(localPlots[index]);
     }
   }
-}]);
+
+  // draws a plot
+  function draw(element, plot, dim) {
+    $(element).html('');
+    synteny(element.substr(1), familySizes, colors, plot, {  // context.js
+      "geneClicked":  function(gene) { Viewer.geneClickEvent(gene); },
+      "plotClicked": function(trackID) { Viewer.rightAxisClickEvent(trackID); },
+      "width": dim
+    });
+  }
+
+  return {
+    init: function(tracks) {
+      if (tracks.groups.length > 0) {
+        query = tracks.groups[0].genes.map(function(g) { return g.family; });
+        familySizes = getFamilySizeMap(tracks)  // context.js
+        plotLocals(tracks);
+      }
+    },
+    local: function(trackID, errorCallback) {
+      if (localIdToIndex[trackID] !== undefined) {
+        var dim = $('#right-slider .inner-ratio').innerWidth();
+        draw('#local-plot', localPlots[localIdToIndex[trackID]], dim)
+      } else {
+        errorCallback();
+      }
+
+    },
+    global: function(trackID, errorCallback) {
+      // list of all services
+      var sources = {
+        'lis': 'http://localhost:8000/services/global_plot_provider_agnostic/',
+      };
+      if (localIdToIndex[trackID] !== undefined) {
+        var dim = $('#right-slider .inner-ratio').innerWidth();
+        var local = localPlots[localIdToIndex[trackID]];
+        if (globalPlots[trackID] !== undefined) {
+          draw('#global-plot', globalPlots[trackID], dim);
+        } else if (sources.hasOwnProperty(local.source)) {
+          UI.showPlotSpinner();
+          $http({url: sources[local.source], method: "POST",
+            data: {
+              query: query,
+              chromosomeID: local.chromosome_id
+            }
+          }).then(function(response) {
+            var track = $.extend(true, {}, local);
+            globalPlots[trackID] = track;
+            track.genes = response.data;
+            globalPlots[trackID].genes = plot(track);
+            draw('#global-plot', globalPlots[trackID], dim);
+            UI.hideSpinners();
+          }, function(response) {
+            UI.hideSpinners();
+            errorCallback();
+          });
+        }
+      } else {
+        errorCallback();
+      }
+    },
+    allLocal: function() {
+      if (localPlots !== undefined) {
+        $('#plots-content').html('');
+        var dim = $('#main').innerWidth()/3;
+        for (var i = 0; i < localPlots.length; i++) {
+          var id = "plot"+i;
+          $('#plots-content').append(
+            '<div id="' + id + '" class="col-lg-4"></div>'
+          );
+          draw('#'+id, localPlots[i], dim);
+        }
+      }
+    }
+  }
+});
