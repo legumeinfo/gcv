@@ -193,49 +193,55 @@ function($scope, $routeParams, Search, Viewer, UI) {
   // listen for resize events
   UI.subscribeToResize($scope, function() { Viewer.draw(); });
 
+  // draw the viewer
+  function draw(num_returned, num_aligned, tracks, sorter) {
+    Viewer.init(tracks, {
+      "focus": $routeParams.gene,
+      "geneClicked": function() {},
+      "leftAxisClicked": function() {},
+      "rightAxisClicked": function() {},
+      "selectiveColoring": true,
+      "interTrack": true,
+      "merge": true,
+      "boldFirst": true,
+      "sort": sorter
+    });
+    if (num_returned > 0 && num_aligned > 0) {
+      UI.alert(
+        "success",
+        num_returned+" tracks returned. "+num_aligned+" aligned"
+      );
+    } else if (num_returned > 0 && num_aligned == 0) {
+      UI.alert(
+        "warning",
+        num_returned+' tracks returned. 0 aligned (<a ' +
+        'ng-click="nav.ui.showParameters()">' +
+        'Alignment Parameters</a>)'
+      );
+    } else {
+      UI.alert(
+        "danger",
+        'No tracks returned (<a ' +
+        'ng-click="nav.ui.showParameters()">' +
+        'Query Parameters</a>)'
+      );
+    }
+    UI.hideSpinners();
+  }
+
   // get data (which triggers redraw)
   function getData() {
     UI.showSpinners();
-    Search.get(search.params,
-    function(num_returned, num_aligned, tracks, sorter) {
-      Viewer.init(tracks, {
-        "focus": $routeParams.gene,
-        "geneClicked": function() {},
-        "leftAxisClicked": function() {},
-        "rightAxisClicked": function() {},
-        "selectiveColoring": true,
-        "interTrack": true,
-        "merge": true,
-        "boldFirst": true,
-        "sort": sorter
-      });
-      if (num_returned > 0 && num_aligned > 0) {
-        UI.alert(
-          "success",
-          num_returned+" tracks returned. "+num_aligned+" aligned"
-        );
-      } else if (num_returned > 0 && num_aligned == 0) {
-        UI.alert(
-          "warning",
-          num_returned+' tracks returned. 0 aligned (<a ' +
-          'ng-click="nav.ui.showParameters()">' +
-          'Alignment Parameters</a>)'
-        );
-      } else {
-        UI.alert(
-          "danger",
-          'No tracks returned (<a ' +
-          'ng-click="nav.ui.showParameters()">' +
-          'Query Parameters</a>)'
-        );
+    Search.get(search.params, function() { Search.align(search.params, draw); },
+      function(msg) {
+        UI.hideSpinners();
+        UI.alert("danger", msg);
       }
-      UI.hideSpinners();
-    }, function(msg) {
-      UI.alert("danger", msg);
-    });
+    );
   }
 
   // initialize the parameters form
+  var previous_sources = [];
   search.init = function() {
     // multiselect
     search.sources = Search.getSources();
@@ -271,6 +277,7 @@ function($scope, $routeParams, Search, Viewer, UI) {
           'source', search.sources.map(function(s) { return s.id; })
         )
       };
+      previous_sources = search.params.sources.slice();
     });
     UI.saveParams(search.params);
     // initialize the search service with the query source and gene
@@ -286,7 +293,17 @@ function($scope, $routeParams, Search, Viewer, UI) {
     if (search.form.$valid) {
       UI.saveParams(search.params);
       UI.hideLeftSlider();
-      getData();
+      // if the query didn't change
+      if (search.form.numNeighbors.$pristine &&
+          search.form.numMatchedFamilies.$pristine &&
+          search.form.numNonFamily.$pristine &&
+          searchsearch..params.sources.compare(previous_sources)) {  // enhancement.js
+        Search.align(search.params, draw);
+      } else {
+        // manually check if the sources changed since $pristine is always false
+        previous_sources = search.params.sources.slice();
+        getData();
+      }
     } else {
       UI.alert("danger", "Invalid input parameters");
     }

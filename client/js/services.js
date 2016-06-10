@@ -459,7 +459,7 @@ contextServices.service('Search', function($http, $q, $rootScope, Viewer) {
   //Viewer.loadParams(services.params);
 
   // align the result tracks to the query
-  function align(params) {
+  services.align = function(params, callback) {
     var aligned = $.extend(true, {}, tracks);
     var scores = {};
     var num_aligned = 0;
@@ -508,10 +508,12 @@ contextServices.service('Search', function($http, $q, $rootScope, Viewer) {
     filtered_tracks.groups.sort(orderings[params.order].algorithm);
     // send the tracks into the wild
     $rootScope.$broadcast('new-filtered-tracks-event', filtered_tracks);
-    return {num: num_aligned, tracks: aligned};
-  }
-  function sorter(selection) {
-    return selection == "chromosome" ? byChromosome : byDistance
+    callback(
+      tracks.groups.length-1,
+      num_aligned,
+      aligned,
+      orderings[params.order].algorithm
+    );
   }
 
   // initializes a new query by resolving a focus gene into a query track
@@ -604,13 +606,7 @@ contextServices.service('Search', function($http, $q, $rootScope, Viewer) {
         tracks = new_tracks;
         // equip the tracks for the viewer
         Viewer.equip(tracks);
-        var aligned = align(params);
-        successCallback(
-          tracks.groups.length-1,
-          aligned.num,
-          aligned.tracks,
-          orderings[params.order].algorithm
-        );
+        successCallback();
       } else {
         errorCallback('Failed to retrieve data');
       }

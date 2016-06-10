@@ -18,7 +18,7 @@
     </div>
     <div id="sources" class="form-group">
       <label>Sources</label>
-	  <select multiple class="form-control"
+	  <select multiple class="form-control" name="sources"
         ng-options="s.id as s.name for s in search.sources"
         ng-model="search.params.sources">
       </select>
