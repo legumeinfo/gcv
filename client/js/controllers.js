@@ -126,8 +126,7 @@ function($scope, $routeParams, Basic, Viewer, UI) {
         Viewer.init(tracks, {
           "focus": tracks.focus,
           "geneClicked": function() {},
-          "leftAxisClicked": function() {},
-          "selectiveColoring": true
+          "leftAxisClicked": function() {}
         });
         UI.hideSpinners();
       }, function(msg) {
@@ -209,7 +208,6 @@ function($scope, $routeParams, Search, Viewer, UI) {
       "geneClicked": function() {},
       "leftAxisClicked": function() {},
       "rightAxisClicked": function() {},
-      "selectiveColoring": true,
       "interTrack": true,
       "merge": true,
       "boldFirst": true,

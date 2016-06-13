@@ -209,6 +209,8 @@ function($rootScope, UI) {
   services.draw = function() {
     if (tracks !== undefined && args !== undefined) {
       // arguments the controllers need not know about
+      var selective = tracks.groups.length > 1;
+      args.selectiveColoring = selective;
       args.width = $('#main').innerWidth();
       if (args.hasOwnProperty('geneClicked')) {
         args.geneClicked = function(gene) {
@@ -232,7 +234,7 @@ function($rootScope, UI) {
         "legendClick": function(family, genes) {
           $rootScope.$broadcast('family-click-event', family, genes);
         },
-        "selectiveColoring": true
+        "selectiveColoring": selective
       });
     }
   }
