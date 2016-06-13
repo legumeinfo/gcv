@@ -60,6 +60,9 @@ function($scope, $location, Viewer, Search, UI) {
 
   // change state based on service events
   state.current = 'parameters';
+  state.showParameters = function() {
+    return state.current == 'parameters';
+  }
   UI.subscribeToParametersClick($scope, function(e, leftSliderShowing) {
     if (state.current != 'parameters' || !leftSliderShowing) {
       state.current = 'parameters';

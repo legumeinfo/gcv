@@ -154,50 +154,52 @@
       </div>
     </nav>
     <!-- scollable content -->
-    <div id="left-slider-content" ng-switch on="state.current">
-      <!-- context viewer parameters -->
-      <div id="parameters" ng-switch-default>
+    <div id="left-slider-content">
+      <!-- context viewer parameters - use ng-show to persist controllers even when out of site -->
+      <div id="parameters" ng-show="state.showParameters()">
         <div ng-view></div>
       </div>
-      <!-- gene clicked dynamic content -->
-      <div id="gene" ng-switch-when="gene" ng-controller="GeneCtrl as gene" ng-init="gene.init(state.args)">
-        <h4>{{ gene.name }}</h4>
-        <p>Family: <a href="/chado_gene_phylotree_v2/{{ gene.family }}?gene_name={{ gene.name }}">{{ gene.family }}</a></p>
-        <p><a ng-click="state.search(gene.source, gene.name)">Search for similar contexts</a></p>
-        {{ state.links }}
-        <ul>
-          <li ng-repeat="link in gene.links">
-            <a href="{{ link.href }}">{{ link.text }}</a>
-          </li>
-        </ul>
-        <p>{{ links.meta }}</p>
-      </div>
-      <!-- family clicked dynamic content -->
-      <div id="family" ng-switch-when="family" ng-controller="FamilyCtrl as family" ng-init="family.init(state.args)">
-        <h4>{{ family.name }}</h4>
-        <p><a href="/chado_gene_phylotree_v2/?gene_name={{ family.genes.join(',') }}">View genes in phylogram</a></p>
-        <p>Genes:</p>
-        <ul>
-          <li ng-repeat="gene in family.genes">
-            {{ gene.name }}: {{ gene.fmin }} - {{ gene.fmax }}
-          </li>
-        </ul>
-      </div>
-      <!-- track clicked dynamic content -->
-      <div id="track" ng-switch-when="track" ng-controller="TrackCtrl as track" ng-init="track.init(state.args)">
-        <h4>{{ track.species_name }} - {{ track.chromosome_name }}</h4>
-        <p><a ng-click="state.search(track.source, track.focus.name)">Search for similar contexts</a></p>
-        <p>Genes:</p>
-        <ul>
-          <li ng-repeat="gene in track.genes">
-            {{ gene.name }}: {{ gene.fmin }} - {{ gene.fmax }}
-            <ul ng-if="gene.family != ''">
-              <li>
-                Family: <a href="/chado_gene_phylotree_v2/{{ gene.family }}?gene_name='{{ gene.name }}">{{ gene.family }}</a>
-              </li>
-            </ul>
-          </li>
-        </ul>
+      <div ng-hide="state.showParameters()" ng-switch on="state.current">
+        <!-- gene clicked dynamic content - use ng-switch because these controllers need not persist when out of sight -->
+        <div id="gene" ng-switch-when="gene" ng-controller="GeneCtrl as gene" ng-init="gene.init(state.args)">
+          <h4>{{ gene.name }}</h4>
+          <p>Family: <a href="/chado_gene_phylotree_v2/{{ gene.family }}?gene_name={{ gene.name }}">{{ gene.family }}</a></p>
+          <p><a ng-click="state.search(gene.source, gene.name)">Search for similar contexts</a></p>
+          {{ state.links }}
+          <ul>
+            <li ng-repeat="link in gene.links">
+              <a href="{{ link.href }}">{{ link.text }}</a>
+            </li>
+          </ul>
+          <p>{{ links.meta }}</p>
+        </div>
+        <!-- family clicked dynamic content -->
+        <div id="family" ng-switch-when="family" ng-controller="FamilyCtrl as family" ng-init="family.init(state.args)">
+          <h4>{{ family.name }}</h4>
+          <p><a href="/chado_gene_phylotree_v2/?gene_name={{ family.genes.join(',') }}">View genes in phylogram</a></p>
+          <p>Genes:</p>
+          <ul>
+            <li ng-repeat="gene in family.genes">
+              {{ gene.name }}: {{ gene.fmin }} - {{ gene.fmax }}
+            </li>
+          </ul>
+        </div>
+        <!-- track clicked dynamic content -->
+        <div id="track" ng-switch-when="track" ng-controller="TrackCtrl as track" ng-init="track.init(state.args)">
+          <h4>{{ track.species_name }} - {{ track.chromosome_name }}</h4>
+          <p><a ng-click="state.search(track.source, track.focus.name)">Search for similar contexts</a></p>
+          <p>Genes:</p>
+          <ul>
+            <li ng-repeat="gene in track.genes">
+              {{ gene.name }}: {{ gene.fmin }} - {{ gene.fmax }}
+              <ul ng-if="gene.family != ''">
+                <li>
+                  Family: <a href="/chado_gene_phylotree_v2/{{ gene.family }}?gene_name='{{ gene.name }}">{{ gene.family }}</a>
+                </li>
+              </ul>
+            </li>
+          </ul>
+        </div>
       </div>
     </div>
   </div>
