@@ -773,6 +773,9 @@ contextServices.service('Plot', function($http, Viewer, UI) {
             var track = $.extend(true, {}, local);
             globalPlots[trackID] = track;
             track.genes = response.data;
+            for (var i in track.genes) {
+              track.genes[i].source = local.source;
+            }
             globalPlots[trackID].genes = plot(track);
             draw('#global-plot', globalPlots[trackID], dim);
             UI.hideSpinners();
