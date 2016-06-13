@@ -525,7 +525,7 @@ contextServices.service('Search', function($http, $q, $rootScope, Viewer) {
     // filter the original tracks by which ones were aligned
     var filtered_tracks = {
       groups: tracks.groups.filter(function(track) {
-        return scores.hasOwnProperty(track.id);
+        return scores.hasOwnProperty(track.id) || track.id == query.id;
       }),
       numNeighbors: params.numNeighbors
     };
