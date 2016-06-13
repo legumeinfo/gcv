@@ -493,7 +493,7 @@ contextServices.service('Search', function($http, $q, $rootScope, Viewer) {
         resultTracks = [];
     var track_filter = (params.track_regexp === undefined ? undefined :
                         new RegExp(params.track_regexp));
-    for (var i = 1; i < aligned.groups.length; i++) {
+    for (var i = 0; i < aligned.groups.length; i++) {
       var al = aligner(aligned.groups[0].genes,
                        aligned.groups[i].genes,
                        function(item) { return item.family; },
