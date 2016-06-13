@@ -5,12 +5,29 @@ contextServices.service('UI', function($localStorage, $location, $rootScope) {
   // the UI services available
   var ui = {};
 
+  // constants
+  var ANIMATION_DURATION = 350;
+
   // alerts
   ui.alertClass = 'alert-info';
   ui.alertMessage = 'Genomic Context Viewer';
   ui.alert = function(type, message) {
     ui.alertClass = "alert-"+type;
     ui.alertMessage = message;
+  }
+
+  // dismissible alerts
+  if ($localStorage.context_help === undefined) {
+    ui.clearHelp();
+  }
+  ui.removeHelp = function(name) {
+    $localStorage.context_help.push(name);
+  }
+  ui.showHelp = function(name) {
+    return $localStorage.context_help.indexOf(name) == -1 && ui.sliders;
+  }
+  ui.clearHelp = function() {
+    $localStorage.context_help = [];
   }
 
   // sliders
@@ -25,7 +42,7 @@ contextServices.service('UI', function($localStorage, $location, $rootScope) {
     );
   }
   ui.toggleLeftSlider = function() {
-    $('#left-slider').animate({width:'toggle'}, 350);
+    $('#left-slider').animate({width:'toggle'}, ANIMATION_DURATION);
   }
   ui.showLeftSlider = function() {
     if ($('#left-slider').is(':hidden')) {
@@ -39,7 +56,7 @@ contextServices.service('UI', function($localStorage, $location, $rootScope) {
   }
   ui.toggleRightSlider = function() {
     ui.showSpinners();
-    $('#right-slider').animate({width:'toggle'}, 350, function() {
+    $('#right-slider').animate({width:'toggle'}, ANIMATION_DURATION, function() {
       ui.hideSpinners();
       resizeEvent();
     });

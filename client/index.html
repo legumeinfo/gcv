@@ -13,8 +13,9 @@
     <div id="legend-wrapper">
       <div class=vertical-scroll>
         <div id="legend">
-          <div class="alert alert-info alert-dismissible" role="alert">
-            <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+          <div class="alert alert-info alert-dismissible" role="alert" ng-controller="HelpCtrl as help" ng-show="help.ui.showHelp('legend')">
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true"><span class="glyphicon glyphicon-remove" aria-hidden="true"></span></span></button>
+        <button type="button" class="close" data-dismiss="alert" aria-label="Got it" ng-click="help.ui.removeHelp('legend')"><span aria-hidden="true"><span class="glyphicon glyphicon-floppy-remove" aria-hidden="true"></span></span></button>
             <h4>Gene Family Legend</h4>
             <ul>
               <li>Hover to highlight family's members.</li>
@@ -75,7 +76,7 @@
         <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
           <ul class="nav navbar-nav tabs" ng-show="nav.ui.sliders">
             <li><button id="parambtn" type="button" class="btn btn-default navbar-btn" ng-click="nav.ui.showParameters()">Parameters</button></li>
-            <li><button id="helpbtn" class="btn btn-default navbar-btn" onclick="hopscotch.startTour(tour)">Help</button></li>
+            <li><button id="helpbtn" class="btn btn-default navbar-btn" onclick="hopscotch.startTour(tour)" ng-click="nav.ui.clearHelp()">Help</button></li>
             <li><a id="viewer-button" href="#viewer">Viewer</a></li>
             <li ng-show="nav.plots"><a href="#plots">Dot Plots</a></li>
           </ul>
@@ -92,8 +93,9 @@
     </nav>
     <!-- context viewer -->
     <div id="viewer">
-      <div class="alert alert-info alert-dismissible" role="alert">
-        <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+      <div class="alert alert-info alert-dismissible" role="alert" ng-controller="HelpCtrl as help" ng-show="help.ui.showHelp('viewer')">
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true"><span class="glyphicon glyphicon-remove" aria-hidden="true"></span></span></button>
+        <button type="button" class="close" data-dismiss="alert" aria-label="Got it" ng-click="help.ui.removeHelp('viewer')"><span aria-hidden="true"><span class="glyphicon glyphicon-floppy-remove" aria-hidden="true"></span></span></button>
         <h4>Genome Contexts</h4>
         <ul>
           <li>Hover gene to see name, highlight in dotplots</li>
@@ -106,8 +108,9 @@
     </div>
     <!-- dot plots -->
     <div id="plots">
-      <div class="alert alert-info alert-dismissible" role="alert">
-        <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+      <div class="alert alert-info alert-dismissible" role="alert" ng-controller="HelpCtrl as help" ng-show="help.ui.showHelp('plots')">
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true"><span class="glyphicon glyphicon-remove" aria-hidden="true"></span></span></button>
+        <button type="button" class="close" data-dismiss="alert" aria-label="Got it" ng-click="help.ui.removeHelp('plots')"><span aria-hidden="true"><span class="glyphicon glyphicon-floppy-remove" aria-hidden="true"></span></span></button>
         <h4>Context Dot Plots</h4>
         <ul>
           <li>Hover gene to see name, highlight in dotplots</li>

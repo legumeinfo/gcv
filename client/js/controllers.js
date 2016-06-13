@@ -480,3 +480,14 @@ function($scope, Plot, Viewer, Search, UI) {
     }
   }
 });
+
+
+// determines whether or not the show dismissible alert elements with help info
+contextControllers
+.controller('HelpCtrl',
+function($scope, Plot, Viewer, Search, UI) {
+  var help = this;
+
+  // pass through ui for the view
+  help.ui = UI;
+});
