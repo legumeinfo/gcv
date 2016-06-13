@@ -493,15 +493,15 @@ contextServices.service('Search', function($http, $q, $rootScope, Viewer) {
         resultTracks = [];
     var track_filter = (params.track_regexp === undefined ? undefined :
                         new RegExp(params.track_regexp));
-    for (var i = 0; i < aligned.groups.length; i++) {
+    for (var i = 1; i < aligned.groups.length; i++) {
       var al = aligner(aligned.groups[0].genes,
                        aligned.groups[i].genes,
                        function(item) { return item.family; },
                        params);
       var id = aligned.groups[i].id;
       if (al !== null && al[1] >= params.score &&
-      (track_filter === undefined ||
-      track_filter.test(aligned.groups[i].chromosome_name))) {
+          (track_filter === undefined ||
+          track_filter.test(aligned.groups[i].chromosome_name))) {
         for (var j = 0; j < al[0].length; j++) {
           resultTracks.push(clone(aligned.groups[i]));
           alignments.push(al[0][j]);
@@ -611,11 +611,12 @@ contextServices.service('Search', function($http, $q, $rootScope, Viewer) {
             d.groups = d.groups.filter(function(track) {
               if (track.species_id == query.species_id &&
                   track.chromosome_id == query.chromosome_id &&
-                  track.genes.length == query.genes.length) {
-                for (var j = track.genes.length; j--;) {
-                  if (track.genes[j].id !== query.genes[j].id)
+                  track.genes.length >= query.genes.length) {
+                var gene_ids = track.genes.map(function(g) { return g.id; });
+                for (var j = query.genes.length; j--;) {
+                  if (gene_ids.indexOf(query.genes[j].id) == -1 )
                     return true;
-                } return false
+                } return false;
               } return true;
             });
           }
