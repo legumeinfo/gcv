@@ -53,6 +53,7 @@ function($scope, $location, Viewer, Search, UI) {
 
   // conduct search
   state.search = function(source, gene) {
+    UI.hideLeftSlider();
     state.current = 'parameters';
     $location.path('/search/'+source+'/'+gene);
   }
