@@ -73,12 +73,17 @@ contextServices.service('UI', function($localStorage, $location, $rootScope) {
   }
   ui.sliders = true;
   ui.enableSliders = function() {
+    focusViewer();
     ui.sliders = true;
   }
   ui.disableSliders = function() {
+    focusViewer();
     ui.sliders = false;
     ui.hideLeftSlider();
     ui.hideRightSlider();
+  }
+  function focusViewer() {
+    $('#viewer-button').click()
   }
 
   // the plot element
