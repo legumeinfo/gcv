@@ -17,6 +17,9 @@ contextServices.service('UI', function($localStorage, $location, $rootScope) {
   }
 
   // dismissible alerts
+  ui.clearHelp = function() {
+    $localStorage.context_help = [];
+  }
   if ($localStorage.context_help === undefined) {
     ui.clearHelp();
   }
@@ -25,9 +28,6 @@ contextServices.service('UI', function($localStorage, $location, $rootScope) {
   }
   ui.showHelp = function(name) {
     return $localStorage.context_help.indexOf(name) == -1 && ui.sliders;
-  }
-  ui.clearHelp = function() {
-    $localStorage.context_help = [];
   }
 
   // sliders
