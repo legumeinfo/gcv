@@ -487,9 +487,28 @@ function($scope, Plot, Viewer, Search, UI) {
 // determines whether or not the show dismissible alert elements with help info
 contextControllers
 .controller('HelpCtrl',
-function($scope, Plot, Viewer, Search, UI) {
+function($scope, UI) {
   var help = this;
 
-  // pass through ui for the view
-  help.ui = UI;
+  // does the help have an existing state?
+  help.init = function(name) {
+    help.name = name;
+    help.show = UI.showHelp(help.name);
+  }
+
+  // remove the help but don't save it
+  help.remove = function() {
+    help.show = false;
+  }
+
+  // remove the help and remember it
+  help.saveRemove = function() {
+    help.show = false;
+    UI.removeHelp(help.name);
+  }
+
+  // get notified when to show again
+  UI.subscribeToHelp($scope, function() {
+    help.show = UI.showHelp(help.name);
+  });
 });
