@@ -498,9 +498,6 @@ contextServices.service('Search', function($http, $q, $rootScope, Viewer) {
     });
   }
 
-  // override with values from storage and url
-  //Viewer.loadParams(services.params);
-
   // align the result tracks to the query
   services.align = function(params, callback) {
     var aligned = $.extend(true, {}, tracks);
@@ -685,11 +682,18 @@ contextServices.service('Search', function($http, $q, $rootScope, Viewer) {
 
 contextServices.factory('Gene', function($http) {
   return {
-    get: function(geneName, successCallback, errorCallback) {
-      $http({url: 'http://legumeinfo.org/gene_links/'+geneName+'/json',
-           method: "GET"})
-         .then(function(response) { successCallback(response.data); },
-               function(response) { errorCallback(response); });
+    get: function(name, source, successCallback, errorCallback) {
+      // list of all services
+      var sources = {
+        lis: 'http://legumeinfo.org/gene_links/'+name+'/json',
+      }
+      if (sources.hasOwnProperty(source)) {
+        $http({url: sources[source], method: "GET"})
+           .then(function(response) { successCallback(response.data); },
+                 function(response) { errorCallback(response); });
+      } else {
+        errorCallback('"'+source+'" is not a valid service provider');
+      }
     },
   }
 });

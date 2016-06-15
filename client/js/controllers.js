@@ -335,14 +335,14 @@ function($scope, Gene, Viewer, UI) {
 
   function getGene(g) {
     UI.showLeftSpinner();
-    Gene.get(g.name, function(links) {
+    Gene.get(g.name, g.source, function(links) {
       gene.source = g.source;
       gene.name = g.name;
       gene.family = g.family;
       gene.links = links;
       UI.hideSpinners();
     }, function(response) {
-      UI.alert("danger", "Failed to retrieve gene data");
+      UI.alert("danger", response);
       UI.hideSpinners();
     });
   }
