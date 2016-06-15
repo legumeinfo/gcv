@@ -121,18 +121,23 @@ function($scope, $routeParams, Basic, Viewer, UI) {
   // listen for resize events
   UI.subscribeToResize($scope, function() { Viewer.draw(); });
 
+  // actually draws the viewer
+  function draw(tracks) {
+    UI.alert("success", tracks.groups.length + ' tracks returned');
+    Viewer.init(tracks, {
+      "focus": tracks.focus,
+      "geneClicked": function() {},
+      "leftAxisClicked": function() {}
+    });
+    UI.hideSpinners();
+  }
+
   // get data (which triggers redraw)
   function getData() {
     UI.showSpinners();
     Basic.get($routeParams.genes.split(','), basic.params,
-      function(tracks) {
-        UI.alert("success", tracks.groups.length + ' tracks returned');
-        Viewer.init(tracks, {
-          "focus": tracks.focus,
-          "geneClicked": function() {},
-          "leftAxisClicked": function() {}
-        });
-        UI.hideSpinners();
+      function() {
+        Basic.filter(basic.params, draw);
       }, function(msg) {
         UI.alert("danger", msg);
       }
@@ -160,7 +165,8 @@ function($scope, $routeParams, Basic, Viewer, UI) {
         numNeighbors: assign('numNeighbors', 8),
         sources: assign(
           'source', basic.sources.map(function(s) { return s.id; })
-        )
+        ),
+        track_regexp: assign('track_regexp', "")
       };
       previous_sources = basic.params.sources.slice();
     });
@@ -171,17 +177,16 @@ function($scope, $routeParams, Basic, Viewer, UI) {
   // submit parameters form
   basic.submit = function() {
     if (basic.form.$valid) {
+      UI.saveParams(basic.params);
+      UI.hideLeftSlider();
       if (basic.form.numNeighbors.$pristine &&
           basic.params.sources.compare(previous_sources)) {  // enhancement.js
-        // filter only
+        Basic.filter(basic.params, draw);
       } else {
         previous_sources = basic.params.sources.slice();
-        UI.saveParams(basic.params);
-        UI.hideLeftSlider();
         getData();
       }
     } else {
-      UI.hideLeftSlider();
       UI.alert("danger", "Invalid input parameters");
     }
   }

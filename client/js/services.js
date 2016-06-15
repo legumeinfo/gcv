@@ -292,6 +292,7 @@ function($rootScope, UI) {
 // responsible for curating data for the basic viewer
 contextServices.service('Basic', function($http, $q, Viewer) {
   var ERROR = -1;
+  var tracks;
 
   // the services provided
   var services = {};
@@ -310,7 +311,7 @@ contextServices.service('Basic', function($http, $q, Viewer) {
   }
 
   // centers the given set of tracks on the focus family
-  function center(tracks, params) {
+  function center(params) {
     returned = tracks.groups.length;
     var length = params.numNeighbors*2+1;
     var centered = {};
@@ -333,6 +334,19 @@ contextServices.service('Basic', function($http, $q, Viewer) {
         }
       }
     }
+  }
+
+  // removes tracks that don't meet the filter regular expression
+  services.filter = function(params, callback) {
+    var track_filter = (params.track_regexp === undefined ? undefined :
+                        new RegExp(params.track_regexp));
+    var filtered_tracks = $.extend(true, {}, tracks);
+    if (track_filter !== undefined) {
+      filtered_tracks.groups = filtered_tracks.groups.filter(function(track) {
+        return track_filter.test(track.chromosome_name);
+      });
+    }
+    callback(filtered_tracks);
   }
 
   // get the tracks to display
@@ -363,7 +377,7 @@ contextServices.service('Basic', function($http, $q, Viewer) {
     $q.all(promises).then(function(dataset) {
       var error_count = 0;
       // aggregate all the results into a single object
-      var tracks = {'families': [], 'groups': []};
+      tracks = {'families': [], 'groups': []};
       for (var i = 0; i < dataset.length; i++) {
         if (dataset[i] !== ERROR) {
           var src = dataset[i].source;
@@ -391,8 +405,8 @@ contextServices.service('Basic', function($http, $q, Viewer) {
           Viewer.equip(tracks);
           // center the tracks on the focus family
           center(tracks, params);
-          // return the tracks to the controller
-          successCallback(tracks);
+          // ready to proceed
+          successCallback();
         } else {
           errorCallback('No tracks returned');
         }
