@@ -509,22 +509,38 @@ contextServices.service('Search', function($http, $q, $rootScope, Viewer) {
         resultTracks = [];
     var track_filter = (params.track_regexp === undefined ? undefined :
                         new RegExp(params.track_regexp));
+    var query_gene_ids = aligned.groups[0].genes.map(function(g) {
+      return g.id;
+    });
     for (var i = 1; i < aligned.groups.length; i++) {
-      var al = aligner(aligned.groups[0].genes,
-                       aligned.groups[i].genes,
-                       function(item) { return item.family; },
-                       params);
+      // align track i with the query (track 0)
+      var al = aligner(
+        aligned.groups[0].genes,
+        aligned.groups[i].genes,
+        function(item) { return item.family; },
+        params
+      );
+      // keep returned tracks with sufficient score and that meet the filter
       var id = aligned.groups[i].id;
       if (al !== null && al[1] >= params.score &&
           (track_filter === undefined ||
           track_filter.test(aligned.groups[i].chromosome_name))) {
+        var num_saved = 0;
         for (var j = 0; j < al[0].length; j++) {
-          resultTracks.push(clone(aligned.groups[i]));
-          alignments.push(al[0][j]);
+          // exclude alignments that are subtracks of the query
+          if (aligned.groups[0].source == aligned.groups[i].source &&
+              !aligned.groups[i].genes.every(function(element, index, array) {
+                return query_gene_ids.indexOf(element.id) != -1;
+              })) {
+            resultTracks.push(clone(aligned.groups[i]));
+            alignments.push(al[0][j]);
+            num_saved++;
+          }
         }
-        if (al[0].length > 0) {
+        // note how many tracks were aligned and what their scores were
+        if (num_saved > 0) {               
           if (scores[id] === undefined) {
-            scores[id] = 0;
+            scores[id] = 0;                   
           }
           scores[id] += al[1];
           num_aligned++;
@@ -621,19 +637,6 @@ contextServices.service('Search', function($http, $q, $rootScope, Viewer) {
             for (var k in d.groups[j].genes) {
               d.groups[j].genes[k].source = src;
             }
-          }
-          // remove the query if present
-          if (src == query.source) {
-            d.groups = d.groups.filter(function(track) {
-              if (track.species_id == query.species_id &&
-                  track.chromosome_id == query.chromosome_id) {
-                var gene_ids = query.genes.map(function(g) { return g.id; });
-                for (var j = track.genes.length; j--;) {
-                  if (gene_ids.indexOf(track.genes[j].id) == -1)
-                    return true;
-                } return false;
-              } return true;
-            });
           }
           // aggregate the remaining tracks
           new_tracks.families = new_tracks.families.concat(d.families);
