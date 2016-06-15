@@ -626,11 +626,10 @@ contextServices.service('Search', function($http, $q, $rootScope, Viewer) {
           if (src == query.source) {
             d.groups = d.groups.filter(function(track) {
               if (track.species_id == query.species_id &&
-                  track.chromosome_id == query.chromosome_id &&
-                  track.genes.length >= query.genes.length) {
-                var gene_ids = track.genes.map(function(g) { return g.id; });
-                for (var j = query.genes.length; j--;) {
-                  if (gene_ids.indexOf(query.genes[j].id) == -1 )
+                  track.chromosome_id == query.chromosome_id) {
+                var gene_ids = query.genes.map(function(g) { return g.id; });
+                for (var j = track.genes.length; j--;) {
+                  if (gene_ids.indexOf(track.genes[j].id) == -1)
                     return true;
                 } return false;
               } return true;
