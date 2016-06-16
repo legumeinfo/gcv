@@ -566,10 +566,15 @@ contextServices.service('Search', function($http, $q, $rootScope, Viewer) {
     }
     // filter the original tracks by which ones were aligned
     var filtered_tracks = $.extend(true, {}, tracks);
+    var filtered_query = filtered_tracks.groups.splice(0, 1);
     filtered_tracks.groups = filtered_tracks.groups.filter(function(track) {
-      return scores.hasOwnProperty(track.id) || track.id == query.id;
+      if (scores.hasOwnProperty(track.id)) {
+        track.score = scores[track.id];
+        return true;
+      } return false;
     });
     filtered_tracks.groups.sort(orderings[params.order].algorithm);
+    filtered_tracks.groups = filtered_query.concat(filtered_tracks.groups);
     filtered_tracks.numNeighbors = params.numNeighbors;
     // send the tracks into the wild
     $rootScope.$broadcast('new-filtered-tracks-event', filtered_tracks);
