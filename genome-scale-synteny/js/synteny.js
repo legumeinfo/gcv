@@ -29,8 +29,9 @@ var Synteny = (function (PIXI) {
     return rows;
   }
 
-  // draws a track's blocks
-  var _createTrack = function (renderer, height, padding, color, track) {
+  // create a graphic containing a track's blocks
+  var _createTrack = function (renderer, length, scale, name_offset, height, padding, color, track) {
+    var pointer_length = 5;
     // create the rows for the track
     var rows = _createRows(track.blocks);
     // where the track will be drawn
@@ -42,23 +43,26 @@ var Synteny = (function (PIXI) {
     for (var j = 0; j < rows.length; j++) {
       var blocks = rows[j];
       var v_offset = (height + padding) * j + padding;  // vertical
-      var h_offset = 100;  // horizontal
       // draw each block in the row
       for (var k = 0; k < blocks.length; k++) {
         var b = blocks[k];
         // create the polygon points of the block
         var points = [  // x, y coordinates of block
-          h_offset + b.start, v_offset,
-          h_offset + b.stop, v_offset,
-          h_offset + b.stop, v_offset+height,
-          h_offset + b.start, v_offset+height
+          name_offset + (scale * b.start), v_offset,
+          name_offset + (scale * b.stop), v_offset,
+          name_offset + (scale * b.stop), v_offset+height,
+          name_offset + (scale * b.start), v_offset+height
         ];
         // add the orientation pointer
         var middle = v_offset + (height / 2);
         if (b.orientation == '+') {
-          points.splice(4, 0, h_offset + b.stop + 5, middle);
+          points[2] -= pointer_length;
+          points[4] -= pointer_length;
+          points.splice(4, 0, name_offset + (scale * b.stop), middle);
         } else if (b.orientation == '-') {
-          points.push(h_offset + b.start - 5, middle);
+          points[0] += pointer_length;
+          points[6] += pointer_length;
+          points.push(name_offset + (scale * b.start), middle);
         }
         // create the polygon
         graphics.drawPolygon(points);
@@ -67,20 +71,51 @@ var Synteny = (function (PIXI) {
     graphics.endFill();
     // add the track name
     var label = new PIXI.Text(track.chromosome, {font : height + 'px Arial', align : 'right'});
-    label.position.x = h_offset - label.width;
+    label.position.x = name_offset - (label.width + (2 * padding));
     label.position.y = (graphics.height - label.height) / 2;
     graphics.addChild(label);
     // create a render texture so the track can be rendered as a sprite
-    var bounds = graphics.getBounds();
-    var texture = new PIXI.RenderTexture(renderer, bounds.width, bounds.height);
+    var h = graphics.getBounds().height;
+    var w = name_offset + (scale * length);
+    var texture = new PIXI.RenderTexture(renderer, w, h);
     texture.render(graphics);
     // render the track as a sprite
     var sprite = new PIXI.Sprite(texture);
     return sprite;
   }
 
+  // creates the query ruler graphic
+  var _createRuler = function (chromosome, length, scale, name_offset, height, padding) {
+    // create the Graphics that will hold the ruler
+    var ruler = new PIXI.Graphics();
+    // add the query name
+    var args = {font : 'bold ' + height + 'px Arial', align : 'right'};
+    var label = new PIXI.Text(chromosome, args);
+    label.position.x = name_offset - (label.width + (2 * padding));
+    label.position.y = height / 2;
+    ruler.addChild(label);
+    // draw the ruler
+    ruler.lineStyle(1, 0x000000, 1);
+    ruler.moveTo(name_offset, height);
+    ruler.lineTo(name_offset, height / 2);
+    var right = name_offset + (length * scale);
+    ruler.lineTo(right, height / 2);
+    ruler.lineTo(right, height);
+    ruler.endFill();
+    // add the genome length labels
+    var start = new PIXI.Text('0', args);
+    start.position.x = name_offset;
+    start.position.y = height;
+    ruler.addChild(start);
+    var stop = new PIXI.Text(length, args);
+    stop.position.x = right - stop.width;
+    stop.position.y = height;
+    ruler.addChild(stop);
+    return ruler;
+  }
+
   // draws a synteny view
-  var draw = function (element_id, tracks) {
+  var draw = function (element_id, data) {
     // get the dom element that will contain the view
     var dom_container = document.getElementById(element_id);
     // width and height used to initially draw the view
@@ -93,17 +128,25 @@ var Synteny = (function (PIXI) {
     dom_container.appendChild(renderer.view);
     // create the root container of the scene graph
     var stage = new PIXI.Container();
+    // the dimensions of a track
+    var height = 11;
+    var padding = 2;
+    // the bounds of the tracks "table"
+    var name_offset = 100;
+    var right = 10;
+    var scale = (w - (name_offset + right)) / data.length;
+    // draw the query position ruler
+    var ruler = _createRuler(data.chromosome, data.length, scale, name_offset, height, padding);
+    ruler.position.y = padding;
+    stage.addChild(ruler);
     // create a container for the tracks "table"
     var table = new PIXI.Container();
-    // the dimensions of a track
-    var height = 10;
-    var padding = 2;
     // draw the tracks
-    for (var i = 0; i < tracks.length; i++) {
+    for (var i = 0; i < data.tracks.length; i++) {
       // the track's color
       var c = _colors[i % _colors.length];
       // create the track
-      var track = _createTrack(renderer, height, padding, c, tracks[i]);
+      var track = _createTrack(renderer, data.length, scale, name_offset, height, padding, c, data.tracks[i]);
       // position the track relative to the "table"
       track.position.y = table.height;
       // make the sprite interactive so we can capture mouse events
@@ -127,7 +170,9 @@ var Synteny = (function (PIXI) {
       table.addChild(track);
     }
     // position the table
-    table.position.y = 10;
+    // TODO: use ruler, rather than hard coding
+    //table.position.y = ruler.y + ruler.height + (2 * padding);
+    table.position.y = (2 * height) + (2 * padding);
     // draw the table
     stage.addChild(table);
     // run the render loop
@@ -170,6 +215,7 @@ var Synteny = (function (PIXI) {
       // update the track's position according to the mouse's location
       var drag_y = event.data.getLocalPosition(this.parent).y;
       var bounds = this.parent;
+      // TODO: fix so this actually bounds the bottom correctly
       if (drag_y >= bounds.y &&
           drag_y + this.height + 10 <= bounds.y + bounds.height) {
         this.position.y = drag_y;

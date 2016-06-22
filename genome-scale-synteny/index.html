@@ -17,21 +17,22 @@
   <script src="js/pixi.min.js"></script>
   <script src="js/synteny.js"></script>
   <script>
-    var tracks = [
-      {chromosome: 'name', blocks: [{start:620, stop:700, orientation:'-'}, {start:520, stop:600, orientation:'+'}, {start:10, stop:500, orientation:'-'}]},
-      {chromosome: 'name', blocks: [{start:620, stop:700, orientation:'-'}, {start:520, stop:600, orientation:'+'}, {start:10, stop:500, orientation:'-'}]},
-      {chromosome: 'name', blocks: [{start:620, stop:700, orientation:'-'}, {start:520, stop:600, orientation:'+'}, {start:10, stop:500, orientation:'-'},
+    var data = {chromosome: 'lorem', length: 1000, tracks: [
+      {chromosome: 'ipsum', blocks: [{start:620, stop:700, orientation:'-'}, {start:520, stop:600, orientation:'+'}, {start:0, stop:500, orientation:'-'}]},
+      {chromosome: 'dolor', blocks: [{start:620, stop:700, orientation:'-'}, {start:520, stop:600, orientation:'+'}, {start:0, stop:500, orientation:'-'}]},
+      {chromosome: 'sit', blocks: [{start:620, stop:700, orientation:'-'}, {start:520, stop:600, orientation:'+'}, {start:0, stop:500, orientation:'-'},
                                     {start:570, stop:650, orientation:'+'}, {start:470, stop:550, orientation:'-'}, {start:60, stop:450, orientation:'+'}]},
-      {chromosome: 'name', blocks: [{start:620, stop:700, orientation:'-'}, {start:520, stop:600, orientation:'+'}, {start:10, stop:500, orientation:'-'}]},
-      {chromosome: 'name', blocks: [{start:620, stop:700, orientation:'-'}, {start:520, stop:600, orientation:'+'}, {start:10, stop:500, orientation:'-'}]},
-      {chromosome: 'name', blocks: [{start:620, stop:700, orientation:'-'}, {start:520, stop:600, orientation:'+'}, {start:10, stop:500, orientation:'-'}]},
-      {chromosome: 'name', blocks: [{start:620, stop:700, orientation:'-'}, {start:520, stop:600, orientation:'+'}, {start:10, stop:500, orientation:'-'}]},
-      {chromosome: 'name', blocks: [{start:620, stop:700, orientation:'-'}, {start:520, stop:600, orientation:'+'}, {start:10, stop:500, orientation:'-'},
+      {chromosome: 'amet', blocks: [{start:620, stop:700, orientation:'-'}, {start:520, stop:600, orientation:'+'}, {start:0, stop:500, orientation:'-'}]},
+      {chromosome: 'consectetur', blocks: [{start:620, stop:700, orientation:'-'}, {start:520, stop:600, orientation:'+'}, {start:0, stop:500, orientation:'-'}]},
+      {chromosome: 'adipiscing', blocks: [{start:620, stop:700, orientation:'-'}, {start:520, stop:600, orientation:'+'}, {start:0, stop:500, orientation:'-'}]},
+      {chromosome: 'elit', blocks: [{start:620, stop:700, orientation:'-'}, {start:520, stop:600, orientation:'+'}, {start:0, stop:500, orientation:'-'}]},
+      {chromosome: 'etiam', blocks: [{start:620, stop:700, orientation:'-'}, {start:520, stop:600, orientation:'+'}, {start:0, stop:500, orientation:'-'},
                                     {start:570, stop:650, orientation:'+'}, {start:470, stop:550, orientation:'-'}, {start:60, stop:450, orientation:'+'}]},
-      {chromosome: 'name', blocks: [{start:620, stop:700, orientation:'-'}, {start:520, stop:600, orientation:'+'}, {start:10, stop:500, orientation:'-'}]},
-      {chromosome: 'name', blocks: [{start:620, stop:700, orientation:'-'}, {start:520, stop:600, orientation:'+'}, {start:10, stop:500, orientation:'-'}]}
-    ];
-    Synteny.draw('container', tracks);
+      {chromosome: 'libero', blocks: [{start:620, stop:700, orientation:'-'}, {start:520, stop:600, orientation:'+'}, {start:0, stop:500, orientation:'-'}]},
+      {chromosome: 'risus', blocks: [{start:0, stop:1000, orientation:'+'}]},
+      {chromosome: 'dictum', blocks: [{start:620, stop:700, orientation:'-'}, {start:520, stop:600, orientation:'+'}, {start:0, stop:500, orientation:'-'}]}
+    ]};
+    Synteny.draw('container', data);
   </script>
 </body>
 </html>
