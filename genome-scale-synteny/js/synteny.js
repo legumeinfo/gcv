@@ -31,39 +31,39 @@ var Synteny = (function (PIXI) {
 
   // create a graphic containing a track's blocks
   var _createTrack = function
-  (renderer, length, scale, name_offset, height, padding, color, track) {
-    var pointer_length = 5;
+  (renderer, LENGTH, SCALE, NAME_OFFSET, HEIGHT, PADDING, COLOR, track) {
+    var POINTER_LENGTH = 5;
     // create the rows for the track
     var rows = _createRows(track.blocks);
     // where the track will be drawn
     var graphics = new PIXI.Graphics();
     // set a fill and line style
-    graphics.beginFill(color);
-    graphics.lineStyle(1, color, 1);
+    graphics.beginFill(COLOR);
+    graphics.lineStyle(1, COLOR, 1);
     // draw each row in the track
     for (var j = 0; j < rows.length; j++) {
       var blocks = rows[j];
-      var v_offset = (height + padding) * j + padding;  // vertical
+      var v_offset = (HEIGHT + PADDING) * j + PADDING;  // vertical
       // draw each block in the row
       for (var k = 0; k < blocks.length; k++) {
         var b = blocks[k];
         // create the polygon points of the block
         var points = [  // x, y coordinates of block
-          name_offset + (scale * b.start), v_offset,
-          name_offset + (scale * b.stop), v_offset,
-          name_offset + (scale * b.stop), v_offset+height,
-          name_offset + (scale * b.start), v_offset+height
+          NAME_OFFSET + (SCALE * b.start), v_offset,
+          NAME_OFFSET + (SCALE * b.stop), v_offset,
+          NAME_OFFSET + (SCALE * b.stop), v_offset+HEIGHT,
+          NAME_OFFSET + (SCALE * b.start), v_offset+HEIGHT
         ];
         // add the orientation pointer
-        var middle = v_offset + (height / 2);
+        var middle = v_offset + (HEIGHT / 2);
         if (b.orientation == '+') {
-          points[2] -= pointer_length;
-          points[4] -= pointer_length;
-          points.splice(4, 0, name_offset + (scale * b.stop), middle);
+          points[2] -= POINTER_LENGTH;
+          points[4] -= POINTER_LENGTH;
+          points.splice(4, 0, NAME_OFFSET + (SCALE * b.stop), middle);
         } else if (b.orientation == '-') {
-          points[0] += pointer_length;
-          points[6] += pointer_length;
-          points.push(name_offset + (scale * b.start), middle);
+          points[0] += POINTER_LENGTH;
+          points[6] += POINTER_LENGTH;
+          points.push(NAME_OFFSET + (SCALE * b.start), middle);
         }
         // create the polygon
         graphics.drawPolygon(points);
@@ -71,14 +71,14 @@ var Synteny = (function (PIXI) {
     }
     graphics.endFill();
     // add the track name
-    var args = {font : height + 'px Arial', align : 'right'};
+    var args = {font : HEIGHT + 'px Arial', align : 'right'};
     var label = new PIXI.Text(track.chromosome, args);
-    label.position.x = name_offset - (label.width + (2 * padding));
+    label.position.x = NAME_OFFSET - (label.width + (2 * PADDING));
     label.position.y = (graphics.height - label.height) / 2;
     graphics.addChild(label);
     // create a render texture so the track can be rendered as a sprite
     var h = graphics.getBounds().height;
-    var w = name_offset + (scale * length);
+    var w = NAME_OFFSET + (SCALE * LENGTH);
     var texture = new PIXI.RenderTexture(renderer, w, h);
     texture.render(graphics);
     // render the track as a sprite
@@ -88,45 +88,45 @@ var Synteny = (function (PIXI) {
 
   // creates the query ruler graphic
   var _createRuler = function
-  (chromosome, length, scale, name_offset, height, padding) {
+  (chromosome, LENGTH, SCALE, NAME_OFFSET, HEIGHT, PADDING) {
     // create the Graphics that will hold the ruler
     var ruler = new PIXI.Graphics();
     // add the query name
-    var args = {font : 'bold ' + height + 'px Arial', align : 'right'};
+    var args = {font : 'bold ' + HEIGHT + 'px Arial', align : 'right'};
     var label = new PIXI.Text(chromosome, args);
-    label.position.x = name_offset - (label.width + (2 * padding));
-    label.position.y = height / 2;
+    label.position.x = NAME_OFFSET - (label.width + (2 * PADDING));
+    label.position.y = HEIGHT / 2;
     ruler.addChild(label);
     // draw the ruler
     ruler.lineStyle(1, 0x000000, 1);
-    ruler.moveTo(name_offset, height);
-    ruler.lineTo(name_offset, height / 2);
-    var right = name_offset + (length * scale);
-    ruler.lineTo(right, height / 2);
-    ruler.lineTo(right, height);
+    ruler.moveTo(NAME_OFFSET, HEIGHT);
+    ruler.lineTo(NAME_OFFSET, HEIGHT / 2);
+    var right = NAME_OFFSET + (LENGTH * SCALE);
+    ruler.lineTo(right, HEIGHT / 2);
+    ruler.lineTo(right, HEIGHT);
     ruler.endFill();
     // add the genome length labels
     var start = new PIXI.Text('0', args);
-    start.position.x = name_offset;
-    start.position.y = height;
+    start.position.x = NAME_OFFSET;
+    start.position.y = HEIGHT;
     ruler.addChild(start);
-    var stop = new PIXI.Text(length, args);
+    var stop = new PIXI.Text(LENGTH, args);
     stop.position.x = right - stop.width;
-    stop.position.y = height;
+    stop.position.y = HEIGHT;
     ruler.addChild(stop);
     return ruler;
   }
 
-  var _createViewport = function (start, stop, scale, y, height) {
+  var _createViewport = function (start, stop, SCALE, y, HEIGHT) {
     // create the Graphics that will hold the viewport
     var viewport = new PIXI.Graphics();
     // set a fill and line style
     viewport.beginFill(0x000000);
     viewport.lineStyle(1, 0x000000, 1);
     // draw the port
-    var x = scale * start;
-    var width = (scale * stop) - x;
-    viewport.drawRect(x, y, width, height);
+    var x = SCALE * start;
+    var width = (SCALE * stop) - x;
+    viewport.drawRect(x, y, width, HEIGHT);
     viewport.endFill();
     // make the viewport semi-transparent
     viewport.alpha = 0.2;
@@ -134,7 +134,9 @@ var Synteny = (function (PIXI) {
   }
 
   // draws a synteny view
-  var draw = function (element_id, data) {
+  var draw = function (element_id, data, options) {
+    // parse optional parameters
+    var options = options || {};
     // get the dom element that will contain the view
     var dom_container = document.getElementById(element_id);
     // width and height used to initially draw the view
@@ -148,22 +150,22 @@ var Synteny = (function (PIXI) {
     // create the root container of the scene graph
     var stage = new PIXI.Container();
     // the dimensions of a track
-    var height = 11;
-    var padding = 2;
+    var HEIGHT = 11;
+    var PADDING = 2;
     // the bounds of the tracks "table"
     var name_offset = 100;
     var right = 10;
-    var scale = (w - (name_offset + right)) / data.length;
+    var SCALE = (w - (name_offset + right)) / data.length;
     // draw the query position ruler
     var ruler = _createRuler(
       data.chromosome,
       data.length,
-      scale,
+      SCALE,
       name_offset,
-      height,
-      padding
+      HEIGHT,
+      PADDING
     );
-    ruler.position.y = padding;
+    ruler.position.y = PADDING;
     stage.addChild(ruler);
     // create a container for the tracks "table"
     var table = new PIXI.Container();
@@ -175,10 +177,10 @@ var Synteny = (function (PIXI) {
       var track = _createTrack(
         renderer,
         data.length,
-        scale,
+        SCALE,
         name_offset,
-        height,
-        padding,
+        HEIGHT,
+        PADDING,
         c,
         data.tracks[i]
       );
@@ -207,7 +209,7 @@ var Synteny = (function (PIXI) {
     // position the table
     // TODO: use ruler, rather than hard coding
     //table.position.y = ruler.y + ruler.height + (2 * padding);
-    var table_y = (2 * height) + (2 * padding);
+    var table_y = (2 * HEIGHT) + (2 * PADDING);
     table.position.y = table_y;
     // draw the table
     stage.addChild(table);
@@ -215,7 +217,7 @@ var Synteny = (function (PIXI) {
     var viewport = _createViewport(
       data.start,
       data.stop,
-      scale,
+      SCALE,
       table_y,
       table.height
     );
