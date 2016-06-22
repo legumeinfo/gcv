@@ -259,10 +259,8 @@ var Synteny = (function (PIXI) {
       var new_y = this.new_y;
       // update the track's position according to the mouse's location
       var drag_y = event.data.getLocalPosition(this.parent).y;
-      var bounds = this.parent;
       // TODO: fix so this actually bounds the bottom correctly
-      if (drag_y >= bounds.y &&
-          drag_y + this.height + 10 <= bounds.y + bounds.height) {
+      if (drag_y >= 0 && drag_y + this.height <= this.parent.height) {
         this.position.y = drag_y;
       }
       // move other tracks as they're dragged over
