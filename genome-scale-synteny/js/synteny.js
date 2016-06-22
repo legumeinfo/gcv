@@ -30,7 +30,8 @@ var Synteny = (function (PIXI) {
   }
 
   // create a graphic containing a track's blocks
-  var _createTrack = function (renderer, length, scale, name_offset, height, padding, color, track) {
+  var _createTrack = function
+  (renderer, length, scale, name_offset, height, padding, color, track) {
     var pointer_length = 5;
     // create the rows for the track
     var rows = _createRows(track.blocks);
@@ -70,7 +71,8 @@ var Synteny = (function (PIXI) {
     }
     graphics.endFill();
     // add the track name
-    var label = new PIXI.Text(track.chromosome, {font : height + 'px Arial', align : 'right'});
+    var args = {font : height + 'px Arial', align : 'right'};
+    var label = new PIXI.Text(track.chromosome, args);
     label.position.x = name_offset - (label.width + (2 * padding));
     label.position.y = (graphics.height - label.height) / 2;
     graphics.addChild(label);
@@ -85,7 +87,8 @@ var Synteny = (function (PIXI) {
   }
 
   // creates the query ruler graphic
-  var _createRuler = function (chromosome, length, scale, name_offset, height, padding) {
+  var _createRuler = function
+  (chromosome, length, scale, name_offset, height, padding) {
     // create the Graphics that will hold the ruler
     var ruler = new PIXI.Graphics();
     // add the query name
@@ -114,6 +117,22 @@ var Synteny = (function (PIXI) {
     return ruler;
   }
 
+  var _createViewport = function (start, stop, scale, y, height) {
+    // create the Graphics that will hold the viewport
+    var viewport = new PIXI.Graphics();
+    // set a fill and line style
+    viewport.beginFill(0x000000);
+    viewport.lineStyle(1, 0x000000, 1);
+    // draw the port
+    var x = scale * start;
+    var width = (scale * stop) - x;
+    viewport.drawRect(x, y, width, height);
+    viewport.endFill();
+    // make the viewport semi-transparent
+    viewport.alpha = 0.2;
+    return viewport;
+  }
+
   // draws a synteny view
   var draw = function (element_id, data) {
     // get the dom element that will contain the view
@@ -136,7 +155,14 @@ var Synteny = (function (PIXI) {
     var right = 10;
     var scale = (w - (name_offset + right)) / data.length;
     // draw the query position ruler
-    var ruler = _createRuler(data.chromosome, data.length, scale, name_offset, height, padding);
+    var ruler = _createRuler(
+      data.chromosome,
+      data.length,
+      scale,
+      name_offset,
+      height,
+      padding
+    );
     ruler.position.y = padding;
     stage.addChild(ruler);
     // create a container for the tracks "table"
@@ -146,7 +172,16 @@ var Synteny = (function (PIXI) {
       // the track's color
       var c = _colors[i % _colors.length];
       // create the track
-      var track = _createTrack(renderer, data.length, scale, name_offset, height, padding, c, data.tracks[i]);
+      var track = _createTrack(
+        renderer,
+        data.length,
+        scale,
+        name_offset,
+        height,
+        padding,
+        c,
+        data.tracks[i]
+      );
       // position the track relative to the "table"
       track.position.y = table.height;
       // make the sprite interactive so we can capture mouse events
@@ -172,9 +207,19 @@ var Synteny = (function (PIXI) {
     // position the table
     // TODO: use ruler, rather than hard coding
     //table.position.y = ruler.y + ruler.height + (2 * padding);
-    table.position.y = (2 * height) + (2 * padding);
+    var table_y = (2 * height) + (2 * padding);
+    table.position.y = table_y;
     // draw the table
     stage.addChild(table);
+    // draw the viewport for the context currently being viewed
+    var viewport = _createViewport(
+      data.start,
+      data.stop,
+      scale,
+      table_y,
+      table.height
+    );
+    stage.addChild(viewport);
     // run the render loop
     animate();
     // how to animate the view
