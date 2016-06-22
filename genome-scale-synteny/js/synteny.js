@@ -41,29 +41,35 @@ var Synteny = (function (PIXI) {
     // draw each row in the track
     for (var j = 0; j < rows.length; j++) {
       var blocks = rows[j];
-      var offset = (height + padding) * j + padding;
+      var v_offset = (height + padding) * j + padding;  // vertical
+      var h_offset = 100;  // horizontal
       // draw each block in the row
       for (var k = 0; k < blocks.length; k++) {
         var b = blocks[k];
         // create the polygon points of the block
         var points = [  // x, y coordinates of block
-          b.start, offset,
-          b.stop, offset,
-          b.stop, offset+height,
-          b.start, offset+height
+          h_offset + b.start, v_offset,
+          h_offset + b.stop, v_offset,
+          h_offset + b.stop, v_offset+height,
+          h_offset + b.start, v_offset+height
         ];
         // add the orientation pointer
-        var middle = offset + (height / 2);
+        var middle = v_offset + (height / 2);
         if (b.orientation == '+') {
-          points.splice(4, 0, b.stop + 5, middle);
+          points.splice(4, 0, h_offset + b.stop + 5, middle);
         } else if (b.orientation == '-') {
-          points.push(b.start - 5, middle);
+          points.push(h_offset + b.start - 5, middle);
         }
         // create the polygon
         graphics.drawPolygon(points);
       }
     }
     graphics.endFill();
+    // add the track name
+    var label = new PIXI.Text(track.chromosome, {font : height + 'px Arial', align : 'right'});
+    label.position.x = h_offset - label.width;
+    label.position.y = (graphics.height - label.height) / 2;
+    graphics.addChild(label);
     // create a render texture so the track can be rendered as a sprite
     var bounds = graphics.getBounds();
     var texture = new PIXI.RenderTexture(renderer, bounds.width, bounds.height);
@@ -81,7 +87,8 @@ var Synteny = (function (PIXI) {
     var w = dom_container.offsetWidth;
     var h = dom_container.offsetHeight;
     // prefer WebGL renderer, but fallback to canvas
-    var renderer = PIXI.autoDetectRenderer(w, h, {antialias: true, transparent: true});
+    var args = {antialias: true, transparent: true};
+    var renderer = PIXI.autoDetectRenderer(w, h, args);
     // add the renderer drawing element to the dom
     dom_container.appendChild(renderer.view);
     // create the root container of the scene graph
@@ -163,7 +170,8 @@ var Synteny = (function (PIXI) {
       // update the track's position according to the mouse's location
       var drag_y = event.data.getLocalPosition(this.parent).y;
       var bounds = this.parent;
-      if (drag_y >= bounds.y && drag_y + this.height + 10 <= bounds.y + bounds.height) {
+      if (drag_y >= bounds.y &&
+          drag_y + this.height + 10 <= bounds.y + bounds.height) {
         this.position.y = drag_y;
       }
       // move other tracks as they're dragged over
