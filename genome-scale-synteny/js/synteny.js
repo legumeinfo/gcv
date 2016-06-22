@@ -74,16 +74,16 @@ var Synteny = (function (PIXI) {
   }
 
   // draws a synteny view
-  var draw = function (tracks) {
+  var draw = function (element_id, tracks) {
+    // get the dom element that will contain the view
+    var dom_container = document.getElementById(element_id);
     // width and height used to initially draw the view
-    // TODO: make dimensions relative to containing element
-    var w = window.innerWidth;
-    var h = window.innerHeight;
+    var w = dom_container.offsetWidth;
+    var h = dom_container.offsetHeight;
     // prefer WebGL renderer, but fallback to canvas
     var renderer = PIXI.autoDetectRenderer(w, h, {antialias: true, transparent: true});
     // add the renderer drawing element to the dom
-    // TODO: append to containing element
-    document.body.appendChild(renderer.view);
+    dom_container.appendChild(renderer.view);
     // create the root container of the scene graph
     var stage = new PIXI.Container();
     // create a container for the tracks "table"
@@ -130,10 +130,10 @@ var Synteny = (function (PIXI) {
       renderer.render(stage);
       requestAnimationFrame(animate);
     }
-    // resize the renderer with the window
-    window.onresize = function (event) {
-      var w = window.innerWidth;
-      var h = window.innerHeight;
+    // resize the renderer with the dom container
+    dom_container.onresize = function (event) {
+      var w = dom_container.innerWidth;
+      var h = dom_container.innerHeight;
       // resize the canvas but keeps ratio the same
       renderer.view.style.width = w + "px";
       renderer.view.style.height = h + "px";
