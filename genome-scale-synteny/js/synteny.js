@@ -1,5 +1,7 @@
 var Synteny = (function (PIXI) {
 
+  var _FADE = 0.15;
+
   // 100 maximally distinct colors
   var _colors = [0x7A2719, 0x5CE33C, 0xE146E9, 0x64C6DE, 0xE8B031, 0x322755, 0x436521, 0xDE8EBA, 0x5C77E3, 0xCEE197, 0xE32C76, 0xE54229, 0x2F2418, 0xE1A782, 0x788483, 0x68E8B2, 0x9E2B85, 0xE4E42A, 0xD5D9D5, 0x76404F, 0x589BDB, 0xE276DE, 0x92C535, 0xDE6459, 0xE07529, 0xA060E4, 0x895997, 0x7ED177, 0x916D46, 0x5BB0A4, 0x365167, 0xA4AE89, 0xACA630, 0x38568F, 0xD2B8E2, 0xAF7B23, 0x81A158, 0x9E2F55, 0x57E7E1, 0xD8BD70, 0x316F4B, 0x5989A8, 0xD17686, 0x213F2C, 0xA6808E, 0x358937, 0x504CA1, 0xAA7CDD, 0x393E0D, 0xB02828, 0x5EB381, 0x47B033, 0xDF3EAA, 0x4E191E, 0x9445AC, 0x7A691F, 0x382135, 0x709628, 0xEF6FB0, 0x603719, 0x6B5A57, 0xA44A1C, 0xABC6E2, 0x9883B0, 0xA6E1D3, 0x357975, 0xDC3A56, 0x561238, 0xE1C5AB, 0x8B8ED9, 0xD897DF, 0x61E575, 0xE19B55, 0x1F303A, 0xA09258, 0xB94781, 0xA4E937, 0xEAABBB, 0x6E617D, 0xB1A9AF, 0xB16844, 0x61307A, 0xED8B80, 0xBB60A6, 0xE15A7F, 0x615C37, 0x7C2363, 0xD240C2, 0x9A5854, 0x643F64, 0x8C2A36, 0x698463, 0xBAE367, 0xE0DE51, 0xBF8C7E, 0xC8E6B6, 0xA6577B, 0x484A3A, 0xD4DE7C, 0xCD3488];
   
@@ -105,6 +107,8 @@ var Synteny = (function (PIXI) {
     label.interactive = true;
     label.buttonMode = true;
     label.click = function (event) { nameClick(); };
+    label.mouseover = _showTooltips;
+    label.mouseout = _hideTooltips;
     // add the label and blocks to a container
     var container = new PIXI.Container();
     container.addChild(label);
@@ -261,7 +265,7 @@ var Synteny = (function (PIXI) {
     // the track's new y coordinate will be computed as it's dragged
     track.newY = track.position.y;
     // fade the track
-    track.alpha = 0.5;
+    track.alpha = _FADE;
     // bring the row being dragged to the front
     var children = track.parent.children;
     children.splice(children.indexOf(track), 1);
@@ -314,6 +318,32 @@ var Synteny = (function (PIXI) {
       track.position.y = track.newY;
       // discard dragging specific data
       track.newY = undefined;
+    }
+  }
+
+  // show a track's tooltips and fade the other tracks
+  var _showTooltips = function (event) {
+    var track = this.parent;
+    var tracks = track.parent.children;
+    // fade all the other tracks
+    for (var i = 0; i < tracks.length; i++) {
+      var t = tracks[i];
+      if (t != track) {
+        t.alpha = _FADE;
+      }
+    }
+  }
+
+  // hide a track's tooltips and show the other tracks
+  var _hideTooltips = function (event) {
+    var track = this.parent;
+    var tracks = track.parent.children;
+    // unfade all the other tracks
+    for (var i = 0; i < tracks.length; i++) {
+      var t = tracks[i];
+      if (t != track) {
+        t.alpha = 1;
+      }
     }
   }
 
