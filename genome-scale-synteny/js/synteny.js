@@ -6,21 +6,21 @@ var Synteny = (function (PIXI) {
   // greedy interval scheduling algorithm for grouping track blocks
   var _createRows = function (blocks) {
     // create a copy so there are no side effects
-    var ordered_blocks = blocks.slice();
+    var orderedBlocks = blocks.slice();
     // reverse sort by stop location so we can remove elements during iteration
-    ordered_blocks.sort(function (a, b) {
+    orderedBlocks.sort(function (a, b) {
       return b.stop - a.stop;
     });
     // create track rows
     var rows = [];
-    while (ordered_blocks.length > 0) {
+    while (orderedBlocks.length > 0) {
       // the first block to stop will start the row
-      var row = ordered_blocks.splice(ordered_blocks.length - 1, 1);
+      var row = orderedBlocks.splice(orderedBlocks.length - 1, 1);
       var k = 0;
       // iteratively add blocks whose starts don't overlap with the last stop
-      for (var i = ordered_blocks.length - 1; i >= 0; i--) {
-        if (ordered_blocks[i].start > row[k].stop) {
-          row.push.apply(row, ordered_blocks.splice(i, 1));
+      for (var i = orderedBlocks.length - 1; i >= 0; i--) {
+        if (orderedBlocks[i].start > row[k].stop) {
+          row.push.apply(row, orderedBlocks.splice(i, 1));
           k++;
         }
       }
@@ -43,19 +43,19 @@ var Synteny = (function (PIXI) {
     // draw each row in the track
     for (var j = 0; j < rows.length; j++) {
       var blocks = rows[j];
-      var v_offset = (HEIGHT + PADDING) * j + PADDING;  // vertical
+      var yOffset = (HEIGHT + PADDING) * j + PADDING;  // vertical
       // draw each block in the row
       for (var k = 0; k < blocks.length; k++) {
         var b = blocks[k];
         // create the polygon points of the block
         var points = [  // x, y coordinates of block
-          NAME_OFFSET + (SCALE * b.start), v_offset,
-          NAME_OFFSET + (SCALE * b.stop), v_offset,
-          NAME_OFFSET + (SCALE * b.stop), v_offset+HEIGHT,
-          NAME_OFFSET + (SCALE * b.start), v_offset+HEIGHT
+          NAME_OFFSET + (SCALE * b.start), yOffset,
+          NAME_OFFSET + (SCALE * b.stop), yOffset,
+          NAME_OFFSET + (SCALE * b.stop), yOffset + HEIGHT,
+          NAME_OFFSET + (SCALE * b.start), yOffset + HEIGHT
         ];
         // add the orientation pointer
-        var middle = v_offset + (HEIGHT / 2);
+        var middle = yOffset + (HEIGHT / 2);
         if (b.orientation == '+') {
           points[2] -= POINTER_LENGTH;
           points[4] -= POINTER_LENGTH;
@@ -134,34 +134,34 @@ var Synteny = (function (PIXI) {
   }
 
   // draws a synteny view
-  var draw = function (element_id, data, options) {
+  var draw = function (elementId, data, options) {
     // parse optional parameters
     var options = options || {};
     // get the dom element that will contain the view
-    var dom_container = document.getElementById(element_id);
+    var container = document.getElementById(elementId);
     // width and height used to initially draw the view
-    var w = dom_container.offsetWidth;
-    var h = dom_container.offsetHeight;
+    var w = container.offsetWidth;
+    var h = container.offsetHeight;
     // prefer WebGL renderer, but fallback to canvas
     var args = {antialias: true, transparent: true};
     var renderer = PIXI.autoDetectRenderer(w, h, args);
     // add the renderer drawing element to the dom
-    dom_container.appendChild(renderer.view);
+    container.appendChild(renderer.view);
     // create the root container of the scene graph
     var stage = new PIXI.Container();
     // the dimensions of a track
     var HEIGHT = 11;
     var PADDING = 2;
     // the bounds of the tracks "table"
-    var name_offset = 100;
+    var NAME_OFFSET = 100;
     var right = 10;
-    var SCALE = (w - (name_offset + right)) / data.length;
+    var SCALE = (w - (NAME_OFFSET + right)) / data.length;
     // draw the query position ruler
     var ruler = _createRuler(
       data.chromosome,
       data.length,
       SCALE,
-      name_offset,
+      NAME_OFFSET,
       HEIGHT,
       PADDING
     );
@@ -178,7 +178,7 @@ var Synteny = (function (PIXI) {
         renderer,
         data.length,
         SCALE,
-        name_offset,
+        NAME_OFFSET,
         HEIGHT,
         PADDING,
         c,
@@ -230,9 +230,9 @@ var Synteny = (function (PIXI) {
       requestAnimationFrame(animate);
     }
     // resize the renderer with the dom container
-    dom_container.onresize = function (event) {
-      var w = dom_container.innerWidth;
-      var h = dom_container.innerHeight;
+    container.onresize = function (event) {
+      var w = container.innerWidth;
+      var h = container.innerHeight;
       // resize the canvas but keeps ratio the same
       renderer.view.style.width = w + "px";
       renderer.view.style.height = h + "px";
@@ -244,7 +244,7 @@ var Synteny = (function (PIXI) {
   // start dragging a track
   var _mousedown = function (event) {
     // the track's new y coordinate will be computed as it's dragged
-    this.new_y = this.position.y;
+    this.newY = this.position.y;
     // fade the track
     this.alpha = 0.5;
     // bring the row being dragged to the front
@@ -256,32 +256,31 @@ var Synteny = (function (PIXI) {
   // dragging a track
   var _mousemove = function (event) {
     // if the track is being dragged
-    if (this.new_y !== undefined)
-    {
-      var new_y = this.new_y;
+    if (this.newY !== undefined) {
+      var newY = this.newY;
       // update the track's position according to the mouse's location
-      var drag_y = event.data.getLocalPosition(this.parent).y;
+      var dragY = event.data.getLocalPosition(this.parent).y;
       // TODO: fix so this actually bounds the bottom correctly
-      if (drag_y >= 0 && drag_y + this.height <= this.parent.height) {
-        this.position.y = drag_y;
+      if (dragY >= 0 && dragY + this.height <= this.parent.height) {
+        this.position.y = dragY;
       }
       // move other tracks as they're dragged over
       for (var i = 0; i < this.parent.children.length; i++) {
         var child = this.parent.children[i];
         if (child != this) {
-          var child_y = child.position.y;
+          var childY = child.position.y;
           // if the track was dragged DOWN past the child
-          if (child_y + (child.height / 2) < drag_y && child_y > new_y) {
+          if (childY + (child.height / 2) < dragY && childY > newY) {
             // update the track being dragged
-            this.new_y = (child_y + child.height) - this.height;
+            this.newY = (childY + child.height) - this.height;
             // update the track being dragged over
-            child.position.y = new_y;
+            child.position.y = newY;
           // if the track was dragged UP past the child
-          } else if (child_y + (child.height / 2) > drag_y && child_y < new_y) {
+          } else if (childY + (child.height / 2) > dragY && childY < newY) {
             // update the track being dragged
-            this.new_y = child_y;
+            this.newY = childY;
             // update the track being dragged over
-            child.position.y = (new_y + this.height) - child.height;
+            child.position.y = (newY + this.height) - child.height;
           }
         }
       }
@@ -290,13 +289,13 @@ var Synteny = (function (PIXI) {
 
   // stop dragging a track
   var _mouseup = function (event) {
-    if (this.new_y !== undefined) {
+    if (this.newY !== undefined) {
       // unfade the track
       this.alpha = 1;
       // put the track in its new position
-      this.position.y = this.new_y;
+      this.position.y = this.newY;
       // discard dragging specific data
-      this.new_y = undefined;
+      this.newY = undefined;
     }
   }
 
