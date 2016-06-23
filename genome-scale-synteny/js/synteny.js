@@ -214,14 +214,16 @@ var Synteny = (function (PIXI) {
     // draw the table
     stage.addChild(table);
     // draw the viewport for the context currently being viewed
-    var viewport = _createViewport(
-      data.start,
-      data.stop,
-      SCALE,
-      table_y,
-      table.height
-    );
-    stage.addChild(viewport);
+    if (options.viewport !== undefined) {
+      var viewport = _createViewport(
+        options.viewport.start,
+        options.viewport.stop,
+        SCALE,
+        table_y,
+        table.height
+      );
+      stage.addChild(viewport);
+    }
     // run the render loop
     animate();
     // how to animate the view

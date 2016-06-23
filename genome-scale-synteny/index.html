@@ -17,7 +17,7 @@
   <script src="js/pixi.min.js"></script>
   <script src="js/synteny.js"></script>
   <script>
-    var data = {chromosome: 'lorem', length: 1000, start: 375, stop: 460, tracks: [
+    var data = {chromosome: 'lorem', length: 1000, tracks: [
       {chromosome: 'ipsum', blocks: [{start:620, stop:700, orientation:'-'}, {start:520, stop:600, orientation:'+'}, {start:0, stop:500, orientation:'-'}]},
       {chromosome: 'dolor', blocks: [{start:620, stop:700, orientation:'-'}, {start:520, stop:600, orientation:'+'}, {start:0, stop:500, orientation:'-'}]},
       {chromosome: 'sit', blocks: [{start:620, stop:700, orientation:'-'}, {start:520, stop:600, orientation:'+'}, {start:0, stop:500, orientation:'-'},
@@ -32,7 +32,10 @@
       {chromosome: 'risus', blocks: [{start:0, stop:1000, orientation:'+'}]},
       {chromosome: 'dictum', blocks: [{start:620, stop:700, orientation:'-'}, {start:520, stop:600, orientation:'+'}, {start:0, stop:500, orientation:'-'}]}
     ]};
-    Synteny.draw('container', data);
+    var args = {
+      viewport: {start: 375, stop: 460}
+    }
+    Synteny.draw('container', data, args);
   </script>
 </body>
 </html>
