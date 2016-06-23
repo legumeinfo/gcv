@@ -30,65 +30,91 @@ var Synteny = (function (PIXI) {
   }
 
   // create a graphic containing a track's blocks
-  var _createTrack = function
-  (renderer, LENGTH, SCALE, NAME_OFFSET, HEIGHT, PADDING, COLOR, track) {
+  var _createTrack = function (renderer, LENGTH, SCALE, NAME_OFFSET, HEIGHT,
+  PADDING, COLOR, track, nameClick) {
     var POINTER_LENGTH = 5;
     // create the rows for the track
     var rows = _createRows(track.blocks);
-    // where the track will be drawn
-    var graphics = new PIXI.Graphics();
+    // where the blocks will be drawn
+    var blocks = new PIXI.Graphics();
     // set a fill and line style
-    graphics.beginFill(COLOR);
-    graphics.lineStyle(1, COLOR, 1);
+    blocks.beginFill(COLOR);
+    blocks.lineStyle(1, COLOR, 1);
     // draw each row in the track
-    for (var j = 0; j < rows.length; j++) {
-      var blocks = rows[j];
-      var yOffset = (HEIGHT + PADDING) * j + PADDING;  // vertical
+    for (var i = 0; i < rows.length; i++) {
+      var iBlocks = rows[i];
+      var yOffset = (HEIGHT + PADDING) * i + PADDING;  // vertical
       // draw each block in the row
-      for (var k = 0; k < blocks.length; k++) {
-        var b = blocks[k];
+      for (var k = 0; k < iBlocks.length; k++) {
+        var b = iBlocks[k];
         // create the polygon points of the block
         var points = [  // x, y coordinates of block
-          NAME_OFFSET + (SCALE * b.start), yOffset,
-          NAME_OFFSET + (SCALE * b.stop), yOffset,
-          NAME_OFFSET + (SCALE * b.stop), yOffset + HEIGHT,
-          NAME_OFFSET + (SCALE * b.start), yOffset + HEIGHT
+          SCALE * b.start, yOffset,
+          SCALE * b.stop, yOffset,
+          SCALE * b.stop, yOffset + HEIGHT,
+          SCALE * b.start, yOffset + HEIGHT
         ];
         // add the orientation pointer
         var middle = yOffset + (HEIGHT / 2);
         if (b.orientation == '+') {
           points[2] -= POINTER_LENGTH;
           points[4] -= POINTER_LENGTH;
-          points.splice(4, 0, NAME_OFFSET + (SCALE * b.stop), middle);
+          points.splice(4, 0, (SCALE * b.stop), middle);
         } else if (b.orientation == '-') {
           points[0] += POINTER_LENGTH;
           points[6] += POINTER_LENGTH;
-          points.push(NAME_OFFSET + (SCALE * b.start), middle);
+          points.push((SCALE * b.start), middle);
         }
         // create the polygon
-        graphics.drawPolygon(points);
+        blocks.drawPolygon(points);
       }
     }
-    graphics.endFill();
-    // add the track name
+    blocks.endFill();
+    // create a render texture so the blocks can be rendered as a sprite
+    var h = blocks.getBounds().height;
+    var w = SCALE * LENGTH;
+    var blocksTexture = new PIXI.RenderTexture(renderer, w, h);
+    blocksTexture.render(blocks);
+    // render the blocks as a sprite
+    var blocksSprite = new PIXI.Sprite(blocksTexture);
+    blocksSprite.position.x = NAME_OFFSET;
+    // make the blocksSprite interactive so we can capture mouse events
+    blocksSprite.interactive = true;
+    // make the cursor a pointer when it rolls over the track
+    blocksSprite.buttonMode = true;
+    // setup the interaction events
+    blocksSprite
+      // begin dragging track
+      .on('mousedown', _beginDrag)
+      .on('touchstart', _beginDrag)
+      // stop dragging track
+      .on('mouseup', _endDrag)
+      .on('touchend', _endDrag)
+      .on('mouseupoutside', _endDrag)
+      .on('touchendoutside', _endDrag)
+      // track being dragged
+      .on('mouseover', _drag)
+      .on('mousemove', _drag)
+    // create the track name
     var args = {font : HEIGHT + 'px Arial', align : 'right'};
     var label = new PIXI.Text(track.chromosome, args);
+    // position it next to the blocks
     label.position.x = NAME_OFFSET - (label.width + (2 * PADDING));
-    label.position.y = (graphics.height - label.height) / 2;
-    graphics.addChild(label);
-    // create a render texture so the track can be rendered as a sprite
-    var h = graphics.getBounds().height;
-    var w = NAME_OFFSET + (SCALE * LENGTH);
-    var texture = new PIXI.RenderTexture(renderer, w, h);
-    texture.render(graphics);
-    // render the track as a sprite
-    var sprite = new PIXI.Sprite(texture);
-    return sprite;
+    label.position.y = (blocks.height - label.height) / 2;
+    // make it interactive
+    label.interactive = true;
+    label.buttonMode = true;
+    label.click = function (event) { nameClick(); };
+    // add the label and blocks to a container
+    var container = new PIXI.Container();
+    container.addChild(label);
+    container.addChild(blocksSprite);
+    return container;
   }
 
   // creates the query ruler graphic
-  var _createRuler = function
-  (chromosome, LENGTH, SCALE, NAME_OFFSET, HEIGHT, PADDING) {
+  var _createRuler = function (chromosome, LENGTH, SCALE, NAME_OFFSET, HEIGHT,
+  PADDING) {
     // create the Graphics that will hold the ruler
     var ruler = new PIXI.Graphics();
     // add the query name
@@ -137,6 +163,7 @@ var Synteny = (function (PIXI) {
   var draw = function (elementId, data, options) {
     // parse optional parameters
     var options = options || {};
+    var nameClick = options.nameClick || function() { };
     // get the dom element that will contain the view
     var container = document.getElementById(elementId);
     // width and height used to initially draw the view
@@ -182,27 +209,11 @@ var Synteny = (function (PIXI) {
         HEIGHT,
         PADDING,
         c,
-        data.tracks[i]
+        data.tracks[i],
+        nameClick
       );
       // position the track relative to the "table"
       track.position.y = table.height;
-      // make the sprite interactive so we can capture mouse events
-      track.interactive = true;
-      // make the cursor a pointer when it rolls over the track
-      track.buttonMode = true;
-      // setup the interaction events
-      track
-        // begin dragging track
-        .on('mousedown', _mousedown)
-        .on('touchstart', _mousedown)
-        // stop dragging track
-        .on('mouseup', _mouseup)
-        .on('touchend', _mouseup)
-        .on('mouseupoutside', _mouseup)
-        .on('touchendoutside', _mouseup)
-        // track being dragged
-        .on('mouseover', _mousemove)
-        .on('mousemove', _mousemove)
       // draw the track
       table.addChild(track);
     }
@@ -244,45 +255,49 @@ var Synteny = (function (PIXI) {
   }
   
   // start dragging a track
-  var _mousedown = function (event) {
+  var _beginDrag = function (event) {
+    // we want to move the entire track, not just the blocks
+    var track = this.parent;
     // the track's new y coordinate will be computed as it's dragged
-    this.newY = this.position.y;
+    track.newY = track.position.y;
     // fade the track
-    this.alpha = 0.5;
+    track.alpha = 0.5;
     // bring the row being dragged to the front
-    var children = this.parent.children;
-    children.splice(children.indexOf(this), 1);
-    children.push(this);
+    var children = track.parent.children;
+    children.splice(children.indexOf(track), 1);
+    children.push(track);
   }
 
   // dragging a track
-  var _mousemove = function (event) {
+  var _drag = function (event) {
+    var track = this.parent;
     // if the track is being dragged
-    if (this.newY !== undefined) {
-      var newY = this.newY;
+    if (track.newY !== undefined) {
+      var newY = track.newY;
       // update the track's position according to the mouse's location
-      var dragY = event.data.getLocalPosition(this.parent).y;
+      var table = track.parent;
+      var dragY = event.data.getLocalPosition(table).y;
       // TODO: fix so this actually bounds the bottom correctly
-      if (dragY >= 0 && dragY + this.height <= this.parent.height) {
-        this.position.y = dragY;
+      if (dragY >= 0 && dragY + track.height <= table.height) {
+        track.position.y = dragY;
       }
       // move other tracks as they're dragged over
-      for (var i = 0; i < this.parent.children.length; i++) {
-        var child = this.parent.children[i];
-        if (child != this) {
+      for (var i = 0; i < table.children.length; i++) {
+        var child = table.children[i];
+        if (child != track) {
           var childY = child.position.y;
           // if the track was dragged DOWN past the child
           if (childY + (child.height / 2) < dragY && childY > newY) {
             // update the track being dragged
-            this.newY = (childY + child.height) - this.height;
+            track.newY = (childY + child.height) - track.height;
             // update the track being dragged over
             child.position.y = newY;
           // if the track was dragged UP past the child
           } else if (childY + (child.height / 2) > dragY && childY < newY) {
             // update the track being dragged
-            this.newY = childY;
+            track.newY = childY;
             // update the track being dragged over
-            child.position.y = (newY + this.height) - child.height;
+            child.position.y = (newY + track.height) - child.height;
           }
         }
       }
@@ -290,14 +305,15 @@ var Synteny = (function (PIXI) {
   }
 
   // stop dragging a track
-  var _mouseup = function (event) {
-    if (this.newY !== undefined) {
+  var _endDrag = function (event) {
+    var track = this.parent;
+    if (track.newY !== undefined) {
       // unfade the track
-      this.alpha = 1;
+      track.alpha = 1;
       // put the track in its new position
-      this.position.y = this.newY;
+      track.position.y = track.newY;
       // discard dragging specific data
-      this.newY = undefined;
+      track.newY = undefined;
     }
   }
 

@@ -33,7 +33,8 @@
       {chromosome: 'dictum', blocks: [{start:620, stop:700, orientation:'-'}, {start:520, stop:600, orientation:'+'}, {start:0, stop:500, orientation:'-'}]}
     ]};
     var args = {
-      viewport: {start: 375, stop: 460}
+      viewport: {start: 375, stop: 460},
+      nameClick: function () { alert('clicked'); }
     }
     Synteny.draw('container', data, args);
   </script>
