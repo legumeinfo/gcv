@@ -39,7 +39,7 @@ var Synteny = (function (PIXI) {
 
   // create a graphic containing a track's blocks
   var _createTrack = function (LENGTH, SCALE, NAME_OFFSET, HEIGHT, PADDING,
-  COLOR, track, nameClick) {
+  COLOR, track, nameClick, blockClick) {
     var POINTER_LENGTH = 5;
     // create the rows for the track
     var rows = _createRows(track.blocks);
@@ -93,9 +93,11 @@ var Synteny = (function (PIXI) {
         // make the cursor a pointer when it rolls over the track
         block.buttonMode = true;
         // the events
+        block.clickCallback = blockClick;
         block
           .on('mouseover', _mouseoverBlock)
-          .on('mouseout', _mouseoutBlock);
+          .on('mouseout', _mouseoutBlock)
+          .on('click', _clickBlock);
         // add the block to the container
         blocks.addChild(block);
       }
@@ -110,6 +112,7 @@ var Synteny = (function (PIXI) {
     // make it interactive
     name.interactive = true;
     name.buttonMode = true;
+    name.clickCallback = nameClick;
     name
       // when a click begins
       .on('mousedown', _mousedownName)
@@ -127,7 +130,8 @@ var Synteny = (function (PIXI) {
     var container = new PIXI.Container();
     container.addChild(name);
     container.addChild(blocks);
-    // let it know what blocks it's associated with
+    // let it know what name and blocks it has
+    container.name = name;
     container.blocks = blocks.children;
     return container;
   }
@@ -184,6 +188,10 @@ var Synteny = (function (PIXI) {
   }
 
   /* mouse interaction events */
+
+  var _clickBlock = function (event) {
+    this.clickCallback();
+  }
   
   var _mousedownName = function (event) {
     // we want to operate at the track level
@@ -284,8 +292,13 @@ var Synteny = (function (PIXI) {
 
   // stop dragging a track
   var _endDrag = function (track) {
-    // put the track in its new position
-    track.position.y = track.newY;
+    // if the track wasn't dragged then it was clicked
+    if (track.position.y == track.newY) {
+      track.name.clickCallback();
+    } else {
+      // put the track in its new position
+      track.position.y = track.newY;
+    }
     // discard dragging specific data
     track.newY = undefined;
   }
@@ -384,7 +397,8 @@ var Synteny = (function (PIXI) {
   var draw = function (elementId, data, options) {
     // parse optional parameters
     var options = options || {};
-    var nameClick = options.nameClick || function() { };
+    var nameClick = options.nameClick || function () { };
+    var blockClick = options.blockClick || function () { };
     // get the dom element that will contain the view
     var container = document.getElementById(elementId);
     // width and height used to initially draw the view
@@ -430,7 +444,8 @@ var Synteny = (function (PIXI) {
         PADDING,
         c,
         data.tracks[i],
-        nameClick
+        nameClick,
+        blockClick
       );
       // position the track relative to the "table"
       track.position.y = table.height;
