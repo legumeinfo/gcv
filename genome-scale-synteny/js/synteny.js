@@ -38,26 +38,28 @@ var Synteny = (function (PIXI) {
   }
 
   // create a graphic containing a track's blocks
-  var _createTrack = function (renderer, LENGTH, SCALE, NAME_OFFSET, HEIGHT,
-  PADDING, COLOR, track, nameClick) {
+  var _createTrack = function (LENGTH, SCALE, NAME_OFFSET, HEIGHT, PADDING,
+  COLOR, track, nameClick) {
     var POINTER_LENGTH = 5;
     // create the rows for the track
     var rows = _createRows(track.blocks);
     // where the blocks will be drawn
-    var blocks = new PIXI.Graphics();
-    // set a fill and line style
-    blocks.beginFill(COLOR);
-    blocks.lineStyle(1, COLOR, 1);
+    var blocks = new PIXI.Container();
     // draw each row in the track
-    var tips = [];
     var tipArgs = {font : HEIGHT + 'px Arial', align : 'left'};
     for (var i = 0; i < rows.length; i++) {
       var iBlocks = rows[i];
       var y1 = (HEIGHT + PADDING) * i + PADDING;  // vertical
       var y2 = y1 + HEIGHT;
+      var middle = y1 + (HEIGHT / 2);
       // draw each block in the row
       for (var k = 0; k < iBlocks.length; k++) {
         var b = iBlocks[k];
+        // create a Graphics to draw the block in
+        var block = new PIXI.Graphics();
+        // set a fill and line style
+        block.beginFill(COLOR);
+        block.lineStyle(1, COLOR, 1);
         // create the polygon points of the block
         var x1 = SCALE * b.start;
         var x2 = SCALE * b.stop;
@@ -68,7 +70,6 @@ var Synteny = (function (PIXI) {
           x1, y2
         ];
         // add the orientation pointer
-        var middle = y1 + (HEIGHT / 2);
         if (b.orientation == '+') {
           points[2] -= POINTER_LENGTH;
           points[4] -= POINTER_LENGTH;
@@ -78,29 +79,28 @@ var Synteny = (function (PIXI) {
           points[6] += POINTER_LENGTH;
           points.push((SCALE * b.start), middle);
         }
-        // create the polygon
-        blocks.drawPolygon(points);
-        // create a tooltips for the track
+        // draw the block
+        block.drawPolygon(points);
+        block.endFill();
+        // create a tooltip for the block
         var tip = new PIXI.Text(b.start + ' - ' + b.stop, tipArgs);
-        tip.position.x = x1 + ((x2 - x1) / 2);
-        tip.position.y = y1 /*+ (HEIGHT / 2)*/;
+        tip.position.x = NAME_OFFSET + x1 + ((x2 - x1) / 2);
+        tip.position.y = y1;
         tip.rotation = 45 * (Math.PI / 180);
-        tips.push(tip);
+        block.tip = tip;
+        // make the block interactive
+        block.interactive = true;
+        // make the cursor a pointer when it rolls over the track
+        block.buttonMode = true;
+        // the events
+        block
+          .on('mouseover', _mouseoverBlock)
+          .on('mouseout', _mouseoutBlock);
+        // add the block to the container
+        blocks.addChild(block);
       }
     }
-    blocks.endFill();
-    // create a render texture so the blocks can be rendered as a sprite
-    var h = blocks.getBounds().height;
-    var w = SCALE * LENGTH;
-    var blocksTexture = new PIXI.RenderTexture(renderer, w, h);
-    blocksTexture.render(blocks);
-    // render the blocks as a sprite
-    var blocksSprite = new PIXI.Sprite(blocksTexture);
-    blocksSprite.position.x = NAME_OFFSET;
-    // make the blocksSprite interactive so we can capture mouse events
-    blocksSprite.interactive = true;
-    // make the cursor a pointer when it rolls over the track
-    blocksSprite.buttonMode = true;
+    blocks.position.x = NAME_OFFSET;
     // create the track name
     var nameArgs = {font : HEIGHT + 'px Arial', align : 'right'};
     var name = new PIXI.Text(track.chromosome, nameArgs);
@@ -111,25 +111,24 @@ var Synteny = (function (PIXI) {
     name.interactive = true;
     name.buttonMode = true;
     name
-      // begin dragging track
-      .on('mousedown', _mousedown)
-      .on('touchstart', _mousedown)
-      // stop dragging track
-      .on('mouseup', _mouseup)
-      .on('touchend', _mouseup)
-      .on('mouseupoutside', _mouseup)
-      .on('touchendoutside', _mouseup)
-      // track being dragged
-      .on('mouseover', _mouseover)
-      .on('mousemove', _mousemove)
-      .on('mouseout', _mouseout);
+      // when a click begins
+      .on('mousedown', _mousedownName)
+      .on('touchstart', _mousedownName)
+      // when a click ends
+      .on('mouseup', _mouseupName)
+      .on('touchend', _mouseupName)
+      .on('mouseupoutside', _mouseupName)
+      .on('touchendoutside', _mouseupName)
+      // when a mouse is moved in, out, and over the name
+      .on('mouseover', _mouseoverName)
+      .on('mousemove', _mousemoveName)
+      .on('mouseout', _mouseoutName);
     // add the name and blocks to a container
     var container = new PIXI.Container();
     container.addChild(name);
-    container.addChild(blocksSprite);
+    container.addChild(blocks);
     // let it know what blocks it's associated with
-    container.tips = tips;
-    container.blocks = blocksSprite;
+    container.blocks = blocks.children;
     return container;
   }
 
@@ -186,13 +185,13 @@ var Synteny = (function (PIXI) {
 
   /* mouse interaction events */
   
-  var _mousedown = function (event) {
+  var _mousedownName = function (event) {
     // we want to operate at the track level
     var track = this.parent;  // this = track name
     _beginDrag(track);
   }
 
-  var _mouseup = function (event) {
+  var _mouseupName = function (event) {
     // we want to operate at the track level
     var track = this.parent;  // this = track name
     // end dragging the track
@@ -201,7 +200,13 @@ var Synteny = (function (PIXI) {
     }
   }
 
-  var _mouseover = function (event) {
+  var _mouseoverBlock = function(event) {
+    var track = this.parent.parent;
+    // show the tooltip for the block
+    _showBlockTip(track, this);
+  }
+
+  var _mouseoverName = function (event) {
     var track = this.parent;
     var table = track.parent;
     var tracks = table.children;
@@ -209,11 +214,11 @@ var Synteny = (function (PIXI) {
     if (tracks.every(function (element, index, array) {
       return element.newY === undefined;
     })) {
-      _showTooltips(track);
+      _showTrackTips(track);
     }
   }
 
-  var _mousemove = function (event) {
+  var _mousemoveName = function (event) {
     var track = this.parent;
     // move the track if it's being dragged
     if (track.newY !== undefined) {
@@ -221,10 +226,16 @@ var Synteny = (function (PIXI) {
     }
   }
 
-  var _mouseout = function (event) {
+  var _mouseoutBlock = function(event) {
+    var track = this.parent.parent;
+    // hide the tooltip for the block
+    _hideBlockTip(track, this);
+  }
+
+  var _mouseoutName = function (event) {
     var track = this.parent;
     // hide the track's tooltips
-    _hideTooltips(track);
+    _hideTrackTips(track);
   }
 
   /* interaction behaviors */
@@ -279,39 +290,91 @@ var Synteny = (function (PIXI) {
     track.newY = undefined;
   }
 
-  // show a track's tooltips and fade the other tracks
-  var _showTooltips = function (track) {
-    var table = track.parent;
-    var tracks = table.children;
-    // fade all the other tracks
+  // shows a single tooltip
+  var _showTip = function (track, block) {
+    track.addChild(block.tip);
+  }
+
+  // fades all the tracks and blocks in the given lists
+  var _fade = function(tracks, blocks) {
     for (var i = 0; i < tracks.length; i++) {
-      var t = tracks[i];
-      if (t != track) {
-        t.alpha = _FADE;
-      }
+      var track = tracks[i];
+      track.alpha = _FADE;
     }
-    // draw tooltips for each of the track's blocks
-    for (var i = 0; i < track.tips.length; i++) {
-      tip = track.tips[i];
-      track.blocks.addChild(tip);
+    for (var i = 0; i < blocks.length; i++) {
+      var block = blocks[i];
+      block.alpha = _FADE;
     }
   }
 
-  // hide a track's tooltips and show the other tracks
-  var _hideTooltips = function (track) {
+  // shows a block's tooltip and fades all other blocks / tracks
+  var _showBlockTip = function(track, block) {
     var table = track.parent;
-    var tracks = table.children;
-    // unfade all the other tracks
-    for (var i = 0; i < tracks.length; i++) {
-      var t = tracks[i];
-      if (t != track) {
-        t.alpha = 1;
-      }
+    // create a list of tracks that doesn't contain track
+    var tracks = table.children.filter(function (t) { return t != track; });
+    // create a list of blocks that doesn't contain the block
+    var blocks = track.blocks.filter(function (b) { return b != block; });
+    // fade all the remaining tracks
+    _fade(tracks, blocks);
+    // draw the block's tooltip
+    _showTip(track, block);
+  }
+
+  // show a track's tooltips and fade the other tracks
+  var _showTrackTips = function (track) {
+    var table = track.parent;
+    // create a list of tracks that doesn't contain track
+    var tracks = table.children.filter(function (t) { return t != track; });
+    // fade all the remaining tracks
+    _fade(tracks, []);
+    // draw tooltips for each of the track's blocks
+    var blocks = track.blocks;
+    for (var i = 0; i < blocks.length; i++) {
+      _showTip(track, blocks[i]);
     }
+  }
+
+  // hides a single tooltip
+  var _hideTip = function (track, block) {
+    track.removeChild(block.tip);
+  }
+
+  // unfades all the tracks and blocks in the given lists
+  var _unfade = function (tracks, blocks) {
+    for (var i = 0; i < tracks.length; i++) {
+      var track = tracks[i];
+      track.alpha = 1;
+    }
+    for (var i = 0; i < blocks.length; i++) {
+      var block = blocks[i];
+      block.alpha = 1;
+    }
+  }
+
+  // hides a block's tooltip and fades all other blocks / tracks
+  var _hideBlockTip = function(track, block) {
+    var table = track.parent;
+    // create a list of tracks that doesn't contain track
+    var tracks = table.children.filter(function (t) { return t != track; });
+    // create a list of blocks that doesn't contain the block
+    var blocks = track.blocks.filter(function (b) { return b != block; });
+    // fade all the remaining tracks
+    _unfade(tracks, blocks);
+    // draw the block's tooltip
+    _hideTip(track, block);
+  }
+
+  // hide a track's tooltips and show the other tracks
+  var _hideTrackTips = function (track) {
+    var table = track.parent;
+    // create a list of tracks that doesn't contain track
+    var tracks = table.children.filter(function (t) { return t != track; });
+    // unfade all the remaining tracks
+    _unfade(tracks, []);
     // remove the track's tooltips
-    for (var i = 0; i < track.tips.length; i++) {
-      tip = track.tips[i];
-      track.blocks.removeChild(tip);
+    var blocks = track.blocks;
+    for (var i = 0; i < blocks.length; i++) {
+      _hideTip(track, blocks[i]);
     }
   }
 
@@ -360,7 +423,6 @@ var Synteny = (function (PIXI) {
       var c = _colors[i % _colors.length];
       // create the track
       var track = _createTrack(
-        renderer,
         data.length,
         SCALE,
         NAME_OFFSET,
