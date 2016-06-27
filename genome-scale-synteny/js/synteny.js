@@ -43,21 +43,26 @@ var Synteny = (function (PIXI) {
     blocks.beginFill(COLOR);
     blocks.lineStyle(1, COLOR, 1);
     // draw each row in the track
+    var tips = [];
+    var tipArgs = {font : HEIGHT + 'px Arial', align : 'left'};
     for (var i = 0; i < rows.length; i++) {
       var iBlocks = rows[i];
-      var yOffset = (HEIGHT + PADDING) * i + PADDING;  // vertical
+      var y1 = (HEIGHT + PADDING) * i + PADDING;  // vertical
+      var y2 = y1 + HEIGHT;
       // draw each block in the row
       for (var k = 0; k < iBlocks.length; k++) {
         var b = iBlocks[k];
         // create the polygon points of the block
+        var x1 = SCALE * b.start;
+        var x2 = SCALE * b.stop;
         var points = [  // x, y coordinates of block
-          SCALE * b.start, yOffset,
-          SCALE * b.stop, yOffset,
-          SCALE * b.stop, yOffset + HEIGHT,
-          SCALE * b.start, yOffset + HEIGHT
+          x1, y1,
+          x2, y1,
+          x2, y2,
+          x1, y2
         ];
         // add the orientation pointer
-        var middle = yOffset + (HEIGHT / 2);
+        var middle = y1 + (HEIGHT / 2);
         if (b.orientation == '+') {
           points[2] -= POINTER_LENGTH;
           points[4] -= POINTER_LENGTH;
@@ -69,6 +74,12 @@ var Synteny = (function (PIXI) {
         }
         // create the polygon
         blocks.drawPolygon(points);
+        // create a tooltips for the track
+        var tip = new PIXI.Text(b.start + ' - ' + b.stop, tipArgs);
+        tip.position.x = x1 + ((x2 - x1) / 2);
+        tip.position.y = y1 /*+ (HEIGHT / 2)*/;
+        tip.rotation = 45 * (Math.PI / 180);
+        tips.push(tip);
       }
     }
     blocks.endFill();
@@ -98,21 +109,25 @@ var Synteny = (function (PIXI) {
       .on('mouseover', _drag)
       .on('mousemove', _drag)
     // create the track name
-    var args = {font : HEIGHT + 'px Arial', align : 'right'};
-    var label = new PIXI.Text(track.chromosome, args);
+    var nameArgs = {font : HEIGHT + 'px Arial', align : 'right'};
+    var name = new PIXI.Text(track.chromosome, nameArgs);
     // position it next to the blocks
-    label.position.x = NAME_OFFSET - (label.width + (2 * PADDING));
-    label.position.y = (blocks.height - label.height) / 2;
+    name.position.x = NAME_OFFSET - (name.width + (2 * PADDING));
+    name.position.y = (blocks.height - name.height) / 2;
     // make it interactive
-    label.interactive = true;
-    label.buttonMode = true;
-    label.click = function (event) { nameClick(); };
-    label.mouseover = _showTooltips;
-    label.mouseout = _hideTooltips;
-    // add the label and blocks to a container
+    name.interactive = true;
+    name.buttonMode = true;
+    name.click = function (event) { nameClick(); };
+    name.mouseover = _showTooltips;
+    name.mouseout = _hideTooltips;
+    // let it know what blocks it's associated with
+    name.blocks = blocksSprite;
+    // add the name and blocks to a container
     var container = new PIXI.Container();
-    container.addChild(label);
+    container.addChild(name);
     container.addChild(blocksSprite);
+    // give the track the tips
+    container.tips = tips;
     return container;
   }
 
@@ -159,7 +174,7 @@ var Synteny = (function (PIXI) {
     viewport.drawRect(x, y, width, HEIGHT);
     viewport.endFill();
     // make the viewport semi-transparent
-    viewport.alpha = 0.2;
+    viewport.alpha = _FADE;
     return viewport;
   }
 
@@ -218,6 +233,8 @@ var Synteny = (function (PIXI) {
       );
       // position the track relative to the "table"
       track.position.y = table.height;
+      // bestow the track its data
+      track.data = data.tracks[i];
       // draw the track
       table.addChild(track);
     }
@@ -324,7 +341,8 @@ var Synteny = (function (PIXI) {
   // show a track's tooltips and fade the other tracks
   var _showTooltips = function (event) {
     var track = this.parent;
-    var tracks = track.parent.children;
+    var table = track.parent;
+    var tracks = table.children;
     // fade all the other tracks
     for (var i = 0; i < tracks.length; i++) {
       var t = tracks[i];
@@ -332,18 +350,29 @@ var Synteny = (function (PIXI) {
         t.alpha = _FADE;
       }
     }
+    // draw tooltips for each of the track's blocks
+    for (var i = 0; i < track.tips.length; i++) {
+      tip = track.tips[i];
+      this.blocks.addChild(tip);
+    }
   }
 
   // hide a track's tooltips and show the other tracks
   var _hideTooltips = function (event) {
     var track = this.parent;
-    var tracks = track.parent.children;
+    var table = track.parent;
+    var tracks = table.children;
     // unfade all the other tracks
     for (var i = 0; i < tracks.length; i++) {
       var t = tracks[i];
       if (t != track) {
         t.alpha = 1;
       }
+    }
+    // remove the track's tooltips
+    for (var i = 0; i < track.tips.length; i++) {
+      tip = track.tips[i];
+      this.blocks.removeChild(tip);
     }
   }
 
