@@ -2,8 +2,14 @@ var Synteny = (function (PIXI) {
 
   var _FADE = 0.15;
 
+  /* private */
+
+  /* variables */
+
   // 100 maximally distinct colors
   var _colors = [0x7A2719, 0x5CE33C, 0xE146E9, 0x64C6DE, 0xE8B031, 0x322755, 0x436521, 0xDE8EBA, 0x5C77E3, 0xCEE197, 0xE32C76, 0xE54229, 0x2F2418, 0xE1A782, 0x788483, 0x68E8B2, 0x9E2B85, 0xE4E42A, 0xD5D9D5, 0x76404F, 0x589BDB, 0xE276DE, 0x92C535, 0xDE6459, 0xE07529, 0xA060E4, 0x895997, 0x7ED177, 0x916D46, 0x5BB0A4, 0x365167, 0xA4AE89, 0xACA630, 0x38568F, 0xD2B8E2, 0xAF7B23, 0x81A158, 0x9E2F55, 0x57E7E1, 0xD8BD70, 0x316F4B, 0x5989A8, 0xD17686, 0x213F2C, 0xA6808E, 0x358937, 0x504CA1, 0xAA7CDD, 0x393E0D, 0xB02828, 0x5EB381, 0x47B033, 0xDF3EAA, 0x4E191E, 0x9445AC, 0x7A691F, 0x382135, 0x709628, 0xEF6FB0, 0x603719, 0x6B5A57, 0xA44A1C, 0xABC6E2, 0x9883B0, 0xA6E1D3, 0x357975, 0xDC3A56, 0x561238, 0xE1C5AB, 0x8B8ED9, 0xD897DF, 0x61E575, 0xE19B55, 0x1F303A, 0xA09258, 0xB94781, 0xA4E937, 0xEAABBB, 0x6E617D, 0xB1A9AF, 0xB16844, 0x61307A, 0xED8B80, 0xBB60A6, 0xE15A7F, 0x615C37, 0x7C2363, 0xD240C2, 0x9A5854, 0x643F64, 0x8C2A36, 0x698463, 0xBAE367, 0xE0DE51, 0xBF8C7E, 0xC8E6B6, 0xA6577B, 0x484A3A, 0xD4DE7C, 0xCD3488];
+
+  /* PIXI drawing functions */
   
   // greedy interval scheduling algorithm for grouping track blocks
   var _createRows = function (blocks) {
@@ -95,19 +101,6 @@ var Synteny = (function (PIXI) {
     blocksSprite.interactive = true;
     // make the cursor a pointer when it rolls over the track
     blocksSprite.buttonMode = true;
-    // setup the interaction events
-    blocksSprite
-      // begin dragging track
-      .on('mousedown', _beginDrag)
-      .on('touchstart', _beginDrag)
-      // stop dragging track
-      .on('mouseup', _endDrag)
-      .on('touchend', _endDrag)
-      .on('mouseupoutside', _endDrag)
-      .on('touchendoutside', _endDrag)
-      // track being dragged
-      .on('mouseover', _drag)
-      .on('mousemove', _drag)
     // create the track name
     var nameArgs = {font : HEIGHT + 'px Arial', align : 'right'};
     var name = new PIXI.Text(track.chromosome, nameArgs);
@@ -117,17 +110,26 @@ var Synteny = (function (PIXI) {
     // make it interactive
     name.interactive = true;
     name.buttonMode = true;
-    name.click = function (event) { nameClick(); };
-    name.mouseover = _showTooltips;
-    name.mouseout = _hideTooltips;
-    // let it know what blocks it's associated with
-    name.blocks = blocksSprite;
+    name
+      // begin dragging track
+      .on('mousedown', _mousedown)
+      .on('touchstart', _mousedown)
+      // stop dragging track
+      .on('mouseup', _mouseup)
+      .on('touchend', _mouseup)
+      .on('mouseupoutside', _mouseup)
+      .on('touchendoutside', _mouseup)
+      // track being dragged
+      .on('mouseover', _mouseover)
+      .on('mousemove', _mousemove)
+      .on('mouseout', _mouseout);
     // add the name and blocks to a container
     var container = new PIXI.Container();
     container.addChild(name);
     container.addChild(blocksSprite);
-    // give the track the tips
+    // let it know what blocks it's associated with
     container.tips = tips;
+    container.blocks = blocksSprite;
     return container;
   }
 
@@ -177,6 +179,139 @@ var Synteny = (function (PIXI) {
     viewport.alpha = _FADE;
     return viewport;
   }
+
+  /* mouse interaction events */
+  
+  var _mousedown = function (event) {
+    // we want to operate at the track level
+    var track = this.parent;  // this = track name
+    _beginDrag(track);
+  }
+
+  var _mouseup = function (event) {
+    // we want to operate at the track level
+    var track = this.parent;  // this = track name
+    // end dragging the track
+    if (track.newY !== undefined) {
+      _endDrag(track);
+    }
+  }
+
+  var _mouseover = function (event) {
+    var track = this.parent;
+    var table = track.parent;
+    var tracks = table.children;
+    // show the track's tooltips if no track is being dragged
+    if (tracks.every(function (element, index, array) {
+      return element.newY === undefined;
+    })) {
+      _showTooltips(track);
+    }
+  }
+
+  var _mousemove = function (event) {
+    var track = this.parent;
+    // move the track if it's being dragged
+    if (track.newY !== undefined) {
+      _drag(event, track);
+    }
+  }
+
+  var _mouseout = function (event) {
+    var track = this.parent;
+    // hide the track's tooltips
+    _hideTooltips(track);
+  }
+
+  /* interaction behaviors */
+
+  // how track dragging begins
+  var _beginDrag = function(track) {
+    // the track's new y coordinate will be computed as it's dragged
+    track.newY = track.position.y;
+    // bring the row being dragged to the front
+    var children = track.parent.children;
+    children.splice(children.indexOf(track), 1);
+    children.push(track);
+  }
+
+  // dragging a track
+  var _drag = function (event, track) {
+    var newY = track.newY;
+    // update the track's position according to the mouse's location
+    var table = track.parent;
+    var dragY = event.data.getLocalPosition(table).y;
+    // make sure the new position is within the bounds of the "table"
+    if (dragY >= 0 && dragY + track.height <= table.height) {
+      track.position.y = dragY;
+    }
+    // move other tracks as they're dragged over
+    for (var i = 0; i < table.children.length; i++) {
+      var child = table.children[i];
+      if (child != track) {
+        var childY = child.position.y;
+        // if the track was dragged DOWN past the child
+        if (childY + (child.height / 2) < dragY && childY > newY) {
+          // update the track being dragged
+          track.newY = (childY + child.height) - track.height;
+          // update the track being dragged over
+          child.position.y = newY;
+        // if the track was dragged UP past the child
+        } else if (childY + (child.height / 2) > dragY && childY < newY) {
+          // update the track being dragged
+          track.newY = childY;
+          // update the track being dragged over
+          child.position.y = (newY + track.height) - child.height;
+        }
+      }
+    }
+  }
+
+  // stop dragging a track
+  var _endDrag = function (track) {
+    // put the track in its new position
+    track.position.y = track.newY;
+    // discard dragging specific data
+    track.newY = undefined;
+  }
+
+  // show a track's tooltips and fade the other tracks
+  var _showTooltips = function (track) {
+    var table = track.parent;
+    var tracks = table.children;
+    // fade all the other tracks
+    for (var i = 0; i < tracks.length; i++) {
+      var t = tracks[i];
+      if (t != track) {
+        t.alpha = _FADE;
+      }
+    }
+    // draw tooltips for each of the track's blocks
+    for (var i = 0; i < track.tips.length; i++) {
+      tip = track.tips[i];
+      track.blocks.addChild(tip);
+    }
+  }
+
+  // hide a track's tooltips and show the other tracks
+  var _hideTooltips = function (track) {
+    var table = track.parent;
+    var tracks = table.children;
+    // unfade all the other tracks
+    for (var i = 0; i < tracks.length; i++) {
+      var t = tracks[i];
+      if (t != track) {
+        t.alpha = 1;
+      }
+    }
+    // remove the track's tooltips
+    for (var i = 0; i < track.tips.length; i++) {
+      tip = track.tips[i];
+      track.blocks.removeChild(tip);
+    }
+  }
+
+  /* public */
 
   // draws a synteny view
   var draw = function (elementId, data, options) {
@@ -272,107 +407,6 @@ var Synteny = (function (PIXI) {
       renderer.view.style.height = h + "px";
       // adjust the ratio
       renderer.resize(w, h);
-    }
-  }
-  
-  // start dragging a track
-  var _beginDrag = function (event) {
-    // we want to move the entire track, not just the blocks
-    var track = this.parent;
-    // the track's new y coordinate will be computed as it's dragged
-    track.newY = track.position.y;
-    // fade the track
-    track.alpha = _FADE;
-    // bring the row being dragged to the front
-    var children = track.parent.children;
-    children.splice(children.indexOf(track), 1);
-    children.push(track);
-  }
-
-  // dragging a track
-  var _drag = function (event) {
-    var track = this.parent;
-    // if the track is being dragged
-    if (track.newY !== undefined) {
-      var newY = track.newY;
-      // update the track's position according to the mouse's location
-      var table = track.parent;
-      var dragY = event.data.getLocalPosition(table).y;
-      // TODO: fix so this actually bounds the bottom correctly
-      if (dragY >= 0 && dragY + track.height <= table.height) {
-        track.position.y = dragY;
-      }
-      // move other tracks as they're dragged over
-      for (var i = 0; i < table.children.length; i++) {
-        var child = table.children[i];
-        if (child != track) {
-          var childY = child.position.y;
-          // if the track was dragged DOWN past the child
-          if (childY + (child.height / 2) < dragY && childY > newY) {
-            // update the track being dragged
-            track.newY = (childY + child.height) - track.height;
-            // update the track being dragged over
-            child.position.y = newY;
-          // if the track was dragged UP past the child
-          } else if (childY + (child.height / 2) > dragY && childY < newY) {
-            // update the track being dragged
-            track.newY = childY;
-            // update the track being dragged over
-            child.position.y = (newY + track.height) - child.height;
-          }
-        }
-      }
-    }
-  }
-
-  // stop dragging a track
-  var _endDrag = function (event) {
-    var track = this.parent;
-    if (track.newY !== undefined) {
-      // unfade the track
-      track.alpha = 1;
-      // put the track in its new position
-      track.position.y = track.newY;
-      // discard dragging specific data
-      track.newY = undefined;
-    }
-  }
-
-  // show a track's tooltips and fade the other tracks
-  var _showTooltips = function (event) {
-    var track = this.parent;
-    var table = track.parent;
-    var tracks = table.children;
-    // fade all the other tracks
-    for (var i = 0; i < tracks.length; i++) {
-      var t = tracks[i];
-      if (t != track) {
-        t.alpha = _FADE;
-      }
-    }
-    // draw tooltips for each of the track's blocks
-    for (var i = 0; i < track.tips.length; i++) {
-      tip = track.tips[i];
-      this.blocks.addChild(tip);
-    }
-  }
-
-  // hide a track's tooltips and show the other tracks
-  var _hideTooltips = function (event) {
-    var track = this.parent;
-    var table = track.parent;
-    var tracks = table.children;
-    // unfade all the other tracks
-    for (var i = 0; i < tracks.length; i++) {
-      var t = tracks[i];
-      if (t != track) {
-        t.alpha = 1;
-      }
-    }
-    // remove the track's tooltips
-    for (var i = 0; i < track.tips.length; i++) {
-      tip = track.tips[i];
-      this.blocks.removeChild(tip);
     }
   }
 
