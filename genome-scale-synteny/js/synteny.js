@@ -136,19 +136,19 @@ var Synteny = (function (PIXI) {
   // creates the query ruler graphic
   var _createRuler = function (chromosome, LENGTH, SCALE, NAME_OFFSET, HEIGHT,
   PADDING) {
-    // create the Graphics that will hold the ruler
-    var ruler = new PIXI.Graphics();
-    // add the query name
+    // create the query name
     var args = {font : 'bold ' + HEIGHT + 'px Arial', align : 'right'};
-    var label = new PIXI.Text(chromosome, args);
-    label.position.x = NAME_OFFSET - (label.width + (2 * PADDING));
-    label.position.y = HEIGHT / 2;
-    ruler.addChild(label);
+    var name = new PIXI.Text(chromosome, args);
+    name.position.x = NAME_OFFSET - (name.width + (2 * PADDING));
+    name.position.y = HEIGHT / 2;
+    // create the ruler
+    var ruler = new PIXI.Graphics();
+    ruler.position.x = NAME_OFFSET;
     // draw the ruler
     ruler.lineStyle(1, 0x000000, 1);
-    ruler.moveTo(NAME_OFFSET, HEIGHT);
-    ruler.lineTo(NAME_OFFSET, HEIGHT / 2);
-    var right = NAME_OFFSET + (LENGTH * SCALE);
+    ruler.moveTo(0, HEIGHT);
+    ruler.lineTo(0, HEIGHT / 2);
+    var right = LENGTH * SCALE;
     ruler.lineTo(right, HEIGHT / 2);
     ruler.lineTo(right, HEIGHT);
     ruler.endFill();
@@ -156,12 +156,16 @@ var Synteny = (function (PIXI) {
     var start = new PIXI.Text('0', args);
     start.position.x = NAME_OFFSET;
     start.position.y = HEIGHT;
-    ruler.addChild(start);
     var stop = new PIXI.Text(LENGTH, args);
-    stop.position.x = right - stop.width;
+    stop.position.x = ruler.position.x + ruler.width - stop.width;
     stop.position.y = HEIGHT;
-    ruler.addChild(stop);
-    return ruler;
+    // add the pieces to a container
+    var container = new PIXI.Container();
+    container.addChild(name);
+    container.addChild(ruler);
+    container.addChild(start);
+    container.addChild(stop);
+    return container;
   }
 
   var _createViewport = function (start, stop, SCALE, y, HEIGHT) {
@@ -373,11 +377,9 @@ var Synteny = (function (PIXI) {
       // draw the track
       table.addChild(track);
     }
-    // position the table
-    // TODO: use ruler, rather than hard coding
-    //table.position.y = ruler.y + ruler.height + (2 * padding);
-    var table_y = (2 * HEIGHT) + (2 * PADDING);
-    table.position.y = table_y;
+    // position the table relative to the ruler
+    tableY = ruler.position.y + ruler.height + (3 * PADDING);
+    table.position.y = tableY;
     // draw the table
     stage.addChild(table);
     // draw the viewport for the context currently being viewed
@@ -386,7 +388,7 @@ var Synteny = (function (PIXI) {
         options.viewport.start,
         options.viewport.stop,
         SCALE,
-        table_y,
+        tableY,
         table.height
       );
       stage.addChild(viewport);
