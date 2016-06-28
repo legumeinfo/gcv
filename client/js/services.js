@@ -708,7 +708,7 @@ contextServices.service('Plot', function($http, Viewer, UI) {
   var colors = contextColors;  // context.js
 
   // plots a track against the query
-  function plot(track) {
+  function plotPoints(track) {
     var plot_genes = [];
     for (var j = 0; j < track.genes.length; j++) {
       if (track.genes[j].family in familyMap) {
@@ -747,14 +747,14 @@ contextServices.service('Plot', function($http, Viewer, UI) {
       var index = localPlots.length;
       localIdToIndex[id] = index;
       localPlots.push($.extend(true, {}, tracks.groups[i]));
-      localPlots[index].genes = plot(localPlots[index]);
+      localPlots[index].genes = plotPoints(localPlots[index]);
     }
   }
 
   // draws a plot
-  function draw(element, plot, dim) {
+  function draw(element, data, dim) {
     $(element).html('');
-    synteny(element.substr(1), familySizes, colors, plot, {  // context.js
+    plot(element.substr(1), familySizes, colors, data, {  // plot.js
       "geneClicked":  function(gene) { Viewer.geneClickEvent(gene); },
       "plotClicked": function(trackID) { Viewer.rightAxisClickEvent(trackID); },
       "width": dim
@@ -802,7 +802,7 @@ contextServices.service('Plot', function($http, Viewer, UI) {
             for (var i in track.genes) {
               track.genes[i].source = local.source;
             }
-            globalPlots[trackID].genes = plot(track);
+            globalPlots[trackID].genes = plotPoints(track);
             draw('#global-plot', globalPlots[trackID], dim);
             UI.hideSpinners();
           }, function(response) {

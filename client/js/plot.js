@@ -1,4 +1,4 @@
-function synteny(containerID, familySizes, color, points, optionalParameters) {
+function plot(containerID, familySizes, color, points, optionalParameters) {
   // get the optional parameters
   var geneClicked = function(selection) { },
       brushCallback = function(selected_group) { },
