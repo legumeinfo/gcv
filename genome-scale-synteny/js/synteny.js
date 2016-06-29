@@ -1,10 +1,10 @@
 var Synteny = (function (PIXI) {
 
-  var _FADE = 0.15;
-
   /* private */
 
   /* variables */
+
+  var _FADE = 0.15;
 
   // 100 maximally distinct colors
   var _colors = [0x7A2719, 0x5CE33C, 0xE146E9, 0x64C6DE, 0xE8B031, 0x322755, 0x436521, 0xDE8EBA, 0x5C77E3, 0xCEE197, 0xE32C76, 0xE54229, 0x2F2418, 0xE1A782, 0x788483, 0x68E8B2, 0x9E2B85, 0xE4E42A, 0xD5D9D5, 0x76404F, 0x589BDB, 0xE276DE, 0x92C535, 0xDE6459, 0xE07529, 0xA060E4, 0x895997, 0x7ED177, 0x916D46, 0x5BB0A4, 0x365167, 0xA4AE89, 0xACA630, 0x38568F, 0xD2B8E2, 0xAF7B23, 0x81A158, 0x9E2F55, 0x57E7E1, 0xD8BD70, 0x316F4B, 0x5989A8, 0xD17686, 0x213F2C, 0xA6808E, 0x358937, 0x504CA1, 0xAA7CDD, 0x393E0D, 0xB02828, 0x5EB381, 0x47B033, 0xDF3EAA, 0x4E191E, 0x9445AC, 0x7A691F, 0x382135, 0x709628, 0xEF6FB0, 0x603719, 0x6B5A57, 0xA44A1C, 0xABC6E2, 0x9883B0, 0xA6E1D3, 0x357975, 0xDC3A56, 0x561238, 0xE1C5AB, 0x8B8ED9, 0xD897DF, 0x61E575, 0xE19B55, 0x1F303A, 0xA09258, 0xB94781, 0xA4E937, 0xEAABBB, 0x6E617D, 0xB1A9AF, 0xB16844, 0x61307A, 0xED8B80, 0xBB60A6, 0xE15A7F, 0x615C37, 0x7C2363, 0xD240C2, 0x9A5854, 0x643F64, 0x8C2A36, 0x698463, 0xBAE367, 0xE0DE51, 0xBF8C7E, 0xC8E6B6, 0xA6577B, 0x484A3A, 0xD4DE7C, 0xCD3488];
@@ -12,7 +12,7 @@ var Synteny = (function (PIXI) {
   /* PIXI drawing functions */
   
   // greedy interval scheduling algorithm for grouping track blocks
-  var _createRows = function (blocks) {
+  var _rows = function (blocks) {
     // create a copy so there are no side effects
     var orderedBlocks = blocks.slice();
     // reverse sort by stop location so we can remove elements during iteration
@@ -38,66 +38,78 @@ var Synteny = (function (PIXI) {
   }
 
   // create a graphic containing a track's blocks
-  var _createTrack = function (LENGTH, SCALE, NAME_OFFSET, HEIGHT, PADDING,
-  COLOR, track, nameClick, blockClick) {
+  var _track = function (scale, NAME_OFFSET, HEIGHT, PADDING, COLOR, data,
+  nameClick, blockClick) {
+    // helper that draws blocks
     var POINTER_LENGTH = 5;
+    var _trackBlock = function(b, y1, scale) {
+      // create a Graphics to draw the block in
+      var block = new PIXI.Graphics();
+      // set a fill and line style
+      block.beginFill(COLOR);
+      block.lineStyle(1, COLOR, 1);
+      // create the polygon points of the block
+      var y2 = y1 + HEIGHT;
+      var x1 = scale * b.start;
+      var x2 = scale * b.stop;
+      var points = [  // x, y coordinates of block
+        x1, y1,
+        x2, y1,
+        x2, y2,
+        x1, y2
+      ];
+      var middle = y1 + (HEIGHT / 2);
+      // add the orientation pointer
+      if (b.orientation == '+') {
+        points[2] -= POINTER_LENGTH;
+        points[4] -= POINTER_LENGTH;
+        points.splice(4, 0, (scale * b.stop), middle);
+      } else if (b.orientation == '-') {
+        points[0] += POINTER_LENGTH;
+        points[6] += POINTER_LENGTH;
+        points.push((scale * b.start), middle);
+      }
+      // draw the block
+      block.drawPolygon(points);
+      block.endFill();
+      // make the block interactive
+      block.interactive = true;
+      // make the cursor a pointer when it rolls over the track
+      block.buttonMode = true;
+      // the events
+      block.clickCallback = blockClick;
+      block
+        .on('mouseover', _mouseoverBlock)
+        .on('mouseout', _mouseoutBlock)
+        .on('click', _clickBlock);
+      // give the block the data it was created with
+      block.data = b;
+      // tell the block how to associate a tooltip
+      block.setTip = function (tip) {
+        tip.position.x = NAME_OFFSET + x1 + ((x2 - x1) / 2);
+        block.tip = tip;
+      }
+      return block;
+    }
     // create the rows for the track
-    var rows = _createRows(track.blocks);
+    var rows = _rows(data.blocks);
     // where the blocks will be drawn
     var blocks = new PIXI.Container();
     // draw each row in the track
     var tipArgs = {font : HEIGHT + 'px Arial', align : 'left'};
     for (var i = 0; i < rows.length; i++) {
       var iBlocks = rows[i];
-      var y1 = (HEIGHT + PADDING) * i + PADDING;  // vertical
-      var y2 = y1 + HEIGHT;
-      var middle = y1 + (HEIGHT / 2);
+      var y = (HEIGHT + PADDING) * i + PADDING;
       // draw each block in the row
       for (var k = 0; k < iBlocks.length; k++) {
         var b = iBlocks[k];
-        // create a Graphics to draw the block in
-        var block = new PIXI.Graphics();
-        // set a fill and line style
-        block.beginFill(COLOR);
-        block.lineStyle(1, COLOR, 1);
-        // create the polygon points of the block
-        var x1 = SCALE * b.start;
-        var x2 = SCALE * b.stop;
-        var points = [  // x, y coordinates of block
-          x1, y1,
-          x2, y1,
-          x2, y2,
-          x1, y2
-        ];
-        // add the orientation pointer
-        if (b.orientation == '+') {
-          points[2] -= POINTER_LENGTH;
-          points[4] -= POINTER_LENGTH;
-          points.splice(4, 0, (SCALE * b.stop), middle);
-        } else if (b.orientation == '-') {
-          points[0] += POINTER_LENGTH;
-          points[6] += POINTER_LENGTH;
-          points.push((SCALE * b.start), middle);
-        }
-        // draw the block
-        block.drawPolygon(points);
-        block.endFill();
+        // create the block
+        var block = _trackBlock(b, y, scale);
         // create a tooltip for the block
         var tip = new PIXI.Text(b.start + ' - ' + b.stop, tipArgs);
-        tip.position.x = NAME_OFFSET + x1 + ((x2 - x1) / 2);
-        tip.position.y = y1;
+        tip.position.y = y;
         tip.rotation = 45 * (Math.PI / 180);
-        block.tip = tip;
-        // make the block interactive
-        block.interactive = true;
-        // make the cursor a pointer when it rolls over the track
-        block.buttonMode = true;
-        // the events
-        block.clickCallback = blockClick;
-        block
-          .on('mouseover', _mouseoverBlock)
-          .on('mouseout', _mouseoutBlock)
-          .on('click', _clickBlock);
+        block.setTip(tip);
         // add the block to the container
         blocks.addChild(block);
       }
@@ -105,7 +117,7 @@ var Synteny = (function (PIXI) {
     blocks.position.x = NAME_OFFSET;
     // create the track name
     var nameArgs = {font : HEIGHT + 'px Arial', align : 'right'};
-    var name = new PIXI.Text(track.chromosome, nameArgs);
+    var name = new PIXI.Text(data.chromosome, nameArgs);
     // position it next to the blocks
     name.position.x = NAME_OFFSET - (name.width + (2 * PADDING));
     name.position.y = (blocks.height - name.height) / 2;
@@ -126,64 +138,113 @@ var Synteny = (function (PIXI) {
       .on('mouseover', _mouseoverName)
       .on('mousemove', _mousemoveName)
       .on('mouseout', _mouseoutName);
-    // add the name and blocks to a container
-    var container = new PIXI.Container();
-    container.addChild(name);
-    container.addChild(blocks);
+    // add the name and blocks to a track
+    var track = new PIXI.Container();
+    track.addChild(name);
+    track.addChild(blocks);
     // let it know what name and blocks it has
-    container.name = name;
-    container.blocks = blocks.children;
-    return container;
+    track.name = name;
+    track.blocks = blocks.children;
+    // how the track is resized
+    track.resize = function(s) {
+      // resize the blocks
+      for (var i = 0; i < blocks.children.length; i++) {
+        var block = blocks.children[i];
+        // save the tip
+        var tip = block.tip;
+        // draw a new block
+        blocks.removeChild(block);
+        block = _trackBlock(block.data, tip.position.y, s);
+        // give it the old tip
+        block.setTip(tip);
+        // add it to the track
+        blocks.addChild(block);
+      }
+    }
+    return track;
   }
 
   // creates the query ruler graphic
-  var _createRuler = function (chromosome, LENGTH, SCALE, NAME_OFFSET, HEIGHT,
+  var _ruler = function (chromosome, LENGTH, scale, NAME_OFFSET, HEIGHT,
   PADDING) {
+    // helper for drawing the ruler line
+    var width = LENGTH * scale;
+    var _rulerLine = function () {
+      // the line Graphics
+      var line = new PIXI.Graphics();
+      // where it's located
+      line.position.x = NAME_OFFSET;
+      // actually draw the line
+      line.lineStyle(1, 0x000000, 1);
+      line.moveTo(0, HEIGHT);
+      line.lineTo(0, HEIGHT / 2);
+      line.lineTo(width, HEIGHT / 2);
+      line.lineTo(width, HEIGHT);
+      line.endFill();
+      return line;
+    }
     // create the query name
     var args = {font : 'bold ' + HEIGHT + 'px Arial', align : 'right'};
     var name = new PIXI.Text(chromosome, args);
     name.position.x = NAME_OFFSET - (name.width + (2 * PADDING));
     name.position.y = HEIGHT / 2;
-    // create the ruler
-    var ruler = new PIXI.Graphics();
-    ruler.position.x = NAME_OFFSET;
-    // draw the ruler
-    ruler.lineStyle(1, 0x000000, 1);
-    ruler.moveTo(0, HEIGHT);
-    ruler.lineTo(0, HEIGHT / 2);
-    var right = LENGTH * SCALE;
-    ruler.lineTo(right, HEIGHT / 2);
-    ruler.lineTo(right, HEIGHT);
-    ruler.endFill();
+    // create the line
+    var line = _rulerLine();
     // add the genome length labels
     var start = new PIXI.Text('0', args);
     start.position.x = NAME_OFFSET;
     start.position.y = HEIGHT;
     var stop = new PIXI.Text(LENGTH, args);
-    stop.position.x = ruler.position.x + ruler.width - stop.width;
+    stop.setX = function() {
+      this.position.x = NAME_OFFSET + width - this.width;
+    }
+    stop.setX();
     stop.position.y = HEIGHT;
-    // add the pieces to a container
-    var container = new PIXI.Container();
-    container.addChild(name);
-    container.addChild(ruler);
-    container.addChild(start);
-    container.addChild(stop);
-    return container;
+    // add the pieces to a ruler
+    var ruler = new PIXI.Container();
+    ruler.addChild(name);
+    ruler.addChild(line);
+    ruler.addChild(start);
+    ruler.addChild(stop);
+    // how the ruler is resized
+    ruler.resize = function(scale) {
+      // resize the line
+      width = LENGTH * scale;
+      this.removeChild(line);
+      line = _rulerLine();
+      this.addChild(line);
+      // reposition the stop label
+      stop.setX();
+    }
+    return ruler;
   }
 
-  var _createViewport = function (start, stop, SCALE, y, HEIGHT) {
+  var _viewport = function (start, stop, NAME_OFFSET, scale, y, HEIGHT) {
+    // helper that computes the x position and width of the viewport
+    var _viewportBounds = function (scale) {
+      var x = NAME_OFFSET + (scale * start);
+      var width = (scale * (stop - start));
+      return {x: x, width: width};
+    }
     // create the Graphics that will hold the viewport
     var viewport = new PIXI.Graphics();
     // set a fill and line style
     viewport.beginFill(0x000000);
     viewport.lineStyle(1, 0x000000, 1);
     // draw the port
-    var x = SCALE * start;
-    var width = (SCALE * stop) - x;
-    viewport.drawRect(x, y, width, HEIGHT);
+    var bounds = _viewportBounds(scale);
+    viewport.drawRect(0, 0, bounds.width, HEIGHT);
     viewport.endFill();
+    viewport.position.x = bounds.x;
+    viewport.position.y = y;
     // make the viewport semi-transparent
     viewport.alpha = _FADE;
+    // how the viewport is resized
+    viewport.resize = function(scale) {
+      var bounds = _viewportBounds(scale);
+      viewport.position.x = bounds.x;
+      viewport.width = bounds.width;
+    }
     return viewport;
   }
 
@@ -414,15 +475,16 @@ var Synteny = (function (PIXI) {
     // the dimensions of a track
     var HEIGHT = 11;
     var PADDING = 2;
+    var LENGTH = data.length;
     // the bounds of the tracks "table"
     var NAME_OFFSET = 100;
     var right = 10;
-    var SCALE = (w - (NAME_OFFSET + right)) / data.length;
+    var scale = (w - (NAME_OFFSET + right)) / data.length;
     // draw the query position ruler
-    var ruler = _createRuler(
+    var ruler = _ruler(
       data.chromosome,
-      data.length,
-      SCALE,
+      LENGTH,
+      scale,
       NAME_OFFSET,
       HEIGHT,
       PADDING
@@ -436,9 +498,8 @@ var Synteny = (function (PIXI) {
       // the track's color
       var c = _colors[i % _colors.length];
       // create the track
-      var track = _createTrack(
-        data.length,
-        SCALE,
+      var track = _track(
+        scale,
         NAME_OFFSET,
         HEIGHT,
         PADDING,
@@ -460,16 +521,21 @@ var Synteny = (function (PIXI) {
     // draw the table
     stage.addChild(table);
     // draw the viewport for the context currently being viewed
+    var viewport;
     if (options.viewport !== undefined) {
-      var viewport = _createViewport(
+      viewport = _viewport(
         options.viewport.start,
         options.viewport.stop,
-        SCALE,
+        NAME_OFFSET,
+        scale,
         tableY,
         table.height
       );
       stage.addChild(viewport);
     }
+    // change the height of the container to match its content
+    h = table.position.y + table.height;
+    renderer.resize(w, h);
     // run the render loop
     animate();
     // how to animate the view
@@ -477,15 +543,32 @@ var Synteny = (function (PIXI) {
       renderer.render(stage);
       requestAnimationFrame(animate);
     }
-    // resize the renderer with the dom container
-    container.onresize = function (event) {
-      var w = container.innerWidth;
-      var h = container.innerHeight;
-      // resize the canvas but keeps ratio the same
-      renderer.view.style.width = w + "px";
-      renderer.view.style.height = h + "px";
-      // adjust the ratio
+    // create hidden iframe to trigger resize events
+    var iframe = document.createElement('IFRAME');
+    iframe.setAttribute('allowtransparency', true);
+    iframe.style.width = '100%';
+    iframe.style.height = '0';
+    iframe.style.position = 'absolute';
+    iframe.style.border = 'none';
+    iframe.style.backgroundColor = 'transparent';
+    container.appendChild(iframe);
+    // listen to the iframe's content window for resize events
+    iframe.contentWindow.onresize = function (event) {
+      // resize the renderer
+      var w = container.offsetWidth;
       renderer.resize(w, h);
+      // the new scale for for the coordinate system
+      var scale = (w - (NAME_OFFSET + right)) / data.length;
+      // resize the ruler
+      ruler.resize(scale);
+      // resize the tracks
+      for (var i = 0; i < table.children.length; i++) {
+        table.children[i].resize(scale);
+      }
+      // resize the viewport
+      if (viewport !== undefined) {
+        viewport.resize(scale);
+      }
     }
   }
 
