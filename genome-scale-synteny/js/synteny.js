@@ -97,6 +97,7 @@ var Synteny = (function (PIXI) {
     var blocks = new PIXI.Container();
     // draw each row in the track
     var tipArgs = {font : HEIGHT + 'px Arial', align : 'left'};
+    var tallestTip = 0;
     for (var i = 0; i < rows.length; i++) {
       var iBlocks = rows[i];
       var y = (HEIGHT + PADDING) * i + PADDING;
@@ -110,6 +111,9 @@ var Synteny = (function (PIXI) {
         tip.position.y = y;
         tip.rotation = 45 * (Math.PI / 180);
         block.setTip(tip);
+        // compute the tip's rotated height and see if it's the largest
+        var height = Math.sqrt(Math.pow(tip.width, 2) / 2);
+        tallestTip = Math.max(tallestTip, height);
         // add the block to the container
         blocks.addChild(block);
       }
@@ -142,6 +146,7 @@ var Synteny = (function (PIXI) {
     var track = new PIXI.Container();
     track.addChild(name);
     track.addChild(blocks);
+    track.tallestTip = tallestTip;
     // let it know what name and blocks it has
     track.name = name;
     track.blocks = blocks.children;
@@ -494,6 +499,7 @@ var Synteny = (function (PIXI) {
     // create a container for the tracks "table"
     var table = new PIXI.Container();
     // draw the tracks
+    var tallestTip = 0;
     for (var i = 0; i < data.tracks.length; i++) {
       // the track's color
       var c = _colors[i % _colors.length];
@@ -508,6 +514,7 @@ var Synteny = (function (PIXI) {
         nameClick,
         blockClick
       );
+      tallestTip = Math.max(tallestTip, track.tallestTip);
       // position the track relative to the "table"
       track.position.y = table.height;
       // bestow the track its data
@@ -534,7 +541,7 @@ var Synteny = (function (PIXI) {
       stage.addChild(viewport);
     }
     // change the height of the container to match its content
-    h = table.position.y + table.height;
+    h = table.position.y + table.height + tallestTip;
     renderer.resize(w, h);
     // run the render loop
     animate();
