@@ -195,7 +195,7 @@ function($scope, $routeParams, Basic, Viewer, UI) {
 
 // search viewer
 contextControllers.controller('SearchCtrl',
-function($scope, $routeParams, Search, Viewer, UI) {
+function($scope, $routeParams, Search, Viewer, Synteny, UI) {
   var search = this;
 
   // pass through ui for the view
@@ -242,6 +242,7 @@ function($scope, $routeParams, Search, Viewer, UI) {
         'Query Parameters</a>)'
       );
     }
+    Synteny.draw();
     UI.hideSpinners();
   }
 

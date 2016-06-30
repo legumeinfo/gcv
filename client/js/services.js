@@ -680,6 +680,37 @@ contextServices.service('Search', function($http, $q, $rootScope, Viewer) {
   return services;
 });
 
+// responsible for curating data for the search viewer
+contextServices.service('Synteny', function($http, $q, $rootScope, Viewer) {
+  return {
+    draw: function () {
+      var data = {chromosome: 'lorem', length: 1000, tracks: [
+        {chromosome: 'ipsum', blocks: [{start:620, stop:700, orientation:'-'}, {start:520, stop:600, orientation:'+'}, {start:0, stop:500, orientation:'-'}]},
+        {chromosome: 'dolor', blocks: [{start:620, stop:700, orientation:'-'}, {start:520, stop:600, orientation:'+'}, {start:0, stop:500, orientation:'-'}]},
+        {chromosome: 'sit', blocks: [{start:620, stop:700, orientation:'-'}, {start:520, stop:600, orientation:'+'}, {start:0, stop:500, orientation:'-'},
+                                      {start:570, stop:650, orientation:'+'}, {start:470, stop:550, orientation:'-'}, {start:60, stop:450, orientation:'+'}]},
+        {chromosome: 'amet', blocks: [{start:620, stop:700, orientation:'-'}, {start:520, stop:600, orientation:'+'}, {start:0, stop:500, orientation:'-'}]},
+        {chromosome: 'consectetur', blocks: [{start:620, stop:700, orientation:'-'}, {start:520, stop:600, orientation:'+'}, {start:0, stop:500, orientation:'-'}]},
+        {chromosome: 'adipiscing', blocks: [{start:620, stop:700, orientation:'-'}, {start:520, stop:600, orientation:'+'}, {start:0, stop:500, orientation:'-'}]},
+        {chromosome: 'elit', blocks: [{start:620, stop:700, orientation:'-'}, {start:520, stop:600, orientation:'+'}, {start:0, stop:500, orientation:'-'}]},
+        {chromosome: 'etiam', blocks: [{start:620, stop:700, orientation:'-'}, {start:520, stop:600, orientation:'+'}, {start:0, stop:500, orientation:'-'},
+                                      {start:570, stop:650, orientation:'+'}, {start:470, stop:550, orientation:'-'}, {start:60, stop:450, orientation:'+'}]},
+        {chromosome: 'libero', blocks: [{start:620, stop:700, orientation:'-'}, {start:520, stop:600, orientation:'+'}, {start:0, stop:500, orientation:'-'}]},
+        {chromosome: 'risus', blocks: [{start:0, stop:1000, orientation:'+'}]},
+        {chromosome: 'dictum', blocks: [{start:620, stop:700, orientation:'-'}, {start:520, stop:600, orientation:'+'}, {start:0, stop:500, orientation:'-'}]}
+      ]};
+      var args = {
+        viewport: {start: 375, stop: 460},
+        nameClick: function () { alert('name clicked'); },
+        blockClick: function () { alert('block clicked'); }
+      }
+      var element = 'synteny';
+      document.getElementById(element).innerHTML = '';
+      Synteny.draw(element, data, args);
+    }
+  };
+});
+
 contextServices.factory('Gene', function($http) {
   return {
     get: function(name, source, successCallback, errorCallback) {
