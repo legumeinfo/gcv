@@ -8,18 +8,18 @@ function contextLegend(containerID, color, data, optionalParameters) {
   document.getElementById(containerID).innerHTML = '';
   
   // get the family id name map
-  var family_names = getFamilyNameMap( data );
+  var family_names = getFamilyNameMap(data);
   
   // omit any family that don't have a name
   var fams = [];
   // determine how many families will be in the legend
-  var family_size_map = getFamilySizeMap( data );
+  var family_size_map = getFamilySizeMap(data);
   var num_fams = 0;
   if (optionalParameters.selectiveColoring === undefined ||
       optionalParameters.selectiveColoring !== undefined &&
-      optionalParameters.selectiveColoring ) {
+      optionalParameters.selectiveColoring) {
     for (fam in family_size_map) {
-      if (fam != '' && family_size_map[ fam ] > 1) {
+      if (fam != '' && family_size_map[fam] > 1) {
       	num_fams++;
         fams.push(fam);
       }
@@ -79,7 +79,7 @@ function contextLegend(containerID, color, data, optionalParameters) {
   	  var selection = d3.selectAll(".gene").filter(function(e) {
   	  	return e.family == d;
   	  });
-  	  hideTips( selection );
+  	  hideTips(selection);
   	})
     .on('click', function (d) {
   	  // call the callback
@@ -93,7 +93,11 @@ function contextLegend(containerID, color, data, optionalParameters) {
   	  });
   	  var family = d3.select(this);
         if (optionalParameters.legendClick !== undefined) {
-  	      optionalParameters.legendClick(d, selection);
+          var genes = [];
+          selection.each(function(g) {
+            genes.push(g);
+          });
+  	      optionalParameters.legendClick(d, genes);
         }
   	});
   

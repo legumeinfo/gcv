@@ -11,16 +11,25 @@ contextApp.config(['$routeProvider',
   // define our routes
   function($routeProvider) {
     $routeProvider
-      .when('/search/:query', { // query = focus name
-        template: ' ', // just fires the controller
-        controller: 'ViewerCtrl',
-        search: true
+      .when('/basic/:genes', {
+        templateUrl: 'templates/basic.html',
+        controller: 'BasicCtrl',
+        controllerAs: 'basic'
       })
-      .when('/basic/:query', { // query = internal node id
-        template: ' ', //just fires the controller
-        controller: 'ViewerCtrl',
-        search: false
-      });
+      .when('/search/:source/:gene', {
+        templateUrl: 'templates/search.html',
+        controller: 'SearchCtrl',
+        controllerAs: 'search'
+      })
+      .when('/search/:gene', {redirectTo: '/search/lis/:gene'})
+      .when('/instructions', {
+        template: ' ',
+        controller: 'InstructionsCtrl',
+        controllerAs: 'instructions',
+        resolve: {template: function($route) {
+          $route.current.params.template = 'templates/instructions.html';
+        }}
+      }).otherwise({redirectTo: '/instructions'});
   }]);
 
 // custom validation used to ensure that form inputs are integers

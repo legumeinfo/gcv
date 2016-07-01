@@ -1,0 +1,24 @@
+<form name="basic.form" method="get" ng-submit="basic.submit()" ng-init="basic.init()" novalidate>
+  <fieldset>
+    <legend>Query Parameters</legend>
+    <div class="form-group" show-errors>
+      <label>Neighbors</label>
+      <input type="number" min="1" name="numNeighbors" id="neighborpane" class="form-control" ng-model="basic.params.numNeighbors" positive-integer required>
+      <span id="helpBlock" class="help-block">A positive integer</span>
+    </div>
+    <div id="sources" class="form-group">
+      <label>Sources</label>
+	  <select multiple class="form-control" name="sources"
+        ng-options="s.id as s.name for s in basic.sources"
+        ng-model="basic.params.sources">
+      </select>
+    </div>
+    <legend>Track Parameters</legend>
+    <div class="form-group">
+      <label>Name filter</label>
+      <input type="regexp" name="track_filter" class="form-control" ng-model="basic.params.track_regexp">
+      <span id="helpBlock" class="help-block">A regular expression</span>
+    </div>
+    <button type="submit" class="btn btn-primary col-sm-12">Submit</button>
+  </fieldset>
+</form>
