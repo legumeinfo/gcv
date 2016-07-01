@@ -299,9 +299,13 @@ contextServices.service('Basic', function($http, $q, Viewer) {
 
   // where tracks can be loaded from
   var sources = {
+    lfo: {
+      name: "Legume Federation Outgroups",
+      get: '/lis_context_server/services/basic_tracks_tree_agnostic/'
+    },
     lis: {
       name: "Legume Information System",
-      get: 'http://localhost:8000/services/basic_tracks_tree_agnostic/'
+      get: 'http://localhost:8889/services/basic_tracks_tree_agnostic/'
     }
   };
   services.getSources = function() {
@@ -486,10 +490,15 @@ contextServices.service('Search', function($http, $q, $rootScope, Viewer) {
 
   // where tracks can be loaded from
   var sources = {
+    lfo: {
+      name: "Legume Federation Outgroups",
+      init: '/lis_context_server/services/gene_to_query/',
+      get: '/lis_context_server/services/search_tracks_tree_agnostic/'
+    },
     lis: {
       name: "Legume Information System",
-      init: 'http://localhost:8000/services/gene_to_query/',
-      get: 'http://localhost:8000/services/search_tracks_tree_agnostic/'
+      init: 'http://localhost:8889/lis_context_server/services/gene_to_query/',
+      get: 'http://localhost:8889/lis_context_server/services/search_tracks_tree_agnostic/'
     }
   };
   services.getSources = function() {
@@ -702,6 +711,7 @@ contextServices.factory('Gene', function($http) {
       // list of all services
       var sources = {
         lis: 'http://legumeinfo.org/gene_links/'+name+'/json',
+        lfo: 'http://legumeinfo.org/gene_links/'+name+'/json',
       }
       if (sources.hasOwnProperty(source)) {
         $http({url: sources[source], method: "GET"})
@@ -797,7 +807,8 @@ contextServices.service('Plot', function($http, Viewer, UI) {
     global: function(trackID, errorCallback) {
       // list of all services
       var sources = {
-        'lis': 'http://localhost:8000/services/global_plot_provider_agnostic/',
+        lis: 'http://localhost:8000/services/global_plot_provider_agnostic/',
+        lfo: '/lis_context_server/services/global_plot_provider_agnostic/',
       };
       if (localIdToIndex[trackID] !== undefined) {
         var dim = $('#right-slider .inner-ratio').innerWidth();
