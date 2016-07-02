@@ -163,7 +163,7 @@
         <!-- gene clicked dynamic content - use ng-switch because these controllers need not persist when out of sight -->
         <div id="gene" ng-switch-when="gene" ng-controller="GeneCtrl as gene" ng-init="gene.init(state.args)">
           <h4>{{ gene.name }}</h4>
-          <p>Family: <a href="http://legumeinfo.org/chado_gene_phylotree_v2/{{ gene.family }}?gene_name={{ gene.name }}">{{ gene.family }}</a></p>
+          <p>Family: <a href="http://legumeinfo.org/chado_gene_phylotree_v2?family={{ gene.family }}&gene_name={{ gene.name }}">{{ gene.family }}</a></p>
           <p><a ng-click="state.search(gene.source, gene.name)">Search for similar contexts</a></p>
           {{ state.links }}
           <ul>
@@ -176,7 +176,7 @@
         <!-- family clicked dynamic content -->
         <div id="family" ng-switch-when="family" ng-controller="FamilyCtrl as family" ng-init="family.init(state.args)">
           <h4>{{ family.name }}</h4>
-          <p><a href="http://legumeinfo.org/chado_gene_phylotree_v2/?gene_name={{ family.gene_list }}">View genes in phylogram</a></p>
+          <p><a href="http://legumeinfo.org/chado_gene_phylotree_v2/?family={{ family.name }}&gene_name={{ family.gene_list }}">View genes in phylogram</a></p>
           <p>Genes:</p>
           <ul>
             <li ng-repeat="gene in family.genes">
@@ -194,7 +194,7 @@
               {{ gene.name }}: {{ gene.fmin }} - {{ gene.fmax }}
               <ul ng-if="gene.family != ''">
                 <li>
-                  Family: <a href="/chado_gene_phylotree_v2/{{ gene.family }}?gene_name='{{ gene.name }}">{{ gene.family }}</a>
+                  Family: <a href="/chado_gene_phylotree_v2?family={{ gene.family }}&gene_name='{{ gene.name }}">{{ gene.family }}</a>
                 </li>
               </ul>
             </li>
