@@ -176,7 +176,7 @@
         <!-- family clicked dynamic content -->
         <div id="family" ng-switch-when="family" ng-controller="FamilyCtrl as family" ng-init="family.init(state.args)">
           <h4>{{ family.name }}</h4>
-          <p><a href="/chado_gene_phylotree_v2/?gene_name={{ family.genes.join(',') }}">View genes in phylogram</a></p>
+          <p><a href="/chado_gene_phylotree_v2/?gene_name={{ family.gene_list }}">View genes in phylogram</a></p>
           <p>Genes:</p>
           <ul>
             <li ng-repeat="gene in family.genes">
