@@ -3,7 +3,7 @@ var contextControllers = angular.module('contextControllers', []);
 
 // main navigation bar
 contextControllers.controller('NavigationCtrl',
-function($scope, Viewer, UI) {
+function ($scope, Viewer, UI) {
   var navigation = this;
 
   // pass through ui for the view
@@ -11,7 +11,7 @@ function($scope, Viewer, UI) {
 
   // only draw the plot button when the viewer is in search mode
   navigation.plots = false;
-  Viewer.subscribeToSearchModeChange($scope, function(e, mode) {
+  Viewer.subscribeToSearchModeChange($scope, function (e, mode) {
     navigation.plots = mode;
   });
 });
@@ -19,7 +19,7 @@ function($scope, Viewer, UI) {
 
 // left slider state
 contextControllers.controller('StateCtrl',
-function($scope, $location, Viewer, Search, UI) {
+function ($scope, $location, Viewer, Search, UI) {
   var state = this;
 
   // pass through ui for the view
@@ -27,7 +27,7 @@ function($scope, $location, Viewer, Search, UI) {
 
   // if the app is in the search state
   state.searching = false;
-  Viewer.subscribeToSearchModeChange($scope, function(e, mode) {
+  Viewer.subscribeToSearchModeChange($scope, function (e, mode) {
     state.searching = mode;
   });
 
@@ -36,14 +36,14 @@ function($scope, $location, Viewer, Search, UI) {
     UI.alert("danger", "Invalid scroll size");
   }
   state.step;
-  state.scrollLeft = function() {
+  state.scrollLeft = function () {
     if (state.form.$valid) {
       Search.scrollLeft(state.step, state.search, scrollErrorCallback);
     } else {
       scrollCallback();
     }
   };
-  state.scrollRight = function() {
+  state.scrollRight = function () {
     if (state.form.$valid) {
       Search.scrollRight(state.step, state.search, scrollErrorCallback);
     } else {
@@ -52,7 +52,7 @@ function($scope, $location, Viewer, Search, UI) {
   };
 
   // conduct search
-  state.search = function(source, gene) {
+  state.search = function (source, gene) {
     UI.hideLeftSlider();
     state.current = 'parameters';
     $location.path('/search/'+source+'/'+gene);
@@ -60,10 +60,10 @@ function($scope, $location, Viewer, Search, UI) {
 
   // change state based on service events
   state.current = 'parameters';
-  state.showParameters = function() {
+  state.showParameters = function () {
     return state.current == 'parameters';
   }
-  UI.subscribeToParametersClick($scope, function(e, leftSliderShowing) {
+  UI.subscribeToParametersClick($scope, function (e, leftSliderShowing) {
     if (state.current != 'parameters' || !leftSliderShowing) {
       state.current = 'parameters';
       UI.showLeftSlider();
@@ -71,22 +71,22 @@ function($scope, $location, Viewer, Search, UI) {
       UI.hideLeftSlider();
     }
   });
-  Viewer.subscribeToGeneClick($scope, function(e, g) {
-    $scope.$apply(function() {
+  Viewer.subscribeToGeneClick($scope, function (e, g) {
+    $scope.$apply(function () {
       state.args = g;
       state.current = 'gene';
     });
     UI.showLeftSlider();
   });
-  Viewer.subscribeToLeftAxisClick($scope, function(e, trackID) {
-    $scope.$apply(function() {
+  Viewer.subscribeToLeftAxisClick($scope, function (e, trackID) {
+    $scope.$apply(function () {
       state.args = trackID;
       state.current = 'track';
     });
     UI.showLeftSlider();
   });
-  Viewer.subscribeToFamilyClick($scope, function(e, family, genes) {
-    $scope.$apply(function() {
+  Viewer.subscribeToFamilyClick($scope, function (e, family, genes) {
+    $scope.$apply(function () {
       state.args = {family: family, genes: genes};
       state.current = 'family';
     });
@@ -97,7 +97,7 @@ function($scope, $location, Viewer, Search, UI) {
 
 // landing page
 contextControllers.controller('InstructionsCtrl',
-function($scope, $routeParams, UI) {
+function ($scope, $routeParams, UI) {
   loadTemplate($routeParams.template);
   UI.disableSliders();
   UI.alert("success", "Welcome!");
@@ -106,7 +106,7 @@ function($scope, $routeParams, UI) {
 
 // basic viewer
 contextControllers.controller('BasicCtrl',
-function($scope, $routeParams, Basic, Viewer, UI) {
+function ($scope, $routeParams, Basic, Viewer, UI) {
   var basic = this;
 
   // pass through ui for the view
@@ -119,15 +119,15 @@ function($scope, $routeParams, Basic, Viewer, UI) {
   UI.enableSliders();
 
   // listen for resize events
-  UI.subscribeToResize($scope, function() { Viewer.draw(); });
+  UI.subscribeToResize($scope, function () { Viewer.draw(); });
 
   // actually draws the viewer
   function draw(tracks) {
     UI.alert("success", tracks.groups.length + ' tracks returned');
     Viewer.init(tracks, {
       "focus": tracks.focus,
-      "geneClicked": function() {},
-      "leftAxisClicked": function() {}
+      "geneClicked": function () {},
+      "leftAxisClicked": function () {}
     });
     UI.hideSpinners();
   }
@@ -136,9 +136,9 @@ function($scope, $routeParams, Basic, Viewer, UI) {
   function getData() {
     UI.showSpinners();
     Basic.get($routeParams.genes.split(','), basic.params,
-      function() {
+      function () {
         Basic.filter(basic.params, draw);
-      }, function(msg) {
+      }, function (msg) {
         UI.alert("danger", msg);
       }
     );
@@ -146,11 +146,11 @@ function($scope, $routeParams, Basic, Viewer, UI) {
 
   // initialize the parameters form
   var previous_sources = [];
-  basic.init = function() {
+  basic.init = function () {
     // multiselect
     basic.sources = Basic.getSources();
     // assign form values
-    UI.loadParams(function(params) {
+    UI.loadParams(function (params) {
       function assign(key, value) {
         if (params.hasOwnProperty(key)) {
           var v = params[key];
@@ -164,7 +164,7 @@ function($scope, $routeParams, Basic, Viewer, UI) {
       basic.params = {
         numNeighbors: assign('numNeighbors', 8),
         sources: assign(
-          'source', basic.sources.map(function(s) { return s.id; })
+          'source', basic.sources.map(function (s) { return s.id; })
         ),
         track_regexp: assign('track_regexp', "")
       };
@@ -175,7 +175,7 @@ function($scope, $routeParams, Basic, Viewer, UI) {
   }
 
   // submit parameters form
-  basic.submit = function() {
+  basic.submit = function () {
     if (basic.form.$valid) {
       UI.saveParams(basic.params);
       UI.hideLeftSlider();
@@ -195,7 +195,7 @@ function($scope, $routeParams, Basic, Viewer, UI) {
 
 // search viewer
 contextControllers.controller('SearchCtrl',
-function($scope, $routeParams, Search, Viewer, Synteny, UI) {
+function ($scope, $routeParams, Search, Viewer, UI) {
   var search = this;
 
   // pass through ui for the view
@@ -208,15 +208,15 @@ function($scope, $routeParams, Search, Viewer, Synteny, UI) {
   Viewer.enableSearch();
 
   // listen for resize events
-  UI.subscribeToResize($scope, function() { Viewer.draw(); });
+  UI.subscribeToResize($scope, function () { Viewer.draw(); });
 
   // draw the viewer
   function draw(num_returned, num_aligned, tracks, sorter) {
     Viewer.init(tracks, {
       "focus": $routeParams.gene,
-      "geneClicked": function() {},
-      "leftAxisClicked": function() {},
-      "rightAxisClicked": function() {},
+      "geneClicked": function () {},
+      "leftAxisClicked": function () {},
+      "rightAxisClicked": function () {},
       "interTrack": true,
       "merge": true,
       "boldFirst": true,
@@ -242,15 +242,15 @@ function($scope, $routeParams, Search, Viewer, Synteny, UI) {
         'Query Parameters</a>)'
       );
     }
-    Synteny.draw();
     UI.hideSpinners();
   }
 
   // get data (which triggers redraw)
   function getData() {
     UI.showSpinners();
-    Search.get(search.params, function() { Search.align(search.params, draw); },
-      function(msg) {
+    // get the search data and draw on success
+    Search.get(search.params, function () { Search.align(search.params, draw); },
+      function (msg) {
         UI.hideSpinners();
         UI.alert("danger", msg);
       }
@@ -259,7 +259,7 @@ function($scope, $routeParams, Search, Viewer, Synteny, UI) {
 
   // initialize the parameters form
   var previous_sources = [];
-  search.init = function() {
+  search.init = function () {
     // multiselect
     search.sources = Search.getSources();
     // radio options
@@ -267,7 +267,7 @@ function($scope, $routeParams, Search, Viewer, Synteny, UI) {
     // select options
     search.orderings = Search.getOrderings();
     // assign form values
-    UI.loadParams(function(params) {
+    UI.loadParams(function (params) {
       function assign(key, value) {
         if (params.hasOwnProperty(key)) {
           var v = params[key];
@@ -291,7 +291,7 @@ function($scope, $routeParams, Search, Viewer, Synteny, UI) {
         track_regexp: assign('track_regexp', ""),
         order: assign('order', search.orderings[0].id),
         sources: assign(
-          'source', search.sources.map(function(s) { return s.id; })
+          'source', search.sources.map(function (s) { return s.id; })
         )
       };
       previous_sources = search.params.sources.slice();
@@ -299,14 +299,14 @@ function($scope, $routeParams, Search, Viewer, Synteny, UI) {
     UI.saveParams(search.params);
     // initialize the search service with the query source and gene
     Search.init($routeParams.source, $routeParams.gene, search.params, getData,
-      function(msg) {
+      function (msg) {
         UI.alert("danger", msg);
       }
     );
   }
 
   // submit parameters form
-  search.submit = function() {
+  search.submit = function () {
     if (search.form.$valid) {
       UI.saveParams(search.params);
       UI.hideLeftSlider();
@@ -328,31 +328,53 @@ function($scope, $routeParams, Search, Viewer, Synteny, UI) {
 });
 
 
+// search viewer
+contextControllers.controller('SyntenyCtrl',
+function ($scope, Synteny, Search, UI) {
+  var draw = function () {
+    Synteny.draw(function () {
+      console.log('name clicked');
+    }, function() {
+      console.log('block clicked');
+    });
+  }
+  var getData = function (query) {
+    // get the synteny data and draw on success
+    Synteny.get(query, draw,
+      function (msg) {
+        UI.alert("danger", msg);
+      }
+    );
+  }
+  Search.subscribeToNewQuery($scope, function (e, q) { getData(q); });
+});
+
+
 // selected gene content
 contextControllers
 .controller('GeneCtrl',
-function($scope, Gene, Viewer, UI) {
+function ($scope, Gene, Viewer, UI) {
   var gene = this;
 
   function getGene(g) {
     UI.showLeftSpinner();
-    Gene.get(g.name, g.source, function(links) {
+    Gene.get(g.name, g.source, function (links) {
       gene.source = g.source;
       gene.name = g.name;
       gene.family = g.family;
       gene.links = links;
       UI.hideSpinners();
-    }, function(response) {
+    }, function (response) {
       UI.alert("danger", response);
       UI.hideSpinners();
     });
   }
 
-  gene.init = function(g) {
+  gene.init = function (g) {
     getGene(g);
   }
 
-  Viewer.subscribeToGeneClick($scope, function(e, g) {
+  Viewer.subscribeToGeneClick($scope, function (e, g) {
     getGene(g);
   });
 });
@@ -361,29 +383,29 @@ function($scope, Gene, Viewer, UI) {
 // selected track content
 contextControllers
 .controller('TrackCtrl',
-function($scope, Viewer, UI) {
+function ($scope, Viewer, UI) {
   var track = this;
 
   function getData(trackID) {
     UI.showLeftSpinner();
-    Viewer.getTrack(trackID, function(t) {
+    Viewer.getTrack(trackID, function (t) {
       track.source = t.source;
       track.species_name = t.species_name;
       track.chromosome_name = t.chromosome_name
       track.focus = t.focus;
       track.genes = t.genes;
       UI.hideSpinners();
-    }, function(response) {
+    }, function (response) {
       UI.alert("danger", "Failed to retrieve track data");
       UI.hideSpinners();
     });
   }
 
-  track.init = function(trackID) {
+  track.init = function (trackID) {
     getData(trackID);
   }
 
-  Viewer.subscribeToLeftAxisClick($scope, function(e, trackID) {
+  Viewer.subscribeToLeftAxisClick($scope, function (e, trackID) {
     getData(trackID);
   });
 });
@@ -392,7 +414,7 @@ function($scope, Viewer, UI) {
 // selected family content
 contextControllers
 .controller('FamilyCtrl',
-function($scope, Viewer, UI) {
+function ($scope, Viewer, UI) {
   var family = this;
 
   function getData(f, g) {
@@ -402,11 +424,11 @@ function($scope, Viewer, UI) {
     UI.hideSpinners();
   }
 
-  family.init = function(args) {
+  family.init = function (args) {
     getData(args.family, args.genes);
   }
 
-  Viewer.subscribeToFamilyClick($scope, function(e, f, g) {
+  Viewer.subscribeToFamilyClick($scope, function (e, f, g) {
     getData(f, g);
   });
 });
@@ -415,7 +437,7 @@ function($scope, Viewer, UI) {
 // draws plots
 contextControllers
 .controller('PlotCtrl',
-function($scope, Plot, Viewer, Search, UI) {
+function ($scope, Plot, Viewer, Search, UI) {
   var plot = this;
 
   // pass through ui for the view
@@ -429,12 +451,12 @@ function($scope, Plot, Viewer, Search, UI) {
 
   // if the app is in the search state
   plot.searching = false;
-  Viewer.subscribeToSearchModeChange($scope, function(e, mode) {
+  Viewer.subscribeToSearchModeChange($scope, function (e, mode) {
     plot.searching = mode;
   });
 
   // (re)initialize when new tracks are available
-  Search.subscribeToNewFilteredTracks($scope, function(e, tracks) {
+  Search.subscribeToNewFilteredTracks($scope, function (e, tracks) {
     Plot.init(tracks);
     Plot.allLocal();
   });
@@ -443,11 +465,11 @@ function($scope, Plot, Viewer, Search, UI) {
   function localOrGloabl() {
     if (selectedTrack !== undefined) {
       if (type == 'local') {
-        Plot.local(selectedTrack, function() {
+        Plot.local(selectedTrack, function () {
           UI.alert("danger", "Failed to retrieve plot data");
         });
       } else if (type == 'global') {
-        Plot.global(selectedTrack, function() {
+        Plot.global(selectedTrack, function () {
           UI.alert("danger", "Failed to retrieve plot data");
         });
       }
@@ -455,13 +477,13 @@ function($scope, Plot, Viewer, Search, UI) {
   }
 
   // redraw plots when a resize event occurs
-  UI.subscribeToResize($scope, function(e) {
+  UI.subscribeToResize($scope, function (e) {
     Plot.allLocal();
     localOrGloabl();
   });
 
   // draw a plot what the viewer's plot button is clicked
-  Viewer.subscribeToRightAxisClick($scope, function(e, trackID) {
+  Viewer.subscribeToRightAxisClick($scope, function (e, trackID) {
     UI.showPlot();
     UI.showRightSlider();
     selectedTrack = trackID;
@@ -469,20 +491,20 @@ function($scope, Plot, Viewer, Search, UI) {
   });
 
   // draw a local plot
-  plot.local = function() {
+  plot.local = function () {
     type = 'local';
     if (selectedTrack !== undefined) {
-      Plot.local(selectedTrack, function() {
+      Plot.local(selectedTrack, function () {
         UI.alert("danger", "Failed to retrieve plot data");
       });
     }
   };
 
   // draw a global plot
-  plot.global = function() {
+  plot.global = function () {
     type = 'global';
     if (selectedTrack !== undefined) {
-      Plot.global(selectedTrack, function() {
+      Plot.global(selectedTrack, function () {
         UI.alert("danger", "Failed to retrieve plot data");
       });
     }
@@ -493,28 +515,28 @@ function($scope, Plot, Viewer, Search, UI) {
 // determines whether or not the show dismissible alert elements with help info
 contextControllers
 .controller('HelpCtrl',
-function($scope, UI) {
+function ($scope, UI) {
   var help = this;
 
   // does the help have an existing state?
-  help.init = function(name) {
+  help.init = function (name) {
     help.name = name;
     help.show = UI.showHelp(help.name);
   }
 
   // remove the help but don't save it
-  help.remove = function() {
+  help.remove = function () {
     help.show = false;
   }
 
   // remove the help and remember it
-  help.saveRemove = function() {
+  help.saveRemove = function () {
     help.show = false;
     UI.removeHelp(help.name);
   }
 
   // get notified when to show again
-  UI.subscribeToHelp($scope, function() {
+  UI.subscribeToHelp($scope, function () {
     help.show = UI.showHelp(help.name);
   });
 });

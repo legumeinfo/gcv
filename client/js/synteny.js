@@ -42,7 +42,7 @@ var Synteny = (function (PIXI) {
   nameClick, blockClick) {
     // helper that draws blocks
     var POINTER_LENGTH = 5;
-    var _trackBlock = function(b, y1, scale) {
+    var _trackBlock = function(b, y1, s) {
       // create a Graphics to draw the block in
       var block = new PIXI.Graphics();
       // set a fill and line style
@@ -50,8 +50,8 @@ var Synteny = (function (PIXI) {
       block.lineStyle(1, COLOR, 1);
       // create the polygon points of the block
       var y2 = y1 + HEIGHT;
-      var x1 = scale * b.start;
-      var x2 = scale * b.stop;
+      var x1 = s * b.start;
+      var x2 = s * b.stop;
       var points = [  // x, y coordinates of block
         x1, y1,
         x2, y1,
@@ -63,11 +63,11 @@ var Synteny = (function (PIXI) {
       if (b.orientation == '+') {
         points[2] -= POINTER_LENGTH;
         points[4] -= POINTER_LENGTH;
-        points.splice(4, 0, (scale * b.stop), middle);
+        points.splice(4, 0, (s * b.stop), middle);
       } else if (b.orientation == '-') {
         points[0] += POINTER_LENGTH;
         points[6] += POINTER_LENGTH;
-        points.push((scale * b.start), middle);
+        points.push((s * b.start), middle);
       }
       // draw the block
       block.drawPolygon(points);
@@ -468,7 +468,7 @@ var Synteny = (function (PIXI) {
     // get the dom element that will contain the view
     var container = document.getElementById(elementId);
     // width and height used to initially draw the view
-    var w = container.offsetWidth;
+    var w = container.clientWidth;
     var h = container.offsetHeight;
     // prefer WebGL renderer, but fallback to canvas
     var args = {antialias: true, transparent: true};
@@ -559,10 +559,9 @@ var Synteny = (function (PIXI) {
     iframe.style.border = 'none';
     iframe.style.backgroundColor = 'transparent';
     container.appendChild(iframe);
-    // listen to the iframe's content window for resize events
-    iframe.contentWindow.onresize = function (event) {
+    var redraw = function() {
       // resize the renderer
-      var w = container.offsetWidth;
+      var w = container.clientWidth;
       renderer.resize(w, h);
       // the new scale for for the coordinate system
       var scale = (w - (NAME_OFFSET + right)) / data.length;
@@ -577,6 +576,12 @@ var Synteny = (function (PIXI) {
         viewport.resize(scale);
       }
     }
+    // listen to the iframe's content window for resize events
+    iframe.contentWindow.onresize = function (event) {
+      redraw();
+    }
+    // redraw once just in case a scroll bar appeared
+    redraw();
   }
 
   // revealing module pattern
