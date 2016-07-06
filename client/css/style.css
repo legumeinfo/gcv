@@ -211,3 +211,12 @@ a {
 .form-group.has-error .help-block {
   display: block;
 }
+
+#instructions {
+  margin: 20px;
+}
+
+/* make room for two button in the dismissible alerts */
+.alert-dismissible button.close {
+  margin-left:10px;
+}

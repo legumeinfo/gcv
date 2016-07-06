@@ -75,11 +75,14 @@ function isNumber(n) {
   return !isNaN(parseInt(n)) && isFinite(n);
 }
 
-// copy attributes that are shared from one object to another
-function updateObj(src, dest) {
-  for (var key in dest) {
-    if (dest.hasOwnProperty(key) && src.hasOwnProperty(key)) {
-      dest[key] = isNumber(src[key]) ? parseInt(src[key]) : src[key]
+// checks if two arrays have the same content
+Array.prototype.compare = function(testArr) {
+    if (this.length != testArr.length) return false;
+    for (var i = 0; i < testArr.length; i++) {
+        if (this[i].compare) { 
+            if (!this[i].compare(testArr[i])) return false;
+        }
+        if (this[i] !== testArr[i]) return false;
     }
-  }
+    return true;
 }
