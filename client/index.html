@@ -104,6 +104,7 @@
           <li>Click track to list all genes and track options</li>
         </ul>
       </div>
+      <div id="synteny" ng-controller="SyntenyCtrl as synteny"></div>
       <div id="viewer-content"></div>
     </div>
     <!-- dot plots -->
@@ -203,7 +204,8 @@
       </div>
     </div>
   </div>
-  <!-- shared -->
+  <!-- dependencies -->
+  <script src="js/pixi.min.js"></script>
   <script src="js/d3-3.5.6.min.js"></script>
   <script src="js/jquery-2.1.4.min.js"></script>
   <script>
@@ -259,8 +261,9 @@
   <script src="js/repeat.js"></script>
   <script src="js/context.js"></script>
   <script src="js/viewer.js"></script>
-  <script src="js/legend.js"></script>
   <script src="js/synteny.js"></script>
+  <script src="js/legend.js"></script>
+  <script src="js/plot.js"></script>
   <!-- angular -->
   <script src="js/angular-1.4.3.min.js"></script>
   <script src="js/angular-route.min.js"></script>
