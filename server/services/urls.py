@@ -31,4 +31,5 @@ urlpatterns = patterns('services.views',
         'global_plot_provider_agnostic',
         name='global_plot_provider_agnostic'
     ),
+    url(r'^synteny/$', 'synteny', name='synteny'),
 )

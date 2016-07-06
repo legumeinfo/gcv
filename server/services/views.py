@@ -1184,6 +1184,48 @@ def global_plot_provider_agnostic(request):
     return HttpResponseBadRequest
 
 
+# returns chromosome scale synteny blocks for the chromosome of the given gene
+@csrf_exempt
+def synteny(request):
+    # parse the POST data (Angular puts it in the request body)
+    POST = json.loads(request.body)
+
+    # make sure the request type is POST and that it contains a query (families)
+    if request.method == 'POST' and 'chromosome' in POST:
+        # get the query chromosome
+        chromosome = get_object_or_404(Feature, pk=POST['chromosome'])
+        # get the syntenic region cvterm
+        synteny_type = list(Cvterm.objects.only('pk')\
+            .filter(name='syntenic_region'))
+        if len(synteny_type) == 0:
+            raise Http404
+        synteny_type = synteny_type[0]
+        # get all the related featurelocs
+        locs = list(Featureloc.objects\
+            .only('feature', 'fmin', 'fmax', 'strand')\
+            .filter(srcfeature=chromosome, feature__type=synteny_type))
+        # group the locs by feature
+        feature_locs = {}
+        for l in locs:
+            orientation = '-' if l.strand == -1 else '+'
+            feature_locs.setdefault(l.feature.name, []).append(
+                {'start':l.fmin, 'stop':l.fmax, 'orientation':orientation}
+            )
+        # generate the json
+        tracks = []
+        for name, blocks in feature_locs.iteritems():
+            tracks.append(
+                {'chromosome':name, 'blocks':blocks}
+            )
+        synteny_json = {'chromosome': chromosome.name, 'length': chromosome.seqlen, 'tracks': tracks}
+        # return the synteny data as encoded as json
+        return HttpResponse(
+            json.dumps(synteny_json),
+            content_type='application/json; charset=utf8'
+        )
+    return HttpResponseBadRequest
+
+
 # returns all the GENES for the given chromosome that have the same family as
 # the context derived from the given gene
 def global_plot(request):
