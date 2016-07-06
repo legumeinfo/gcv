@@ -421,6 +421,7 @@ function ($scope, Viewer, UI) {
     UI.showLeftSpinner();
     family.name = f;
     family.genes = g;
+    family.gene_list = family.genes.map(function(g){return g.name;}).join(',');
     UI.hideSpinners();
   }
 
