@@ -542,11 +542,12 @@ contextServices.service('Search', function ($http, $q, $rootScope, Viewer) {
     // filter the original tracks by which ones were aligned
     var filtered_tracks = {
       groups: tracks.groups.filter(function(track) {
-        return scores.hasOwnProperty(track.id) || track.id == query.id;
+        return scores.hasOwnProperty(track.id);
       }),
       numNeighbors: params.numNeighbors
     };
     filtered_tracks.groups.sort(orderings[params.order].algorithm);
+    filtered_tracks.groups.unshift(tracks.groups[0]);
     // send the tracks into the wild
     $rootScope.$broadcast('new-filtered-tracks-event', filtered_tracks);
     callback(
@@ -768,17 +769,17 @@ contextServices.service('Plot', function ($http, Viewer, UI) {
   // plots a track against the query
   function plotPoints(track) {
     var plot_genes = [];
-    for (var j = 0; j < track.genes.length; j++) {
-      if (track.genes[j].family in familyMap) {
-        for (var k = 0; k < familyMap[track.genes[j].family].length; k++) {
-          track.genes[j].x = ((track.genes[j].fmin/2)+(track.genes[j].fmax/2));
-          track.genes[j].y = familyMap[track.genes[j].family][k];
+    for (var i = 0; i < track.genes.length; i++) {
+      var g = track.genes[i];
+      g.x = (g.fmin + g.fmax) / 2;
+      if (g.family in familyMap) {
+        for (var j = 0; j < familyMap[g.family].length; j++) {
+          g.y = familyMap[g.family][j];
         }
       } else {
-        track.genes[j].x = ((track.genes[j].fmin/2)+(track.genes[j].fmax/2));
-        track.genes[j].y = -1;
+        g.y = -1;
       }
-      plot_genes.push(track.genes[j]);
+      plot_genes.push(g);
     }
     return plot_genes;
   }
@@ -793,19 +794,19 @@ contextServices.service('Plot', function ($http, Viewer, UI) {
     familyMap = {};
     for (var i = 0; i < tracks.groups[0].genes.length; i++) {
       var g = tracks.groups[0].genes[i];
+      var p = (g.fmin + g.fmax) / 2;
       if (g.family in familyMap) {
-        familyMap[g.family].push((g.fmin/2)+(g.fmax/2));
+        familyMap[g.family].push(p);
       } else if (g.family != '') {
-        familyMap[g.family] = [(g.fmin/2)+(g.fmax/2)];
+        familyMap[g.family] = [p];
       }
     }
     // plot all the genes against the list of points
     for (var i = 0; i < tracks.groups.length; i++) {
-      var id = tracks.groups[i].id;
-      var index = localPlots.length;
-      localIdToIndex[id] = index;
-      localPlots.push($.extend(true, {}, tracks.groups[i]));
-      localPlots[index].genes = plotPoints(localPlots[index]);
+      var g = tracks.groups[i];
+      localIdToIndex[g.id] = i;
+      localPlots.push($.extend(true, {}, g));
+      localPlots[i].genes = plotPoints(localPlots[i]);
     }
   }
 

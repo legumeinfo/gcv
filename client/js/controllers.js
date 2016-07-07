@@ -470,7 +470,7 @@ function ($scope, Plot, Viewer, Search, UI) {
     Plot.allLocal();
   });
 
-  // draws chooses which plot to draw
+  // chooses which plot to draw
   function localOrGloabl() {
     if (selectedTrack !== undefined) {
       if (type == 'local') {
@@ -491,7 +491,7 @@ function ($scope, Plot, Viewer, Search, UI) {
     localOrGloabl();
   });
 
-  // draw a plot what the viewer's plot button is clicked
+  // draw a plot when the viewer's plot button is clicked
   Viewer.subscribeToRightAxisClick($scope, function (e, trackID) {
     UI.showPlot();
     UI.showRightSlider();
