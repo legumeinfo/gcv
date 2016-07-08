@@ -101,8 +101,7 @@ DATABASES = {
         'USER': 'www',
         'PASSWORD': '',
         'HOST': '',
-        #'PORT': os.environ['PGPORT'],
-        'PORT': 7140,
+        'PORT': os.environ['PGPORT'],
     }
 }
 
