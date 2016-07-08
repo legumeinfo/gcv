@@ -5,10 +5,27 @@ The Genomic Context Viewer (GCV) is a web-app that visualizes genomic context da
 It allows users to view regions of genomes considered primarily with respect to the ordering and orientation of their annotated gene content.
 By handling sequences of gene family memberships as a unit of search and comparison, the user interface is made sufficiently responsive to enable quick assessment of the levels of conservation, novelty, and various types of structural events that can serve to direct the user to more detailed explorations at finer levels of granularity in other tools.
 </p>
+<!--
 <h2>Use Cases</h2>
 <p>Some use cases should go here</p>
+-->
 <h2>Examples</h2>
-<p>Some compelling examples should go here</p>
+<ul>
+<li>
+Synteny with Arabidopsis thaliana <a href="/lis_context_viewer/index.html#/search/lfo/arath.Col.AT5G07830?numNeighbors=15&numMatchedFamilies=4&numNonFamily=8&algorithm=smith&match=10&mismatch=-1&gap=-1&score=40&threshold=25&track_regexp=&order=distance&sources=lfo&sources=lis">AT5G07830</a> as query
+</li>
+<li>
+Homeobox-leucine zipper protein family <a href="http://legumeinfo.org/chado_phylotree/phytozome_10_2.59053124?hilite_node=arath.AT4G37790.1,arath.AT2G22800.1">Gene Tree at LIS</a>; in the tree, click on one of the highlighted Arabidopsis genes, then choose the "Find similar contexts" link to return to the LegFed Context Viewer to see synteny for the region containing the gene.
+</li>
+<li>
+Common bean gene <a href="/lis_context_viewer/index.html#/search/lis/phavu.Phvul.002G085200?numNeighbors=10&numMatchedFamilies=4&numNonFamily=5&algorithm=repeat&match=10&mismatch=-1&gap=-1&score=30&threshold=25&track_regexp=&order=distance&sources=lfo&sources=lis">Phvul.002G085200</a> highly conserved across syntenic contexts among legumes (with inversion in soybean) and fabidae (prupe=peach, cucsa=cucumber)
+</li>
+<li>
+"Basic" (unaligned) <a href="/lis_context_viewer/index.html#/basic/lotja.Lj0g3v0166889,cicar.Ca_05015_gene,glyma.Glyma.06G088000,glyma.Glyma.04G086500,araip.Araip.Z4RG3,vigra.Vradi05g08580,araip.Araip.0T13B,medtr.Medtr3g110360,cajca.C.cajan_36467_gene,phavu.Phvul.009G111700,aradu.Aradu.M206V,arath.Col.AT2G25840?numNeighbors=8&sources=lis,lfo&track_regexp=">view of a set of genes</a> from the same family (tryptophan-tRNA ligase).
+</li>
+<li>
+"Search" Aligned <a href="/lis_context_viewer/index.html#/search/lfo/arath.Col.AT2G25840?numNeighbors=8&sources=lfo&sources=lis&track_regexp=&numMatchedFamilies=4&numNonFamily=5&algorithm=repeat&match=10&mismatch=-1&gap=-1&score=30&threshold=25&order=distance">aligned view of the Arabidopsis gene (AT2G25840)</a> from the above example (try the Dotplots tab on this too)
+</li>
 <h2>Feedback and features and bugs, oh my!</h2>
 <p>GCV is on GitHub: <a target="_blank" href="https://github.com/legumeinfo/lis_context_viewer">https://github.com/legumeinfo/lis_context_viewer</a>. Swing by, if you feel so inclined.</p>
 </div>

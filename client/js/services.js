@@ -305,7 +305,7 @@ contextServices.service('Basic', function($http, $q, Viewer) {
     },
     lis: {
       name: "Legume Information System",
-      get: 'http://localhost:8889/services/basic_tracks_tree_agnostic/'
+      get: 'http://legumeinfo.org/lis_context_server/services/basic_tracks_tree_agnostic/'
     }
   };
   services.getSources = function() {
@@ -497,8 +497,8 @@ contextServices.service('Search', function($http, $q, $rootScope, Viewer) {
     },
     lis: {
       name: "Legume Information System",
-      init: 'http://localhost:8889/lis_context_server/services/gene_to_query/',
-      get: 'http://localhost:8889/lis_context_server/services/search_tracks_tree_agnostic/'
+      init: 'http://legumeinfo.org/lis_context_server/services/gene_to_query/',
+      get: 'http://legumeinfo.org/lis_context_server/services/search_tracks_tree_agnostic/'
     }
   };
   services.getSources = function() {
@@ -807,7 +807,7 @@ contextServices.service('Plot', function($http, Viewer, UI) {
     global: function(trackID, errorCallback) {
       // list of all services
       var sources = {
-        lis: 'http://localhost:8000/services/global_plot_provider_agnostic/',
+        lis: 'http://legumeinfo.org/lis_context_server/services/global_plot_provider_agnostic/',
         lfo: '/lis_context_server/services/global_plot_provider_agnostic/',
       };
       if (localIdToIndex[trackID] !== undefined) {

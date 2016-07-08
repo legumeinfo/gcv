@@ -352,7 +352,9 @@ function($scope, Gene, Viewer, UI) {
   }
 
   Viewer.subscribeToGeneClick($scope, function(e, g) {
-    getGene(g);
+    $scope.$apply(function () {
+	    getGene(g);
+    });
   });
 });
 
@@ -383,7 +385,9 @@ function($scope, Viewer, UI) {
   }
 
   Viewer.subscribeToLeftAxisClick($scope, function(e, trackID) {
-    getData(trackID);
+    $scope.$apply(function () {
+         getData(trackID);
+    });
   });
 });
 
@@ -398,7 +402,9 @@ function($scope, Viewer, UI) {
     UI.showLeftSpinner();
     family.name = f;
     family.genes = g;
-    family.gene_list = family.genes.map(function(g){return g.name;}).join(',');
+    family.gene_list = family.genes.map(
+        function (g){ return g.name; }
+    ).join(',');
     UI.hideSpinners();
   }
 
@@ -407,7 +413,9 @@ function($scope, Viewer, UI) {
   }
 
   Viewer.subscribeToFamilyClick($scope, function(e, f, g) {
-    getData(f, g);
+    $scope.$apply(function () {
+        getData(f, g);
+    });
   });
 });
 

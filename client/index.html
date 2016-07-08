@@ -68,8 +68,8 @@
             <span class="icon-bar"></span>
             <span class="icon-bar"></span>
           </button>
-          <a class="navbar-brand" href="http://legumeinfo.org/" target="_blank">
-            <img alt="Brand" src="img/papillionoid.png">
+          <a class="navbar-brand" href="http://legumefederation.org/" target="_blank">
+            <img alt="Brand" src="img/LegFedSiteLogo.png">
             <span>LIS - Legume Information System <small>Information about legume traits for crop improvement</small></span>
           </a>
         </div>
@@ -194,7 +194,7 @@
               {{ gene.name }}: {{ gene.fmin }} - {{ gene.fmax }}
               <ul ng-if="gene.family != ''">
                 <li>
-                  Family: <a href="/chado_gene_phylotree_v2?family={{ gene.family }}&gene_name='{{ gene.name }}">{{ gene.family }}</a>
+                  Family: <a href="http://legumeinfo.org/chado_gene_phylotree_v2?family={{ gene.family }}&gene_name={{ gene.name }}">{{ gene.family }}</a>
                 </li>
               </ul>
             </li>
