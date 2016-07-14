@@ -11,9 +11,22 @@ from django.db.models import Q
 import operator
 # so anyone can use the services
 from django.views.decorators.csrf import csrf_exempt
+# time stuff for caching
+from django.utils.http import http_date
+import time
+
+# decorator for invalidating the cache every hour
+def ensure_nocache(view):
+    def wrapper(request, *args, **kwargs):
+        response = view(request, *args, **kwargs)
+        response['Cache-Control'] = 'max-age=3600, must-revalidate'
+        response['Expires'] = http_date(time.time() + 3600)
+        return response
+    return wrapper
 
 
 @csrf_exempt
+@ensure_nocache
 def afs_search_tracks(request, focus_name):
 
     ###############################
@@ -139,6 +152,7 @@ def afs_search_tracks(request, focus_name):
 
 # returns contexts centered at genes in the list provided
 @csrf_exempt
+@ensure_nocache
 def basic_tracks_tree_agnostic(request):
     # parse the POST data (Angular puts it in the request body)
     POST = json.loads(request.body)
@@ -523,6 +537,7 @@ def basic_tracks(request, node_id):
 
 # resolves a focus gene name to a query track
 @csrf_exempt
+@ensure_nocache
 def gene_to_query(request):
     # parse the POST data (Angular puts it in the request body)
     POST = json.loads(request.body)
@@ -624,6 +639,7 @@ def gene_to_query(request):
 
 # returns similar contexts to the families provided
 @csrf_exempt
+@ensure_nocache
 def search_tracks_tree_agnostic(request):
     # parse the POST data (Angular puts it in the request body)
     POST = json.loads(request.body)
@@ -1123,6 +1139,7 @@ def search_tracks(request, focus_name):
 # returns all the GENES for the given chromosome that have the same family as
 # the query
 @csrf_exempt
+@ensure_nocache
 def global_plot_provider_agnostic(request):
     # parse the POST data (Angular puts it in the request body)
     POST = json.loads(request.body)
@@ -1186,6 +1203,7 @@ def global_plot_provider_agnostic(request):
 
 # returns chromosome scale synteny blocks for the chromosome of the given gene
 @csrf_exempt
+@ensure_nocache
 def synteny(request):
     # parse the POST data (Angular puts it in the request body)
     POST = json.loads(request.body)
