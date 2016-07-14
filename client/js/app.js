@@ -6,10 +6,21 @@ var contextApp = angular.module('contextApp', [
   'contextServices'
 ]);
 
+// http interceptor that adds cache busting to all requests
+contextApp.factory('cacheBuster', [function() {  
+  return {
+    request: function (config) {
+      config.params = config.params || {};
+      config.params.v = new Date().getTime();
+      return config;
+    }
+  }
+}]);
+
 // request the routeProvider to be injected into our config function
-contextApp.config(['$routeProvider',
+contextApp.config(['$routeProvider', '$httpProvider',
   // define our routes
-  function($routeProvider) {
+  function($routeProvider, $httpProvider) {
     $routeProvider
       .when('/basic/:genes', {
         templateUrl: 'templates/basic.html',
@@ -30,7 +41,18 @@ contextApp.config(['$routeProvider',
           $route.current.params.template = 'templates/instructions.html';
         }}
       }).otherwise({redirectTo: '/instructions'});
-  }]);
+    // Prevent caching for all our Ajax API calls (GET and POST)
+    if (!$httpProvider.defaults.headers.common) {
+      $httpProvider.defaults.headers.common = {};    
+    }
+    $httpProvider.defaults.headers.common['Cache-Control'] = 'no-cache';
+    $httpProvider.defaults.headers.common['Pragma'] = 'no-cache';
+    // hack to disable IE ajax request caching
+    $httpProvider.defaults.headers.common['If-Modified-Since'] = 'Mon, 26 Jul 1997 05:00:00 GMT';
+    // add the cache busting interceptor
+    $httpProvider.interceptors.push('cacheBuster');
+  }
+]);
 
 // custom validation used to ensure that form inputs are integers
 function regexpDirective(regexp) {
