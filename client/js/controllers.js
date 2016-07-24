@@ -243,6 +243,7 @@ function ($scope, $routeParams, Search, Viewer, UI) {
       );
     }
     UI.hideSpinners();
+    UI.hideLeftSlider();
   }
 
   // get data (which triggers redraw)
