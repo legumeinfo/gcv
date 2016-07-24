@@ -24,6 +24,19 @@ SECRET_KEY = os.environ['SECRET_KEY']
 
 # allow cross origin requests
 CORS_ORIGIN_ALLOW_ALL = True
+CORS_ALLOW_HEADERS = (
+    # defaults
+    'x-requested-with',
+    'content-type',
+    'accept',
+    'origin',
+    'authorization',
+    'x-csrftoken',
+    # cache busting headers
+    'Cache-Control',
+    'Pragma',
+    'If-Modified-Since'
+)
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
