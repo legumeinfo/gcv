@@ -701,7 +701,7 @@ contextServices.service('Synteny', function ($http, $q, $rootScope, Viewer) {
     // queries all the selected providers
     get: function (query, results, successCallback, errorCallback) {
       // generate a promise for each service
-      var args = {chromosome: query, results: results};
+      var args = {chromosome: query.chromosome_id, results: results};
       var promises = [];
       if (sources.hasOwnProperty(query.source) &&
           sources[query.source].hasOwnProperty('get')) {
