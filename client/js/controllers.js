@@ -339,15 +339,22 @@ function ($scope, Synteny, Search, UI) {
       console.log('block clicked');
     });
   }
-  var getData = function (query) {
+  var getData = function (query, results) {
     // get the synteny data and draw on success
-    Synteny.get(query, draw,
+    Synteny.get(query, results, draw,
       function (msg) {
         UI.alert("danger", msg);
       }
     );
   }
-  Search.subscribeToNewQuery($scope, function (e, q) { getData(q); });
+  Search.subscribeToNewFilteredTracks($scope, function (e, tracks) {
+    var query = tracks.groups[0].chromosome_id;
+    var resultTracks = tracks.groups.splice(1, tracks.groups.length - 1)
+    var results = resultTracks.map(function(r) {
+      return r.chromosome_id;
+    }); 
+    getData(query, results);
+  });
 });
 
 

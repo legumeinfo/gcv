@@ -574,19 +574,12 @@ contextServices.service('Search', function ($http, $q, $rootScope, Viewer) {
           for (var i in query.genes) {
             query.genes[i].source = source;
           }
-          $rootScope.$broadcast('new-query-event', query);
           return successCallback();
         }, function (response) { return errorCallback(response); }
       );
     } else {
       errorCallback('"'+source+'" is not a valid service provider');
     }
-  }
-
-  // distributes the new query
-  services.subscribeToNewQuery = function (scope, callback) {
-    var handler = $rootScope.$on('new-query-event', callback);
-    scope.$on('$destroy', handler);
   }
 
   // queries all the selected providers
@@ -706,9 +699,9 @@ contextServices.service('Synteny', function ($http, $q, $rootScope, Viewer) {
 
   return {
     // queries all the selected providers
-    get: function (query, successCallback, errorCallback) {
+    get: function (query, results, successCallback, errorCallback) {
       // generate a promise for each service
-      var args = {chromosome: query.chromosome_id};
+      var args = {chromosome: query, results: results};
       var promises = [];
       if (sources.hasOwnProperty(query.source) &&
           sources[query.source].hasOwnProperty('get')) {
