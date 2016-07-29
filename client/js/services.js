@@ -695,7 +695,8 @@ contextServices.service('Synteny', function ($http, $q, $rootScope, Viewer) {
   var ERROR = -1;
   var data;
   var ELEMENT = 'synteny';
-  var viewArgs = {}
+  var viewArgs = {autoResize: true};
+  var viewer;
 
   // where tracks can be loaded from
   var sources = {
@@ -733,7 +734,8 @@ contextServices.service('Synteny', function ($http, $q, $rootScope, Viewer) {
       // draw the viewer
       if (data !== undefined) {
         document.getElementById(ELEMENT).innerHTML = '';
-        Synteny.draw(ELEMENT, data, viewArgs);
+        if (viewer) viewer.destroy();
+        viewer = new Synteny(ELEMENT, data, viewArgs);
       }
     }
   };
