@@ -1209,7 +1209,7 @@ def synteny(request):
     POST = json.loads(request.body)
 
     # make sure the request type is POST and that it contains a query (families)
-    if request.method == 'POST' and 'chromosome' in POST:
+    if request.method == 'POST' and 'chromosome' in POST and 'results' in POST:
         # get the query chromosome
         chromosome = get_object_or_404(Feature, pk=POST['chromosome'])
         # get the syntenic region cvterm
@@ -1219,23 +1219,39 @@ def synteny(request):
             raise Http404
         synteny_type = synteny_type[0]
         # get all the related featurelocs
-        locs = list(Featureloc.objects\
+        blocks = list(Featureloc.objects\
             .only('feature', 'fmin', 'fmax', 'strand')\
             .filter(srcfeature=chromosome, feature__type=synteny_type))
-        # group the locs by feature
+        # get the chromosome each region belongs to
+        region_ids = map(lambda b: b.feature_id, blocks)
+        regions = list(Featureloc.objects\
+            .only('feature', 'srcfeature')\
+            .filter(feature__in=region_ids, srcfeature__in=POST['results']))
+        region_to_chromosome = dict(
+            (r.feature_id, r.srcfeature_id) for r in regions
+        )
+        # actually get the chromosomes
+        chromosomes = list(Feature.objects.only('name')\
+            .filter(pk__in=region_to_chromosome.values()))
+        chromosome_names = dict((c.pk, c.name) for c in chromosomes)
+        # group the blocks by feature
         feature_locs = {}
-        for l in locs:
-            orientation = '-' if l.strand == -1 else '+'
-            feature_locs.setdefault(l.feature.name, []).append(
-                {'start':l.fmin, 'stop':l.fmax, 'orientation':orientation}
-            )
+        for l in blocks:
+            if l.feature_id in region_to_chromosome:
+                orientation = '-' if l.strand == -1 else '+'
+                name = chromosome_names[region_to_chromosome[l.feature_id]]
+                feature_locs.setdefault(name, []).append(
+                    {'start':l.fmin, 'stop':l.fmax, 'orientation':orientation}
+                )
         # generate the json
         tracks = []
         for name, blocks in feature_locs.iteritems():
             tracks.append(
                 {'chromosome':name, 'blocks':blocks}
             )
-        synteny_json = {'chromosome': chromosome.name, 'length': chromosome.seqlen, 'tracks': tracks}
+        synteny_json = {'chromosome': chromosome.name,
+                        'length': chromosome.seqlen,
+                        'tracks': tracks}
         # return the synteny data as encoded as json
         return HttpResponse(
             json.dumps(synteny_json),
