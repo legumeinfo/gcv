@@ -260,23 +260,33 @@ var Synteny = (function (PIXI) {
     var y2 = y1 + _BLOCK_HEIGHT;
     var x1 = _scale * b.start;
     var x2 = _scale * b.stop;
-    var points = [  // x, y coordinates of block
-      x1, y1,
-      x2, y1,
-      x2, y2,
-      x1, y2
-    ];
     var middle = y1 + (_BLOCK_HEIGHT / 2);
-    // add the orientation pointer
-    if (b.orientation == '+') {
-      points[2] -= POINTER_LENGTH;
-      points[4] -= POINTER_LENGTH;
-      points.splice(4, 0, (_scale * b.stop), middle);
-    } else if (b.orientation == '-') {
-      points[0] += POINTER_LENGTH;
-      points[6] += POINTER_LENGTH;
-      points.push((_scale * b.start), middle);
-    }
+    var points = (function () {
+      if (x2 - x1 > POINTER_LENGTH) {
+        var p = [  // x, y coordinates of block
+          x1, y1,
+          x2, y1,
+          x2, y2,
+          x1, y2
+        ];
+        // add the orientation pointer
+        if (b.orientation == '+') {
+          p[2] -= POINTER_LENGTH;
+          p[4] -= POINTER_LENGTH;
+          p.splice(4, 0, (_scale * b.stop), middle);
+        } else if (b.orientation == '-') {
+          p[0] += POINTER_LENGTH;
+          p[6] += POINTER_LENGTH;
+          p.push((_scale * b.start), middle);
+        }
+        return p;
+      }
+      return [  // x, y coordinates of block
+        x1, y1,
+        x1 + ((b.orientation == '-') ? -POINTER_LENGTH : POINTER_LENGTH), middle,
+        x1, y2
+      ];
+    })();
     block.drawPolygon(points);
     block.endFill();
 
