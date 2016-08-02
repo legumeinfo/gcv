@@ -348,7 +348,7 @@ function ($scope, Synteny, Search, UI) {
     );
   }
   Search.subscribeToNewFilteredTracks($scope, function (e, tracks) {
-    var query = tracks.groups[0].chromosome_id;
+    var query = tracks.groups[0];
     var resultTracks = tracks.groups.splice(1, tracks.groups.length - 1)
     var results = resultTracks.map(function(r) {
       return r.chromosome_id;
