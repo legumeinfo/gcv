@@ -351,7 +351,13 @@ function ($scope, Synteny, Search, UI) {
     var query = tracks.groups[0];
     var resultTracks = tracks.groups.splice(1, tracks.groups.length - 1)
     var results = resultTracks.map(function(r) {
-      return r.chromosome_id;
+      //this is to prevent false positive hits when we have tracks in 
+      //a federated context that the synteny source knows nothing about,
+      //but which might have some chromosome id collisions with things in
+      //its db and produce some odd random blocks due to that circumstance
+      if (r.source === query.source) {
+          return r.chromosome_id;
+      }
     }); 
     getData(query, results);
   });
