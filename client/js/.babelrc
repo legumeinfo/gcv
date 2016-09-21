@@ -1,0 +1,6 @@
+{
+  "presets": ['esnext'],
+  "compact": true,
+  "minified": true,
+  "comments": false
+}
