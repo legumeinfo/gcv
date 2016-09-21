@@ -10,8 +10,6 @@ class Synteny {
   // Constants
   _BLOCK_HEIGHT = 11;
   _PAD         = 2;
-  _RIGHT       = 10;
-  _NAME_SPACE  = 100;
   _PTR_LEN = 5;
   _FADE        = 0.15;
   _COLORS      = [  // 100 maximally distinct colors
@@ -32,32 +30,81 @@ class Synteny {
     "#D4DE7C", "#CD3488"
   ];
 
-  /*
-   * Parses parameters and initializes variables.
-   * @param {string} id - ID of element viewer will be drawn in.
-   * @param {object} data - The data the viewer will visualize.
-   * @param {object} options - Optional parameters.
-   */
+  /**
+    * Computes the length of the longest string in the given array.
+    * @param {array} text - The strings to be measured.
+    * @return {number} The length of the longest string.
+    */
+  _longestString(text) {
+    var dummy = this.viewer.append('g'),
+        max = 0;
+		dummy.selectAll('.dummyText')
+		  .data(text)
+		  .enter()
+		  .append("text")
+		  .text(function (s) { return s; })
+		  .each(function (s, i) {
+		    var l = this.getComputedTextLength();
+        if (l > max) max = l;
+		    this.remove();
+		  });
+		dummy.remove();
+    return max;
+  }
+
+  /**
+    * Parses parameters and initializes variables.
+    * @param {string} id - ID of element viewer will be drawn in.
+    * @param {object} data - The data the viewer will visualize.
+    * @param {object} options - Optional parameters.
+    */
   _init(id, data, options) {
     // parse positional parameters
-    this.container = document.getElementById(id);
-    if (this.container === null) {
+    var container = document.getElementById(id);
+    if (container === null) {
       throw new Error('"' + id + '" is not a valid element ID');
     }
-    this.w = this.container.clientWidth;
+    var w = container.clientWidth;
     this.data = data;
     if (this.data === undefined) {
       throw new Error("'data' is undefined");
     }
+    // create the viewer
+    this.viewer = d3.select('#' + id)
+      .append("svg")
+      .attr("width", w)
+      .attr("height", this._PAD);
+    // compute the space required for chromosome names
+		var chromosomes = [data.chromosome].concat(data.tracks.map(function (t) {
+          return t.chromosome;
+        }));
+    this.left = this._longestString(chromosomes);
+    this.right = this._longestString([data.length]) / 2;
+    // create the scale used map block coordinates to pixels
     this.scale = d3.scale.linear()
       .domain([0, data.length])
-      .range([this._NAME_SPACE, this.w - this._RIGHT]);
+      .range([this.left, w - (this.right + this._PAD)]);
     // parse optional parameters
     this.options = options || {};
-    this.options.nameClick = options.nameClick || function (n) { };
+    this.options.nameClick = options.nameClick || function (y, i) { };
     this.options.blockClick = options.blockClick || function (b) { };
     this.options.viewport = options.viewport || undefined;
     this.options.autoResize = options.autoResize || false;
+  }
+
+  /**
+    * Creates the x-axis.
+    * @return {object} D3 selection of the x-axis.
+    */
+  _drawXAxis() {
+    // construct the y-axes
+    var xAxis = d3.svg.axis()
+      .scale(this.scale)
+      .orient("top")
+      .tickValues(this.scale.domain())
+      .tickFormat((x, i) => { return x; });
+    // draw the axis
+    return this.viewer.append("g").call(xAxis);
   }
   
   /**
@@ -143,32 +190,49 @@ class Synteny {
       })
   	  .style("fill", c)
   	  .style("cursor", "pointer")
-      .on("mouseover", (b) => {
-        console.log("over");
-  	  })
-  	  .on("mouseout", (b) => {
-        console.log("out");
-  	  })
-  	  .on('click', (b) => {
-        this.options.blockClick(b);
-  	  });
+      .on("mouseover", (b) => { })
+  	  .on("mouseout", (b) => { })
+  	  .on('click', this.options.blockClick);
     return track;
+  }
+
+
+  /**
+    * Creates the y-axis, placing labels at their respective locations.
+    * @param {array} ticks - The locations of the track labels.
+    * @return {object} D3 selection of the y-axis.
+    */
+  _drawYAxis(ticks) {
+    // construct the y-axes
+    var yAxis = d3.svg.axis()
+      .orient("left")
+      .tickValues(ticks)
+      .tickFormat((y, i) => { return this.data.tracks[i].chromosome; });
+    // draw the axes of the graph
+    return this.viewer.append("g")
+      .call(yAxis)
+      .selectAll('text')
+  	  .style("cursor", "pointer")
+      .on("mouseover", (y, i) => { })
+      .on("mouseout", (y, i) => { })
+      .on("click", this.options.nameClick);
   }
 
   /** Draws the viewer. */
   _draw() {
-    this.viewer = d3.select('#' + this.container.id)
-      .append("svg")
-      .attr("width", this.w)
-      .attr("height", this._PAD);
-    var ticks = [];
+    // draw the x-axis
+    var xAxis = this._drawXAxis(),
+        h = xAxis.node().getBBox().height,
+        y = parseInt(this.viewer.attr("height"));
+    xAxis.attr("transform", "translate(0, " + (y + h) + ")");
+    this.viewer.attr("height", y + h + this._PAD);
     // draw the tracks
-    var tallestTip = 0;
+    var ticks = [];
     for (var i = 0; i < this.data.tracks.length; i++) {
       // make the track
-      var track = this._drawTrack(i),
-          y = parseInt(this.viewer.attr("height"));
+      var track = this._drawTrack(i);
       // put it in the correct location
+      y = parseInt(this.viewer.attr("height"));
       track.attr("transform", "translate(0," + y + ")")
       // adjust the height of the viewer
       var h = track.node().getBBox().height;
@@ -176,6 +240,9 @@ class Synteny {
       // save the track's label location
       ticks.push(y + (h / 2));
     }
+    // draw the y-axis
+    var yAxis = this._drawYAxis(ticks);
+    yAxis.attr("transform", "translate(" + this.left + ", 0)");
   }
   
   // Public
