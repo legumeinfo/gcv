@@ -83,7 +83,7 @@ class Synteny {
     // create the scale used map block coordinates to pixels
     this.scale = d3.scale.linear()
       .domain([0, data.length])
-      .range([this.left, w - (this.right + this._PAD)]);
+      .range([this.left + (2 * this._PAD), w - (this.right + this._PAD)]);
     // parse optional parameters
     this.options = options || {};
     this.options.nameClick = options.nameClick || function (y, i) { };
@@ -104,7 +104,7 @@ class Synteny {
       .tickValues(this.scale.domain())
       .tickFormat((x, i) => { return x; });
     // draw the axis
-    return this.viewer.append("g").call(xAxis);
+    return this.viewer.append("g").attr("class", "axis").call(xAxis);
   }
   
   /**
@@ -207,11 +207,19 @@ class Synteny {
     var yAxis = d3.svg.axis()
       .orient("left")
       .tickValues(ticks)
-      .tickFormat((y, i) => { return this.data.tracks[i].chromosome; });
+      .tickFormat((y, i) => {
+        if (i == 0) return this.data.chromosome;
+        return this.data.tracks[i - 1].chromosome;
+      });
     // draw the axes of the graph
     return this.viewer.append("g")
+      .attr("class", "axis")
       .call(yAxis)
       .selectAll('text')
+      .style("font-weight", function (y, i) {
+        if (i == 0) return "bold";
+        return "normal";
+      })
   	  .style("cursor", "pointer")
       .on("mouseover", (y, i) => { })
       .on("mouseout", (y, i) => { })
@@ -227,7 +235,7 @@ class Synteny {
     xAxis.attr("transform", "translate(0, " + (y + h) + ")");
     this.viewer.attr("height", y + h + this._PAD);
     // draw the tracks
-    var ticks = [];
+    var ticks = [y + (h / 2)];
     for (var i = 0; i < this.data.tracks.length; i++) {
       // make the track
       var track = this._drawTrack(i);
