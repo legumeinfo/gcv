@@ -8,6 +8,13 @@ d3.selection.prototype.moveToBack = function() {
   });
 };
 
+// a helper function that moves things to the front of an svg element
+d3.selection.prototype.moveToFront = function() {
+  return this.each(function(){
+    this.parentNode.appendChild(this);
+  });
+};
+
 // show tips in all plots
 function showTips(gene_selection, rail_selection) {
   d3.selectAll(".gene").style("opacity", .1);

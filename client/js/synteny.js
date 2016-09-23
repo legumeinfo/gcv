@@ -13,28 +13,37 @@ class Synteny {
   _PTR_LEN = 5;
   _FADE        = 0.15;
   _COLORS      = [  // 100 maximally distinct colors
-    "#7A2719", "#5CE33C", "#E146E9", "#64C6DE", "#E8B031", "#322755", "#436521",
-    "#DE8EBA", "#5C77E3", "#CEE197", "#E32C76", "#E54229", "#2F2418", "#E1A782",
-    "#788483", "#68E8B2", "#9E2B85", "#E4E42A", "#D5D9D5", "#76404F", "#589BDB",
-    "#E276DE", "#92C535", "#DE6459", "#E07529", "#A060E4", "#895997", "#7ED177",
-    "#916D46", "#5BB0A4", "#365167", "#A4AE89", "#ACA630", "#38568F", "#D2B8E2",
-    "#AF7B23", "#81A158", "#9E2F55", "#57E7E1", "#D8BD70", "#316F4B", "#5989A8",
-    "#D17686", "#213F2C", "#A6808E", "#358937", "#504CA1", "#AA7CDD", "#393E0D",
-    "#B02828", "#5EB381", "#47B033", "#DF3EAA", "#4E191E", "#9445AC", "#7A691F",
-    "#382135", "#709628", "#EF6FB0", "#603719", "#6B5A57", "#A44A1C", "#ABC6E2",
-    "#9883B0", "#A6E1D3", "#357975", "#DC3A56", "#561238", "#E1C5AB", "#8B8ED9",
-    "#D897DF", "#61E575", "#E19B55", "#1F303A", "#A09258", "#B94781", "#A4E937",
-    "#EAABBB", "#6E617D", "#B1A9AF", "#B16844", "#61307A", "#ED8B80", "#BB60A6",
-    "#E15A7F", "#615C37", "#7C2363", "#D240C2", "#9A5854", "#643F64", "#8C2A36",
-    "#698463", "#BAE367", "#E0DE51", "#BF8C7E", "#C8E6B6", "#A6577B", "#484A3A",
-    "#D4DE7C", "#CD3488"
+    '#7A2719', '#5CE33C', '#E146E9', '#64C6DE', '#E8B031', '#322755', '#436521',
+    '#DE8EBA', '#5C77E3', '#CEE197', '#E32C76', '#E54229', '#2F2418', '#E1A782',
+    '#788483', '#68E8B2', '#9E2B85', '#E4E42A', '#D5D9D5', '#76404F', '#589BDB',
+    '#E276DE', '#92C535', '#DE6459', '#E07529', '#A060E4', '#895997', '#7ED177',
+    '#916D46', '#5BB0A4', '#365167', '#A4AE89', '#ACA630', '#38568F', '#D2B8E2',
+    '#AF7B23', '#81A158', '#9E2F55', '#57E7E1', '#D8BD70', '#316F4B', '#5989A8',
+    '#D17686', '#213F2C', '#A6808E', '#358937', '#504CA1', '#AA7CDD', '#393E0D',
+    '#B02828', '#5EB381', '#47B033', '#DF3EAA', '#4E191E', '#9445AC', '#7A691F',
+    '#382135', '#709628', '#EF6FB0', '#603719', '#6B5A57', '#A44A1C', '#ABC6E2',
+    '#9883B0', '#A6E1D3', '#357975', '#DC3A56', '#561238', '#E1C5AB', '#8B8ED9',
+    '#D897DF', '#61E575', '#E19B55', '#1F303A', '#A09258', '#B94781', '#A4E937',
+    '#EAABBB', '#6E617D', '#B1A9AF', '#B16844', '#61307A', '#ED8B80', '#BB60A6',
+    '#E15A7F', '#615C37', '#7C2363', '#D240C2', '#9A5854', '#643F64', '#8C2A36',
+    '#698463', '#BAE367', '#E0DE51', '#BF8C7E', '#C8E6B6', '#A6577B', '#484A3A',
+    '#D4DE7C', '#CD3488'
   ];
 
+  /**
+    * Fades everything in the view besides the given selection.
+    * @param {object} selection - What's omitted from the fade.
+    */
   _beginHover(selection) {
     d3.selectAll('.GCV').classed('hovering', true);
     selection.classed('active', true);
   }
 
+  /**
+    * Unfades everything in the view and revokes the selection's omission from
+    * being faded.
+    * @param {object} selection - What's no longer omitted.
+    */
   _endHover(selection) {
     d3.selectAll('.GCV').classed('hovering', false);
     selection.classed('active', false);
@@ -51,7 +60,7 @@ class Synteny {
 		dummy.selectAll('.dummyText')
 		  .data(text)
 		  .enter()
-		  .append("text")
+		  .append('text')
 		  .text(function (s) { return s; })
 		  .each(function (s, i) {
 		    var l = this.getComputedTextLength();
@@ -111,11 +120,11 @@ class Synteny {
     // construct the y-axes
     var xAxis = d3.svg.axis()
       .scale(this.scale)
-      .orient("top")
+      .orient('top')
       .tickValues(this.scale.domain())
       .tickFormat((x, i) => { return x; });
     // draw the axis
-    return this.viewer.append("g").attr("class", "axis").call(xAxis);
+    return this.viewer.append('g').attr('class', 'axis').call(xAxis);
   }
   
   /**
@@ -213,19 +222,24 @@ class Synteny {
       })
   	  .style('fill', c);
     // draw the tooltips
-    blocks.append('text')
-  	  .attr('class', 'tip')
-  	  .attr('transform', (b) => {
-        var x1 = this.scale(b.start),
-            x2 = this.scale(b.stop),
-            x = x1 + ((x2 - x1) / 2),
-            y = ((this._BLOCK_HEIGHT + this._PAD) * (b.y + 1)) + this._PAD;
-        return 'translate(' + x + ', ' + y + ') rotate(-45)';
-      })
+    var tips = blocks.append('text')
   	  .attr('text-anchor', 'right')
   	  .text(function (b) {
   	    return b.start + ' - ' + b.stop;
   	  });
+    // position tips once drawn, then hide
+    tips
+  	  .attr('transform', function (b) {
+        // text lies on hypotenuse of Isosceles right triangle
+        var l = this.getComputedTextLength(),  // length of hypotenuse
+            o = Math.sqrt(Math.pow(l, 2) / 2),  // edge length of triangle
+            x1 = obj.scale(b.start),
+            x2 = obj.scale(b.stop),
+            x = x1 + ((x2 - x1) / 2) - o,  // offset so text ends at block
+            y = ((obj._BLOCK_HEIGHT + obj._PAD) * (b.y + 1)) + o;
+        return 'translate(' + x + ', ' + y + ') rotate(-45)';
+      })
+      .attr('class', 'synteny-tip');
     return track;
   }
 
@@ -238,35 +252,35 @@ class Synteny {
   _drawYAxis(ticks) {
     // construct the y-axes
     var yAxis = d3.svg.axis()
-      .orient("left")
+      .orient('left')
       .tickValues(ticks)
       .tickFormat((y, i) => {
         if (i == 0) return this.data.chromosome;
         return this.data.tracks[i - 1].chromosome;
       });
     // draw the axes of the graph
-    return this.viewer.append("g")
-      .attr("class", "axis")
+    return this.viewer.append('g')
+      .attr('class', 'axis')
       .call(yAxis)
       .selectAll('text')
       .attr('class', function (y, i) {
         if (i == 0) return 'query';
         return 'track-' + (i - 1).toString();
       })
-  	  .style("cursor", "pointer")
-      .on("mouseover", (y, i) => {
+  	  .style('cursor', 'pointer')
+      .on('mouseover', (y, i) => {
         if (i > 0) {
           var selection = d3.selectAll('.track-' + (i - 1).toString());
           this._beginHover(selection);
         }
       })
-      .on("mouseout", (y, i) => {
+      .on('mouseout', (y, i) => {
         if (i > 0) {
           var selection = d3.selectAll('.track-' + (i - 1).toString());
           this._endHover(selection);
         }
       })
-      .on("click", this.options.nameClick);
+      .on('click', this.options.nameClick);
   }
 
   /** Draws the viewer. */
@@ -274,26 +288,28 @@ class Synteny {
     // draw the x-axis
     var xAxis = this._drawXAxis(),
         h = xAxis.node().getBBox().height,
-        y = parseInt(this.viewer.attr("height"));
-    xAxis.attr("transform", "translate(0, " + (y + h) + ")");
-    this.viewer.attr("height", y + h + this._PAD);
+        y = parseInt(this.viewer.attr('height'));
+    xAxis.attr('transform', 'translate(0, ' + (y + h) + ')');
+    this.viewer.attr('height', y + h + this._PAD);
     // draw the tracks
     var ticks = [y + (h / 2)];
     for (var i = 0; i < this.data.tracks.length; i++) {
       // make the track
       var track = this._drawTrack(i);
       // put it in the correct location
-      y = parseInt(this.viewer.attr("height"));
-      track.attr("transform", "translate(0," + y + ")")
+      y = parseInt(this.viewer.attr('height'));
+      track.attr('transform', 'translate(0,' + y + ')')
       // adjust the height of the viewer
       var h = track.node().getBBox().height;
-      this.viewer.attr("height", y + h + this._PAD);
+      this.viewer.attr('height', y + h + this._PAD);
       // save the track's label location
       ticks.push(y + (h / 2));
     }
+    // move all tips to front
+    this.viewer.selectAll('.synteny-tip').moveToFront();
     // draw the y-axis
     var yAxis = this._drawYAxis(ticks);
-    yAxis.attr("transform", "translate(" + this.left + ", 0)");
+    yAxis.attr('transform', 'translate(' + this.left + ', 0)');
   }
   
   // Public

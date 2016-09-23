@@ -51,7 +51,7 @@
 .GCV .query {
   font-weight: bold;
 }
-.GCV .tip {
+.GCV .synteny-tip {
   display: none;
 }
 .GCV.hovering {
@@ -60,11 +60,6 @@
 .GCV.hovering .active {
   fill-opacity: 1.0;
 }
-.GCV.hovering .active .tip {
+.GCV.hovering .active .synteny-tip {
   display: block;
 }
-/*
-.GCV.hovering .hover:hover .tip {
-  display: block;
-}
-*/
