@@ -44,9 +44,19 @@ class Synteny {
     * being faded.
     * @param {object} selection - What's no longer omitted.
     */
+  _hoverTimeout = 0;
   _endHover(selection) {
-    d3.selectAll('.GCV').classed('hovering', false);
     selection.classed('active', false);
+    // delay unfading for smoother mouse dragging
+    clearTimeout(this._hoverTimeout);
+    this._hoverTimeout = setTimeout(function () {
+      clearTimeout(this._hoverTimeout);
+      this._hoverTimeout = undefined;
+      // make sure nothing is being hovered
+      if (d3.selectAll('.GCV .active').empty()) {
+        d3.selectAll('.GCV').classed('hovering', false);
+      }
+    }, 125);
   }
 
   /**
@@ -270,13 +280,13 @@ class Synteny {
   	  .style('cursor', 'pointer')
       .on('mouseover', (y, i) => {
         if (i > 0) {
-          var selection = d3.selectAll('.track-' + (i - 1).toString());
+          var selection = d3.selectAll('.GCV .track-' + (i - 1).toString());
           this._beginHover(selection);
         }
       })
       .on('mouseout', (y, i) => {
         if (i > 0) {
-          var selection = d3.selectAll('.track-' + (i - 1).toString());
+          var selection = d3.selectAll('.GCV .track-' + (i - 1).toString());
           this._endHover(selection);
         }
       })
