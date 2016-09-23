@@ -30,6 +30,16 @@ class Synteny {
     "#D4DE7C", "#CD3488"
   ];
 
+  _beginHover(selection) {
+    d3.selectAll('.GCV').classed('hovering', true);
+    selection.classed('active', true);
+  }
+
+  _endHover(selection) {
+    d3.selectAll('.GCV').classed('hovering', false);
+    selection.classed('active', false);
+  }
+
   /**
     * Computes the length of the longest string in the given array.
     * @param {array} text - The strings to be measured.
@@ -71,9 +81,10 @@ class Synteny {
     }
     // create the viewer
     this.viewer = d3.select('#' + id)
-      .append("svg")
-      .attr("width", w)
-      .attr("height", this._PAD);
+      .append('svg')
+      .attr('class', 'GCV')
+      .attr('width', w)
+      .attr('height', this._PAD);
     // compute the space required for chromosome names
 		var chromosomes = [data.chromosome].concat(data.tracks.map(function (t) {
           return t.chromosome;
@@ -142,19 +153,31 @@ class Synteny {
     * @return {object} D3 selection of the new track.
     */
   _drawTrack(i) {
-    var c = this._COLORS[i % this._COLORS.length],
+    var obj = this,
+        c = this._COLORS[i % this._COLORS.length],
         t = this.data.tracks[i];
     // create the track's rows of blocks
     this._blocksToRows(t.blocks);
-  	// draw the track
-    var selector = ".track-" + i.toString(),
+  	// create the track
+    var selector = 'track-' + i.toString(),
   	    track = this.viewer.append('g').attr('class', selector);
-    // draw the track's blocks
-    track.selectAll('.block')
+    // create the track's blocks
+    var blocks = track.selectAll('block')
   	  .data(t.blocks)
   	  .enter()
-  	  .append("polygon")
-  	  .attr("points", (b) => {
+      .append('g')
+  	  .style('cursor', 'pointer')
+      .on('mouseover', function (b) {
+        obj._beginHover(d3.select(this));
+      })
+  	  .on('mouseout', function (b) {
+        obj._endHover(d3.select(this));
+      })
+  	  .on('click', this.options.blockClick);
+    // draw the blocks
+  	blocks.append('polygon')
+      .attr('class', 'block')
+  	  .attr('points', (b) => {
         var x1 = this.scale(b.start),
             y1 = ((this._BLOCK_HEIGHT + this._PAD) * b.y) + this._PAD,
             x2 = this.scale(b.stop),
@@ -188,11 +211,21 @@ class Synteny {
           x1, y2
         ];
       })
-  	  .style("fill", c)
-  	  .style("cursor", "pointer")
-      .on("mouseover", (b) => { })
-  	  .on("mouseout", (b) => { })
-  	  .on('click', this.options.blockClick);
+  	  .style('fill', c);
+    // draw the tooltips
+    blocks.append('text')
+  	  .attr('class', 'tip')
+  	  .attr('transform', (b) => {
+        var x1 = this.scale(b.start),
+            x2 = this.scale(b.stop),
+            x = x1 + ((x2 - x1) / 2),
+            y = ((this._BLOCK_HEIGHT + this._PAD) * (b.y + 1)) + this._PAD;
+        return 'translate(' + x + ', ' + y + ') rotate(-45)';
+      })
+  	  .attr('text-anchor', 'right')
+  	  .text(function (b) {
+  	    return b.start + ' - ' + b.stop;
+  	  });
     return track;
   }
 
@@ -216,13 +249,23 @@ class Synteny {
       .attr("class", "axis")
       .call(yAxis)
       .selectAll('text')
-      .style("font-weight", function (y, i) {
-        if (i == 0) return "bold";
-        return "normal";
+      .attr('class', function (y, i) {
+        if (i == 0) return 'query';
+        return 'track-' + (i - 1).toString();
       })
   	  .style("cursor", "pointer")
-      .on("mouseover", (y, i) => { })
-      .on("mouseout", (y, i) => { })
+      .on("mouseover", (y, i) => {
+        if (i > 0) {
+          var selection = d3.selectAll('.track-' + (i - 1).toString());
+          this._beginHover(selection);
+        }
+      })
+      .on("mouseout", (y, i) => {
+        if (i > 0) {
+          var selection = d3.selectAll('.track-' + (i - 1).toString());
+          this._endHover(selection);
+        }
+      })
       .on("click", this.options.nameClick);
   }
 

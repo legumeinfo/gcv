@@ -47,3 +47,24 @@
     font-family: sans-serif;
     font-size: 10px;
 }
+/* GCV css */
+.GCV .query {
+  font-weight: bold;
+}
+.GCV .tip {
+  display: none;
+}
+.GCV.hovering {
+  fill-opacity: 0.2;
+}
+.GCV.hovering .active {
+  fill-opacity: 1.0;
+}
+.GCV.hovering .active .tip {
+  display: block;
+}
+/*
+.GCV.hovering .hover:hover .tip {
+  display: block;
+}
+*/
