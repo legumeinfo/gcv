@@ -9,10 +9,10 @@ class Synteny {
 
   // Constants
   _BLOCK_HEIGHT = 11;
-  _PAD         = 2;
-  _PTR_LEN = 5;
-  _FADE        = 0.15;
-  _COLORS      = [  // 100 maximally distinct colors
+  _PAD          = 2;
+  _PTR_LEN      = 5;
+  _FADE         = 0.15;
+  _COLORS       = [  // 100 maximally distinct colors
     '#7A2719', '#5CE33C', '#E146E9', '#64C6DE', '#E8B031', '#322755', '#436521',
     '#DE8EBA', '#5C77E3', '#CEE197', '#E32C76', '#E54229', '#2F2418', '#E1A782',
     '#788483', '#68E8B2', '#9E2B85', '#E4E42A', '#D5D9D5', '#76404F', '#589BDB',
@@ -29,6 +29,22 @@ class Synteny {
     '#698463', '#BAE367', '#E0DE51', '#BF8C7E', '#C8E6B6', '#A6577B', '#484A3A',
     '#D4DE7C', '#CD3488'
   ];
+
+  /**
+    * Adds a hidden iframe that calls the given resize event whenever its width
+    * changes.
+    * @param {string} el - The element to add the iframe to.
+    * @param {function} f - The function to call when a resize event occurs.
+    * @return {object} - The hidden iframe.
+    */
+  _autoResize(el, f) {
+    var iframe = document.createElement('IFRAME');
+    iframe.setAttribute('allowtransparency', true);
+    iframe.className = "GCV-resizer";
+    el.appendChild(iframe);
+    iframe.contentWindow.onresize = f;
+    return iframe;
+  }
 
   /**
     * Fades everything in the view besides the given selection.
@@ -81,6 +97,26 @@ class Synteny {
     return max;
   }
 
+  /** Resizes the viewer and scale. Will be decorated by other components. */
+  _resize() {
+    var w = this.container.clientWidth,
+        r1 = this.left + (2 * this._PAD),
+        r2 = w - (this.right + this._PAD);
+    this.viewer.attr('width', w);
+    this.scale.range([r1, r2]);
+  }
+
+  /**
+    * Decorates the _resize function with the given function.
+    * @param {function} d - The decorator function.
+    */
+  _decorateResize(d) {
+    this._resize = function (resize) {
+      resize();
+      d();
+    }.bind(this, this._resize);
+  }
+
   /**
     * Parses parameters and initializes variables.
     * @param {string} id - ID of element viewer will be drawn in.
@@ -89,11 +125,10 @@ class Synteny {
     */
   _init(id, data, options) {
     // parse positional parameters
-    var container = document.getElementById(id);
-    if (container === null) {
+    this.container = document.getElementById(id);
+    if (this.container === null) {
       throw new Error('"' + id + '" is not a valid element ID');
     }
-    var w = container.clientWidth;
     this.data = data;
     if (this.data === undefined) {
       throw new Error("'data' is undefined");
@@ -102,7 +137,6 @@ class Synteny {
     this.viewer = d3.select('#' + id)
       .append('svg')
       .attr('class', 'GCV')
-      .attr('width', w)
       .attr('height', this._PAD);
     // compute the space required for chromosome names
 		var chromosomes = [data.chromosome].concat(data.tracks.map(function (t) {
@@ -110,10 +144,13 @@ class Synteny {
         }));
     this.left = this._longestString(chromosomes);
     this.right = this._longestString([data.length]) / 2;
-    // create the scale used map block coordinates to pixels
+    // create the scale used to map block coordinates to pixels
     this.scale = d3.scale.linear()
-      .domain([0, data.length])
-      .range([this.left + (2 * this._PAD), w - (this.right + this._PAD)]);
+      .domain([0, data.length]);
+    // make sure resize always has the right context
+    this._resize = this._resize.bind(this);
+    // initialize the viewer width and scale range
+    this._resize();
     // parse optional parameters
     this.options = options || {};
     this.options.nameClick = options.nameClick || function (y, i) { };
@@ -127,14 +164,20 @@ class Synteny {
     * @return {object} D3 selection of the x-axis.
     */
   _drawXAxis() {
-    // construct the y-axes
-    var xAxis = d3.svg.axis()
-      .scale(this.scale)
-      .orient('top')
-      .tickValues(this.scale.domain())
-      .tickFormat((x, i) => { return x; });
     // draw the axis
-    return this.viewer.append('g').attr('class', 'axis').call(xAxis);
+    var xAxis = this.viewer.append('g').attr('class', 'axis');
+    // how the axis is resized
+    xAxis.resize = function () {
+      var axis = d3.svg.axis()
+        .scale(this.scale)
+        .orient('top')
+        .tickValues(this.scale.domain())
+        .tickFormat((x, i) => { return x; });
+      xAxis.call(axis);
+    }.bind(this);
+    // resize once to position everything
+    xAxis.resize();
+    return xAxis;
   }
   
   /**
@@ -186,24 +229,29 @@ class Synteny {
   	  .enter()
       .append('g')
   	  .style('cursor', 'pointer')
-      .on('mouseover', function (b) {
-        obj._beginHover(d3.select(this));
-      })
-  	  .on('mouseout', function (b) {
-        obj._endHover(d3.select(this));
-      })
+      .on('mouseover', function (b) { obj._beginHover(d3.select(this)); })
+  	  .on('mouseout', function (b) { obj._endHover(d3.select(this)); })
   	  .on('click', this.options.blockClick);
     // draw the blocks
-  	blocks.append('polygon')
+  	var polygons = blocks.append('polygon')
       .attr('class', 'block')
-  	  .attr('points', (b) => {
-        var x1 = this.scale(b.start),
-            y1 = ((this._BLOCK_HEIGHT + this._PAD) * b.y) + this._PAD,
-            x2 = this.scale(b.stop),
-            y2 = y1 + this._BLOCK_HEIGHT,
-            middle = y1 + (this._BLOCK_HEIGHT / 2);
+  	  .style('fill', c);
+    // draw the tooltips
+    var tips = blocks.append('text')
+      .attr('class', 'synteny-tip')
+  	  .attr('text-anchor', 'right')
+  	  .text(function (b) { return b.start + ' - ' + b.stop; });
+    // how the blocks are resized
+    track.resize = function (polygons, tips) {
+      var obj = this;
+  	  polygons.attr('points', function (b) {
+        var x1 = obj.scale(b.start),
+            y1 = ((obj._BLOCK_HEIGHT + obj._PAD) * b.y) + obj._PAD,
+            x2 = obj.scale(b.stop),
+            y2 = y1 + obj._BLOCK_HEIGHT,
+            middle = y1 + (obj._BLOCK_HEIGHT / 2);
         // draw a block if it's large enough
-        if (x2 - x1 > this._PTR_LEN) {
+        if (x2 - x1 > obj._PTR_LEN) {
           var p = [  // x, y coordinates of block
             x1, y1,
             x2, y1,
@@ -212,35 +260,27 @@ class Synteny {
           ];
           // add the orientation pointer
           if (b.orientation == '+') {
-            p[2] -= this._PTR_LEN;
-            p[4] -= this._PTR_LEN;
+            p[2] -= obj._PTR_LEN;
+            p[4] -= obj._PTR_LEN;
             p.splice(4, 0, x2, middle);
           } else if (b.orientation == '-') {
-            p[0] += this._PTR_LEN;
-            p[6] += this._PTR_LEN;
+            p[0] += obj._PTR_LEN;
+            p[6] += obj._PTR_LEN;
             p.push(x1, middle);
           }
           return p;
         }
         // draw just a pointer
-        var ptr = (b.orientation == '-') ? -this._PTR_LEN : this._PTR_LEN;
+        var ptr = (b.orientation == '-') ? -obj._PTR_LEN : obj._PTR_LEN;
         return [  // x, y coordinates of block
           x1, y1,
           x1 + ptr, middle,
           x1, y2
         ];
-      })
-  	  .style('fill', c);
-    // draw the tooltips
-    var tips = blocks.append('text')
-  	  .attr('text-anchor', 'right')
-  	  .text(function (b) {
-  	    return b.start + ' - ' + b.stop;
-  	  });
-    // position tips once drawn, then hide
-    tips
-  	  .attr('transform', function (b) {
-        // text lies on hypotenuse of Isosceles right triangle
+      });
+      tips.classed('synteny-tip', false);
+      tips.attr('transform', function (b) {
+        // text lies on the hypotenuse of an Isosceles right triangle
         var l = this.getComputedTextLength(),  // length of hypotenuse
             o = Math.sqrt(Math.pow(l, 2) / 2),  // edge length of triangle
             x1 = obj.scale(b.start),
@@ -248,8 +288,11 @@ class Synteny {
             x = x1 + ((x2 - x1) / 2) - o,  // offset so text ends at block
             y = ((obj._BLOCK_HEIGHT + obj._PAD) * (b.y + 1)) + o;
         return 'translate(' + x + ', ' + y + ') rotate(-45)';
-      })
-      .attr('class', 'synteny-tip');
+      });
+      tips.classed('synteny-tip', true);
+    }.bind(this, polygons, tips);
+    // resize once to position everything
+    track.resize();
     return track;
   }
 
@@ -294,15 +337,18 @@ class Synteny {
   }
 
   /** Draws the viewer. */
-  _draw() {
+  _draw() {  // TODO: encapsulate redundancies: viewer sizing
     // draw the x-axis
     var xAxis = this._drawXAxis(),
         h = xAxis.node().getBBox().height,
         y = parseInt(this.viewer.attr('height'));
     xAxis.attr('transform', 'translate(0, ' + (y + h) + ')');
     this.viewer.attr('height', y + h + this._PAD);
+    // decorate the resize function with that of the x-axis
+    this._decorateResize(xAxis.resize);
     // draw the tracks
-    var ticks = [y + (h / 2)];
+    var ticks = [y + (h / 2)],
+        tracks = [];
     for (var i = 0; i < this.data.tracks.length; i++) {
       // make the track
       var track = this._drawTrack(i);
@@ -314,12 +360,27 @@ class Synteny {
       this.viewer.attr('height', y + h + this._PAD);
       // save the track's label location
       ticks.push(y + (h / 2));
+      // save the track for the resize call
+      tracks.push(track);
     }
+    // decorate the resize function with that of the track
+    var resizeTracks = function () {
+      tracks.forEach(function (t, i) {
+        t.resize();
+      });
+    }
+    this._decorateResize(resizeTracks);
     // move all tips to front
     this.viewer.selectAll('.synteny-tip').moveToFront();
     // draw the y-axis
     var yAxis = this._drawYAxis(ticks);
     yAxis.attr('transform', 'translate(' + this.left + ', 0)');
+    // create an auto resize iframe if necessary
+    if (this.options.autoResize) {
+      this.resizer = this._autoResize(this.container, (e) => {
+        this._resize();
+      });
+    }
   }
   
   // Public
