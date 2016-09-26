@@ -40,7 +40,7 @@ class Synteny {
   _autoResize(el, f) {
     var iframe = document.createElement('IFRAME');
     iframe.setAttribute('allowtransparency', true);
-    iframe.className = "GCV-resizer";
+    iframe.className = 'GCV-resizer';
     el.appendChild(iframe);
     iframe.contentWindow.onresize = f;
     return iframe;
@@ -155,7 +155,8 @@ class Synteny {
     this.options = options || {};
     this.options.nameClick = options.nameClick || function (y, i) { };
     this.options.blockClick = options.blockClick || function (b) { };
-    this.options.viewport = options.viewport || undefined;
+    this.options.viewportDrag = options.viewportDrag;
+    this.options.viewport = options.viewport || false;
     this.options.autoResize = options.autoResize || false;
   }
 
@@ -175,7 +176,7 @@ class Synteny {
 
   /**
     * Creates the x-axis.
-    * @return {object} D3 selection of the x-axis.
+    * @return {object} - D3 selection of the x-axis.
     */
   _drawXAxis() {
     // draw the axis
@@ -227,7 +228,7 @@ class Synteny {
   /**
     * Creates a graphic containing a track's blocks.
     * @param {number} i - The index of the track in the input data to draw.
-    * @return {object} D3 selection of the new track.
+    * @return {object} - D3 selection of the new track.
     */
   _drawTrack(i) {
     var obj = this,
@@ -316,11 +317,11 @@ class Synteny {
   /**
     * Creates the y-axis, placing labels at their respective locations.
     * @param {array} ticks - The locations of the track labels.
-    * @return {object} D3 selection of the y-axis.
+    * @return {object} - D3 selection of the y-axis.
     */
   _drawYAxis(ticks) {
     // construct the y-axes
-    var yAxis = d3.svg.axis()
+    var axis = d3.svg.axis()
       .orient('left')
       .tickValues(ticks)
       .tickFormat((y, i) => {
@@ -328,9 +329,9 @@ class Synteny {
         return this.data.tracks[i - 1].chromosome;
       });
     // draw the axes of the graph
-    return this.viewer.append('g')
+    var yAxis = this.viewer.append('g')
       .attr('class', 'axis')
-      .call(yAxis)
+      .call(axis)
       .selectAll('text')
       .attr('class', function (y, i) {
         if (i == 0) return 'query';
@@ -350,6 +351,35 @@ class Synteny {
         }
       })
       .on('click', this.options.nameClick);
+    return yAxis;
+  }
+
+  /**
+    * Creates the viewport over the specified genomic interval.
+    * @return {object} - D3 selection of the viewport.
+    */
+  _drawViewport() {
+    var h = parseInt(this.viewer.attr('height')) - this._PAD;
+    var viewport = this.viewer.append('rect')
+      .attr('class', 'viewport')
+      .attr('y', this._PAD)
+      .attr('height', h)
+      .attr('cursor', (d) => {
+        if (this.options.viewportDrag) return 'move';
+        return 'auto';
+      });
+    if (this.options.viewportDrag) {
+      viewport.call(drag);
+    }
+    // how the viewport is resized
+    viewport.resize = function () {
+      var x1 = this.scale(this.options.viewport.start),
+          x2 = this.scale(this.options.viewport.stop);
+      viewport.attr('x', x1).attr('width', x2 - x1);
+    }.bind(this);
+    // resize once to position everything
+    viewport.resize();
+    return viewport;
   }
 
   /** Draws the viewer. */
@@ -384,6 +414,11 @@ class Synteny {
     // draw the y-axis
     var yAxis = this._drawYAxis(ticks);
     yAxis.attr('transform', 'translate(' + this.left + ', 0)');
+    // draw the viewport
+    if (this.options.viewport) {
+      var viewport = this._drawViewport();
+      this._decorateResize(viewport.resize);
+    }
     // create an auto resize iframe if necessary
     if (this.options.autoResize) {
       this.resizer = this._autoResize(this.container, (e) => {

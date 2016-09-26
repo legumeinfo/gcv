@@ -70,3 +70,8 @@ iframe.GCV-resizer {
   border: none;
   background-color: transparent;
 }
+.GCV .viewport {
+  stroke: #000000;
+  fill: #CCCCCC;
+  fill-opacity: 0.4;
+}
