@@ -160,6 +160,20 @@ class Synteny {
   }
 
   /**
+    * Positions the given element, resizes the viewer, and returns the vertical
+    * center of the positioned element.
+    * @param {object} e - The element to be positioned.
+    * @return {number} - The vertical middle of the element after positioning.
+    */
+  _positionElement(e) {
+    var h = e.node().getBBox().height,
+        y = parseInt(this.viewer.attr('height'));
+    e.attr('transform', 'translate(0, ' + (e.offset + y) + ')');
+    this.viewer.attr('height', y + h + this._PAD);
+    return y + (h / 2);
+  }
+
+  /**
     * Creates the x-axis.
     * @return {object} D3 selection of the x-axis.
     */
@@ -177,6 +191,7 @@ class Synteny {
     }.bind(this);
     // resize once to position everything
     xAxis.resize();
+    xAxis.offset = xAxis.node().getBBox().height;
     return xAxis;
   }
   
@@ -223,6 +238,7 @@ class Synteny {
   	// create the track
     var selector = 'track-' + i.toString(),
   	    track = this.viewer.append('g').attr('class', selector);
+    track.offset = 0;
     // create the track's blocks
     var blocks = track.selectAll('block')
   	  .data(t.blocks)
@@ -337,29 +353,22 @@ class Synteny {
   }
 
   /** Draws the viewer. */
-  _draw() {  // TODO: encapsulate redundancies: viewer sizing
+  _draw() {
     // draw the x-axis
     var xAxis = this._drawXAxis(),
-        h = xAxis.node().getBBox().height,
-        y = parseInt(this.viewer.attr('height'));
-    xAxis.attr('transform', 'translate(0, ' + (y + h) + ')');
-    this.viewer.attr('height', y + h + this._PAD);
+        m = this._positionElement(xAxis);
     // decorate the resize function with that of the x-axis
     this._decorateResize(xAxis.resize);
     // draw the tracks
-    var ticks = [y + (h / 2)],
+    var ticks = [m],
         tracks = [];
     for (var i = 0; i < this.data.tracks.length; i++) {
       // make the track
       var track = this._drawTrack(i);
       // put it in the correct location
-      y = parseInt(this.viewer.attr('height'));
-      track.attr('transform', 'translate(0,' + y + ')')
-      // adjust the height of the viewer
-      var h = track.node().getBBox().height;
-      this.viewer.attr('height', y + h + this._PAD);
+      m = this._positionElement(track);
       // save the track's label location
-      ticks.push(y + (h / 2));
+      ticks.push(m);
       // save the track for the resize call
       tracks.push(track);
     }
