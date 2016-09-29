@@ -63,3 +63,15 @@
 .GCV.hovering .active .synteny-tip {
   display: block;
 }
+iframe.GCV-resizer {
+  width: 100%;
+  height: 0;
+  position: absolute;
+  border: none;
+  background-color: transparent;
+}
+.GCV .viewport {
+  stroke: #000000;
+  fill: #CCCCCC;
+  fill-opacity: 0.4;
+}
