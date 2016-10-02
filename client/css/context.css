@@ -25,9 +25,9 @@
     stroke: #000;
 }
 .tip {
-    fill: black;
-    font-family: sans-serif;
-    font-size: 10px;
+  fill: black;
+  font-family: sans-serif;
+  font-size: 10px;
 	visibility: hidden;
 }
 .rect {

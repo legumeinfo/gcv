@@ -30,6 +30,13 @@ class Synteny {
     '#D4DE7C', '#CD3488'
   ];
 
+	_getElementCoords(element, coords) {
+	  var ctm = element.getCTM(),
+	  x = ctm.e + coords.x*ctm.a + coords.y*ctm.c,
+	  y = ctm.f + coords.x*ctm.b + coords.y*ctm.d;
+	  return {x: x, y: y};
+	};
+
   /**
     * Adds a hidden iframe that calls the given resize event whenever its width
     * changes.
@@ -42,7 +49,10 @@ class Synteny {
     iframe.setAttribute('allowtransparency', true);
     iframe.className = 'GCV-resizer';
     el.appendChild(iframe);
-    iframe.contentWindow.onresize = f;
+    iframe.contentWindow.onresize = function () {
+      clearTimeout(this.resizeTimer);
+      this.resizeTimer = setTimeout(f, 10)
+    };
     return iframe;
   }
 
@@ -249,67 +259,102 @@ class Synteny {
       .on('mouseover', function (b) { obj._beginHover(d3.select(this)); })
   	  .on('mouseout', function (b) { obj._endHover(d3.select(this)); })
   	  .on('click', this.options.blockClick);
+    // help for generating points
+    var genPoints = function (b, yTop, yBottom, yMiddle) {
+      var x1 = obj.scale(b.start),
+          x2 = obj.scale(b.stop);
+      // draw a block if it's large enough
+      if (x2 - x1 > obj._PTR_LEN) {
+        var p = [  // x, y coordinates of block
+          x1, yTop,
+          x2, yTop,
+          x2, yBottom,
+          x1, yBottom
+        ];
+        // add the orientation pointer
+        if (b.orientation == '+') {
+          p[2] -= obj._PTR_LEN;
+          p[4] -= obj._PTR_LEN;
+          p.splice(4, 0, x2, yMiddle);
+        } else if (b.orientation == '-') {
+          p[0] += obj._PTR_LEN;
+          p[6] += obj._PTR_LEN;
+          p.push(x1, yMiddle);
+        }
+        return p;
+      }
+      // draw just a pointer
+      var ptr = (b.orientation == '-') ? -obj._PTR_LEN : obj._PTR_LEN;
+      return [  // x, y coordinates of block
+        x1, yTop,
+        x1 + ptr, yMiddle,
+        x1, yBottom
+      ];
+    }
     // draw the blocks
   	var polygons = blocks.append('polygon')
       .attr('class', 'block')
-  	  .style('fill', c);
+  	  .style('fill', c)
+      .attr('points', function (b) {
+        var yTop = ((obj._BLOCK_HEIGHT + obj._PAD) * b.y) + obj._PAD,
+            yBottom = yTop + obj._BLOCK_HEIGHT,
+            yMiddle = yTop + (obj._BLOCK_HEIGHT / 2),
+            block = d3.select(this);
+        d3.select(this)  // evil nested assignments!
+          .attr('data-y-top', yTop)
+          .attr('data-y-bottom', yBottom)
+          .attr('data-y-middle', yMiddle);
+        return genPoints(b, yTop, yBottom, yMiddle);
+      });
     // draw the tooltips
     var tips = blocks.append('text')
       .attr('class', 'synteny-tip')
-  	  .attr('text-anchor', 'right')
-  	  .text(function (b) { return b.start + ' - ' + b.stop; });
+  	  .attr('text-anchor', 'end')
+  	  .text(function (b) { return b.start + ' - ' + b.stop; })
+      .attr('data-x', function (b) {
+        var x1 = b.start,
+            x2 = b.stop;
+        return x1 + ((x2 - x1) / 2);
+      })
+      .attr('data-y', function (b) {
+        return (obj._BLOCK_HEIGHT + obj._PAD) * (b.y + 1);
+      })
+      .attr('transform', function (b) {
+        var tip = d3.select(this),
+            x = obj.scale(tip.attr('data-x')),
+            y = tip.attr('data-y');
+        return 'translate(' + x + ', ' + y + ')';
+      });
     // how the blocks are resized
     track.resize = function (polygons, tips) {
       var obj = this;
   	  polygons.attr('points', function (b) {
-        var x1 = obj.scale(b.start),
-            y1 = ((obj._BLOCK_HEIGHT + obj._PAD) * b.y) + obj._PAD,
-            x2 = obj.scale(b.stop),
-            y2 = y1 + obj._BLOCK_HEIGHT,
-            middle = y1 + (obj._BLOCK_HEIGHT / 2);
-        // draw a block if it's large enough
-        if (x2 - x1 > obj._PTR_LEN) {
-          var p = [  // x, y coordinates of block
-            x1, y1,
-            x2, y1,
-            x2, y2,
-            x1, y2
-          ];
-          // add the orientation pointer
-          if (b.orientation == '+') {
-            p[2] -= obj._PTR_LEN;
-            p[4] -= obj._PTR_LEN;
-            p.splice(4, 0, x2, middle);
-          } else if (b.orientation == '-') {
-            p[0] += obj._PTR_LEN;
-            p[6] += obj._PTR_LEN;
-            p.push(x1, middle);
-          }
-          return p;
-        }
-        // draw just a pointer
-        var ptr = (b.orientation == '-') ? -obj._PTR_LEN : obj._PTR_LEN;
-        return [  // x, y coordinates of block
-          x1, y1,
-          x1 + ptr, middle,
-          x1, y2
-        ];
+        var block = d3.select(this),
+            yTop = block.attr('data-y-top'),
+            yBottom = block.attr('data-y-bottom'),
+            yMiddle = block.attr('data-y-middle');
+        return genPoints(b, yTop, yBottom, yMiddle);
       });
-      tips.classed('synteny-tip', false);
       tips.attr('transform', function (b) {
-        // text lies on the hypotenuse of an Isosceles right triangle
-        var l = this.getComputedTextLength(),  // length of hypotenuse
-            o = Math.sqrt(Math.pow(l, 2) / 2),  // edge length of triangle
-            x1 = obj.scale(b.start),
-            x2 = obj.scale(b.stop),
-            x = x1 + ((x2 - x1) / 2) - o,  // offset so text ends at block
-            y = ((obj._BLOCK_HEIGHT + obj._PAD) * (b.y + 1)) + o;
-        return 'translate(' + x + ', ' + y + ') rotate(-45)';
+        var tip = d3.select(this),
+            x = obj.scale(tip.attr('data-x')),
+            y = tip.attr('data-y');
+        return 'translate(' + x +', ' + y + ') ' + tip.attr('data-rotate');
       });
-      tips.classed('synteny-tip', true);
     }.bind(this, polygons, tips);
-    // resize once to position everything
-    track.resize();
+    // how tips are rotated so they don't overflow the view
+    track.rotateTips = function (tips, resize) {
+      var vRect = obj.viewer.node().getBoundingClientRect();
+      tips.classed('synteny-tip', false)
+        .attr('data-rotate', function (b) {
+          var tRect = this.getBoundingClientRect(),
+              h = Math.sqrt(Math.pow(tRect.width, 2) / 2),  // rotated height
+              r = (tRect.bottom + h > vRect.bottom) ? 45 : -45;
+          return 'rotate(' + r + ')';
+        })
+        .classed('synteny-tip', true);
+      resize();
+    }.bind(this, tips, track.resize);
     return track;
   }
 
@@ -409,6 +454,10 @@ class Synteny {
       });
     }
     this._decorateResize(resizeTracks);
+    // rotate the tips now that all the tracks have been drawn
+    tracks.forEach(function (t, i) {
+      t.rotateTips();
+    });
     // move all tips to front
     this.viewer.selectAll('.synteny-tip').moveToFront();
     // draw the y-axis
@@ -438,5 +487,16 @@ class Synteny {
   constructor(id, data, options) {
     this._init(id, data, options);
     this._draw();
+  }
+
+  /** Manually destroys the viewer. */
+  destroy() {
+    if (this.container) {
+      this.container.removeChild(this.viewer.node());
+      if (this.resizer) {
+        this.container.removeChild(this.resizer);
+      }
+    }
+    this.container = this.viewer = this.resizer = undefined;
   }
 }
