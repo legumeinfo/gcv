@@ -1221,12 +1221,12 @@ def synteny(request):
         # get all the related featurelocs
         blocks = list(Featureloc.objects\
             .only('feature', 'fmin', 'fmax', 'strand')\
-            .filter(srcfeature=chromosome, feature__type=synteny_type))
+            .filter(srcfeature=chromosome, feature__type=synteny_type, rank=0))
         # get the chromosome each region belongs to
         region_ids = map(lambda b: b.feature_id, blocks)
         regions = list(Featureloc.objects\
             .only('feature', 'srcfeature')\
-            .filter(feature__in=region_ids, srcfeature__in=POST['results']))
+            .filter(feature__in=region_ids, srcfeature__in=POST['results'], rank=1))
         region_to_chromosome = dict(
             (r.feature_id, r.srcfeature_id) for r in regions
         )
