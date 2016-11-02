@@ -1,23 +1,24 @@
 <form name="basic.form" method="get" ng-submit="basic.submit()" ng-init="basic.init()" novalidate>
   <fieldset>
-    <legend>Query Parameters</legend>
-    <div class="form-group" show-errors>
+    <legend>Query Parameters<a class="pull-right" ng-click="queryHelp=!queryHelp"><span class="glyphicon glyphicon-question-sign"></span></a></legend>
+    <div class="form-group" show-errors ng-class="{'has-help': queryHelp}">
       <label>Neighbors</label>
-      <input type="number" min="1" name="numNeighbors" id="neighborpane" class="form-control" ng-model="basic.params.numNeighbors" positive-integer required>
-      <span id="helpBlock" class="help-block">A positive integer</span>
+      <input type="number" min="1" name="numNeighbors" class="form-control" ng-model="basic.params.numNeighbors" positive-integer required>
+      <span class="help-block"><b>positive integer</b> - The number of genes on either side of the query genes.</span>
     </div>
-    <div id="sources" class="form-group">
+    <div class="form-group" ng-class="{'has-help': queryHelp}">
       <label>Sources</label>
-	  <select multiple class="form-control" name="sources"
+	    <select multiple class="form-control" name="sources"
         ng-options="s.id as s.name for s in basic.sources"
         ng-model="basic.params.sources">
       </select>
+      <span class="help-block">Which databases to load data from.</span>
     </div>
-    <legend>Track Parameters</legend>
-    <div class="form-group">
+    <legend>Track Parameters<a class="pull-right" ng-click="trackHelp=!trackHelp"><span class="glyphicon glyphicon-question-sign"></span></a></legend>
+    <div class="form-group" ng-class="{'has-help': trackHelp}">
       <label>Name filter</label>
-      <input type="regexp" name="track_filter" class="form-control" ng-model="basic.params.track_regexp">
-      <span id="helpBlock" class="help-block">A regular expression</span>
+      <input type="regexp" name="track_filter" class="form-control" ng-model="basic.params.track_regexp" placeholder="e.g., chromosome1|chromosome2|chromosome32">
+      <span class="help-block"><b>regular expression</b> - Filters the tracks by name.</span>
     </div>
     <button type="submit" class="btn btn-primary col-sm-12">Submit</button>
   </fieldset>

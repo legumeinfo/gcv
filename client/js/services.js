@@ -452,13 +452,13 @@ contextServices.service('Search', function ($http, $q, $rootScope, Viewer) {
   // how result tracks can be ordered
   var orderings = {
     chromosome: {
-      name: "Chromosome",
+      name: "Chromosome name",
       algorithm: function (a, b) {
         return a.chromosome_name.localeCompare(b.chromosome_name);
       }
     },
     distance: {
-      name: "Edit distance",
+      name: "Alignment score",
       algorithm: function (a, b) {
         var diff = b.score-a.score
         // if group have the same score
