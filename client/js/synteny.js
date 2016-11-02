@@ -1,9 +1,10 @@
 'use strict'
 
 /** The Genomic Context Viewer namespace. */
-//var GCV = {};
+var GCV = GCV || {};
 
-class Synteny {
+/** The macro-synteny viewer */
+GCV.Synteny = class {
 
   // Private
 

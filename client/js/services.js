@@ -727,7 +727,7 @@ contextServices.service('Synteny', function ($http, $q, $rootScope, Viewer) {
       // draw the viewer
       if (data !== undefined) {
         if (viewer) viewer.destroy();
-        viewer = new Synteny(ELEMENT, data, viewArgs);
+        viewer = new GCV.Synteny(ELEMENT, data, viewArgs);
       }
     }
   };
