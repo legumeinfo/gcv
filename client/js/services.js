@@ -234,7 +234,7 @@ function ($rootScope, UI) {
         };
       }
       // draw the viewer
-      contextViewer('viewer-content', colors, tracks, args);  // context.js
+      GCV.Viewer('viewer-content', colors, tracks, args);  // context.js
       // draw the legend
       contextLegend('legend-content', colors, tracks, {  // context.js
         "legendClick": function (family, genes) {

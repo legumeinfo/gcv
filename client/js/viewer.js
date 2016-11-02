@@ -1,4 +1,10 @@
-function contextViewer(container_id, color, in_data, opt) {
+'use strict'
+
+/** The Genomic Context Viewer namespace. */
+var GCV = GCV || {};
+
+/** The micro-synteny viewer. */
+GCV.Viewer = function (container_id, color, in_data, opt) {
 
   document.getElementById(container_id).innerHTML = '';
 
@@ -9,7 +15,7 @@ function contextViewer(container_id, color, in_data, opt) {
       groups = {},
       left_breaks = {},
       right_breaks = {},
-      interTracks = {};
+      interTracks = {},
       omit = {},
       uid = 0;
   for (var i = 0; i < data.groups.length; i++) {

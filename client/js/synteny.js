@@ -3,7 +3,7 @@
 /** The Genomic Context Viewer namespace. */
 var GCV = GCV || {};
 
-/** The macro-synteny viewer */
+/** The macro-synteny viewer. */
 GCV.Synteny = class {
 
   // Private
