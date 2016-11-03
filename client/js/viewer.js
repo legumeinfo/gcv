@@ -6,10 +6,6 @@ var GCV = GCV || {};
 /** The micro-synteny viewer. */
 GCV.Viewer = class {
 
-//  document.getElementById(container_id).innerHTML = '';
-//
-//  var data = $.extend(true, {}, in_data);
-//  
 //  // data preprocessing
 //  var partitions = {},
 //      groups = {},
@@ -211,9 +207,6 @@ GCV.Viewer = class {
 //  // get the family id name map
 //  var family_names = getFamilyNameMap(data);
 //  
-//  // define dimensions of graph and a bunch of other stuff
-//  var targetWidth = ((opt.width !== undefined) ? opt.width :
-//                     document.getElementById(container_id).offsetWidth);
 //  var w = d3.max([1000, targetWidth]),
 //      rect_h = 18,
 //      rect_pad = 2,
@@ -224,29 +217,6 @@ GCV.Viewer = class {
 //      right_pad = 150,
 //      num_tracks = data.groups.length,
 //      num_genes = get_track_length(data),
-//      h = num_tracks*30+bottom_pad+top_pad,
-//      min_x = d3.min(data.groups, function (group) {
-//        return d3.min(group.genes, function (gene) {
-//          return +gene.x;
-//        });
-//      }),
-//      max_x = d3.max(data.groups, function (group) {
-//        return d3.max(group.genes, function (gene) {
-//          return +gene.x;
-//        });
-//      });
-//  
-//  // define the scatter plot
-//  var viewer = d3.select("#"+container_id)
-//    .append("svg")
-//    .attr("width", w)
-//    .attr("height", h);
-//  
-//  // initialize the x and y scales
-//  var x = d3.scale.linear().domain([min_x, max_x])
-//        .range([left_pad, w-right_pad]),
-//      y = d3.scale.linear().domain([0, num_tracks-1])
-//        .range([top_pad, h-bottom_pad]);
 //  
 //  // for constructing the y-axis
 //  var tick_values = [];
@@ -491,26 +461,49 @@ GCV.Viewer = class {
 
   // Constants
   _PAD = 2;
+  _TRACK_HEIGHT = 30;
 
-  /** Resizes the viewer and scale. Will be decorated by other components. */
-  //_resize() {
-  //  var w = this.container.clientWidth,
-  //      r1 = this.left + (2 * this._PAD),
-  //      r2 = w - (this.right + this._PAD);
-  //  this.viewer.attr('width', w);
-  //  this.scale.range([r1, r2]);
-  //}
+  /**
+    * Computes the length of the longest string in the given array.
+    * @param {array} text - The strings to be measured.
+    * @return {number} The length of the longest string.
+    */
+  _longestString(text) {
+    var dummy = this.viewer.append('g'),
+        max = 0;
+		dummy.selectAll('.dummyText')
+		  .data(text)
+		  .enter()
+		  .append('text')
+		  .text(function (s) { return s; })
+		  .each(function (s, i) {
+		    var l = this.getComputedTextLength();
+        if (l > max) max = l;
+		    this.remove();
+		  });
+		dummy.remove();
+    return max;
+  }
+
+  /** Resizes the viewer and x scale. Will be decorated by other components. */
+  _resize() {
+    var w = this.container.clientWidth,
+        r1 = this.left + (2 * this._PAD),
+        r2 = w - (this.right + this._PAD);
+    this.viewer.attr('width', w);
+    this.x.range([r1, r2]);
+  }
 
   /**
     * Decorates the _resize function with the given function.
     * @param {function} d - The decorator function.
     */
-  //_decorateResize(d) {
-  //  this._resize = function (resize) {
-  //    resize();
-  //    d();
-  //  }.bind(this, this._resize);
-  //}
+  _decorateResize(d) {
+    this._resize = function (resize) {
+      resize();
+      d();
+    }.bind(this, this._resize);
+  }
 
   /**
     * Parses parameters and initializes variables.
@@ -533,26 +526,31 @@ GCV.Viewer = class {
       .append('svg')
       .attr('class', 'GCV')
       .attr('height', this._PAD);
-    // compute the space required for chromosome names
+    // compute the x scale and the space required for track names
+    var minX = Infinity,
+        maxX = -Infinity;
 		var names = data.groups.map(function (g) {
       var min = Infinity,
-          max = 0;
+          max = -Infinity;
       for (var i = 0; i < g.genes.length; i++) {
-        var fmax = g.genes[i].fmax,
-            fmin = g.genes[i].fmin;
+        var gene = g.genes[i],
+            fmax = gene.fmax,
+            fmin = gene.fmin,
+            x = gene.x;
         min = Math.min.apply(null, [min, fmax, fmin]);
         max = Math.max.apply(null, [max, fmax, fmin]);
+        minX = Math.min(minX, x);
+        maxX = Math.max(maxX, x);
       }
       return g.chromosome_name + ':' + min + '-' + max;
     });
     this.left = this._longestString(names);
-    // create the scale used to map block coordinates to pixels
-    //this.scale = d3.scale.linear()
-    //  .domain([0, data.length]);
-    // make sure resize always has the right context
-    this._resize = this._resize.bind(this);
-    // initialize the viewer width and scale range
-    //this._resize();
+    // initialize the x and y scales
+    this.x = d3.scale.linear().domain([minX, maxX]);
+    var numTracks = data.groups.length,
+        bottom = this._PAD + (this._TRACK_HEIGHT * numTracks);
+    this.y = d3.scale.linear().domain([0, numTracks - 1])
+               .range([this._PAD, bottom]);
     // parse optional parameters
     this.options = options || {};
     this.options.nameClick = options.nameClick || function (y, i) { };
@@ -561,6 +559,10 @@ GCV.Viewer = class {
     this.options.autoResize = options.autoResize || false;
     // set the right padding
     this.right = (options.plotClick) ? this._longestString(['plot']) : this._PAD;
+    // make sure resize always has the right context
+    this._resize = this._resize.bind(this);
+    // initialize the viewer width and x scale range
+    this._resize();
   }
 
   /** Draws the viewer. */
