@@ -219,22 +219,22 @@ function ($rootScope, UI) {
       args.selectiveColoring = selective;
       args.width = $('#main').innerWidth();
       if (args.hasOwnProperty('geneClicked')) {
-        args.geneClicked = function (gene) {
+        args.geneClick = function (gene) {
           services.geneClickEvent(gene);
         };
       }
       if (args.hasOwnProperty('leftAxisClicked')) {
-        args.leftAxisClicked = function (trackID) {
+        args.nameClick = function (trackID) {
           $rootScope.$broadcast('left-axis-click-event', trackID);
         };
       }
       if (args.hasOwnProperty('rightAxisClicked')) {
-        args.rightAxisClicked = function (trackID) {
+        args.plotClick = function (trackID) {
           services.rightAxisClickEvent(trackID);
         };
       }
       // draw the viewer
-      GCV.Viewer('viewer-content', colors, tracks, args);  // context.js
+      new GCV.Viewer('viewer-content', colors, tracks, args);  // context.js
       // draw the legend
       contextLegend('legend-content', colors, tracks, {  // context.js
         "legendClick": function (family, genes) {
