@@ -765,11 +765,11 @@ GCV.Viewer = class {
     var yAxis = this._drawYAxis(ticks);
     yAxis.attr('transform', 'translate(' + this.left + ', 0)');
     // create an auto resize iframe, if necessary
-    //if (this.options.autoResize) {
-    //  this.resizer = this._autoResize(this.container, (e) => {
-    //    this._resize();
-    //  });
-    //}
+    if (this.options.autoResize) {
+      this.resizer = this._autoResize(this.container, (e) => {
+        this._resize();
+      });
+    }
   }
   
   // Public

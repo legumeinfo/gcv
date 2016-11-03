@@ -215,6 +215,7 @@ function ($rootScope, UI) {
   var viewer;
   services.draw = function () {
     if (tracks !== undefined && args !== undefined) {
+      args.autoResize = true;
       // arguments the controllers need not know about
       if (tracks.groups.length > 1) {
         args.selectiveColoring = getFamilySizeMap(tracks);

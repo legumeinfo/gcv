@@ -118,9 +118,6 @@ function ($scope, $routeParams, Basic, Viewer, UI) {
   // make buttons for left/right sliders visible
   UI.enableSliders();
 
-  // listen for resize events
-  UI.subscribeToResize($scope, function () { Viewer.draw(); });
-
   // actually draws the viewer
   function draw(tracks) {
     UI.alert("success", tracks.groups.length + ' tracks returned');
@@ -206,9 +203,6 @@ function ($scope, $routeParams, Search, Viewer, UI) {
 
   // tell the viewer it's in search mode
   Viewer.enableSearch();
-
-  // listen for resize events
-  UI.subscribeToResize($scope, function () { Viewer.draw(); });
 
   // draw the viewer
   function draw(num_returned, num_aligned, tracks, sorter) {
