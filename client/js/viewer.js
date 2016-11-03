@@ -516,8 +516,8 @@ GCV.Viewer = class {
     * @param {array} text - The strings to be measured.
     * @return {number} The length of the longest string.
     */
-  _longestString(text) {
-    var dummy = this.viewer.append('g'),
+  _longestString(text, c) {
+    var dummy = this.viewer.append('g').attr('class', c),
         max = 0;
 		dummy.selectAll('.dummyText')
 		  .data(text)
@@ -587,7 +587,7 @@ GCV.Viewer = class {
     // compute the x scale and the space required for track names
     var minX = Infinity,
         maxX = -Infinity;
-		var names = data.groups.map(function (g) {
+		this.names = data.groups.map(function (g) {
       var min = Infinity,
           max = -Infinity;
       for (var i = 0; i < g.genes.length; i++) {
@@ -602,7 +602,7 @@ GCV.Viewer = class {
       }
       return g.chromosome_name + ':' + min + '-' + max;
     });
-    this.left = this._longestString(names);
+    this.left = this._longestString(this.names, 'axis') + (2 * this._PAD);
     // initialize the x and y scales
     this.x = d3.scale.linear().domain([minX, maxX]);
     this.y = d3.scale.linear().domain([0, numTracks - 1])
@@ -616,10 +616,9 @@ GCV.Viewer = class {
     this.options.plotClick = options.plotClick;
     this.options.autoResize = options.autoResize || false;
     // set the right padding
+    this.right= this._PAD;
     if (this.options.plotClick) {
-      this.right = this._longestString(['plot']);
-    } else {
-      this.right= this._PAD;
+      this.right += this._longestString(['plot'], 'axis') + this._PAD;
     }
     // make sure resize always has the right context
     this._resize = this._resize.bind(this);
@@ -727,6 +726,40 @@ GCV.Viewer = class {
     return track;
   }
 
+
+  /**
+    * Creates the y-axis, placing labels at their respective locations.
+    * @param {array} ticks - The locations of the track labels.
+    * @return {object} - D3 selection of the y-axis.
+    */
+  _drawYAxis(ticks) {
+    // construct the y-axes
+    var axis = d3.svg.axis().scale(this.y)
+      .orient('left')
+      .tickValues(ticks)
+      .tickFormat((y, i) => { return this.names[i]; });
+    // draw the axes of the graph
+    var yAxis = this.viewer.append('g')
+      .attr('class', 'axis')
+      .call(axis)
+      .selectAll('text')
+      .attr('class', function (y, i) {
+        var c = (i == 0) ? 'query ' : '';
+        return c + 'track-' + i.toString();
+      })
+  	  .style('cursor', 'pointer')
+      .on('mouseover', (y, i) => {
+        var selection = d3.selectAll('.GCV .track-' + i.toString());
+        this._beginHover(selection);
+      })
+      .on('mouseout', (y, i) => {
+        var selection = d3.selectAll('.GCV .track-' + i.toString());
+        this._endHover(selection);
+      })
+      .on('click', this.options.nameClick);
+    return yAxis;
+  }
+
   /** Draws the viewer. */
   _draw() {
     // draw the tracks
@@ -752,8 +785,8 @@ GCV.Viewer = class {
     // move all tips to front
     //this.viewer.selectAll('.synteny-tip').moveToFront();
     // draw the y-axis
-    //var yAxis = this._drawYAxis(ticks);
-    //yAxis.attr('transform', 'translate(' + this.left + ', 0)');
+    var yAxis = this._drawYAxis(ticks);
+    yAxis.attr('transform', 'translate(' + this.left + ', 0)');
     // create an auto resize iframe, if necessary
     //if (this.options.autoResize) {
     //  this.resizer = this._autoResize(this.container, (e) => {

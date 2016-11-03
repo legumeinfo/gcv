@@ -91,8 +91,8 @@ GCV.Synteny = class {
     * @param {array} text - The strings to be measured.
     * @return {number} The length of the longest string.
     */
-  _longestString(text) {
-    var dummy = this.viewer.append('g'),
+  _longestString(text, c) {
+    var dummy = this.viewer.append('g').attr('class', c),
         max = 0;
 		dummy.selectAll('.dummyText')
 		  .data(text)
@@ -153,8 +153,8 @@ GCV.Synteny = class {
 		var chromosomes = [data.chromosome].concat(data.tracks.map(function (t) {
           return t.chromosome;
         }));
-    this.left = this._longestString(chromosomes);
-    this.right = this._longestString([data.length]) / 2;
+    this.left = this._longestString(chromosomes, 'axis') + (2 * this._PAD);
+    this.right = this._longestString([data.length], 'axis') / 2;
     // create the scale used to map block coordinates to pixels
     this.scale = d3.scale.linear()
       .domain([0, data.length]);
