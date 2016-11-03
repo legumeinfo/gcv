@@ -55,9 +55,11 @@
   display: none;
 }
 .GCV.hovering {
+  stroke-opacity: 0.2;
   fill-opacity: 0.2;
 }
 .GCV.hovering .active {
+  stroke-opacity: 1.0;
   fill-opacity: 1.0;
 }
 .GCV.hovering .active .synteny-tip {
