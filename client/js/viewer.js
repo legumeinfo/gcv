@@ -644,7 +644,11 @@ GCV.Viewer = class {
   	  .attr('class', 'gene')
   	  .attr('transform', function (g) {
   	    return 'translate(' + obj.x(g.x) + ', ' + obj.y(g.y) + ')';
-  	  });
+  	  })
+  	  .style('cursor', 'pointer')
+      .on('mouseover', function (g) { obj._beginHover(d3.select(this)); })
+  	  .on('mouseout', function (g) { obj._endHover(d3.select(this)); })
+  	  .on('click', obj.options.geneClick);
   
   	// add genes to the svg groups
   	var genes = geneGroups.append('path')
@@ -670,60 +674,32 @@ GCV.Viewer = class {
         obj.options.selectiveColoring[g.family] == 1)) {
   	  	  return '#ffffff';
   	  	} return obj.colors(g.family);
-  	  })
-  	  .style('cursor', 'pointer')
-      .on('mouseover', function (g) { obj._beginHover(d3.select(this)); })
-  	  .on('mouseout', function (g) { obj._endHover(d3.select(this)); })
-  	  .on('click', obj.options.geneClick);
+  	  });
     // draw the tooltips
     var tips = geneGroups.append('text')
       .attr('class', 'synteny-tip')
   	  .attr('text-anchor', 'end')
-  	  .text(function (g) { return g.name + ':' + g.fmin + ' - ' + g.fmax; })
-      .attr('data-x', function (g) {
-        var x1 = g.fmin,
-            x2 = g.fmax;
-        return x1 + ((x2 - x1) / 2);
-      })
-      .attr('data-y', function (g) {
-        return obj.y(g.y);
-      })
-      .attr('transform', function (g) {
-        var tip = d3.select(this),
-            x = obj.x(tip.attr('data-x')),
-            y = tip.attr('data-y');
-        return 'translate(' + x + ', ' + y + ')';
-      });
+  	  .text(function (g) { return g.name + ': ' + g.fmin + ' - ' + g.fmax; })
     // how the blocks are resized
-    //track.resize = function (genes, tips) {
-    //  var obj = this;
-  	//  genes.attr('points', function (b) {
-    //    var block = d3.select(this),
-    //        yTop = block.attr('data-y-top'),
-    //        yBottom = block.attr('data-y-bottom'),
-    //        yMiddle = block.attr('data-y-middle');
-    //    return genPoints(b, yTop, yBottom, yMiddle);
-    //  });
-    //  tips.attr('transform', function (b) {
-    //    var tip = d3.select(this),
-    //        x = obj.scale(tip.attr('data-x')),
-    //        y = tip.attr('data-y');
-    //    return 'translate(' + x +', ' + y + ') ' + tip.attr('data-rotate');
-    //  });
-    //}.bind(this, polygons, tips);
-    //// how tips are rotated so they don't overflow the view
-    //track.rotateTips = function (tips, resize) {
-    //  var vRect = obj.viewer.node().getBoundingClientRect();
-    //  tips.classed('synteny-tip', false)
-    //    .attr('data-rotate', function (b) {
-    //      var tRect = this.getBoundingClientRect(),
-    //          h = Math.sqrt(Math.pow(tRect.width, 2) / 2),  // rotated height
-    //          r = (tRect.bottom + h > vRect.bottom) ? 45 : -45;
-    //      return 'rotate(' + r + ')';
-    //    })
-    //    .classed('synteny-tip', true);
-    //  resize();
-    //}.bind(this, tips, track.resize);
+    track.resize = function (genesGroups, tips) {
+      var obj = this;
+      geneGroups.attr('transform', function (g) {
+        return 'translate(' + obj.x(g.x) + ', ' + obj.y(g.y) + ')';
+  	  });
+    }.bind(this, geneGroups, tips);
+    // how tips are rotated so they don't overflow the view
+    track.rotateTips = function (tips, resize) {
+      var vRect = obj.viewer.node().getBoundingClientRect();
+      tips.classed('synteny-tip', false)
+        .attr('transform', function (t) {
+          var tRect = this.getBoundingClientRect(),
+              h = Math.sqrt(Math.pow(tRect.width, 2) / 2),  // rotated height
+              r = (tRect.bottom + h > vRect.bottom) ? 45 : -45;
+          return 'rotate(' + r + ')';
+        })
+        .classed('synteny-tip', true);
+      resize();
+    }.bind(this, tips, track.resize);
     return track;
   }
 
@@ -773,18 +749,18 @@ GCV.Viewer = class {
       tracks.push(this._drawTrack(i));
     }
     // decorate the resize function with that of the track
-    //var resizeTracks = function () {
-    //  tracks.forEach(function (t, i) {
-    //    t.resize();
-    //  });
-    //}
-    //this._decorateResize(resizeTracks);
+    var resizeTracks = function () {
+      tracks.forEach(function (t, i) {
+        t.resize();
+      });
+    }
+    this._decorateResize(resizeTracks);
     // rotate the tips now that all the tracks have been drawn
-    //tracks.forEach(function (t, i) {
-    //  t.rotateTips();
-    //});
+    tracks.forEach(function (t, i) {
+      t.rotateTips();
+    });
     // move all tips to front
-    //this.viewer.selectAll('.synteny-tip').moveToFront();
+    this.viewer.selectAll('.synteny-tip').moveToFront();
     // draw the y-axis
     var yAxis = this._drawYAxis(ticks);
     yAxis.attr('transform', 'translate(' + this.left + ', 0)');
