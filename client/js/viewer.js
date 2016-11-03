@@ -635,9 +635,10 @@ GCV.Viewer = class {
     var obj = this,
         t = this.data.groups[i];
   	// make svg groups for the genes
-    var selector = 'track-' + i.toString(),
-  	    track = this.viewer.selectAll(selector),
-  	    geneGroups = track.data(t.genes)
+    var selector = 'micro-' + i.toString(),
+  	    track = this.viewer.append('g').attr('class', selector),
+  	    geneGroups = track.selectAll('gene')
+      .data(t.genes)
   	  .enter()
   	  .append('g')
   	  .attr('class', 'gene')
@@ -745,15 +746,15 @@ GCV.Viewer = class {
       .selectAll('text')
       .attr('class', function (y, i) {
         var c = (i == 0) ? 'query ' : '';
-        return c + 'track-' + i.toString();
+        return c + 'micro-' + i.toString();
       })
   	  .style('cursor', 'pointer')
       .on('mouseover', (y, i) => {
-        var selection = d3.selectAll('.GCV .track-' + i.toString());
+        var selection = d3.selectAll('.GCV .micro-' + i.toString());
         this._beginHover(selection);
       })
       .on('mouseout', (y, i) => {
-        var selection = d3.selectAll('.GCV .track-' + i.toString());
+        var selection = d3.selectAll('.GCV .micro-' + i.toString());
         this._endHover(selection);
       })
       .on('click', this.options.nameClick);

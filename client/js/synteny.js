@@ -248,7 +248,7 @@ GCV.Synteny = class {
     // create the track's rows of blocks
     this._blocksToRows(t.blocks);
   	// create the track
-    var selector = 'track-' + i.toString(),
+    var selector = 'macro-' + i.toString(),
   	    track = this.viewer.append('g').attr('class', selector);
     track.offset = 0;
     // create the track's blocks
@@ -381,18 +381,18 @@ GCV.Synteny = class {
       .selectAll('text')
       .attr('class', function (y, i) {
         if (i == 0) return 'query';
-        return 'track-' + (i - 1).toString();
+        return 'macro-' + (i - 1).toString();
       })
   	  .style('cursor', 'pointer')
       .on('mouseover', (y, i) => {
         if (i > 0) {
-          var selection = d3.selectAll('.GCV .track-' + (i - 1).toString());
+          var selection = d3.selectAll('.GCV .macro-' + (i - 1).toString());
           this._beginHover(selection);
         }
       })
       .on('mouseout', (y, i) => {
         if (i > 0) {
-          var selection = d3.selectAll('.GCV .track-' + (i - 1).toString());
+          var selection = d3.selectAll('.GCV .macro-' + (i - 1).toString());
           this._endHover(selection);
         }
       })
