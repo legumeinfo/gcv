@@ -469,7 +469,7 @@ GCV.Synteny = class {
       var viewport = this._drawViewport();
       this._decorateResize(viewport.resize);
     }
-    // create an auto resize iframe if necessary
+    // create an auto resize iframe, if necessary
     if (this.options.autoResize) {
       this.resizer = this._autoResize(this.container, (e) => {
         this._resize();

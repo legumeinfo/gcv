@@ -464,6 +464,54 @@ GCV.Viewer = class {
   _TRACK_HEIGHT = 30;
 
   /**
+    * Adds a hidden iframe that calls the given resize event whenever its width
+    * changes.
+    * @param {string} el - The element to add the iframe to.
+    * @param {function} f - The function to call when a resize event occurs.
+    * @return {object} - The hidden iframe.
+    */
+  _autoResize(el, f) {
+    var iframe = document.createElement('IFRAME');
+    iframe.setAttribute('allowtransparency', true);
+    iframe.className = 'GCV-resizer';
+    el.appendChild(iframe);
+    iframe.contentWindow.onresize = function () {
+      clearTimeout(this.resizeTimer);
+      this.resizeTimer = setTimeout(f, 10)
+    };
+    return iframe;
+  }
+
+  /**
+    * Fades everything in the view besides the given selection.
+    * @param {object} selection - What's omitted from the fade.
+    */
+  _beginHover(selection) {
+    d3.selectAll('.GCV').classed('hovering', true);
+    selection.classed('active', true);
+  }
+
+  /**
+    * Unfades everything in the view and revokes the selection's omission from
+    * being faded.
+    * @param {object} selection - What's no longer omitted.
+    */
+  _hoverTimeout = 0;
+  _endHover(selection) {
+    selection.classed('active', false);
+    // delay unfading for smoother mouse dragging
+    clearTimeout(this._hoverTimeout);
+    this._hoverTimeout = setTimeout(function () {
+      clearTimeout(this._hoverTimeout);
+      this._hoverTimeout = undefined;
+      // make sure nothing is being hovered
+      if (d3.selectAll('.GCV .active').empty()) {
+        d3.selectAll('.GCV').classed('hovering', false);
+      }
+    }, 125);
+  }
+
+  /**
     * Computes the length of the longest string in the given array.
     * @param {array} text - The strings to be measured.
     * @return {number} The length of the longest string.
@@ -488,8 +536,9 @@ GCV.Viewer = class {
   /** Resizes the viewer and x scale. Will be decorated by other components. */
   _resize() {
     var w = this.container.clientWidth,
-        r1 = this.left + (2 * this._PAD),
-        r2 = w - (this.right + this._PAD);
+        doublePad = 2 * this._PAD,
+        r1 = this.left + doublePad,
+        r2 = w - (this.right + doublePad);
     this.viewer.attr('width', w);
     this.x.range([r1, r2]);
   }
@@ -508,24 +557,33 @@ GCV.Viewer = class {
   /**
     * Parses parameters and initializes variables.
     * @param {string} id - ID of element viewer will be drawn in.
+    * @param {object} colors - D3 family-to-color map.
     * @param {object} data - The data the viewer will visualize.
     * @param {object} options - Optional parameters.
     */
-  _init(id, data, options) {
+  _init(id, colors, data, options) {
     // parse positional parameters
     this.container = document.getElementById(id);
     if (this.container === null) {
       throw new Error('"' + id + '" is not a valid element ID');
     }
+    this.colors = colors;
+    if (this.colors === undefined) {
+      throw new Error('"color" is undefined');
+    }
     this.data = data;
     if (this.data === undefined) {
-      throw new Error("'data' is undefined");
+      throw new Error('"data" is undefined');
     }
     // create the viewer
+    var numTracks = data.groups.length,
+        halfTrack = this._TRACK_HEIGHT / 2,
+        top = this._PAD + halfTrack,
+        bottom = top + (this._TRACK_HEIGHT * numTracks);
     this.viewer = d3.select('#' + id)
       .append('svg')
       .attr('class', 'GCV')
-      .attr('height', this._PAD);
+      .attr('height', bottom + halfTrack);
     // compute the x scale and the space required for track names
     var minX = Infinity,
         maxX = -Infinity;
@@ -547,95 +605,185 @@ GCV.Viewer = class {
     this.left = this._longestString(names);
     // initialize the x and y scales
     this.x = d3.scale.linear().domain([minX, maxX]);
-    var numTracks = data.groups.length,
-        bottom = this._PAD + (this._TRACK_HEIGHT * numTracks);
     this.y = d3.scale.linear().domain([0, numTracks - 1])
-               .range([this._PAD, bottom]);
+               .range([top, bottom]);
     // parse optional parameters
     this.options = options || {};
+    this.options.focus = options.focus;
+    this.options.selectiveColoring = options.selectiveColoring;
     this.options.nameClick = options.nameClick || function (y, i) { };
     this.options.geneClick = options.geneClick || function (b) { };
     this.options.plotClick = options.plotClick;
     this.options.autoResize = options.autoResize || false;
     // set the right padding
-    this.right = (options.plotClick) ? this._longestString(['plot']) : this._PAD;
+    if (this.options.plotClick) {
+      this.right = this._longestString(['plot']);
+    } else {
+      this.right= this._PAD;
+    }
     // make sure resize always has the right context
     this._resize = this._resize.bind(this);
     // initialize the viewer width and x scale range
     this._resize();
   }
 
+  /**
+    * Creates a graphic containing a track's genes.
+    * @param {number} i - The index of the track in the input data to draw.
+    * @return {object} - D3 selection of the new track.
+    */
+  _drawTrack(i) {
+    var obj = this,
+        t = this.data.groups[i];
+  	// make svg groups for the genes
+    var selector = 'track-' + i.toString(),
+  	    track = this.viewer.selectAll(selector),
+  	    geneGroups = track.data(t.genes)
+  	  .enter()
+  	  .append('g')
+  	  .attr('class', 'gene')
+  	  .attr('transform', function (g) {
+  	    return 'translate(' + obj.x(g.x) + ', ' + obj.y(g.y) + ')';
+  	  });
+  
+  	// add genes to the svg groups
+  	var genes = geneGroups.append('path')
+  	  .attr('d', d3.svg.symbol().type('triangle-up').size(200))
+  	  .attr('class', function (g) {
+  	  	if (obj.options.focus !== undefined &&
+        (obj.options.focus == g.family || obj.options.focus == g.name)) {
+  	  	  return 'point focus';
+  	  	} else if (g.family == '') {
+  	  	  return 'point no_fam';
+  	  	} else if (obj.options.selectiveColoring !== undefined &&
+        obj.options.selectiveColoring[g.family] == 1) {
+  	  	  return 'point single';
+  	  	} return 'point';
+      })
+  	  .attr('transform', function (g) {
+        var orientation = (g.strand == 1) ? '90' : '-90';
+        return 'rotate(' + orientation + ')';
+      })
+  	  .style('fill', function (g) {
+  	  	if (g.family == '' ||
+        (obj.options.selectiveColoring !== undefined &&
+        obj.options.selectiveColoring[g.family] == 1)) {
+  	  	  return '#ffffff';
+  	  	} return obj.colors(g.family);
+  	  })
+  	  .style('cursor', 'pointer')
+      .on('mouseover', function (g) { obj._beginHover(d3.select(this)); })
+  	  .on('mouseout', function (g) { obj._endHover(d3.select(this)); })
+  	  .on('click', obj.options.geneClick);
+    // draw the tooltips
+    var tips = geneGroups.append('text')
+      .attr('class', 'synteny-tip')
+  	  .attr('text-anchor', 'end')
+  	  .text(function (g) { return g.name + ':' + g.fmin + ' - ' + g.fmax; })
+      .attr('data-x', function (g) {
+        var x1 = g.fmin,
+            x2 = g.fmax;
+        return x1 + ((x2 - x1) / 2);
+      })
+      .attr('data-y', function (g) {
+        return obj.y(g.y);
+      })
+      .attr('transform', function (g) {
+        var tip = d3.select(this),
+            x = obj.x(tip.attr('data-x')),
+            y = tip.attr('data-y');
+        return 'translate(' + x + ', ' + y + ')';
+      });
+    // how the blocks are resized
+    //track.resize = function (genes, tips) {
+    //  var obj = this;
+  	//  genes.attr('points', function (b) {
+    //    var block = d3.select(this),
+    //        yTop = block.attr('data-y-top'),
+    //        yBottom = block.attr('data-y-bottom'),
+    //        yMiddle = block.attr('data-y-middle');
+    //    return genPoints(b, yTop, yBottom, yMiddle);
+    //  });
+    //  tips.attr('transform', function (b) {
+    //    var tip = d3.select(this),
+    //        x = obj.scale(tip.attr('data-x')),
+    //        y = tip.attr('data-y');
+    //    return 'translate(' + x +', ' + y + ') ' + tip.attr('data-rotate');
+    //  });
+    //}.bind(this, polygons, tips);
+    //// how tips are rotated so they don't overflow the view
+    //track.rotateTips = function (tips, resize) {
+    //  var vRect = obj.viewer.node().getBoundingClientRect();
+    //  tips.classed('synteny-tip', false)
+    //    .attr('data-rotate', function (b) {
+    //      var tRect = this.getBoundingClientRect(),
+    //          h = Math.sqrt(Math.pow(tRect.width, 2) / 2),  // rotated height
+    //          r = (tRect.bottom + h > vRect.bottom) ? 45 : -45;
+    //      return 'rotate(' + r + ')';
+    //    })
+    //    .classed('synteny-tip', true);
+    //  resize();
+    //}.bind(this, tips, track.resize);
+    return track;
+  }
+
   /** Draws the viewer. */
-  //_draw() {
-  //  // draw the x-axis
-  //  var xAxis = this._drawXAxis(),
-  //      m = this._positionElement(xAxis);
-  //  // decorate the resize function with that of the x-axis
-  //  this._decorateResize(xAxis.resize);
-  //  // draw the tracks
-  //  var ticks = [m],
-  //      tracks = [];
-  //  for (var i = 0; i < this.data.tracks.length; i++) {
-  //    // make the track
-  //    var track = this._drawTrack(i);
-  //    // put it in the correct location
-  //    m = this._positionElement(track);
-  //    // save the track's label location
-  //    ticks.push(m);
-  //    // save the track for the resize call
-  //    tracks.push(track);
-  //  }
-  //  // decorate the resize function with that of the track
-  //  var resizeTracks = function () {
-  //    tracks.forEach(function (t, i) {
-  //      t.resize();
-  //    });
-  //  }
-  //  this._decorateResize(resizeTracks);
-  //  // rotate the tips now that all the tracks have been drawn
-  //  tracks.forEach(function (t, i) {
-  //    t.rotateTips();
-  //  });
-  //  // move all tips to front
-  //  this.viewer.selectAll('.synteny-tip').moveToFront();
-  //  // draw the y-axis
-  //  var yAxis = this._drawYAxis(ticks);
-  //  yAxis.attr('transform', 'translate(' + this.left + ', 0)');
-  //  // draw the viewport
-  //  if (this.options.viewport) {
-  //    var viewport = this._drawViewport();
-  //    this._decorateResize(viewport.resize);
-  //  }
-  //  // create an auto resize iframe if necessary
-  //  if (this.options.autoResize) {
-  //    this.resizer = this._autoResize(this.container, (e) => {
-  //      this._resize();
-  //    });
-  //  }
-  //}
+  _draw() {
+    // draw the tracks
+    var ticks = [],
+        tracks = [];
+    for (var i = 0; i < this.data.groups.length; i++) {
+      // save the track's label location
+      ticks.push(i);
+      // make the track and save it for the resize call
+      tracks.push(this._drawTrack(i));
+    }
+    // decorate the resize function with that of the track
+    //var resizeTracks = function () {
+    //  tracks.forEach(function (t, i) {
+    //    t.resize();
+    //  });
+    //}
+    //this._decorateResize(resizeTracks);
+    // rotate the tips now that all the tracks have been drawn
+    //tracks.forEach(function (t, i) {
+    //  t.rotateTips();
+    //});
+    // move all tips to front
+    //this.viewer.selectAll('.synteny-tip').moveToFront();
+    // draw the y-axis
+    //var yAxis = this._drawYAxis(ticks);
+    //yAxis.attr('transform', 'translate(' + this.left + ', 0)');
+    // create an auto resize iframe, if necessary
+    //if (this.options.autoResize) {
+    //  this.resizer = this._autoResize(this.container, (e) => {
+    //    this._resize();
+    //  });
+    //}
+  }
   
   // Public
 
   /**
     * The constructor.
     * @param {string} id - ID of element viewer will be drawn in.
+    * @param {object} colors - D3 family-to-color map.
     * @param {object} data - The data the viewer will visualize.
     * @param {object} options - Optional parameters.
     */
-  constructor(id, color, data, options) {
-    console.log(data);
-    this._init(id, data, options);
-    //this._draw();
+  constructor(id, colors, data, options) {
+    this._init(id, colors, data, options);
+    this._draw();
   }
 
   /** Manually destroys the viewer. */
-  //destroy() {
-  //  if (this.container) {
-  //    this.container.removeChild(this.viewer.node());
-  //    if (this.resizer) {
-  //      this.container.removeChild(this.resizer);
-  //    }
-  //  }
-  //  this.container = this.viewer = this.resizer = undefined;
-  //}
+  destroy() {
+    if (this.container) {
+      this.container.removeChild(this.viewer.node());
+      if (this.resizer) {
+        this.container.removeChild(this.resizer);
+      }
+    }
+    this.container = this.viewer = this.resizer = undefined;
+  }
 }

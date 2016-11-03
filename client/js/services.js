@@ -212,11 +212,15 @@ function ($rootScope, UI) {
   }
 
   // (re)draws the context viewer
+  var viewer;
   services.draw = function () {
     if (tracks !== undefined && args !== undefined) {
       // arguments the controllers need not know about
-      var selective = tracks.groups.length > 1;
-      args.selectiveColoring = selective;
+      if (tracks.groups.length > 1) {
+        args.selectiveColoring = getFamilySizeMap(tracks);
+      } else {
+        args.selectiveColoring = undefined;
+      }
       args.width = $('#main').innerWidth();
       if (args.hasOwnProperty('geneClicked')) {
         args.geneClick = function (gene) {
@@ -234,13 +238,16 @@ function ($rootScope, UI) {
         };
       }
       // draw the viewer
-      new GCV.Viewer('viewer-content', colors, tracks, args);  // context.js
+      if (viewer) {
+        viewer.destroy();
+      }
+      viewer = new GCV.Viewer('viewer-content', colors, tracks, args);  // context.js
       // draw the legend
       contextLegend('legend-content', colors, tracks, {  // context.js
         "legendClick": function (family, genes) {
           $rootScope.$broadcast('family-click-event', family, genes);
         },
-        "selectiveColoring": selective
+        "selectiveColoring": tracks.groups.length > 1
       });
     }
   }
