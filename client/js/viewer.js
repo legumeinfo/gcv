@@ -223,74 +223,6 @@ GCV.Viewer = class {
 //  
 //  // add the tracks (groups)
 //  for (var i = 0; i < data.groups.length; i++) {
-//  	// add the group to the y-axis
-//  	tick_values.push(i);
-//  
-//  	// make svg groups for the genes
-//  	var selector = ".gene-"+i.toString();
-//  	var gene_groups = viewer.selectAll(selector)
-//  	  .data(tracks[i])
-//  	  .enter()
-//  	  .append("g")
-//  	  .attr("class", "gene")
-//  	  .attr("transform", function (d) {
-//  	    return "translate("+x(d.x)+", "+y(d.y)+")";
-//  	  });
-//  
-//  	// add genes to the svg groups
-//  	gene_groups.append("path")
-//  	  .attr("d", d3.svg.symbol().type("triangle-up").size(200))
-//  	  .attr("class", function (d) {
-//  	  	if (opt.focus !== undefined && (opt.focus == d.family || opt.focus == d.name)) {
-//  	  	  return "point focus";
-//  	  	} else if (d.family == '') {
-//  	  	  return "point no_fam";
-//  	  	} else if (family_sizes[d.family] == 1 && 
-//                   opt.selectiveColoring !== undefined &&
-//                   opt.selectiveColoring == true) {
-//  	  	  return "point single";
-//  	  	} return "point";
-//      })
-//  	  .attr("transform", function (d) {
-//        return "rotate("+((d.strand == 1) ? "90" : "-90")+")";
-//      })
-//  	  .style("fill", function (d) {
-//  	  	if (d.family == '' ||
-//            (opt.selectiveColoring !== undefined &&
-//             opt.selectiveColoring == true &&
-//             family_sizes[d.family] == 1)) {
-//  	  	  return "#ffffff";
-//  	  	} return color(d.family);
-//  	  })
-//  	  .style("cursor", "pointer");
-//  
-//  	gene_groups.on("mouseover", function (d) {
-//		var selection = d3.selectAll(".gene").filter(function(e) {
-//		  return e.id == d.id;
-//		});
-//  	    showTips(selection);
-//  	  })
-//  	  .on("mouseout", function (d) {
-//		var selection = d3.selectAll(".gene").filter(function(e) {
-//		  return e.id == d.id;
-//		});
-//  	    hideTips(selection);
-//  	  })
-//  	  .on('click', function (d) {
-//        if (opt.geneClicked !== undefined) {
-//  	  	   opt.geneClicked(d);
-//        }
-//  	  });
-//  
-//  	// add the tooltips
-//  	gene_groups.append("text")
-//  	  .attr("class", "tip")
-//  	  .attr("transform", "translate(3, 14) rotate(45)")
-//  	  .attr("text-anchor", "left")
-//  	  .text(function (d) {
-//  	    return d.name+": "+d.fmin+" - "+d.fmax;
-//  	  });
-//  
 //  	// helper that draws lines between two given genes
 //    function draw_line(a, b) {
 //  	  var length = x(a.x)-x(b.x);
@@ -321,7 +253,6 @@ GCV.Viewer = class {
 //  	  	});
 //  	  rail_group.moveToBack();
 //    }
-//  
 //  	// add rails to the tracks
 //    var partition = false;
 //  	gene_groups.each(function (d) {
@@ -353,10 +284,6 @@ GCV.Viewer = class {
 //  	});
 //  }
 //  
-//  // make global group selections
-//  var gene_groups = viewer.selectAll(".gene"),
-//  	  rail_groups = viewer.selectAll(".rail");
-//  
 //  // make thickness of lines a function of their "length"
 //  var max_width = d3.max(rail_groups.data());
 //  var min_width = d3.min(rail_groups.data());
@@ -365,103 +292,12 @@ GCV.Viewer = class {
 //    .range([.1, 5]);
 //  rail_groups.attr("stroke-width", function (d) { return width(d); });
 //  
-//  // construct the y-axes
-//  var yAxis_left = d3.svg.axis().scale(y).orient("left")
-//    .tickValues(tick_values) // we don't want d3 taking liberties
-//    .tickFormat(function (d, i) {
-//      var l = data.groups[d].genes.length;
-//      if (d > 0 && data.groups[d-1].id === data.groups[d].id) {
-//        return (l > 0 ?
-//          (data.groups[d].genes[0].fmin+"-"+data.groups[d].genes[l-1].fmax) :
-//          "");
-//      }
-//      return data.groups[d].chromosome_name +":"+(l > 0 ?
-//        (data.groups[d].genes[0].fmin+"-"+data.groups[d].genes[l-1].fmax) :
-//        "");
-//    });
-//  
-//  // draw the axes of the graph
-//  viewer.append("g")
-//    .attr("class", "axis axis_left")
-//    .attr("transform", "translate("+(left_pad-pad)+", 0)")
-//    .call(yAxis_left);
-//  
-//  if (opt.rightAxisClicked !== undefined) {
-//    var yAxis_right = d3.svg.axis().scale(y).orient("right")
-//      .tickValues(tick_values) // we don't want d3 taking liberties
-//      .tickFormat(function (d, i) {
-//        if (d > 0 && data.groups[d-1].id === data.groups[d].id) {
-//          return "";
-//        }
-//        return "plot";
-//      });
-//    viewer.append("g")
-//      .attr("class", "axis axis_right")
-//      .attr("transform", "translate("+(w-right_pad+pad)+", 0)")
-//      .call(yAxis_right);
-//    var yAxis_right = d3.svg.axis().scale(y).orient("right")
-//      .tickValues(tick_values) // we don't want d3 taking liberties
-//      .tickFormat("plot");
-//  }
-//  
-//  // interact with the y-axes
-//  d3.selectAll(".axis_left text")
-//    .style("font-weight", function(d, y) {
-//      if (opt.boldFirst !== undefined && opt.boldFirst && y == 0) {
-//        return "bold";
-//      } return "normal"; })
-//  	.style("cursor", "pointer")
-//      .on("mouseover", function (d, y) {
-//  		var gene_selection = gene_groups.filter(function (e) {
-//  		  return e.y == y;
-//  		});
-//  		var rail_selection = rail_groups.filter(function (e) {
-//          // select lines only on the track (not inter-track lines)
-//  	      return (d3.select(this).attr("y") == y &&
-//          d3.select(this).select("line").attr("y1") == 0 &&
-//          d3.select(this).select("line").attr("y2") == 0);
-//  		});
-//  		showTips(gene_selection, rail_selection);
-//      })
-//      .on("mouseout",  function (d, y) {
-//  		var gene_selection = gene_groups.filter(function (e) {
-//  	      return e.y == y;
-//  		});
-//  		var rail_selection = rail_groups.filter(function (e) {
-//  		  return d3.select(this).attr("y") == y;
-//  		});
-//  		hideTips(gene_selection, rail_selection);
-//      })
-//      .on("click", function (d, y){
-//  		var gene_selection = gene_groups.filter(function (e) {
-//  		  return e.y == y;
-//  		});
-//  		var rail_selection = rail_groups.filter(function (e) {
-//  		  return d3.select(this).attr("y") == y;
-//  	    });
-//        if (opt.leftAxisClicked !== undefined) {
-//  		  opt.leftAxisClicked(data.groups[d].id,
-//            gene_selection, rail_selection);
-//        }
-//  	  });
-//  d3.selectAll(".axis_right text")
-//    .style("cursor", "pointer")
-//    .on("click", function (d, y) {
-//      var gene_selection = gene_groups.filter(function (e) {
-//      	return e.y == y;
-//      });
-//      var rail_selection = rail_groups.filter(function (e) {
-//      	return d3.select(this).attr("y") == y;
-//      });
-//      // called if opt.rightAxisClicked !== undefined
-//      opt.rightAxisClicked(data.groups[d].id);
-//    });
 
   // Private
 
   // Constants
-  _PAD = 2;
-  _TRACK_HEIGHT = 30;
+  _PAD = 5;
+  _GLYPH_SIZE = 30;
 
   /**
     * Adds a hidden iframe that calls the given resize event whenever its width
@@ -511,34 +347,13 @@ GCV.Viewer = class {
     }, 125);
   }
 
-  /**
-    * Computes the length of the longest string in the given array.
-    * @param {array} text - The strings to be measured.
-    * @return {number} The length of the longest string.
-    */
-  _longestString(text, c) {
-    var dummy = this.viewer.append('g').attr('class', c),
-        max = 0;
-		dummy.selectAll('.dummyText')
-		  .data(text)
-		  .enter()
-		  .append('text')
-		  .text(function (s) { return s; })
-		  .each(function (s, i) {
-		    var l = this.getComputedTextLength();
-        if (l > max) max = l;
-		    this.remove();
-		  });
-		dummy.remove();
-    return max;
-  }
-
   /** Resizes the viewer and x scale. Will be decorated by other components. */
   _resize() {
     var w = this.container.clientWidth,
         doublePad = 2 * this._PAD,
-        r1 = this.left + doublePad,
-        r2 = w - (this.right + doublePad);
+        halfGlyph = this._GLYPH_SIZE / 2,
+        r1 = this.left + halfGlyph,
+        r2 = w - (this.right + halfGlyph);
     this.viewer.attr('width', w);
     this.x.range([r1, r2]);
   }
@@ -577,9 +392,9 @@ GCV.Viewer = class {
     }
     // create the viewer
     var numTracks = data.groups.length,
-        halfTrack = this._TRACK_HEIGHT / 2,
+        halfTrack = this._GLYPH_SIZE / 2,
         top = this._PAD + halfTrack,
-        bottom = top + (this._TRACK_HEIGHT * numTracks);
+        bottom = top + (this._GLYPH_SIZE * numTracks);
     this.viewer = d3.select('#' + id)
       .append('svg')
       .attr('class', 'GCV')
@@ -587,10 +402,12 @@ GCV.Viewer = class {
     // compute the x scale and the space required for track names
     var minX = Infinity,
         maxX = -Infinity;
-		this.names = data.groups.map(function (g) {
+    this.ticks = [];
+		this.names = data.groups.map((g) => {
       var min = Infinity,
           max = -Infinity;
       for (var i = 0; i < g.genes.length; i++) {
+        this.ticks.push(i);
         var gene = g.genes[i],
             fmax = gene.fmax,
             fmin = gene.fmin,
@@ -602,7 +419,6 @@ GCV.Viewer = class {
       }
       return g.chromosome_name + ':' + min + '-' + max;
     });
-    this.left = this._longestString(this.names, 'axis') + (2 * this._PAD);
     // initialize the x and y scales
     this.x = d3.scale.linear().domain([minX, maxX]);
     this.y = d3.scale.linear().domain([0, numTracks - 1])
@@ -616,14 +432,9 @@ GCV.Viewer = class {
     this.options.plotClick = options.plotClick;
     this.options.autoResize = options.autoResize || false;
     // set the right padding
-    this.right= this._PAD;
-    if (this.options.plotClick) {
-      this.right += this._longestString(['plot'], 'axis') + this._PAD;
-    }
+    this.right = this._PAD;
     // make sure resize always has the right context
     this._resize = this._resize.bind(this);
-    // initialize the viewer width and x scale range
-    this._resize();
   }
 
   /**
@@ -706,20 +517,19 @@ GCV.Viewer = class {
 
   /**
     * Creates the y-axis, placing labels at their respective locations.
-    * @param {array} ticks - The locations of the track labels.
     * @return {object} - D3 selection of the y-axis.
     */
-  _drawYAxis(ticks) {
+  _drawYAxis() {
     // construct the y-axes
     var axis = d3.svg.axis().scale(this.y)
       .orient('left')
-      .tickValues(ticks)
+      .tickValues(this.ticks)
       .tickFormat((y, i) => { return this.names[i]; });
     // draw the axes of the graph
     var yAxis = this.viewer.append('g')
       .attr('class', 'axis')
-      .call(axis)
-      .selectAll('text')
+      .call(axis);
+    yAxis.selectAll('text')
       .attr('class', function (y, i) {
         var c = (i == 0) ? 'query ' : '';
         return c + 'micro-' + i.toString();
@@ -737,14 +547,48 @@ GCV.Viewer = class {
     return yAxis;
   }
 
+
+  /**
+    * Creates the plot y-axis, placing labels at their respective locations.
+    * @return {object} - D3 selection of the plot y-axis.
+    */
+  _drawPlotAxis() {
+    // construct the plot y-axes
+    var axis = d3.svg.axis().scale(this.y)
+      .orient('right')
+      .tickValues(this.ticks)
+      .tickFormat('plot');
+    // draw the axes of the graph
+    var plotYAxis = this.viewer.append('g')
+      .attr('class', 'axis')
+      .call(axis);
+    plotYAxis.selectAll('text')
+  	  .style('cursor', 'pointer')
+      .on('click', this.options.plotClick);
+    return plotYAxis;
+  }
+
   /** Draws the viewer. */
   _draw() {
+    // draw the y-axes
+    var yAxis = this._drawYAxis();
+    this.left = yAxis.node().getBBox().width + this._PAD;
+    yAxis.attr('transform', 'translate(' + this.left + ', 0)');
+    this.left += this._PAD;
+    if (this.options.plotClick) {
+      var plotAxis = this._drawPlotAxis();
+      this.right += plotAxis.node().getBBox().width + this._PAD;
+      var obj = this;
+      var resizePlotYAxis = function () {
+        var x = obj.viewer.attr('width') - obj.right + obj._PAD;
+        plotAxis.attr('transform', 'translate(' + x + ', 0)');
+      }
+      this._decorateResize(resizePlotYAxis);
+    }
+    this._resize();
     // draw the tracks
-    var ticks = [],
-        tracks = [];
+    var tracks = [];
     for (var i = 0; i < this.data.groups.length; i++) {
-      // save the track's label location
-      ticks.push(i);
       // make the track and save it for the resize call
       tracks.push(this._drawTrack(i));
     }
@@ -761,9 +605,6 @@ GCV.Viewer = class {
     });
     // move all tips to front
     this.viewer.selectAll('.synteny-tip').moveToFront();
-    // draw the y-axis
-    var yAxis = this._drawYAxis(ticks);
-    yAxis.attr('transform', 'translate(' + this.left + ', 0)');
     // create an auto resize iframe, if necessary
     if (this.options.autoResize) {
       this.resizer = this._autoResize(this.container, (e) => {

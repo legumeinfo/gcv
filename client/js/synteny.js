@@ -86,28 +86,6 @@ GCV.Synteny = class {
     }, 125);
   }
 
-  /**
-    * Computes the length of the longest string in the given array.
-    * @param {array} text - The strings to be measured.
-    * @return {number} The length of the longest string.
-    */
-  _longestString(text, c) {
-    var dummy = this.viewer.append('g').attr('class', c),
-        max = 0;
-		dummy.selectAll('.dummyText')
-		  .data(text)
-		  .enter()
-		  .append('text')
-		  .text(function (s) { return s; })
-		  .each(function (s, i) {
-		    var l = this.getComputedTextLength();
-        if (l > max) max = l;
-		    this.remove();
-		  });
-		dummy.remove();
-    return max;
-  }
-
   /** Resizes the viewer and scale. Will be decorated by other components. */
   _resize() {
     var w = this.container.clientWidth,
@@ -150,11 +128,9 @@ GCV.Synteny = class {
       .attr('class', 'GCV')
       .attr('height', this._PAD);
     // compute the space required for chromosome names
-		var chromosomes = [data.chromosome].concat(data.tracks.map(function (t) {
-          return t.chromosome;
-        }));
-    this.left = this._longestString(chromosomes, 'axis') + (2 * this._PAD);
-    this.right = this._longestString([data.length], 'axis') / 2;
+		var chromosomes = data.tracks.map(function (t) { return t.chromosome; });
+    this.left = 0;
+    this.right = this._PAD;
     // create the scale used to map block coordinates to pixels
     this.scale = d3.scale.linear()
       .domain([0, data.length]);
@@ -192,14 +168,30 @@ GCV.Synteny = class {
   _drawXAxis() {
     // draw the axis
     var xAxis = this.viewer.append('g').attr('class', 'axis');
+    // add the label
+    var label = xAxis.append('text')
+      .attr('class', 'query')
+      .text(this.data.chromosome);
     // how the axis is resized
     xAxis.resize = function () {
+      // update the axis
       var axis = d3.svg.axis()
         .scale(this.scale)
         .orient('top')
         .tickValues(this.scale.domain())
         .tickFormat((x, i) => { return x; });
-      xAxis.call(axis);
+      xAxis.call(axis)
+        .selectAll('text')
+        .style('text-anchor', function (t, i) {
+          if (i == 1) {
+            return 'start';
+          } return 'end';
+        });
+      label.style('text-anchor', 'end').attr('transform', (b) => {
+        var x = this.left - (this._PAD + (2 * axis.tickPadding())),
+            y = -(label.node().getBBox().height / 2);
+        return 'translate(' + x + ', ' + y + ')';
+      });
     }.bind(this);
     // resize once to position everything
     xAxis.resize();
@@ -363,38 +355,33 @@ GCV.Synteny = class {
   /**
     * Creates the y-axis, placing labels at their respective locations.
     * @param {array} ticks - The locations of the track labels.
+    * @param {int} t - The pixel location of the top of the block area.
+    * @param {int} b - The pixel location of the bottom of the block area.
     * @return {object} - D3 selection of the y-axis.
     */
-  _drawYAxis(ticks) {
+  _drawYAxis(ticks, t, b) {
     // construct the y-axes
     var axis = d3.svg.axis()
+      .scale(d3.scale.linear().domain([t, b]).range([t, b]))
       .orient('left')
       .tickValues(ticks)
       .tickFormat((y, i) => {
-        if (i == 0) return this.data.chromosome;
-        return this.data.tracks[i - 1].chromosome;
+        return this.data.tracks[i].chromosome;
       });
     // draw the axes of the graph
     var yAxis = this.viewer.append('g')
       .attr('class', 'axis')
-      .call(axis)
-      .selectAll('text')
-      .attr('class', function (y, i) {
-        if (i == 0) return 'query';
-        return 'macro-' + (i - 1).toString();
-      })
+      .call(axis);
+    yAxis.selectAll('text')
+      .attr('class', function (y, i) { return 'macro-' + i.toString(); })
   	  .style('cursor', 'pointer')
       .on('mouseover', (y, i) => {
-        if (i > 0) {
-          var selection = d3.selectAll('.GCV .macro-' + (i - 1).toString());
-          this._beginHover(selection);
-        }
+        var selection = d3.selectAll('.GCV .macro-' + i.toString());
+        this._beginHover(selection);
       })
       .on('mouseout', (y, i) => {
-        if (i > 0) {
-          var selection = d3.selectAll('.GCV .macro-' + (i - 1).toString());
-          this._endHover(selection);
-        }
+        var selection = d3.selectAll('.GCV .macro-' + i.toString());
+        this._endHover(selection);
       })
       .on('click', this.options.nameClick);
     return yAxis;
@@ -431,23 +418,25 @@ GCV.Synteny = class {
   /** Draws the viewer. */
   _draw() {
     // draw the x-axis
-    var xAxis = this._drawXAxis(),
-        m = this._positionElement(xAxis);
+    var xAxis = this._drawXAxis();
+    this._positionElement(xAxis);
     // decorate the resize function with that of the x-axis
     this._decorateResize(xAxis.resize);
     // draw the tracks
-    var ticks = [m],
+    var ticks = [],
         tracks = [];
+    var t = this.viewer.attr('height');
     for (var i = 0; i < this.data.tracks.length; i++) {
       // make the track
       var track = this._drawTrack(i);
       // put it in the correct location
-      m = this._positionElement(track);
+      var m = this._positionElement(track);
       // save the track's label location
       ticks.push(m);
       // save the track for the resize call
       tracks.push(track);
     }
+    var b = this.viewer.attr('height');
     // decorate the resize function with that of the track
     var resizeTracks = function () {
       tracks.forEach(function (t, i) {
@@ -462,8 +451,11 @@ GCV.Synteny = class {
     // move all tips to front
     this.viewer.selectAll('.synteny-tip').moveToFront();
     // draw the y-axis
-    var yAxis = this._drawYAxis(ticks);
+    var yAxis = this._drawYAxis(ticks, t, b);
+    this.left = yAxis.node().getBBox().width + this._PAD;
     yAxis.attr('transform', 'translate(' + this.left + ', 0)');
+    this.left += this._PAD;
+    this._resize();
     // draw the viewport
     if (this.options.viewport) {
       var viewport = this._drawViewport();
@@ -475,6 +467,9 @@ GCV.Synteny = class {
         this._resize();
       });
     }
+    // add bottom padding
+    var h = parseInt(this.viewer.attr('height')) + this._PAD;
+    this.viewer.attr('height', h);
   }
   
   // Public
