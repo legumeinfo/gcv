@@ -542,7 +542,7 @@ contextServices.service('Search', function ($http, $q, $rootScope, Viewer) {
     }
     // merge the alignments
     aligned.groups = [aligned.groups[0]];
-    mergeAlignments(aligned, resultTracks, alignments);  // context.js
+    Alignment.merge(aligned, resultTracks, alignments);  // context.js
     // add scores to tracks
     for (var i = 1; i < aligned.groups.length; i++) {
       aligned.groups[i].score = scores[aligned.groups[i].id];
