@@ -5,6 +5,23 @@ var Alignment = Alignment || {};
 
 
 /**
+  * Uses an accessor to compute a score by comparing the given elements.
+  * @param {generic} a - The first element.
+  * @param {generic} b - The second element.
+  * @param {function} accessor - The accessor used to compare elements.
+  * @param {object} scores - The contains the match and mismatch scores.
+  * @return {int} - The computed score.
+  */
+Alignment._computeScore = function(a, b, accessor, scores) {
+  a = accessor(a);
+  b = accessor(b);
+	if (a === b && a != '') {
+		return scores.match;
+	} return scores.mismatch;
+}
+
+
+/**
   * The Smith-Waterman algorithm.
   * @param {Array} sequence - The sequence to be aligned.
   * @param {Array} reference - The sequence to be aligned to.
@@ -12,20 +29,6 @@ var Alignment = Alignment || {};
   * @return {Array} - The aligned sequences and score.
   */
 Alignment.smithWaterman = function (sequence, reference, options) {
-
-  /**
-    * Uses the accessor to compute a score by comparing the given elements.
-    * @param {generic} a - The first element.
-    * @param {generic} b - The second element.
-    * @return {int} - The computed score.
-    */
-  var computeScore = function(a, b) {
-    a = options.accessor(a);
-    b = options.accessor(b);
-  	if (a === b && a != '') {
-  		return options.scores.match;
-  	} return options.scores.mismatch;
-  }
 
   /**
     * The alignment algorithm.
@@ -48,7 +51,9 @@ Alignment.smithWaterman = function (sequence, reference, options) {
     for (i = 1; i < rows; i++) {
       for (j = 1; j < cols; j++) {
         choice[0] = 0;
-        choice[1] = a[i - 1][j - 1] + computeScore(ref[i - 1], seq[j - 1]);
+        choice[1] = a[i - 1][j - 1] + Alignment._computeScore(
+          ref[i - 1], seq[j - 1], options.accessor, options.scores
+        );
         choice[2] = a[i - 1][j] + options.scores.gap;
         choice[3] = a[i][j - 1] + options.scores.gap;
         a[i][j] = choice.max();
@@ -74,7 +79,9 @@ Alignment.smithWaterman = function (sequence, reference, options) {
       diag = a[i - 1][j - 1];
       up = a[i][j - 1];
       left = a[i - 1][j];
-      if (score == diag + computeScore(ref[i - 1], seq[j - 1])) {
+      if (score == diag + Alignment._computeScore(
+        ref[i - 1], seq[j - 1], options.accessor, options.scores
+      )) {
         outRef.unshift(clone(ref[i - 1]));
         outSeq.unshift(clone(seq[j - 1]));
         i -= 1;
