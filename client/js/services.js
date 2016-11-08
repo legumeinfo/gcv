@@ -448,7 +448,7 @@ contextServices.service('Search', function ($http, $q, $rootScope, Viewer) {
     },
     repeat: {
       name: "Repeat",
-      algorithm: repeat  // repeat.js
+      algorithm: Alignment.repeat
     }
   };
   services.getAligners = function () {
@@ -519,16 +519,8 @@ contextServices.service('Search', function ($http, $q, $rootScope, Viewer) {
     var track_filter = (params.track_regexp === undefined ? undefined :
                         new RegExp(params.track_regexp));
     for (var i = 1; i < aligned.groups.length; i++) {
-      var al;
-      if (params.algorithm == 'smith') {
-        params.accessor = function(item) { return item.family; };
-        al = aligner(aligned.groups[0].genes, aligned.groups[i].genes, params);
-      } else {
-      al = aligner(aligned.groups[0].genes,
-                       aligned.groups[i].genes,
-                       function(item) { return item.family; },
-                       params);
-      }
+      params.accessor = function(item) { return item.family; };
+      var al = aligner(aligned.groups[0].genes, aligned.groups[i].genes, params);
       var id = aligned.groups[i].id;
       if (al !== null && al[1] >= params.score &&
           (track_filter === undefined ||
