@@ -444,7 +444,7 @@ contextServices.service('Search', function ($http, $q, $rootScope, Viewer) {
   var aligners = {
     smith: {
       name: "Smith-Waterman",
-      algorithm: smith  // smith.js
+      algorithm: Alignment.smithWaterman
     },
     repeat: {
       name: "Repeat",
@@ -519,10 +519,16 @@ contextServices.service('Search', function ($http, $q, $rootScope, Viewer) {
     var track_filter = (params.track_regexp === undefined ? undefined :
                         new RegExp(params.track_regexp));
     for (var i = 1; i < aligned.groups.length; i++) {
-      var al = aligner(aligned.groups[0].genes,
+      var al;
+      if (params.algorithm == 'smith') {
+        params.accessor = function(item) { return item.family; };
+        al = aligner(aligned.groups[0].genes, aligned.groups[i].genes, params);
+      } else {
+      al = aligner(aligned.groups[0].genes,
                        aligned.groups[i].genes,
                        function(item) { return item.family; },
                        params);
+      }
       var id = aligned.groups[i].id;
       if (al !== null && al[1] >= params.score &&
           (track_filter === undefined ||
