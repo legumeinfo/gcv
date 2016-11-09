@@ -1,7 +1,7 @@
 body, html {
-  margin:0;
-  padding:0;
-  min-width:400px;
+  margin: 0;
+  padding: 0;
+  min-width: 400px;
   overflow: hidden;
 }
 
@@ -13,10 +13,10 @@ a {
   margin-bottom: 0;
 }
 .navbar-brand {
-  line-height:12px;
+  line-height: 12px;
   padding-left: 50px;
-  padding-top:15px;
-  padding-bottom:10px;
+  padding-top: 15px;
+  padding-bottom: 10px;
 }
 .navbar-brand img {
   width: 50px;
@@ -30,17 +30,27 @@ a {
   padding-left: 10px;
 }
 .navbar-brand small {
-  display:block;
-  font-size:10px;
+  display: block;
+  font-size: 10px;
+}
+.navbar-static-bottom {
+  border-radius: 0;
+  border-top: 1px solid #e7e7e7;
+  border-right: none;
+  border-bottom: none;
+  border-left: none;
+  position: absolute;
+  width: 100%;
+  bottom: 0;
 }
 /* horizontally stretch main to remaining area: http://stackoverflow.com/questions/1260122/expand-div-to-take-remaining-width */
 #main {
-  position:relative;
-  width:auto;
-  height:100%;
-  overflow:hidden;
+  position: relative;
+  width: auto;
+  height: 100%;
+  overflow: hidden;
 }
-#main #top-nav button {
+#main #top-nav button, #main #bottom-nav button {
   margin-right: 15px;
 }
 #main #top-nav #alerts {
@@ -60,21 +70,21 @@ a {
 }
 #main #viewer, #main #plots, #main #help {
   width: 100%;
-  position:absolute;
-  top:51px;
-  bottom:0;
-  overflow-x:hidden;
-  overflow-y:auto;
+  position: absolute;
+  top: 51px;
+  bottom: 51px;
+  /*overflow-x:hidden;
+  overflow-y:auto;*/
 }
 .alert-dismissible {
   margin: 20px;
 }
 #left-slider {
   padding: 0;
-  position:fixed;
-  top:50px;
-  left:0;
-  bottom:0;
+  position: fixed;
+  top: 50px;
+  left: 0;
+  bottom: 50px;
   border-right: #E7E7E7 solid 1px;
   /* normal for browsers which cannot support rgba */
   background-color: #F8F8F8;
@@ -148,7 +158,7 @@ a {
 }
 /* add y scrolling to div with dynamical height: http://www.roelvanlisdonk.nl/?p=3854 */
 #right-slider #legend-wrapper .vertical-scroll {
-  position:relative;
+  position: relative;
   height: 100%
 }
 #right-slider #legend-wrapper .vertical-scroll #legend {
@@ -218,5 +228,5 @@ a {
 
 /* make room for two button in the dismissible alerts */
 .alert-dismissible button.close {
-  margin-left:10px;
+  margin-left: 10px;
 }

@@ -5,6 +5,7 @@
   <link rel="stylesheet" href="css/style.css">
   <link rel="stylesheet" href="css/context.css">
   <link rel="stylesheet" href="css/hopscotch.css">
+  <link rel="stylesheet" href="css/split.css">
 </head>
 <body ng-app="contextApp">
   <!-- right slider -->
@@ -91,8 +92,14 @@
         </div>
       </div>
     </nav>
+    <!-- bottom navigation bar -->
+    <nav id="bottom-nav" class="navbar navbar-default navbar-static-bottom" ng-controller="NavigationCtrl as nav">
+      <div class="container-fluid">
+      </div>
+    </nav>
     <!-- context viewer -->
     <div id="viewer">
+      <!--
       <div class="alert alert-info alert-dismissible" role="alert" ng-controller="HelpCtrl as help" ng-init="help.init('viewer')" ng-show="help.show">
         <button type="button" class="close" data-dismiss="alert" aria-label="Close" ng-click="help.remove()"><span aria-hidden="true"><span class="glyphicon glyphicon-remove" aria-hidden="true"></span></span></button>
         <button type="button" class="close" data-dismiss="alert" aria-label="Got it" ng-click="help.saveRemove()"><span aria-hidden="true"><span class="glyphicon glyphicon-floppy-remove" aria-hidden="true"></span></span></button>
@@ -104,8 +111,9 @@
           <li>Click track to list all genes and track options</li>
         </ul>
       </div>
-      <div id="synteny" ng-controller="SyntenyCtrl as synteny"></div>
-      <div id="viewer-content"></div>
+      -->
+      <div id="synteny" class="split split-top" ng-controller="SyntenyCtrl as synteny"></div>
+      <div id="viewer-content" class="split split-bottom"></div>
     </div>
     <!-- dot plots -->
     <div id="plots">
@@ -205,6 +213,13 @@
     </div>
   </div>
   <!-- dependencies -->
+  <script src="js/split.min.js"></script>
+  <script>
+    var split = Split(['#synteny', '#viewer-content'], {
+      direction: 'vertical',
+      minSize: 0
+    });
+  </script>
   <script src="js/pixi.min.js"></script>
   <script src="js/d3-3.5.6.min.js"></script>
   <script src="js/jquery-2.1.4.min.js"></script>
