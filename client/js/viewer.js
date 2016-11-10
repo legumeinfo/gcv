@@ -115,18 +115,20 @@ GCV.merge = function (data) {
               var args = [min, max - min + 1],
                   geneArgs = args.concat(jTrack.genes);
               Array.prototype.splice.apply(kTrack.genes, geneArgs);
-              // adjust inversion scores
-              if (min > 0) {
-                var predecessor = kTrack.genes[min - 1].suffixScore;
-                for (var l = min; l <= max; l++) {
-                  kTrack.genes[l].suffixScore += predecessor;
-                }
+              // adjust inversion scores and y coordinates
+              var pred = (min > 0) ? kTrack.genes[min - 1].suffixScore : 0;
+              for (var l = min; l <= max; l++) {
+                kTrack.genes[l].suffixScore += pred;
+                kTrack.genes[l].y = kTrack.levels;
               }
               // adjust post-inversion scores
               var adjustment = jTrack.score - score;
               for (var l = max + 1; l < kTrack.genes.length; l++) {
                 kTrack.genes[l].suffixScore += adjustment;
               }
+              kTrack.score += adjustment;
+              // increment the level counter
+              kTrack.levels++;
               // a track can only be merged once
               break;
             }
@@ -151,12 +153,11 @@ GCV.merge = function (data) {
                   idArgs = args.concat(kIds);
               Array.prototype.splice.apply(jTrack.genes, geneArgs);
               Array.prototype.splice.apply(jIds, idArgs);
-              // adjust inversion scores
-              if (min > 0) {
-                var predecessor = jTrack.genes[min - 1].suffixScore;
-                for (var l = min; l <= max; l++) {
-                  jTrack.genes[l].suffixScore += predecessor;
-                }
+              // adjust inversion scores and y coordinates
+              var pred = (min > 0) ? jTrack.genes[min - 1].suffixScore : 0;
+              for (var l = min; l <= max; l++) {
+                jTrack.genes[l].suffixScore += pred;
+                jTrack.genes[l].y = jTrack.levels;
               }
               // adjust post-inversion scores
               var adjustment = kTrack.score - score;
@@ -164,6 +165,8 @@ GCV.merge = function (data) {
                 jTrack.genes[l].suffixScore += adjustment;
               }
               jTrack.score += adjustment;
+              // increment the level counter
+              jTrack.levels++;
             }
           }
         }
@@ -180,55 +183,7 @@ GCV.merge = function (data) {
 
 /** The micro-synteny viewer. */
 GCV.Viewer = class {
-//
-//  // sort the result tracks with some user defined function
-//  if (opt.sort !== undefined) {
-//    // remove the query from the groups array
-//    var query = data.groups.splice(0, 1);
-//    // sort the results with the user defined function
-//    data.groups.sort(opt.sort);
-//    // set the groups array to the query concatenated with the sorted results
-//    data.groups = query.concat(data.groups);
-//    // give each track the correct y value
-//    for (var i = 0; i < data.groups.length; i++) {
-//      for (var j = 0; j < data.groups[i].genes.length; j++) {
-//        data.groups[i].genes[j].y = i;
-//      }
-//    }
-//  }
-//
-//  // filter the tracks with the omit lists
-//  var tracks = [];
-//  for (var i = 0; i < data.groups.length; i++) {
-//    if (opt.interTrack !== undefined && opt.interTrack == true) {
-//      tracks.push(data.groups[i].genes.filter(function(g) {
-//        return omit[data.groups[i].id].indexOf(g.uid) == -1;
-//      }));
-//    } else {
-//      tracks.push(data.groups[i].genes);
-//    }
-//  }
-//  
-//  // get the family size map
-//  var family_sizes = getFamilySizeMap(data);
-//  
-//  // get the family id name map
-//  var family_names = getFamilyNameMap(data);
-//  
-//  var w = d3.max([1000, targetWidth]),
-//      rect_h = 18,
-//      rect_pad = 2,
-//      top_pad = 50,
-//      bottom_pad = 200,
-//      pad = 20,
-//      left_pad = 250,
-//      right_pad = 150,
-//      num_tracks = data.groups.length,
-//      num_genes = get_track_length(data),
-//  
-//  // for constructing the y-axis
-//  var tick_values = [];
-//  
+
 //  // add the tracks (groups)
 //  for (var i = 0; i < data.groups.length; i++) {
 //  	// helper that draws lines between two given genes
@@ -399,10 +354,12 @@ GCV.Viewer = class {
       throw new Error('"data" is undefined');
     }
     // create the viewer
-    var numTracks = data.groups.length,
+    var numLevels = this.data.groups.reduce(function (sum, g) {
+          return sum + g.levels;
+        }, 0),
         halfTrack = this._GLYPH_SIZE / 2,
         top = this._PAD + halfTrack,
-        bottom = top + (this._GLYPH_SIZE * numTracks);
+        bottom = top + (this._GLYPH_SIZE * numLevels);
     this.viewer = d3.select('#' + id)
       .append('svg')
       .attr('class', 'GCV')
@@ -411,12 +368,16 @@ GCV.Viewer = class {
     var minX = Infinity,
         maxX = -Infinity;
     this.ticks = [];
-		this.names = data.groups.map((g) => {
-      var min = Infinity,
+		this.names = []
+    var tick = 0;
+    for (var i = 0; i < data.groups.length; i++) {
+      var group = data.groups[i],
+          min = Infinity,
           max = -Infinity;
-      for (var i = 0; i < g.genes.length; i++) {
-        this.ticks.push(i);
-        var gene = g.genes[i],
+      this.ticks.push(tick);
+      tick += group.levels;
+      for (var j = 0; j < group.genes.length; j++) {
+        var gene = group.genes[j],
             fmax = gene.fmax,
             fmin = gene.fmin,
             x = gene.x;
@@ -425,11 +386,11 @@ GCV.Viewer = class {
         minX = Math.min(minX, x);
         maxX = Math.max(maxX, x);
       }
-      return g.chromosome_name + ':' + min + '-' + max;
-    });
+      this.names.push(group.chromosome_name + ':' + min + '-' + max);
+    }
     // initialize the x and y scales
     this.x = d3.scale.linear().domain([minX, maxX]);
-    this.y = d3.scale.linear().domain([0, numTracks - 1])
+    this.y = d3.scale.linear().domain([0, numLevels - 1])
                .range([top, bottom]);
     // parse optional parameters
     this.options = options || {};
@@ -452,7 +413,8 @@ GCV.Viewer = class {
     */
   _drawTrack(i) {
     var obj = this,
-        t = this.data.groups[i];
+        t = this.data.groups[i],
+        y = this.ticks[i];
   	// make svg groups for the genes
     var selector = 'micro-' + i.toString(),
   	    track = this.viewer.append('g').attr('class', selector),
@@ -462,7 +424,7 @@ GCV.Viewer = class {
   	  .append('g')
   	  .attr('class', 'gene')
   	  .attr('transform', function (g) {
-  	    return 'translate(' + obj.x(g.x) + ', ' + obj.y(g.y) + ')';
+  	    return 'translate(' + obj.x(g.x) + ', ' + obj.y(y + g.y) + ')';
   	  })
   	  .style('cursor', 'pointer')
       .on('mouseover', function (g) { obj._beginHover(d3.select(this)); })
@@ -503,7 +465,7 @@ GCV.Viewer = class {
     track.resize = function (genesGroups, tips) {
       var obj = this;
       geneGroups.attr('transform', function (g) {
-        return 'translate(' + obj.x(g.x) + ', ' + obj.y(g.y) + ')';
+        return 'translate(' + obj.x(g.x) + ', ' + obj.y(y + g.y) + ')';
   	  });
     }.bind(this, geneGroups, tips);
     // how tips are rotated so they don't overflow the view

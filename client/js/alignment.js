@@ -321,10 +321,12 @@ Alignment.repeat = function (sequence, reference, options) {
   */
 Alignment.trackify = function (data, alignments) {
   // make a copy of the data (tracks) and only save the first group (query)
-  var aligned = $.extend(true, {}, data);
-  aligned.groups = [aligned.groups[0]];
+  var aligned = $.extend(true, {}, data),
+      query = aligned.groups[0];
+  query.levels = 1;
+  aligned.groups = [query];
   // initialize variables
-  var length = aligned.groups[0].genes.length;  // query length
+  var length = query.genes.length;
   // update the context data with the alignment
   for (var k = 0; k < alignments.length; k++) {
     var queryCount = 0,
@@ -379,6 +381,7 @@ Alignment.trackify = function (data, alignments) {
         track.genes.push(alignment.reference[i]);
       }
     }
+    track.levels = 1;
     aligned.groups.push(track);
   }
   return aligned;
