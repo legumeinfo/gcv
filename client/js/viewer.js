@@ -1,178 +1,186 @@
 'use strict'
 
+
 /** The Genomic Context Viewer namespace. */
 var GCV = GCV || {};
 
-/** The micro-synteny viewer. */
-GCV.Viewer = class {
-
-//  // data preprocessing
-//  var partitions = {},
-//      groups = {},
-//      left_breaks = {},
-//      right_breaks = {},
-//      interTracks = {},
-//      omit = {},
-//      uid = 0;
-//  for (var i = 0; i < data.groups.length; i++) {
-//    // order the track genes to ease processing
-//    data.groups[i].genes.sort(function (a, b) {
+// merge partitions from same chromosome with the interval scheduling
+// greedy algorithm
+// TODO: should be same group only
+//var partition_groups = [];
+//// sort the partition groups by "finish time"
+//partitions[id].sort(function (a, b) {
+//  return a[a.length-1].x-b[b.length-1].x;
+//});
+//// generate the merged tracks
+//while (partitions[id].length > 0) {
+//  var track_genes = [];
+//  var remove = [];
+//  for (var i = 0; i < partitions[id].length; i++) {
+//    // make sure the genes are ordered by x coordinate
+//    partitions[id].sort(function (a, b) {
 //      return a.x-b.x;
 //    });
-//    // prepare for inter track lines and to merge partitions
-//    if ((opt.merge !== undefined && opt.merge == true) ||
-//        (opt.interTrack !== undefined && opt.interTrack == true)) {
-//      var id = data.groups[i].id;
-//      if (partitions[id] === undefined) {
-//        partitions[id] = [];
-//        groups[id] = clone(data.groups[i]);
-//        groups[id].genes = [];
-//        left_breaks[id] = [];
-//        right_breaks[id] = [];
-//        interTracks[id] = {};
-//        omit[id] = [];
-//      }
-//      // give each gene in the partition a unique id
-//      for (var j = 0; j < data.groups[i].genes.length; j++) {
-//        data.groups[i].genes[j].uid = uid++;
-//        data.groups[i].genes[j].group_id = id;
-//      }
-//      left_breaks[id].push(data.groups[i].genes[0].uid);
-//      right_breaks[id].push(data.groups[i].genes[data.groups[i].genes.length-1].uid);
-//      partitions[id].push(data.groups[i].genes);
+//    // greedy ordering
+//    var partition = partitions[id][i];
+//    if (track_genes.length == 0 ||
+//        partition[0].x > track_genes[track_genes.length-1].x) {
+//      track_genes = track_genes.concat(partition);
+//      remove.push(i);
 //    }
 //  }
+//  // remove the tracks that were merged
+//  for (var i = remove.length-1; i >= 0; i--) {
+//    partitions[id].splice(remove[i], 1);
+//  }
+//  // save the new group
+//  var group = clone(groups[id]);
+//  group.genes = track_genes.slice(0);
+//  partition_groups.push(group);
+//}
+//// order the new groups largest to smallest
+//partition_groups.sort(function (a, b) {
+//  return b.genes.length-a.genes.length;
+//});
+//// add the new groups to the data
+//for (var i = 0; i < partition_groups.length; i++) {
+//  partition_groups[i].genes = partition_groups[i].genes.map(
+//                              function(gene) {
+//                                gene.y = group_y;
+//                                return gene;
+//                              });
+//  group_y++;
+//  tracks.groups.push(partition_groups[i]);
+//}
+
+
+/**
+  * Merges overlapping tracks from the same group to maximize alignment score.
+  * @param {object} data - The micro-synteny viewer data to be merged.
+  */
+GCV.merge = function (data) {
+  // make a copy of the data (tracks)
+  var tracks = $.extend(true, {}, data);
+  // groups tracks by group id
+  var groups = {};
+  for (var i = 1; i < tracks.groups.length; i++) {  // skip first (query) track
+    var track = tracks.groups[i];
+    groups[track.id] = groups[track.id] || [];
+    groups[track.id].push(track);
+  }
+  tracks.groups = [tracks.groups[0]];
+  // try to merge each partition
+  for (var i in groups) {
+    if (!groups.hasOwnProperty(i)) {
+      continue;
+    }
+    var groupTracks = groups[i],
+        merged = [];  // which tracks have been merged into another
+    // iterate pairs of tracks to see if one is a sub-inversion of the other
+    for (var j = 0; j < groupTracks.length; j++) {
+      // only consider non-merged tracks
+      if (merged.indexOf(j) != -1) {
+        continue;
+      }
+      var jTrack = groupTracks[j],
+          jIds = jTrack.genes.map(function (g) { return g.id; });
+      for (var k = j + 1; k < groupTracks.length; k++) {
+        // only consider non-merged tracks
+        if (merged.indexOf(k) != -1) {
+          continue;
+        }
+        var kTrack = groupTracks[k],
+            kIds = kTrack.genes.map(function (g) { return g.id; });
+        // compute the intersection
+        var overlap = jIds.filter(function (id) {
+          return kIds.indexOf(id) != -1;
+        });
+        if (overlap.length > 0) {
+          // j is the inversion
+          if (kIds.length > jIds.length) {
+            // get index list
+            var indices = overlap.map(function (id) {
+              return kIds.indexOf(id);
+            });
+            // compute the score of the inverted sequence before inverting
+            var min = Math.min.apply(null, indices),
+                max = Math.max.apply(null, indices);
+            var startGene = kTrack.genes[min],
+                endGene = kTrack.genes[max];
+            var score = endGene.suffixScore - startGene.suffixScore;
+            // perform the inversion if it will improve the super-track's score
+            if (jTrack.score > score) {
+              merged.push(j);
+              // perform the inversion
+              var args = [min, max - min + 1],
+                  geneArgs = args.concat(jTrack.genes);
+              Array.prototype.splice.apply(kTrack.genes, geneArgs);
+              // adjust inversion scores
+              if (min > 0) {
+                var predecessor = kTrack.genes[min - 1].suffixScore;
+                for (var l = min; l <= max; l++) {
+                  kTrack.genes[l].suffixScore += predecessor;
+                }
+              }
+              // adjust post-inversion scores
+              var adjustment = jTrack.score - score;
+              for (var l = max + 1; l < kTrack.genes.length; l++) {
+                kTrack.genes[l].suffixScore += adjustment;
+              }
+              // a track can only be merged once
+              break;
+            }
+          // k is the inversion
+          } else if (jIds.length == kIds.length) {
+            // get index list
+            var indices = overlap.map(function (id) {
+              return jIds.indexOf(id);
+            });
+            // compute the score of the inverted sequence before inverting
+            var min = Math.min.apply(null, indices),
+                max = Math.max.apply(null, indices);
+            var startGene = jTrack.genes[min],
+                endGene = jTrack.genes[max];
+            var score = endGene.suffixScore - startGene.suffixScore;
+            // perform the inversion if it will improve the super-track's score
+            if (kTrack.score > score) {
+              merged.push(k);
+              // perform the inversion
+              var args = [min, max - min + 1],
+                  geneArgs = args.concat(kTrack.genes),
+                  idArgs = args.concat(kIds);
+              Array.prototype.splice.apply(jTrack.genes, geneArgs);
+              Array.prototype.splice.apply(jIds, idArgs);
+              // adjust inversion scores
+              if (min > 0) {
+                var predecessor = jTrack.genes[min - 1].suffixScore;
+                for (var l = min; l <= max; l++) {
+                  jTrack.genes[l].suffixScore += predecessor;
+                }
+              }
+              // adjust post-inversion scores
+              var adjustment = kTrack.score - score;
+              for (var l = max + 1; l < jTrack.genes.length; l++) {
+                jTrack.genes[l].suffixScore += adjustment;
+              }
+              jTrack.score += adjustment;
+            }
+          }
+        }
+      }
+      // add the track if it wasn't merged during its iteration
+      if (merged.indexOf(j) == -1) {
+        tracks.groups.push(jTrack);
+      }
+    }
+  }
+  return tracks;
+}
+
+
+/** The micro-synteny viewer. */
+GCV.Viewer = class {
 //
-//  // helper functions for inter-track line drawing
-//  function locMin(genes) {
-//    return d3.min(genes, function (g) {
-//      return +g.fmin;
-//    });
-//  }
-//  function locMax(genes) {
-//    return d3.max(genes, function (g) {
-//      return +g.fmax;
-//    });
-//  }
-//  function inversionPrep(id, inversion, sup, sup_inversion) {
-//    // mark the sides of the inversion break in the super track
-//    // mark where inter track lines will be drawn
-//    var left = sup_inversion[0];
-//    if (left > 0) {
-//      right_breaks[id].push(sup[left-1].uid);
-//      interTracks[id][sup[left-1].uid] = inversion[inversion.length-1];
-//    }
-//    var right = sup_inversion[sup_inversion.length-1];
-//    if (right < sup.length-1) {
-//      left_breaks[id].push(sup[right+1].uid);
-//      interTracks[id][sup[right+1].uid] = inversion[0];
-//    }
-//    // a list of all genes that should be omitted when drawing the track
-//    for (var k = left; k <= right; k++) {
-//      omit[id].push(sup[k].uid);
-//    }
-//  }
-//
-//  // merge tracks and determine where to draw inter-track lines
-//  if ((opt.merge !== undefined && opt.merge == true) ||
-//      (opt.interTrack !== undefined && opt.interTrack == true)) {
-//    if (opt.merge !== undefined && opt.merge == true) {
-//      data.groups = [];
-//    }
-//    var group_y = 0;
-//    for (var id in partitions) {
-//      // determine where to draw inter-track lines
-//      if (opt.interTrack && opt.interTrack == true) {
-//        // iterate pairs of tracks to see if one is an inversion of the other
-//        for (var i = 0; i < partitions[id].length-1; i++) {
-//          for (var j = i+1; j < partitions[id].length; j++) {
-//            // the tracks must overlap
-//            var iMin = locMin(partitions[id][i]),
-//                iMax = locMax(partitions[id][i]),
-//                jMin = locMin(partitions[id][j]),
-//                jMax = locMax(partitions[id][j]);
-//            if ((iMin <= jMin && jMin <= iMax) ||
-//                (iMin <= jMax && jMin <= iMax) ||
-//                (jMin <= iMin && iMin <= jMax) ||
-//                (jMin <= iMax && iMin <= jMax)) {
-//              // intersect the tracks to see if they overlap
-//              var iSec = [],
-//                  jSec = [];
-//              for (var k = 0; k < partitions[id][i].length; k++) {
-//                for (var l = 0; l < partitions[id][j].length; l++) {
-//                  if (partitions[id][i][k].id == partitions[id][j][l].id) {
-//                    iSec.push(k);
-//                    jSec.push(l);
-//                  }
-//                }
-//              }
-//              // note where inter-track lines should be drawn    
-//              if (iSec.length > 1) {
-//                iSec.sort(function(a, b) { return a-b; }); 
-//                jSec.sort(function(a, b) { return a-b; });
-//                // assume the shorter of the tracks is the inversion    
-//                if (partitions[id][j].length > partitions[id][i].length) {
-//                  inversionPrep(id, partitions[id][i], partitions[id][j], jSec);
-//                } else if (partitions[id][i].length > partitions[id][j].length) {
-//                  inversionPrep(id, partitions[id][j], partitions[id][i], iSec);
-//                }    
-//              }
-//            }
-//          }
-//        }
-//      }
-//      // merge partitions from same chromosome with the interval scheduling
-//      // greedy algorithm
-//      if (opt.merge && opt.merge == true) {
-//        var partition_groups = [];
-//        // sort the partition groups by "finish time"
-//        partitions[id].sort(function (a, b) {
-//          return a[a.length-1].x-b[b.length-1].x;
-//        });
-//        // generate the merged tracks
-//        while (partitions[id].length > 0) {
-//          var track_genes = [];
-//          var remove = [];
-//          for (var i = 0; i < partitions[id].length; i++) {
-//            // make sure the genes are ordered by x coordinate
-//            partitions[id].sort(function (a, b) {
-//              return a.x-b.x;
-//            });
-//            // greedy ordering
-//            var partition = partitions[id][i];
-//            if (track_genes.length == 0 ||
-//                partition[0].x > track_genes[track_genes.length-1].x) {
-//              track_genes = track_genes.concat(partition);
-//              remove.push(i);
-//            }
-//          }
-//          // remove the tracks that were merged
-//          for (var i = remove.length-1; i >= 0; i--) {
-//            partitions[id].splice(remove[i], 1);
-//          }
-//          // save the new group
-//          var group = clone(groups[id]);
-//          group.genes = track_genes.slice(0);
-//          partition_groups.push(group);
-//        }
-//        // order the new groups largest to smallest
-//        partition_groups.sort(function (a, b) {
-//          return b.genes.length-a.genes.length;
-//        });
-//        // add the new groups to the data
-//        for (var i = 0; i < partition_groups.length; i++) {
-//          partition_groups[i].genes = partition_groups[i].genes.map(
-//                                      function(gene) {
-//                                        gene.y = group_y;
-//                                        return gene;
-//                                      });
-//          group_y++;
-//          data.groups.push(partition_groups[i]);
-//        }
-//      }
-//    }
-//  }
-//  
 //  // sort the result tracks with some user defined function
 //  if (opt.sort !== undefined) {
 //    // remove the query from the groups array

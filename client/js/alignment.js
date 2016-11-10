@@ -128,12 +128,12 @@ Alignment.smithWaterman = function (sequence, reference, options) {
     // clone each element in the array and flip the strand
     for (var i = 0; i < reverse.reference.length; i++) {
       if (reverse.reference[i] != null) {
-        reverse.reference[i].strand = -1 * reverse.reference[i].strand;
+        reverse.reference[i].strand = -reverse.reference[i].strand;
       }
     }
     output = reverse;
   }
-  return [[[output.sequence, output.reference]], output.score];
+  return [output];
 }
 
 
@@ -184,23 +184,18 @@ Alignment.repeat = function (sequence, reference, options) {
         alignments = [],
         index = -1,
         saving = false,
-        totalScore = 0,
-        subScore = 0,
         length = 0;
     while (!(i == 0 && j == 0)) {
       if (saving) {
-        subScore += a[i][j];
+        alignments[index].score += a[i][j];
       }
       if (j == 0) {
         if (saving && length < 2) {
           alignments.pop();
           index--;
           length = 0;
-        } else if (saving) {
-          totalScore += subScore;
         }
         saving = false;
-        subScore = 0;
         var max = a[i].max();
         var jMax = a[i].lastIndexOf(max);
         // start a new alignment only if j is a match and the alignment's
@@ -212,16 +207,17 @@ Alignment.repeat = function (sequence, reference, options) {
           length = 1;
           saving = true;
           j = jMax;
-          alignments.push([[], []]);
+          alignments.push({sequence: [], reference: [], score: 0});
           index++;
           // pad seq with the genes not traversed by the alignment
           for (var k = seq.length - 1; k >= j; k--) {
-            alignments[index][0].unshift(clone(seq[k]));
-            alignments[index][1].unshift(null);
+            alignments[index].sequence.unshift(clone(seq[k]));
+            alignments[index].reference.unshift(null);
           }
           // add the starting match
-          alignments[index][0].unshift(clone(seq[j - 1]));
-          alignments[index][1].unshift(clone(ref[i - 1]));
+          alignments[index].sequence.unshift(clone(seq[j - 1]));
+          alignments[index].reference.unshift(clone(ref[i - 1]));
+          alignments[index].reference[0].suffixScore = a[i][j];
         } else {
           // try starting an alignment in the next column
           i--;
@@ -237,8 +233,8 @@ Alignment.repeat = function (sequence, reference, options) {
           // add any missing genes to seq
           if (saving) {
             for (var k = j - 1; k > 0; k--) {
-              alignments[index][0].unshift(clone(seq[k - 1]));
-              alignments[index][1].unshift(null);
+              alignments[index].sequence.unshift(clone(seq[k - 1]));
+              alignments[index].reference.unshift(null);
             }
           }
           // get ready for a new alignment
@@ -252,8 +248,9 @@ Alignment.repeat = function (sequence, reference, options) {
               i--;
               // no alignments happen in the first row or column
               if (saving && j > 0 && i > 0) {
-                alignments[index][0].unshift(clone(seq[j - 1]));
-                alignments[index][1].unshift(clone(ref[i - 1]));
+                alignments[index].sequence.unshift(clone(seq[j - 1]));
+                alignments[index].reference.unshift(clone(ref[i - 1]));
+                alignments[index].reference[0].suffixScore = a[i][j];
                 length++;
               }
               break;
@@ -261,16 +258,17 @@ Alignment.repeat = function (sequence, reference, options) {
             case 1:
               j--;
               if (saving && j > 0) {
-                alignments[index][0].unshift(clone(seq[j - 1]));
-                alignments[index][1].unshift(null);
+                alignments[index].sequence.unshift(clone(seq[j - 1]));
+                alignments[index].reference.unshift(null);
               }
               break;
             // left
             case 2:
               i--;
               if (saving && i > 0) {
-                alignments[index][0].unshift(null);
-                alignments[index][1].unshift(clone(ref[i - 1]));
+                alignments[index].sequence.unshift(null);
+                alignments[index].reference.unshift(clone(ref[i - 1]));
+                alignments[index].reference[0].suffixScore = a[i][j];
               }
               break;
           }
@@ -281,10 +279,8 @@ Alignment.repeat = function (sequence, reference, options) {
       alignments.pop();
       index--;
       length = 0;
-    } else if (saving) {
-      totalScore += subScore;
     }
-    return {alignments: alignments, score: totalScore};
+    return alignments;
   }
 
   // parse optional parameters
@@ -303,83 +299,87 @@ Alignment.repeat = function (sequence, reference, options) {
 	var reverses = align(sequence, reverseReference);
 
   // clone each object in the arrays and flip the strand for each selected gene
-  var output = forwards.alignments;
-  for (var i = 0; i < reverses.alignments.length; i++) {
-    var a = reverses.alignments[i];
-    for (var j = 0; j < a[1].length; j++) {
-      if(a[1][j] != null) {
-        a[1][j].strand = -1 * a[1][j].strand;
+  var output = forwards;
+  for (var i = 0; i < reverses.length; i++) {
+    var a = reverses[i];
+    for (var j = 0; j < a.reference.length; j++) {
+      if(a.reference[j] != null) {
+        a.reference[j].strand = -a.reference[j].strand;
       }
     }
     output.push(a);
   }
-	return [output, forwards.score + reverses.score];
+	return output;
 }
 
 
 /**
-  * Merges alignments and sets coordinates for the context viewer.
-  * @param {object} data - The context viewer to be given coordinates.
-  * @param {object} selected - The data groups selected to be merged.
+  * Converts alignments into micro-synteny viewer tracks.
+  * @param {object} data - The original viewer tracks.
   * @param {Array} alignments - The alignments to be merged.
+  * @return {object} - A copy of data where the tracks are aligned.
   */
-Alignment.merge = function (data, selected, alignments) {
+Alignment.trackify = function (data, alignments) {
+  // make a copy of the data (tracks) and only save the first group (query)
+  var aligned = $.extend(true, {}, data);
+  aligned.groups = [aligned.groups[0]];
   // initialize variables
-  var n = data.groups.length,
-      length = data.groups[0].genes.length;
+  var length = aligned.groups[0].genes.length;  // query length
   // update the context data with the alignment
   for (var k = 0; k < alignments.length; k++) {
     var queryCount = 0,
         preQuery = 0,
         insertionCount = 0,
         alignment = alignments[k],
-        index = n + k;
-    data.groups.push(selected[k]);
-    data.groups[index].genes = [];
-    for (var i = 0; i < alignment[0].length; i++) {
+        track = alignment.track;
+    track.score = alignment.score;
+    track.genes = [];
+    for (var i = 0; i < alignment.sequence.length; i++) {
       // keep track of how many selected genes come before the query genes
-      if (alignment[0][i] == null && queryCount == 0) {
+      if (alignment.sequence[i] == null && queryCount == 0) {
         preQuery++;
-      // it must be an insertion
-      } else if (alignment[0][i] == null) {
+      // an insertion
+      } else if (alignment.sequence[i] == null) {
         // position the genes that come after the query genes
         if (queryCount >= length) {
-          alignment[1][i].x = queryCount++;
-          alignment[1][i].y = k + 1;
-          data.groups[index].genes.push(alignment[1][i]);
+          alignment.reference[i].x = queryCount++;
+          alignment.reference[i].y = 0;
+          track.genes.push(alignment.reference[i]);
         // track how many genes were inserted
         } else {
           insertionCount++;
         }
       // a deletion
-      } else if (alignment[1][i] == null) {
+      } else if (alignment.reference[i] == null) {
         queryCount++;
-      // an alignment
+      // a (mis)match
       } else {
         // position the genes that came before the query
         if (preQuery > 0) {
           for (var j = 0; j < preQuery; j++) {
-            alignment[1][j].x = -1 * (preQuery - (j + 1));
-            alignment[1][j].y = k + 1;
-            data.groups[index].genes.push(alignment[1][j]);
+            alignment.reference[j].x = -(preQuery - (j + 1));
+            alignment.reference[j].y = 0;
+            track.genes.push(alignment.reference[j]);
           }
           preQuery = 0;
         // position the genes that go between query genes
         } else if (insertionCount > 0) {
           var step = 1.0 / (insertionCount + 1);
           for (var j = i - insertionCount; j < i; j++) {
-            if (alignment[1][j] != null) {
-              alignment[1][j].x = queryCount + (step * (i - j)) - 1;
-              alignment[1][j].y = k + 1;
-              data.groups[index].genes.push(alignment[1][j]);
+            if (alignment.reference[j] != null) {
+              alignment.reference[j].x = queryCount + (step * (i - j)) - 1;
+              alignment.reference[j].y = 0;
+              track.genes.push(alignment.reference[j]);
             }
           }
           insertionCount = 0;
         }
-        alignment[1][i].x = queryCount++;
-        alignment[1][i].y = k + 1;
-        data.groups[index].genes.push(alignment[1][i]);
+        alignment.reference[i].x = queryCount++;
+        alignment.reference[i].y = 0;
+        track.genes.push(alignment.reference[i]);
       }
     }
+    aligned.groups.push(track);
   }
+  return aligned;
 }

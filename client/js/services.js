@@ -347,12 +347,12 @@ contextServices.service('Basic', function ($http, $q, Viewer) {
 
   // removes tracks that don't meet the filter regular expression
   services.filter = function (params, callback) {
-    var track_filter = (params.track_regexp === undefined ? undefined :
+    var trackFilter = (params.track_regexp === undefined ? undefined :
                         new RegExp(params.track_regexp));
     var filtered_tracks = $.extend(true, {}, tracks);
-    if (track_filter !== undefined) {
+    if (trackFilter !== undefined) {
       filtered_tracks.groups = filtered_tracks.groups.filter(function (track) {
-        return track_filter.test(track.chromosome_name);
+        return trackFilter.test(track.chromosome_name);
       });
     }
     callback(filtered_tracks);
@@ -468,8 +468,8 @@ contextServices.service('Search', function ($http, $q, $rootScope, Viewer) {
     distance: {
       name: "Alignment score",
       algorithm: function (a, b) {
-        var diff = b.score-a.score
-        // if group have the same score
+        var diff = b.score - a.score
+        // if groups have the same score
         if (diff == 0) {
           // if sorting alphabetically doesn't resolve the ordering
           if (a.chromosome_name == b.chromosome_name) {
@@ -477,11 +477,11 @@ contextServices.service('Search', function ($http, $q, $rootScope, Viewer) {
             if (a.id == b.id) {
               // sort by track start position
               // assumes genes list is already sorted by x location
-              return a.genes[0].x-b.genes[0].x;
+              return a.genes[0].x - b.genes[0].x;
             }
-            return a.id-b.id;
+            return a.id - b.id;
           }
-          return (a.chromosome_name > b.chromosome_name) ? 1 : -1;
+          return a.chromosome_name.localeCompare(b.chromosome_name);
         }
         return diff;
       }
@@ -508,58 +508,62 @@ contextServices.service('Search', function ($http, $q, $rootScope, Viewer) {
   }
 
   // align the result tracks to the query
-  services.align = function(params, callback) {
-    var aligned = $.extend(true, {}, tracks);
-    var scores = {};
-    var num_aligned = 0;
-    var aligner = aligners[params.algorithm].algorithm;
+  services.align = function (params, callback) {
+    var scores = {},
+        aligner = aligners[params.algorithm].algorithm;
     // align all the tracks with the query track
-    var alignments = [],
-        resultTracks = [];
-    var track_filter = (params.track_regexp === undefined ? undefined :
+    var alignments = [];
+    var trackFilter = (params.track_regexp === undefined ? undefined :
                         new RegExp(params.track_regexp));
-    for (var i = 1; i < aligned.groups.length; i++) {
-      params.accessor = function(item) { return item.family; };
-      var al = aligner(aligned.groups[0].genes, aligned.groups[i].genes, params);
-      var id = aligned.groups[i].id;
-      if (al !== null && al[1] >= params.score &&
-          (track_filter === undefined ||
-          track_filter.test(aligned.groups[i].chromosome_name))) {
-        for (var j = 0; j < al[0].length; j++) {
-          resultTracks.push(clone(aligned.groups[i]));
-          alignments.push(al[0][j]);
-        }
-        if (al[0].length > 0) {
-          if (scores[id] === undefined) {
-            scores[id] = 0;
+    var query = tracks.groups[0],
+        options = $.extend(true, {accessor: function (item) {
+          return item.family;
+        }}, params);
+    for (var i = 1; i < tracks.groups.length; i++) {
+      var result = tracks.groups[i],
+          al = aligner(query.genes, result.genes, options),
+          id = result.id;
+      // filter by regex - eventually separate from alignment
+      if (trackFilter === undefined ||
+      trackFilter.test(result.chromosome_name)) {
+        for (var j = 0; j < al.length; j++) {
+          var a = al[j];
+          if (a.score >= options.threshold) {
+            a.track = clone(result);
+            alignments.push(a);
+            scores[id] = (scores[id] || 0) + a.score;
           }
-          scores[id] += al[1];
-          num_aligned++;
         }
       }
     }
-    // merge the alignments
-    aligned.groups = [aligned.groups[0]];
-    Alignment.merge(aligned, resultTracks, alignments);  // context.js
-    // add scores to tracks
-    for (var i = 1; i < aligned.groups.length; i++) {
-      aligned.groups[i].score = scores[aligned.groups[i].id];
-    }
+    // convert the alignments into tracks
+    var alignedTracks = Alignment.trackify(tracks, alignments);
+    // merge tracks from same alignment set
+    var mergedTracks = GCV.merge(alignedTracks);
+    // filter by score
+    var query = mergedTracks.groups.shift();
+    mergedTracks.groups = mergedTracks.groups.filter(function (g) {
+      return g.score >= params.score;
+    });
+    // sort the remaining tracks
+    mergedTracks.groups.sort(orderings[params.order].algorithm);
+    mergedTracks.groups.unshift(query);
     // filter the original tracks by which ones were aligned
-    var filtered_tracks = {
-      groups: tracks.groups.filter(function(track) {
+    var filteredTracks = {
+      groups: tracks.groups.filter(function (track) {
         return scores.hasOwnProperty(track.id);
       }),
       numNeighbors: params.numNeighbors
     };
-    filtered_tracks.groups.sort(orderings[params.order].algorithm);
-    filtered_tracks.groups.unshift(tracks.groups[0]);
+    filteredTracks.groups.sort(orderings[params.order].algorithm);
+    filteredTracks.groups.unshift(tracks.groups[0]);
+    var numAligned = filteredTracks.groups.length - 1;
     // send the tracks into the wild
-    $rootScope.$broadcast('new-filtered-tracks-event', filtered_tracks);
+    $rootScope.$broadcast('new-filtered-tracks-event', filteredTracks);
     callback(
-      tracks.groups.length-1,
-      num_aligned,
-      aligned,
+      tracks.groups.length - 1,
+      numAligned,  // number of aligned tracks
+      mergedTracks,
       orderings[params.order].algorithm
     );
   }
