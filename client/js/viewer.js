@@ -112,6 +112,7 @@ GCV.merge = function (data) {
             if (jTrack.score > score) {
               merged.push(j);
               // perform the inversion
+              jTrack.genes.reverse();
               var args = [min, max - min + 1],
                   geneArgs = args.concat(jTrack.genes);
               Array.prototype.splice.apply(kTrack.genes, geneArgs);
@@ -148,6 +149,7 @@ GCV.merge = function (data) {
             if (kTrack.score > score) {
               merged.push(k);
               // perform the inversion
+              kTrack.genes.reverse();
               var args = [min, max - min + 1],
                   geneArgs = args.concat(kTrack.genes),
                   idArgs = args.concat(kIds);
@@ -183,78 +185,6 @@ GCV.merge = function (data) {
 
 /** The micro-synteny viewer. */
 GCV.Viewer = class {
-
-//  // add the tracks (groups)
-//  for (var i = 0; i < data.groups.length; i++) {
-//  	// helper that draws lines between two given genes
-//    function draw_line(a, b) {
-//  	  var length = x(a.x)-x(b.x);
-//  	  var rail_group = viewer.append("g")
-//  	    .attr("class", "rail")
-//  	    .attr("transform", function () {
-//  	      return "translate("+x(b.x)+", "+y(b.y)+")";
-//  	    })
-//  	    .attr("y", b.y) // does nothing besides hold the datum
-//  	    .data(function () {
-//  	      if (a.fmin > b.fmax) {
-//  	        return [a.fmin-b.fmax];
-//  	      }
-//  	      return [b.fmin-a.fmax];
-//  	    });
-//  	  rail_group.append("line")
-//  	  	.attr("class", "line")
-//  	  	.attr("x1", 0)
-//  	  	.attr("x2", length)
-//  	  	.attr("y1", 0)
-//  	  	.attr("y2", y(a.y)-y(b.y));
-//  	  rail_group.append("text")
-//  	  	.attr("class", "tip")
-//  	  	.attr("transform", "translate("+(length/2)+", -10) rotate(-45)")
-//  	  	.attr("text-anchor", "left")
-//  	  	.text(function (d) {
-//  	      return rail_group.data();
-//  	  	});
-//  	  rail_group.moveToBack();
-//    }
-//  	// add rails to the tracks
-//    var partition = false;
-//  	gene_groups.each(function (d) {
-//  	  var closest;
-//  	  var neighbors = gene_groups.filter(function (n) {
-//  	  	return n.y == d.y;
-//  	  });
-//  	  neighbors.each(function (n) {
-//  	  	if (n.x < d.x && (closest === undefined || n.x > closest.x)) {
-//  	  	  closest = n;
-//  	  	}
-//  	  });
-//      if (opt.interTrack !== undefined && opt.interTrack == true) {
-//        if (closest !== undefined &&
-//            !(left_breaks[d.group_id].indexOf(d.uid) != -1 &&
-//              right_breaks[closest.group_id].indexOf(closest.uid) != -1)) {
-//          draw_line(d, closest);
-//        }
-//        var inter = interTracks[d.group_id][d.uid];
-//        // some inter-track lines may have been noted before a participating
-//        // gene was omitted
-//        if (inter !== undefined &&
-//            omit[inter.group_id].indexOf(inter.uid) == -1) {
-//          draw_line(d, interTracks[d.group_id][d.uid]);
-//        }
-//      } else if (closest !== undefined) {
-//        draw_line(d, closest);
-//      }
-//  	});
-//  }
-//  
-//  // make thickness of lines a function of their "length"
-//  var max_width = d3.max(rail_groups.data());
-//  var min_width = d3.min(rail_groups.data());
-//  var width = d3.scale.linear()
-//    .domain([min_width, max_width])
-//    .range([.1, 5]);
-//  rail_groups.attr("stroke-width", function (d) { return width(d); });
-//  
 
   // Private
 
@@ -364,34 +294,56 @@ GCV.Viewer = class {
       .append('svg')
       .attr('class', 'GCV')
       .attr('height', bottom + halfTrack);
-    // compute the x scale and the space required for track names
+    // compute the x scale, track names and locations, and line thickness
     var minX = Infinity,
         maxX = -Infinity;
+    var minDistance = Infinity,
+        maxDistance = -Infinity;
+		this.names = [];
     this.ticks = [];
-		this.names = []
     var tick = 0;
-    for (var i = 0; i < data.groups.length; i++) {
-      var group = data.groups[i],
-          min = Infinity,
-          max = -Infinity;
+    this.distances = [];
+    for (var i = 0; i < this.data.groups.length; i++) {
+      var group = this.data.groups[i],
+          fminI = Infinity,
+          fmaxI = -Infinity;
       this.ticks.push(tick);
       tick += group.levels;
+      var distances = [];
       for (var j = 0; j < group.genes.length; j++) {
         var gene = group.genes[j],
             fmax = gene.fmax,
             fmin = gene.fmin,
             x = gene.x;
-        min = Math.min.apply(null, [min, fmax, fmin]);
-        max = Math.max.apply(null, [max, fmax, fmin]);
+        fminI = Math.min.apply(null, [fminI, fmax, fmin]);
+        fmaxI = Math.max.apply(null, [fmaxI, fmax, fmin]);
         minX = Math.min(minX, x);
         maxX = Math.max(maxX, x);
+        if (j < group.genes.length - 1) {
+          var nextGene = group.genes[j + 1],
+              nextFmin = nextGene.fmin,
+              nextFmax = nextGene.fmax;
+          var dist = Math.min.apply(null, [
+            fmin - nextFmin,
+            fmax - nextFmin,
+            fmin - nextFmax,
+            fmax - nextFmin
+          ]);
+          distances.push(dist);
+          minDistance = Math.min(minDistance, dist);
+          maxDistance = Math.max(maxDistance, dist);
+        }
       }
-      this.names.push(group.chromosome_name + ':' + min + '-' + max);
+      this.names.push(group.chromosome_name + ':' + fminI + '-' + fmaxI);
+      this.distances.push(distances);
     }
-    // initialize the x and y scales
+    // initialize the x, y, and line thickness scales
     this.x = d3.scale.linear().domain([minX, maxX]);
     this.y = d3.scale.linear().domain([0, numLevels - 1])
                .range([top, bottom]);
+    this.thickness = d3.scale.linear()
+      .domain([minDistance, maxDistance])
+      .range([.1, 5]);
     // parse optional parameters
     this.options = options || {};
     this.options.focus = options.focus;
@@ -415,10 +367,45 @@ GCV.Viewer = class {
     var obj = this,
         t = this.data.groups[i],
         y = this.ticks[i];
-  	// make svg groups for the genes
+  	// make svg group for the track
     var selector = 'micro-' + i.toString(),
   	    track = this.viewer.append('g').attr('class', selector),
-  	    geneGroups = track.selectAll('gene')
+        neighbors = [];
+    // add the lines
+    for (var j = 0; j < t.genes.length - 1; j++) {
+      neighbors.push({a: t.genes[j], b: t.genes[j + 1]});
+    }
+    var lineGroups = track.selectAll('rail')
+      .data(neighbors)
+      .enter()
+      .append('g')
+      .attr('class', 'rail');
+    // draw lines left to right to simplify resizing
+    var lines = lineGroups.append('line')
+      	.attr('class', 'line')
+        .attr('stroke-width', function (n, j) {
+          return obj.thickness(obj.distances[i][j]);
+        })
+      	.attr('x1', 0)
+      	.attr('y1', function (n) {
+          var height = Math.abs(obj.y(n.a.y) - obj.y(n.b.y));
+          if (n.a.x <= n.b.x) {
+            return (n.a.y < n.b.y) ? 0 : height;
+          } return (n.a.y < n.b.y) ? height : 0;
+        })
+      	.attr('y2', function (n) {
+          var height = Math.abs(obj.y(n.a.y) - obj.y(n.b.y));
+          if (n.a.x <= n.b.x) {
+            return (n.a.y < n.b.y) ? height : 0;
+          } return (n.a.y < n.b.y) ? 0 : height;
+        });
+    // add tooltips to the lines
+    var lineTips = lineGroups.append('text')
+    	.attr('class', 'synteny-tip')
+      .attr('text-anchor', 'end')
+    	.text(function (n, j) { return obj.distances[i][j]; });
+    // make the gene groups
+  	var geneGroups = track.selectAll('gene')
       .data(t.genes)
   	  .enter()
   	  .append('g')
@@ -430,8 +417,7 @@ GCV.Viewer = class {
       .on('mouseover', function (g) { obj._beginHover(d3.select(this)); })
   	  .on('mouseout', function (g) { obj._endHover(d3.select(this)); })
   	  .on('click', obj.options.geneClick);
-  
-  	// add genes to the svg groups
+  	// add genes to the gene groups
   	var genes = geneGroups.append('path')
   	  .attr('d', d3.svg.symbol().type('triangle-up').size(200))
   	  .attr('class', function (g) {
@@ -456,19 +442,36 @@ GCV.Viewer = class {
   	  	  return '#ffffff';
   	  	} return obj.colors(g.family);
   	  });
-    // draw the tooltips
-    var tips = geneGroups.append('text')
+    // add tooltips to the gene groups
+    var geneTips = geneGroups.append('text')
       .attr('class', 'synteny-tip')
   	  .attr('text-anchor', 'end')
   	  .text(function (g) { return g.name + ': ' + g.fmin + ' - ' + g.fmax; })
-    // how the blocks are resized
-    track.resize = function (genesGroups, tips) {
+    // how the track is resized
+    track.resize = function (geneGroups, linesGroups, lines, lineTips) {
       var obj = this;
       geneGroups.attr('transform', function (g) {
         return 'translate(' + obj.x(g.x) + ', ' + obj.y(y + g.y) + ')';
   	  });
-    }.bind(this, geneGroups, tips);
+      lineGroups.attr('transform', function (n) {
+        var left = Math.min(n.a.x, n.b.x),
+            top = y + Math.min(n.a.y, n.b.y);
+        return 'translate(' + obj.x(left) + ', ' + obj.y(top) + ')';
+      });
+      lines.attr('x2', function (n) {
+        return Math.abs(obj.x(n.a.x) - obj.x(n.b.x));
+      });
+      lineTips.attr('transform', function (n) {
+        var x = Math.abs(obj.x(n.a.x) - obj.x(n.b.x)) / 2,
+            y = Math.abs(obj.y(n.a.y) - obj.y(n.b.y)) / 2;
+        // awkward syntax FTW
+        var transform = d3.transform(d3.select(this).attr('transform'));
+        transform.translate = [x, y];
+        return transform;
+      });
+    }.bind(this, geneGroups, lineGroups, lines, lineTips);
     // how tips are rotated so they don't overflow the view
+    var tips = track.selectAll('.synteny-tip');
     track.rotateTips = function (tips, resize) {
       var vRect = obj.viewer.node().getBoundingClientRect();
       tips.classed('synteny-tip', false)

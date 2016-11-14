@@ -316,7 +316,7 @@ Alignment.repeat = function (sequence, reference, options) {
 /**
   * Converts alignments into micro-synteny viewer tracks.
   * @param {object} data - The original viewer tracks.
-  * @param {Array} alignments - The alignments to be merged.
+  * @param {Array} alignments - The alignments to be trackified.
   * @return {object} - A copy of data where the tracks are aligned.
   */
 Alignment.trackify = function (data, alignments) {
