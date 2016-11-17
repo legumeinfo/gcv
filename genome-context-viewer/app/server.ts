@@ -1,3 +1,6 @@
+export const GET  = 'GET';
+export const POST = 'POST';
+
 export class Request {
   type: string;  // GET or POST
   url: string;
