@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, Input } from '@angular/core';
 
 @Component({
   moduleId: module.id,
@@ -7,8 +7,4 @@ import { Component, OnInit } from '@angular/core';
   styleUrls: [ 'left-slider.component.css' ]
 })
 
-export class LeftSliderComponent implements OnInit {
-  ngOnInit(): void {
-    // get filter data
-  }
-}
+export class LeftSliderComponent { }

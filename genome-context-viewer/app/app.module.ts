@@ -12,6 +12,7 @@ import { AppRoutingModule } from './app-routing.module';
 
 import { AppComponent }          from './app.component';
 import { BasicComponent }        from './components/basic/basic.component';
+import { BasicParamsComponent }  from './components/basic/basic-params.component';
 import { FamilyDetailComponent } from './shared/family-detail.component';
 import { FilterComponent }       from './shared/filter.component';
 import { GeneDetailComponent }   from './shared/gene-detail.component';
@@ -22,6 +23,7 @@ import { MicroViewerComponent }  from './shared/micro-viewer.component';
 import { NavComponent }          from './shared/nav.component';
 import { PlotComponent }         from './shared/plot.component';
 import { SearchComponent }       from './components/search/search.component';
+import { SearchParamsComponent } from './components/search/search-params.component';
 import { TrackDetailComponent }  from './shared/track-detail.component';
 
 import { TracksService } from './shared/tracks.service';
@@ -37,6 +39,7 @@ import { TracksService } from './shared/tracks.service';
   declarations: [
     AppComponent,
     BasicComponent,
+    BasicParamsComponent,
     FamilyDetailComponent,
     FilterComponent,
     GeneDetailComponent,
@@ -47,6 +50,7 @@ import { TracksService } from './shared/tracks.service';
     NavComponent,
     PlotComponent,
     SearchComponent,
+    SearchParamsComponent,
     TrackDetailComponent
   ],
   providers: [ TracksService ],

@@ -13,6 +13,10 @@
     </div>
   </nav>
 	<!-- scrollable content -->
-	<div id="left-slider-content">
+	<div id="left-slider-content" [ngSwitch]="content">
+    <div *ngSwitchDefault><ng-content></ng-content></div>
+    <div *ngSwitchCase="family-detail"><family-detail></family-detail></div>
+    <div *ngSwitchCase="gene-detail"><gene-detail></gene-detail></div>
+    <div *ngSwitchCase="track-detail"><track-detail></track-detail></div>
 	</div>
 </div>
