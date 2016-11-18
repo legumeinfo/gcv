@@ -14,6 +14,7 @@ import { AppComponent }              from './app.component';
 import { BasicComponent }            from './components/basic/basic.component';
 import { BasicParamsComponent }      from './components/basic/basic-params.component';
 import { FamilyDetailComponent }     from './shared/family-detail.component';
+import { FilterComponent }           from './shared/filter.component';
 import { FooterComponent }           from './shared/footer.component';
 import { GeneDetailComponent }       from './shared/gene-detail.component';
 import { HeaderComponent }           from './shared/header.component';
@@ -45,6 +46,7 @@ import { TracksService } from './shared/tracks.service';
     BasicComponent,
     BasicParamsComponent,
     FamilyDetailComponent,
+    FilterComponent,
     FooterComponent,
     GeneDetailComponent,
     HeaderComponent,
