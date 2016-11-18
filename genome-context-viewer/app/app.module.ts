@@ -16,6 +16,7 @@ import { BasicParamsComponent }      from './components/basic/basic-params.compo
 import { FamilyDetailComponent }     from './shared/family-detail.component';
 import { FilterComponent }           from './shared/filter.component';
 import { GeneDetailComponent }       from './shared/gene-detail.component';
+import { HeaderComponent }           from './shared/header.component';
 import { InstructionsComponent }     from './components/instructions/instructions.component';
 import { LeftSliderComponent }       from './shared/left-slider.component';
 import { LegendComponent }           from './shared/legend.component';
@@ -46,6 +47,7 @@ import { TracksService } from './shared/tracks.service';
     FamilyDetailComponent,
     FilterComponent,
     GeneDetailComponent,
+    HeaderComponent,
     InstructionsComponent,
     LeftSliderComponent,
     LegendComponent,
