@@ -4,7 +4,7 @@ import { Component } from '@angular/core';
   moduleId: module.id,
   selector: 'nav',
   template: '',
-  style: ''
+  styles: [ '' ]
 })
 
 export class NavComponent {

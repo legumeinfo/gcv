@@ -4,7 +4,7 @@ import { Component } from '@angular/core';
   moduleId: module.id,
   selector: 'plot',
   template: '<div id="plot"></div>',
-  style: ''
+  styles: [ '' ]
 })
 
 export class PlotComponent {

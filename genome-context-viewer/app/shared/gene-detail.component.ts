@@ -4,7 +4,7 @@ import { Component } from '@angular/core';
   moduleId: module.id,
   selector: 'gene-detail',
   template: '',
-  style: ''
+  styles: [ '' ]
 })
 
 export class GeneDetailComponent {

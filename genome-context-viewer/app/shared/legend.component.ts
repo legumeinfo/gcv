@@ -4,7 +4,7 @@ import { Component, OnInit } from '@angular/core';
   moduleId: module.id,
   selector: 'legend',
   template: '<div id="legend"></div>',
-  style: ''
+  styles: [ '' ]
 })
 
 export class LegendComponent implements OnInit {

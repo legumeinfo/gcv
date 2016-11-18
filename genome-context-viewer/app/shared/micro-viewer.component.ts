@@ -4,7 +4,7 @@ import { Component, OnInit } from '@angular/core';
   moduleId: module.id,
   selector: 'micro-viewer',
   template: '<div id="micro-viewer"></div>',
-  style: ''
+  styles: [ '' ]
 })
 
 export class MicroViewerComponent implements OnInit {

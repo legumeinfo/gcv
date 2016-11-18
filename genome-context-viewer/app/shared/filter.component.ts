@@ -4,7 +4,7 @@ import { Component, OnInit } from '@angular/core';
   moduleId: module.id,
   selector: 'filter',
   template: '',
-  style: ''
+  styles: [ '' ]
 })
 
 export class FilterComponent implements OnInit {

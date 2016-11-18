@@ -4,7 +4,7 @@ import { Component } from '@angular/core';
   moduleId: module.id,
   selector: 'family-detail',
   template: '',
-  style: ''
+  styles: [ '' ]
 })
 
 export class FamilyDetailComponent {
