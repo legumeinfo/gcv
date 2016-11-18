@@ -18,7 +18,7 @@
     startColorstr=#BBF8F8F8, endColorstr=#BBF8F8F8
   )";
 }
-#left-slider nav {
+#left-slider .navbar {
   margin: 1 0 0 0;
 }
 /*
@@ -45,7 +45,7 @@
   cursor: pointer;
 }
 */
-#left-slider nav .glyphicon-remove {
+#left-slider .navbar .glyphicon-remove {
   display: inline-block;
   vertical-align: middle;
   line-height: normal;

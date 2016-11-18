@@ -1,6 +1,6 @@
 <!-- local and global dot plots -->
 <div id="plot">
-  <nav class="navbar navbar-default navbar-static-top">
+  <div class="navbar navbar-default navbar-static-top">
     <div class="container-fluid">
       <div class="navbar-header">
         <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
@@ -19,9 +19,10 @@
         </ul>
       </div>
     </div>
-  </nav>
+  </div>
   <div class="outer-ratio">
     <div id="plot-wrapper" class="inner-ratio" [ngSwitch]="plot">
+      <div *ngSwitchDefault>default</div>
       <div *ngSwitchCase="local"><plot></plot></div>
       <div *ngSwitchCase="global"><plot></plot></div>
     </div>
