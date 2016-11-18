@@ -16,6 +16,7 @@ import { FamilyDetailComponent } from './shared/family-detail.component';
 import { FilterComponent }       from './shared/filter.component';
 import { GeneDetailComponent }   from './shared/gene-detail.component';
 import { InstructionsComponent } from './components/instructions/instructions.component';
+import { LeftSliderComponent }   from './shared/left-slider.component';
 import { LegendComponent }       from './shared/legend.component';
 import { MicroViewerComponent }  from './shared/micro-viewer.component';
 import { NavComponent }          from './shared/nav.component';
@@ -40,6 +41,7 @@ import { TracksService } from './shared/tracks.service';
     FilterComponent,
     GeneDetailComponent,
     InstructionsComponent,
+    LeftSliderComponent,
     LegendComponent,
     MicroViewerComponent,
     NavComponent,
