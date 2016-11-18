@@ -21,6 +21,7 @@ import { LeftSliderComponent }   from './shared/left-slider.component';
 import { LegendComponent }       from './shared/legend.component';
 import { MicroViewerComponent }  from './shared/micro-viewer.component';
 import { NavComponent }          from './shared/nav.component';
+import { Plot }                  from './shared/plot.component';
 import { PlotComponent }         from './shared/plot.component';
 import { RightSliderComponent }  from './shared/right-slider.component';
 import { SearchComponent }       from './components/search/search.component';
@@ -49,6 +50,7 @@ import { TracksService } from './shared/tracks.service';
     LegendComponent,
     MicroViewerComponent,
     NavComponent,
+    Plot,
     PlotComponent,
     RightSliderComponent,
     SearchComponent,
