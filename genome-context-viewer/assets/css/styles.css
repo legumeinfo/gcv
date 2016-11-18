@@ -43,13 +43,6 @@ a {
   width: 100%;
   bottom: 0;
 }
-/* horizontally stretch main to remaining area: http://stackoverflow.com/questions/1260122/expand-div-to-take-remaining-width */
-#main {
-  position: relative;
-  width: auto;
-  height: 100%;
-  overflow: hidden;
-}
 #main #top-nav button, #main #bottom-nav button {
   margin-right: 15px;
 }

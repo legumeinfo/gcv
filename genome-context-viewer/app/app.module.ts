@@ -20,6 +20,7 @@ import { InstructionsComponent }     from './components/instructions/instruction
 import { LeftSliderComponent }       from './shared/left-slider.component';
 import { LegendComponent }           from './shared/legend.component';
 import { LocalGlobalPlotsComponent } from './components/search/local-global-plots.component';
+import { MainComponent }             from './shared/main.component';
 import { MicroViewerComponent }      from './shared/micro-viewer.component';
 import { NavComponent }              from './shared/nav.component';
 import { PlotComponent }             from './shared/plot.component';
@@ -49,6 +50,7 @@ import { TracksService } from './shared/tracks.service';
     LeftSliderComponent,
     LegendComponent,
     LocalGlobalPlotsComponent,
+    MainComponent,
     MicroViewerComponent,
     NavComponent,
     PlotComponent,
