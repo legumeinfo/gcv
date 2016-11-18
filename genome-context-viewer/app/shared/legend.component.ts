@@ -3,8 +3,8 @@ import { Component, OnInit } from '@angular/core';
 @Component({
   moduleId: module.id,
   selector: 'legend',
-  template: '<div id="legend"></div>',
-  styles: [ '' ]
+  templateUrl: 'legend.component.html',
+  style: [ '' ]
 })
 
 export class LegendComponent implements OnInit {
