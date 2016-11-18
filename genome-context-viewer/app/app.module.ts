@@ -25,6 +25,7 @@ import { LocalGlobalPlotsComponent } from './components/search/local-global-plot
 import { MainComponent }             from './shared/main.component';
 import { MicroViewerComponent }      from './shared/micro-viewer.component';
 import { NavComponent }              from './shared/nav.component';
+import { OrderingComponent }         from './search/ordering.component';
 import { PlotComponent }             from './shared/plot.component';
 import { RightSliderComponent }      from './shared/right-slider.component';
 import { SearchComponent }           from './components/search/search.component';
@@ -57,6 +58,7 @@ import { TracksService } from './shared/tracks.service';
     MainComponent,
     MicroViewerComponent,
     NavComponent,
+    OrderingComponent,
     PlotComponent,
     RightSliderComponent,
     SearchComponent,
