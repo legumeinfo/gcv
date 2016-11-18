@@ -1,0 +1,19 @@
+.navbar {
+  border-top: #E7E7E7 solid 1px;
+}
+#plot {
+  display: table-row;
+  width: 100%;
+}
+/* maintain plot ratio: http://stackoverflow.com/questions/17195656/in-fluid-container-can-i-make-elements-as-tall-as-they-are-wide */
+#plot .outer-ratio {
+  position: relative;
+  height: 0;
+  padding-bottom: 100%;
+}
+#plot .out .inner-ratio {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 100%;
+}
