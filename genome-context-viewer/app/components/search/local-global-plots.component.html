@@ -1,0 +1,29 @@
+<!-- local and global dot plots -->
+<div id="plot">
+  <nav class="navbar navbar-default navbar-static-top">
+    <div class="container-fluid">
+      <div class="navbar-header">
+        <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
+          <span class="sr-only">Toggle navigation</span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+      </div>
+      <div class="collapse navbar-collapse">
+        <ul class="nav navbar-nav tabs">
+          <li><a (click)="plot='local'" [ngClass]="{'active': plot=='local'}">Local</a></li>
+          <li><a (click)="plot='global'" [ngClass]="{'active': plot=='global'}">Global</a></li>
+        </ul>
+        <ul class="nav navbar-nav navbar-right">
+          <li><a><span class="glyphicon glyphicon glyphicon-remove pull-right" aria-hidden="true"></span></a></li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+  <div class="outer-ratio">
+    <div id="plot-wrapper" class="inner-ratio" [ngSwitch]="plot">
+      <div *ngSwitchCase="local"><plot></plot></div>
+      <div *ngSwitchCase="global"><plot></plot></div>
+    </div>
+  </div>
+</div>
