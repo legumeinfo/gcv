@@ -7,7 +7,7 @@ import { GET, POST, Server } from './Server';
 import { Servers }           from './Servers';
 
 @Injectable()
-export class TrackService {
+export class TracksService {
 	constructor(private http: Http) { }
 	
 	getTracks(params: QueryParams): Promise<Tracks> {

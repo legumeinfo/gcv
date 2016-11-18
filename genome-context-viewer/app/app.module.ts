@@ -14,6 +14,7 @@ import { AppComponent }          from './app.component';
 import { BasicComponent }        from './components/basic/basic.component';
 import { InstructionsComponent } from './components/instructions/instructions.component';
 import { SearchComponent }       from './components/search/search.component';
+import { TracksService }         from './shared/tracks.service';
 //import { DashboardComponent }  from './dashboard.component';
 //import { HeroDetailComponent } from './hero-detail.component';
 //import { HeroesComponent }     from './heroes.component';
@@ -38,7 +39,7 @@ import { SearchComponent }       from './components/search/search.component';
     //HeroesComponent,
     //HeroSearchComponent
   ],
-  //providers: [ HeroService ],
+  providers: [ TracksService ],
   bootstrap: [ AppComponent ],
 })
 
