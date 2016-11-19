@@ -18,6 +18,7 @@ import { FilterComponent }           from './shared/filter.component';
 import { FooterComponent }           from './shared/footer.component';
 import { GeneDetailComponent }       from './shared/gene-detail.component';
 import { HeaderComponent }           from './shared/header.component';
+import { HelpComponent }             from './shared/help.component';
 import { InstructionsComponent }     from './components/instructions/instructions.component';
 import { LeftSliderComponent }       from './shared/left-slider.component';
 import { LegendComponent }           from './shared/legend.component';
@@ -54,6 +55,7 @@ import { TracksService } from './shared/tracks.service';
     FooterComponent,
     GeneDetailComponent,
     HeaderComponent,
+    HelpComponent,
     InstructionsComponent,
     LeftSliderComponent,
     LegendComponent,
