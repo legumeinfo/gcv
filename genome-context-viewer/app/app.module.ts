@@ -25,6 +25,7 @@ import { LegendComponent }           from './shared/legend.component';
 import { LegendToggleComponent }     from './shared/legend-toggle.component';
 import { LocalGlobalPlotsComponent } from './components/search/local-global-plots.component';
 import { MainComponent }             from './shared/main.component';
+import { MainContentComponent }      from './shared/main-content.component';
 import { MicroViewerComponent }      from './shared/micro-viewer.component';
 import { NavComponent }              from './shared/nav.component';
 import { OrderingComponent }         from './components/search/ordering.component';
@@ -62,6 +63,7 @@ import { TracksService } from './shared/tracks.service';
     LegendToggleComponent,
     LocalGlobalPlotsComponent,
     MainComponent,
+    MainContentComponent,
     MicroViewerComponent,
     NavComponent,
     OrderingComponent,
