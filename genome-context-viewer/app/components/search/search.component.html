@@ -3,16 +3,22 @@
 		<ul class="nav navbar-nav tabs">
       <li><parameters-toggle></parameters-toggle></li>
       <li><help></help></li>
-      <li><a>Viewer</a></li>
-      <li><a>Dot Plots</a></li>
+      <li><a (click)="content='viewers'" [ngClass]="{'active': content=='viewers'}">Viewers</a></li>
+      <li><a (click)="content='plots'" [ngClass]="{'active': content=='plots'}">Dot Plots</a></li>
     </ul>
     <ul class="nav navbar-nav navbar-right">
       <li><legend-toggle></legend-toggle></li>
     </ul>
   </header>
-  <main-content>
-    search component
-  </main-content>
+  <div [ngSwitch]="content">
+    <main-content *ngSwitchCase="viewers">
+      <macro-viewer></macro-viewer>
+      <micro-viewer></micro-viewer>
+    </main-content>
+    <main-content *ngSwitchCase="plots">
+      <plots></plots>
+    </main-content>
+  </div>
   <footer>
     <filter></filter>
     <ordering></ordering>

@@ -24,6 +24,7 @@ import { LeftSliderComponent }       from './shared/left-slider.component';
 import { LegendComponent }           from './shared/legend.component';
 import { LegendToggleComponent }     from './shared/legend-toggle.component';
 import { LocalGlobalPlotsComponent } from './components/search/local-global-plots.component';
+import { MacroViewerComponent }      from './components/search/macro-viewer.component';
 import { MainComponent }             from './shared/main.component';
 import { MainContentComponent }      from './shared/main-content.component';
 import { MicroViewerComponent }      from './shared/micro-viewer.component';
@@ -31,6 +32,7 @@ import { NavComponent }              from './shared/nav.component';
 import { OrderingComponent }         from './components/search/ordering.component';
 import { ParametersToggleComponent } from './shared/parameters-toggle.component';
 import { PlotComponent }             from './shared/plot.component';
+import { PlotsComponent }            from './components/search/plots.component';
 import { RightSliderComponent }      from './shared/right-slider.component';
 import { ScrollComponent }           from './components/search/scroll.component';
 import { SearchComponent }           from './components/search/search.component';
@@ -62,6 +64,7 @@ import { TracksService } from './shared/tracks.service';
     LegendComponent,
     LegendToggleComponent,
     LocalGlobalPlotsComponent,
+    MacroViewerComponent,
     MainComponent,
     MainContentComponent,
     MicroViewerComponent,
@@ -69,6 +72,7 @@ import { TracksService } from './shared/tracks.service';
     OrderingComponent,
     ParametersToggleComponent,
     PlotComponent,
+    PlotsComponent,
     RightSliderComponent,
     ScrollComponent,
     SearchComponent,
