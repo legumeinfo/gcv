@@ -26,6 +26,7 @@ import { MainComponent }             from './shared/main.component';
 import { MicroViewerComponent }      from './shared/micro-viewer.component';
 import { NavComponent }              from './shared/nav.component';
 import { OrderingComponent }         from './components/search/ordering.component';
+import { ParametersToggleComponent } from './shared/parameters-toggle.component';
 import { PlotComponent }             from './shared/plot.component';
 import { RightSliderComponent }      from './shared/right-slider.component';
 import { ScrollComponent }           from './components/search/scroll.component';
@@ -60,6 +61,7 @@ import { TracksService } from './shared/tracks.service';
     MicroViewerComponent,
     NavComponent,
     OrderingComponent,
+    ParametersToggleComponent,
     PlotComponent,
     RightSliderComponent,
     ScrollComponent,

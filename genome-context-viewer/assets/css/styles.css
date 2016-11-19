@@ -7,6 +7,9 @@ body, html {
 a {
   cursor: pointer;
 }
+.navbar {
+  margin: 0;
+}
 .navbar button {
   margin-right: 15px;
 }
