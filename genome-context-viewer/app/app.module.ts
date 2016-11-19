@@ -21,6 +21,7 @@ import { HeaderComponent }           from './shared/header.component';
 import { InstructionsComponent }     from './components/instructions/instructions.component';
 import { LeftSliderComponent }       from './shared/left-slider.component';
 import { LegendComponent }           from './shared/legend.component';
+import { LegendToggleComponent }     from './shared/legend-toggle.component';
 import { LocalGlobalPlotsComponent } from './components/search/local-global-plots.component';
 import { MainComponent }             from './shared/main.component';
 import { MicroViewerComponent }      from './shared/micro-viewer.component';
@@ -56,6 +57,7 @@ import { TracksService } from './shared/tracks.service';
     InstructionsComponent,
     LeftSliderComponent,
     LegendComponent,
+    LegendToggleComponent,
     LocalGlobalPlotsComponent,
     MainComponent,
     MicroViewerComponent,
