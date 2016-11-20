@@ -164,7 +164,7 @@ function ($scope, $routeParams, Basic, Viewer, UI) {
       basic.params = {
         numNeighbors: assign('numNeighbors', 8),
         sources: assign(
-          'source', basic.sources.map(function (s) { return s.id; })
+          'sources', basic.sources.map(function (s) { return s.id; })
         ),
         track_regexp: assign('track_regexp', "")
       };
@@ -286,13 +286,13 @@ function ($scope, $routeParams, Search, Viewer, UI) {
         algorithm: assign('algorithm', search.algorithms[0].id),
         match: assign('match', 5),
         mismatch: assign('mismatch', -1),
-        gap: assign('ga[', -1),
+        gap: assign('gap', -1),
         score: assign('score', 25),
         threshold: assign('threshold', 25),
         track_regexp: assign('track_regexp', ""),
         order: assign('order', search.orderings[0].id),
         sources: assign(
-          'source', search.sources.map(function (s) { return s.id; })
+          'sources', search.sources.map(function (s) { return s.id; })
         )
       };
       previous_sources = search.params.sources.slice();
