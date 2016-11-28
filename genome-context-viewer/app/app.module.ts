@@ -37,6 +37,7 @@ import { RightSliderComponent }      from './shared/right-slider.component';
 import { ScrollComponent }           from './components/search/scroll.component';
 import { SearchComponent }           from './components/search/search.component';
 import { SearchParamsComponent }     from './components/search/search-params.component';
+import { SpinnerComponent }          from './shared/spinner.component';
 import { TrackDetailComponent }      from './shared/track-detail.component';
 
 import { TracksService } from './shared/tracks.service';
@@ -77,6 +78,7 @@ import { TracksService } from './shared/tracks.service';
     ScrollComponent,
     SearchComponent,
     SearchParamsComponent,
+    SpinnerComponent,
     TrackDetailComponent
   ],
   providers: [ TracksService ],
