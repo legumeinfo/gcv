@@ -3,7 +3,7 @@ import { Component } from '@angular/core';
 @Component({
   moduleId: module.id,
   selector: 'plot',
-  template: '<div id="plot"></div>',
+  template: '<div id="plot">plot</div>',
   styles: [ '' ]
 })
 

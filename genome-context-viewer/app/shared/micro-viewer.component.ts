@@ -3,7 +3,7 @@ import { Component, OnInit } from '@angular/core';
 @Component({
   moduleId: module.id,
   selector: 'micro-viewer',
-  template: '<div id="micro-viewer"></div>',
+  template: '<div id="micro-viewer">micro-viewer component</div>',
   styles: [ '' ]
 })
 
