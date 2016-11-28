@@ -14,9 +14,15 @@ enum PlotTypes {
 
 export class LocalGlobalPlotsComponent implements OnInit {
   plotTypes = PlotTypes;
+  hidden = false;
+  plot;
 
   ngOnInit(): void {
     this.showLocal();
+  }
+
+  hide(): void {
+    this.hidden = true;
   }
 
   showLocal(): void {

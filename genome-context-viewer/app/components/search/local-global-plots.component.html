@@ -1,5 +1,5 @@
 <!-- local and global dot plots -->
-<div id="plot">
+<div id="plot" [hidden]="hidden">
   <div class="navbar navbar-default navbar-static-top">
     <div class="container-fluid">
       <div class="navbar-header">
@@ -15,7 +15,7 @@
           <li [ngClass]="{'active': plot==plotTypes.GLOBAL}"><a (click)="showGlobal()">Global</a></li>
         </ul>
         <ul class="nav navbar-nav navbar-right">
-          <li><a><span class="glyphicon glyphicon glyphicon-remove pull-right" aria-hidden="true"></span></a></li>
+          <li><a><span class="glyphicon glyphicon glyphicon-remove pull-right" aria-hidden="true" (click)="hide()"></span></a></li>
         </ul>
       </div>
     </div>

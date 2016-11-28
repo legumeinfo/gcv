@@ -14,6 +14,7 @@ enum ContentTypes {
 
 export class SearchComponent implements OnInit {
   contentTypes = ContentTypes;
+  content;
 
   ngOnInit(): void {
     this.showViewers();
