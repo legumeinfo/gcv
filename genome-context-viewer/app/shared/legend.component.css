@@ -1,8 +1,4 @@
-/* vertically stretch legend to remaining area: http://stackoverflow.com/questions/8555820/set-div-to-remaining-height-using-css-with-unknown-height-divs-above-and-below */
 #legend-wrapper {
-  display: table-row;
-  width: 100%;
-  height: 100%;
   overflow: hidden;
 }
 /* add y scrolling to div with dynamical height: http://www.roelvanlisdonk.nl/?p=3854 */
