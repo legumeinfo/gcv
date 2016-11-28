@@ -1,11 +1,11 @@
 <!-- left slider -->
-<div id="left-slider" class="col-md-3">
+<div id="left-slider" class="col-md-3" [@toggleState]='state'>
   <!-- close slider controls -->
   <div class="navbar navbar-default navbar-static-top">
     <div class="container-fluid">
       <div class="collapse navbar-collapse">
         <ul class="nav navbar-nav navbar-right">
-          <li><a>
+          <li><a (click)="hide()">
             <span class="glyphicon glyphicon glyphicon-remove pull-right" aria-hidden="true"></span>
           </a></li>
         </ul>
