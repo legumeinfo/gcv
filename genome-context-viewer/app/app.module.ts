@@ -1,3 +1,4 @@
+// Angular
 import './rxjs-extensions';
 import { NgModule }      from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
@@ -10,6 +11,7 @@ import { AppRoutingModule } from './app-routing.module';
 //import { InMemoryWebApiModule } from 'angular-in-memory-web-api';
 //import { InMemoryDataService }  from './in-memory-data.service';
 
+// App
 import { AppComponent }              from './app.component';
 import { BasicComponent }            from './components/basic/basic.component';
 import { BasicParamsComponent }      from './components/basic/basic-params.component';
@@ -39,6 +41,7 @@ import { SearchComponent }           from './components/search/search.component'
 import { SearchParamsComponent }     from './components/search/search-params.component';
 import { SpinnerComponent }          from './shared/spinner.component';
 import { TrackDetailComponent }      from './shared/track-detail.component';
+import { ViewersComponent }          from './components/search/viewers.component';
 
 import { TracksService } from './shared/tracks.service';
 
@@ -79,7 +82,8 @@ import { TracksService } from './shared/tracks.service';
     SearchComponent,
     SearchParamsComponent,
     SpinnerComponent,
-    TrackDetailComponent
+    TrackDetailComponent,
+    ViewersComponent
   ],
   providers: [ TracksService ],
   bootstrap: [ AppComponent ],

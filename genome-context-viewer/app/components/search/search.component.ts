@@ -1,5 +1,10 @@
 import { Component, OnInit } from '@angular/core';
 
+enum ContentTypes {
+  VIEWERS,
+  PLOTS
+}
+
 @Component({
   moduleId: module.id,
   selector: 'search',
@@ -8,7 +13,17 @@ import { Component, OnInit } from '@angular/core';
 })
 
 export class SearchComponent implements OnInit {
+  contentTypes = ContentTypes;
+
   ngOnInit(): void {
-    // get data?
+    this.showViewers();
+  }
+
+  showViewers(): void {
+    this.content = this.contentTypes.VIEWERS;
+  }
+
+  showPlots(): void {
+    this.content = this.contentTypes.PLOTS;
   }
 }

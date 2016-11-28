@@ -8,6 +8,8 @@ import { Component, OnInit } from '@angular/core';
 })
 
 export class LocalGlobalPlotsComponent implements OnInit {
+  plot = 'local';
+
   ngOnInit(): void {
     // get local plot data?
   }

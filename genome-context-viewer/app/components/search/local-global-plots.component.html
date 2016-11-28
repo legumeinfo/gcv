@@ -11,8 +11,8 @@
       </div>
       <div class="collapse navbar-collapse">
         <ul class="nav navbar-nav tabs">
-          <li><a (click)="plot='local'" [ngClass]="{'active': plot=='local'}">Local</a></li>
-          <li><a (click)="plot='global'" [ngClass]="{'active': plot=='global'}">Global</a></li>
+          <li [ngClass]="{'active': plot=='local'}"><a (click)="plot='local'">Local</a></li>
+          <li [ngClass]="{'active': plot=='global'}"><a (click)="plot='global'">Global</a></li>
         </ul>
         <ul class="nav navbar-nav navbar-right">
           <li><a><span class="glyphicon glyphicon glyphicon-remove pull-right" aria-hidden="true"></span></a></li>
@@ -22,9 +22,8 @@
   </div>
   <div class="outer-ratio">
     <div id="plot-wrapper" class="inner-ratio" [ngSwitch]="plot">
-      <div *ngSwitchDefault>default</div>
-      <div *ngSwitchCase="local"><plot></plot></div>
-      <div *ngSwitchCase="global"><plot></plot></div>
+      <div *ngSwitchCase="'local'"><plot></plot></div>
+      <div *ngSwitchCase="'global'"><plot></plot></div>
     </div>
   </div>
 </div>

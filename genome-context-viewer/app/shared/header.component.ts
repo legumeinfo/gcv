@@ -11,7 +11,7 @@ declare var $: any;
 
 export class HeaderComponent implements OnInit {
   ngOnInit(): void {
-    $('.navbar-brand span').hide();
+    this.toggleBrand();
   }
 
   toggleBrand(): void {
