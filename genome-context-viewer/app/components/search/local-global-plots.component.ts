@@ -1,5 +1,10 @@
 import { Component, OnInit } from '@angular/core';
 
+enum PlotTypes {
+  LOCAL,
+  GLOBAL
+}
+
 @Component({
   moduleId: module.id,
   selector: 'local-global-plots',
@@ -8,9 +13,17 @@ import { Component, OnInit } from '@angular/core';
 })
 
 export class LocalGlobalPlotsComponent implements OnInit {
-  plot = 'local';
+  plotTypes = PlotTypes;
 
   ngOnInit(): void {
-    // get local plot data?
+    this.showLocal();
+  }
+
+  showLocal(): void {
+    this.plot = this.plotTypes.LOCAL;
+  }
+
+  showGlobal(): void {
+    this.plot = this.plotTypes.GLOBAL;
   }
 }
