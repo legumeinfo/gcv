@@ -5,13 +5,23 @@ import { BrowserModule } from '@angular/platform-browser';
 import { FormsModule }   from '@angular/forms';
 import { HttpModule }    from '@angular/http';
 
+// App routing
 import { AppRoutingModule } from './app-routing.module';
 
-// Imports for loading & configuring the in-memory web api
-//import { InMemoryWebApiModule } from 'angular-in-memory-web-api';
-//import { InMemoryDataService }  from './in-memory-data.service';
+// Ngrx
+import { StoreDevtoolsModule }                  from '@ngrx/store-devtools';
+import { StoreLogMonitorModule, useLogMonitor } from '@ngrx/store-log-monitor';
+import { StoreModule }                          from '@ngrx/store';
+import { plots }                                from './stores/plots.store';
+import { selectedFamily }                       from './stores/selected-family.store';
+import { selectedGene }                         from './stores/selected-gene.store';
+import { selectedPlot }                         from './stores/selected-plot.store';
+import { selectedMicroTrack }                   from './stores/selected-micro-track.store';
+import { macroTracks }                          from './stores/macro-tracks.store';
+import { microTracks }                          from './stores/micro-tracks.store';
+import { ui }                                   from './stores/ui.store';
 
-// App
+// App components
 import { AppComponent }              from './app.component';
 import { BasicComponent }            from './components/basic/basic.component';
 import { BasicParamsComponent }      from './components/basic/basic-params.component';
@@ -43,15 +53,31 @@ import { SpinnerComponent }          from './shared/spinner.component';
 import { TrackDetailComponent }      from './shared/track-detail.component';
 import { ViewersComponent }          from './components/search/viewers.component';
 
-import { TracksService } from './shared/tracks.service';
+// App services
+import { MicroTracksService } from './services/micro-tracks.service';
 
 @NgModule({
   imports: [
+    AppRoutingModule,
     BrowserModule,
     FormsModule,
     HttpModule,
-    //InMemoryWebApiModule.forRoot(InMemoryDataService),
-    AppRoutingModule
+    StoreModule.provideStore({
+      macroTracks,
+      microTracks,
+      plots,
+      selectedFamily,
+      selectedGene,
+      selectedPlot,
+      ui
+    }),
+    StoreDevtoolsModule.instrumentStore({
+      monitor: useLogMonitor({
+        visible: false,
+        position: 'right'
+      })
+    }),
+    StoreLogMonitorModule
   ],
   declarations: [
     AppComponent,
@@ -85,7 +111,7 @@ import { TracksService } from './shared/tracks.service';
     TrackDetailComponent,
     ViewersComponent
   ],
-  providers: [ TracksService ],
+  providers: [ MicroTracksService ],
   bootstrap: [ AppComponent ],
 })
 
