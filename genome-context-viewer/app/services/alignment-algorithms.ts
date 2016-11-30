@@ -1,10 +1,6 @@
-export class AlignmentAlgorithm {
-  id: string;
-  name: string;
-  algorithm: any;
-}
+import { Algorithm } from './algorithm';
 
-export const ALIGNMENT_ALGORITHMS: AlignmentAlgorithm[] = [
+export const ALIGNMENT_ALGORITHMS: Algorithm[] = [
   {
     id: 'smith-waterman',
     name: 'Smith-Waterman',
