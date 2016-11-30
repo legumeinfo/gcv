@@ -1,8 +1,12 @@
 // Angular
-import { Component, OnInit } from '@angular/core';
+import { ActivatedRoute }               from '@angular/router';
+import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Router }                       from '@angular/router';
 
 // App services
 import { MicroTracksService } from '../../services/micro-tracks.service';
+import { QueryParams }        from '../../services/query-params';
+import { SERVERS }            from '../../services/servers';
 
 @Component({
   moduleId: module.id,
@@ -11,16 +15,44 @@ import { MicroTracksService } from '../../services/micro-tracks.service';
   styleUrls: [ 'basic-params.component.css' ]
 })
 
-export class BasicParamsComponent implements OnInit {
-  constructor(private tracksService: MicroTracksService) {
-    //tracksService.loadTracks();  // TODO: pass params as arg
+export class BasicParamsComponent implements OnDestroy, OnInit {
+  help = false;
+  model = new QueryParams(5, []);
+  sources = SERVERS.filter(s => s.hasOwnProperty('microBasic'));
+  private sub: any;
+
+  constructor(private route: ActivatedRoute,
+              private router: Router,
+              private tracksService: MicroTracksService) { }
+
+  ngOnDestroy(): void {
+    this.sub.unsubscribe();
   }
 
   ngOnInit(): void {
-    // get data from service or location or location storage?
+    this.sub = this.route.queryParams.subscribe(params => {
+      // update the form
+      if (params['numNeighbors'])
+        this.model.numNeighbors = +params['numNeighbors'];
+      if (params['sources'])
+        this.model.sources = params['sources'].split(',');
+      // submit the updated form
+      this.submit();
+    });
+  }
+
+  // Hack the multiple select into submission since Angular 2 lacks support
+  setSelected(options: any[]): void {
+    this.model.sources = [];
+    for (var i = 0; i < options.length; i++) {
+      var o = options[i];
+      if (o.selected === true)
+        this.model.sources.push(this.sources[i].id)
+    }
   }
 
   submit(): void {
-    //tracksService.loadTracks();
+    this.router.navigate([], {queryParams: this.model.toUrlSafe()});
+    //tracksService.loadTracks(this.model);
   }
 }

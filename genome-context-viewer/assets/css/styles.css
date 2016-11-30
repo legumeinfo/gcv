@@ -84,3 +84,7 @@ a {
 .alert-dismissible button.close {
   margin-left: 10px;
 }
+/* override bootstrap autohide help-blocks in forms */
+.form-group .help-block {
+  display: block;
+}

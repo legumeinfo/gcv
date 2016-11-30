@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 
 @Component({
   moduleId: module.id,
-  selector: 'legend',
+  selector: 'app-legend',
   templateUrl: 'legend.component.html',
   styleUrls: [ 'legend.component.css' ]
 })
