@@ -17,8 +17,11 @@ import { SERVERS }            from '../../services/servers';
 
 export class BasicParamsComponent implements OnDestroy, OnInit {
   help = false;
-  model = new QueryParams(5, []);
+
+  query = new QueryParams(5, []);
+
   sources = SERVERS.filter(s => s.hasOwnProperty('microBasic'));
+
   private sub: any;
 
   constructor(private route: ActivatedRoute,
@@ -33,9 +36,9 @@ export class BasicParamsComponent implements OnDestroy, OnInit {
     this.sub = this.route.queryParams.subscribe(params => {
       // update the form
       if (params['numNeighbors'])
-        this.model.numNeighbors = +params['numNeighbors'];
+        this.query.numNeighbors = +params['numNeighbors'];
       if (params['sources'])
-        this.model.sources = params['sources'].split(',');
+        this.query.sources = params['sources'].split(',');
       // submit the updated form
       this.submit();
     });
@@ -43,16 +46,16 @@ export class BasicParamsComponent implements OnDestroy, OnInit {
 
   // Hack the multiple select into submission since Angular 2 lacks support
   setSelected(options: any[]): void {
-    this.model.sources = [];
+    this.query.sources = [];
     for (var i = 0; i < options.length; i++) {
       var o = options[i];
       if (o.selected === true)
-        this.model.sources.push(this.sources[i].id)
+        this.query.sources.push(this.sources[i].id)
     }
   }
 
   submit(): void {
-    this.router.navigate([], {queryParams: this.model.toUrlSafe()});
-    //tracksService.loadTracks(this.model);
+    this.router.navigate([], {queryParams: this.query.toUrlSafe()});
+    //tracksService.loadTracks(this.query);
   }
 }

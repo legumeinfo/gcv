@@ -1,1 +1,94 @@
-params component
+<form (ngSubmit)="submit()" #searchForm="ngForm">
+  <fieldset>
+    <legend>Query Parameters<a class="pull-right" (click)="queryHelp=!queryHelp"><span class="glyphicon glyphicon-question-sign"></span></a></legend>
+    <div class="form-group" [ngClass]="{'has-error': !numNeighbors.valid}">
+      <label for="numNeighbors">Neighbors (min 1)</label>
+      <input type="number" class="form-control" id="numNeighbors"
+        required pattern="[1-9][0-9]*"
+        [(ngModel)]="query.numNeighbors" name="numNeighbors"
+        #numNeighbors="ngModel" >
+      <p class="help-block" *ngIf="queryHelp">Number of genes on either side of the query gene.</p>
+    </div>
+    <div class="form-group" [ngClass]="{'has-error': !matched.valid}">
+      <label for="matched">Matched families (min 1)</label>
+      <input type="number" class="form-control" id="matched"
+        required pattern="[1-9][0-9]*"
+        [(ngModel)]="query.matched" name="matched"
+        #matched="ngModel" >
+      <p class="help-block" *ngIf="queryHelp">The minimum number of gene families that must match between the query track and each result track.</p>
+    </div>
+    <div class="form-group" [ngClass]="{'has-error': !intermediate.valid}">
+      <label for="intermediate">Intermediate genes (min 1)</label>
+      <input type="number" class="form-control" id="intermediate"
+        required pattern="[1-9][0-9]*"
+        [(ngModel)]="query.intermediate" name="intermediate"
+        #intermediate="ngModel" >
+      <p class="help-block" *ngIf="queryHelp">The maximum number of non-matching genes between successive matching genes in a result track.</p>
+    </div>
+    <div class="form-group" [ngClass]="{'has-error': query.sources.length == 0}">
+      <label for="sources">Sources (min 1)</label>
+      <select multiple class="form-control" id="sources"
+					required
+          (change)="setSelected($event.target.options)" name="sources" >
+        <option *ngFor="let src of sources" [value]="src.id" [selected]="query.sources.indexOf(src.id) != -1">{{src.name}}</option>
+      </select>
+      <p class="help-block" *ngIf="queryHelp">Which databases to load data from.</p>
+    </div>
+    <legend>Alignment Parameters<a class="pull-right" (click)="alignmentHelp=!alignmentHelp"><span class="glyphicon glyphicon-question-sign"></span></a></legend>
+    <div class="form-group" ng-class="{'has-help': alignmentHelp}">
+      <label>Algorithm</label>
+			<div class="radio" *ngFor="let alg of algorithms">
+        <label>
+          <input
+              name="algorithm"
+              type="radio"
+              [value]="alg.id"
+              [(ngModel)]="alignment.algorithm" />
+              {{alg.name}}
+        </label>
+      </div>
+      <span class="help-block" *ngIf="alignmentHelp">The sequence alignment algorithm used to align result tracks to the query track.</span>
+    </div>
+    <div class="form-group" [ngClass]="{'has-error': !match.valid}">
+      <label for="match">Match (min 1)</label>
+      <input type="number" class="form-control" id="match"
+        required pattern="[1-9][0-9]*"
+        [(ngModel)]="alignment.match" name="match"
+        #match="ngModel" >
+      <p class="help-block" *ngIf="alignmentHelp">How many points matching a gene family when aligning is worth.</p>
+    </div>
+    <div class="form-group" [ngClass]="{'has-error': !mismatch.valid}">
+      <label for="mismatch">Mismatch (max -1)</label>
+      <input type="number" class="form-control" id="mismatch"
+        required pattern="-[1-9][0-9]*"
+        [(ngModel)]="alignment.mismatch" name="mismatch"
+        #mismatch="ngModel" >
+      <p class="help-block" *ngIf="alignmentHelp">The penalty for mismatching gene families when aligning.</p>
+    </div>
+    <div class="form-group" [ngClass]="{'has-error': !gap.valid}">
+      <label for="gap">Gap (max -1)</label>
+      <input type="number" class="form-control" id="gap"
+        required pattern="-[1-9][0-9]*"
+        [(ngModel)]="alignment.gap" name="gap"
+        #gap="ngModel" >
+      <p class="help-block" *ngIf="alignmentHelp">The penalty for adding a gap when aligning gene families.</p>
+    </div>
+    <div class="form-group" [ngClass]="{'has-error': !score.valid}">
+      <label for="score">Score (min 1)</label>
+      <input type="number" class="form-control" id="score"
+        required pattern="[1-9][0-9]*"
+        [(ngModel)]="alignment.score" name="score"
+        #score="ngModel" >
+      <p class="help-block" *ngIf="alignmentHelp">The minimum score an aligned result track must have to be displayed.</p>
+    </div>
+    <div class="form-group" [ngClass]="{'has-error': !threshold.valid}">
+      <label for="threshold">Threshold (min 1)</label>
+      <input type="number" class="form-control" id="threshold"
+        required pattern="[1-9][0-9]*"
+        [(ngModel)]="alignment.threshold" name="threshold"
+        #threshold="ngModel" >
+      <p class="help-block" *ngIf="alignmentHelp">The minimum score a Repeat segment must have to contribute to the alignment.</p>
+    </div>
+    <button type="submit" class="btn btn-primary col-sm-12" [disabled]="!searchForm.form.valid || query.sources.length == 0">Submit</button>
+  </fieldset>
+</form>

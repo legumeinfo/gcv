@@ -5,19 +5,19 @@
       <label for="numNeighbors">Neighbors (min 1)</label>
       <input type="number" class="form-control" id="numNeighbors"
         required pattern="[1-9][0-9]*"
-        [(ngModel)]="model.numNeighbors" name="numNeighbors"
+        [(ngModel)]="query.numNeighbors" name="numNeighbors"
         #numNeighbors="ngModel" >
       <p class="help-block" *ngIf="help">Number of genes on either side of each query.</p>
     </div>
-    <div class="form-group" [ngClass]="{'has-error': model.sources.length == 0}">
+    <div class="form-group" [ngClass]="{'has-error': query.sources.length == 0}">
       <label for="sources">Sources (min 1)</label>
-      <select multiple class="form-control" id ="sources"
+      <select multiple class="form-control" id="sources"
 					required
           (change)="setSelected($event.target.options)" name="sources" >
-        <option *ngFor="let src of sources" [value]="src.id" [selected]="model.sources.indexOf(src.id) != -1">{{src.name}}</option>
+        <option *ngFor="let src of sources" [value]="src.id" [selected]="query.sources.indexOf(src.id) != -1">{{src.name}}</option>
       </select>
       <p class="help-block" *ngIf="help">Which databases to load data from.</p>
     </div>
-    <button type="submit" class="btn btn-primary col-sm-12" [disabled]="!basicForm.form.valid || model.sources.length == 0">Submit</button>
+    <button type="submit" class="btn btn-primary col-sm-12" [disabled]="!basicForm.form.valid || query.sources.length == 0">Submit</button>
   </fieldset>
 </form>
