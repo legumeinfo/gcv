@@ -20,6 +20,7 @@ import { selectedMicroTrack }                   from './stores/selected-micro-tr
 import { macroTracks }                          from './stores/macro-tracks.store';
 import { microTracks }                          from './stores/micro-tracks.store';
 import { ui }                                   from './stores/ui.store';
+import { urlQueryParams }                       from './stores/url-query-params.store';
 
 // App components
 import { AppComponent }              from './app.component';
@@ -54,7 +55,8 @@ import { TrackDetailComponent }      from './shared/track-detail.component';
 import { ViewersComponent }          from './components/search/viewers.component';
 
 // App services
-import { MicroTracksService } from './services/micro-tracks.service';
+import { MicroTracksService }    from './services/micro-tracks.service';
+import { UrlQueryParamsService } from './services/url-query-params.service';
 
 @NgModule({
   imports: [
@@ -111,7 +113,7 @@ import { MicroTracksService } from './services/micro-tracks.service';
     TrackDetailComponent,
     ViewersComponent
   ],
-  providers: [ MicroTracksService ],
+  providers: [ MicroTracksService, UrlQueryParamsService ],
   bootstrap: [ AppComponent ],
 })
 
