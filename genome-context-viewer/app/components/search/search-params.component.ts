@@ -21,13 +21,14 @@ export class SearchParamsComponent implements OnDestroy, OnInit {
   queryHelp = false;
   alignmentHelp = false;
 
-  query = new QueryParams(5, [], 2, 2);
+  query = new QueryParams(5, ['lis'], 2, 2);
   alignment = new AlignmentParams('smith-waterman', 5, -1, -1, 25, 10);
 
   algorithms = ALIGNMENT_ALGORITHMS;
   sources = SERVERS.filter(s => s.hasOwnProperty('microBasic'));
 
   private sub: any;
+  private params: any;
 
   constructor(private route: ActivatedRoute,
               private router: Router,
@@ -39,9 +40,10 @@ export class SearchParamsComponent implements OnDestroy, OnInit {
 
   ngOnInit(): void {
     this.sub = this.route.queryParams.subscribe(params => {
+      this.params = Object.assign({}, params);
       // update query params
-      if (params['numNeighbors'])
-        this.query.numNeighbors = +params['numNeighbors'];
+      if (params['neighbors'])
+        this.query.neighbors = +params['neighbors'];
       if (params['sources'])
         this.query.sources = params['sources'].split(',');
       if (params['matched'])
@@ -77,7 +79,11 @@ export class SearchParamsComponent implements OnDestroy, OnInit {
   }
 
   submit(): void {
-    this.router.navigate([], {queryParams: Object.assign({}, this.query.toUrlSafe(), this.alignment)});
+    this.router.navigate([], {queryParams: Object.assign(
+      this.params,
+      this.query.toUrlSafe(),
+      this.alignment
+    )});
     // TODO: load/align only if respective parameters changed
     //tracksService.loadTracks(this.query);
     //tracksService.alignTracks(this.alignment);

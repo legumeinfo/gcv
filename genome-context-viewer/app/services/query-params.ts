@@ -1,13 +1,13 @@
 export class QueryParams {
   constructor(
-    public numNeighbors: number,
+    public neighbors: number,
     public sources: string[],  // Server IDs
     public matched?: number,
     public intermediate?: number
   ) { }
 
   toUrlSafe(): any {
-    var params = {numNeighbors: this.numNeighbors};
+    var params = {neighbors: this.neighbors};
     if (this.sources.length > 0)
       params['sources'] = this.sources;
     if (this.matched !== undefined)

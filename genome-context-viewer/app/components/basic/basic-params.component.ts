@@ -18,11 +18,12 @@ import { SERVERS }            from '../../services/servers';
 export class BasicParamsComponent implements OnDestroy, OnInit {
   help = false;
 
-  query = new QueryParams(5, []);
+  query = new QueryParams(5, ['lis']);
 
   sources = SERVERS.filter(s => s.hasOwnProperty('microBasic'));
 
   private sub: any;
+  private params: any;
 
   constructor(private route: ActivatedRoute,
               private router: Router,
@@ -34,9 +35,10 @@ export class BasicParamsComponent implements OnDestroy, OnInit {
 
   ngOnInit(): void {
     this.sub = this.route.queryParams.subscribe(params => {
+      this.params = Object.assign({}, params);
       // update the form
-      if (params['numNeighbors'])
-        this.query.numNeighbors = +params['numNeighbors'];
+      if (params['neighbors'])
+        this.query.neighbors = +params['neighbors'];
       if (params['sources'])
         this.query.sources = params['sources'].split(',');
       // submit the updated form
@@ -55,7 +57,10 @@ export class BasicParamsComponent implements OnDestroy, OnInit {
   }
 
   submit(): void {
-    this.router.navigate([], {queryParams: this.query.toUrlSafe()});
+    this.router.navigate([], {queryParams: Object.assign(
+      this.params,
+      this.query.toUrlSafe(),
+    )});
     //tracksService.loadTracks(this.query);
   }
 }

@@ -1,8 +1,8 @@
 <form class="navbar-form navbar-left">
   <div class="form-group">
-    <select class="form-control">
-      <option>Chromosome name</option>
-      <option>Edit distance</option>
+    <select class="form-control"  id="order"
+        [(ngModel)]="order" name="order">
+      <option *ngFor="let alg of algorithms" [value]="alg.id">{{alg.name}}</option>
     </select>
   </div>
 </form>
