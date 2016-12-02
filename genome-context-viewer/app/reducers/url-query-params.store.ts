@@ -1,6 +1,3 @@
-// action constants
-export const ADD_QUERY_PARAMS = 'ADD_QUERY_PARAMS';
-
 export const urlQueryParams = (state: any = {}, {type, payload}) => {
   switch (type) {
     // returns whatever collection was sent merged with the existing set

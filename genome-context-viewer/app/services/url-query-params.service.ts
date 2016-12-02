@@ -9,8 +9,9 @@ import { Store }          from '@ngrx/store';
 import 'rxjs/add/operator/map';
 
 // App store
-import { AppStore }       from '../models/app-store.model';
-import { UrlQueryParams } from '../models/url-query-params.model';
+import { AppStore }         from '../models/app-store.model';
+import { UrlQueryParams }   from '../models/url-query-params.model';
+import { ADD_QUERY_PARAMS } from '../reducers/actions';
 
 @Injectable()
 export class UrlQueryParamsService {
@@ -37,7 +38,7 @@ export class UrlQueryParamsService {
   }
 
   private _updateStore(params: any): void {
-    this._store.dispatch({type: 'ADD_QUERY_PARAMS', payload: params});
+    this._store.dispatch({type: ADD_QUERY_PARAMS, payload: params});
   }
 
   // params = QueryParams || AlignmentParams || {order: OrderAlgorithm.id}
