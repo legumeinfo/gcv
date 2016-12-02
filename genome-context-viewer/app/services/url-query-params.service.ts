@@ -1,4 +1,5 @@
 // TODO: investigate replacing with @ngrx/router-store
+// TODO: rehydrate store with meta-reducer and localStorage
 
 // Angular
 import { ActivatedRoute } from '@angular/router';

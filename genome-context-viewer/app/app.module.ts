@@ -61,6 +61,7 @@ import { TrackDetailComponent }      from './shared/track-detail.component';
 import { ViewersComponent }          from './components/search/viewers.component';
 
 // App services
+import { AlignmentService }      from './services/alignment.service';
 import { MicroTracksService }    from './services/micro-tracks.service';
 import { UrlQueryParamsService } from './services/url-query-params.service';
 
@@ -124,7 +125,11 @@ import { UrlQueryParamsService } from './services/url-query-params.service';
     TrackDetailComponent,
     ViewersComponent
   ],
-  providers: [ MicroTracksService, UrlQueryParamsService ],
+  providers: [
+    AlignmentService,
+    MicroTracksService,
+    UrlQueryParamsService
+  ],
   bootstrap: [ AppComponent ],
 })
 
