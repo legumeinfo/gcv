@@ -17,5 +17,11 @@ export const ADD_MACRO_TRACKS = 'ADD_MACRO_TRACKS';
 // microTracks
 export const ADD_MICRO_TRACKS = 'ADD_MICRO_TRACKS';
 
+// selectedGlobalPlot
+export const SELECT_GLOBAL_PLOT = 'SELECT_GLOBAL_PLOT';
+
+// selectedLocalPlot
+export const SELECT_LOCAL_PLOT = 'SELECT_LOCAL_PLOT';
+
 // urlQueryParam
 export const ADD_QUERY_PARAMS = 'ADD_QUERY_PARAMS';

@@ -23,7 +23,8 @@ import { microTracks }        from './reducers/micro-tracks.store';
 import { plots }              from './reducers/plots.store';
 import { selectedFamily }     from './reducers/selected-family.store';
 import { selectedGene }       from './reducers/selected-gene.store';
-import { selectedPlot }       from './reducers/selected-plot.store';
+import { selectedGlobalPlot } from './reducers/selected-global-plot.store';
+import { selectedLocalPlot }  from './reducers/selected-local-plot.store';
 import { selectedMicroTrack } from './reducers/selected-micro-track.store';
 import { ui }                 from './reducers/ui.store';
 import { urlQueryParams }     from './reducers/url-query-params.store';
@@ -63,6 +64,7 @@ import { ViewersComponent }          from './components/search/viewers.component
 // App services
 import { AlignmentService }      from './services/alignment.service';
 import { MicroTracksService }    from './services/micro-tracks.service';
+import { PlotsService }          from './services/plots.service';
 import { UrlQueryParamsService } from './services/url-query-params.service';
 
 @NgModule({
@@ -81,7 +83,8 @@ import { UrlQueryParamsService } from './services/url-query-params.service';
       plots,
       selectedFamily,
       selectedGene,
-      selectedPlot,
+      selectedGlobalPlot,
+      selectedLocalPlot,
       ui,
       urlQueryParams
     }),
@@ -128,6 +131,7 @@ import { UrlQueryParamsService } from './services/url-query-params.service';
   providers: [
     AlignmentService,
     MicroTracksService,
+    PlotsService,
     UrlQueryParamsService
   ],
   bootstrap: [ AppComponent ],

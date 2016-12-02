@@ -1,7 +1,6 @@
 // Angular
 import { BehaviorSubject } from 'rxjs/BehaviorSubject';
 import { Injectable }      from '@angular/core';
-import { Observable }      from 'rxjs/Observable';
 import { Store }           from '@ngrx/store';
 import 'rxjs/add/operator/map';
 
@@ -45,12 +44,7 @@ export class AlignmentService {
     });
   }
 
-  private _updateStore(params: any): void {
+  updateParams(params: AlignmentParams): void {
     this._store.dispatch({type: ADD_ALIGNMENT_PARAMS, payload: params});
-  }
-
-  // params = AlignmentParams
-  updateParams(params: any): void {
-    this._updateStore(params);
 	}
 }
