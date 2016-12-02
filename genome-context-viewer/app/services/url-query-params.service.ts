@@ -1,3 +1,5 @@
+// TODO: investigate replacing with @ngrx/router-store
+
 // Angular
 import { ActivatedRoute } from '@angular/router';
 import { Injectable }     from '@angular/core';
@@ -14,28 +16,32 @@ import { UrlQueryParams } from '../models/url-query-params.model';
 export class UrlQueryParamsService {
   params: Observable<UrlQueryParams>;
 
-  constructor(private route: ActivatedRoute,
-              private router: Router,
-              private store: Store<AppStore>) {
+  constructor(private _route: ActivatedRoute,
+              private _router: Router,
+              private _store: Store<AppStore>) {
     this.init();
   }
 
   init(): void {
-    this.params = this.store.select('url-query-params');
-    this.route.queryParams.subscribe(this.updateStore);
+    this.params = this._store.select('urlQueryParams');
+    this.params.subscribe(params => {
+      this._updateUrl(params);
+    });
+    this._route.queryParams.subscribe(params => {
+      this._updateStore(params);
+    });
   }
 
-  private updateUrl(params: any): void {
-    this.router.navigate([], {queryParams: Object.assign(this.params, params)});
+  private _updateUrl(params: any): void {
+    this._router.navigate([], {queryParams: params});
   }
 
-  private updateStore(params: any): void {
-    this.store.dispatch({type: 'ADD_QUERY_PARAMS', payload: params});
+  private _updateStore(params: any): void {
+    this._store.dispatch({type: 'ADD_QUERY_PARAMS', payload: params});
   }
 
   // params = QueryParams || AlignmentParams || {order: OrderAlgorithm.id}
   updateParams(params: any): void {
-    this.updateUrl(params);
-    this.updateStore(params);
+    this._updateStore(params);
 	}
 }

@@ -1,10 +1,9 @@
 // Angular
-import { ActivatedRoute }               from '@angular/router';
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { Router }                       from '@angular/router';
 
 // App services
-import { SORTING_ALGORITHMS } from '../../services/sorting-algorithms';
+import { SORTING_ALGORITHMS }    from '../../services/sorting-algorithms';
+import { UrlQueryParamsService } from '../../services/url-query-params.service';
 
 @Component({
   moduleId: module.id,
@@ -17,31 +16,25 @@ export class OrderingComponent implements OnDestroy, OnInit {
   algorithms = SORTING_ALGORITHMS;
   order = this.algorithms[0].id;
 
-  private sub: any;
-  private params: any;
+  private _sub: any;
 
-  constructor(private route: ActivatedRoute,
-              private router: Router) { }
+  constructor(private _url: UrlQueryParamsService) { }
 
   ngOnDestroy(): void {
-    this.sub.unsubscribe();
+    this._sub.unsubscribe();
   }
 
   ngOnInit(): void {
-    this.sub = this.route.queryParams.subscribe(params => {
-      this.params = Object.assign({}, params);
+    this._sub = this._url.params.subscribe(params => {
       // update the selected ordering
       if (params['order'])
         this.order = params['order'];
-      // order the tracks
-      this.update();
     });
+    // order the tracks
+    this.update();
   }
 
   update(): void {
-    this.router.navigate([], {queryParams: Object.assign(
-      this.params,
-      {order: this.order}
-    )});
+    this._url.updateParams({order: this.order});
   }
 }

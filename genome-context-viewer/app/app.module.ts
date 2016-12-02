@@ -65,13 +65,14 @@ import { UrlQueryParamsService } from './services/url-query-params.service';
     FormsModule,
     HttpModule,
     StoreModule.provideStore({
-      macroTracks,
-      microTracks,
-      plots,
-      selectedFamily,
-      selectedGene,
-      selectedPlot,
-      ui
+      macroTracks: macroTracks,
+      microTracks: microTracks,
+      plots: plots,
+      selectedFamily: selectedFamily,
+      selectedGene: selectedGene,
+      selectedPlot: selectedPlot,
+      ui: ui,
+      urlQueryParams: urlQueryParams
     }),
     StoreDevtoolsModule.instrumentStore({
       monitor: useLogMonitor({

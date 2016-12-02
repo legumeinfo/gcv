@@ -1,8 +1,11 @@
-export const urlQueryParams = (state: any = null, {type, payload}) => {
+// action constants
+export const ADD_QUERY_PARAMS = 'ADD_QUERY_PARAMS';
+
+export const urlQueryParams = (state: any = {}, {type, payload}) => {
   switch (type) {
     // returns whatever collection was sent merged with the existing set
     case 'ADD_QUERY_PARAMS':
-      return payload;
+      return Object.assign({}, state, payload);
     default:
       return state;
   }

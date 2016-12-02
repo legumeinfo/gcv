@@ -1,14 +1,13 @@
 // Angular
-import { ActivatedRoute }               from '@angular/router';
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { Router }                       from '@angular/router';
 
 // App services
-import { ALIGNMENT_ALGORITHMS } from '../../services/alignment-algorithms';
-import { AlignmentParams }      from '../../services/alignment-params';
-import { MicroTracksService }   from '../../services/micro-tracks.service';
-import { QueryParams }          from '../../services/query-params';
-import { SERVERS }              from '../../services/servers';
+import { ALIGNMENT_ALGORITHMS }  from '../../services/alignment-algorithms';
+import { AlignmentParams }       from '../../services/alignment-params';
+import { MicroTracksService }    from '../../services/micro-tracks.service';
+import { QueryParams }           from '../../services/query-params';
+import { SERVERS }               from '../../services/servers';
+import { UrlQueryParamsService } from '../../services/url-query-params.service';
 
 @Component({
   moduleId: module.id,
@@ -27,25 +26,22 @@ export class SearchParamsComponent implements OnDestroy, OnInit {
   algorithms = ALIGNMENT_ALGORITHMS;
   sources = SERVERS.filter(s => s.hasOwnProperty('microBasic'));
 
-  private sub: any;
-  private params: any;
+  private _sub: any;
 
-  constructor(private route: ActivatedRoute,
-              private router: Router,
-              private tracksService: MicroTracksService) { }
+  constructor(private _url: UrlQueryParamsService,
+              private _tracksService: MicroTracksService) { }
 
   ngOnDestroy(): void {
-    this.sub.unsubscribe();
+    this._sub.unsubscribe();
   }
 
   ngOnInit(): void {
-    this.sub = this.route.queryParams.subscribe(params => {
-      this.params = Object.assign({}, params);
+    this._sub = this._url.params.subscribe(params => {
       // update query params
       if (params['neighbors'])
         this.query.neighbors = +params['neighbors'];
       if (params['sources'])
-        this.query.sources = params['sources'].split(',');
+        this.query.sources = params['sources'];
       if (params['matched'])
         this.query.matched = +params['matched'];
       if (params['intermediate'])
@@ -63,9 +59,9 @@ export class SearchParamsComponent implements OnDestroy, OnInit {
         this.alignment.score = +params['score'];
       if (params['threshold'])
         this.alignment.threshold = +params['threshold'];
-      // submit the updated form
-      this.submit();
     });
+    // submit the updated form
+    this.submit();
   }
 
   // Hack the multiple select into submission since Angular 2 lacks support
@@ -79,13 +75,9 @@ export class SearchParamsComponent implements OnDestroy, OnInit {
   }
 
   submit(): void {
-    this.router.navigate([], {queryParams: Object.assign(
-      this.params,
-      this.query.toUrlSafe(),
-      this.alignment
-    )});
+    this._url.updateParams(Object.assign(this.query, this.alignment));
     // TODO: load/align only if respective parameters changed
-    //tracksService.loadTracks(this.query);
-    //tracksService.alignTracks(this.alignment);
+    //this._tracksService.loadTracks(this.query);
+    //this._tracksService.alignTracks(this.alignment);
   }
 }
