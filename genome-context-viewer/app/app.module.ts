@@ -12,15 +12,15 @@ import { AppRoutingModule } from './app-routing.module';
 import { StoreDevtoolsModule }                  from '@ngrx/store-devtools';
 import { StoreLogMonitorModule, useLogMonitor } from '@ngrx/store-log-monitor';
 import { StoreModule }                          from '@ngrx/store';
-import { plots }                                from './stores/plots.store';
-import { selectedFamily }                       from './stores/selected-family.store';
-import { selectedGene }                         from './stores/selected-gene.store';
-import { selectedPlot }                         from './stores/selected-plot.store';
-import { selectedMicroTrack }                   from './stores/selected-micro-track.store';
-import { macroTracks }                          from './stores/macro-tracks.store';
-import { microTracks }                          from './stores/micro-tracks.store';
-import { ui }                                   from './stores/ui.store';
-import { urlQueryParams }                       from './stores/url-query-params.store';
+import { plots }                                from './reducers/plots.store';
+import { selectedFamily }                       from './reducers/selected-family.store';
+import { selectedGene }                         from './reducers/selected-gene.store';
+import { selectedPlot }                         from './reducers/selected-plot.store';
+import { selectedMicroTrack }                   from './reducers/selected-micro-track.store';
+import { macroTracks }                          from './reducers/macro-tracks.store';
+import { microTracks }                          from './reducers/micro-tracks.store';
+import { ui }                                   from './reducers/ui.store';
+import { urlQueryParams }                       from './reducers/url-query-params.store';
 
 // App components
 import { AppComponent }              from './app.component';
