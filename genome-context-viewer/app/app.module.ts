@@ -12,15 +12,21 @@ import { AppRoutingModule } from './app-routing.module';
 import { StoreDevtoolsModule }                  from '@ngrx/store-devtools';
 import { StoreLogMonitorModule, useLogMonitor } from '@ngrx/store-log-monitor';
 import { StoreModule }                          from '@ngrx/store';
-import { plots }                                from './reducers/plots.store';
-import { selectedFamily }                       from './reducers/selected-family.store';
-import { selectedGene }                         from './reducers/selected-gene.store';
-import { selectedPlot }                         from './reducers/selected-plot.store';
-import { selectedMicroTrack }                   from './reducers/selected-micro-track.store';
-import { macroTracks }                          from './reducers/macro-tracks.store';
-import { microTracks }                          from './reducers/micro-tracks.store';
-import { ui }                                   from './reducers/ui.store';
-import { urlQueryParams }                       from './reducers/url-query-params.store';
+
+// reducers
+import { alignedMicroTracks } from './reducers/aligned-micro-tracks.store';
+import { alignmentParams }    from './reducers/alignment-params.store';
+import { globalPlots }        from './reducers/global-plots.store';
+import { localPlots }         from './reducers/local-plots.store';
+import { macroTracks }        from './reducers/macro-tracks.store';
+import { microTracks }        from './reducers/micro-tracks.store';
+import { plots }              from './reducers/plots.store';
+import { selectedFamily }     from './reducers/selected-family.store';
+import { selectedGene }       from './reducers/selected-gene.store';
+import { selectedPlot }       from './reducers/selected-plot.store';
+import { selectedMicroTrack } from './reducers/selected-micro-track.store';
+import { ui }                 from './reducers/ui.store';
+import { urlQueryParams }     from './reducers/url-query-params.store';
 
 // App components
 import { AppComponent }              from './app.component';
@@ -65,14 +71,18 @@ import { UrlQueryParamsService } from './services/url-query-params.service';
     FormsModule,
     HttpModule,
     StoreModule.provideStore({
-      macroTracks: macroTracks,
-      microTracks: microTracks,
-      plots: plots,
-      selectedFamily: selectedFamily,
-      selectedGene: selectedGene,
-      selectedPlot: selectedPlot,
-      ui: ui,
-      urlQueryParams: urlQueryParams
+      alignedMicroTracks,
+      alignmentParams,
+      globalPlots,
+      localPlots,
+      macroTracks,
+      microTracks,
+      plots,
+      selectedFamily,
+      selectedGene,
+      selectedPlot,
+      ui,
+      urlQueryParams
     }),
     StoreDevtoolsModule.instrumentStore({
       monitor: useLogMonitor({
