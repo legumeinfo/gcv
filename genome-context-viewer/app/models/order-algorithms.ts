@@ -1,6 +1,6 @@
-import { Algorithm } from './algorithm';
+import { Algorithm } from './algorithm.model';
 
-export const SORTING_ALGORITHMS: Algorithm[] = [
+export const ORDER_ALGORITHMS: Algorithm[] = [
   {
     id: 'chromosome',
     name: 'Chromosome name',

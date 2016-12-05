@@ -2,7 +2,7 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 
 // App services
-import { SORTING_ALGORITHMS }    from '../../services/sorting-algorithms';
+import { ORDER_ALGORITHMS }    from '../../models/order-algorithms';
 import { UrlQueryParamsService } from '../../services/url-query-params.service';
 
 @Component({
@@ -13,7 +13,7 @@ import { UrlQueryParamsService } from '../../services/url-query-params.service';
 })
 
 export class OrderingComponent implements OnDestroy, OnInit {
-  algorithms = SORTING_ALGORITHMS;
+  algorithms = ORDER_ALGORITHMS;
   order = this.algorithms[0].id;
 
   private _sub: any;

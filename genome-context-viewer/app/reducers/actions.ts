@@ -1,3 +1,6 @@
+// alignmentFilter
+export const SET_ALIGNMENT = 'SET_ALIGNMENT';
+
 // alignedMicroTracks
 export const ADD_ALIGNED_MICRO_TRACKS = 'ADD_ALIGED_MICRO_TRACKS';
 
@@ -16,6 +19,12 @@ export const ADD_MACRO_TRACKS = 'ADD_MACRO_TRACKS';
 
 // microTracks
 export const ADD_MICRO_TRACKS = 'ADD_MICRO_TRACKS';
+
+// orderFilter
+export const SET_ORDER = 'SET_ORDER';
+
+// regexpFilter
+export const SET_REGEXP = 'SET_REGEXP';
 
 // selectedGlobalPlot
 export const SELECT_GLOBAL_PLOT = 'SELECT_GLOBAL_PLOT';

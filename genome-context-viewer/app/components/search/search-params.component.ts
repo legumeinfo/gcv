@@ -2,7 +2,7 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 
 // App services
-import { ALIGNMENT_ALGORITHMS }  from '../../services/alignment-algorithms';
+import { ALIGNMENT_ALGORITHMS }  from '../../models/alignment-algorithms';
 import { AlignmentParams }       from '../../services/alignment-params';
 import { MicroTracksService }    from '../../services/micro-tracks.service';
 import { QueryParams }           from '../../services/query-params';

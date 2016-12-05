@@ -1,4 +1,4 @@
-import { Algorithm } from './algorithm';
+import { Algorithm } from './algorithm.model';
 
 export const ALIGNMENT_ALGORITHMS: Algorithm[] = [
   {
