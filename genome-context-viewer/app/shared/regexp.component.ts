@@ -2,7 +2,7 @@ import { Component } from '@angular/core';
 
 @Component({
   moduleId: module.id,
-  selector: 'filter',
+  selector: 'app-regexp',
   template: `
     <form class="navbar-form navbar-left">
       <div class="form-group">
@@ -14,4 +14,4 @@ import { Component } from '@angular/core';
   styles: [ '' ]
 })
 
-export class FilterComponent { }
+export class RegexpComponent { }

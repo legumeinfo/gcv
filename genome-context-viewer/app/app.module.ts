@@ -34,7 +34,6 @@ import { AppComponent }              from './app.component';
 import { BasicComponent }            from './components/basic/basic.component';
 import { BasicParamsComponent }      from './components/basic/basic-params.component';
 import { FamilyDetailComponent }     from './shared/family-detail.component';
-import { FilterComponent }           from './shared/filter.component';
 import { FooterComponent }           from './shared/footer.component';
 import { GeneDetailComponent }       from './shared/gene-detail.component';
 import { HeaderComponent }           from './shared/header.component';
@@ -53,6 +52,7 @@ import { OrderingComponent }         from './components/search/ordering.componen
 import { ParametersToggleComponent } from './shared/parameters-toggle.component';
 import { PlotComponent }             from './shared/plot.component';
 import { PlotsComponent }            from './components/search/plots.component';
+import { RegexpComponent }           from './shared/regexp.component';
 import { RightSliderComponent }      from './shared/right-slider.component';
 import { ScrollComponent }           from './components/search/scroll.component';
 import { SearchComponent }           from './components/search/search.component';
@@ -102,7 +102,6 @@ import { UrlQueryParamsService } from './services/url-query-params.service';
     BasicComponent,
     BasicParamsComponent,
     FamilyDetailComponent,
-    FilterComponent,
     FooterComponent,
     GeneDetailComponent,
     HeaderComponent,
@@ -121,6 +120,7 @@ import { UrlQueryParamsService } from './services/url-query-params.service';
     ParametersToggleComponent,
     PlotComponent,
     PlotsComponent,
+    RegexpComponent,
     RightSliderComponent,
     ScrollComponent,
     SearchComponent,
