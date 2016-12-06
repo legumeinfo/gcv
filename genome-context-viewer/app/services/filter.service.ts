@@ -36,7 +36,7 @@ export class FilterService {
     this._store.dispatch({type: SET_ORDER, payload: order});
   }
 
-  setRegexp(regexp: Algorithm): void {
+  setRegexp(regexp: string): void {
     this._store.dispatch({type: SET_REGEXP, payload: regexp});
   }
 }
