@@ -41,5 +41,6 @@ export class RegexpComponent implements OnDestroy, OnInit {
 
   submit(): void {
     this._filterService.setRegexp(this.model.regexp);
+    this._url.updateParams(this.model);
   }
 }
