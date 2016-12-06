@@ -8,7 +8,16 @@ import { UrlQueryParamsService } from '../../services/url-query-params.service';
 @Component({
   moduleId: module.id,
   selector: 'ordering',
-  templateUrl: 'ordering.component.html',
+  template: `
+    <form class="navbar-form navbar-left">
+      <div class="form-group">
+        <select class="form-control"  id="order"
+            [(ngModel)]="order" name="order">
+          <option *ngFor="let alg of algorithms" [value]="alg.id">{{alg.name}}</option>
+        </select>
+      </div>
+    </form>
+  `,
   styles: [ '' ]
 })
 
