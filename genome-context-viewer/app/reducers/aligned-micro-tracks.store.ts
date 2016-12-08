@@ -1,4 +1,4 @@
-import { ADD_ALIGNED_MICRO_TRACKS } from './actions';
+import { ADD_ALIGNED_MICRO_TRACKS } from '../constants/actions';
 
 export const alignedMicroTracks = (state: any = {}, {type, payload}) => {
   switch (type) {

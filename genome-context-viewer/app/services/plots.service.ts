@@ -10,7 +10,7 @@ import { AppStore }          from '../models/app-store.model';
 import { ADD_GLOBAL_PLOTS,
          ADD_LOCAL_PLOTS,
          SELECT_GLOBAL_PLOT,
-         SELECT_LOCAL_PLOT } from '../reducers/actions';
+         SELECT_LOCAL_PLOT } from '../constants/actions';
 import { Group }             from '../models/group.model';
 import { MicroTracks }       from '../models/micro-tracks.model';
 
@@ -23,10 +23,10 @@ export class PlotsService {
   private _tracks: Observable<MicroTracks>;
 
   constructor(private _store: Store<AppStore>) {
-    this.init();
+    this._init();
   }
 
-  init(): void {
+  private _init(): void {
     this._tracks = this._store.select('microTracks');
     this._tracks.subscribe(tracks => {
       this._plotTracks(tracks);

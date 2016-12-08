@@ -8,7 +8,7 @@ import 'rxjs/add/operator/map';
 import { AppStore }             from '../models/app-store.model';
 import { AlignmentParams }      from '../models/alignment-params.model';
 import { ADD_ALIGNED_MICRO_TRACKS,
-         ADD_ALIGNMENT_PARAMS } from '../reducers/actions';
+         ADD_ALIGNMENT_PARAMS } from '../constants/actions';
 import { MicroTracks }          from '../models/micro-tracks.model';
 
 @Injectable()
@@ -17,10 +17,10 @@ export class AlignmentService {
   private _tracks: BehaviorSubject<MicroTracks>;
 
   constructor(private _store: Store<AppStore>) {
-    this.init();
+    this._init();
   }
 
-  init(): void {
+  private _init(): void {
     // downcast so we can get the last emitted value on demand
     this._tracks = <BehaviorSubject<MicroTracks>>this._store.select(
       'microTracks'
@@ -38,10 +38,10 @@ export class AlignmentService {
 
   private _alignTracks(): void {
     // TODO: perform alignment using this._params.getValue()
-    this._store.dispatch({
-      type: ADD_ALIGNED_MICRO_TRACKS,
-      payload: this._tracks.getValue()
-    });
+    //this._store.dispatch({
+    //  type: ADD_ALIGNED_MICRO_TRACKS,
+    //  payload: this._tracks.getValue()
+    //});
   }
 
   updateParams(params: AlignmentParams): void {

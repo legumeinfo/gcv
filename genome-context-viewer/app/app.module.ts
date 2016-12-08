@@ -1,9 +1,9 @@
 // Angular
 import './rxjs-extensions';
-import { NgModule }      from '@angular/core';
-import { BrowserModule } from '@angular/platform-browser';
-import { FormsModule }   from '@angular/forms';
-import { HttpModule }    from '@angular/http';
+import { NgModule }                         from '@angular/core';
+import { BrowserModule }                    from '@angular/platform-browser';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { HttpModule }                       from '@angular/http';
 
 // App routing
 import { AppRoutingModule } from './app-routing.module';
@@ -74,6 +74,7 @@ import { UrlQueryParamsService } from './services/url-query-params.service';
     BrowserModule,
     FormsModule,
     HttpModule,
+    ReactiveFormsModule,
     StoreModule.provideStore({
       alignedMicroTracks,
       alignmentParams,

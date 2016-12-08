@@ -1,4 +1,4 @@
-import { SELECT_GLOBAL_PLOT } from './actions';
+import { SELECT_GLOBAL_PLOT } from '../constants/actions';
 
 export const selectedGlobalPlot = (state: any = {}, {type, payload}) => {
   switch(type) {

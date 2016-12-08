@@ -1,4 +1,4 @@
-import { SET_ALIGNMENT } from '../reducers/actions';
+import { SET_ALIGNMENT } from '../constants/actions';
 
 export const alignmentFilter = (state: string = 'smith', {type, payload}) => {
   switch (type) {

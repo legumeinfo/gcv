@@ -1,4 +1,4 @@
-import { SET_REGEXP } from '../reducers/actions';
+import { SET_REGEXP } from '../constants/actions';
 
 export const regexpFilter = (state: string = '', {type, payload}) => {
   switch (type) {

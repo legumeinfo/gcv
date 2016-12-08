@@ -12,7 +12,7 @@ import 'rxjs/add/operator/map';
 // App store
 import { AppStore }         from '../models/app-store.model';
 import { UrlQueryParams }   from '../models/url-query-params.model';
-import { ADD_QUERY_PARAMS } from '../reducers/actions';
+import { ADD_QUERY_PARAMS } from '../constants/actions';
 
 @Injectable()
 export class UrlQueryParamsService {
@@ -21,17 +21,18 @@ export class UrlQueryParamsService {
   constructor(private _route: ActivatedRoute,
               private _router: Router,
               private _store: Store<AppStore>) {
-    this.init();
+    this._init();
   }
 
-  init(): void {
+  private _init(): void {
     this.params = this._store.select('urlQueryParams');
     this.params.subscribe(params => {
       this._updateUrl(params);
     });
-    this._route.queryParams.subscribe(params => {
-      this._updateStore(params);
-    });
+    // TODO: needs to preserve types
+    //this._route.queryParams.subscribe(params => {
+    //  this._updateStore(params);
+    //});
   }
 
   private _updateUrl(params: any): void {

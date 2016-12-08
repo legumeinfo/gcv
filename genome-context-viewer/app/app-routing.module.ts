@@ -6,14 +6,14 @@ import { InstructionsComponent } from './components/instructions/instructions.co
 import { SearchComponent }       from './components/search/search.component';
 
 const routes: Routes = [
-  { path: '', redirectTo: '/instructions', pathMatch: 'full' },
-  { path: 'basic/:gene',  component: BasicComponent },
-  { path: 'instructions', component: InstructionsComponent },
-  { path: 'search/:gene', component: SearchComponent }
+  {path: '', redirectTo: '/instructions', pathMatch: 'full'},
+  {path: 'basic/:gene',  component: BasicComponent},
+  {path: 'instructions', component: InstructionsComponent},
+  {path: 'search/:gene', component: SearchComponent}
 ];
 
 @NgModule({
-  imports: [ RouterModule.forRoot(routes) ],
+  imports: [ RouterModule.forRoot(routes, {useHash: true}) ],
   exports: [ RouterModule ]
 })
 

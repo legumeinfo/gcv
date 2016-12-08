@@ -1,4 +1,4 @@
-import { ADD_GLOBAL_PLOT, ADD_GLOBAL_PLOTS } from './actions';
+import { ADD_GLOBAL_PLOT, ADD_GLOBAL_PLOTS } from '../constants/actions';
 
 export const globalPlots = (state: any = {}, {type, payload}) => {
   switch (type) {

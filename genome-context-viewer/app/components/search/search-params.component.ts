@@ -1,12 +1,16 @@
 // Angular
+import { ActivatedRoute, Params }       from '@angular/router';
+import { BehaviorSubject }              from 'rxjs/BehaviorSubject';
 import { Component, OnDestroy, OnInit } from '@angular/core';
+import { AbstractControl, FormBuilder, FormGroup }       from '@angular/forms';
 
 // App services
-import { ALIGNMENT_ALGORITHMS }  from '../../models/alignment-algorithms';
-import { AlignmentParams }       from '../../services/alignment-params';
+import { ALIGNMENT_ALGORITHMS }  from '../../constants/alignment-algorithms';
+import { AlignmentParams }       from '../../models/alignment-params.model';
+import { AlignmentService }      from '../../services/alignment.service';
 import { MicroTracksService }    from '../../services/micro-tracks.service';
-import { QueryParams }           from '../../services/query-params';
-import { SERVERS }               from '../../services/servers';
+import { QueryParams }           from '../../models/query-params.model';
+import { SERVERS }               from '../../constants/servers';
 import { UrlQueryParamsService } from '../../services/url-query-params.service';
 
 @Component({
@@ -20,64 +24,63 @@ export class SearchParamsComponent implements OnDestroy, OnInit {
   queryHelp = false;
   alignmentHelp = false;
 
-  query = new QueryParams(5, ['lis'], 2, 2);
-  alignment = new AlignmentParams('smith-waterman', 5, -1, -1, 25, 10);
+  private _urlParams: BehaviorSubject<Params>;
+
+  queryGroup: FormGroup;
+  alignmentGroup: FormGroup;
 
   algorithms = ALIGNMENT_ALGORITHMS;
-  sources = SERVERS.filter(s => s.hasOwnProperty('microBasic'));
+  sources = SERVERS.filter(s => s.hasOwnProperty('microSearch'));
 
   private _sub: any;
 
-  constructor(private _url: UrlQueryParamsService,
-              private _tracksService: MicroTracksService) { }
+  constructor(private _route: ActivatedRoute,
+              private _alignmentService: AlignmentService,
+              private _fb: FormBuilder,
+              private _tracksService: MicroTracksService,
+              private _url: UrlQueryParamsService) { }
 
   ngOnDestroy(): void {
     this._sub.unsubscribe();
   }
 
   ngOnInit(): void {
+    // initialize forms
+    let defaultQuery = new QueryParams(5, ['lis'], 2, 2);
+    this.queryGroup = this._fb.group(defaultQuery.formControls());
+    let defaultAlignment = new AlignmentParams('repeat', 3, -1, -1, 25, 10)
+    this.alignmentGroup = this._fb.group(defaultAlignment.formControls());
+    // downcast observable so we can get the last emitted value on demand
+    this._urlParams = <BehaviorSubject<Params>>this._route.params;
+    // subscribe to url param updates
+    this._urlParams.subscribe(params => {
+      this._geneSearch(params['gene']);
+    });
+    // subscribe to url query param updates
     this._sub = this._url.params.subscribe(params => {
-      // update query params
-      if (params['neighbors'])
-        this.query.neighbors = +params['neighbors'];
-      if (params['sources'])
-        this.query.sources = params['sources'];
-      if (params['matched'])
-        this.query.matched = +params['matched'];
-      if (params['intermediate'])
-        this.query.intermediate = +params['intermediate'];
-      // update alignment params
-      if (params['algorithm'])
-        this.alignment.algorithm = params['algorithm'];
-      if (params['match'])
-        this.alignment.match = +params['match'];
-      if (params['mismatch'])
-        this.alignment.mismatch = +params['mismatch'];
-      if (params['gap'])
-        this.alignment.gap = +params['gap'];
-      if (params['score'])
-        this.alignment.score = +params['score'];
-      if (params['threshold'])
-        this.alignment.threshold = +params['threshold'];
+      this.queryGroup.patchValue(params);
+      this.alignmentGroup.patchValue(params);
     });
     // submit the updated form
     this.submit();
   }
 
-  // Hack the multiple select into submission since Angular 2 lacks support
-  setSelected(options: any[]): void {
-    this.query.sources = [];
-    for (var i = 0; i < options.length; i++) {
-      var o = options[i];
-      if (o.selected === true)
-        this.query.sources.push(this.sources[i].id)
-    }
+  private _geneSearch(gene: string): void {
+    this._tracksService.geneSearch(gene, this.queryGroup.getRawValue());
   }
 
   submit(): void {
-    this._url.updateParams(Object.assign(this.query, this.alignment));
-    // TODO: load/align only if respective parameters changed
-    //this._tracksService.loadTracks(this.query);
-    //this._tracksService.alignTracks(this.alignment);
+    this._url.updateParams(Object.assign({},
+      this.queryGroup.getRawValue(),
+      this.alignmentGroup.getRawValue()
+    ));
+    if (this.queryGroup.dirty) {
+      this._geneSearch(this._urlParams.getValue()['gene']);
+      this.queryGroup.reset(this.queryGroup.getRawValue());
+    }
+    if (this.alignmentGroup.dirty) {
+      this._alignmentService.updateParams(this.alignmentGroup.getRawValue());.
+      this.alignmentGroup.reset(this.alignmentGroup.getRawValue());
+    }
   }
 }

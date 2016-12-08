@@ -3,8 +3,8 @@ import { Component, OnDestroy, OnInit } from '@angular/core';
 
 // App services
 import { MicroTracksService }    from '../../services/micro-tracks.service';
-import { QueryParams }           from '../../services/query-params';
-import { SERVERS }               from '../../services/servers';
+import { QueryParams }           from '../../models/query-params.model';
+import { SERVERS }               from '../../constants/servers';
 import { UrlQueryParamsService } from '../../services/url-query-params.service';
 
 @Component({

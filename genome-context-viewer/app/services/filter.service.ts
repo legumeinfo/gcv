@@ -10,7 +10,7 @@ import { Algorithm }  from '../models/algorithm.model';
 import { AppStore }   from '../models/app-store.model';
 import { SET_ALIGNMENT,
          SET_ORDER,
-         SET_REGEXP } from '../reducers/actions';
+         SET_REGEXP } from '../constants/actions';
 
 @Injectable()
 export class FilterService {
@@ -19,10 +19,10 @@ export class FilterService {
   regexp: Observable<Algorithm>;
 
   constructor(private _store: Store<AppStore>) {
-    this.init();
+    this._init();
   }
 
-  init(): void {
+  private _init(): void {
     this.alignment = this._store.select('alignmentFilter');
     this.order = this._store.select('order');
     this.regexp = this._store.select('regexp');

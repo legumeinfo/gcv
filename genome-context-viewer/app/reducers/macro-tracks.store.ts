@@ -1,4 +1,4 @@
-import { ADD_MACRO_TRACKS } from './actions';
+import { ADD_MACRO_TRACKS } from '../constants/actions';
 
 export const macroTracks = (state: any = {}, {type, payload}) => {
   switch (type) {

@@ -1,4 +1,4 @@
-import { ADD_QUERY_PARAMS } from './actions';
+import { ADD_QUERY_PARAMS } from '../constants/actions';
 
 export const urlQueryParams = (state: any = {}, {type, payload}) => {
   switch (type) {

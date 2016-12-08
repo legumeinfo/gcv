@@ -1,4 +1,4 @@
-import { Algorithm } from './algorithm.model';
+import { Algorithm } from '../models/algorithm.model';
 
 export const ORDER_ALGORITHMS: Algorithm[] = [
   {

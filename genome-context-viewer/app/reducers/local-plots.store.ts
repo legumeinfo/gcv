@@ -1,4 +1,4 @@
-import { ADD_LOCAL_PLOTS } from './actions';
+import { ADD_LOCAL_PLOTS } from '../constants/actions';
 
 export const localPlots = (state: any = {}, {type, payload}) => {
   switch (type) {

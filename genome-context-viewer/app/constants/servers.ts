@@ -1,4 +1,4 @@
-import { GET, POST, Server } from './server';
+import { GET, POST, Server } from '../models/server.model';
 
 export const SERVERS: Server[] = [
   {

@@ -1,4 +1,4 @@
-import { ADD_ALIGNMENT_PARAMS } from './actions';
+import { ADD_ALIGNMENT_PARAMS } from '../constants/actions';
 
 export const alignmentParams = (state: any = {}, {type, payload}) => {
   switch (type) {

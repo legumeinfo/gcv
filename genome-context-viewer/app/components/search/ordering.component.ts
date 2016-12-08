@@ -3,7 +3,7 @@ import { Component, OnDestroy, OnInit } from '@angular/core';
 
 // App services
 import { FilterService }         from '../../services/filter.service';
-import { ORDER_ALGORITHMS }      from '../../models/order-algorithms';
+import { ORDER_ALGORITHMS }      from '../../constants/order-algorithms';
 import { UrlQueryParamsService } from '../../services/url-query-params.service';
 
 @Component({

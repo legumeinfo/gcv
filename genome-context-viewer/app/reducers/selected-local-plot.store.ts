@@ -1,4 +1,4 @@
-import { SELECT_LOCAL_PLOT } from './actions';
+import { SELECT_LOCAL_PLOT } from '../constants/actions';
 
 export const selectedLocalPlot = (state: any = {}, {type, payload}) => {
   switch(type) {
