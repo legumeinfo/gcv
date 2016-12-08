@@ -1,8 +1,9 @@
 export interface Gene {
   id: number;
   name: string;
-  family: number;  // Family.id
+  family: number;  // Family ID
   fmin: number;
   fmax: number;
   strand: number;
+  source?: string;  // Server ID
 }

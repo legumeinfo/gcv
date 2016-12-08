@@ -9,7 +9,7 @@ export const SERVERS: Server[] = [
       url: 'http://localhost:8000/services/basic_tracks_tree_agnostic/'
     },
     microSearch: {
-      type: GET,
+      type: POST,
       url: 'http://localhost:8000/services/search_tracks_tree_agnostic/'
     },
     microQuery: {
@@ -37,7 +37,7 @@ export const SERVERS: Server[] = [
       url: 'http://localhost:8000/services/basic_tracks_tree_agnostic/'
     },
     microSearch: {
-      type: GET,
+      type: POST,
       url: 'http://localhost:8000/services/search_tracks_tree_agnostic/'
     },
     microQuery: {

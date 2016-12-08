@@ -54,7 +54,7 @@ export class SearchParamsComponent implements OnDestroy, OnInit {
     this._urlParams = <BehaviorSubject<Params>>this._route.params;
     // subscribe to url param updates
     this._urlParams.subscribe(params => {
-      this._geneSearch(params['gene']);
+      this._geneSearch(params['sourcce'], params['gene']);
     });
     // subscribe to url query param updates
     this._sub = this._url.params.subscribe(params => {
@@ -65,8 +65,8 @@ export class SearchParamsComponent implements OnDestroy, OnInit {
     this.submit();
   }
 
-  private _geneSearch(gene: string): void {
-    this._tracksService.geneSearch(gene, this.queryGroup.getRawValue());
+  private _geneSearch(source: string, gene: string): void {
+    this._tracksService.geneSearch(source, gene, this.queryGroup.getRawValue());
   }
 
   submit(): void {
@@ -75,7 +75,8 @@ export class SearchParamsComponent implements OnDestroy, OnInit {
       this.alignmentGroup.getRawValue()
     ));
     if (this.queryGroup.dirty) {
-      this._geneSearch(this._urlParams.getValue()['gene']);
+      let params = this._urlParams.getValue();
+      this._geneSearch(params['source'], params['gene']);
       this.queryGroup.reset(this.queryGroup.getRawValue());
     }
     if (this.alignmentGroup.dirty) {

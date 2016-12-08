@@ -9,7 +9,7 @@ const routes: Routes = [
   {path: '', redirectTo: '/instructions', pathMatch: 'full'},
   {path: 'basic/:genes',  component: BasicComponent},
   {path: 'instructions', component: InstructionsComponent},
-  {path: 'search/:gene', component: SearchComponent}
+  {path: 'search/:source/:gene', component: SearchComponent}
 ];
 
 @NgModule({

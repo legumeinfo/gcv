@@ -6,4 +6,5 @@ export interface Group {
   chromosome_id: number;
   chromosome_name: string;
   genes: Gene[];
+  source?: string;  // Server ID
 }

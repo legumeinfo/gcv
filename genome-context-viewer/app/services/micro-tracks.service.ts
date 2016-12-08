@@ -1,9 +1,8 @@
 // Angular
-import { Http, Headers, Response } from '@angular/http';
-import { Injectable }    from '@angular/core';
-import { Store }         from '@ngrx/store';
-import { Observable }    from 'rxjs/Observable';
-import 'rxjs/add/operator/map';
+import { Http, Response } from '@angular/http';
+import { Injectable }     from '@angular/core';
+import { Observable }     from 'rxjs/Observable';
+import { Store }          from '@ngrx/store';
 
 // App store
 import { ADD_MICRO_TRACKS } from '../constants/actions';
@@ -16,9 +15,6 @@ import { MicroTracks }      from '../models/micro-tracks.model';
 import { GET, POST, Server } from '../models/server.model';
 import { QueryParams }       from '../models/query-params.model';
 import { SERVERS }           from '../constants/servers';
-//import { Tracks }            from './tracks';
-
-const HEADER = {headers: new Headers({'Context-Type': 'application/json'})};
 
 @Injectable()
 export class MicroTracksService {
@@ -39,70 +35,84 @@ export class MicroTracksService {
 
   }
 
-  geneSearch(queryGene: string, params: QueryParams): void {
+  geneSearch(source: string, queryGene: string, params: QueryParams): void {
     // fetch query track for gene
-    // this.loadSearchTracks(queryTrack, params)
+    let idx: number = this._serverIDs.indexOf(source);
+    if (idx != -1) {
+      let s: Server = this._servers[idx];
+      if (s.hasOwnProperty('microQuery')) {
+        let args = {
+          gene: queryGene,
+          numNeighbors: params.neighbors
+        };
+        let response: Observable<Response>;
+        if (s.microQuery.type === GET)
+          response = this._http.get(s.microQuery.url, args)
+        else
+          response = this._http.post(s.microQuery.url, args)
+        response.map(res => JSON.parse(res.json())).subscribe(query => {
+          query.source = source;
+          this.trackSearch(query, params);
+        });
+      }
+    }
   }
 
   trackSearch(query: Group, params: QueryParams): void {
     var args = {
-      neighbors: params.neighbors,
-      matched: params.matched,
-      intermediate: params.intermediate,
+      query: query.genes.map(g => g.family),
+      numNeighbors: params.neighbors,
+      numMatchedFamilies: params.matched,
+      numNonFamily: params.intermediate
     };
-    console.log('args:');
-    console.log(args);
-		// aggregate tracks from all selected servers
+		// send requests to the selected servers
     let requests: Observable<Response>[] = [];
-    console.log('servers:');
     for (var i = 0; i < params.sources.length; ++i) {
       let id: string = params.sources[i];
       let idx: number = this._serverIDs.indexOf(id);
       if (idx != -1) {
         let s: Server = this._servers[idx];
-        console.log(s);
+        let response: Observable<Response>;
         if (s.microSearch.type === GET)
-          requests.push(this._http.get(s.microSearch.url, args)
-            .map(res => res.json()))
+          response = this._http.get(s.microSearch.url, args);
         else
-          requests.push(this._http.post(s.microSearch.url, args)
-            .map(res => res.json()))
+          response = this._http.post(s.microSearch.url, args);
+        requests.push(response.map(res => {
+          let tracks = JSON.parse(res.json());
+          tracks.source = s.id;
+          return tracks;
+        }));
       }
     }
+    // aggregate the results
     Observable.forkJoin(requests).subscribe(results => {
-			let tracks: MicroTracks = {families: [], groups: [query]};
-      console.log('results:');
-      console.log(results);
-      //for (var i = 0; i < results.length; ++i) {
-      //  track: Group = results[i];
-      //  var src = dataset[i].source;
-      //  var d = JSON.parse(dataset[i].response.data);
-      //  // tag each track and its genes with their source
-      //  for (var j = 0; j < d.groups.length; j++) {
-      //    d.groups[j].source = track.source;
-      //    for (var k in d.groups[j].genes) {
-      //      d.groups[j].genes[k].source = track.source;
-      //    }
-      //  }
-      //  // remove the query if present
-      //  if (src == query.source) {
-      //    d.groups = d.groups.filter(function (track) {
-      //      if (track.species_id == query.species_id &&
-      //          track.chromosome_id == query.chromosome_id &&
-      //          track.genes.length >= query.genes.length) {
-      //        var gene_ids = track.genes.map(function (g) { return g.id; });
-      //        for (var j = query.genes.length; j--;) {
-      //          if (gene_ids.indexOf(query.genes[j].id) == -1 )
-      //            return true;
-      //        } return false;
-      //      } return true;
-      //    });
-      //  }
-      //  // aggregate the remaining tracks
-      //  tracks.families = tracks.families.concat(d.families);
-      //  tracks.groups = tracks.groups.concat(d.groups);
-      //}
-      //this._store.dispath({type: ADD_MICRO_TRACKS, tracks})
+			let aggregateTracks: MicroTracks = {families: [], groups: [query]};
+      for (var i = 0; i < results.length; ++i) {
+        let tracks: any = results[i];
+        // mark all group and genes with their source
+        for (var j = 0; j < tracks.groups.length; ++j) {
+          let group: any = tracks.groups[j];
+          group.source = tracks.source;
+          for (var k = 0; k < group.genes.length; ++k) {
+            group.genes[k].source = group.source;
+          }
+        }
+        // remove the query if present
+        if (tracks.source == query.source) {
+          tracks.groups = tracks.groups.filter(group  => {
+            if (group.species_id == query.species_id &&
+                group.chromosome_id == query.chromosome_id &&
+                group.genes.length >= query.genes.length) {
+              let geneIDs = group.genes.map(g => g.id);
+              return query.genes.some(g => geneIDs.indexOf(g.id) == -1);
+            } return true;
+          });
+        }
+        // aggregate the remaining tracks
+        aggregateTracks.families = tracks.families.concat(tracks.families);
+        aggregateTracks.groups = tracks.groups.concat(tracks.groups);
+      }
+      this._store.dispatch({type: ADD_MICRO_TRACKS, payload: aggregateTracks})
     });
 	}
 }
