@@ -1,5 +1,8 @@
 // Angular
+import { ActivatedRoute, Params }       from '@angular/router';
+import { BehaviorSubject }              from 'rxjs/BehaviorSubject';
 import { Component, OnDestroy, OnInit } from '@angular/core';
+import { FormBuilder, FormGroup }       from '@angular/forms';
 
 // App services
 import { MicroTracksService }    from '../../services/micro-tracks.service';
@@ -17,43 +20,52 @@ import { UrlQueryParamsService } from '../../services/url-query-params.service';
 export class BasicParamsComponent implements OnDestroy, OnInit {
   help = false;
 
-  query = new QueryParams(5, ['lis']);
+  private _urlParams: BehaviorSubject<Params>;
+
+  //query = new QueryParams(5, ['lis']);
+  queryGroup: FormGroup;
 
   sources = SERVERS.filter(s => s.hasOwnProperty('microBasic'));
 
   private _sub: any;
 
-  constructor(private _url: UrlQueryParamsService,
-              private _tracksService: MicroTracksService) { }
+  constructor(private _route: ActivatedRoute,
+              private _fb: FormBuilder,
+              private _tracksService: MicroTracksService,
+              private _url: UrlQueryParamsService) { }
 
   ngOnDestroy(): void {
     this._sub.unsubscribe();
   }
 
   ngOnInit(): void {
+    // initialize forms
+    let defaultQuery = new QueryParams(5, ['lis']);
+    this.queryGroup = this._fb.group(defaultQuery.formControls());
+    // downcast observable so we can get the last emitted value on demand
+    this._urlParams = <BehaviorSubject<Params>>this._route.params;
+    // subscribe to url param updates
+    this._urlParams.subscribe(params => {
+      this._basicQuery(params['genes']);
+    });
+    // subscribe to url query param updates
     this._sub = this._url.params.subscribe(params => {
-      // update the form
-      if (params['neighbors'])
-        this.query.neighbors = +params['neighbors'];
-      if (params['sources'])
-        this.query.sources = params['sources'];
+      this.queryGroup.patchValue(params);
     });
     // submit the updated form
     this.submit();
   }
 
-  // Hack the multiple select into submission since Angular 2 lacks support
-  setSelected(options: any[]): void {
-    this.query.sources = [];
-    for (var i = 0; i < options.length; i++) {
-      var o = options[i];
-      if (o.selected === true)
-        this.query.sources.push(this.sources[i].id)
-    }
+  private _basicQuery(query: string): void {
+    let genes: string[] = query.split(',');
+    this._tracksService.basicQuery(genes, this.queryGroup.getRawValue());
   }
 
   submit(): void {
-    this._url.updateParams(this.query);
-    //_tracksService.loadTracks(this.query);
+    this._url.updateParams(this.queryGroup.getRawValue());
+    if (this.queryGroup.dirty) {
+      this._basicQuery(this._urlParams.getValue()['genes']);
+      this.queryGroup.reset(this.queryGroup.getRawValue());
+    }
   }
 }

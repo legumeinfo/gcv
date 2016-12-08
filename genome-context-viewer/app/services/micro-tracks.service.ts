@@ -35,7 +35,7 @@ export class MicroTracksService {
     this.tracks = this._store.select('micro-tracks');
   }
 
-  loadBasicTracks(params: QueryParams): void {
+  basicQuery(queryGenes: string[], params: QueryParams): void {
 
   }
 

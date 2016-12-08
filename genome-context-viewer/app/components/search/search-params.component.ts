@@ -2,7 +2,7 @@
 import { ActivatedRoute, Params }       from '@angular/router';
 import { BehaviorSubject }              from 'rxjs/BehaviorSubject';
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { AbstractControl, FormBuilder, FormGroup }       from '@angular/forms';
+import { FormBuilder, FormGroup }       from '@angular/forms';
 
 // App services
 import { ALIGNMENT_ALGORITHMS }  from '../../constants/alignment-algorithms';
@@ -29,8 +29,8 @@ export class SearchParamsComponent implements OnDestroy, OnInit {
   queryGroup: FormGroup;
   alignmentGroup: FormGroup;
 
-  algorithms = ALIGNMENT_ALGORITHMS;
   sources = SERVERS.filter(s => s.hasOwnProperty('microSearch'));
+  algorithms = ALIGNMENT_ALGORITHMS;
 
   private _sub: any;
 
@@ -79,7 +79,7 @@ export class SearchParamsComponent implements OnDestroy, OnInit {
       this.queryGroup.reset(this.queryGroup.getRawValue());
     }
     if (this.alignmentGroup.dirty) {
-      this._alignmentService.updateParams(this.alignmentGroup.getRawValue());.
+      this._alignmentService.updateParams(this.alignmentGroup.getRawValue());
       this.alignmentGroup.reset(this.alignmentGroup.getRawValue());
     }
   }
