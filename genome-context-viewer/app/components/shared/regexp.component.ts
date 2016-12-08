@@ -1,6 +1,6 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { FilterService }                from '../services/filter.service';
-import { UrlQueryParamsService }        from '../services/url-query-params.service';
+import { FilterService }                from '../../services/filter.service';
+import { UrlQueryParamsService }        from '../../services/url-query-params.service';
 
 @Component({
   moduleId: module.id,
