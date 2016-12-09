@@ -5,7 +5,7 @@ export const SERVERS: Server[] = [
     id: 'localhost',
     name: 'Local Host',
     microBasic: {
-      type: GET,
+      type: POST,
       url: 'http://localhost:8000/services/basic_tracks_tree_agnostic/'
     },
     microSearch: {
@@ -33,7 +33,7 @@ export const SERVERS: Server[] = [
     id: 'lis',
     name: 'Legume Information System',
     microBasic: {
-      type: GET,
+      type: POST,
       url: 'http://localhost:8000/services/basic_tracks_tree_agnostic/'
     },
     microSearch: {

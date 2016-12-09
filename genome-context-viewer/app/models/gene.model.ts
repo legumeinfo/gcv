@@ -6,4 +6,6 @@ export interface Gene {
   fmax: number;
   strand: number;
   source?: string;  // Server ID
+  x?: number;
+  y?: number;
 }
