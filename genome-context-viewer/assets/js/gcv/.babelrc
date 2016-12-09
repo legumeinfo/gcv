@@ -1,0 +1,7 @@
+{
+  "presets": ['latest'],
+  "plugins": ['transform-class-properties'],
+  "compact": true,
+  "minified": true,
+  "comments": false
+}
