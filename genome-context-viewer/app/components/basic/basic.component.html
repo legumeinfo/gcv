@@ -10,12 +10,12 @@
     </ul>
 	</header>
   <main-content>
-    <micro-viewer></micro-viewer>
+    <micro-viewer [tracks]="tracks" [args]="microArgs"></micro-viewer>
   </main-content>
   <footer>
     <app-regexp></app-regexp>
   </footer>
 </main>
 <left-slider>
-  <basic-params></basic-params>
+  <basic-params [queryGenes]="queryGenes"></basic-params>
 </left-slider>

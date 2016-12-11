@@ -284,9 +284,10 @@ GCV.Viewer = class {
       throw new Error('"data" is undefined');
     }
     // create the viewer
-    var numLevels = this.data.groups.reduce(function (sum, g) {
-          return sum + g.levels;
-        }, 0),
+    var levels = data.groups.map(group => {
+      return Math.max.apply(null, group.genes.map(gene => gene.y)) + 1;
+    });
+    var numLevels = levels.reduce((a, b) => a + b, 0),
         halfTrack = this._GLYPH_SIZE / 2,
         top = this._PAD + halfTrack,
         bottom = top + (this._GLYPH_SIZE * numLevels);
@@ -308,7 +309,7 @@ GCV.Viewer = class {
           fminI = Infinity,
           fmaxI = -Infinity;
       this.ticks.push(tick);
-      tick += group.levels;
+      tick += levels[i];
       var distances = [];
       for (var j = 0; j < group.genes.length; j++) {
         var gene = group.genes[j],

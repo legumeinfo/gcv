@@ -7,6 +7,7 @@ import { Store }          from '@ngrx/store';
 // App store
 import { ADD_MICRO_TRACKS } from '../constants/actions';
 import { AppStore }         from '../models/app-store.model';
+import { Family }           from '../models/family.model';
 import { Gene }             from '../models/gene.model';
 import { Group }						from '../models/group.model';
 import { MicroTracks }      from '../models/micro-tracks.model';
@@ -15,6 +16,8 @@ import { MicroTracks }      from '../models/micro-tracks.model';
 import { GET, POST, Server } from '../models/server.model';
 import { QueryParams }       from '../models/query-params.model';
 import { SERVERS }           from '../constants/servers';
+
+declare var GCV: any;
 
 @Injectable()
 export class MicroTracksService {
@@ -28,16 +31,16 @@ export class MicroTracksService {
   }
 
   private _init(): void {
-    this.tracks = this._store.select('micro-tracks');
+    this.tracks = this._store.select('microTracks');
   }
 
   private _parseMicroTracksJSON(source: Server, json: any): MicroTracks {
     let tracks: MicroTracks = JSON.parse(json);
-    for (var j = 0; j < tracks.groups.length; ++j) {
-      let group: Group = tracks.groups[j];
+    for (let i = 0; i < tracks.groups.length; ++i) {
+      let group: Group = tracks.groups[i];
       group.source = source.id;
-      for (var k = 0; k < group.genes.length; ++k) {
-        let gene: Gene = group.genes[k];
+      for (let j = 0; j < group.genes.length; ++j) {
+        let gene: Gene = group.genes[j];
         gene.source = group.source;
       }
     }
@@ -45,7 +48,7 @@ export class MicroTracksService {
   }
 
   basicQuery(queryGenes: string[], params: QueryParams): void {
-    var args = {
+    let args = {
       genes: queryGenes,
       numNeighbors: params.neighbors
     };
@@ -56,7 +59,7 @@ export class MicroTracksService {
       if (i != -1) l.push(this._servers[i]);
       return l;
     }, []);
-    for (var i = 0; i < sources.length; ++i) {
+    for (let i = 0; i < sources.length; ++i) {
       let s: Server = sources[i];
       let response: Observable<Response>;
       if (s.microSearch.type === GET)
@@ -67,40 +70,44 @@ export class MicroTracksService {
     }
     // aggregate the results
     Observable.forkJoin(requests).subscribe(results => {
-			let aggregateTracks: MicroTracks = {families: [], groups: []};
+      let families: Family[] = [];
+      let groups: Group[] = [];
       let maxLength: number = (params.neighbors * 2) + 1;
-      for (var i = 0; i < results.length; ++i) {
+      for (let h = 0; h < results.length; ++h) {
         let tracks: MicroTracks = this._parseMicroTracksJSON(
-          sources[i],
-          results[i]
+          sources[h],
+          results[h]
         );
         // center the tracks on the focus family
-        var centers = [];
-        for (var i = 0; i < tracks.groups.length; ++i) {
+        let centers = [];
+        for (let i = 0; i < tracks.groups.length; ++i) {
           let group: Group = tracks.groups[i];
+          let genes: Gene[] = group.genes;
+          let offset = 0;
           if (group.genes.length < maxLength) {
-            let genes: Gene[] = group.genes;
-            var j = 0;
-            for (j; j < genes.length; ++j) {
+            for (let j = genes.length - 1; j >= 0; --j) {
               let g: Gene = genes[j];
               if (queryGenes.indexOf(g.name) != -1) {
                 if (centers.indexOf(g.name) == -1) {
                   centers.push(g.name);
+                  offset = params.neighbors - j;
                   break;
                 }
               }
             }
-            // center the track
-            var offset = params.neighbors - j;
-            for (j = 0; j < genes.length; ++j) {
-              genes[j].x = offset + j;
-            }
+          }
+          // set the gene positions relative to their track (group)
+          for (let j = 0; j < genes.length; ++j) {
+            let g: Gene = genes[j];
+            g.x = offset + j;
+            g.y = 0;
           }
         }
         // aggregate
-        aggregateTracks.families = tracks.families.concat(tracks.families);
-        aggregateTracks.groups = tracks.groups.concat(tracks.groups);
+        families.push.apply(families, tracks.families);
+        groups.push.apply(groups, tracks.groups);
       }
+      let aggregateTracks = new MicroTracks(families, groups);
       this._store.dispatch({type: ADD_MICRO_TRACKS, payload: aggregateTracks})
     });
   }
@@ -129,7 +136,7 @@ export class MicroTracksService {
   }
 
   trackSearch(query: Group, params: QueryParams): void {
-    var args = {
+    let args = {
       query: query.genes.map(g => g.family),
       numNeighbors: params.neighbors,
       numMatchedFamilies: params.matched,
@@ -142,8 +149,8 @@ export class MicroTracksService {
       if (i != -1) l.push(this._servers[i]);
       return l;
     }, []);
-    for (var i = 0; i < sources.length; ++i) {
-      let s: Server = sources[i];
+    for (let h = 0; h < sources.length; ++h) {
+      let s: Server = sources[h];
       let response: Observable<Response>;
       if (s.microSearch.type === GET)
         response = this._http.get(s.microSearch.url, args);
@@ -154,7 +161,7 @@ export class MicroTracksService {
     // aggregate the results
     Observable.forkJoin(requests).subscribe(results => {
 			let aggregateTracks: MicroTracks = {families: [], groups: [query]};
-      for (var i = 0; i < results.length; ++i) {
+      for (let i = 0; i < results.length; ++i) {
         let source = sources[i];
         let tracks: MicroTracks = this._parseMicroTracksJSON(
           source,

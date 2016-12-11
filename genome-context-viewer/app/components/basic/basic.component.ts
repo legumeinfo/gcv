@@ -1,4 +1,14 @@
-import { Component, OnInit } from '@angular/core';
+// Angular
+import { ActivatedRoute, Params }      from '@angular/router';
+import { BehaviorSubject }             from 'rxjs/BehaviorSubject';
+import { Component, OnInit }           from '@angular/core';
+import { Observable }                  from 'rxjs/Observable';
+
+// App store
+import { MicroTracks } from '../../models/micro-tracks.model';
+
+// App services
+import { MicroTracksService } from '../../services/micro-tracks.service';
 
 @Component({
   moduleId: module.id,
@@ -8,7 +18,29 @@ import { Component, OnInit } from '@angular/core';
 })
 
 export class BasicComponent implements OnInit {
+  private _urlParams: Observable<Params>;
+  private _queryGenes: BehaviorSubject<Array<string>> = new BehaviorSubject([]);
+  queryGenes: Observable<Array<string>> = this._queryGenes.asObservable();
+
+  tracks: Observable<MicroTracks>;
+  
+  microArgs = {
+    'highlight': [],
+    'geneClicked': function () {},
+    'leftAxisClicked': function () {}
+  };
+
+  constructor(private _route: ActivatedRoute,
+              private _microTracksService: MicroTracksService) { }
+
   ngOnInit(): void {
-    // get data?
+    this._urlParams = this._route.params;
+    // subscribe to url param updates
+    this._urlParams.subscribe(params => {
+      let queryGenes = params['genes'].split(',');
+      this.microArgs.highlight = queryGenes;
+      this._queryGenes.next(queryGenes);
+    });
+    this.tracks = this._microTracksService.tracks;
   }
 }

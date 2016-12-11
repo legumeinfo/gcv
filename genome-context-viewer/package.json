@@ -27,6 +27,7 @@
     "angular-in-memory-web-api": "~0.1.15",
     "bootstrap": "~3.3.7",
     "core-js": "^2.4.1",
+    "d3": "~3.5.6",
     "jquery": "^3.1.1",
     "@ngrx/core": "^1.1.0",
     "@ngrx/store": "^2.2.1",
@@ -41,6 +42,9 @@
   "devDependencies": {
     "@types/core-js": "^0.9.34",
     "@types/node": "^6.0.45",
+    "babel-cli": "^6.18.0",
+    "babel-plugin-transform-class-properties": "^6.19.0",
+    "babel-preset-latest": "^6.16.0",
     "concurrently": "^3.0.0",
     "lite-server": "^2.2.2",
     "typescript": "^2.0.3"
