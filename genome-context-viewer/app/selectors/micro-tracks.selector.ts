@@ -1,16 +1,15 @@
-//export const filteredModel = () => {
-//  return state => state
-//    .map(([people, filter]) => {
-//      return {
-//        total: people.length
-//        people: people.filter(filter),
-//        attending: people.filter(person => person.attending).length,
-//        guests: people.reduce((acc, curr) => acc + curr.guests, 0)
-//      }
-//    })
-//};
-//
-//this.model = Observable.combineLatest(
-//    _store.select('people')
-//    _store.select('partyFilter')
-//  ).let(filterModel());
+import { MicroTracks } from '../models/micro-tracks.model';
+
+export const microTracksSelector = () => {
+  return state => state
+    // args[0] = MicroTracks
+    // args[1:] = Array<filter>
+    .map((args) => {
+      let tracks = Object.assign({}, args[0]);
+      for (let i = 1; i < args.length; ++i) {
+        let f = args[i];
+        tracks = f.algorithm(tracks);
+      }
+      return tracks;
+    })
+};

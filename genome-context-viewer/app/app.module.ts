@@ -21,6 +21,7 @@ import { localPlots }         from './reducers/local-plots.store';
 import { macroTracks }        from './reducers/macro-tracks.store';
 import { microTracks }        from './reducers/micro-tracks.store';
 import { plots }              from './reducers/plots.store';
+import { regexpFilter }       from './filters/regexp.filter';
 import { selectedFamily }     from './reducers/selected-family.store';
 import { selectedGene }       from './reducers/selected-gene.store';
 import { selectedGlobalPlot } from './reducers/selected-global-plot.store';
@@ -83,6 +84,7 @@ import { UrlQueryParamsService } from './services/url-query-params.service';
       macroTracks,
       microTracks,
       plots,
+      regexpFilter,
       selectedFamily,
       selectedGene,
       selectedGlobalPlot,

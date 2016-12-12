@@ -347,7 +347,8 @@ GCV.Viewer = class {
       .range([.1, 5]);
     // parse optional parameters
     this.options = options || {};
-    this.options.focus = options.focus;
+    this.options.boldFirst = options.boldFirst || false;
+    this.options.highlight = options.hightlight || [];
     this.options.selectiveColoring = options.selectiveColoring;
     this.options.nameClick = options.nameClick || function (y, i) { };
     this.options.geneClick = options.geneClick || function (b) { };
@@ -422,8 +423,7 @@ GCV.Viewer = class {
   	var genes = geneGroups.append('path')
   	  .attr('d', d3.svg.symbol().type('triangle-up').size(200))
   	  .attr('class', function (g) {
-  	  	if (obj.options.focus !== undefined &&
-        (obj.options.focus == g.family || obj.options.focus == g.name)) {
+  	  	if (obj.options.highlight.indexOf(g.name) != -1) {
   	  	  return 'point focus';
   	  	} else if (g.family == '') {
   	  	  return 'point no_fam';
@@ -504,8 +504,8 @@ GCV.Viewer = class {
       .attr('class', 'axis')
       .call(axis);
     yAxis.selectAll('text')
-      .attr('class', function (y, i) {
-        var c = (i == 0) ? 'query ' : '';
+      .attr('class', (y, i) => {
+        var c = (i == 0 && this.options.boldFirst) ? 'query ' : '';
         return c + 'micro-' + i.toString();
       })
   	  .style('cursor', 'pointer')

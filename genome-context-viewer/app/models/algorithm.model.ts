@@ -1,5 +1,7 @@
 export class Algorithm {
-  id: string;
-  name: string;
-  algorithm: any;
+  constructor(
+    public id: string,
+    public name: string,
+    public algorithm: any
+  ) { }
 }

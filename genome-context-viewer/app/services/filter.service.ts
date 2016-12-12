@@ -24,8 +24,8 @@ export class FilterService {
 
   private _init(): void {
     this.alignment = this._store.select('alignmentFilter');
-    this.order = this._store.select('order');
-    this.regexp = this._store.select('regexp');
+    this.order = this._store.select('orderFilter');
+    this.regexp = this._store.select('regexpFilter');
   }
 
   setAlignment(alignment: Algorithm): void {

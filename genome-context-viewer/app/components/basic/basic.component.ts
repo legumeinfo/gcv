@@ -1,14 +1,14 @@
 // Angular
-import { ActivatedRoute, Params }      from '@angular/router';
-import { BehaviorSubject }             from 'rxjs/BehaviorSubject';
-import { Component, OnInit }           from '@angular/core';
-import { Observable }                  from 'rxjs/Observable';
+import { ActivatedRoute, Params } from '@angular/router';
+import { BehaviorSubject }        from 'rxjs/BehaviorSubject';
+import { Component, OnInit }      from '@angular/core';
+import { Observable }             from 'rxjs/Observable';
 
-// App store
-import { MicroTracks } from '../../models/micro-tracks.model';
-
-// App services
-import { MicroTracksService } from '../../services/micro-tracks.service';
+// App
+import { FilterService }       from '../../services/filter.service';
+import { microTracksSelector } from '../../selectors/micro-tracks.selector';
+import { MicroTracks }         from '../../models/micro-tracks.model';
+import { MicroTracksService }  from '../../services/micro-tracks.service';
 
 @Component({
   moduleId: module.id,
@@ -31,6 +31,7 @@ export class BasicComponent implements OnInit {
   };
 
   constructor(private _route: ActivatedRoute,
+              private _filterService: FilterService,
               private _microTracksService: MicroTracksService) { }
 
   ngOnInit(): void {
@@ -41,6 +42,9 @@ export class BasicComponent implements OnInit {
       this.microArgs.highlight = queryGenes;
       this._queryGenes.next(queryGenes);
     });
-    this.tracks = this._microTracksService.tracks;
+    this.tracks = Observable.combineLatest(
+      this._microTracksService.tracks,
+      this._filterService.regexp
+    ).let(microTracksSelector());
   }
 }
