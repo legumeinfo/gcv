@@ -39,9 +39,12 @@ export class MicroTracksService {
     for (let i = 0; i < tracks.groups.length; ++i) {
       let group: Group = tracks.groups[i];
       group.source = source.id;
+      group.id = i;
       for (let j = 0; j < group.genes.length; ++j) {
         let gene: Gene = group.genes[j];
         gene.source = group.source;
+        gene.x = j;
+        gene.y = 0;
       }
     }
     return tracks;
@@ -160,7 +163,8 @@ export class MicroTracksService {
     }
     // aggregate the results
     Observable.forkJoin(requests).subscribe(results => {
-			let aggregateTracks: MicroTracks = {families: [], groups: [query]};
+      let families: Family[] = [];
+      let groups: Group[] = [query];
       for (let i = 0; i < results.length; ++i) {
         let source = sources[i];
         let tracks: MicroTracks = this._parseMicroTracksJSON(
@@ -179,9 +183,10 @@ export class MicroTracksService {
           });
         }
         // aggregate the remaining tracks
-        aggregateTracks.families = tracks.families.concat(tracks.families);
-        aggregateTracks.groups = tracks.groups.concat(tracks.groups);
+        families.push.apply(families, tracks.families);
+        groups.push.apply(groups, tracks.groups);
       }
+      let aggregateTracks = new MicroTracks(families, groups);
       this._store.dispatch({type: ADD_MICRO_TRACKS, payload: aggregateTracks})
     });
 	}

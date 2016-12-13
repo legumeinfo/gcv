@@ -15,7 +15,14 @@
   </header>
   <div [ngSwitch]="content">
     <main-content *ngSwitchCase="contentTypes.VIEWERS">
-      <viewers></viewers>
+      <div class="split">
+        <div #splitTop class="split-top">
+          <macro-viewer></macro-viewer>
+        </div>
+        <div #splitBottom class="split-bottom">
+          <micro-viewer [tracks]="microTracks" [args]="microArgs"></micro-viewer>
+        </div>
+      </div>
     </main-content>
     <main-content *ngSwitchCase="contentTypes.PLOTS">
       <plots></plots>

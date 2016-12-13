@@ -54,7 +54,7 @@ export class SearchParamsComponent implements OnDestroy, OnInit {
     this._urlParams = <BehaviorSubject<Params>>this._route.params;
     // subscribe to url param updates
     this._urlParams.subscribe(params => {
-      this._geneSearch(params['sourcce'], params['gene']);
+      this._geneSearch(params['source'], params['gene']);
     });
     // subscribe to url query param updates
     this._sub = this._url.params.subscribe(params => {

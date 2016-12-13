@@ -1,1 +1,24 @@
-
+.split {
+  -webkit-box-sizing: border-box;
+     -moz-box-sizing: border-box;
+          box-sizing: border-box;
+  overflow-y: hidden;
+  overflow-x: hidden;
+}
+.split-top {
+  border-bottom: 1px solid #E7E7E7;
+  overflow-y: auto;
+}
+.split-bottom {
+  border-top: 1px solid #E7E7E7;
+  overflow-y: auto;
+}
+.gutter {
+  background-color: #f8f8f8;
+  background-repeat: no-repeat;
+  background-position: 50%;
+}
+.gutter.gutter-vertical {
+  background-image: url('../../../assets/img/horizontal.png');
+  cursor: row-resize;
+}

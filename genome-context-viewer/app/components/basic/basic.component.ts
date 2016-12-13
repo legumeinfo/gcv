@@ -6,8 +6,8 @@ import { Observable }             from 'rxjs/Observable';
 
 // App
 import { FilterService }       from '../../services/filter.service';
-import { microTracksSelector } from '../../selectors/micro-tracks.selector';
 import { MicroTracks }         from '../../models/micro-tracks.model';
+import { microTracksSelector } from '../../selectors/micro-tracks.selector';
 import { MicroTracksService }  from '../../services/micro-tracks.service';
 
 @Component({
@@ -23,11 +23,11 @@ export class BasicComponent implements OnInit {
   queryGenes: Observable<Array<string>> = this._queryGenes.asObservable();
 
   tracks: Observable<MicroTracks>;
-  
   microArgs = {
     'highlight': [],
     'geneClicked': function () {},
-    'leftAxisClicked': function () {}
+    'leftAxisClicked': function () {},
+    'autoResize': true
   };
 
   constructor(private _route: ActivatedRoute,
