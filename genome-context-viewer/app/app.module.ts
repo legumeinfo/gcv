@@ -60,7 +60,6 @@ import { SearchComponent }           from './components/search/search.component'
 import { SearchParamsComponent }     from './components/search/search-params.component';
 import { SpinnerComponent }          from './components/shared/spinner.component';
 import { TrackDetailComponent }      from './components/shared/track-detail.component';
-import { ViewersComponent }          from './components/search/viewers.component';
 
 // App services
 import { AlignmentService }      from './services/alignment.service';
@@ -129,8 +128,7 @@ import { UrlQueryParamsService } from './services/url-query-params.service';
     SearchComponent,
     SearchParamsComponent,
     SpinnerComponent,
-    TrackDetailComponent,
-    ViewersComponent
+    TrackDetailComponent
   ],
   providers: [
     AlignmentService,

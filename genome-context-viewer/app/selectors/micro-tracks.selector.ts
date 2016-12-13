@@ -1,6 +1,6 @@
 import { MicroTracks } from '../models/micro-tracks.model';
 
-export const microTracksSelector = (options) => {
+export const microTracksSelector = (options?: any) => {
   return state => state
     // args[0] = MicroTracks
     // args[1:] = Array<filter>
