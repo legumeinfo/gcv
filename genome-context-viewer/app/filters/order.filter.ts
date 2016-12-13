@@ -1,10 +1,14 @@
-import { Algorithm } from '../models/algorithm.model';
-import { SET_ORDER } from '../constants/actions';
+import { Algorithm }        from '../models/algorithm.model';
+import { ORDER_ALGORITHMS } from '../constants/order-algorithms';
+import { SET_ORDER }        from '../constants/actions';
 
-export const orderFilter = (state: Algorithm = null, {type, payload}) => {
+export const orderFilter = (state: Algorithm = ORDER_ALGORITHMS[0], {type, payload}) => {
+  let ids = ORDER_ALGORITHMS.map(a => a.id);
   switch (type) {
     case SET_ORDER:
-      return payload;
+      let idx = ids.indexOf(payload);
+      if (idx != -1) return ORDER_ALGORITHMS[idx];
+      return state;
     default:
       return state;
   }

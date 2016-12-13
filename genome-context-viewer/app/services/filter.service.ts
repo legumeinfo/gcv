@@ -32,7 +32,7 @@ export class FilterService {
     this._store.dispatch({type: SET_ALIGNMENT, payload: alignment});
   }
 
-  setOrder(order: Algorithm): void {
+  setOrder(order: string): void {
     this._store.dispatch({type: SET_ORDER, payload: order});
   }
 

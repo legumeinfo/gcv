@@ -58,7 +58,8 @@ export class SearchComponent implements AfterViewInit, OnInit {
     this.showViewers();
     this.microTracks = Observable.combineLatest(
       this._alignmentService.tracks,
-      this._filterService.regexp
+      this._filterService.regexp,
+      this._filterService.order
     ).let(microTracksSelector({skipFirst: true}));
   }
 
