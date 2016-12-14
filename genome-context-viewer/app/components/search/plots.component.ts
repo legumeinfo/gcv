@@ -1,4 +1,10 @@
-import { Component, OnInit } from '@angular/core';
+// Angular
+import { Component, Input, OnInit } from '@angular/core';
+
+// App
+import { MicroTracks } from '../../models/micro-tracks.model';
+
+declare var getFamilySizeMap;
 
 @Component({
   moduleId: module.id,
@@ -7,8 +13,12 @@ import { Component, OnInit } from '@angular/core';
   styleUrls: [ 'plots.component.css' ]
 })
 
-export class PlotsComponent implements OnInit {
+export class PlotsComponent implements OnInit{
+  @Input() plots: MicroTracks;
+
+  familySizes: any;
+
   ngOnInit(): void {
-    // get local plot data?
+    this.familySizes = getFamilySizeMap(this.plots);
   }
 }

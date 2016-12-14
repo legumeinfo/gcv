@@ -11,38 +11,68 @@ import { ADD_GLOBAL_PLOTS,
          ADD_LOCAL_PLOTS,
          SELECT_GLOBAL_PLOT,
          SELECT_LOCAL_PLOT } from '../constants/actions';
+import { Gene }              from '../models/gene.model';
 import { Group }             from '../models/group.model';
 import { MicroTracks }       from '../models/micro-tracks.model';
 
 @Injectable()
 export class PlotsService {
-  localPlots: BehaviorSubject<MicroTracks>;
+  localPlots: Observable<MicroTracks>;
   selectedLocal: Observable<Group>;
   globalPlots: BehaviorSubject<MicroTracks>;
   selectedGlobal: Observable<Group>
-  private _tracks: Observable<MicroTracks>;
 
   constructor(private _store: Store<AppStore>) {
     this._init();
   }
 
   private _init(): void {
-    this._tracks = this._store.select('microTracks');
-    this._tracks.subscribe(tracks => {
-      this._plotTracks(tracks);
-    });
-    this.localPlots = <BehaviorSubject<MicroTracks>>this._store.select(
-      'localPlots'
-    );
+    this.localPlots = this._store.select('microTracks').let(this._plotTracks());
     this.globalPlots = <BehaviorSubject<MicroTracks>>this._store.select(
       'globalPlots'
     );
   }
 
-  private _plotTracks(tracks: MicroTracks): void {
-    // TODO: perform plotting
-    this._store.dispatch({type: ADD_LOCAL_PLOTS, payload: tracks});
-    this._store.dispatch({type: ADD_GLOBAL_PLOTS, payload: tracks});
+  private _plotGenes(familyMap, genes): Gene[] {
+    let plotGenes = [];
+    for (let i = 0; i < genes.length; ++i) {
+      let g = Object.assign({}, genes[i]);
+      g.x = (g.fmin + g.fmax) / 2;
+      if (g.family in familyMap) {
+        for (let j = 0; j < familyMap[g.family].length; ++j) {
+          g.y = familyMap[g.family][j];
+        }
+      } else {
+        g.y = -1;
+      }
+      plotGenes.push(g);
+    }
+    return plotGenes;
+  }
+
+  private _plotTracks = () => {
+    return state => state.map(tracks => {
+      let plots = JSON.parse(JSON.stringify(tracks)); 
+      if (plots.groups.length > 0) {
+    	  let familyMap = {};
+        // map the query family locations
+    	  for (let i = 0; i < plots.groups[0].genes.length; ++i) {
+    	    let g = plots.groups[0].genes[i];
+    	    let p = (g.fmin + g.fmax) / 2;
+    	    if (g.family in familyMap) {
+    	      familyMap[g.family].push(p);
+    	    } else if (g.family != '') {
+    	      familyMap[g.family] = [p];
+    	    }
+    	  }
+    	  // plot all the genes against the list of points
+    	  for (let i = 0; i < plots.groups.length; ++i) {
+          let g = plots.groups[i];
+    	    g.genes = this._plotGenes(familyMap, g.genes);
+			  }
+      }
+      return plots;
+    });
   }
 
   selectGlobal(plot: Group): void {

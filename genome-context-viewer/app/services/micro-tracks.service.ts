@@ -39,7 +39,6 @@ export class MicroTracksService {
     for (let i = 0; i < tracks.groups.length; ++i) {
       let group: Group = tracks.groups[i];
       group.source = source.id;
-      group.id = i;
       for (let j = 0; j < group.genes.length; ++j) {
         let gene: Gene = group.genes[j];
         gene.source = group.source;
@@ -48,6 +47,12 @@ export class MicroTracksService {
       }
     }
     return tracks;
+  }
+
+  private _idTracks(tracks: MicroTracks): void {
+    for (let i = 0; i < tracks.groups.length; ++i) {
+      tracks.groups[i].id = i;
+    }
   }
 
   basicQuery(queryGenes: string[], params: QueryParams): void {
@@ -111,6 +116,7 @@ export class MicroTracksService {
         groups.push.apply(groups, tracks.groups);
       }
       let aggregateTracks = new MicroTracks(families, groups);
+      this._idTracks(aggregateTracks);
       this._store.dispatch({type: ADD_MICRO_TRACKS, payload: aggregateTracks})
     });
   }
@@ -187,6 +193,7 @@ export class MicroTracksService {
         groups.push.apply(groups, tracks.groups);
       }
       let aggregateTracks = new MicroTracks(families, groups);
+      this._idTracks(aggregateTracks);
       this._store.dispatch({type: ADD_MICRO_TRACKS, payload: aggregateTracks})
     });
 	}

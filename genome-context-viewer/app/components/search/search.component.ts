@@ -12,6 +12,7 @@ import { AlignmentService }    from '../../services/alignment.service';
 import { FilterService }       from '../../services/filter.service';
 import { MicroTracks }         from '../../models/micro-tracks.model';
 import { microTracksSelector } from '../../selectors/micro-tracks.selector';
+import { PlotsService }        from '../../services/plots.service';
 
 declare var Split: any;
 
@@ -44,8 +45,12 @@ export class SearchComponent implements AfterViewInit, OnInit {
     'boldFirst': true
   };
 
+  private _microPlots: Observable<MicroTracks>;
+  microPlots: MicroTracks;
+
   constructor(private _alignmentService: AlignmentService,
-              private _filterService: FilterService) { }
+              private _filterService: FilterService,
+              private _plotsService: PlotsService) { }
 
   ngAfterViewInit(): void {
     Split([this.splitTop.nativeElement, this.splitBottom.nativeElement], {
@@ -61,6 +66,14 @@ export class SearchComponent implements AfterViewInit, OnInit {
       this._filterService.regexp,
       this._filterService.order
     ).let(microTracksSelector({skipFirst: true}));
+    this._microPlots = Observable.combineLatest(
+      this._plotsService.localPlots,
+      this._filterService.regexp,
+      this._filterService.order
+    ).let(microTracksSelector({skipFirst: true}));
+    this._microPlots.subscribe(plots => {
+      this.microPlots = plots;
+    });
   }
 
   showViewers(): void {
