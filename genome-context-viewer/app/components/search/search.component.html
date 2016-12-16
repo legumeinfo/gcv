@@ -13,19 +13,21 @@
       <li><legend-toggle></legend-toggle></li>
     </ul>
   </header>
-  <main-content [hidden]="content!=contentTypes.VIEWERS">
-    <div class="split">
-      <div #splitTop class="split-top">
-        <macro-viewer></macro-viewer>
+  <div [ngSwitch]="content">
+    <main-content *ngSwitchCase="contentTypes.VIEWERS">
+      <div class="split">
+        <div #splitTop class="split-top">
+          <macro-viewer></macro-viewer>
+        </div>
+        <div #splitBottom class="split-bottom">
+          <micro-viewer [tracks]="microTracks" [args]="microArgs"></micro-viewer>
+        </div>
       </div>
-      <div #splitBottom class="split-bottom">
-        <micro-viewer [tracks]="microTracks" [args]="microArgs"></micro-viewer>
-      </div>
-    </div>
-  </main-content>
-  <main-content [hidden]="content!=contentTypes.PLOTS">
-    <plots [plots]="microPlots"></plots>
-  </main-content>
+    </main-content>
+    <main-content *ngSwitchCase="contentTypes.PLOTS">
+      <plots [plots]="microPlots"></plots>
+    </main-content>
+  </div>
   <footer>
     <app-regexp></app-regexp>
     <app-ordering></app-ordering>

@@ -1,271 +1,463 @@
-function plot(containerID, familySizes, color, points, optionalParameters) {
-  // get the optional parameters
-  var geneClicked = function(selection) { },
-      brushCallback = function(selected_group) { },
-      plotClick = function(trackID) { },
-      selectiveColoring = true,
-      w = document.getElementById(containerID).offsetWidth;
-  if (optionalParameters !== undefined) {
-    if (optionalParameters.geneClicked !== undefined) {
-      geneClicked = optionalParameters.geneClicked;
-    }
-    if (optionalParameters.brushCallback !== undefined ) {
-      brushCallback = optionalParameters.brushCallback;
-    }
-    if (optionalParameters.plotClicked !== undefined) {
-      plotClicked = optionalParameters.plotClicked;
-    }
-    if (optionalParameters.selectiveColoring !== undefined) {
-      selectiveColoring = optionalParameters.selectiveColoring;
-    }
-    if (optionalParameters.width !== undefined) {
-      w = optionalParameters.width;
-    }
+'use strict'
+
+
+/** The Genomic Context Viewer namespace. */
+var GCV = GCV || {};
+
+
+/** The micro-synteny viewer. */
+GCV.Plot = class {
+
+  // Private
+
+  // Constants
+  _PAD    = 2;
+  _FACE   = 0.15;
+  _RADIUS = 3.5;
+
+  /**
+    * Adds a hidden iframe that calls the given resize event whenever its width
+    * changes.
+    * @param {string} el - The element to add the iframe to.
+    * @param {function} f - The function to call when a resize event occurs.
+    * @return {object} - The hidden iframe.
+    */
+  _autoResize(el, f) {
+    var iframe = document.createElement('IFRAME');
+    iframe.setAttribute('allowtransparency', true);
+    iframe.className = 'GCV-resizer';
+    el.appendChild(iframe);
+    iframe.contentWindow.onresize = function () {
+      clearTimeout(this.resizeTimer);
+      this.resizeTimer = setTimeout(f, 10)
+    };
+    return iframe;
   }
-  
-  // set some variables
-  var p = 75,
-      l = w-2*p,
-      h = l;
-  
-  // clear the contents of the target element first
-  document.getElementById(containerID).innerHTML = "";
-  
-  // the plot matrix svg
-  var matrix = d3.select("#"+containerID).append("svg")
-      .attr("width", w)
-      .attr("height", w)
-      .append("g")
-      .attr("transform", "translate(" + 0 + ",0)");
-  
-  // where is the plot located?
-  //var plot_x = p,
-  //    plot_y = Math.ceil((1/3)*(l+p));
-  var plot_x = p,
-      plot_y = p;
-  
-  // the x axis
-  var min_x = d3.min(points.genes, function(e) { return e.x; }),
-      max_x = d3.max(points.genes, function(e) { return e.x; }),
-  	  x_pad = (max_x - min_x)/10;
-  
-  min_x = min_x-x_pad;
-  max_x = max_x+x_pad;
-  
-  var x = d3.scale.linear()
-          .domain([min_x, max_x])
-          .range([plot_x, plot_x+l]);
-  
-  var xAxis = d3.svg.axis()
-      .scale(x)
-      .orient("bottom")
-      .tickValues([min_x, max_x]);
-  
-  var xAxis_selection = matrix.append("g")
-      .attr("class", "x axis")
-      .attr("transform", "translate(0," + (plot_y+l) + ")")
-      .call(xAxis)
-  
-  xAxis_selection.append("text")
-      .attr("class", "label")
-      .attr("x", (p+(l/2)))
-      .attr("y", 15)
-      .style("text-anchor", "middle")
-      .text(points.chromosome_name);
-  
-  // the y axis
-  var outliers = false;
-  var min_y = d3.min(points.genes.filter(function(e, i) {
-        if (e.y >= 0) { outliers = true; }; return e.y >= 0; }),
-        function(e) { return e.y; }),
-      max_y = d3.max(points.genes, function(e) { return e.y; });
-  
-  var y = d3.scale.linear()
-      .domain([max_y, min_y])
-      .range([p, p+l]);
-  
-  var yAxis = d3.svg.axis()
-      .scale(y)
-      .orient("left")
-      .tickValues([min_y, max_y]);
-  
-  matrix.append("g")
-      .attr("class", "y axis")
-      .attr("transform", "translate("+plot_x+", 0)")
-      .call(yAxis)
-      .append("text")
-      .attr("class", "label")
-      .attr("transform", "translate(-10,"+((l+p)/2)+") rotate(-90)")
-      .style("text-anchor", "end")
-      .text(points.reference);
-  
-  if (outliers) {
-    matrix.append('text')
-        .attr("class", "label")
-        .attr("y", (p-16))
-        .attr("x", p-9)
-        .text("Outliers")
-        .style("text-anchor", "end");
+
+  /**
+    * Fades everything in the view besides the given selection.
+    * @param {object} selection - What's omitted from the fade.
+    */
+  _beginHover(selection) {
+    d3.selectAll('.GCV').classed('hovering', true);
+    selection.classed('active', true);
   }
-  
-  // bind the chromosome's data to an element that doesn't... and never will exist
-  var ch_data = matrix.selectAll("chr_"+points.chromosome_id)
-      .data(points.genes);
-  
-  // the plot's brush
-  var brush = d3.svg.brush().x(x).y(y)
-      .on("brush", brushmove)
-      .on("brushend", brushend);
-  
-  var brush_g = matrix.append("g")
-      .attr("class", "brush")
-      .call(brush);
-  
-  // plot the points
-  var groups = ch_data.enter().append('g').attr("class", "gene")
-  	.attr("transform", function(e) {
-      if (e.y == -1) {
-  	    return "translate("+x(e.x)+", "+(p-20)+")";
+
+  /**
+    * Unfades everything in the view and revokes the selection's omission from
+    * being faded.
+    * @param {object} selection - What's no longer omitted.
+    */
+  _hoverTimeout = 0;
+  _endHover(selection) {
+    selection.classed('active', false);
+    // delay unfading for smoother mouse dragging
+    clearTimeout(this._hoverTimeout);
+    this._hoverTimeout = setTimeout(function () {
+      clearTimeout(this._hoverTimeout);
+      this._hoverTimeout = undefined;
+      // make sure nothing is being hovered
+      if (d3.selectAll('.GCV .active').empty()) {
+        d3.selectAll('.GCV').classed('hovering', false);
       }
-      return "translate("+x(e.x)+", "+y(e.y)+")" })
-  	.on("mouseover", function(e) {
-	  var selection = d3.selectAll(".gene").filter(function(d) {
-	    return e.id == d.id;
-	  });
-  	  showTips(selection);
-  	})
-  	.on("mouseout", function(e) {
-	  var selection = d3.selectAll(".gene").filter(function(d) {
-	    return e.id == d.id;
-	  });
-  	  hideTips(selection);
-  	})
-  	.on("click", function(e) {
-  	  geneClicked(e);
-  	});
-  	
-  groups.append("circle")
-      .attr("r", 3.5)
-      .style("fill", function(e) { return color(e.family); })
-  	  .style("stroke", "#000")
-  	  .style("cursor", "pointer")
-  	  .attr("class", function(e) {
+    }, 125);
+  }
+
+  /** Resizes the viewer and x scale. Will be decorated by other components. */
+  _resize() {
+    // viewer
+    var w = this.container.clientWidth;
+    this.viewer.attr('width', w).attr('height', w);
+    // xAxis
+    this.xScale.range([this.left, w - this.right]);
+    // yAxis
+    this.yScale.range([w - this.bottom, this.top]);
+  }
+
+  /**
+    * Decorates the _resize function with the given function.
+    * @param {function} d - The decorator function.
+    */
+  _decorateResize(d) {
+    this._resize = function (resize) {
+      resize();
+      d();
+    }.bind(this, this._resize);
+  }
+
+  /**
+    * Parses parameters and initializes variables.
+    * @param {string} id - ID of element viewer will be drawn in.
+    * @param {object} colors - D3 family-to-color map.
+    * @param {object} data - The data the viewer will visualize.
+    * @param {object} options - Optional parameters.
+    */
+  _init(id, colors, data, options) {
+    // parse positional parameters
+    this.container = document.getElementById(id);
+    if (this.container === null) {
+      throw new Error('"' + id + '" is not a valid element ID');
+    }
+    this.colors = colors;
+    if (this.colors === undefined) {
+      throw new Error('"color" is undefined');
+    }
+    this.data = data;
+    if (this.data === undefined) {
+      throw new Error('"data" is undefined');
+    }
+    // create the viewer
+    this.viewer = d3.select('#' + id)
+      .append('svg')
+      .attr('class', 'GCV');
+    this.top = this._PAD;
+    this.left = this._PAD;
+    this.bottom = this._PAD;
+    this.right = this._PAD + this._RADIUS;
+    // create the scales used to plot genes
+    this.xScale = d3.scale.linear();
+    this.yScale = d3.scale.linear();
+    // parse optional parameters
+    this.options = options || {};
+    this.options.selectiveColoring = options.selectiveColoring;
+    this.options.geneClick = options.geneClick || function (selection) { };
+    this.options.plotClick = options.plotClick || function (plotID) { };
+    this.options.brushup = options.brushup || function (brushed) { };
+    this.options.autoResize = options.autoResize || false;
+    this.options.outlier = options.outlier || undefined;
+    // make sure resize always has the right context
+    this._resize = this._resize.bind(this);
+    // initialize the viewer width/height and scale range
+    this._resize();
+  }
+
+  /**
+    * Creates the outliers portion above the track.
+    * @return {object} - D3 selection of the outliers group.
+    */
+  _drawOutliers() {
+    var outliers = this.viewer.append('text')
+      .attr('class', 'label')
+      .text('Outliers')
+      .style('text-anchor', 'end')
+      .style('dominant-baseline', 'hanging');
+    return outliers;
+  }
+
+  /**
+    * Creates the x-axis label.
+    * @return {object} - D3 selection of the label.
+    */
+  _drawXLabel() {
+    var label = this.viewer.append('text')
+      .attr('class', 'label')
+      .text(this.data.chromosome_name);
+    label.resize = function () {
+      label.style('text-anchor', 'middle').attr('transform', (b) => {
+        var range = this.xScale.range(),
+            x = (range[0] + range[1]) / 2;
+        return 'translate(' + x + ', 0)';
+      });
+    }.bind(this);
+    label.resize();
+    return label;
+  }
+
+  /**
+    * Creates the x-axis, placing labels at their respective locations.
+    * @return {object} - D3 selection of the y-axis.
+    */
+  _drawXAxis() {
+    var xCoords = this.data.genes.map(g => g.x);
+    this.minX = Math.min.apply(null, xCoords);
+    this.maxX = Math.max.apply(null, xCoords);
+    var mid = (this.minX + this.maxX) / 2;
+    this.xScale.domain([this.minX, this.maxX]);
+    // draw the axis
+    var xAxis = this.viewer.append('g').attr('class', 'axis');
+    // how the axis is resized
+    xAxis.resize = function () {
+      // update the axis
+      var axis = d3.svg.axis()
+        .scale(this.xScale)
+        .orient('bottom')
+        .tickValues(this.xScale.domain().map(Math.trunc))
+        .tickFormat((x, i) => x);
+      xAxis.call(axis)
+        .selectAll('.tick text')
+        .style('text-anchor', (t, i) => {
+          if (i % 2 == 0) return 'start';
+          return 'end';
+        });
+      xAxis.axis = axis;
+    }.bind(this);
+    // resize once to position everything
+    xAxis.resize();
+    return xAxis;
+  }
+
+  /**
+    * Creates the y-axis, placing labels at their respective locations.
+    * @return {object} - D3 selection of the y-axis.
+    */
+  _drawYAxis() {
+    var yCoords = this.data.genes.reduce((l, g) => {
+          if (g.y != this.options.outlier) l.push(g.y);
+          return l;
+        }, []);
+    this.minY = Math.min.apply(null, yCoords);
+    this.maxY = Math.max.apply(null, yCoords);
+    var mid = (this.minY + this.maxY) / 2;
+    this.yScale.domain([this.minY, this.maxY]);
+    // draw the axis
+    var yAxis = this.viewer.append('g').attr('class', 'axis');
+    //// add the label
+    //var label = yAxis.append('text')
+    //  .attr('class', 'label')
+    //  .text(this.data.chromosome_name);
+    // how the axis is resized
+    yAxis.resize = function () {
+      // update the axis
+      var axis = d3.svg.axis()
+        .scale(this.yScale)
+        .orient('left')
+        .tickValues(this.yScale.domain().map(Math.trunc))
+        .tickFormat((y, i) => y);
+      yAxis.call(axis)
+        .selectAll('text')
+        .style('text-anchor', 'end')
+        .style('dominant-baseline', (t, i) => {
+          if (i == 0) return 'text-after-edge';
+          return 'hanging';
+        });
+      //label.style('text-anchor', 'middle').attr('transform', (b) => {
+      //  return 'translate(' + this.xScale(mid) + ', 0)';
+      //});
+    }.bind(this);
+    // resize once to position everything
+    yAxis.resize();
+    return yAxis;
+  }
+
+  /**
+    * Creates a graphic containing the plotted gene points.
+    * @return {object} - D3 selection of the points.
+    */
+  _drawPoints() {
+    var obj = this;
+    var points = this.viewer.append('g');
+    // create the gene groups
+    points.geneGroups = points.selectAll('gene')
+  	  .data(this.data.genes)
+  	  .enter()
+      .append('g')
+      .attr('class', 'gene')
+  	  .style('cursor', 'pointer')
+      .on('mouseover', function (b) { obj._beginHover(d3.select(this)); })
+  	  .on('mouseout', function (b) { obj._endHover(d3.select(this)); })
+  	  .on('click', this.options.geneClick);
+  	// add genes to the gene groups
+  	var genes = points.geneGroups.append('circle')
+      .attr('r', this._RADIUS)
+  	  .style('stroke', '#000')
+  	  .style('cursor', 'pointer')
+  	  .attr('class', function(e) {
   	  	if (e.family == '') {
-  	  	  return "no_fam";
-  	  	} return ""; })
-  	  .style("fill", function(e) {
-  	  	if (e.family == '' ||
-            (selectiveColoring && familySizes[ e.family ] == 1)) {
-  	      return "#ffffff";
-  	  	} return color(e.family);
+  	  	  return 'no_fam';
+  	  	} return ''; })
+  	  .style('fill', (g) => {
+  	  	if (g.family == '' ||
+        (this.options.selectiveColoring !== undefined &&
+        this.options.selectiveColoring[g.family] == 1)) {
+  	  	  return '#ffffff';
+  	  	} return this.colors(g.family);
   	  });
-  
-  groups.append("text")
-      .attr("class", "tip")
-  	  .attr("transform", "translate(0, -10) rotate(-45)")
-      .attr("text-anchor", "middle")
-      .text(function(e) { return e.name+": "+e.fmin+" - "+e.fmax; });
-  
-  var extent;
-  function brushmove() {
-    extent = brush.extent();
-  	extent[0][1] = min_y;
-  	extent[1][1] = max_y;
-  	brush.extent(extent);
-  	brush_g.call(brush);
-    groups.classed("selected", function(e) {
-      is_brushed = extent[0][0] <= e.x && e.x <= extent[1][0];
-      return is_brushed;
-    });
+    // add tooltips to the gene groups
+    var geneTips = points.geneGroups.append('text')
+      .attr('class', 'synteny-tip')
+  	  .attr('text-anchor', 'middle')
+  	  .text(function (g) { return g.name + ': ' + g.fmin + ' - ' + g.fmax; })
+      .attr('transform', 'rotate(-45)');
+    // how the track is resized
+    points.resize = function (geneGroups) {
+  	  geneGroups.attr('transform', (g) => {
+        var x = this.xScale(g.x),
+            y = (g.y == this.options.outlier) ? this.outliers : this.yScale(g.y);
+        return 'translate(' + x + ', ' + y + ')'
+      });
+    }.bind(this, points.geneGroups);
+    points.resize();
+    return points;
   }
-  
-  var clear_button;
-  function brushend() {
-    if (extent[0][0] == extent[1][0]) {
-        plotClicked(points.id);
-    } else {
-      get_button = d3.selectAll(".clear-button").filter(function() {
-        if (clear_button) {
-          return this == clear_button[0][0];
-        } return false; });
-      if (get_button.empty() === true) {
-        clear_button = matrix.append('text')
-            .attr("y", (l+p+30))
-            .attr("x", (p+(l/2)))
-            .attr("class", "clear-button")
-            .text("Clear Brush")
-            .style("text-anchor", "middle")
-            .style("cursor", "pointer");
+
+  /**
+    * Draws the viewer.
+    * @param {object} points - D3 selection of points area.
+    * @param {object} xAxis - D3 selection of the x-axis.
+    * @return {object} - D3 selection of the clearButton.
+    */
+  _drawBrush(geneGroups, xAxis) {
+    var obj = this;
+    // the plot's brush
+    var clearButton = obj.viewer.append('text')
+          .attr('class', 'clear-button')
+          .text('Clear Brush')
+          .style('text-anchor', 'middle')
+          .style('cursor', 'pointer')
+          .style('visibility', 'hidden')
+          .on('click', function (){
+            obj.xScale.domain([obj.minX, obj.maxX]);
+            transitionData();
+            resetAxis();
+            clearButton.style('visibility', 'hidden');
+          });
+    var extent;
+    var brush = d3.svg.brush().x(this.xScale).y(this.yScale)
+        .on('brush', brushmove)
+        .on('brushend', brushend);
+    var brushG = this.viewer.append('g')
+        .attr('class', 'brush')
+        .call(brush);
+    clearButton.resize = function (brush, brushG) {
+      brush.x(this.xScale).y(this.yScale);
+      brushG.call(brush);
+      clearButton.attr('x', () => {
+        var range = this.xScale.range();
+        return this.left + (range[1] - range[0]) / 2;
+      });
+    }.bind(this, brush, brushG);
+    // drawing stuffs
+    function brushmove () {
+      extent = brush.extent();
+    	extent[0][1] = obj.maxY;
+    	extent[1][1] = obj.minY;
+    	brush.extent(extent);
+    	brushG.call(brush);
+      geneGroups.classed('selected', function (e) {
+        var isBrushed = extent[0][0] <= e.x && e.x <= extent[1][0];
+        return isBrushed;
+      });
+    }
+    function brushend() {
+      if (extent[0][0] == extent[1][0]) {
+        obj.options.plotClick(obj.data.id);
+      } else {
+        clearButton.style('visibility', 'visible');
+        obj.xScale.domain([extent[0][0], extent[1][0]]);
+        transitionData();
+        resetAxis();
+        geneGroups.classed('selected', false);
+    	  brushG.call(brush.clear());
       }
-      
-      x.domain([extent[0][0], extent[1][0]]);
-      
-      transition_data();
-      reset_axis();
-  	  call_brushCallback();
-        
-      groups.classed("selected", false);
-  	  brush_g.call(brush.clear());
-        
-      clear_button.on('click', function(){
-        x.domain([min_x, max_x]);
-        transition_data();
-        reset_axis();
-        clear_button.remove();
+    }
+    function transitionData() {
+    	var domain = obj.xScale.domain();
+    	geneGroups.transition()
+    	    .duration(500)
+    	    .attr('transform', function (g) {
+            var x = obj.xScale(g.x),
+                y = (g.y == obj.options.outlier) ? obj.outliers : obj.yScale(g.y);
+            return 'translate(' + x + ', ' + y + ')'
+          })
+    	    .attr('visibility', function (e) {
+    	      if (e.x < domain[0] || e.x > domain[1]) return 'hidden';
+    	      return 'visible';
+    	    });
+    }
+    function resetAxis() {
+    	xAxis.axis.tickValues(obj.xScale.domain().map(Math.trunc));
+      xAxis.transition().duration(500).call(xAxis.axis)
+        .selectAll('.tick text')
+        .style('text-anchor', (t, i) => {
+          if (i % 2 == 0) return 'start';
+          return 'end';
+        });
+    }
+    return clearButton;
+  }
+
+  /** Draws the viewer. */
+  _draw() {
+    // draw the x-axis
+    var xAxis = this._drawXAxis();
+    this.bottom = xAxis.node().getBBox().height + this._PAD;
+    this._decorateResize(() => {
+      xAxis.resize();
+      var y = this.viewer.attr('height') - this.bottom;
+      xAxis.attr('transform', 'translate(0, ' + y + ')');
+    });
+    var xLabel = this._drawXLabel(xAxis);
+    this.bottom += (2 * this._PAD) + xLabel.node().getBBox().height;
+    this._decorateResize(() => {
+      xLabel.resize();
+      var y = this.viewer.attr('height') -
+              this.bottom +
+              xAxis.node().getBBox().height +
+              xLabel.node().getBBox().height;
+      xLabel.attr('y', y);
+    });
+    // draw the y-axis
+    var yAxis = this._drawYAxis();
+    this.left = yAxis.node().getBBox().width + this._PAD;
+    yAxis.attr('transform', 'translate(' + this.left + ', 0)');
+    //this.left += this._PAD;
+    this._decorateResize(yAxis.resize);
+    // draw the outliers label
+    if (this.options.outlier !== undefined && this.data.genes.some((g) => {
+      return g.y == this.options.outlier;
+    })) {
+      var _outliers = this._drawOutliers();
+      _outliers.attr('x', this.left).attr('y', this.top);
+      var h = _outliers.node().getBBox().height;
+      this.outliers = this.top + (h / 2);
+      this.top += h + this._PAD;
+    } else {
+      this.top += this._RADIUS;
+    }
+    // plot the gene points
+    var points = this._drawPoints();
+    this._decorateResize(points.resize);
+    // draw the brush
+    var clearButton = this._drawBrush(points.geneGroups, xAxis);
+    this.bottom += clearButton.node().getBBox().height + this._PAD;
+    this._decorateResize(() => {
+      clearButton.resize();
+      var y = this.viewer.attr('height') - this._PAD;
+      clearButton.attr('y', y);
+    });
+    points.moveToFront();
+    // resize so the axis fit correctly
+    this._resize();
+    // create an auto resize iframe, if necessary
+    if (this.options.autoResize) {
+      this.resizer = this._autoResize(this.container, (e) => {
+        this._resize();
       });
     }
   }
   
-  function transition_data() {
-  	var domain = x.domain();
-  	groups.transition()
-  	    .duration(500)
-  	    .attr("transform", function(e) {
-  	      return "translate("+x(e.x)+", "+y(e.y)+")";
-  	    })
-  	    .attr("visibility", function(e) {
-  	      if (e.x < domain[0] || e.x > domain[1]) {
-  	        return "hidden";
-  	      } return "visible";
-  	    });
+  // Public
+
+  /**
+    * The constructor.
+    * @param {string} id - ID of element viewer will be drawn in.
+    * @param {object} colors - D3 family-to-color map.
+    * @param {object} data - The data the viewer will visualize.
+    * @param {object} options - Optional parameters.
+    */
+  constructor(id, colors, data, options) {
+    this._init(id, colors, data, options);
+    this._draw();
   }
-  
-  function reset_axis() {
-  	xAxis.tickValues(x.domain());
-    matrix.transition().duration(500)
-        .selectAll(".x.axis").filter(function() {
-          return this == xAxis_selection[0][0];
-        })
-        .call(xAxis);
-  }
-  
-  function call_brushCallback() {
-  	// make a selection containing the selected genes
-  	var domain = x.domain();
-  	var added = {};
-  	var selected = groups.filter(function(e) {
-  	  if (e.x >= domain[0] && e.x <= domain[1]) {
-  	    // no need for redundant families
-  	    if (!(e.id in added)) {
-  	      added[e.id] = 0;
-  	      return true;
-  	    }
-  	  } return false;;
-  	});
-    // sort the selection
-    selected.sort(function(a, b) {
-      return a.x-b.x;
-    });
-    // mung genes selection data into list
-    var selected_genes = [];
-    selected.each(function(e) {
-      selected_genes.push(e);
-    });
-    // create a duplicate of the current group object to return
-    var duplicate_group = clone(points);
-    // give the duplicate the selected genes
-    duplicate_group.genes = selected_genes;
-    // hand the group object to the callback
-  	brushCallback( duplicate_group );
+
+  /** Manually destroys the viewer. */
+  destroy() {
+    if (this.resizer) {
+      if (this.resizer.contentWindow)
+        this.resizer.contentWindow.onresize = undefined;
+      this.container.removeChild(this.resizer);
+    }
+    this.container.removeChild(this.viewer.node());
+    this.container = this.viewer = this.resizer = undefined;
   }
 }

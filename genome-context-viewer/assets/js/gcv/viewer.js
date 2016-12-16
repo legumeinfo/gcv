@@ -607,12 +607,12 @@ GCV.Viewer = class {
 
   /** Manually destroys the viewer. */
   destroy() {
-    if (this.container) {
-      this.container.removeChild(this.viewer.node());
-      if (this.resizer) {
-        this.container.removeChild(this.resizer);
-      }
+    if (this.resizer) {
+      if (this.resizer.contentWindow)
+        this.resizer.contentWindow.onresize = undefined;
+      this.container.removeChild(this.resizer);
     }
+    this.container.removeChild(this.viewer.node());
     this.container = this.viewer = this.resizer = undefined;
   }
 }

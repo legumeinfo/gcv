@@ -1,5 +1,5 @@
 // Angular
-import { AfterViewInit, Component, Input } from '@angular/core';
+import { AfterViewInit, Component, OnDestroy, Input } from '@angular/core';
 import { Observable }                      from 'rxjs/Observable';
 
 // App store
@@ -16,14 +16,15 @@ declare var GCV: any;
   styles: [ '' ]
 })
 
-export class MicroViewerComponent implements AfterViewInit {
+export class MicroViewerComponent implements AfterViewInit, OnDestroy {
   @Input() tracks: Observable<MicroTracks>;
   @Input() args: Observable<Array<string>>;
 
   private _viewer = undefined;
+  private _sub;
 
   private _draw(tracks: MicroTracks): void {
-    if (this._viewer !== undefined) this._viewer.destroy();
+    this._destroy();
     this._viewer = new GCV.Viewer(
       'micro-viewer',
       contextColors,
@@ -33,8 +34,20 @@ export class MicroViewerComponent implements AfterViewInit {
   }
 
   ngAfterViewInit(): void {
-    this.tracks.subscribe(tracks => {
+    this.sub = this.tracks.subscribe(tracks => {
       this._draw(tracks);
     });
+  }
+
+  ngOnDestroy(): void {
+    this._destroy();
+    this.sub.unsubscribe();
+  }
+
+  private _destroy(): void {
+    if (this._viewer !== undefined) {
+      this._viewer.destroy();
+      this._viewer = undefined;
+    }
   }
 }
