@@ -10,8 +10,12 @@
 		<ul class="nav navbar-nav tabs">
       <li><parameters-toggle></parameters-toggle></li>
       <li><help></help></li>
-      <li [ngClass]="{'active': content==contentTypes.VIEWERS}"><a (click)="showViewers()">Viewers</a></li>
-      <li [ngClass]="{'active': content==contentTypes.PLOTS}"><a (click)="showPlots()">Dot Plots</a></li>
+      <li [ngClass]="{'active': content==contentTypes.VIEWERS}">
+        <a (click)="showViewers()">Viewers</a>
+      </li>
+      <li [ngClass]="{'active': content==contentTypes.PLOTS}">
+        <a (click)="showPlots()">Dot Plots</a>
+      </li>
     </ul>
     <ul class="nav navbar-nav navbar-right">
       <li><legend-toggle></legend-toggle></li>
@@ -24,12 +28,21 @@
           <macro-viewer></macro-viewer>
         </div>
         <div #splitBottom class="split-bottom">
-          <micro-viewer [tracks]="microTracks" [args]="microArgs"></micro-viewer>
+          <micro-viewer
+            [tracks]="microTracks"
+            [args]="microArgs" >
+          </micro-viewer>
         </div>
       </div>
     </main-content>
     <main-content *ngSwitchCase="contentTypes.PLOTS">
-      <plots [plots]="microPlots"></plots>
+      <div class="row">
+        <div class="col-sm-6 col-md-4" *ngFor="let p of microPlots.groups">
+          <div class="thumbnail">
+            <plot [plot]="p" [familySizes]="familySizes"></plot>
+          </div>
+        </div>
+      </div>
     </main-content>
   </div>
   <footer>

@@ -22,3 +22,8 @@
   background-image: url('../../../assets/img/horizontal.png');
   cursor: row-resize;
 }
+.row {
+  height: 100%;
+  margin: 0;
+  overflow-y: auto;
+}

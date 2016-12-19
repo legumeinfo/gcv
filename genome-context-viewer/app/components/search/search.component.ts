@@ -14,6 +14,7 @@ import { microTracksSelector } from '../../selectors/micro-tracks.selector';
 import { PlotsService }        from '../../services/plots.service';
 
 declare var Split: any;
+declare var getFamilySizeMap: any;
 
 enum ContentTypes {
   VIEWERS,
@@ -52,6 +53,7 @@ export class SearchComponent implements OnInit {
 
   private _microTracks: Observable<MicroTracks>;
   microTracks: MicroTracks;
+  familySizes: any;
   microArgs = {
     'highlight': [],
     'geneClicked': function () {},
@@ -80,6 +82,7 @@ export class SearchComponent implements OnInit {
       this._filterService.order
     ).let(microTracksSelector({skipFirst: true}));
     this._microTracks.subscribe(tracks => {
+      this.familySizes = getFamilySizeMap(tracks);
       this.microTracks = tracks;
     });
     this._microPlots = Observable.combineLatest(
@@ -106,7 +109,7 @@ export class SearchComponent implements OnInit {
       let topEl = this._splitTop.nativeElement,
           bottomEl = this._splitBottom.nativeElement;
       let parseSize = (el): number => {
-        let regexp = new RegExp('calc\(|\%(.*)', 'g');
+        let regexp = new RegExp(/calc\(|\%(.*)/, 'g');
         return parseFloat(el.style.height.replace(regexp, ''));
       }
       Split([topEl, bottomEl], {
