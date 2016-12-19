@@ -1,4 +1,9 @@
-<right-slider></right-slider>
+<right-slider>
+  <app-legend class="row vertical-fill"
+    [microTracks]="microTracks"
+    [args]="legendArgs" >
+  </app-legend>
+</right-slider>
 <main>
   <header>
 		<ul class="nav navbar-nav tabs">
@@ -10,7 +15,7 @@
     </ul>
 	</header>
   <main-content>
-    <micro-viewer [tracks]="tracks" [args]="microArgs"></micro-viewer>
+    <micro-viewer [tracks]="microTracks" [args]="microArgs"></micro-viewer>
   </main-content>
   <footer>
     <app-regexp></app-regexp>

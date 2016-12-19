@@ -22,12 +22,17 @@ export class BasicComponent implements OnInit {
   private _queryGenes: BehaviorSubject<Array<string>> = new BehaviorSubject([]);
   queryGenes: Observable<Array<string>> = this._queryGenes.asObservable();
 
-  tracks: Observable<MicroTracks>;
+  private _microTracks: Observable<MicroTracks>;
+  microTracks: MicroTracks;
   microArgs = {
     'highlight': [],
     'geneClicked': function () {},
     'leftAxisClicked': function () {},
     'autoResize': true
+  };
+  legendArgs = {
+    'legendClick': function (family) { },
+    //'selectiveColoring': this.familySizes
   };
 
   constructor(private _route: ActivatedRoute,
@@ -42,9 +47,12 @@ export class BasicComponent implements OnInit {
       this.microArgs.highlight = queryGenes;
       this._queryGenes.next(queryGenes);
     });
-    this.tracks = Observable.combineLatest(
+    this._microTracks = Observable.combineLatest(
       this._microTracksService.tracks,
       this._filterService.regexp
     ).let(microTracksSelector());
+    this._microTracks.subscribe(tracks => {
+      this.microTracks = tracks;
+    });
   }
 }

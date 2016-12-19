@@ -1,6 +1,12 @@
 // Angular
-import { AfterViewInit, Component, OnDestroy, Input } from '@angular/core';
-import { Observable }                      from 'rxjs/Observable';
+import { AfterViewInit,
+         Component,
+         ElementRef,
+         Input,
+         OnChanges,
+         SimpleChanges,
+         ViewChild }  from '@angular/core';
+import { Observable } from 'rxjs/Observable';
 
 // App store
 import { MicroTracks } from '../../models/micro-tracks.model';
@@ -12,42 +18,40 @@ declare var GCV: any;
 @Component({
   moduleId: module.id,
   selector: 'micro-viewer',
-  template: '<div id="micro-viewer"></div>',
+  template: '<div #microViewer></div>',
   styles: [ '' ]
 })
 
-export class MicroViewerComponent implements AfterViewInit, OnDestroy {
-  @Input() tracks: Observable<MicroTracks>;
-  @Input() args: Observable<Array<string>>;
+export class MicroViewerComponent implements AfterViewInit, OnChanges {
+  @Input() tracks: MicroTracks;
+  @Input() args: any;
+
+  @ViewChild('microViewer') el: ElementRef;
 
   private _viewer = undefined;
-  private _sub;
+  private _id = 'micro-tracks';  // dynamically set to UUID in ngOnInit
 
-  private _draw(tracks: MicroTracks): void {
-    this._destroy();
-    this._viewer = new GCV.Viewer(
-      'micro-viewer',
-      contextColors,
-      tracks,
-      this.args
-    );
+  ngOnChanges(changes: SimpleChanges): void {
+    this._draw();
   }
 
   ngAfterViewInit(): void {
-    this.sub = this.tracks.subscribe(tracks => {
-      this._draw(tracks);
-    });
+    this.el.nativeElement.id = this._id;
+    this._draw();
   }
 
-  ngOnDestroy(): void {
-    this._destroy();
-    this.sub.unsubscribe();
-  }
-
-  private _destroy(): void {
-    if (this._viewer !== undefined) {
-      this._viewer.destroy();
-      this._viewer = undefined;
+  private _draw(): void {
+    if (this.el !== undefined && this.el.nativeElement.id !== '') {
+      if (this._viewer !== undefined) {
+        this._viewer.destroy();
+        this._viewer = undefined;
+      }
+      this._viewer = new GCV.Viewer(
+        this._id,
+        contextColors,
+        this.tracks,
+        this.args
+      );
     }
   }
 }

@@ -32,10 +32,6 @@ export class PlotComponent implements AfterViewInit, OnDestroy {
   ngAfterViewInit(): void {
     let id = 'plot-' + this.plot.id;
     this.el.nativeElement.id = id;
-    //plot(id, this.familySizes, contextColors, this.plot, {  // plot.js
-    //  'geneClicked': (gene) => { },
-    //  'plotClicked': (trackID) => { }
-		//});
     this._plot = new GCV.Plot(id, contextColors, this.plot, {
       'autoResize': true,
       'outlier': -1,

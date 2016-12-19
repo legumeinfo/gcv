@@ -5,14 +5,13 @@
 var GCV = GCV || {};
 
 
-/** The micro-synteny viewer. */
+/** The dot plot viewer. */
 GCV.Plot = class {
 
   // Private
 
   // Constants
   _PAD    = 2;
-  _FACE   = 0.15;
   _RADIUS = 3.5;
 
   /**

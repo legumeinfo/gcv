@@ -32,29 +32,36 @@ export class SearchComponent implements OnInit {
   // EVIL: ElementRefs nested in switch cases are undefined when parent or child
   // AfterViewInit hooks are called, so routines that depend on them are called
   // via the setter.
+  private _splitTop: ElementRef;
+  private _splitTopSize = 50;
   @ViewChild('splitTop')
   set splitTop(el: ElementRef) {
     this._splitTop = el;
     this._splitViewers();
   }
-  private _splitTopSize = 50;
+  private _splitBottom: ElementRef;
+  private _splitBottomSize = 50;
   @ViewChild('splitBottom')
   set splitBottom(el: ElementRef) {
     this._splitBottom = el;
     this._splitViewers();
   }
-  private _splitBottomSize = 50;
 
   contentTypes = ContentTypes;
   content;
 
-  microTracks: Observable<MicroTracks>;
+  private _microTracks: Observable<MicroTracks>;
+  microTracks: MicroTracks;
   microArgs = {
     'highlight': [],
     'geneClicked': function () {},
     'leftAxisClicked': function () {},
     'autoResize': true,
     'boldFirst': true
+  };
+  legendArgs = {
+    'legendClick': function (family) { },
+    //'selectiveColoring': this.familySizes
   };
 
   private _microPlots: Observable<MicroTracks>;
@@ -67,11 +74,14 @@ export class SearchComponent implements OnInit {
   ngOnInit(): void {
     this.showViewers();
     //this.showPlots();
-    this.microTracks = Observable.combineLatest(
+    this._microTracks = Observable.combineLatest(
       this._alignmentService.tracks,
       this._filterService.regexp,
       this._filterService.order
     ).let(microTracksSelector({skipFirst: true}));
+    this._microTracks.subscribe(tracks => {
+      this.microTracks = tracks;
+    });
     this._microPlots = Observable.combineLatest(
       this._plotsService.localPlots,
       this._filterService.regexp,
@@ -96,7 +106,7 @@ export class SearchComponent implements OnInit {
       let topEl = this._splitTop.nativeElement,
           bottomEl = this._splitBottom.nativeElement;
       let parseSize = (el): number => {
-        let regexp = new RegExp(/calc\(|\%(.*)/, 'g');
+        let regexp = new RegExp('calc\(|\%(.*)', 'g');
         return parseFloat(el.style.height.replace(regexp, ''));
       }
       Split([topEl, bottomEl], {
@@ -104,7 +114,6 @@ export class SearchComponent implements OnInit {
         direction: 'vertical',
         minSize: 0,
         onDragEnd: () => {
-          let regexp = new RegExp(/calc\(|\%(.*)/, 'g');
           this._splitTopSize = parseSize(topEl);
           this._splitBottomSize = parseSize(bottomEl);
         }
