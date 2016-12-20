@@ -416,6 +416,7 @@ GCV.Viewer = class {
   	  .enter()
   	  .append('g')
   	  .attr('class', 'gene')
+      .attr('data-family', g => g.family)
   	  .attr('transform', function (g) {
   	    return 'translate(' + obj.x(g.x) + ', ' + obj.y(y + g.y) + ')';
   	  })

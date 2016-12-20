@@ -9,42 +9,27 @@ import { AfterViewInit,
 // App
 import { MicroTracks } from '../../models/micro-tracks.model';
 
-declare var GCV: any;
-declare var contextLegend: any;
-declare var contextColors: any;
 declare var d3: any;
+declare var GCV: any;
 
 @Component({
   moduleId: module.id,
   selector: 'app-legend',
-  template: `
-    <div class="legend-wrapper">
-      <div class=vertical-scroll>
-        <div class="legend" #legend></div>
-      </div>
-    </div>
+  template: `<div #legend></div>
   `,
   styles: [`
-    .legend-wrapper {
-      overflow: hidden;
-    }
-    .legend-wrapper .vertical-scroll {
+    div {
       position: relative;
-      height: 100%
-    }
-    .legend-wrapper .vertical-scroll #legend {
+      height: 100%;
+      overflow-x: hidden;
       overflow-y: scroll;
-      position: absolute;
-      top: 0;
-      right:0;
-      bottom: 0;
-      left: 0;
     }
   `]
 })
 
 export class LegendComponent implements AfterViewInit {
   @Input() microTracks: MicroTracks;
+  @Input() colors: any;
   @Input() args: any;
 
   @ViewChild('legend') el: ElementRef;
@@ -63,11 +48,16 @@ export class LegendComponent implements AfterViewInit {
 
   private _draw(): void {
     if (this.el !== undefined && this.el.nativeElement.id !== '') {
-      //if (this._legend !== undefined) {
-      //  this._legend.destroy();
-      //  this._legend = undefined;
-      //}
-      contextLegend('legend-content', contextColors, this.microTracks, this.args);
+      if (this._legend !== undefined) {
+        this._legend.destroy();
+        this._legend = undefined;
+      }
+      this._legend = new GCV.Legend(
+        'legend-content',
+        this.colors,
+        this.microTracks,
+        this.args
+      );
     }
   }
 }

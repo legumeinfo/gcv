@@ -13,8 +13,11 @@ import { MicroTracks }         from '../../models/micro-tracks.model';
 import { microTracksSelector } from '../../selectors/micro-tracks.selector';
 import { PlotsService }        from '../../services/plots.service';
 
+declare var d3: any;
+declare var contextColors: any;
 declare var Split: any;
 declare var getFamilySizeMap: any;
+declare var RegExp: any;
 
 enum ContentTypes {
   VIEWERS,
@@ -54,6 +57,7 @@ export class SearchComponent implements OnInit {
   private _microTracks: Observable<MicroTracks>;
   microTracks: MicroTracks;
   familySizes: any;
+  colors = contextColors;
   microArgs = {
     'highlight': [],
     'geneClicked': function () {},
@@ -63,7 +67,8 @@ export class SearchComponent implements OnInit {
   };
   legendArgs = {
     'legendClick': function (family) { },
-    //'selectiveColoring': this.familySizes
+    'selectiveColoring': this.familySizes,
+    'autoResize': true
   };
 
   private _microPlots: Observable<MicroTracks>;

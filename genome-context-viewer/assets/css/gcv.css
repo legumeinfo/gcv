@@ -1,13 +1,4 @@
-.axis path,
-.axis line {
-    fill: none;
-    stroke: #eee;
-    shape-rendering: crispEdges;
-}
-.axis text {
-    font-family: sans-serif;
-    font-size: 10px;
-}
+
 .focus {
     stroke: #000;
     stroke-width: 3;
@@ -43,11 +34,21 @@
     font-family: sans-serif;
     font-size: 10px;
 }
-.legend {
+/* GCV css */
+.GCV {
+  font-family: sans-serif;
+  font-size: 10px;
+}
+.GCV .axis path,
+.GCV .axis line {
+  fill: none;
+  stroke: #eee;
+  shape-rendering: crispEdges;
+}
+.axis text {
     font-family: sans-serif;
     font-size: 10px;
 }
-/* GCV css */
 .GCV .query {
   font-weight: bold;
 }

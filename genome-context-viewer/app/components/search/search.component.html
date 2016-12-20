@@ -1,6 +1,7 @@
 <right-slider>
   <app-legend class="row vertical-fill"
     [microTracks]="microTracks"
+    [colors]="colors"
     [args]="legendArgs" >
   </app-legend>
   <local-global-plots class="row"></local-global-plots>
@@ -30,6 +31,7 @@
         <div #splitBottom class="split-bottom">
           <micro-viewer
             [tracks]="microTracks"
+            [colors]="colors"
             [args]="microArgs" >
           </micro-viewer>
         </div>

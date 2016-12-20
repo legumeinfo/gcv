@@ -10,6 +10,9 @@ import { MicroTracks }         from '../../models/micro-tracks.model';
 import { microTracksSelector } from '../../selectors/micro-tracks.selector';
 import { MicroTracksService }  from '../../services/micro-tracks.service';
 
+declare var d3: any;
+declare var contextColors: any;
+
 @Component({
   moduleId: module.id,
   selector: 'basic',
@@ -24,6 +27,7 @@ export class BasicComponent implements OnInit {
 
   private _microTracks: Observable<MicroTracks>;
   microTracks: MicroTracks;
+  colors = contextColors;
   microArgs = {
     'highlight': [],
     'geneClicked': function () {},

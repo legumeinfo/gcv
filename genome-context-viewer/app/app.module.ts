@@ -53,7 +53,6 @@ import { NavComponent }              from './components/shared/nav.component';
 import { OrderingComponent }         from './components/search/ordering.component';
 import { ParametersToggleComponent } from './components/shared/parameters-toggle.component';
 import { PlotComponent }             from './components/shared/plot.component';
-import { PlotsComponent }            from './components/search/plots.component';
 import { RegexpComponent }           from './components/shared/regexp.component';
 import { RightSliderComponent }      from './components/shared/right-slider.component';
 import { ScrollComponent }           from './components/search/scroll.component';
@@ -123,7 +122,6 @@ import { UrlQueryParamsService } from './services/url-query-params.service';
     OrderingComponent,
     ParametersToggleComponent,
     PlotComponent,
-    PlotsComponent,
     RegexpComponent,
     RightSliderComponent,
     ScrollComponent,

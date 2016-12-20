@@ -11,7 +11,6 @@ import { Observable } from 'rxjs/Observable';
 // App store
 import { MicroTracks } from '../../models/micro-tracks.model';
 
-declare var contextColors: any;
 declare var d3: any;
 declare var GCV: any;
 
@@ -24,6 +23,7 @@ declare var GCV: any;
 
 export class MicroViewerComponent implements AfterViewInit, OnChanges {
   @Input() tracks: MicroTracks;
+  @Input() colors: any;
   @Input() args: any;
 
   @ViewChild('microViewer') el: ElementRef;
@@ -48,7 +48,7 @@ export class MicroViewerComponent implements AfterViewInit, OnChanges {
       }
       this._viewer = new GCV.Viewer(
         this._id,
-        contextColors,
+        this.colors,
         this.tracks,
         this.args
       );

@@ -1,6 +1,7 @@
 <right-slider>
   <app-legend class="row vertical-fill"
     [microTracks]="microTracks"
+    [colors]="colors"
     [args]="legendArgs" >
   </app-legend>
 </right-slider>
@@ -15,7 +16,11 @@
     </ul>
 	</header>
   <main-content>
-    <micro-viewer [tracks]="microTracks" [args]="microArgs"></micro-viewer>
+    <micro-viewer
+      [tracks]="microTracks"
+      [colors]="colors"
+      [args]="microArgs" >
+    </micro-viewer>
   </main-content>
   <footer>
     <app-regexp></app-regexp>
