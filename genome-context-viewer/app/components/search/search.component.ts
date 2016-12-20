@@ -15,6 +15,7 @@ import { MacroTracksService }  from '../../services/macro-tracks.service';
 import { MicroTracks }         from '../../models/micro-tracks.model';
 import { microTracksSelector } from '../../selectors/micro-tracks.selector';
 import { MicroTracksService }  from '../../services/micro-tracks.service';
+import { plotsSelector }       from '../../selectors/plots.selector';
 import { PlotsService }        from '../../services/plots.service';
 
 declare var d3: any;
@@ -122,9 +123,8 @@ export class SearchComponent implements OnInit {
     });
     this._microPlots = Observable.combineLatest(
       this._plotsService.localPlots,
-      this._filterService.regexp,
-      this._filterService.order
-    ).let(microTracksSelector({skipFirst: true}));
+      this._microTracks,
+    ).let(plotsSelector());
     this._microPlots.subscribe(plots => {
       this.microPlots = plots;
     });

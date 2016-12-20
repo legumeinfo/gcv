@@ -47,12 +47,15 @@ export class PlotComponent implements AfterViewInit, OnChanges, OnDestroy {
   }
 
   private _destroy(): void {
-    this._plot.destroy();
-    this._plot = undefined;
+    if (this._plot !== undefined) {
+      this._plot.destroy();
+      this._plot = undefined;
+    }
   }
 
   private _draw(): void {
     if (this.el !== undefined && this.el.nativeElement.id !== '') {
+      this._destroy();
       this._plot = new GCV.Plot(this._id, contextColors, this.plot, {
         autoResize: true,
         outlier: -1,
