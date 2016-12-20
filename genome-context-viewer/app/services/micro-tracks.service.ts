@@ -4,20 +4,16 @@ import { Injectable }     from '@angular/core';
 import { Observable }     from 'rxjs/Observable';
 import { Store }          from '@ngrx/store';
 
-// App store
-import { ADD_MICRO_TRACKS } from '../constants/actions';
-import { AppStore }         from '../models/app-store.model';
-import { Family }           from '../models/family.model';
-import { Gene }             from '../models/gene.model';
-import { Group }						from '../models/group.model';
-import { MicroTracks }      from '../models/micro-tracks.model';
-
-// App services
+// App
+import { ADD_MICRO_TRACKS }  from '../constants/actions';
+import { AppStore }          from '../models/app-store.model';
+import { Family }            from '../models/family.model';
+import { Gene }              from '../models/gene.model';
 import { GET, POST, Server } from '../models/server.model';
+import { Group }						 from '../models/group.model';
+import { MicroTracks }       from '../models/micro-tracks.model';
 import { QueryParams }       from '../models/query-params.model';
 import { SERVERS }           from '../constants/servers';
-
-declare var GCV: any;
 
 @Injectable()
 export class MicroTracksService {
@@ -70,7 +66,7 @@ export class MicroTracksService {
     for (let i = 0; i < sources.length; ++i) {
       let s: Server = sources[i];
       let response: Observable<Response>;
-      if (s.microSearch.type === GET)
+      if (s.microBasic.type === GET)
         response = this._http.get(s.microBasic.url, args);
       else
         response = this._http.post(s.microBasic.url, args);

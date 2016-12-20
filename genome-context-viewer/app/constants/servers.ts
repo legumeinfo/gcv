@@ -17,7 +17,7 @@ export const SERVERS: Server[] = [
       url: 'http://localhost:8000/services/gene_to_query/'
     },
     macro: {
-      type: GET,
+      type: POST,
       url: 'http://localhost:8000/services/synteny/'
     },
     geneLinks: {
@@ -45,7 +45,7 @@ export const SERVERS: Server[] = [
       url: 'http://localhost:8000/services/gene_to_query/'
     },
     macro: {
-      type: GET,
+      type: POST,
       url: 'http://localhost:8000/services/synteny/'
     },
     geneLinks: {

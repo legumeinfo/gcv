@@ -64,6 +64,7 @@ import { TrackDetailComponent }      from './components/shared/track-detail.comp
 // App services
 import { AlignmentService }      from './services/alignment.service';
 import { FilterService }         from './services/filter.service';
+import { MacroTracksService }    from './services/macro-tracks.service';
 import { MicroTracksService }    from './services/micro-tracks.service';
 import { PlotsService }          from './services/plots.service';
 import { UrlQueryParamsService } from './services/url-query-params.service';
@@ -133,6 +134,7 @@ import { UrlQueryParamsService } from './services/url-query-params.service';
   providers: [
     AlignmentService,
     FilterService,
+    MacroTracksService,
     MicroTracksService,
     PlotsService,
     UrlQueryParamsService

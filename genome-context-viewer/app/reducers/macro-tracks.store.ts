@@ -1,8 +1,8 @@
 import { ADD_MACRO_TRACKS } from '../constants/actions';
 
-export const macroTracks = (state: any = {}, {type, payload}) => {
+export const macroTracks = (state: any = {chromosome: '', length: 0, tracks: []},
+{type, payload}) => {
   switch (type) {
-    // returns whatever collection was sent as the new tracks
     case ADD_MACRO_TRACKS:
       return payload;
     default:

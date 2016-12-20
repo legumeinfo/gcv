@@ -9,7 +9,9 @@ import { Observable }        from 'rxjs/Observable';
 // App
 import { AlignmentService }    from '../../services/alignment.service';
 import { FilterService }       from '../../services/filter.service';
+import { MacroTracksService }  from '../../services/macro-tracks.service';
 import { MicroTracks }         from '../../models/micro-tracks.model';
+import { MicroTracksService }  from '../../services/micro-tracks.service';
 import { microTracksSelector } from '../../selectors/micro-tracks.selector';
 import { PlotsService }        from '../../services/plots.service';
 
@@ -35,7 +37,7 @@ enum ContentTypes {
 export class SearchComponent implements OnInit {
   // EVIL: ElementRefs nested in switch cases are undefined when parent or child
   // AfterViewInit hooks are called, so routines that depend on them are called
-  // via the setter.
+  // via their setters.
   private _splitTop: ElementRef;
   private _splitTopSize = 50;
   @ViewChild('splitTop')
@@ -43,6 +45,7 @@ export class SearchComponent implements OnInit {
     this._splitTop = el;
     this._splitViewers();
   }
+
   private _splitBottom: ElementRef;
   private _splitBottomSize = 50;
   @ViewChild('splitBottom')
@@ -56,8 +59,10 @@ export class SearchComponent implements OnInit {
 
   private _microTracks: Observable<MicroTracks>;
   microTracks: MicroTracks;
+
   familySizes: any;
   colors = contextColors;
+
   microArgs = {
     'highlight': [],
     'geneClicked': function () {},
@@ -65,6 +70,7 @@ export class SearchComponent implements OnInit {
     'autoResize': true,
     'boldFirst': true
   };
+
   legendArgs = {
     'legendClick': function (family) { },
     'selectiveColoring': this.familySizes,
@@ -76,11 +82,19 @@ export class SearchComponent implements OnInit {
 
   constructor(private _alignmentService: AlignmentService,
               private _filterService: FilterService,
+              private _macroTracksService: MacroTracksService,
+              private _microTracksService: MicroTracksService,
               private _plotsService: PlotsService) { }
 
   ngOnInit(): void {
     this.showViewers();
     //this.showPlots();
+    this._microTracksService.tracks.subscribe(tracks => {
+      this._macroTracksService.search(tracks);
+    });
+    this._macroTracksService.tracks.subscribe(tracks => {
+      console.log(tracks);
+    });
     this._microTracks = Observable.combineLatest(
       this._alignmentService.tracks,
       this._filterService.regexp,
