@@ -9,11 +9,12 @@ import { Observable }        from 'rxjs/Observable';
 // App
 import { AlignmentService }    from '../../services/alignment.service';
 import { FilterService }       from '../../services/filter.service';
-import { MacroTracksService }  from '../../services/macro-tracks.service';
 import { MacroTracks }         from '../../models/macro-tracks.model';
+import { macroTracksSelector } from '../../selectors/macro-tracks.selector';
+import { MacroTracksService }  from '../../services/macro-tracks.service';
 import { MicroTracks }         from '../../models/micro-tracks.model';
-import { MicroTracksService }  from '../../services/micro-tracks.service';
 import { microTracksSelector } from '../../selectors/micro-tracks.selector';
+import { MicroTracksService }  from '../../services/micro-tracks.service';
 import { PlotsService }        from '../../services/plots.service';
 
 declare var d3: any;
@@ -70,6 +71,7 @@ export class SearchComponent implements OnInit {
   private _microPlots: Observable<MicroTracks>;
   microPlots: MicroTracks;
 
+  private _macroTracks: Observable<MacroTracks>;
   macroTracks: MacroTracks;
 
   // viewers
@@ -109,9 +111,6 @@ export class SearchComponent implements OnInit {
     this._microTracksService.tracks.subscribe(tracks => {
       this._macroTracksService.search(tracks);
     });
-    this._macroTracksService.tracks.subscribe(tracks => {
-      this.macroTracks = tracks;
-    });
     this._microTracks = Observable.combineLatest(
       this._alignmentService.tracks,
       this._filterService.regexp,
@@ -128,6 +127,13 @@ export class SearchComponent implements OnInit {
     ).let(microTracksSelector({skipFirst: true}));
     this._microPlots.subscribe(plots => {
       this.microPlots = plots;
+    });
+    this._macroTracks = Observable.combineLatest(
+      this._macroTracksService.tracks,
+      this._microTracks
+    ).let(macroTracksSelector());
+    this._macroTracks.subscribe(tracks => {
+      this.macroTracks = tracks;
     });
   }
 
