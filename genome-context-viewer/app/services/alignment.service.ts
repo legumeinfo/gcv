@@ -59,6 +59,10 @@ export class AlignmentService {
       let alignedTracks = Alignment.trackify(tracks, alignments);
       // merge tracks from same alignment set
       var mergedTracks = GCV.merge(alignedTracks);
+      // TODO: move to standalone filter
+      mergedTracks.groups = mergedTracks.groups.filter((g, i) => {
+        return i == 0 || g.score >= params.score;
+      });
       return mergedTracks;
     });
   }
