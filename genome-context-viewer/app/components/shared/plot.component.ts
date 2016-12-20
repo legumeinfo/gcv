@@ -2,6 +2,8 @@
 import { AfterViewInit,
          Component,
          ElementRef,
+         OnChanges,
+         SimpleChanges,
          OnDestroy,
          Input,
          ViewChild } from '@angular/core';
@@ -21,28 +23,43 @@ declare var d3: any;
   styles: [ '' ]
 })
 
-export class PlotComponent implements AfterViewInit, OnDestroy {
+export class PlotComponent implements AfterViewInit, OnChanges, OnDestroy {
   @Input() plot: Group;
   @Input() familySizes: any;
 
   @ViewChild('plot') el: ElementRef;
 
-  private _plot;
+  private _plot = undefined;
+  private _id = '';
 
   ngAfterViewInit(): void {
-    let id = 'plot-' + this.plot.id;
-    this.el.nativeElement.id = id;
-    this._plot = new GCV.Plot(id, contextColors, this.plot, {
-      'autoResize': true,
-      'outlier': -1,
-      'selectiveColoring': this.familySizes,
-      'geneClick': (gene) => { },
-      'plotClick': (trackID) => { }
-		});
+    this._id = 'plot-' + this.plot.id;
+    this.el.nativeElement.id = this._id;
+    this._draw();
+  }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    this._draw();
   }
 
   ngOnDestroy(): void {
+    this._destroy();
+  }
+
+  private _destroy(): void {
     this._plot.destroy();
     this._plot = undefined;
+  }
+
+  private _draw(): void {
+    if (this.el !== undefined && this.el.nativeElement.id !== '') {
+      this._plot = new GCV.Plot(this._id, contextColors, this.plot, {
+        autoResize: true,
+        outlier: -1,
+        selectiveColoring: this.familySizes,
+        geneClick: (gene) => { },
+        plotClick: (trackID) => { }
+		  });
+    }
   }
 }

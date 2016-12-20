@@ -117,13 +117,13 @@ GCV.Plot = class {
     this.xScale = d3.scale.linear();
     this.yScale = d3.scale.linear();
     // parse optional parameters
-    this.options = options || {};
-    this.options.selectiveColoring = options.selectiveColoring;
-    this.options.geneClick = options.geneClick || function (selection) { };
-    this.options.plotClick = options.plotClick || function (plotID) { };
-    this.options.brushup = options.brushup || function (brushed) { };
-    this.options.autoResize = options.autoResize || false;
-    this.options.outlier = options.outlier || undefined;
+    this.options = Object.assign({}, options);
+    this.options.selectiveColoring = this.options.selectiveColoring;
+    this.options.geneClick = this.options.geneClick || function (selection) { };
+    this.options.plotClick = this.options.plotClick || function (plotID) { };
+    this.options.brushup = this.options.brushup || function (brushed) { };
+    this.options.autoResize = this.options.autoResize || false;
+    this.options.outlier = this.options.outlier || undefined;
     // make sure resize always has the right context
     this._resize = this._resize.bind(this);
     // initialize the viewer width/height and scale range

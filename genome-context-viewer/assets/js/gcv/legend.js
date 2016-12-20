@@ -107,10 +107,10 @@ GCV.Legend = class {
       .attr('class', 'GCV');
     // create the scales used to plot genes
     // parse optional parameters
-    this.options = options || {};
-    this.options.selectiveColoring = options.selectiveColoring;
-    this.options.familyClick = options.familyClick || function (family) { };
-    this.options.autoResize = options.autoResize || false;
+    this.options = Object.assign({}, options);
+    this.options.selectiveColoring = this.options.selectiveColoring;
+    this.options.familyClick = this.options.familyClick || function (family) { };
+    this.options.autoResize = this.options.autoResize || false;
     // make sure resize always has the right context
     this._resize = this._resize.bind(this);
     // initialize the viewer width/height and scale range

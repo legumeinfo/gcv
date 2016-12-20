@@ -26,7 +26,10 @@
     <main-content *ngSwitchCase="contentTypes.VIEWERS">
       <div class="split">
         <div #splitTop class="split-top">
-          <macro-viewer></macro-viewer>
+          <macro-viewer
+            [tracks]="macroTracks"
+            [args]="macroArgs" >
+          </macro-viewer>
         </div>
         <div #splitBottom class="split-bottom">
           <micro-viewer

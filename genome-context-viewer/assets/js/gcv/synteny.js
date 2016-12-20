@@ -139,12 +139,12 @@ GCV.Synteny = class {
     // initialize the viewer width and scale range
     this._resize();
     // parse optional parameters
-    this.options = options || {};
-    this.options.nameClick = options.nameClick || function (y, i) { };
-    this.options.blockClick = options.blockClick || function (b) { };
-    this.options.viewportDrag = options.viewportDrag;
-    this.options.viewport = options.viewport || false;
-    this.options.autoResize = options.autoResize || false;
+    this.options = Object.assign({}, options);
+    this.options.nameClick = this.options.nameClick || function (y, i) { };
+    this.options.blockClick = this.options.blockClick || function (b) { };
+    this.options.viewportDrag = this.options.viewportDrag;
+    this.options.viewport = this.options.viewport || false;
+    this.options.autoResize = this.options.autoResize || false;
   }
 
   /**
@@ -251,7 +251,7 @@ GCV.Synteny = class {
   	  .style('cursor', 'pointer')
       .on('mouseover', function (b) { obj._beginHover(d3.select(this)); })
   	  .on('mouseout', function (b) { obj._endHover(d3.select(this)); })
-  	  .on('click', this.options.blockClick);
+  	  .on('click', () => { this.options.blockClick(); });
     // help for generating points
     var genPoints = function (b, yTop, yBottom, yMiddle) {
       var x1 = obj.scale(b.start),
@@ -383,7 +383,7 @@ GCV.Synteny = class {
         var selection = d3.selectAll('.GCV .macro-' + i.toString());
         this._endHover(selection);
       })
-      .on('click', this.options.nameClick);
+      .on('click', () => { this.options.nameClick(); });
     return yAxis;
   }
 

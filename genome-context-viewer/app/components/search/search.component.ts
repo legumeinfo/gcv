@@ -10,6 +10,7 @@ import { Observable }        from 'rxjs/Observable';
 import { AlignmentService }    from '../../services/alignment.service';
 import { FilterService }       from '../../services/filter.service';
 import { MacroTracksService }  from '../../services/macro-tracks.service';
+import { MacroTracks }         from '../../models/macro-tracks.model';
 import { MicroTracks }         from '../../models/micro-tracks.model';
 import { MicroTracksService }  from '../../services/micro-tracks.service';
 import { microTracksSelector } from '../../selectors/micro-tracks.selector';
@@ -19,7 +20,7 @@ declare var d3: any;
 declare var contextColors: any;
 declare var Split: any;
 declare var getFamilySizeMap: any;
-declare var RegExp: any;
+declare var RegExp: any;  // TypeScript doesn't support regexp as argument...
 
 enum ContentTypes {
   VIEWERS,
@@ -35,6 +36,8 @@ enum ContentTypes {
 })
 
 export class SearchComponent implements OnInit {
+  // view children
+
   // EVIL: ElementRefs nested in switch cases are undefined when parent or child
   // AfterViewInit hooks are called, so routines that depend on them are called
   // via their setters.
@@ -54,37 +57,51 @@ export class SearchComponent implements OnInit {
     this._splitViewers();
   }
 
+  // UI
+
   contentTypes = ContentTypes;
   content;
 
+  // data
+
   private _microTracks: Observable<MicroTracks>;
   microTracks: MicroTracks;
+
+  private _microPlots: Observable<MicroTracks>;
+  microPlots: MicroTracks;
+
+  macroTracks: MacroTracks;
+
+  // viewers
 
   familySizes: any;
   colors = contextColors;
 
   microArgs = {
-    'highlight': [],
-    'geneClicked': function () {},
-    'leftAxisClicked': function () {},
-    'autoResize': true,
-    'boldFirst': true
+    highlight: [],
+    geneClicked: function () {},
+    leftAxisClicked: function () {},
+    autoResize: true,
+    boldFirst: true
   };
 
   legendArgs = {
-    'legendClick': function (family) { },
-    'selectiveColoring': this.familySizes,
-    'autoResize': true
+    legendClick: function (family) { },
+    selectiveColoring: this.familySizes,
+    autoResize: true
   };
 
-  private _microPlots: Observable<MicroTracks>;
-  microPlots: MicroTracks;
+  marcoArgs = {autoResize: true};
+
+  // constructor
 
   constructor(private _alignmentService: AlignmentService,
               private _filterService: FilterService,
               private _macroTracksService: MacroTracksService,
               private _microTracksService: MicroTracksService,
               private _plotsService: PlotsService) { }
+
+  // Angular hooks
 
   ngOnInit(): void {
     this.showViewers();
@@ -93,7 +110,7 @@ export class SearchComponent implements OnInit {
       this._macroTracksService.search(tracks);
     });
     this._macroTracksService.tracks.subscribe(tracks => {
-      console.log(tracks);
+      this.macroTracks = tracks;
     });
     this._microTracks = Observable.combineLatest(
       this._alignmentService.tracks,
@@ -114,14 +131,7 @@ export class SearchComponent implements OnInit {
     });
   }
 
-  showViewers(): void {
-    this.content = this.contentTypes.VIEWERS;
-  }
-
-  showPlots(): void {
-    this.content = this.contentTypes.PLOTS;
-    this._splitTop = this.splitBottom = undefined;
-  }
+  // private
 
   private _splitViewers(): void {
     if (this._splitTop !== undefined && this._splitBottom !== undefined) {
@@ -141,5 +151,16 @@ export class SearchComponent implements OnInit {
         }
       });
     }
+  }
+
+  // public
+
+  showViewers(): void {
+    this.content = this.contentTypes.VIEWERS;
+  }
+
+  showPlots(): void {
+    this.content = this.contentTypes.PLOTS;
+    this._splitTop = this.splitBottom = undefined;
   }
 }
