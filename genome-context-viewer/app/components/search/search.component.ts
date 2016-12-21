@@ -94,7 +94,7 @@ export class SearchComponent implements OnInit {
     autoResize: true
   };
 
-  marcoArgs = {autoResize: true};
+  macroArgs: any = {autoResize: true};
 
   // constructor
 
@@ -120,6 +120,14 @@ export class SearchComponent implements OnInit {
     this._microTracks.subscribe(tracks => {
       this.familySizes = getFamilySizeMap(tracks);
       this.microTracks = tracks;
+      this.macroArgs.viewport = undefined;
+      if (tracks.groups.length > 0 && tracks.groups[0].genes.length > 0) {
+        let query = tracks.groups[0];
+        this.macroArgs.viewport = {
+          start: query.genes[0].fmin,
+          stop: query.genes[query.genes.length - 1].fmax
+        }
+      }
     });
     this._microPlots = Observable.combineLatest(
       this._plotsService.localPlots,
