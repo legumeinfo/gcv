@@ -1,46 +1,85 @@
 // Angular
-import { BehaviorSubject } from 'rxjs/BehaviorSubject';
-import { Injectable }      from '@angular/core';
-import { Observable }      from 'rxjs/Observable';
-import { Store }           from '@ngrx/store';
-import 'rxjs/add/operator/map';
+import { Http, Response } from '@angular/http';
+import { Injectable }     from '@angular/core';
+import { Observable }     from 'rxjs/Observable';
+import { Store }          from '@ngrx/store';
 
-// App store
+// App
 import { AppStore }          from '../models/app-store.model';
 import { ADD_GLOBAL_PLOTS,
          ADD_LOCAL_PLOTS,
-         SELECT_GLOBAL_PLOT,
-         SELECT_LOCAL_PLOT } from '../constants/actions';
-import { Gene }              from '../models/gene.model';
-import { Group }             from '../models/group.model';
-import { MicroTracks }       from '../models/micro-tracks.model';
+         SELECT_PLOT,
+         UPDATE_GLOBAL_PLOTS } from '../constants/actions';
+import { Gene }                from '../models/gene.model';
+import { GET, POST, Server }   from '../models/server.model';
+import { Group }               from '../models/group.model';
+import { MicroTracks }         from '../models/micro-tracks.model';
+import { SERVERS }             from '../constants/servers';
 
 @Injectable()
 export class PlotsService {
-  localPlots: Observable<MicroTracks>;
-  selectedLocal: Observable<Group>;
-  globalPlots: BehaviorSubject<MicroTracks>;
-  selectedGlobal: Observable<Group>
+  // TODO: make this more reactive
+  private _query: any[];
+  private _familyMap: any;
 
-  constructor(private _store: Store<AppStore>) {
+  private _globalPlots: Group[];
+  private _localPlots: Group[];
+  localPlots: Observable<Array<Group>>;
+  private _selectedPlot: Group;
+  selectedPlot: Observable<Group>;
+
+  private _servers = SERVERS;
+  private _serverIDs = this._servers.map(s => s.id);
+
+  constructor(private _http: Http, private _store: Store<AppStore>) {
     this._init();
   }
 
   private _init(): void {
-    this.localPlots = this._store.select('microTracks').let(this._plotTracks());
-    this.globalPlots = <BehaviorSubject<MicroTracks>>this._store.select(
-      'globalPlots'
-    );
+    this._store.select('microTracks').subscribe((tracks: MicroTracks) => {
+      this._parseQuery(tracks);
+      let localPlots = this._plotTracks(tracks);
+      this._store.dispatch({type: ADD_LOCAL_PLOTS, payload: localPlots});
+      this._store.dispatch({type: ADD_GLOBAL_PLOTS, payload: []});
+    });
+    this._store.select('globalPlots').subscribe((plots: Group[]) => {
+      this._globalPlots = plots;
+    });
+    this.localPlots = this._store.select('localPlots');
+    this.localPlots.subscribe(plots => {
+      this._localPlots = plots;
+    });
+    this.selectedPlot = this._store.select('selectedPlot');
+    this.selectedPlot.subscribe(plot => {
+      this._selectedPlot = plot;
+    });
   }
 
-  private _plotGenes(familyMap, genes): Gene[] {
+  private _parseQuery(tracks: MicroTracks): void {
+    this._query = [];
+    this._familyMap = {};
+    if (tracks.groups.length > 0) {
+  	  for (let i = 0; i < tracks.groups[0].genes.length; ++i) {
+  	    let g = tracks.groups[0].genes[i];
+        this._query.push(g.family);
+  	    let p = (g.fmin + g.fmax) / 2;
+  	    if (g.family in this._familyMap) {
+  	      this._familyMap[g.family].push(p);
+  	    } else if (g.family) {
+  	      this._familyMap[g.family] = [p];
+  	    }
+  	  }
+    }
+  }
+
+  private _plotGenes(genes): Gene[] {
     let plotGenes = [];
     for (let i = 0; i < genes.length; ++i) {
       let g = Object.assign({}, genes[i]);
       g.x = (g.fmin + g.fmax) / 2;
-      if (g.family in familyMap) {
-        for (let j = 0; j < familyMap[g.family].length; ++j) {
-          g.y = familyMap[g.family][j];
+      if (g.family in this._familyMap) {
+        for (let j = 0; j < this._familyMap[g.family].length; ++j) {
+          g.y = this._familyMap[g.family][j];
         }
       } else {
         g.y = -1;
@@ -50,39 +89,58 @@ export class PlotsService {
     return plotGenes;
   }
 
-  private _plotTracks = () => {
-    return state => state.map(tracks => {
-      let plots = JSON.parse(JSON.stringify(tracks)); 
-      if (plots.groups.length > 0) {
-    	  let familyMap = {};
-        // map the query family locations
-    	  for (let i = 0; i < plots.groups[0].genes.length; ++i) {
-    	    let g = plots.groups[0].genes[i];
-    	    let p = (g.fmin + g.fmax) / 2;
-    	    if (g.family in familyMap) {
-    	      familyMap[g.family].push(p);
-    	    } else if (g.family != '') {
-    	      familyMap[g.family] = [p];
-    	    }
-    	  }
-    	  // plot all the genes against the list of points
-    	  for (let i = 0; i < plots.groups.length; ++i) {
-          let g = plots.groups[i];
-    	    g.genes = this._plotGenes(familyMap, g.genes);
-			  }
+  private _plotTracks(tracks): Group[] {
+    let plots = JSON.parse(JSON.stringify(tracks.groups)); 
+    if (plots.length > 0) {
+  	  for (let i = 0; i < plots.length; ++i) {
+        let g = plots[i];
+  	    g.genes = this._plotGenes(g.genes);
+		  }
+    }
+    return plots;
+  }
+
+  selectPlot(plot: Group): void {
+    this._store.dispatch({type: SELECT_PLOT, payload: plot});
+  }
+
+  getSelectedGlobal(callback: Function): void {
+    let local = this.getSelectedLocal();
+    if (local !== undefined) {
+      let idx = this._globalPlots.map(p => p.id).indexOf(this._selectedPlot.id);
+      if (idx != -1) callback(this._globalPlots[idx]);
+      idx = this._serverIDs.indexOf(this._selectedPlot.source)
+      if (idx != -1) {
+        let s: Server = this._servers[idx];
+        let args = {
+          query: this._query,
+          chromosomeID: local.chromosome_id
+        };
+        let response: Observable<Response>;
+        if (s.plotGlobal.type === GET)
+          response = this._http.get(s.plotGlobal.url, args);
+        else
+          response = this._http.post(s.plotGlobal.url, args);
+        response.toPromise().then(res => {
+          let plot = Object.assign({}, local);
+          plot.genes = this._plotGenes(res.json());
+          for (let i = 0; i < plot.genes.length; ++i) {
+            plot.genes[i].source = plot.source;
+          }
+          this._store.dispatch({type: UPDATE_GLOBAL_PLOTS, payload: plot})
+          callback(plot);
+        });
       }
-      return plots;
-    });
+    } else {
+      callback(undefined);
+    }
   }
 
-  selectGlobal(plot: Group): void {
-    // TODO: perform selection using localPlots.getValue()
-    // TODO: fetch genes from service if necessary
-    this._store.dispatch({type: SELECT_GLOBAL_PLOT, payload: plot});
-  }
-
-  selectLocal(plot: Group): void {
-    // TODO: perform selection using globalPlots.getValue()
-    this._store.dispatch({type: SELECT_LOCAL_PLOT, payload: plot});
+  getSelectedLocal(): Group {
+    if (this._selectedPlot !== undefined) {
+      let idx = this._localPlots.map(p => p.id).indexOf(this._selectedPlot.id);
+      if (idx != -1) return this._localPlots[idx];
+    }
+    return undefined;
   }
 }

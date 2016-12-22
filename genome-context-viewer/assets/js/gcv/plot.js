@@ -120,7 +120,7 @@ GCV.Plot = class {
     this.options = Object.assign({}, options);
     this.options.selectiveColoring = this.options.selectiveColoring;
     this.options.geneClick = this.options.geneClick || function (selection) { };
-    this.options.plotClick = this.options.plotClick || function (plotID) { };
+    this.options.plotClick = this.options.plotClick || function (plot) { };
     this.options.brushup = this.options.brushup || function (brushed) { };
     this.options.autoResize = this.options.autoResize || false;
     this.options.outlier = this.options.outlier || undefined;
@@ -339,7 +339,7 @@ GCV.Plot = class {
     }
     function brushend() {
       if (extent[0][0] == extent[1][0]) {
-        obj.options.plotClick(obj.data.id);
+        obj.options.plotClick(obj.data);
       } else {
         clearButton.style('visibility', 'visible');
         obj.xScale.domain([extent[0][0], extent[1][0]]);

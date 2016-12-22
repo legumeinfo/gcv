@@ -1,3 +1,4 @@
+/* Split.js */
 .split {
   -webkit-box-sizing: border-box;
      -moz-box-sizing: border-box;
@@ -22,8 +23,20 @@
   background-image: url('../../../assets/img/horizontal.png');
   cursor: row-resize;
 }
-.row {
-  height: 100%;
-  margin: 0;
-  overflow-y: auto;
+
+/* local/global plots */
+.plots .navbar {
+  border-top: #E7E7E7 solid 1px;
+}
+/* ratio ensures plot has same width and height */
+.plots .outer-ratio {
+  position: relative;
+  height: 0;
+  padding-bottom: 100%;
+}
+.plots .out .inner-ratio {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 100%;
 }

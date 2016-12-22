@@ -1,12 +1,62 @@
+<!-- right slider -->
 <right-slider>
+
+  <!-- legend -->
   <app-legend class="row vertical-fill"
     [microTracks]="microTracks"
     [colors]="colors"
     [args]="legendArgs" >
   </app-legend>
-  <local-global-plots class="row"></local-global-plots>
+
+  <!-- local and global dot plots -->
+  <div class="row plots" *ngIf="showLocalGlobalPlots">
+    <div class="navbar navbar-default navbar-static-top">
+      <div class="container-fluid">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" aria-expanded="false">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+        </div>
+        <div class="collapse navbar-collapse">
+          <ul class="nav navbar-nav tabs">
+            <li [ngClass]="{'active': selectedPlot==plotTypes.LOCAL}">
+              <a (click)="showLocalPlot()">Local</a>
+            </li>
+            <li [ngClass]="{'active': selectedPlot==plotTypes.GLOBAL}">
+              <a (click)="showGlobalPlot()">Global</a>
+            </li>
+          </ul>
+          <ul class="nav navbar-nav navbar-right">
+            <li>
+              <a><span class="glyphicon glyphicon glyphicon-remove pull-right" aria-hidden="true" (click)="hideLocalGlobalPlots()"></span></a>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="outer-ratio">
+      <div class="inner-ratio" [ngSwitch]="selectedPlot">
+        <plot *ngSwitchCase="plotTypes.LOCAL"
+          [plot]="selectedLocal"
+          [args]="plotArgs" >
+        </plot>
+        <plot *ngSwitchCase="plotTypes.GLOBAL"
+          [plot]="selectedGlobal"
+          [args]="plotArgs" >
+        </plot>
+      </div>
+    </div>
+  </div>
+
 </right-slider>
+
+
+<!-- main content area -->
 <main>
+
+  <!-- header -->
   <header>
 		<ul class="nav navbar-nav tabs">
       <li><parameters-toggle></parameters-toggle></li>
@@ -22,7 +72,11 @@
       <li><legend-toggle></legend-toggle></li>
     </ul>
   </header>
+
+  <!-- main content -->
   <div [ngSwitch]="content">
+
+    <!-- micro/macro viewers -->
     <main-content *ngSwitchCase="contentTypes.VIEWERS">
       <div class="split">
         <div #splitTop class="split-top">
@@ -40,22 +94,34 @@
         </div>
       </div>
     </main-content>
+
+    <!-- all local plots -->
     <main-content *ngSwitchCase="contentTypes.PLOTS">
       <div class="row">
-        <div class="col-sm-6 col-md-4" *ngFor="let p of microPlots.groups">
+        <div class="col-sm-6 col-md-4" *ngFor="let p of microPlots">
           <div class="thumbnail">
-            <plot [plot]="p" [familySizes]="familySizes"></plot>
+            <plot
+              [plot]="p"
+              [args]="plotArgs" >
+            </plot>
           </div>
         </div>
       </div>
     </main-content>
+
   </div>
+
+  <!-- footer -->
   <footer>
     <app-regexp></app-regexp>
     <app-ordering></app-ordering>
     <scroll></scroll>
   </footer>
+
 </main>
+
+
+<!-- left slider -->
 <left-slider>
   <search-params></search-params>
 </left-slider>

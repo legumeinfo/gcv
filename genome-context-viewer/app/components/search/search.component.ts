@@ -9,6 +9,7 @@ import { Observable }        from 'rxjs/Observable';
 // App
 import { AlignmentService }    from '../../services/alignment.service';
 import { FilterService }       from '../../services/filter.service';
+import { Group }               from '../../models/group.model';
 import { MacroTracks }         from '../../models/macro-tracks.model';
 import { macroTracksSelector } from '../../selectors/macro-tracks.selector';
 import { MacroTracksService }  from '../../services/macro-tracks.service';
@@ -27,6 +28,11 @@ declare var RegExp: any;  // TypeScript doesn't support regexp as argument...
 enum ContentTypes {
   VIEWERS,
   PLOTS
+}
+
+enum PlotTypes {
+  LOCAL,
+  GLOBAL
 }
 
 @Component({
@@ -64,6 +70,10 @@ export class SearchComponent implements OnInit {
   contentTypes = ContentTypes;
   content;
 
+  plotTypes = PlotTypes;
+  showLocalGlobalPlots: boolean;
+  selectedPlot;
+
   // data
 
   private _microTracks: Observable<MicroTracks>;
@@ -75,6 +85,9 @@ export class SearchComponent implements OnInit {
   private _macroTracks: Observable<MacroTracks>;
   macroTracks: MacroTracks;
 
+  selectedLocal: Group;
+  selectedGlobal: Group;
+
   // viewers
 
   familySizes: any;
@@ -82,8 +95,11 @@ export class SearchComponent implements OnInit {
 
   microArgs = {
     highlight: [],
-    geneClicked: function () {},
-    leftAxisClicked: function () {},
+    //geneClick: function () {},
+    //nameClick: function () {},
+    plotClick: function (p) {
+      this.selectPlot(p);
+    }.bind(this),
     autoResize: true,
     boldFirst: true
   };
@@ -96,6 +112,16 @@ export class SearchComponent implements OnInit {
 
   macroArgs: any = {autoResize: true};
 
+  plotArgs = {
+    autoResize: true,
+    outlier: -1,
+    selectiveColoring: this.familySizes,
+    //geneClick: (gene) => { },
+    plotClick: function (p) {
+      this.selectPlot(p);
+    }.bind(this)
+	};
+
   // constructor
 
   constructor(private _alignmentService: AlignmentService,
@@ -107,8 +133,11 @@ export class SearchComponent implements OnInit {
   // Angular hooks
 
   ngOnInit(): void {
+    // ui
     this.showViewers();
-    //this.showPlots();
+    this.showLocalPlot();
+    this.hideLocalGlobalPlots();
+    // data
     this._microTracksService.tracks.subscribe(tracks => {
       this._macroTracksService.search(tracks);
     });
@@ -143,6 +172,10 @@ export class SearchComponent implements OnInit {
     this._macroTracks.subscribe(tracks => {
       this.macroTracks = tracks;
     });
+    this._plotsService.selectedPlot.subscribe(plot => {
+      if (this.selectedPlot == this.plotTypes.GLOBAL) this.showGlobalPlot();
+      else this.showLocalPlot();
+    });
   }
 
   // private
@@ -169,12 +202,37 @@ export class SearchComponent implements OnInit {
 
   // public
 
-  showViewers(): void {
-    this.content = this.contentTypes.VIEWERS;
-  }
+  // main content
 
   showPlots(): void {
     this.content = this.contentTypes.PLOTS;
     this._splitTop = this.splitBottom = undefined;
+  }
+
+  showViewers(): void {
+    this.content = this.contentTypes.VIEWERS;
+  }
+
+  // local/global plots
+
+  hideLocalGlobalPlots(): void {
+    this.showLocalGlobalPlots = false;
+  }
+
+  selectPlot(plot: Group): void {
+    this.showLocalGlobalPlots = true;
+    this._plotsService.selectPlot(plot);
+  }
+
+  showGlobalPlot(): void {
+    this.selectedPlot = this.plotTypes.GLOBAL;
+    this._plotsService.getSelectedGlobal(plot => {
+      this.selectedGlobal = plot;
+    });
+  }
+
+  showLocalPlot(): void {
+    this.selectedPlot = this.plotTypes.LOCAL;
+    this.selectedLocal = this._plotsService.getSelectedLocal();
   }
 }

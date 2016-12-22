@@ -34,13 +34,13 @@ export class MacroTracksService {
         if (i > 0 && g.source == query.source) l.push(g.chromosome_id);
         return l;
       }, []);
-      let args = {
-        chromosome: query.chromosome_id,
-        results: results
-      };
       let idx = this._serverIDs.indexOf(query.source)
       if (idx != -1) {
         let s: Server = this._servers[idx];
+        let args = {
+          chromosome: query.chromosome_id,
+          results: results
+        };
         let response: Observable<Response>;
         if (s.macro.type === GET)
           response = this._http.get(s.macro.url, args);

@@ -1,11 +1,9 @@
 // Angular
-import { BehaviorSubject } from 'rxjs/BehaviorSubject';
 import { Injectable }      from '@angular/core';
 import { Observable }      from 'rxjs/Observable';
 import { Store }           from '@ngrx/store';
-import 'rxjs/add/operator/map';
 
-// App store
+// App
 import { Algorithm }  from '../models/algorithm.model';
 import { AppStore }   from '../models/app-store.model';
 import { SET_ALIGNMENT,

@@ -543,7 +543,9 @@ GCV.Viewer = class {
       .call(axis);
     plotYAxis.selectAll('text')
   	  .style('cursor', 'pointer')
-      .on('click', this.options.plotClick);
+      .on('click', (i) => {
+        this.options.plotClick(this.data.groups[i]);
+      });
     return plotYAxis;
   }
 
@@ -554,7 +556,7 @@ GCV.Viewer = class {
     this.left = yAxis.node().getBBox().width + this._PAD;
     yAxis.attr('transform', 'translate(' + this.left + ', 0)');
     this.left += this._PAD;
-    if (this.options.plotClick) {
+    if (this.options.plotClick !== undefined) {
       var plotAxis = this._drawPlotAxis();
       this.right += plotAxis.node().getBBox().width + this._PAD;
       var obj = this;

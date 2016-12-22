@@ -21,13 +21,11 @@ import { localPlots }         from './reducers/local-plots.store';
 import { macroTracks }        from './reducers/macro-tracks.store';
 import { microTracks }        from './reducers/micro-tracks.store';
 import { orderFilter }        from './filters/order.filter';
-import { plots }              from './reducers/plots.store';
 import { regexpFilter }       from './filters/regexp.filter';
 import { selectedFamily }     from './reducers/selected-family.store';
 import { selectedGene }       from './reducers/selected-gene.store';
-import { selectedGlobalPlot } from './reducers/selected-global-plot.store';
-import { selectedLocalPlot }  from './reducers/selected-local-plot.store';
 import { selectedMicroTrack } from './reducers/selected-micro-track.store';
+import { selectedPlot }       from './reducers/selected-plot.store';
 import { ui }                 from './reducers/ui.store';
 import { urlQueryParams }     from './reducers/url-query-params.store';
 
@@ -44,7 +42,6 @@ import { InstructionsComponent }     from './components/instructions/instruction
 import { LeftSliderComponent }       from './components/shared/left-slider.component';
 import { LegendComponent }           from './components/shared/legend.component';
 import { LegendToggleComponent }     from './components/shared/legend-toggle.component';
-import { LocalGlobalPlotsComponent } from './components/search/local-global-plots.component';
 import { MacroViewerComponent }      from './components/search/macro-viewer.component';
 import { MainComponent }             from './components/shared/main.component';
 import { MainContentComponent }      from './components/shared/main-content.component';
@@ -84,12 +81,10 @@ import { UrlQueryParamsService } from './services/url-query-params.service';
       macroTracks,
       microTracks,
       orderFilter,
-      plots,
       regexpFilter,
       selectedFamily,
       selectedGene,
-      selectedGlobalPlot,
-      selectedLocalPlot,
+      selectedPlot,
       ui,
       urlQueryParams
     }),
@@ -114,7 +109,6 @@ import { UrlQueryParamsService } from './services/url-query-params.service';
     LeftSliderComponent,
     LegendComponent,
     LegendToggleComponent,
-    LocalGlobalPlotsComponent,
     MacroViewerComponent,
     MainComponent,
     MainContentComponent,

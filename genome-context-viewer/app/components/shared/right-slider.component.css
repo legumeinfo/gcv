@@ -6,10 +6,11 @@
   border-left: #E7E7E7 solid 1px;
   display: table;
 }
-/* vertically stretch .vertical-fill to remaining area: http://stackoverflow.com/questions/8555820/set-div-to-remaining-height-using-css-with-unknown-height-divs-above-and-below */
+/* vertically stretch .vertical-fill to remaining area */
 :host /deep/ .row {
   display: table-row;
   width: 100%;
+  margin: 0;
 }
 :host /deep/ .vertical-fill {
   height: 100%;
