@@ -38,7 +38,10 @@ export class AlignmentService {
         params.algorithm
       )].algorithm;
       let query = tracks.groups[0];
-      let options = Object.assign({}, params, {accessor: g => g.family});
+      let options = Object.assign({}, params, {
+        accessor: g => g.family,
+        suffixScores: true
+      });
       let alignments = [];
       let scores = {};
       for (let i = 1; i < tracks.groups.length; ++i) {
@@ -57,8 +60,14 @@ export class AlignmentService {
       }
       // convert the alignments into tracks
       let alignedTracks = Alignment.trackify(tracks, alignments);
-      // merge tracks from same alignment set
+      // merge tracks from same alignment set remove residual suffix scores
       var mergedTracks = GCV.merge(alignedTracks);
+      for (let i = 1; i < mergedTracks.groups.length; ++i) {
+        let genes = mergedTracks.groups[i].genes;
+        for (let j = 0; j < genes.length; ++j) {
+          delete genes[j].suffixScore;
+        }
+      }
       // TODO: move to standalone filter
       mergedTracks.groups = mergedTracks.groups.filter((g, i) => {
         return i == 0 || g.score >= params.score;

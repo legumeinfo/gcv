@@ -8,7 +8,9 @@ import { Observable }        from 'rxjs/Observable';
 
 // App
 import { AlignmentService }    from '../../services/alignment.service';
+import { Family }              from '../../models/family.model';
 import { FilterService }       from '../../services/filter.service';
+import { Gene }                from '../../models/gene.model';
 import { Group }               from '../../models/group.model';
 import { MacroTracks }         from '../../models/macro-tracks.model';
 import { macroTracksSelector } from '../../selectors/macro-tracks.selector';
@@ -68,11 +70,14 @@ export class SearchComponent implements OnInit {
   // UI
 
   contentTypes = ContentTypes;
-  content;
+  selectedContent;
 
   plotTypes = PlotTypes;
   showLocalGlobalPlots: boolean;
   selectedPlot;
+
+  showLeftSlider: boolean;
+  selectedDetail;
 
   // data
 
@@ -95,8 +100,12 @@ export class SearchComponent implements OnInit {
 
   microArgs = {
     highlight: [],
-    //geneClick: function () {},
-    //nameClick: function () {},
+    geneClick: function (g) {
+      this.selectGene(g);
+    }.bind(this),
+    nameClick: function (t) {
+      this.selectTrack(t);
+    }.bind(this),
     plotClick: function (p) {
       this.selectPlot(p);
     }.bind(this),
@@ -105,7 +114,9 @@ export class SearchComponent implements OnInit {
   };
 
   legendArgs = {
-    legendClick: function (family) { },
+    familyClick: function (f) {
+      this.selectFamily(f);
+    }.bind(this),
     selectiveColoring: this.familySizes,
     autoResize: true
   };
@@ -116,7 +127,9 @@ export class SearchComponent implements OnInit {
     autoResize: true,
     outlier: -1,
     selectiveColoring: this.familySizes,
-    //geneClick: (gene) => { },
+    geneClick: function (g) {
+      this.selectGene(g);
+    }.bind(this),
     plotClick: function (p) {
       this.selectPlot(p);
     }.bind(this)
@@ -134,6 +147,7 @@ export class SearchComponent implements OnInit {
 
   ngOnInit(): void {
     // ui
+    this.selectParams();
     this.showViewers();
     this.showLocalPlot();
     this.hideLocalGlobalPlots();
@@ -205,12 +219,12 @@ export class SearchComponent implements OnInit {
   // main content
 
   showPlots(): void {
-    this.content = this.contentTypes.PLOTS;
+    this.selectedContent = this.contentTypes.PLOTS;
     this._splitTop = this.splitBottom = undefined;
   }
 
   showViewers(): void {
-    this.content = this.contentTypes.VIEWERS;
+    this.selectedContent = this.contentTypes.VIEWERS;
   }
 
   // local/global plots
@@ -234,5 +248,28 @@ export class SearchComponent implements OnInit {
   showLocalPlot(): void {
     this.selectedPlot = this.plotTypes.LOCAL;
     this.selectedLocal = this._plotsService.getSelectedLocal();
+  }
+
+  // left slider
+  // EVIL: typescript checks types at compile time so we have to explicitly
+  // instantiate those that will be checked by left-slider at run-time
+
+  selectParams(): void {
+    this.selectedDetail = {};
+  }
+
+  selectGene(gene: Gene): void {
+    let g = Object.assign(Object.create(Gene.prototype), gene);
+    this.selectedDetail = g;
+  }
+
+  selectFamily(family: Family): void {
+    let f = Object.assign(Object.create(Family.prototype), family);
+    this.selectedDetail = f;
+  }
+
+  selectTrack(track: Group): void {
+    let t = Object.assign(Object.create(Group.prototype), track);
+    this.selectedDetail = t;
   }
 }

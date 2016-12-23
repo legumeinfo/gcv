@@ -1,20 +1,31 @@
+<!-- right slider -->
 <right-slider>
+
+  <!-- legend -->
   <app-legend class="row vertical-fill"
     [microTracks]="microTracks"
     [colors]="colors"
     [args]="legendArgs" >
   </app-legend>
+
 </right-slider>
+
+
+<!-- main content area -->
 <main>
+
+  <!-- header -->
   <header>
 		<ul class="nav navbar-nav tabs">
-      <li><parameters-toggle></parameters-toggle></li>
+      <li><parameters-toggle (toggleFn)="selectParams()"></parameters-toggle></li>
       <li><help></help></li>
     </ul>
     <ul class="nav navbar-nav navbar-right">
       <li><legend-toggle></legend-toggle></li>
     </ul>
 	</header>
+
+  <!-- main content -->
   <main-content>
     <micro-viewer
       [tracks]="microTracks"
@@ -22,10 +33,16 @@
       [args]="microArgs" >
     </micro-viewer>
   </main-content>
+
+  <!-- footer -->
   <footer>
     <app-regexp></app-regexp>
   </footer>
+
 </main>
-<left-slider>
+
+
+<!-- left slider -->
+<left-slider [selected]="selectedDetail" [tracks]="microTracks">
   <basic-params [queryGenes]="queryGenes"></basic-params>
 </left-slider>

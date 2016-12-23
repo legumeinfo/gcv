@@ -2,10 +2,10 @@
 import { AfterViewInit,
          Component,
          ElementRef,
+         Input,
          OnChanges,
          SimpleChanges,
          OnDestroy,
-         Input,
          ViewChild } from '@angular/core';
 
 // App

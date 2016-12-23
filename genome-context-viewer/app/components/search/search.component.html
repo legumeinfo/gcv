@@ -59,12 +59,12 @@
   <!-- header -->
   <header>
 		<ul class="nav navbar-nav tabs">
-      <li><parameters-toggle></parameters-toggle></li>
+      <li><parameters-toggle (toggleFn)="selectParams()"></parameters-toggle></li>
       <li><help></help></li>
-      <li [ngClass]="{'active': content==contentTypes.VIEWERS}">
+      <li [ngClass]="{'active': selectedContent==contentTypes.VIEWERS}">
         <a (click)="showViewers()">Viewers</a>
       </li>
-      <li [ngClass]="{'active': content==contentTypes.PLOTS}">
+      <li [ngClass]="{'active': selectedContent==contentTypes.PLOTS}">
         <a (click)="showPlots()">Dot Plots</a>
       </li>
     </ul>
@@ -74,7 +74,7 @@
   </header>
 
   <!-- main content -->
-  <div [ngSwitch]="content">
+  <div [ngSwitch]="selectedContent">
 
     <!-- micro/macro viewers -->
     <main-content *ngSwitchCase="contentTypes.VIEWERS">
@@ -122,6 +122,6 @@
 
 
 <!-- left slider -->
-<left-slider>
+<left-slider [selected]="selectedDetail" [tracks]="microTracks">
   <search-params></search-params>
 </left-slider>

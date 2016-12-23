@@ -1,5 +1,5 @@
 <!-- left slider -->
-<div id="left-slider" class="col-md-3" [@toggleState]='state'>
+<div class="left-slider col-md-3" [@toggleState]='state'>
   <!-- close slider controls -->
   <div class="navbar navbar-default navbar-static-top">
     <div class="container-fluid">
@@ -13,10 +13,13 @@
     </div>
   </div>
 	<!-- scrollable content -->
-	<div id="left-slider-content" [ngSwitch]="content">
-    <div *ngSwitchDefault><ng-content></ng-content></div>
-    <div *ngSwitchCase="family-detail"><family-detail></family-detail></div>
-    <div *ngSwitchCase="gene-detail"><gene-detail></gene-detail></div>
-    <div *ngSwitchCase="track-detail"><track-detail></track-detail></div>
+	<div class="left-slider-content" [ngSwitch]="selectedDetail">
+    <ng-content *ngSwitchCase="detailTypes.PARAMS"></ng-content>
+    <family-detail *ngSwitchCase="detailTypes.FAMILY"
+      [family]="family"
+      [tracks]="tracks" >
+    </family-detail>
+    <gene-detail *ngSwitchCase="detailTypes.GENE" [gene]="gene"></gene-detail>
+    <track-detail *ngSwitchCase="detailTypes.TRACK" [track]="track"></track-detail>
 	</div>
 </div>

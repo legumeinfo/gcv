@@ -1,6 +1,6 @@
 import { Gene } from './gene.model';
 
-export interface Group {
+export class Group {
   species_id: number;
   species_name: string;
   chromosome_id: number;

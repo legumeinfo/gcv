@@ -1,7 +1,7 @@
-export interface Gene {
+export class Gene {
   id: number;
   name: string;
-  family: number;  // Family ID
+  family: string;  // Family ID
   fmin: number;
   fmax: number;
   strand: number;

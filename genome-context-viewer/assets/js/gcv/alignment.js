@@ -217,7 +217,8 @@ Alignment.repeat = function (sequence, reference, options) {
           // add the starting match
           alignments[index].sequence.unshift(clone(seq[j - 1]));
           alignments[index].reference.unshift(clone(ref[i - 1]));
-          alignments[index].reference[0].suffixScore = a[i][j];
+          if (options.suffixScores)
+            alignments[index].reference[0].suffixScore = a[i][j];
         } else {
           // try starting an alignment in the next column
           i--;
@@ -250,7 +251,8 @@ Alignment.repeat = function (sequence, reference, options) {
               if (saving && j > 0 && i > 0) {
                 alignments[index].sequence.unshift(clone(seq[j - 1]));
                 alignments[index].reference.unshift(clone(ref[i - 1]));
-                alignments[index].reference[0].suffixScore = a[i][j];
+                if (options.suffixScores)
+                  alignments[index].reference[0].suffixScore = a[i][j];
                 length++;
               }
               break;
@@ -268,7 +270,8 @@ Alignment.repeat = function (sequence, reference, options) {
               if (saving && i > 0) {
                 alignments[index].sequence.unshift(null);
                 alignments[index].reference.unshift(clone(ref[i - 1]));
-                alignments[index].reference[0].suffixScore = a[i][j];
+                if (options.suffixScores)
+                  alignments[index].reference[0].suffixScore = a[i][j];
               }
               break;
           }
@@ -291,6 +294,7 @@ Alignment.repeat = function (sequence, reference, options) {
   options.scores.mismatch = options.scores.mismath = 0;
   options.scores.gap = options.scores.gap || -1;
   options.scores.threshold = options.scores.threshold || 10;
+  options.suffixScores = options.suffixScores || false;
 
   // perform forward and reverse alignments
 	var forwards = align(sequence, reference),

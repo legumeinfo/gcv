@@ -522,7 +522,9 @@ GCV.Viewer = class {
         var selection = d3.selectAll('.GCV .micro-' + i.toString());
         this._endHover(selection);
       })
-      .on('click', this.options.nameClick);
+      .on('click', (y, i) => {
+        this.options.nameClick(this.data.groups[i]);
+      });
     return yAxis;
   }
 

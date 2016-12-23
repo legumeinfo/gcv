@@ -5,7 +5,10 @@ import { Component, OnInit }      from '@angular/core';
 import { Observable }             from 'rxjs/Observable';
 
 // App
+import { Family }              from '../../models/family.model';
 import { FilterService }       from '../../services/filter.service';
+import { Gene }                from '../../models/gene.model';
+import { Group }               from '../../models/group.model';
 import { MicroTracks }         from '../../models/micro-tracks.model';
 import { microTracksSelector } from '../../selectors/micro-tracks.selector';
 import { MicroTracksService }  from '../../services/micro-tracks.service';
@@ -21,31 +24,51 @@ declare var contextColors: any;
 })
 
 export class BasicComponent implements OnInit {
+  // UI
+
+  showLeftSlider: boolean;
+  selectedDetail;
+
+  // data
   private _urlParams: Observable<Params>;
   private _queryGenes: BehaviorSubject<Array<string>> = new BehaviorSubject([]);
   queryGenes: Observable<Array<string>> = this._queryGenes.asObservable();
 
   private _microTracks: Observable<MicroTracks>;
   microTracks: MicroTracks;
+
+  // viewers
   colors = contextColors;
+
   microArgs = {
-    'highlight': [],
-    'geneClicked': function () {},
-    'leftAxisClicked': function () {},
-    'autoResize': true
+    highlight: [],
+    geneClick: function (g) {
+      this.selectGene(g);
+    }.bind(this),
+    nameClick: function (t) {
+      this.selectTrack(t);
+    }.bind(this),
+    autoResize: true
   };
+
   legendArgs = {
-    'legendClick': function (family) { },
-    //'selectiveColoring': this.familySizes
+    familyClick: function (f) {
+      this.selectFamily(f);
+    }.bind(this),
+    autoResize: true
   };
+
+  // constructor
 
   constructor(private _route: ActivatedRoute,
               private _filterService: FilterService,
               private _microTracksService: MicroTracksService) { }
 
   ngOnInit(): void {
+    // ui
+    this.selectParams();
+    // data
     this._urlParams = this._route.params;
-    // subscribe to url param updates
     this._urlParams.subscribe(params => {
       let queryGenes = params['genes'].split(',');
       this.microArgs.highlight = queryGenes;
@@ -58,5 +81,28 @@ export class BasicComponent implements OnInit {
     this._microTracks.subscribe(tracks => {
       this.microTracks = tracks;
     });
+  }
+
+  // left slider
+  // EVIL: typescript checks types at compile time so we have to explicitly
+  // instantiate those that will be checked by left-slider at run-time
+
+  selectParams(): void {
+    this.selectedDetail = {};
+  }
+
+  selectGene(gene: Gene): void {
+    let g = Object.assign(Object.create(Gene.prototype), gene);
+    this.selectedDetail = g;
+  }
+
+  selectFamily(family: Family): void {
+    let f = Object.assign(Object.create(Family.prototype), family);
+    this.selectedDetail = f;
+  }
+
+  selectTrack(track: Group): void {
+    let t = Object.assign(Object.create(Group.prototype), track);
+    this.selectedDetail = t;
   }
 }

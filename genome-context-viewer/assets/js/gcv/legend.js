@@ -129,6 +129,7 @@ GCV.Legend = class {
     var key = legend.append('g')
       .attr('class', 'legend')
       .attr('data-family', f.id)
+  	  .style('cursor', 'pointer')
       .on('mouseover', function () {
         var selection = d3.selectAll('.GCV [data-family="' + f.id + '"]');
         obj._beginHover(selection);
@@ -137,7 +138,9 @@ GCV.Legend = class {
         var selection = d3.selectAll('.GCV [data-family="' + f.id + '"]');
         obj._endHover(selection);
       })
-      .on('click', this.options.familyClick);
+      .on('click', () => {
+        this.options.familyClick(f);
+      });
     // add the colored rectangles
     var rect = key.append('rect')
       .attr('width', this._RECT_SIZE)
