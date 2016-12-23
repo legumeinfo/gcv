@@ -41,14 +41,12 @@ import { HelpComponent }             from './components/shared/help.component';
 import { InstructionsComponent }     from './components/instructions/instructions.component';
 import { LeftSliderComponent }       from './components/shared/left-slider.component';
 import { LegendComponent }           from './components/shared/legend.component';
-import { LegendToggleComponent }     from './components/shared/legend-toggle.component';
 import { MacroViewerComponent }      from './components/search/macro-viewer.component';
 import { MainComponent }             from './components/shared/main.component';
 import { MainContentComponent }      from './components/shared/main-content.component';
 import { MicroViewerComponent }      from './components/shared/micro-viewer.component';
 import { NavComponent }              from './components/shared/nav.component';
 import { OrderingComponent }         from './components/search/ordering.component';
-import { ParametersToggleComponent } from './components/shared/parameters-toggle.component';
 import { PlotComponent }             from './components/shared/plot.component';
 import { RegexpComponent }           from './components/shared/regexp.component';
 import { RightSliderComponent }      from './components/shared/right-slider.component';
@@ -57,6 +55,7 @@ import { SearchComponent }           from './components/search/search.component'
 import { SearchParamsComponent }     from './components/search/search-params.component';
 import { SpinnerComponent }          from './components/shared/spinner.component';
 import { TrackDetailComponent }      from './components/shared/track-detail.component';
+import { ToggleButtonComponent }     from './components/shared/toggle-button.component';
 
 // App services
 import { AlignmentService }      from './services/alignment.service';
@@ -109,14 +108,12 @@ import { UrlQueryParamsService } from './services/url-query-params.service';
     InstructionsComponent,
     LeftSliderComponent,
     LegendComponent,
-    LegendToggleComponent,
     MacroViewerComponent,
     MainComponent,
     MainContentComponent,
     MicroViewerComponent,
     NavComponent,
     OrderingComponent,
-    ParametersToggleComponent,
     PlotComponent,
     RegexpComponent,
     RightSliderComponent,
@@ -124,7 +121,8 @@ import { UrlQueryParamsService } from './services/url-query-params.service';
     SearchComponent,
     SearchParamsComponent,
     SpinnerComponent,
-    TrackDetailComponent
+    TrackDetailComponent,
+    ToggleButtonComponent
   ],
   providers: [
     AlignmentService,

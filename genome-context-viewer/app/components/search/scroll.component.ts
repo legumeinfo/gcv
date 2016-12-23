@@ -51,13 +51,13 @@ export class ScrollComponent implements OnChanges {
     this._router.navigateByUrl('/search/' + g.source + '/' + g.name);
   }
 
-  scrollLeft(step: number): void {
+  scrollLeft(step: string): void {
     let idx = this._idx - parseInt(step);
     if (idx >= 0)
       this._search(idx);
   }
 
-  scrollRight(step: number): void {
+  scrollRight(step: string): void {
     let idx = this._idx + parseInt(step);
     if (idx < this.query.length)
       this._search(idx);

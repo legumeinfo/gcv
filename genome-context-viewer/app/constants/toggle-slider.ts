@@ -1,0 +1,2 @@
+export const SLIDER_ACTIVE = 'SLIDER_ACTIVE';
+export const SLIDER_INACTIVE = 'SLIDER_INACTIVE';

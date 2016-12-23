@@ -77,8 +77,9 @@ export class SearchComponent implements OnInit {
   showLocalGlobalPlots: boolean;
   selectedPlot;
 
-  showLeftSlider: boolean;
   selectedDetail;
+
+  rightSliderHidden: boolean;
 
   // data
 
@@ -153,10 +154,10 @@ export class SearchComponent implements OnInit {
 
   ngOnInit(): void {
     // ui
-    this.selectParams();
     this.showViewers();
     this.showLocalPlot();
     this.hideLocalGlobalPlots();
+    this.hideRightSlider();
     // data
     this._route.params.subscribe(params => {
       this.routeSource = params['source'];
@@ -181,6 +182,7 @@ export class SearchComponent implements OnInit {
           stop: this.queryGenes[this.queryGenes.length - 1].fmax
         }
       }
+      this.hideLeftSlider();
     });
     this._microPlots = Observable.combineLatest(
       this._plotsService.localPlots,
@@ -246,6 +248,7 @@ export class SearchComponent implements OnInit {
   selectPlot(plot: Group): void {
     this.showLocalGlobalPlots = true;
     this._plotsService.selectPlot(plot);
+    this.showRightSlider();
   }
 
   showGlobalPlot(): void {
@@ -264,6 +267,10 @@ export class SearchComponent implements OnInit {
   // EVIL: typescript checks types at compile time so we have to explicitly
   // instantiate those that will be checked by left-slider at run-time
 
+  hideLeftSlider(): void {
+    this.selectedDetail = null;
+  }
+
   selectParams(): void {
     this.selectedDetail = {};
   }
@@ -281,5 +288,19 @@ export class SearchComponent implements OnInit {
   selectTrack(track: Group): void {
     let t = Object.assign(Object.create(Group.prototype), track);
     this.selectedDetail = t;
+  }
+
+  // right slider
+  hideRightSlider(): void {
+    this.rightSliderHidden = true;
+  }
+
+  showRightSlider(): void {
+    this.rightSliderHidden = false;
+  }
+
+  toggleRightSlider(): void {
+    if (this.rightSliderHidden) this.showRightSlider();
+    else this.hideRightSlider();
   }
 }

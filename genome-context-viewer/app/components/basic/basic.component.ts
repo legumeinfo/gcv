@@ -26,8 +26,9 @@ declare var contextColors: any;
 export class BasicComponent implements OnInit {
   // UI
 
-  showLeftSlider: boolean;
   selectedDetail;
+
+  rightSliderHidden: boolean;
 
   // data
   private _urlParams: Observable<Params>;
@@ -66,7 +67,7 @@ export class BasicComponent implements OnInit {
 
   ngOnInit(): void {
     // ui
-    this.selectParams();
+    this.hideRightSlider();
     // data
     this._urlParams = this._route.params;
     this._urlParams.subscribe(params => {
@@ -80,12 +81,17 @@ export class BasicComponent implements OnInit {
     ).let(microTracksSelector());
     this._microTracks.subscribe(tracks => {
       this.microTracks = tracks;
+      this.hideLeftSlider();
     });
   }
 
   // left slider
   // EVIL: typescript checks types at compile time so we have to explicitly
   // instantiate those that will be checked by left-slider at run-time
+
+  hideLeftSlider(): void {
+    this.selectedDetail = null;
+  }
 
   selectParams(): void {
     this.selectedDetail = {};
@@ -104,5 +110,19 @@ export class BasicComponent implements OnInit {
   selectTrack(track: Group): void {
     let t = Object.assign(Object.create(Group.prototype), track);
     this.selectedDetail = t;
+  }
+
+  // right slider
+  hideRightSlider(): void {
+    this.rightSliderHidden = true;
+  }
+
+  showRightSlider(): void {
+    this.rightSliderHidden = false;
+  }
+
+  toggleRightSlider(): void {
+    if (this.rightSliderHidden) this.showRightSlider();
+    else this.hideRightSlider();
   }
 }

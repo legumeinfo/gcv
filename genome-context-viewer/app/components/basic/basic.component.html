@@ -1,5 +1,5 @@
 <!-- right slider -->
-<right-slider>
+<right-slider [hide]="rightSliderHidden">
 
   <!-- legend -->
   <app-legend class="row vertical-fill"
@@ -17,11 +17,11 @@
   <!-- header -->
   <header>
 		<ul class="nav navbar-nav tabs">
-      <li><parameters-toggle (toggleFn)="selectParams()"></parameters-toggle></li>
+      <li><toggle-button (toggleFn)="selectParams()">Parameters</toggle-button></li>
       <li><help></help></li>
     </ul>
     <ul class="nav navbar-nav navbar-right">
-      <li><legend-toggle></legend-toggle></li>
+      <li><toggle-button (toggleFn)="toggleRightSlider()">Legend</toggle-button></li>
     </ul>
 	</header>
 

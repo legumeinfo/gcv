@@ -1,27 +1,16 @@
 // Angular
-import { animate,
-         Component,
+import { Component,
          Input,
          OnChanges,
-         SimpleChanges,
-         state,
-         style,
-         transition,
-         trigger } from '@angular/core';
+         SimpleChanges } from '@angular/core';
 
 // App
-import { Family }      from '../../models/family.model';
-import { Gene }        from '../../models/gene.model';
-import { Group }       from '../../models/group.model';
-import { MicroTracks } from '../../models/micro-tracks.model';
-
-// TODO: move states and state transitions to UI
-// TODO: move animation to generic animation for right/left sliders
-class States
-{
-  static ACTIVE: string = 'active';
-  static INACTIVE: string = 'inactive';   
-}
+import { Family }                         from '../../models/family.model';
+import { Gene }                           from '../../models/gene.model';
+import { Group }                          from '../../models/group.model';
+import { MicroTracks }                    from '../../models/micro-tracks.model';
+import { SLIDER_ACTIVE, SLIDER_INACTIVE } from '../../constants/toggle-slider';
+import { toggleSlider }                   from '../../animations/toggle-slider.animation';
 
 enum DetailTypes {
   PARAMS,
@@ -35,28 +24,14 @@ enum DetailTypes {
   selector: 'left-slider',
   templateUrl: 'left-slider.component.html',
   styleUrls: [ 'left-slider.component.css' ],
-  animations: [
-    trigger('toggleState', [
-      state(States.ACTIVE, style({transform: 'translateX(0%)'})),
-      state(States.INACTIVE, style({transform: 'translateX(-100%)'})),
-      transition(
-        States.INACTIVE + ' => ' + States.ACTIVE,
-        animate('100ms ease-in')
-      ),
-      transition(
-        States.ACTIVE + ' => ' + States.INACTIVE,
-        animate('100ms ease-out')
-      )
-    ])
-  ]
+  animations: [ toggleSlider ]
 })
 
 export class LeftSliderComponent implements OnChanges {
   @Input() selected: Family | Gene | Group;
   @Input() tracks: MicroTracks;
 
-  private states = States;
-  state = this.states.ACTIVE;
+  state = SLIDER_ACTIVE;
 
   detailTypes = DetailTypes;
   selectedDetail;
@@ -78,22 +53,24 @@ export class LeftSliderComponent implements OnChanges {
       this.selectedDetail = DetailTypes.TRACK;
       this.track = this.selected;
       this.show();
-    } else {
+    } else if (this.selected instanceof Object) {
       if (this.selectedDetail == DetailTypes.PARAMS &&
-      this.state == this.states.ACTIVE) {
+      this.state == SLIDER_ACTIVE) {
         this.hide();
       } else {
         this.selectedDetail = DetailTypes.PARAMS;
         this.show();
       }
+    } else {
+      this.hide();
     }
   }
   
   hide(): void {
-    this.state = this.states.INACTIVE;
+    this.state = SLIDER_INACTIVE;
   }
   
   show(): void {
-    this.state = this.states.ACTIVE;
+    this.state = SLIDER_ACTIVE;
   }
 }
