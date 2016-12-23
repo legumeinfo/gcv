@@ -30,17 +30,21 @@ export class MicroTracksService {
     this.tracks = this._store.select('microTracks');
   }
 
+  private _prepareTrack(source: string, track: Group): void {
+    track.source = source;
+    for (let j = 0; j < track.genes.length; ++j) {
+      let gene: Gene = track.genes[j];
+      gene.source = source;
+      gene.x = j;
+      gene.y = 0;
+    }
+  }
+
   private _parseMicroTracksJSON(source: Server, json: any): MicroTracks {
     let tracks: MicroTracks = JSON.parse(json);
     for (let i = 0; i < tracks.groups.length; ++i) {
       let group: Group = tracks.groups[i];
-      group.source = source.id;
-      for (let j = 0; j < group.genes.length; ++j) {
-        let gene: Gene = group.genes[j];
-        gene.source = group.source;
-        gene.x = j;
-        gene.y = 0;
-      }
+      this._prepareTrack(source.id, group);
     }
     return tracks;
   }
@@ -133,7 +137,7 @@ export class MicroTracksService {
         else
           response = this._http.post(s.microQuery.url, args)
         response.map(res => JSON.parse(res.json())).subscribe(query => {
-          query.source = source;
+          this._prepareTrack(source, query);
           this.trackSearch(query, params);
         });
       }

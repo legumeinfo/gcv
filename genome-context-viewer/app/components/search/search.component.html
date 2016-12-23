@@ -115,7 +115,7 @@
   <footer>
     <app-regexp></app-regexp>
     <app-ordering></app-ordering>
-    <scroll></scroll>
+    <scroll [gene]="routeGene" [query]="queryGenes"></scroll>
   </footer>
 
 </main>
@@ -123,5 +123,5 @@
 
 <!-- left slider -->
 <left-slider [selected]="selectedDetail" [tracks]="microTracks">
-  <search-params></search-params>
+  <search-params [source]="routeSource" [gene]="routeGene"></search-params>
 </left-slider>

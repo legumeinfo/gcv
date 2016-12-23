@@ -1,4 +1,5 @@
 // Angular
+import { ActivatedRoute }    from '@angular/router';
 import { Component,
          ElementRef,
          OnInit,
@@ -81,8 +82,12 @@ export class SearchComponent implements OnInit {
 
   // data
 
+  routeSource: string;
+  routeGene: string;
+
   private _microTracks: Observable<MicroTracks>;
   microTracks: MicroTracks;
+  queryGenes: Gene[];
 
   private _microPlots: Observable<MicroTracks>;
   microPlots: MicroTracks;
@@ -137,7 +142,8 @@ export class SearchComponent implements OnInit {
 
   // constructor
 
-  constructor(private _alignmentService: AlignmentService,
+  constructor(private _route: ActivatedRoute,
+              private _alignmentService: AlignmentService,
               private _filterService: FilterService,
               private _macroTracksService: MacroTracksService,
               private _microTracksService: MicroTracksService,
@@ -152,6 +158,10 @@ export class SearchComponent implements OnInit {
     this.showLocalPlot();
     this.hideLocalGlobalPlots();
     // data
+    this._route.params.subscribe(params => {
+      this.routeSource = params['source'];
+      this.routeGene = params['gene'];
+    });
     this._microTracksService.tracks.subscribe(tracks => {
       this._macroTracksService.search(tracks);
     });
@@ -165,10 +175,10 @@ export class SearchComponent implements OnInit {
       this.microTracks = tracks;
       this.macroArgs.viewport = undefined;
       if (tracks.groups.length > 0 && tracks.groups[0].genes.length > 0) {
-        let query = tracks.groups[0];
+        this.queryGenes = tracks.groups[0].genes;
         this.macroArgs.viewport = {
-          start: query.genes[0].fmin,
-          stop: query.genes[query.genes.length - 1].fmax
+          start: this.queryGenes[0].fmin,
+          stop: this.queryGenes[this.queryGenes.length - 1].fmax
         }
       }
     });
