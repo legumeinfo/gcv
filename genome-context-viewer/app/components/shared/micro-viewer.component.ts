@@ -30,10 +30,8 @@ export class MicroViewerComponent implements AfterViewInit, OnChanges, OnDestroy
   @ViewChild('microViewer') el: ElementRef;
 
   private _viewer = undefined;
-  private _id = 'micro-tracks';  // TODO: dynamically set to UUID in ngOnInit
 
   ngAfterViewInit(): void {
-    this.el.nativeElement.id = this._id;
     this._draw();
   }
 
@@ -53,10 +51,10 @@ export class MicroViewerComponent implements AfterViewInit, OnChanges, OnDestroy
   }
 
   private _draw(): void {
-    if (this.el !== undefined && this.el.nativeElement.id !== '') {
+    if (this.el !== undefined && this.tracks !== undefined) {
       this._destroy();
       this._viewer = new GCV.Viewer(
-        this._id,
+        this.el.nativeElement,
         this.colors,
         this.tracks,
         this.args

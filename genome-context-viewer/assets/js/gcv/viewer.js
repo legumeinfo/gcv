@@ -268,16 +268,20 @@ GCV.Viewer = class {
 
   /**
     * Parses parameters and initializes variables.
-    * @param {string} id - ID of element viewer will be drawn in.
+    * @param {HTMLElement|string} el - ID of or the element itself where the
+    * viewer will be drawn in.
     * @param {object} colors - D3 family-to-color map.
     * @param {object} data - The data the viewer will visualize.
     * @param {object} options - Optional parameters.
     */
-  _init(id, colors, data, options) {
+  _init(el, colors, data, options) {
     // parse positional parameters
-    this.container = document.getElementById(id);
+    if (el instanceof HTMLElement)
+      this.container = el;
+    else
+      this.container = document.getElementById(el);
     if (this.container === null) {
-      throw new Error('"' + id + '" is not a valid element ID');
+      throw new Error('"' + el + '" is not a valid element/ID');
     }
     this.colors = colors;
     if (this.colors === undefined) {
@@ -295,7 +299,7 @@ GCV.Viewer = class {
         halfTrack = this._GLYPH_SIZE / 2,
         top = this._PAD + halfTrack,
         bottom = top + (this._GLYPH_SIZE * numLevels);
-    this.viewer = d3.select('#' + id)
+    this.viewer = d3.select(this.container)
       .append('svg')
       .attr('class', 'GCV')
       .attr('height', bottom + halfTrack);
@@ -600,13 +604,14 @@ GCV.Viewer = class {
 
   /**
     * The constructor.
-    * @param {string} id - ID of element viewer will be drawn in.
+    * @param {HTMLElement|string} el - ID of or the element itself where the
+    * viewer will be drawn in.
     * @param {object} colors - D3 family-to-color map.
     * @param {object} data - The data the viewer will visualize.
     * @param {object} options - Optional parameters.
     */
-  constructor(id, colors, data, options) {
-    this._init(id, colors, data, options);
+  constructor(el, colors, data, options) {
+    this._init(el, colors, data, options);
     this._draw();
   }
 

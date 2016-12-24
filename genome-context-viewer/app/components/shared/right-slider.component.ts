@@ -50,7 +50,6 @@ export class RightSliderComponent implements OnChanges {
   state = SLIDER_ACTIVE;
 
   ngOnChanges(changes: SimpleChanges): void {
-    console.log(this.hide);
     if (this.hide) this.state = SLIDER_INACTIVE;
     else this.state = SLIDER_ACTIVE;
   }

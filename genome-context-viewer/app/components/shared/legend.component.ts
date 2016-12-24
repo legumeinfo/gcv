@@ -35,25 +35,23 @@ export class LegendComponent implements AfterViewInit {
   @ViewChild('legend') el: ElementRef;
 
   private _legend = undefined;
-  private _id = 'legend-content';  // dynamically set to UUID in ngOnInit
 
   ngOnChanges(changes: SimpleChanges): void {
     this._draw();
   }
 
   ngAfterViewInit(): void {
-    this.el.nativeElement.id = this._id;  // dynamically set to UUID in ngOnInit
     this._draw();
   }
 
   private _draw(): void {
-    if (this.el !== undefined && this.el.nativeElement.id !== '') {
+    if (this.el !== undefined && this.microTracks !== undefined) {
       if (this._legend !== undefined) {
         this._legend.destroy();
         this._legend = undefined;
       }
       this._legend = new GCV.Legend(
-        'legend-content',
+        this.el.nativeElement,
         this.colors,
         this.microTracks,
         this.args

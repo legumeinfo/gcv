@@ -40,10 +40,12 @@
       <div class="inner-ratio" [ngSwitch]="selectedPlot">
         <plot *ngSwitchCase="plotTypes.LOCAL"
           [plot]="selectedLocal"
+          [colors]="colors"
           [args]="plotArgs" >
         </plot>
         <plot *ngSwitchCase="plotTypes.GLOBAL"
           [plot]="selectedGlobal"
+          [colors]="colors"
           [args]="plotArgs" >
         </plot>
       </div>
@@ -102,6 +104,7 @@
           <div class="thumbnail">
             <plot
               [plot]="p"
+              [colors]="colors"
               [args]="plotArgs" >
             </plot>
           </div>
