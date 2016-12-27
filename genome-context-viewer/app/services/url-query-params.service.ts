@@ -28,10 +28,9 @@ export class UrlQueryParamsService {
     this.params.subscribe(params => {
       this._updateUrl(params);
     });
-    // TODO: needs to preserve types
-    //this._route.queryParams.subscribe(params => {
-    //  this._updateStore(params);
-    //});
+    this._route.queryParams.subscribe(params => {
+      this._updateStore(params);
+    });
   }
 
   private _updateUrl(params: any): void {
