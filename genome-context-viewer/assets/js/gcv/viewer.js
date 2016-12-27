@@ -71,39 +71,31 @@ GCV.merge = function (data) {
     }
     tracks.groups = [tracks.groups[0]];
     // try to merge each partition
-    for (var i in groups) {
-      if (!groups.hasOwnProperty(i)) {
+    for (var id in groups) {
+      if (!groups.hasOwnProperty(id)) {
         continue;
       }
-      var groupTracks = groups[i],
+      var groupTracks = groups[id],
           merged = [];  // which tracks have been merged into another
       // iterate pairs of tracks to see if one is a sub-inversion of the other
-      for (var j = 0; j < groupTracks.length; j++) {
-        // only consider non-merged tracks
-        if (merged.indexOf(j) != -1) {
-          continue;
-        }
+      for (var j = 0; j < groupTracks.length && merged.indexOf(j) == -1; j++) {
         var jTrack = groupTracks[j],
             jLevels = 0,
             jIds = jTrack.genes.map(function (g) { return g.id; });
-        for (var k = j + 1; k < groupTracks.length; k++) {
-          // only consider non-merged tracks
-          if (merged.indexOf(k) != -1) {
-            continue;
-          }
+        for (var k = j + 1; k < groupTracks.length && merged.indexOf(k) == -1; k++) {
           var kTrack = groupTracks[k],
               kLevels = 0,
               kIds = kTrack.genes.map(function (g) { return g.id; });
           // compute the intersection
-          var overlap = jIds.filter(function (id) {
-            return kIds.indexOf(id) != -1;
+          var overlap = jIds.filter(function (jId) {
+            return kIds.indexOf(jId) != -1;
           });
           if (overlap.length > 0) {
             // j is the inversion
             if (kIds.length > jIds.length) {
               // get index list
-              var indices = overlap.map(function (id) {
-                return kIds.indexOf(id);
+              var indices = overlap.map(function (jId) {
+                return kIds.indexOf(jId);
               });
               // compute the score of the inverted sequence before inverting
               var min = Math.min.apply(null, indices),
@@ -114,33 +106,32 @@ GCV.merge = function (data) {
               // perform the inversion if it will improve the super-track's score
               if (jTrack.score > score) {
                 merged.push(j);
+                // increment the level counter
+                kLevels++;
                 // perform the inversion
                 jTrack.genes.reverse();
                 var args = [min, max - min + 1],
                     geneArgs = args.concat(jTrack.genes);
                 Array.prototype.splice.apply(kTrack.genes, geneArgs);
                 // adjust inversion scores and y coordinates
+                max = min + jTrack.genes.length;
                 var pred = (min > 0) ? kTrack.genes[min - 1].suffixScore : 0;
-                for (var l = min; l <= max; l++) {
+                for (var l = min; l < max; l++) {
                   kTrack.genes[l].suffixScore += pred;
                   kTrack.genes[l].y = kLevels;
                 }
                 // adjust post-inversion scores
                 var adjustment = jTrack.score - score;
-                for (var l = max + 1; l < kTrack.genes.length; l++) {
+                for (var l = max; l < kTrack.genes.length; l++) {
                   kTrack.genes[l].suffixScore += adjustment;
                 }
                 kTrack.score += adjustment;
-                // increment the level counter
-                kLevels++;
-                // a track can only be merged once
-                break;
               }
             // k is the inversion
             } else if (jIds.length == kIds.length) {
               // get index list
-              var indices = overlap.map(function (id) {
-                return jIds.indexOf(id);
+              var indices = overlap.map(function (jId) {
+                return jIds.indexOf(jId);
               });
               // compute the score of the inverted sequence before inverting
               var min = Math.min.apply(null, indices),
@@ -151,6 +142,8 @@ GCV.merge = function (data) {
               // perform the inversion if it will improve the super-track's score
               if (kTrack.score > score) {
                 merged.push(k);
+                // increment the level counter
+                jLevels++;
                 // perform the inversion
                 kTrack.genes.reverse();
                 var args = [min, max - min + 1],
@@ -159,19 +152,18 @@ GCV.merge = function (data) {
                 Array.prototype.splice.apply(jTrack.genes, geneArgs);
                 Array.prototype.splice.apply(jIds, idArgs);
                 // adjust inversion scores and y coordinates
+                max = min + jTrack.genes.length;
                 var pred = (min > 0) ? jTrack.genes[min - 1].suffixScore : 0;
-                for (var l = min; l <= max; l++) {
+                for (var l = min; l < max; l++) {
                   jTrack.genes[l].suffixScore += pred;
                   jTrack.genes[l].y = jLevels;
                 }
                 // adjust post-inversion scores
                 var adjustment = kTrack.score - score;
-                for (var l = max + 1; l < jTrack.genes.length; l++) {
+                for (var l = max; l < jTrack.genes.length; l++) {
                   jTrack.genes[l].suffixScore += adjustment;
                 }
                 jTrack.score += adjustment;
-                // increment the level counter
-                jLevels++;
               }
             }
           }
