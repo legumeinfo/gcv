@@ -245,7 +245,9 @@ GCV.Synteny = class {
     this._blocksToRows(t.blocks);
   	// create the track
     var selector = 'macro-' + i.toString(),
-  	    track = this.viewer.append('g').attr('class', selector);
+  	    track = this.viewer.append('g')
+          .attr('data-macro-track', i.toString())
+          .attr('data-chromosome', this.data.tracks[i].chromosome);
     track.offset = 0;
     // create the track's blocks
     var blocks = track.selectAll('block')
@@ -380,11 +382,27 @@ GCV.Synteny = class {
       .attr('class', function (y, i) { return 'macro-' + i.toString(); })
   	  .style('cursor', 'pointer')
       .on('mouseover', (y, i) => {
-        var selection = d3.selectAll('.GCV .macro-' + i.toString());
+        var iStr = i.toString(),
+            track = '.GCV [data-macro-track="' + iStr + '"]',
+            name = this.data.tracks[i].chromosome,
+            chromosome = '.GCV [data-chromosome="' + name + '"]';
+        var selection = d3.selectAll(track + ', ' + chromosome)
+          .filter(function () {
+            var t = this.getAttribute('data-macro-track');
+            return t === null || t == iStr;
+          });
         this._beginHover(selection);
       })
       .on('mouseout', (y, i) => {
-        var selection = d3.selectAll('.GCV .macro-' + i.toString());
+        var iStr = i.toString(),
+            track = '.GCV [data-macro-track="' + iStr + '"]',
+            name = this.data.tracks[i].chromosome,
+            chromosome = '.GCV [data-chromosome="' + name + '"]';
+        var selection = d3.selectAll(track + ', ' + chromosome)
+          .filter(function () {
+            var t = this.getAttribute('data-macro-track');
+            return t === null || t == iStr;
+          });
         this._endHover(selection);
       })
       .on('click', () => { this.options.nameClick(); });

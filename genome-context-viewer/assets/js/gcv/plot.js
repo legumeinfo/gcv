@@ -255,9 +255,19 @@ GCV.Plot = class {
   	  .enter()
       .append('g')
       .attr('class', 'gene')
+      .attr('data-gene', g => g.id)
+      .attr('data-family', g => g.family)
   	  .style('cursor', 'pointer')
-      .on('mouseover', function (b) { obj._beginHover(d3.select(this)); })
-  	  .on('mouseout', function (b) { obj._endHover(d3.select(this)); })
+      .on('mouseover', function (g) {
+        var gene = '.GCV [data-gene="' + g.id + '"]',
+            family = '.GCV [data-family="' + g.family + '"]';
+        obj._beginHover(d3.selectAll(gene + ', ' + family));
+      })
+  	  .on('mouseout', function (g) {
+        var gene = '.GCV [data-gene="' + g.id + '"]',
+            family = '.GCV [data-family="' + g.family + '"]';
+        obj._endHover(d3.selectAll(gene + ', ' + family));
+      })
   	  .on('click', this.options.geneClick);
   	// add genes to the gene groups
   	var genes = points.geneGroups.append('circle')

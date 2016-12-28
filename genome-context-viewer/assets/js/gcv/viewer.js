@@ -370,8 +370,9 @@ GCV.Viewer = class {
         t = this.data.groups[i],
         y = this.ticks[i];
   	// make svg group for the track
-    var selector = 'micro-' + i.toString(),
-  	    track = this.viewer.append('g').attr('class', selector),
+    var track = this.viewer.append('g')
+          .attr('data-micro-track', i.toString())
+          .attr('data-chromosome', this.data.groups[i].chromosome_name),
         neighbors = [];
     // add the lines
     for (var j = 0; j < t.genes.length - 1; j++) {
@@ -412,13 +413,22 @@ GCV.Viewer = class {
   	  .enter()
   	  .append('g')
   	  .attr('class', 'gene')
+      .attr('data-gene', g => g.id)
       .attr('data-family', g => g.family)
   	  .attr('transform', function (g) {
   	    return 'translate(' + obj.x(g.x) + ', ' + obj.y(y + g.y) + ')';
   	  })
   	  .style('cursor', 'pointer')
-      .on('mouseover', function (g) { obj._beginHover(d3.select(this)); })
-  	  .on('mouseout', function (g) { obj._endHover(d3.select(this)); })
+      .on('mouseover', function (g) {
+        var gene = '.GCV [data-gene="' + g.id + '"]',
+            family = '.GCV [data-family="' + g.family + '"]';
+        obj._beginHover(d3.selectAll(gene + ', ' + family));
+      })
+  	  .on('mouseout', function (g) {
+        var gene = '.GCV [data-gene="' + g.id + '"]',
+            family = '.GCV [data-family="' + g.family + '"]';
+        obj._endHover(d3.selectAll(gene + ', ' + family));
+      })
   	  .on('click', obj.options.geneClick);
   	// add genes to the gene groups
   	var genes = geneGroups.append('path')
@@ -506,16 +516,32 @@ GCV.Viewer = class {
       .call(axis);
     yAxis.selectAll('text')
       .attr('class', (y, i) => {
-        var c = (i == 0 && this.options.boldFirst) ? 'query ' : '';
-        return c + 'micro-' + i.toString();
+        return (i == 0 && this.options.boldFirst) ? 'query ' : '';
       })
+      .attr('data-micro-track', (y, i) => i.toString())
+      .attr('data-chromosome', (y, i) => this.data.groups[i].chromosome_name)
   	  .style('cursor', 'pointer')
       .on('mouseover', (y, i) => {
-        var selection = d3.selectAll('.GCV .micro-' + i.toString());
+        var iStr = i.toString(),
+            micro = '.GCV [data-micro-track="' + iStr + '"]',
+            name = this.data.groups[i].chromosome_name,
+            chromosome = '.GCV [data-chromosome="' + name + '"]';
+        var selection = d3.selectAll(micro + ', ' + chromosome)
+          .filter(function () {
+            var t = this.getAttribute('data-micro-track');
+            return t === null || t == iStr;
+          });
         this._beginHover(selection);
       })
       .on('mouseout', (y, i) => {
-        var selection = d3.selectAll('.GCV .micro-' + i.toString());
+        var micro = '.GCV [data-micro-track="' + i.toString() + '"]',
+            name = this.data.groups[i].chromosome_name,
+            chromosome = '.GCV [data-chromosome="' + name + '"]';
+        var selection = d3.selectAll(micro + ', ' + chromosome)
+          .filter(function () {
+            var t = this.getAttribute('data-micro-track');
+            return t === null || t == iStr;
+          });
         this._endHover(selection);
       })
       .on('click', (y, i) => {
