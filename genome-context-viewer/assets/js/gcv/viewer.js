@@ -541,7 +541,7 @@ GCV.Viewer = class {
       .call(axis);
     plotYAxis.selectAll('text')
   	  .style('cursor', 'pointer')
-      .on('click', (i) => {
+      .on('click', (y, i) => {
         this.options.plotClick(this.data.groups[i]);
       });
     return plotYAxis;
