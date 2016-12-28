@@ -17,14 +17,7 @@ declare var GCV: any;
   selector: 'app-legend',
   template: `<div #legend></div>
   `,
-  styles: [`
-    div {
-      position: relative;
-      height: 100%;
-      overflow-x: hidden;
-      overflow-y: scroll;
-    }
-  `]
+  styles: [ '' ]
 })
 
 export class LegendComponent implements AfterViewInit {

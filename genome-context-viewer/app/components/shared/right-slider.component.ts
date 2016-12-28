@@ -13,9 +13,7 @@ import { toggleSlider }                   from '../../animations/toggle-slider.a
   selector: 'right-slider',
   template: `
     <div class="right-slider col-md-3" [@toggleSlider]='state'>
-      <div class="table">
-        <ng-content></ng-content>
-      </div>
+      <ng-content></ng-content>
     </div>
   `,
   styles: [`
@@ -25,20 +23,24 @@ import { toggleSlider }                   from '../../animations/toggle-slider.a
       height: 100%;
       float: right;
       border-left: #E7E7E7 solid 1px;
-    }
-    .right-slider .table {
-      width: 100%;
-      height: 100%;
-      display: table;
+      display: -webkit-box; /* OLD - iOS 6-, Safari 3.1-6 */
+      display: -moz-box; /* OLD - Firefox 19- (buggy but mostly works) */
+      display: -ms-flexbox; /* TWEENER - IE 10 */
+      display: -webkit-flex; /* NEW - Chrome */
+      display: flex; /* NEW, Spec - Opera 12.1, Firefox 20+ */
+      -ms-flex-direction: column;
+      -moz-flex-direction: column;
+      -webkit-flex-direction: column;
+      flex-direction: column;
     }
     /* vertically stretch .vertical-fill to remaining area */
-    :host /deep/ .row {
-      display: table-row;
-      width: 100%;
-      margin: 0;
-    }
     :host /deep/ .vertical-fill {
-      height: 100%;
+      -webkit-box-flex: 1; /* OLD - iOS 6-, Safari 3.1-6 */
+      -moz-box-flex: 1; /* OLD - Firefox 19- */
+      -webkit-flex: 1; /* Chrome */
+      -ms-flex: 1; /* IE 10 */
+      flex: 1; /* NEW, */
+      overflow: auto;
     }
   `],
   animations: [ toggleSlider ]

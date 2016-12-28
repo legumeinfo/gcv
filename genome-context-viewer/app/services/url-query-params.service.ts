@@ -34,7 +34,7 @@ export class UrlQueryParamsService {
   }
 
   private _updateUrl(params: any): void {
-    this._router.navigate([], {queryParams: params});
+    this._router.navigate([], {queryParams: params, relativeTo: this._route});
   }
 
   private _updateStore(params: any): void {

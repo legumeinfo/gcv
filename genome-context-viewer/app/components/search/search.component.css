@@ -1,17 +1,30 @@
 /* Split.js */
 .split {
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
   -webkit-box-sizing: border-box;
      -moz-box-sizing: border-box;
           box-sizing: border-box;
   overflow-y: hidden;
   overflow-x: hidden;
 }
-.split-top {
+.split .split-top {
   border-bottom: 1px solid #E7E7E7;
-  overflow-y: auto;
 }
-.split-bottom {
+.split .split-bottom {
   border-top: 1px solid #E7E7E7;
+}
+.split .split-top, .split .split-bottom {
+  position: relative;
+  overflow: hidden;
+}
+.split .split-top .split-content,
+.split .split-bottom .split-content {
+  width: 100%;
+  height: 100%;
   overflow-y: auto;
 }
 .gutter {
@@ -24,17 +37,26 @@
   cursor: row-resize;
 }
 
+/* plots */
+.plots {
+  height: 100%;
+  overflow-y: scroll;
+}
+.plots .plot {
+  margin-top: 20px;
+}
+
 /* local/global plots */
-.plots .navbar {
+.local-global-plots .navbar {
   border-top: #E7E7E7 solid 1px;
 }
 /* ratio ensures plot has same width and height */
-.plots .outer-ratio {
+.local-global-plots .outer-ratio {
   position: relative;
   height: 0;
   padding-bottom: 100%;
 }
-.plots .out .inner-ratio {
+.local-global-plots .out .inner-ratio {
   position: absolute;
   top: 0;
   bottom: 0;

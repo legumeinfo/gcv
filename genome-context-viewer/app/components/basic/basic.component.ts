@@ -30,6 +30,9 @@ export class BasicComponent implements OnInit {
 
   rightSliderHidden: boolean;
 
+  private _showHelp = new BehaviorSubject<boolean>(true);
+  showHelp = this._showHelp.asObservable();
+
   // data
   private _urlParams: Observable<Params>;
   private _queryGenes: BehaviorSubject<Array<string>> = new BehaviorSubject([]);
@@ -124,5 +127,10 @@ export class BasicComponent implements OnInit {
   toggleRightSlider(): void {
     if (this.rightSliderHidden) this.showRightSlider();
     else this.hideRightSlider();
+  }
+
+  // help button
+  help(): void {
+    this._showHelp.next(true);
   }
 }

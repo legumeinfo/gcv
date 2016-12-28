@@ -1,5 +1,6 @@
 // Angular
 import { ActivatedRoute }    from '@angular/router';
+import { BehaviorSubject }   from 'rxjs/BehaviorSubject';
 import { Component,
          ElementRef,
          OnInit,
@@ -80,6 +81,9 @@ export class SearchComponent implements OnInit {
   selectedDetail;
 
   rightSliderHidden: boolean;
+
+  private _showHelp = new BehaviorSubject<boolean>(true);
+  showHelp = this._showHelp.asObservable();
 
   // data
 
@@ -302,5 +306,10 @@ export class SearchComponent implements OnInit {
   toggleRightSlider(): void {
     if (this.rightSliderHidden) this.showRightSlider();
     else this.hideRightSlider();
+  }
+
+  // help button
+  help(): void {
+    this._showHelp.next(true);
   }
 }
