@@ -157,5 +157,9 @@
 
 <!-- left slider -->
 <left-slider [selected]="selectedDetail" [tracks]="microTracks">
-  <search-params [source]="routeSource" [gene]="routeGene"></search-params>
+  <search-params
+    [source]="routeSource"
+    [gene]="routeGene"
+    (invalid)="selectParams()" >
+  </search-params>
 </left-slider>

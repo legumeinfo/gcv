@@ -152,7 +152,7 @@ GCV.merge = function (data) {
                 Array.prototype.splice.apply(jTrack.genes, geneArgs);
                 Array.prototype.splice.apply(jIds, idArgs);
                 // adjust inversion scores and y coordinates
-                max = min + jTrack.genes.length;
+                max = min + kTrack.genes.length;
                 var pred = (min > 0) ? jTrack.genes[min - 1].suffixScore : 0;
                 for (var l = min; l < max; l++) {
                   jTrack.genes[l].suffixScore += pred;

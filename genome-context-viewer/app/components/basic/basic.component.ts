@@ -35,8 +35,7 @@ export class BasicComponent implements OnInit {
 
   // data
   private _urlParams: Observable<Params>;
-  private _queryGenes: BehaviorSubject<Array<string>> = new BehaviorSubject([]);
-  queryGenes: Observable<Array<string>> = this._queryGenes.asObservable();
+  queryGenes: string[];
 
   private _microTracks: Observable<MicroTracks>;
   microTracks: MicroTracks;
@@ -74,9 +73,8 @@ export class BasicComponent implements OnInit {
     // data
     this._urlParams = this._route.params;
     this._urlParams.subscribe(params => {
-      let queryGenes = params['genes'].split(',');
-      this.microArgs.highlight = queryGenes;
-      this._queryGenes.next(queryGenes);
+      this.queryGenes = params['genes'].split(',');
+      this.microArgs.highlight = this.queryGenes;
     });
     this._microTracks = Observable.combineLatest(
       this._microTracksService.tracks,

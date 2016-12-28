@@ -59,5 +59,8 @@
 
 <!-- left slider -->
 <left-slider [selected]="selectedDetail" [tracks]="microTracks">
-  <basic-params [queryGenes]="queryGenes"></basic-params>
+  <basic-params
+    [queryGenes]="queryGenes"
+    (invalid)="selectParams()" >
+  </basic-params>
 </left-slider>

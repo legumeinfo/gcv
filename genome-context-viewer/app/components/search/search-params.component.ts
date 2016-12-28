@@ -1,10 +1,12 @@
 // Angular
 import { BehaviorSubject }        from 'rxjs/BehaviorSubject';
 import { Component,
+         EventEmitter,
          Input,
          OnChanges,
          OnDestroy,
          OnInit,
+         Output,
          SimpleChanges }          from '@angular/core';
 import { FormBuilder, FormGroup } from '@angular/forms';
 
@@ -27,6 +29,7 @@ import { UrlQueryParamsService } from '../../services/url-query-params.service';
 export class SearchParamsComponent implements OnChanges, OnDestroy, OnInit {
   @Input() source: string;
   @Input() gene: string;
+  @Output() invalid = new EventEmitter();
 
   queryHelp = false;
   alignmentHelp = false;
@@ -39,15 +42,13 @@ export class SearchParamsComponent implements OnChanges, OnDestroy, OnInit {
 
   private _sub: any;
 
-  private _initialized = false;
-
   constructor(private _alignmentService: AlignmentService,
               private _fb: FormBuilder,
               private _tracksService: MicroTracksService,
               private _url: UrlQueryParamsService) { }
 
   ngOnChanges(changes: SimpleChanges) {
-    if (this._initialized)
+    if (this.queryGroup !== undefined)
       this._geneSearch();
   }
 
@@ -63,12 +64,23 @@ export class SearchParamsComponent implements OnChanges, OnDestroy, OnInit {
     this.alignmentGroup = this._fb.group(defaultAlignment.formControls());
     // subscribe to url query param updates
     this._sub = this._url.params.subscribe(params => {
+      let oldQuery = this.queryGroup.getRawValue();
       this.queryGroup.patchValue(params);
+      let newQuery = this.queryGroup.getRawValue();
+      if (JSON.stringify(oldQuery) !== JSON.stringify(newQuery))
+        this.queryGroup.markAsDirty();
+      let oldAlignment = this.alignmentGroup.getRawValue();
       this.alignmentGroup.patchValue(params);
+      let newAlignment = this.alignmentGroup.getRawValue();
+      if (JSON.stringify(oldAlignment) !== JSON.stringify(newAlignment))
+        this.alignmentGroup.markAsDirty();
+      if (this.queryGroup.dirty || this.alignmentGroup.dirty)
+        this.submit();
     });
     // submit the updated form
-    this.submit(true);
-    this._initialized = true;
+    this.queryGroup.markAsDirty();
+    this.alignmentGroup.markAsDirty();
+    this.submit();
   }
 
   private _geneSearch(): void {
@@ -79,18 +91,22 @@ export class SearchParamsComponent implements OnChanges, OnDestroy, OnInit {
     );
   }
 
-  submit(force = false): void {
-    this._url.updateParams(Object.assign({},
-      this.queryGroup.getRawValue(),
-      this.alignmentGroup.getRawValue()
-    ));
-    if (this.queryGroup.dirty || force) {
-      this._geneSearch();
-      this.queryGroup.reset(this.queryGroup.getRawValue());
-    }
-    if (this.alignmentGroup.dirty || force) {
-      this._alignmentService.updateParams(this.alignmentGroup.getRawValue());
-      this.alignmentGroup.reset(this.alignmentGroup.getRawValue());
+  submit(): void {
+    if (this.queryGroup.valid && this.alignmentGroup.valid) {
+      if (this.queryGroup.dirty) {
+        let params = this.queryGroup.getRawValue();
+        this._geneSearch();
+        this.queryGroup.reset(params);
+        this._url.updateParams(Object.assign({}, params));
+      }
+      if (this.alignmentGroup.dirty) {
+        let params = this.alignmentGroup.getRawValue();
+        this._alignmentService.updateParams(params);
+        this.alignmentGroup.reset(params);
+        this._url.updateParams(Object.assign({}, params));
+      }
+    } else {
+      this.invalid.emit();
     }
   }
 }

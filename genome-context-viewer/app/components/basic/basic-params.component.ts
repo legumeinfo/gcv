@@ -1,9 +1,11 @@
 // Angular
-import { BehaviorSubject }        from 'rxjs/BehaviorSubject';
 import { Component,
+         EventEmitter,
          Input,
+         OnChanges,
          OnDestroy,
          OnInit,
+         Output,
          SimpleChanges }          from '@angular/core';
 import { FormBuilder, FormGroup } from '@angular/forms';
 import { Observable }             from 'rxjs/Observable';
@@ -21,12 +23,9 @@ import { UrlQueryParamsService } from '../../services/url-query-params.service';
   styleUrls: [ 'basic-params.component.css' ]
 })
 
-export class BasicParamsComponent implements OnDestroy, OnInit {
-  private _queryGenes: BehaviorSubject<Array<string>>;
-  @Input()
-  set queryGenes(queryGenes: Observable<Array<string>>) {
-    this._queryGenes = <BehaviorSubject<Array<string>>>queryGenes;
-  }
+export class BasicParamsComponent implements OnChanges, OnDestroy, OnInit {
+  @Input() queryGenes: string[];
+  @Output() invalid = new EventEmitter();
 
   help = false;
 
@@ -40,6 +39,11 @@ export class BasicParamsComponent implements OnDestroy, OnInit {
               private _tracksService: MicroTracksService,
               private _url: UrlQueryParamsService) { }
 
+  ngOnChanges(changes: SimpleChanges): void {
+    if (this.queryGroup !== undefined)
+      this._basicQuery();
+  }
+
   ngOnDestroy(): void {
     this._sub.unsubscribe();
   }
@@ -50,25 +54,36 @@ export class BasicParamsComponent implements OnDestroy, OnInit {
     this.queryGroup = this._fb.group(defaultQuery.formControls());
     // subscribe to url query param updates
     this._sub = this._url.params.subscribe(params => {
+      let oldQuery = this.queryGroup.getRawValue();
       this.queryGroup.patchValue(params);
-    });
-    // subscribe to queryGene changes
-    this._queryGenes.subscribe(queryGenes => {
-      this._basicQuery(queryGenes);
+      let newQuery = this.queryGroup.getRawValue();
+      if (JSON.stringify(oldQuery) !== JSON.stringify(newQuery))
+        this.queryGroup.markAsDirty();
+      if (this.queryGroup.dirty)
+        this.submit();
     });
     // submit the updated form
+    this.queryGroup.markAsDirty();
     this.submit();
   }
 
-  private _basicQuery(queryGenes: string[]): void {
-    this._tracksService.basicQuery(queryGenes, this.queryGroup.getRawValue());
+  private _basicQuery(): void {
+    this._tracksService.basicQuery(
+      this.queryGenes,
+      this.queryGroup.getRawValue()
+    );
   }
 
   submit(): void {
-    this._url.updateParams(this.queryGroup.getRawValue());
-    if (this.queryGroup.dirty) {
-      this._basicQuery(this._queryGenes.getValue());
-      this.queryGroup.reset(this.queryGroup.getRawValue());
+    if (this.queryGroup.valid) {
+      if (this.queryGroup.dirty) {
+        let params = this.queryGroup.getRawValue();
+        this._basicQuery();
+        this.queryGroup.reset(params);
+        this._url.updateParams(params);
+      }
+    } else {
+      this.invalid.emit();
     }
   }
 }
