@@ -422,12 +422,22 @@ GCV.Viewer = class {
       .on('mouseover', function (g) {
         var gene = '.GCV [data-gene="' + g.id + '"]',
             family = '.GCV [data-family="' + g.family + '"]';
-        obj._beginHover(d3.selectAll(gene + ', ' + family));
+        var selection = d3.selectAll(gene + ', ' + family)
+          .filter(function () {
+            var d = this.getAttribute('data-gene');
+            return d === null || d == g.id;
+          });
+        obj._beginHover(selection);
       })
   	  .on('mouseout', function (g) {
         var gene = '.GCV [data-gene="' + g.id + '"]',
             family = '.GCV [data-family="' + g.family + '"]';
-        obj._endHover(d3.selectAll(gene + ', ' + family));
+        var selection = d3.selectAll(gene + ', ' + family)
+          .filter(function () {
+            var d = this.getAttribute('data-gene');
+            return d === null || d == g.id;
+          });
+        obj._endHover(selection);
       })
   	  .on('click', obj.options.geneClick);
   	// add genes to the gene groups
