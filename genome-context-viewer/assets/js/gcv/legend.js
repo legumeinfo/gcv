@@ -101,10 +101,17 @@ GCV.Legend = class {
     if (this.colors === undefined) {
       throw new Error('"color" is undefined');
     }
-    this.data = data;
-    if (this.data === undefined) {
+    if (data === undefined) {
       throw new Error('"data" is undefined');
     }
+    this.data = JSON.parse(JSON.stringify(data));;
+    var seen = {};
+    this.data.families = this.data.families.reduce((l, f) => {
+      if (!seen[f.id]) {
+        seen[f.id] = true;
+        l.push(f);
+      } return l;
+    }, []);
     // create the viewer
     this.viewer = d3.select(this.container)
       .append('svg')
