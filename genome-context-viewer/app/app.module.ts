@@ -26,7 +26,6 @@ import { selectedFamily }     from './reducers/selected-family.store';
 import { selectedGene }       from './reducers/selected-gene.store';
 import { selectedMicroTrack } from './reducers/selected-micro-track.store';
 import { selectedPlot }       from './reducers/selected-plot.store';
-import { ui }                 from './reducers/ui.store';
 import { urlQueryParams }     from './reducers/url-query-params.store';
 
 // App components
@@ -85,7 +84,6 @@ import { UrlQueryParamsService } from './services/url-query-params.service';
       selectedFamily,
       selectedGene,
       selectedPlot,
-      ui,
       urlQueryParams
     }),
     StoreDevtoolsModule.instrumentStore({
