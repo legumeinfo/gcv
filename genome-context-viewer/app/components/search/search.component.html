@@ -132,12 +132,13 @@
           <li>Click and drag zoom in on a plot</li>
         </ul>
       </gcv-help>
-      <div class="plots">
+      <div class="plots" (scroll)="drawPlots()">
         <div class="plot col-sm-6 col-md-4" *ngFor="let p of microPlots">
           <plot
             [plot]="p"
             [colors]="colors"
-            [args]="plotArgs" >
+            [args]="plotArgs"
+            [visibleDraw]="true" >
           </plot>
         </div>
       </div>

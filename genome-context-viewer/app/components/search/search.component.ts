@@ -4,7 +4,9 @@ import { BehaviorSubject }   from 'rxjs/BehaviorSubject';
 import { Component,
          ElementRef,
          OnInit,
+         QueryList,
          ViewChild,
+         ViewChildren,
          ViewEncapsulation } from '@angular/core';
 import { Observable }        from 'rxjs/Observable';
 
@@ -20,6 +22,7 @@ import { MacroTracksService }  from '../../services/macro-tracks.service';
 import { MicroTracks }         from '../../models/micro-tracks.model';
 import { microTracksSelector } from '../../selectors/micro-tracks.selector';
 import { MicroTracksService }  from '../../services/micro-tracks.service';
+import { PlotComponent }       from '../shared/plot.component';
 import { plotsSelector }       from '../../selectors/plots.selector';
 import { PlotsService }        from '../../services/plots.service';
 
@@ -68,6 +71,8 @@ export class SearchComponent implements OnInit {
     this._splitBottom = el;
     this._splitViewers();
   }
+
+  @ViewChildren(PlotComponent) plotComponents: QueryList<PlotComponent>;
 
   // UI
 
@@ -240,6 +245,12 @@ export class SearchComponent implements OnInit {
   }
 
   // main content
+
+  drawPlots(): void {
+    this.plotComponents.forEach(p => {
+      p.draw();
+    });
+  }
 
   showPlots(): void {
     this.selectedContent = this.contentTypes.PLOTS;

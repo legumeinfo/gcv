@@ -97,6 +97,7 @@ import { UrlQueryParamsService } from './services/url-query-params.service';
     StoreLogMonitorModule
   ],
   declarations: [
+    // App components
     AppComponent,
     BasicComponent,
     BasicParamsComponent,

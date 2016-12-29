@@ -25,17 +25,20 @@ export class PlotComponent implements AfterViewInit, OnChanges, OnDestroy {
   @Input() plot: Group;
   @Input() colors: any;
   @Input() args: any;
+  @Input() visibleDraw: boolean;
 
   @ViewChild('plot') el: ElementRef;
 
   private _plot = undefined;
+  private _drawnSinceChange: boolean;
 
   ngAfterViewInit(): void {
-    this._draw();
+    this.draw();
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-    this._draw();
+    this._drawnSinceChange = false;
+    this.draw();
   }
 
   ngOnDestroy(): void {
@@ -49,8 +52,23 @@ export class PlotComponent implements AfterViewInit, OnChanges, OnDestroy {
     }
   }
 
-  private _draw(): void {
-    if (this.el !== undefined && this.plot !== undefined) {
+  private _visible(): boolean {
+    const rec = this.el.nativeElement.getBoundingClientRect();
+    const vp = {width: window.innerWidth, height: window.innerHeight};
+    const tViz = rec.top >= 0 && rec.top < vp.height;
+    const bViz = rec.bottom > 0 && rec.bottom <= vp.height;
+    const lViz = rec.left >= 0 && rec.left < vp.width;
+    const rViz = rec.right > 0 && rec.right <= vp.width;
+    const vVisible = tViz || bViz;
+    const hVisible = lViz || rViz;
+		if (vVisible && hVisible) return true;
+    return false;
+  }
+
+  draw(): void {
+    if ((this.el !== undefined && this.plot !== undefined) &&
+    (!this.visibleDraw || (this.visibleDraw && this._visible())) &&
+    !this._drawnSinceChange) {
       this._destroy();
       this._plot = new GCV.Plot(
         this.el.nativeElement,
@@ -58,6 +76,7 @@ export class PlotComponent implements AfterViewInit, OnChanges, OnDestroy {
         this.plot,
         this.args
       );
+      this._drawnSinceChange = true;
     }
   }
 }
