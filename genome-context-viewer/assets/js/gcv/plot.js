@@ -340,7 +340,10 @@ GCV.Plot = class {
         .on('brushend', brushend);
     var brushG = this.viewer.append('g')
         .attr('class', 'brush')
-        .call(brush);
+        .call(brush).on('click', () => {
+          if (extent[0][0] == extent[1][0])
+            this.options.plotClick(this.data);
+        });
     clearButton.resize = function (brush, brushG) {
       brush.x(this.xScale).y(this.yScale);
       brushG.call(brush);
@@ -362,9 +365,7 @@ GCV.Plot = class {
       });
     }
     function brushend() {
-      if (extent[0][0] == extent[1][0]) {
-        obj.options.plotClick(obj.data);
-      } else {
+      if (extent[0][0] != extent[1][0]) {
         clearButton.style('visibility', 'visible');
         obj.xScale.domain([extent[0][0], extent[1][0]]);
         transitionData();
