@@ -1,18 +1,18 @@
-import { Component } from '@angular/core';
+import { Component, Input } from '@angular/core';
 
 @Component({
   moduleId: module.id,
   selector: 'spinner',
   template: `
-    <div class="grey-screen">
+    <div class="grey-screen" *ngIf="!data">
       <div class="spinner">
-        <img src="img/spinner.gif" />
+        <img src="../../../assets/img/spinner.gif" />
       </div>
     </div>
   `,
-  styles: [ '' ]
+  styles: [ '' ]  // uses app level css
 })
 
 export class SpinnerComponent {
-  // constructor should take in selectedFamily
+  @Input() data: any;
 }

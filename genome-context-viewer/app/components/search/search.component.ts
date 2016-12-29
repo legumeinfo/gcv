@@ -164,6 +164,7 @@ export class SearchComponent implements OnInit {
     this.hideRightSlider();
     // data
     this._route.params.subscribe(params => {
+      this.invalidate();
       this.routeSource = params['source'];
       this.routeGene = params['gene'];
     });
@@ -178,13 +179,14 @@ export class SearchComponent implements OnInit {
     this._microTracks.subscribe(tracks => {
       this.familySizes = getFamilySizeMap(tracks);
       this.microTracks = tracks;
-      this.macroArgs.viewport = undefined;
       if (tracks.groups.length > 0 && tracks.groups[0].genes.length > 0) {
         this.queryGenes = tracks.groups[0].genes;
         this.macroArgs.viewport = {
           start: this.queryGenes[0].fmin,
           stop: this.queryGenes[this.queryGenes.length - 1].fmax
         }
+      } else {
+        this.microTracks = undefined;
       }
       this.hideLeftSlider();
     });
@@ -203,6 +205,7 @@ export class SearchComponent implements OnInit {
       this.macroTracks = tracks;
     });
     this._plotsService.selectedPlot.subscribe(plot => {
+      this.selectedLocal = this.selectedGlobal = undefined;
       if (this.selectedPlot == this.plotTypes.GLOBAL) this.showGlobalPlot();
       else this.showLocalPlot();
     });
@@ -231,6 +234,10 @@ export class SearchComponent implements OnInit {
   }
 
   // public
+
+  invalidate(): void {
+    this.macroTracks = this.microPlots = this.microTracks = undefined;
+  }
 
   // main content
 

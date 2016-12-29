@@ -16,7 +16,7 @@ declare var GCV: any;
 @Component({
   moduleId: module.id,
   selector: 'macro-viewer',
-  template: '<div #macroViewer></div>',
+  template: '<spinner [data]="tracks"></spinner><div #macroViewer></div>',
   styles: [ '' ]
 })
 

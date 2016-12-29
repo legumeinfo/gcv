@@ -3,7 +3,7 @@ import { MacroTracks } from '../models/macro-tracks.model';
 export const macroTracksSelector = () => {
   return state => state
     .map(([macroTracks, filteredMicroTracks]) => {
-      if (filteredMicroTracks.groups.length > 0) {
+      if (macroTracks !== undefined && filteredMicroTracks.groups.length > 0) {
         let query = filteredMicroTracks.groups[0];
         let chrs = filteredMicroTracks.groups.reduce((l, g, i) => {
           if (i > 0 && g.source == query.source) l.push(g.chromosome_name);

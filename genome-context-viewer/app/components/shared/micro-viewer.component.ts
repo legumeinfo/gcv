@@ -18,7 +18,7 @@ declare var GCV: any;
 @Component({
   moduleId: module.id,
   selector: 'micro-viewer',
-  template: '<div #microViewer></div>',
+  template: '<spinner [data]="tracks"></spinner><div #microViewer></div>',
   styles: [ '' ]
 })
 

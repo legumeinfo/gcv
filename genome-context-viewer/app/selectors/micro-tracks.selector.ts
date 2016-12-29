@@ -6,9 +6,11 @@ export const microTracksSelector = (options?: any) => {
     // args[1:] = Array<filter>
     .map((args) => {
       let tracks = Object.assign({}, args[0]);
-      for (let i = 1; i < args.length; ++i) {
-        let f = args[i];
-        tracks = f.algorithm(tracks, options);
+      if (tracks !== undefined) {
+        for (let i = 1; i < args.length; ++i) {
+          let f = args[i];
+          tracks = f.algorithm(tracks, options);
+        }
       }
       return tracks;
     })

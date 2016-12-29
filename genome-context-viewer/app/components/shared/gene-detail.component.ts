@@ -12,6 +12,7 @@ import { Gene }           from '../../models/gene.model';
   moduleId: module.id,
   selector: 'gene-detail',
   template: `
+    <spinner [data]="links"></spinner>
     <h4>{{gene.name}}</h4>
     <p>Family: <a href="/chado_gene_phylotree_v2/{{gene.family}}?gene_name={{gene.name}}">{{gene.family}}</a></p>
     <p><a href="/#/search/{{gene.source}}/{{gene.name}}">Search for similar contexts</a></p>
@@ -32,6 +33,7 @@ export class GeneDetailComponent implements OnChanges {
   constructor(private _detailsService: DetailsService) { }
 
   ngOnChanges(changes: SimpleChanges): void {
+    this.links = undefined;
     if (this.gene !== undefined) {
       this.links = undefined;
       this._detailsService.getGeneDetails(this.gene, links => {

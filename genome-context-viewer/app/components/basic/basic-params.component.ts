@@ -10,7 +10,7 @@ import { Component,
 import { FormBuilder, FormGroup } from '@angular/forms';
 import { Observable }             from 'rxjs/Observable';
 
-// App services
+// App
 import { MicroTracksService }    from '../../services/micro-tracks.service';
 import { QueryParams }           from '../../models/query-params.model';
 import { SERVERS }               from '../../constants/servers';
@@ -26,6 +26,7 @@ import { UrlQueryParamsService } from '../../services/url-query-params.service';
 export class BasicParamsComponent implements OnChanges, OnDestroy, OnInit {
   @Input() queryGenes: string[];
   @Output() invalid = new EventEmitter();
+  @Output() submitted = new EventEmitter();
 
   help = false;
 
@@ -77,6 +78,7 @@ export class BasicParamsComponent implements OnChanges, OnDestroy, OnInit {
   submit(): void {
     if (this.queryGroup.valid) {
       if (this.queryGroup.dirty) {
+        this.submitted.emit();
         let params = this.queryGroup.getRawValue();
         this._basicQuery();
         this.queryGroup.reset(params);

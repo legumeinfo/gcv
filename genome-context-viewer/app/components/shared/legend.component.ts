@@ -15,8 +15,7 @@ declare var GCV: any;
 @Component({
   moduleId: module.id,
   selector: 'app-legend',
-  template: `<div #legend></div>
-  `,
+  template: '<spinner [data]="microTracks"></spinner><div #legend></div>',
   styles: [ '' ]
 })
 

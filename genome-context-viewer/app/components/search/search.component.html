@@ -160,6 +160,7 @@
   <search-params
     [source]="routeSource"
     [gene]="routeGene"
-    (invalid)="selectParams()" >
+    (invalid)="selectParams()"
+    (submitted)="invalidate()" >
   </search-params>
 </left-slider>

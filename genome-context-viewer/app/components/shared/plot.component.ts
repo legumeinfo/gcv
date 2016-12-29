@@ -17,7 +17,7 @@ declare var GCV: any;
 @Component({
   moduleId: module.id,
   selector: 'plot',
-  template: '<div #plot></div>',
+  template: '<spinner [data]="plot"></spinner><div #plot></div>',
   styles: [ '' ]
 })
 

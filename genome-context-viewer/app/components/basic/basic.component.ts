@@ -67,12 +67,15 @@ export class BasicComponent implements OnInit {
               private _filterService: FilterService,
               private _microTracksService: MicroTracksService) { }
 
+  // Angular hooks
+
   ngOnInit(): void {
     // ui
     this.hideRightSlider();
     // data
     this._urlParams = this._route.params;
     this._urlParams.subscribe(params => {
+      this.invalidate();
       this.queryGenes = params['genes'].split(',');
       this.microArgs.highlight = this.queryGenes;
     });
@@ -81,9 +84,17 @@ export class BasicComponent implements OnInit {
       this._filterService.regexp
     ).let(microTracksSelector());
     this._microTracks.subscribe(tracks => {
-      this.microTracks = tracks;
+      this.microTracks = (tracks.groups.length > 0) ? tracks : undefined;
       this.hideLeftSlider();
     });
+  }
+
+  // private
+
+  // public
+
+  invalidate(): void {
+    this.microTracks = undefined;
   }
 
   // left slider

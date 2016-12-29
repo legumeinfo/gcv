@@ -30,6 +30,7 @@ export class SearchParamsComponent implements OnChanges, OnDestroy, OnInit {
   @Input() source: string;
   @Input() gene: string;
   @Output() invalid = new EventEmitter();
+  @Output() submitted = new EventEmitter();
 
   queryHelp = false;
   alignmentHelp = false;
@@ -94,12 +95,14 @@ export class SearchParamsComponent implements OnChanges, OnDestroy, OnInit {
   submit(): void {
     if (this.queryGroup.valid && this.alignmentGroup.valid) {
       if (this.queryGroup.dirty) {
+        this.submitted.emit();
         let params = this.queryGroup.getRawValue();
         this._geneSearch();
         this.queryGroup.reset(params);
         this._url.updateParams(Object.assign({}, params));
       }
       if (this.alignmentGroup.dirty) {
+        this.submitted.emit();
         let params = this.alignmentGroup.getRawValue();
         this._alignmentService.updateParams(params);
         this.alignmentGroup.reset(params);

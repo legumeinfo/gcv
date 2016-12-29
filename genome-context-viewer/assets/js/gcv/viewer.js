@@ -544,7 +544,8 @@ GCV.Viewer = class {
         this._beginHover(selection);
       })
       .on('mouseout', (y, i) => {
-        var micro = '.GCV [data-micro-track="' + i.toString() + '"]',
+        var iStr = i.toString(),
+            micro = '.GCV [data-micro-track="' + iStr + '"]',
             name = this.data.groups[i].chromosome_name,
             chromosome = '.GCV [data-chromosome="' + name + '"]';
         var selection = d3.selectAll(micro + ', ' + chromosome)
