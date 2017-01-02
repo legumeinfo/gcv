@@ -161,7 +161,7 @@ def basic_tracks_tree_agnostic(request):
     if request.method == 'POST' and 'genes' in POST:
         # prepare a generic response
         generic = HttpResponse(
-            json.dumps('{"family":"", "tracks":{"families":[], "groups":[]}}'),
+            json.dumps('{"families":[], "groups":[]}'),
             content_type='application/json; charset=utf8'
         )
 
@@ -346,9 +346,8 @@ def basic_tracks_tree_agnostic(request):
             groups.append(group)
 
         # write the contents of the file
-        view_json = ('{"family":"' + focus_family_id + '", "tracks":' +
-            '{"families":[' + ','.join(families.values()) + '], "groups":[' +
-            ','.join(groups) + ']}}')
+        view_json = ('{"families":[' + ','.join(families.values()) + '], "groups":[' +
+            ','.join(groups) + ']}'
 
         return HttpResponse(
             json.dumps(view_json),
