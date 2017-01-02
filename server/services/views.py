@@ -347,7 +347,7 @@ def basic_tracks_tree_agnostic(request):
 
         # write the contents of the file
         view_json = ('{"families":[' + ','.join(families.values()) + '], "groups":[' +
-            ','.join(groups) + ']}'
+            ','.join(groups) + ']}')
 
         return HttpResponse(
             json.dumps(view_json),
