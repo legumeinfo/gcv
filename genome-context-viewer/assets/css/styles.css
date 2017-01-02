@@ -13,21 +13,6 @@ a {
 .navbar button {
   margin-right: 15px;
 }
-#main #top-nav #alerts {
-  width: auto;
-  overflow: hidden;
-  padding: 10px 15px;
-  height: 50px;
-}
-#main #top-nav #alerts .alert {
-  margin: 0;
-  padding: 0 10px;
-  height: 30px;
-  line-height: 28px;
-  vertical-align: middle;
-  text-align: center;
-  overflow: hidden;
-}
 #main #viewer, #main #plots, #main #help {
   width: 100%;
   position: absolute;

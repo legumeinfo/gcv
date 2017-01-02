@@ -15,7 +15,7 @@ export class DetailsService {
 
   constructor(private _http: Http) { }
 
-  getGeneDetails(gene: Gene, callback: Function): void {
+  getGeneDetails(gene: Gene, success: Function, failure = e => {}): void {
     let idx = this._serverIDs.indexOf(gene.source);
     if (idx != -1) {
       let s: Server = this._servers[idx];
@@ -26,11 +26,14 @@ export class DetailsService {
           response = this._http.get(url, {});
         else
           response = this._http.post(url, {});
-        response.toPromise().then(res => {
-          callback(res.json());
-        });
+        response.subscribe(res => {
+          success(res.json());
+        }, failure);
+      } else {
+        failure(s.id + " doesn't serve gene detail requests");
       }
+    } else {
+      failure('invalid source: ' + gene.source);
     }
-    return undefined;
   }
 }

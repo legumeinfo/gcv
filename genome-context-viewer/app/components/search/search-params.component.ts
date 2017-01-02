@@ -11,6 +11,9 @@ import { Component,
 import { FormBuilder, FormGroup } from '@angular/forms';
 
 // App services
+import { Alert }                 from '../../models/alert.model';
+import { ALERT_DANGER }          from '../../constants/alerts';
+import { AlertsService }         from '../../services/alerts.service';
 import { ALIGNMENT_ALGORITHMS }  from '../../constants/alignment-algorithms';
 import { AlignmentParams }       from '../../models/alignment-params.model';
 import { AlignmentService }      from '../../services/alignment.service';
@@ -43,7 +46,8 @@ export class SearchParamsComponent implements OnChanges, OnDestroy, OnInit {
 
   private _sub: any;
 
-  constructor(private _alignmentService: AlignmentService,
+  constructor(private _alerts: AlertsService,
+              private _alignmentService: AlignmentService,
               private _fb: FormBuilder,
               private _tracksService: MicroTracksService,
               private _url: UrlQueryParamsService) { }
@@ -88,7 +92,8 @@ export class SearchParamsComponent implements OnChanges, OnDestroy, OnInit {
     this._tracksService.geneSearch(
       this.source,
       this.gene,
-      this.queryGroup.getRawValue()
+      this.queryGroup.getRawValue(),
+      e => this._alerts.pushAlert(new Alert(ALERT_DANGER, e))
     );
   }
 

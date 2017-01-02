@@ -11,6 +11,12 @@ import { Component,
 import { Observable }        from 'rxjs/Observable';
 
 // App
+import { Alert }               from '../../models/alert.model';
+import { ALERT_SUCCESS,
+         ALERT_INFO,
+         ALERT_WARNING,
+         ALERT_DANGER }        from '../../constants/alerts';
+import { AlertsService }       from '../../services/alerts.service';
 import { AlignmentService }    from '../../services/alignment.service';
 import { Family }              from '../../models/family.model';
 import { FilterService }       from '../../services/filter.service';
@@ -108,6 +114,8 @@ export class SearchComponent implements OnInit {
   selectedLocal: Group;
   selectedGlobal: Group;
 
+  private _numReturned: number;
+
   // viewers
 
   familySizes: any;
@@ -153,6 +161,7 @@ export class SearchComponent implements OnInit {
   // constructor
 
   constructor(private _route: ActivatedRoute,
+              private _alerts: AlertsService,
               private _alignmentService: AlignmentService,
               private _filterService: FilterService,
               private _macroTracksService: MacroTracksService,
@@ -174,6 +183,7 @@ export class SearchComponent implements OnInit {
       this.routeGene = params['gene'];
     });
     this._microTracksService.tracks.subscribe(tracks => {
+      this._numReturned = tracks.groups.length - 1;  // exclude query
       this._macroTracksService.search(tracks);
     });
     this._microTracks = Observable.combineLatest(
@@ -185,6 +195,12 @@ export class SearchComponent implements OnInit {
       this.familySizes = getFamilySizeMap(tracks);
       this.microTracks = tracks;
       if (tracks.groups.length > 0 && tracks.groups[0].genes.length > 0) {
+        let num = (new Set(tracks.groups.map(g => g.id))).size - 1;
+        this._alerts.pushAlert(new Alert(
+          (num) ? ((this._numReturned == num) ? ALERT_SUCCESS : ALERT_INFO) :
+            ALERT_WARNING,
+          this._numReturned + ' tracks returned; ' + num + ' aligned'
+        ));
         this.queryGenes = tracks.groups[0].genes;
         this.macroArgs.viewport = {
           start: this.queryGenes[0].fmin,
@@ -217,6 +233,10 @@ export class SearchComponent implements OnInit {
   }
 
   // private
+
+  private _errorAlert(message: string): void {
+    this._alerts.pushAlert(new Alert(ALERT_DANGER, message));
+  }
 
   private _splitViewers(): void {
     if (this._splitTop !== undefined && this._splitBottom !== undefined) {

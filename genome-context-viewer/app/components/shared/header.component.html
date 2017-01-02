@@ -13,7 +13,17 @@
       </a>
     </div>
     <div class="collapse navbar-collapse">
-      <ng-content></ng-content>
+      <ng-content select="[left]"></ng-content>
+      <div>
+        <div class="navbar-right">
+          <ng-content select="[right]"></ng-content>
+        </div>
+        <div class="alerts" *ngIf="alerts">
+          <div role="alert" [className]="'alert ' + alert.type">
+            {{alert.message}}
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </div>

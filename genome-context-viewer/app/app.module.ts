@@ -57,6 +57,7 @@ import { TrackDetailComponent }      from './components/shared/track-detail.comp
 import { ToggleButtonComponent }     from './components/shared/toggle-button.component';
 
 // App services
+import { AlertsService }         from './services/alerts.service';
 import { AlignmentService }      from './services/alignment.service';
 import { DetailsService }        from './services/details.service';
 import { FilterService }         from './services/filter.service';
@@ -124,6 +125,7 @@ import { UrlQueryParamsService } from './services/url-query-params.service';
     ToggleButtonComponent
   ],
   providers: [
+    AlertsService,
     AlignmentService,
     DetailsService,
     FilterService,

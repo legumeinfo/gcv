@@ -5,6 +5,12 @@ import { Component, OnInit }      from '@angular/core';
 import { Observable }             from 'rxjs/Observable';
 
 // App
+import { Alert }               from '../../models/alert.model';
+import { ALERT_SUCCESS,
+         ALERT_INFO,
+         ALERT_WARNING,
+         ALERT_DANGER }        from '../../constants/alerts';
+import { AlertsService }       from '../../services/alerts.service';
 import { Family }              from '../../models/family.model';
 import { FilterService }       from '../../services/filter.service';
 import { Gene }                from '../../models/gene.model';
@@ -64,6 +70,7 @@ export class BasicComponent implements OnInit {
   // constructor
 
   constructor(private _route: ActivatedRoute,
+              private _alerts: AlertsService,
               private _filterService: FilterService,
               private _microTracksService: MicroTracksService) { }
 
@@ -84,7 +91,12 @@ export class BasicComponent implements OnInit {
       this._filterService.regexp
     ).let(microTracksSelector());
     this._microTracks.subscribe(tracks => {
-      this.microTracks = (tracks.groups.length > 0) ? tracks : undefined;
+      this.microTracks = tracks;
+      let num = tracks.groups.length;
+      this._alerts.pushAlert(new Alert(
+        (num) ? ALERT_SUCCESS : ALERT_WARNING,
+        num + ' tracks returned'
+      ));
       this.hideLeftSlider();
     });
   }

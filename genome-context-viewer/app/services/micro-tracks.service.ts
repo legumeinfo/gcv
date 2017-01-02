@@ -55,7 +55,11 @@ export class MicroTracksService {
     }
   }
 
-  basicQuery(queryGenes: string[], params: QueryParams): void {
+  basicQuery(
+    queryGenes: string[],
+    params: QueryParams,
+    failure = e => {}
+  ): void {
     let args = {
       genes: queryGenes,
       numNeighbors: params.neighbors
@@ -65,63 +69,82 @@ export class MicroTracksService {
     let sources = params.sources.reduce((l, s) => {
       let i = this._serverIDs.indexOf(s);
       if (i != -1) l.push(this._servers[i]);
+      else failure('invalid source: ' + s);
       return l;
     }, []);
     for (let i = 0; i < sources.length; ++i) {
       let s: Server = sources[i];
-      let response: Observable<Response>;
-      if (s.microBasic.type === GET)
-        response = this._http.get(s.microBasic.url, args);
-      else
-        response = this._http.post(s.microBasic.url, args);
-      requests.push(response.map(res => res.json()));
+      if (s.hasOwnProperty('microBasic')) {
+        let response: Observable<Response>;
+        if (s.microBasic.type === GET)
+          response = this._http.get(s.microBasic.url, args);
+        else
+          response = this._http.post(s.microBasic.url, args);
+        requests.push(response
+          .map(res => res.json())
+          .catch(() => Observable.empty())
+          .defaultIfEmpty(null));
+      } else {
+        failure(s.id + " doesn't serve basic micro track requests");
+      }
     }
     // aggregate the results
     Observable.forkJoin(requests).subscribe(results => {
+      let failed = [];
       let families: Family[] = [];
       let groups: Group[] = [];
       let maxLength: number = (params.neighbors * 2) + 1;
       for (let h = 0; h < results.length; ++h) {
-        let tracks: MicroTracks = this._parseMicroTracksJSON(
-          sources[h],
-          results[h]
-        );
-        // center the tracks on the focus family
-        let centers = [];
-        for (let i = 0; i < tracks.groups.length; ++i) {
-          let group: Group = tracks.groups[i];
-          let genes: Gene[] = group.genes;
-          let offset = 0;
-          if (group.genes.length < maxLength) {
-            for (let j = genes.length - 1; j >= 0; --j) {
-              let g: Gene = genes[j];
-              if (queryGenes.indexOf(g.name) != -1) {
-                if (centers.indexOf(g.name) == -1) {
-                  centers.push(g.name);
-                  offset = params.neighbors - j;
-                  break;
+        let result = results[h];
+        let source = sources[h];
+        if (result == null) {
+          failed.push(source.id);
+        } else {
+          let tracks: MicroTracks = this._parseMicroTracksJSON(source, result);
+          // center the tracks on the focus family
+          let centers = [];
+          for (let i = 0; i < tracks.groups.length; ++i) {
+            let group: Group = tracks.groups[i];
+            let genes: Gene[] = group.genes;
+            let offset = 0;
+            if (group.genes.length < maxLength) {
+              for (let j = genes.length - 1; j >= 0; --j) {
+                let g: Gene = genes[j];
+                if (queryGenes.indexOf(g.name) != -1) {
+                  if (centers.indexOf(g.name) == -1) {
+                    centers.push(g.name);
+                    offset = params.neighbors - j;
+                    break;
+                  }
                 }
               }
             }
+            // set the gene positions relative to their track (group)
+            for (let j = 0; j < genes.length; ++j) {
+              let g: Gene = genes[j];
+              g.x = offset + j;
+              g.y = 0;
+            }
           }
-          // set the gene positions relative to their track (group)
-          for (let j = 0; j < genes.length; ++j) {
-            let g: Gene = genes[j];
-            g.x = offset + j;
-            g.y = 0;
-          }
+          // aggregate
+          families.push.apply(families, tracks.families);
+          groups.push.apply(groups, tracks.groups);
         }
-        // aggregate
-        families.push.apply(families, tracks.families);
-        groups.push.apply(groups, tracks.groups);
       }
+      if (failed.length > 0)
+        failure('failed to retrieve data from sources: ' + failed.join(', '));
       let aggregateTracks = new MicroTracks(families, groups);
       this._idTracks(aggregateTracks);
       this._store.dispatch({type: ADD_MICRO_TRACKS, payload: aggregateTracks})
     });
   }
 
-  geneSearch(source: string, queryGene: string, params: QueryParams): void {
+  geneSearch(
+    source: string,
+    queryGene: string,
+    params: QueryParams,
+    failure = e => {}
+  ): void {
     // fetch query track for gene
     let idx: number = this._serverIDs.indexOf(source);
     if (idx != -1) {
@@ -138,13 +161,17 @@ export class MicroTracksService {
           response = this._http.post(s.microQuery.url, args)
         response.map(res => JSON.parse(res.json())).subscribe(query => {
           this._prepareTrack(source, query);
-          this.trackSearch(query, params);
-        });
+          this.trackSearch(query, params, failure);
+        }, failure);
+      } else {
+        failure(s.id + " doesn't serve micro track gene search requests");
       }
+    } else {
+      failure('invalid source: ' + source);
     }
   }
 
-  trackSearch(query: Group, params: QueryParams): void {
+  trackSearch(query: Group, params: QueryParams, failure = e => {}): void {
     let args = {
       query: query.genes.map(g => g.family),
       numNeighbors: params.neighbors,
@@ -156,42 +183,55 @@ export class MicroTracksService {
     let sources = params.sources.reduce((l, s) => {
       let i = this._serverIDs.indexOf(s);
       if (i != -1) l.push(this._servers[i]);
+      else failure('invalid source: ' + s);
       return l;
     }, []);
-    for (let h = 0; h < sources.length; ++h) {
-      let s: Server = sources[h];
-      let response: Observable<Response>;
-      if (s.microSearch.type === GET)
-        response = this._http.get(s.microSearch.url, args);
-      else
-        response = this._http.post(s.microSearch.url, args);
-      requests.push(response.map(res => res.json()));
+    for (let i = 0; i < sources.length; ++i) {
+      let s: Server = sources[i];
+      if (s.hasOwnProperty('microSearch')) {
+        let response: Observable<Response>;
+        if (s.microSearch.type === GET)
+          response = this._http.get(s.microSearch.url, args);
+        else
+          response = this._http.post(s.microSearch.url, args);
+        requests.push(response
+          .map(res => res.json())
+          .catch(() => Observable.empty())
+          .defaultIfEmpty(null));
+      } else {
+        failure(s.id + " doesn't serve basic micro track requests");
+      }
     }
     // aggregate the results
     Observable.forkJoin(requests).subscribe(results => {
+      let failed = [];
       let families: Family[] = [];
       let groups: Group[] = [query];
       for (let i = 0; i < results.length; ++i) {
+        let result = results[i];
         let source = sources[i];
-        let tracks: MicroTracks = this._parseMicroTracksJSON(
-          source,
-          results[i]
-        );
-        // remove the query if present
-        if (source.id == query.source) {
-          tracks.groups = tracks.groups.filter(group  => {
-            if (group.species_id == query.species_id &&
-                group.chromosome_id == query.chromosome_id &&
-                group.genes.length >= query.genes.length) {
-              let geneIDs = group.genes.map(g => g.id);
-              return query.genes.some(g => geneIDs.indexOf(g.id) == -1);
-            } return true;
-          });
+        if (result == null) {
+          failed.push(source.id);
+        } else {
+          let tracks: MicroTracks = this._parseMicroTracksJSON(source, result);
+          // remove the query if present
+          if (source.id == query.source) {
+            tracks.groups = tracks.groups.filter(group  => {
+              if (group.species_id == query.species_id &&
+                  group.chromosome_id == query.chromosome_id &&
+                  group.genes.length >= query.genes.length) {
+                let geneIDs = group.genes.map(g => g.id);
+                return query.genes.some(g => geneIDs.indexOf(g.id) == -1);
+              } return true;
+            });
+          }
+          // aggregate the remaining tracks
+          families.push.apply(families, tracks.families);
+          groups.push.apply(groups, tracks.groups);
         }
-        // aggregate the remaining tracks
-        families.push.apply(families, tracks.families);
-        groups.push.apply(groups, tracks.groups);
       }
+      if (failed.length > 0)
+        failure('failed to retrieve data from sources: ' + failed.join(', '));
       let aggregateTracks = new MicroTracks(families, groups);
       this._idTracks(aggregateTracks);
       this._store.dispatch({type: ADD_MICRO_TRACKS, payload: aggregateTracks})

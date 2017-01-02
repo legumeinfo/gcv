@@ -29,10 +29,10 @@ export class AlignmentService {
     this.tracks = Observable.combineLatest(
       this._store.select('microTracks'),
       this._store.select('alignmentParams')
-    ).let(this._alignedTracks());
+    ).let(this._alignTracks());
   }
 
-  private _alignedTracks = () => {
+  private _alignTracks = () => {
     return state => state.map(([tracks, params]) => {
       let algorithm = this._algorithms[this._algorithmIDs.indexOf(
         params.algorithm

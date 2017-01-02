@@ -104,35 +104,42 @@ export class PlotsService {
     this._store.dispatch({type: SELECT_PLOT, payload: plot});
   }
 
-  getSelectedGlobal(callback: Function): void {
+  getSelectedGlobal(success: Function, failure = e => {}): void {
     let local = this.getSelectedLocal();
     if (local !== undefined) {
       let idx = this._globalPlots.map(p => p.id).indexOf(this._selectedPlot.id);
-      if (idx != -1) callback(this._globalPlots[idx]);
-      idx = this._serverIDs.indexOf(this._selectedPlot.source)
+      if (idx != -1) success(this._globalPlots[idx]);
+      let source = this._selectedPlot.source;
+      idx = this._serverIDs.indexOf(source)
       if (idx != -1) {
         let s: Server = this._servers[idx];
-        let args = {
-          query: this._query,
-          chromosomeID: local.chromosome_id
-        };
-        let response: Observable<Response>;
-        if (s.plotGlobal.type === GET)
-          response = this._http.get(s.plotGlobal.url, args);
-        else
-          response = this._http.post(s.plotGlobal.url, args);
-        response.toPromise().then(res => {
-          let plot = Object.assign({}, local);
-          plot.genes = this._plotGenes(res.json());
-          for (let i = 0; i < plot.genes.length; ++i) {
-            plot.genes[i].source = plot.source;
-          }
-          this._store.dispatch({type: UPDATE_GLOBAL_PLOTS, payload: plot})
-          callback(plot);
-        });
+        if (s.hasOwnProperty('plotGlobal')) {
+          let args = {
+            query: this._query,
+            chromosomeID: local.chromosome_id
+          };
+          let response: Observable<Response>;
+          if (s.plotGlobal.type === GET)
+            response = this._http.get(s.plotGlobal.url, args);
+          else
+            response = this._http.post(s.plotGlobal.url, args);
+          response.subscribe(res => {
+            let plot = Object.assign({}, local);
+            plot.genes = this._plotGenes(res.json());
+            for (let i = 0; i < plot.genes.length; ++i) {
+              plot.genes[i].source = plot.source;
+            }
+            this._store.dispatch({type: UPDATE_GLOBAL_PLOTS, payload: plot})
+            success(plot);
+          }, failure);
+        } else {
+          failure(source + " doesn't support global plot requests");
+        }
+      } else {
+        failure('invalid source: ' + source);
       }
     } else {
-      callback(undefined);
+      failure('invalid plot selection');
     }
   }
 

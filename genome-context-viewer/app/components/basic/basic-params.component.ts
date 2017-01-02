@@ -11,6 +11,9 @@ import { FormBuilder, FormGroup } from '@angular/forms';
 import { Observable }             from 'rxjs/Observable';
 
 // App
+import { Alert }                 from '../../models/alert.model';
+import { ALERT_DANGER }          from '../../constants/alerts';
+import { AlertsService }         from '../../services/alerts.service';
 import { MicroTracksService }    from '../../services/micro-tracks.service';
 import { QueryParams }           from '../../models/query-params.model';
 import { SERVERS }               from '../../constants/servers';
@@ -24,11 +27,16 @@ import { UrlQueryParamsService } from '../../services/url-query-params.service';
 })
 
 export class BasicParamsComponent implements OnChanges, OnDestroy, OnInit {
+  // IO
   @Input() queryGenes: string[];
   @Output() invalid = new EventEmitter();
   @Output() submitted = new EventEmitter();
 
+  // UI
+
   help = false;
+
+  // data
 
   queryGroup: FormGroup;
 
@@ -36,9 +44,14 @@ export class BasicParamsComponent implements OnChanges, OnDestroy, OnInit {
 
   private _sub: any;
 
-  constructor(private _fb: FormBuilder,
+  // constructor
+
+  constructor(private _alerts: AlertsService,
+              private _fb: FormBuilder,
               private _tracksService: MicroTracksService,
               private _url: UrlQueryParamsService) { }
+
+  // Angular hooks
 
   ngOnChanges(changes: SimpleChanges): void {
     if (this.queryGroup !== undefined)
@@ -68,12 +81,17 @@ export class BasicParamsComponent implements OnChanges, OnDestroy, OnInit {
     this.submit();
   }
 
+  // private
+
   private _basicQuery(): void {
     this._tracksService.basicQuery(
       this.queryGenes,
-      this.queryGroup.getRawValue()
+      this.queryGroup.getRawValue(),
+      e => this._alerts.pushAlert(new Alert(ALERT_DANGER, e))
     );
   }
+
+  // public
 
   submit(): void {
     if (this.queryGroup.valid) {

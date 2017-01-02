@@ -6,11 +6,11 @@ export const SERVERS: Server[] = [
     name: 'Local Host',
     microBasic: {
       type: POST,
-      url: 'http://localhost:8000/services/basic_tracks_tree_agnostic/'
+      url: 'http://localhost:800/services/basic_tracks_tree_agnostic/'
     },
     microSearch: {
       type: POST,
-      url: 'http://localhost:8000/services/search_tracks_tree_agnostic/'
+      url: 'http://localhost:800/services/search_tracks_tree_agnostic/'
     },
     microQuery: {
       type: POST,

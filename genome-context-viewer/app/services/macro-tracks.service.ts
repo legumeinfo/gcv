@@ -27,7 +27,7 @@ export class MacroTracksService {
     this.tracks = this._store.select('macroTracks');
   }
 
-  search(tracks: MicroTracks): void {
+  search(tracks: MicroTracks, failure = e => {}): void {
     if (tracks.groups.length > 0) {
       let query = tracks.groups[0];
       let results = tracks.groups.reduce((l, g, i) => {
@@ -37,20 +37,25 @@ export class MacroTracksService {
       let idx = this._serverIDs.indexOf(query.source)
       if (idx != -1) {
         let s: Server = this._servers[idx];
-        let args = {
-          chromosome: query.chromosome_id,
-          results: results
-        };
-        let response: Observable<Response>;
-        if (s.macro.type === GET)
-          response = this._http.get(s.macro.url, args);
-        else
-          response = this._http.post(s.macro.url, args);
-        response.toPromise().then(res => {
-          let tracks = res.json();
-          this._store.dispatch({type: ADD_MACRO_TRACKS, payload: tracks})
-        });
+        if (s.hasOwnProperty('macro')) {
+          let args = {
+            chromosome: query.chromosome_id,
+            results: results
+          };
+          let response: Observable<Response>;
+          if (s.macro.type === GET)
+            response = this._http.get(s.macro.url, args);
+          else
+            response = this._http.post(s.macro.url, args);
+          response.subscribe(res => {
+            let tracks = res.json();
+            this._store.dispatch({type: ADD_MACRO_TRACKS, payload: tracks})
+          }, failure);
+        } else {
+          failure(s.id + " doesn't serve macro track requests");
+        }
       }
     }
+    failure("no micro tracks provided");
   }
 }

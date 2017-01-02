@@ -67,7 +67,7 @@
 
   <!-- header -->
   <header>
-		<ul class="nav navbar-nav tabs">
+		<ul class="nav navbar-nav tabs" left>
       <li><toggle-button (toggleFn)="selectParams()">Parameters</toggle-button></li>
       <li><toggle-button (toggleFn)="help()">Help</toggle-button></li>
       <li [ngClass]="{'active': selectedContent==contentTypes.VIEWERS}">
@@ -77,7 +77,7 @@
         <a (click)="showPlots()">Dot Plots</a>
       </li>
     </ul>
-    <ul class="nav navbar-nav navbar-right">
+    <ul class="nav navbar-nav" right>
       <li><toggle-button (toggleFn)="toggleRightSlider()">Legend</toggle-button></li>
     </ul>
   </header>
