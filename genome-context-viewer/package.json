@@ -8,12 +8,9 @@
     "tsc:w": "tsc -w"
   },
   "author": "Alan Cleary",
-  "licenses": [
-    {
-      "type": "GPLv3",
-      "url": "https://www.gnu.org/licenses/quick-guide-gplv3.html"
-    }
-  ],
+  "license": "GPL-3.0",
+  "description": "Genomic Context Viewer is a web-app that visualizes genomic context data provided by third party services.",
+  "repository": "https://github.com/legumeinfo/lis_context_viewer",
   "dependencies": {
     "@angular/common": "^2.4.1",
     "@angular/compiler": "^2.4.1",
