@@ -179,6 +179,7 @@ export class SearchComponent implements OnInit {
     // data
     this._route.params.subscribe(params => {
       this.invalidate();
+      this.hideLocalGlobalPlots();
       this.routeSource = params['source'];
       this.routeGene = params['gene'];
     });
@@ -274,7 +275,6 @@ export class SearchComponent implements OnInit {
 
   showPlots(): void {
     this.selectedContent = this.contentTypes.PLOTS;
-    this._splitTop = this.splitBottom = undefined;
   }
 
   showViewers(): void {
