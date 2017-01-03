@@ -6,7 +6,7 @@ import { Component, Input } from '@angular/core';
   template: `
     <div class="grey-screen" *ngIf="!data">
       <div class="spinner">
-        <img src="../../../assets/img/spinner.gif" />
+        <img src="assets/img/spinner.gif" />
       </div>
     </div>
   `,

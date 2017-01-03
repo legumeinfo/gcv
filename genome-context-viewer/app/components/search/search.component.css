@@ -33,7 +33,7 @@
   background-position: 50%;
 }
 .gutter.gutter-vertical {
-  background-image: url('../../../assets/img/horizontal.png');
+  background-image: url('assets/img/horizontal.png');
   cursor: row-resize;
 }
 
