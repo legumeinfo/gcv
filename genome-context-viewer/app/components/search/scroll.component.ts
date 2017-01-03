@@ -7,6 +7,12 @@ import { Router }        from '@angular/router';
 
 // App
 import { Gene } from '../../models/gene.model';
+import { Alert }               from '../../models/alert.model';
+import { ALERT_SUCCESS,
+         ALERT_INFO,
+         ALERT_WARNING,
+         ALERT_DANGER }        from '../../constants/alerts';
+import { AlertsService }       from '../../services/alerts.service';
 
 @Component({
   moduleId: module.id,
@@ -37,7 +43,8 @@ export class ScrollComponent implements OnChanges {
 
   private _idx: number;
 
-  constructor(private _router: Router) { }
+  constructor(private _router: Router,
+              private _alerts: AlertsService) { }
 
   ngOnChanges(changes: SimpleChanges) {
     if (this.query !== undefined && this.gene !== undefined) {
@@ -55,11 +62,23 @@ export class ScrollComponent implements OnChanges {
     let idx = this._idx - parseInt(step);
     if (idx >= 0)
       this._search(idx);
+    else {
+      this._alerts.pushAlert(new Alert(
+          ALERT_WARNING,
+        'Scrolling step size must be <= current value of neighbors.'
+      ));
+    }
   }
 
   scrollRight(step: string): void {
     let idx = this._idx + parseInt(step);
     if (idx < this.query.length)
       this._search(idx);
+    else {
+      this._alerts.pushAlert(new Alert(
+          ALERT_WARNING,
+        'Scrolling step size must be <= current value of neighbors.'
+      ));
+    }
   }
 }
