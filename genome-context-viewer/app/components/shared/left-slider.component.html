@@ -1,0 +1,25 @@
+<!-- left slider -->
+<div class="left-slider col-md-3" [@toggleSlider]='state'>
+  <!-- close slider controls -->
+  <div class="navbar navbar-default navbar-static-top">
+    <div class="container-fluid">
+      <div class="collapse navbar-collapse">
+        <ul class="nav navbar-nav navbar-right">
+          <li><a (click)="hide()">
+            <span class="glyphicon glyphicon glyphicon-remove pull-right" aria-hidden="true"></span>
+          </a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+	<!-- scrollable content -->
+	<div class="left-slider-content" [ngSwitch]="selectedDetail">
+    <ng-content *ngSwitchCase="detailTypes.PARAMS"></ng-content>
+    <family-detail *ngSwitchCase="detailTypes.FAMILY"
+      [family]="family"
+      [tracks]="tracks" >
+    </family-detail>
+    <gene-detail *ngSwitchCase="detailTypes.GENE" [gene]="gene"></gene-detail>
+    <track-detail *ngSwitchCase="detailTypes.TRACK" [track]="track"></track-detail>
+	</div>
+</div>

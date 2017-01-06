@@ -11,9 +11,22 @@ from django.db.models import Q
 import operator
 # so anyone can use the services
 from django.views.decorators.csrf import csrf_exempt
+# time stuff for caching
+from django.utils.http import http_date
+import time
+
+# decorator for invalidating the cache every hour
+def ensure_nocache(view):
+    def wrapper(request, *args, **kwargs):
+        response = view(request, *args, **kwargs)
+        response['Cache-Control'] = 'max-age=3600, must-revalidate'
+        response['Expires'] = http_date(time.time() + 3600)
+        return response
+    return wrapper
 
 
 @csrf_exempt
+@ensure_nocache
 def afs_search_tracks(request, focus_name):
 
     ###############################
@@ -139,6 +152,7 @@ def afs_search_tracks(request, focus_name):
 
 # returns contexts centered at genes in the list provided
 @csrf_exempt
+@ensure_nocache
 def basic_tracks_tree_agnostic(request):
     # parse the POST data (Angular puts it in the request body)
     POST = json.loads(request.body)
@@ -147,7 +161,7 @@ def basic_tracks_tree_agnostic(request):
     if request.method == 'POST' and 'genes' in POST:
         # prepare a generic response
         generic = HttpResponse(
-            json.dumps('{"family":"", "tracks":{"families":[], "groups":[]}}'),
+            json.dumps('{"families":[], "groups":[]}'),
             content_type='application/json; charset=utf8'
         )
 
@@ -332,9 +346,8 @@ def basic_tracks_tree_agnostic(request):
             groups.append(group)
 
         # write the contents of the file
-        view_json = ('{"family":"' + focus_family_id + '", "tracks":' +
-            '{"families":[' + ','.join(families.values()) + '], "groups":[' +
-            ','.join(groups) + ']}}')
+        view_json = ('{"families":[' + ','.join(families.values()) + '], "groups":[' +
+            ','.join(groups) + ']}')
 
         return HttpResponse(
             json.dumps(view_json),
@@ -523,6 +536,7 @@ def basic_tracks(request, node_id):
 
 # resolves a focus gene name to a query track
 @csrf_exempt
+@ensure_nocache
 def gene_to_query(request):
     # parse the POST data (Angular puts it in the request body)
     POST = json.loads(request.body)
@@ -624,6 +638,7 @@ def gene_to_query(request):
 
 # returns similar contexts to the families provided
 @csrf_exempt
+@ensure_nocache
 def search_tracks_tree_agnostic(request):
     # parse the POST data (Angular puts it in the request body)
     POST = json.loads(request.body)
@@ -1123,6 +1138,7 @@ def search_tracks(request, focus_name):
 # returns all the GENES for the given chromosome that have the same family as
 # the query
 @csrf_exempt
+@ensure_nocache
 def global_plot_provider_agnostic(request):
     # parse the POST data (Angular puts it in the request body)
     POST = json.loads(request.body)
@@ -1179,6 +1195,65 @@ def global_plot_provider_agnostic(request):
         # return the plot data as encoded as json
         return HttpResponse(
             json.dumps(gene_json),
+            content_type='application/json; charset=utf8'
+        )
+    return HttpResponseBadRequest
+
+
+# returns chromosome scale synteny blocks for the chromosome of the given gene
+@csrf_exempt
+@ensure_nocache
+def synteny(request):
+    # parse the POST data (Angular puts it in the request body)
+    POST = json.loads(request.body)
+
+    # make sure the request type is POST and that it contains a query (families)
+    if request.method == 'POST' and 'chromosome' in POST and 'results' in POST:
+        # get the query chromosome
+        chromosome = get_object_or_404(Feature, pk=POST['chromosome'])
+        # get the syntenic region cvterm
+        synteny_type = list(Cvterm.objects.only('pk')\
+            .filter(name='syntenic_region'))
+        if len(synteny_type) == 0:
+            raise Http404
+        synteny_type = synteny_type[0]
+        # get all the related featurelocs
+        blocks = list(Featureloc.objects\
+            .only('feature', 'fmin', 'fmax', 'strand')\
+            .filter(srcfeature=chromosome, feature__type=synteny_type, rank=0))
+        # get the chromosome each region belongs to
+        region_ids = map(lambda b: b.feature_id, blocks)
+        regions = list(Featureloc.objects\
+            .only('feature', 'srcfeature')\
+            .filter(feature__in=region_ids, srcfeature__in=POST['results'], rank=1))
+        region_to_chromosome = dict(
+            (r.feature_id, r.srcfeature_id) for r in regions
+        )
+        # actually get the chromosomes
+        chromosomes = list(Feature.objects.only('name')\
+            .filter(pk__in=region_to_chromosome.values()))
+        chromosome_names = dict((c.pk, c.name) for c in chromosomes)
+        # group the blocks by feature
+        feature_locs = {}
+        for l in blocks:
+            if l.feature_id in region_to_chromosome:
+                orientation = '-' if l.strand == -1 else '+'
+                name = chromosome_names[region_to_chromosome[l.feature_id]]
+                feature_locs.setdefault(name, []).append(
+                    {'start':l.fmin, 'stop':l.fmax, 'orientation':orientation}
+                )
+        # generate the json
+        tracks = []
+        for name, blocks in feature_locs.iteritems():
+            tracks.append(
+                {'chromosome':name, 'blocks':blocks}
+            )
+        synteny_json = {'chromosome': chromosome.name,
+                        'length': chromosome.seqlen,
+                        'tracks': tracks}
+        # return the synteny data as encoded as json
+        return HttpResponse(
+            json.dumps(synteny_json),
             content_type='application/json; charset=utf8'
         )
     return HttpResponseBadRequest

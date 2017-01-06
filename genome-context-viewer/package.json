@@ -1,0 +1,48 @@
+{
+  "name": "genome-context-viewer",
+  "version": "1.0.0",
+  "scripts": {
+    "start": "tsc && concurrently \"tsc -w\" \"lite-server\" ",
+    "lite": "lite-server",
+    "tsc": "tsc",
+    "tsc:w": "tsc -w"
+  },
+  "author": "Alan Cleary",
+  "license": "GPL-3.0",
+  "description": "Genomic Context Viewer is a web-app that visualizes genomic context data provided by third party services.",
+  "repository": "https://github.com/legumeinfo/lis_context_viewer",
+  "dependencies": {
+    "@angular/common": "^2.4.1",
+    "@angular/compiler": "^2.4.1",
+    "@angular/core": "^2.4.1",
+    "@angular/forms": "^2.4.1",
+    "@angular/http": "^2.4.1",
+    "@angular/platform-browser": "^2.4.1",
+    "@angular/platform-browser-dynamic": "^2.4.1",
+    "@angular/router": "^3.4.1",
+    "@angular/upgrade": "^2.4.1",
+    "@ngrx/core": "^1.1.0",
+    "@ngrx/store": "^2.2.1",
+    "@ngrx/store-devtools": "^3.2.2",
+    "@ngrx/store-log-monitor": "^3.0.2",
+    "bootstrap": "~3.3.7",
+    "core-js": "^2.4.1",
+    "d3": "~3.5.6",
+    "jquery": "^3.1.1",
+    "reflect-metadata": "^0.1.8",
+    "rxjs": "^5.0.2",
+    "split.js": "^1.1.4",
+    "systemjs": "0.19.39",
+    "zone.js": "^0.7.4"
+  },
+  "devDependencies": {
+    "@types/core-js": "^0.9.34",
+    "@types/node": "^6.0.45",
+    "babel-cli": "^6.18.0",
+    "babel-plugin-transform-class-properties": "^6.19.0",
+    "babel-preset-latest": "^6.16.0",
+    "concurrently": "^3.0.0",
+    "lite-server": "^2.2.2",
+    "typescript": "^2.0.3"
+  }
+}

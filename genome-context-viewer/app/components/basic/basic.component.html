@@ -1,0 +1,67 @@
+<!-- right slider -->
+<right-slider [hide]="rightSliderHidden">
+
+  <gcv-help [name]="'Gene Family Legend'" [showing]="showHelp">
+    <ul>
+      <li>Hover to highlight family's members.</li>
+      <li>Click to list members and link to gene tree.</li>
+    </ul>
+  </gcv-help>
+
+  <!-- legend -->
+  <app-legend class="vertical-fill"
+    [microTracks]="microTracks"
+    [colors]="colors"
+    [args]="legendArgs" >
+  </app-legend>
+
+</right-slider>
+
+
+<!-- main content area -->
+<main>
+
+  <!-- header -->
+  <header>
+		<ul class="nav navbar-nav tabs" left>
+      <li><toggle-button (toggleFn)="selectParams()">Parameters</toggle-button></li>
+      <li><toggle-button (toggleFn)="help()">Help</toggle-button></li>
+    </ul>
+    <ul class="nav navbar-nav navbar" right>
+      <li><toggle-button (toggleFn)="toggleRightSlider()">Legend</toggle-button></li>
+    </ul>
+	</header>
+
+  <!-- main content -->
+  <main-content>
+    <gcv-help [name]="'Genome Contexts'" [showing]="showHelp">
+      <ul>
+        <li>Hover gene to see name, highlight in dotplots</li>
+        <li>Click gene for links to more info</li>
+        <li>Hover track for all gene names</li>
+        <li>Click track to list all genes and track options</li>
+      </ul>
+    </gcv-help>
+    <micro-viewer
+      [tracks]="microTracks"
+      [colors]="colors"
+      [args]="microArgs" >
+    </micro-viewer>
+  </main-content>
+
+  <!-- footer -->
+  <footer>
+    <app-regexp></app-regexp>
+  </footer>
+
+</main>
+
+
+<!-- left slider -->
+<left-slider [selected]="selectedDetail" [tracks]="microTracks">
+  <basic-params
+    [queryGenes]="queryGenes"
+    (invalid)="selectParams()"
+    (submitted)="invalidate()" >
+  </basic-params>
+</left-slider>

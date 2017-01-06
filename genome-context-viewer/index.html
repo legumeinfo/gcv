@@ -1,0 +1,50 @@
+<html>
+  <head>
+    <!--
+    <base href="/">-->
+    <title>Genome Context Viewer</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="node_modules/bootstrap/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="assets/css/styles.css">
+    <link rel="stylesheet" href="assets/css/gcv.css">
+
+    <!-- 1. Load libraries -->
+     <!-- Polyfill for older browsers -->
+    <script src="node_modules/core-js/client/shim.min.js"></script>
+    <script src="node_modules/zone.js/dist/zone.js"></script>
+    <script src="node_modules/reflect-metadata/Reflect.js"></script>
+    <script src="node_modules/systemjs/dist/system.src.js"></script>
+    <!-- D3 -->
+    <script src="node_modules/d3/d3.min.js"></script>
+     <!-- jQuery... begrudgingly -->
+    <script src="node_modules/jquery/dist/jquery.min.js"></script>
+     <!-- Split.js -->
+    <script src="node_modules/split.js/split.min.js"></script>
+    <!-- GCV -->
+    <script src="assets/js/gcv/enhancement.js"></script>
+    <script src="assets/js/gcv/context.js"></script>
+    <script src="assets/js/gcv/min/plot.min.js"></script>
+    <script src="assets/js/gcv/min/viewer.min.js"></script>
+    <script src="assets/js/gcv/min/synteny.min.js"></script>
+    <script src="assets/js/gcv/min/legend.min.js"></script>
+    <script src="assets/js/gcv/min/alignment.min.js"></script>
+
+    <!-- 2. Configure SystemJS -->
+    <script src="systemjs.config.js"></script>
+    <script>
+      System.import('app').catch(function (err) { console.error(err); });
+    </script>
+  </head>
+
+  <!-- 3. Display the application -->
+  <body>
+    <gcv>
+      <div class="grey-screen">
+        <div class="spinner">
+          <img src="assets/img/spinner.gif" />
+        </div>
+      </div>
+    </gcv>
+  </body>
+</html>

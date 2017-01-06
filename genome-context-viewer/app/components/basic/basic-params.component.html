@@ -1,0 +1,18 @@
+<form (ngSubmit)="submit()">
+  <fieldset [formGroup]="queryGroup">
+    <legend>Query Parameters<a class="pull-right"><span class="glyphicon glyphicon-question-sign" (click)="help=!help"></span></a></legend>
+    <div class="form-group" [ngClass]="{'has-error': !queryGroup.controls.neighbors.valid}">
+      <label for="neighbors">Neighbors (min 1)</label>
+      <input type="number" class="form-control" formControlName="neighbors" >
+      <p class="help-block" *ngIf="help">Number of genes on either side of each query gene.</p>
+    </div>
+    <div class="form-group" [ngClass]="{'has-error': !queryGroup.controls.sources.valid}">
+      <label for="sources">Sources (min 1)</label>
+      <select multiple class="form-control" formControlName="sources" >
+        <option *ngFor="let src of sources" [value]="src.id">{{src.name}}</option>
+      </select>
+      <p class="help-block" *ngIf="help">Which databases to load data from.</p>
+    </div>
+    <button type="submit" class="btn btn-primary col-sm-12" [disabled]="!queryGroup.valid">Submit</button>
+  </fieldset>
+</form>

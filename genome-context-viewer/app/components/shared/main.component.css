@@ -1,0 +1,7 @@
+/* horizontally stretch main to remaining area: http://stackoverflow.com/questions/1260122/expand-div-to-take-remaining-width */
+#main {
+  position: relative;
+  width: auto;
+  height: 100%;
+  overflow: hidden;
+}
