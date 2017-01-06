@@ -15,7 +15,7 @@ import { MicroTracks }      from '../../models/micro-tracks.model';
   selector: 'family-detail',
   template: `
     <h4>{{family.name}}</h4>
-    <p><a href="/chado_gene_phylotree_v2/?gene_name={{family.gene_list}}">View genes in phylogram</a></p>
+    <p><a href="http://legumeinfo.org/chado_gene_phylotree_v2?family={{family.name}}&gene_name={{gene_list}}">View genes in phylogram</a></p>
     <p>Genes:</p>
     <ul>
       <li *ngFor="let gene of genes">
@@ -31,6 +31,7 @@ export class FamilyDetailComponent implements OnChanges {
   @Input() tracks: MicroTracks;
 
   genes: Gene[];
+  gene_list: string;
 
   constructor(private _detailsService: DetailsService) { }
 
@@ -41,6 +42,7 @@ export class FamilyDetailComponent implements OnChanges {
         l.push.apply(l, genes);
         return l;
       }, []);
+      this.gene_list = this.genes.map(function(x){return x.name;}).join(",");
     }
   }
 }

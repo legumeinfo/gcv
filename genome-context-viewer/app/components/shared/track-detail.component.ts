@@ -19,7 +19,7 @@ import { Group }          from '../../models/group.model';
         {{gene.name}}: {{gene.fmin}} - {{gene.fmax}}
         <ul *ngIf="gene.family != ''">
           <li>
-            Family: <a href="/chado_gene_phylotree_v2/{{gene.family}}?gene_name='{{gene.name}}">{{gene.family}}</a>
+            Family: <a href="http://legumeinfo.org/chado_gene_phylotree_v2?family={{gene.family}}&gene_name='{{gene.name}}">{{gene.family}}</a>
           </li>
         </ul>
       </li>
