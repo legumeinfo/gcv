@@ -50,7 +50,9 @@ export class BasicComponent implements OnInit {
   colors = contextColors;
 
   microArgs = {
-    highlight: [],
+    highlight: function() {
+        return this.queryGenes;
+    }.bind(this),
     geneClick: function (g) {
       this.selectGene(g);
     }.bind(this),
@@ -84,7 +86,6 @@ export class BasicComponent implements OnInit {
     this._urlParams.subscribe(params => {
       this.invalidate();
       this.queryGenes = params['genes'].split(',');
-      this.microArgs.highlight = this.queryGenes;
     });
     this._microTracks = Observable.combineLatest(
       this._microTracksService.tracks,

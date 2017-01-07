@@ -122,7 +122,11 @@ export class SearchComponent implements OnInit {
   colors = contextColors;
 
   microArgs = {
-    highlight: [],
+    //adf: not sure this is kosher but it works! Alan, please correct and instruct me as you see fit
+    highlight: function () {
+        //return [this._route.params.value.gene];
+        return [this.routeGene];
+    }.bind(this),
     geneClick: function (g) {
       this.selectGene(g);
     }.bind(this),

@@ -348,7 +348,7 @@ GCV.Viewer = class {
     // parse optional parameters
     this.options = Object.assign({}, options);
     this.options.boldFirst = this.options.boldFirst || false;
-    this.options.highlight = this.options.hightlight || [];
+    this.options.highlight = this.options.highlight || function() {return [];};
     this.options.selectiveColoring = this.options.selectiveColoring;
     this.options.nameClick = this.options.nameClick || function (y, i) { };
     this.options.geneClick = this.options.geneClick || function (b) { };
@@ -444,7 +444,7 @@ GCV.Viewer = class {
   	var genes = geneGroups.append('path')
   	  .attr('d', d3.svg.symbol().type('triangle-up').size(200))
   	  .attr('class', function (g) {
-  	  	if (obj.options.highlight.indexOf(g.name) != -1) {
+  	  	if (obj.options.highlight().indexOf(g.name) != -1) {
   	  	  return 'point focus';
   	  	} else if (g.family == '') {
   	  	  return 'point no_fam';
