@@ -1,6 +1,6 @@
 <form (ngSubmit)="submit()">
   <fieldset [formGroup]="queryGroup">
-    <legend>Query Parameters<a class="pull-right" (click)="queryHelp=!queryHelp"><span class="glyphicon glyphicon-question-sign"></span></a></legend>
+    <legend>Query Parameters<a id="query-params-help" class="pull-right" (click)="queryHelp=!queryHelp"><span class="glyphicon glyphicon-question-sign"></span></a></legend>
     <div class="form-group" [ngClass]="{'has-error': !queryGroup.controls.neighbors.valid}">
       <label for="neighbors">Neighbors (min 1)</label>
       <input type="number" class="form-control" formControlName="neighbors" >
@@ -25,7 +25,7 @@
     </div>
   </fieldset>
   <fieldset [formGroup]="alignmentGroup">
-    <legend>Alignment Parameters<a class="pull-right" (click)="alignmentHelp=!alignmentHelp"><span class="glyphicon glyphicon-question-sign"></span></a></legend>
+    <legend>Alignment Parameters<a id="align-params-help" class="pull-right" (click)="alignmentHelp=!alignmentHelp"><span class="glyphicon glyphicon-question-sign"></span></a></legend>
     <div class="form-group" ng-class="{'has-help': alignmentHelp}">
       <label>Algorithm</label>
 			<div class="radio" *ngFor="let alg of algorithms">
