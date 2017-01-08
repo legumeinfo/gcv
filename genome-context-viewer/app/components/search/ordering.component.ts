@@ -10,7 +10,7 @@ import { UrlQueryParamsService } from '../../services/url-query-params.service';
   moduleId: module.id,
   selector: 'app-ordering',
   template: `
-    <form class="navbar-form navbar-left" #orderForm="ngForm">
+    <form id="order-form" class="navbar-form navbar-left" #orderForm="ngForm">
       <div class="form-group">
         <select class="form-control" id="order"
             (change)="update()"

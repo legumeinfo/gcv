@@ -18,7 +18,7 @@ import { AlertsService }       from '../../services/alerts.service';
   moduleId: module.id,
   selector: 'scroll',
   template: `
-    <form class="navbar-form form-inline navbar-right">
+    <form id="scroll-form" class="navbar-form form-inline navbar-right">
       <div class="input-group col-lg-12">
         <span class="input-group-btn">
           <button class="btn btn-default" type="button" (click)="scrollLeft(step.value)">
