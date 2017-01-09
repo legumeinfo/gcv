@@ -75,16 +75,19 @@ export class PlotsService {
   private _plotGenes(genes): Gene[] {
     let plotGenes = [];
     for (let i = 0; i < genes.length; ++i) {
-      let g = Object.assign({}, genes[i]);
-      g.x = (g.fmin + g.fmax) / 2;
-      if (g.family in this._familyMap) {
-        for (let j = 0; j < this._familyMap[g.family].length; ++j) {
+      if (genes[i].family in this._familyMap) {
+        for (let j = 0; j < this._familyMap[genes[i].family].length; ++j) {
+          let g = Object.assign({}, genes[i]);
+          g.x = (g.fmin + g.fmax) / 2;
           g.y = this._familyMap[g.family][j];
+          plotGenes.push(g);
         }
       } else {
+        let g = Object.assign({}, genes[i]);
+        g.x = (g.fmin + g.fmax) / 2;
         g.y = -1;
+        plotGenes.push(g);
       }
-      plotGenes.push(g);
     }
     return plotGenes;
   }
