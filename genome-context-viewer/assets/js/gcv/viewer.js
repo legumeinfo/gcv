@@ -449,7 +449,7 @@ GCV.Viewer = class {
   	  	} else if (g.family == '') {
   	  	  return 'point no_fam';
   	  	} else if (obj.options.selectiveColoring !== undefined &&
-        obj.options.selectiveColoring[g.family] == 1) {
+        obj.options.selectiveColoring()[g.family] == 1) {
   	  	  return 'point single';
   	  	} return 'point';
       })
@@ -460,7 +460,7 @@ GCV.Viewer = class {
   	  .style('fill', function (g) {
   	  	if (g.family == '' ||
         (obj.options.selectiveColoring !== undefined &&
-        obj.options.selectiveColoring[g.family] == 1)) {
+        obj.options.selectiveColoring()[g.family] == 1)) {
   	  	  return '#ffffff';
   	  	} return obj.colors(g.family);
   	  });

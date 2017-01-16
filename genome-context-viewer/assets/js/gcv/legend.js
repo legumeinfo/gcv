@@ -183,8 +183,8 @@ GCV.Legend = class {
     var legend = this.viewer.append('g');
     // create the legend keys
     var families = this.data.families.filter(f => {
-      return (this.selectiveColoring !== undefined &&
-        this.selectiveColoring[f.id] > 1) || f.name != '';
+      return (this.options.selectiveColoring !== undefined &&
+        this.options.selectiveColoring()[f.id] > 1) && f.name != '';
     });
     legend.keys = [];
     families.forEach((f, i) => {
