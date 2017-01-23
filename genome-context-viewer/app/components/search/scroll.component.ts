@@ -6,13 +6,13 @@ import { Component,
 import { Router }        from '@angular/router';
 
 // App
-import { Gene } from '../../models/gene.model';
-import { Alert }               from '../../models/alert.model';
+import { Alert }         from '../../models/alert.model';
 import { ALERT_SUCCESS,
          ALERT_INFO,
          ALERT_WARNING,
-         ALERT_DANGER }        from '../../constants/alerts';
-import { AlertsService }       from '../../services/alerts.service';
+         ALERT_DANGER }  from '../../constants/alerts';
+import { AlertsService } from '../../services/alerts.service';
+import { Gene }          from '../../models/gene.model';
 
 @Component({
   moduleId: module.id,
@@ -42,16 +42,10 @@ export class ScrollComponent implements OnChanges {
   @Input() gene: string;
 
   private _idx: number;
-  //might want to revisit this when Alan is back on the case; it appears that
-  //some of our most devoted users did not understand that the scroll control 
-  //needed to be filled in with a number. this was my attempt to pre-fill with 
-  //what seems to be the most sensible default. I suppose we could have also
-  //used an alert to tell them that it needs to be filled in if the buttons are
-  //clicked with no step being specified.
   private _maxStep: number;
 
-  constructor(private _router: Router,
-              private _alerts: AlertsService) { }
+  constructor(private _alerts: AlertsService,
+              private _router: Router) { }
 
   ngOnChanges(changes: SimpleChanges) {
     if (this.query !== undefined && this.gene !== undefined) {
@@ -69,28 +63,24 @@ export class ScrollComponent implements OnChanges {
   private _stepSizeValid(stepNum: number): boolean {
     if (isNaN(stepNum) || stepNum <= 0) {
       this._alerts.pushAlert(new Alert(
-          ALERT_WARNING,
+        ALERT_WARNING,
         'Scrolling step size must be specified >= 1'
       ));
       return false;
-    }
-    return true;
+    } return true;
   }
 
   scrollLeft(step: string): void {
     let stepNum = parseInt(step);
-    if (! this._stepSizeValid(stepNum)) {
-        return;
-    }
+    if (!this._stepSizeValid(stepNum)) return;
     let idx = this._idx - stepNum;
     if (idx >= 0)
       this._search(idx);
-    else {
+    else
       this._alerts.pushAlert(new Alert(
-          ALERT_WARNING,
+        ALERT_WARNING,
         'Scrolling step size must be <= current value of neighbors.'
       ));
-    }
   }
 
   scrollRight(step: string): void {
