@@ -5,10 +5,10 @@ import { Component,
          SimpleChanges } from '@angular/core';
 
 // App
-import { DetailsService }   from '../../services/details.service';
-import { Family }           from '../../models/family.model';
-import { Gene }             from '../../models/gene.model';
-import { MicroTracks }      from '../../models/micro-tracks.model';
+import { DetailsService } from '../../services/details.service';
+import { Family }         from '../../models/family.model';
+import { Gene }           from '../../models/gene.model';
+import { MicroTracks }    from '../../models/micro-tracks.model';
 
 @Component({
   moduleId: module.id,
@@ -42,7 +42,7 @@ export class FamilyDetailComponent implements OnChanges {
         l.push.apply(l, genes);
         return l;
       }, []);
-      this.gene_list = this.genes.map(function(x){return x.name;}).join(",");
+      this.gene_list = this.genes.map(x => x.name).join(',');
     }
   }
 }
