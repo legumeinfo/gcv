@@ -25,7 +25,7 @@ import { Gene }          from '../../models/gene.model';
             &nbsp;<span class="glyphicon glyphicon-chevron-left" aria-hidden="true"></span>&nbsp;
           </button>
         </span>
-        <input type="number" min="1" class="form-control" placeholder="<= Neighbors" value="{{this._maxStep}}" #step>
+        <input type="number" min="1" class="form-control" placeholder="<= Neighbors" value="{{maxStep()}}" #step>
         <span class="input-group-btn">
           <button class="btn btn-default" type="button" (click)="scrollRight(step.value)">
             &nbsp;<span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span>&nbsp;
@@ -68,6 +68,10 @@ export class ScrollComponent implements OnChanges {
       ));
       return false;
     } return true;
+  }
+
+  maxStep(): number {
+    return this._maxStep;
   }
 
   scrollLeft(step: string): void {
