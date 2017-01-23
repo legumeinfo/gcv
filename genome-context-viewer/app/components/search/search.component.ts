@@ -122,11 +122,6 @@ export class SearchComponent implements OnInit {
   colors = contextColors;
 
   microArgs = {
-    //adf: not sure this is kosher but it works! Alan, please correct and instruct me as you see fit
-    highlight: function () {
-        //return [this._route.params.value.gene];
-        return [this.routeGene];
-    }.bind(this),
     geneClick: function (g) {
       this.selectGene(g);
     }.bind(this),
@@ -193,6 +188,7 @@ export class SearchComponent implements OnInit {
       this.hideLocalGlobalPlots();
       this.routeSource = params['source'];
       this.routeGene = params['gene'];
+      this.microArgs.highlight = [this.routeGene];
     });
     this._microTracksService.tracks.subscribe(tracks => {
       this._numReturned = tracks.groups.length - 1;  // exclude query
