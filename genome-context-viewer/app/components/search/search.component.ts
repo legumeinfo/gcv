@@ -118,7 +118,6 @@ export class SearchComponent implements OnInit {
 
   // viewers
 
-  familySizes: any;
   colors = contextColors;
 
   microArgs = {
@@ -131,9 +130,6 @@ export class SearchComponent implements OnInit {
     plotClick: function (p) {
       this.selectPlot(p);
     }.bind(this),
-    selectiveColoring: function(f) {
-        return this.familySizes;
-    }.bind(this),
     autoResize: true,
     boldFirst: true
   };
@@ -141,9 +137,6 @@ export class SearchComponent implements OnInit {
   legendArgs = {
     familyClick: function (f) {
       this.selectFamily(f);
-    }.bind(this),
-    selectiveColoring: function(f) {
-        return this.familySizes;
     }.bind(this),
     autoResize: true
   };
@@ -153,9 +146,6 @@ export class SearchComponent implements OnInit {
   plotArgs = {
     autoResize: true,
     outlier: -1,
-    selectiveColoring: function(f) {
-        return this.familySizes;
-    }.bind(this),
     geneClick: function (g) {
       this.selectGene(g);
     }.bind(this),
@@ -200,7 +190,10 @@ export class SearchComponent implements OnInit {
       this._filterService.order
     ).let(microTracksSelector({skipFirst: true}));
     this._microTracks.subscribe(tracks => {
-      this.familySizes = getFamilySizeMap(tracks);
+      let familySizes = getFamilySizeMap(tracks);
+      this.microArgs.selectiveColoring = familySizes;
+      this.legendArgs.selectiveColoring = familySizes;
+      this.plotArgs.selectiveColoring = familySizes;
       this.microTracks = tracks;
       if (tracks.groups.length > 0 && tracks.groups[0].genes.length > 0) {
         let num = (new Set(tracks.groups.map(g => g.id))).size - 1;
