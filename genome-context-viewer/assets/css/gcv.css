@@ -1,3 +1,6 @@
+.GCV .pointer-events-none {
+  pointer-events: none;
+}
 .GCV .outliers, .GCV .plot-label {
   font-weight: bold;
 }

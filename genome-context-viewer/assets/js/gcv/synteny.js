@@ -263,8 +263,14 @@ GCV.Synteny = class {
   	  .enter()
       .append('g')
   	  .style('cursor', 'pointer')
-      .on('mouseover', function (b) { obj._beginHover(d3.select(this)); })
-  	  .on('mouseout', function (b) { obj._endHover(d3.select(this)); })
+      .on('mouseover', function (b) {
+        obj.block = this;
+        obj._beginHover(d3.select(this));
+      })
+  	  .on('mouseout', function (b) {
+        obj.block = undefined;
+        obj._endHover(d3.select(this));
+      })
   	  .on('click', () => { this.options.blockClick(); });
     // help for generating points
     var genPoints = function (b, yTop, yBottom, yMiddle) {
@@ -418,6 +424,54 @@ GCV.Synteny = class {
   }
 
   /**
+    * Gets the element under the element currently under mouse pointer.
+    * @input {MouseEvent} e - The mouse event used to find the elements.
+    * @output {HTMLElement} - The elements under the element current under the
+    * mouse pointer.
+    */
+  _secondElementUnderPointer(e) {
+    var x = e.clientX,
+        y = e.clientY,
+        stack = [];
+    // find the elements
+    var first = document.elementFromPoint(x, y);
+    first.classList.add('pointer-events-none');
+    var second = document.elementFromPoint(x, y);
+    // reset pointer-events
+    first.classList.remove('pointer-events-none');
+    return second;
+  }
+
+  /**
+    * Fires the given event on the given element.
+    * @input {HTMLElement} el - The element to fire the event on.
+    * @input {string} e - The event to be fired on the element.
+    */
+  _fireEvent(el, e) {
+    if (el.fireEvent) {
+      el.fireEvent('on' + e);
+    } else {
+      var eObj = document.createEvent('Events');
+      eObj.initEvent(e, true, false);
+      el.dispatchEvent(eObj);
+    }
+  }
+
+  /**
+    * Programmatically triggers hover events by assuming the given element
+    * is being hovered and considering the last known element being hovered.
+    * @input{HTMLElement} el - The element to consider.
+    */
+  _artificialHover(el) {
+    if (this.block !== undefined && this.block !== el) {
+      this._fireEvent(this.block, 'mouseout');
+    }
+    if (el.classList.contains('block') && el !== this.block) {
+      this._fireEvent(el, 'mouseover');
+    }
+  }
+
+  /**
     * Creates the viewport over the specified genomic interval.
     * @return {object} - D3 selection of the viewport.
     */
@@ -430,6 +484,25 @@ GCV.Synteny = class {
       .attr('cursor', (d) => {
         if (this.options.viewportDrag) return 'move';
         return 'auto';
+      })
+      // translate viewport mouse events to block mouse events
+      .on('mouseover', () => {
+        var el = this._secondElementUnderPointer(d3.event);
+        this._artificialHover(el);
+      })
+  	  .on('mouseout', () => {
+        var e = d3.event,
+            el = document.elementFromPoint(e.clientX, e.clientY);
+        this._artificialHover(el);
+      })
+      .on('mousemove', () => {
+        var el = this._secondElementUnderPointer(d3.event);
+        this._artificialHover(el);
+      })
+      .on('click', () => {
+        var el = this._secondElementUnderPointer(d3.event);
+        if (el.classList.contains('block'))
+          this._fireEvent(el, 'click');
       });
     if (this.options.viewportDrag) {
       viewport.call(drag);
