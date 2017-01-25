@@ -1,38 +1,43 @@
-
-.focus {
+.GCV .outliers, .GCV .plot-label {
+  font-weight: bold;
+}
+.GCV .label {
+  font-size: 10px;
+}
+.GCV .focus {
     stroke: #000;
     stroke-width: 3;
 }
-.single {
+.GCV .single {
     stroke: #000;
     stroke-width: 1;
 }
-.no_fam {
+.GCV .no_fam {
     stroke: #000;
     stroke-width: 1;
     stroke-dasharray: 1 2;
 }
-.line {
+.GCV .line {
     stroke: #000;
 }
-.tip {
+.GCV .tip {
   fill: black;
   font-family: sans-serif;
   font-size: 10px;
 	visibility: hidden;
 }
-.rect {
+.GCV .rect {
 	fill-opacity: 0.0;
 	stroke: #000;
 }
-.brush .extent {
+.GCV .brush .extent {
   stroke: #fff;
   fill-opacity: .125;
   shape-rendering: crispEdges;
 }
-.clear-button {
-    font-family: sans-serif;
-    font-size: 10px;
+.GCV .clear-button {
+  font-family: sans-serif;
+  font-size: 10px;
 }
 /* GCV css */
 .GCV {
@@ -45,7 +50,7 @@
   stroke: #eee;
   shape-rendering: crispEdges;
 }
-.axis text {
+.GCV text {
     font-family: sans-serif;
     font-size: 10px;
 }

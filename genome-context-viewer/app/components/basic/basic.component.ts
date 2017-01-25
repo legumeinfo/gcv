@@ -49,7 +49,7 @@ export class BasicComponent implements OnInit {
   // viewers
   colors = contextColors;
 
-  microArgs = {
+  microArgs: any = {
     geneClick: function (g) {
       this.selectGene(g);
     }.bind(this),
@@ -59,7 +59,7 @@ export class BasicComponent implements OnInit {
     autoResize: true
   };
 
-  legendArgs = {
+  legendArgs: any = {
     familyClick: function (f) {
       this.selectFamily(f);
     }.bind(this),

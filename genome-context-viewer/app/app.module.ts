@@ -32,6 +32,7 @@ import { urlQueryParams }     from './reducers/url-query-params.store';
 import { AppComponent }              from './app.component';
 import { BasicComponent }            from './components/basic/basic.component';
 import { BasicParamsComponent }      from './components/basic/basic-params.component';
+import { ContextMenuComponent }      from './components/shared/context-menu.component';
 import { FamilyDetailComponent }     from './components/shared/family-detail.component';
 import { FooterComponent }           from './components/shared/footer.component';
 import { GeneDetailComponent }       from './components/shared/gene-detail.component';
@@ -100,6 +101,7 @@ import { UrlQueryParamsService } from './services/url-query-params.service';
     AppComponent,
     BasicComponent,
     BasicParamsComponent,
+    ContextMenuComponent,
     FamilyDetailComponent,
     FooterComponent,
     GeneDetailComponent,

@@ -122,6 +122,14 @@ GCV.Legend = class {
     this.options.selectiveColoring = this.options.selectiveColoring;
     this.options.familyClick = this.options.familyClick || function (family) { };
     this.options.autoResize = this.options.autoResize || false;
+    if (this.options.contextmenu)
+      this.viewer.on('contextmenu', () => {
+        this.options.contextmenu(d3.event);
+      });
+    if (this.options.click)
+      this.viewer.on('click', () => {
+        this.options.click(d3.event);
+      });
     // make sure resize always has the right context
     this._resize = this._resize.bind(this);
     // initialize the viewer width/height and scale range
@@ -229,6 +237,56 @@ GCV.Legend = class {
   constructor(el, colors, data, options) {
     this._init(el, colors, data, options);
     this._draw();
+  }
+
+  /** Makes a copy of the SVG and inlines external GCV styles. */
+  _inlineCopy() {
+    // clone the current view node
+    var clone = d3.select(this.viewer.node().cloneNode(true));
+    // load the external styles
+    var sheets = document.styleSheets;
+    // inline GCV styles
+    for (var i = 0; i < sheets.length; i++) {
+      var rules = sheets[i].rules || sheets[i].cssRules;
+      for (var r in rules) {
+        var rule = rules[r],
+            selector = rule.selectorText;
+        if (selector !== undefined && selector.startsWith('.GCV')) {
+          var style = rule.style,
+              selection = clone.selectAll(selector);
+          for (var k = 0; k < style.length; k++) {
+            var prop = style[k];
+            selection.style(prop, style[prop]);
+          }
+        }
+      }
+    }
+    return clone;
+	}
+
+  /** Saves the viewer to as an SVG. */
+  save() {
+    try {
+      var isFileSaverSupported = !!new Blob();
+    } catch (e) {
+      alert("Your broswer does not support saving");
+    }
+    // create a clone of the viewer with all GCV styles inlined
+    var clone = this._inlineCopy();
+    // generate the data
+    var xml = (new XMLSerializer).serializeToString(clone.node());
+    var blob = new Blob([xml], {type: "image/svg+xml"});
+    // save the data
+    var url = window.URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.style = 'display: none';
+    a.href = url;
+    var date = new Date();
+    a.download = 'gcv-legend-' + date.toISOString() + '.svg';
+    document.body.appendChild(a);
+    a.click();
+    window.URL.revokeObjectURL(url);
+    document.body.removeChild(a);
   }
 
   /** Manually destroys the viewer. */

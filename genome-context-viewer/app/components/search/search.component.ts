@@ -120,7 +120,7 @@ export class SearchComponent implements OnInit {
 
   colors = contextColors;
 
-  microArgs = {
+  microArgs: any = {
     geneClick: function (g) {
       this.selectGene(g);
     }.bind(this),
@@ -134,7 +134,7 @@ export class SearchComponent implements OnInit {
     boldFirst: true
   };
 
-  legendArgs = {
+  legendArgs: any = {
     familyClick: function (f) {
       this.selectFamily(f);
     }.bind(this),
@@ -143,7 +143,7 @@ export class SearchComponent implements OnInit {
 
   macroArgs: any = {autoResize: true};
 
-  plotArgs = {
+  plotArgs: any = {
     autoResize: true,
     outlier: -1,
     geneClick: function (g) {
