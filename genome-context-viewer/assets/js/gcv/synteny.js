@@ -505,7 +505,18 @@ GCV.Synteny = class {
           this._fireEvent(el, 'click');
       });
     if (this.options.viewportDrag) {
-      viewport.call(drag);
+      viewport.call(d3.behavior.drag()
+        .on('drag', () => {
+          var r = this.scale.range(),
+              w = parseFloat(viewport.attr('width')),
+              x = parseFloat(viewport.attr('x')),
+              newX = Math.max(x + d3.event.dx, r[0]);
+          if (newX + w > r[1]) newX = r[1] - w;
+          viewport.attr('x', newX);
+        })
+        .on('dragend', () => {
+          this.options.viewportDrag();
+        }));
     }
     // how the viewport is resized
     viewport.resize = function () {

@@ -203,7 +203,12 @@ export class SearchComponent implements OnInit {
           this._numReturned + ' tracks returned; ' + num + ' aligned'
         ));
         this.queryGenes = tracks.groups[0].genes;
-        this.macroArgs = {autoResize: true};
+        this.macroArgs = {
+          autoResize: true,
+          viewportDrag: function () {
+            console.log('viewport drag component callback');
+          }.bind(this)
+        };
         this.macroArgs.viewport = {
           start: this.queryGenes[0].fmin,
           stop: this.queryGenes[this.queryGenes.length - 1].fmax
