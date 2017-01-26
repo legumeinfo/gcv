@@ -515,7 +515,11 @@ GCV.Synteny = class {
           viewport.attr('x', newX);
         })
         .on('dragend', () => {
-          this.options.viewportDrag();
+          var x1 = parseFloat(viewport.attr('x')),
+              x2 = x1 + parseFloat(viewport.attr('width')),
+              d1 = this.scale.invert(x1),
+              d2 = this.scale.invert(x2);
+          this.options.viewportDrag(d1, d2);
         }));
     }
     // how the viewport is resized

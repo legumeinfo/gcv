@@ -205,9 +205,7 @@ export class SearchComponent implements OnInit {
         this.queryGenes = tracks.groups[0].genes;
         this.macroArgs = {
           autoResize: true,
-          viewportDrag: function () {
-            console.log('viewport drag component callback');
-          }.bind(this)
+          viewportDrag: this._viewportDrag
         };
         this.macroArgs.viewport = {
           start: this.queryGenes[0].fmin,
@@ -263,6 +261,10 @@ export class SearchComponent implements OnInit {
         }
       });
     }
+  }
+
+  private _viewportDrag(d1, d2): void {
+    console.log('invertval: ' + d1 + '-' + d2);
   }
 
   // public
