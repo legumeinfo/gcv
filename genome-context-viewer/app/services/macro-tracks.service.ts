@@ -29,6 +29,7 @@ export class MacroTracksService {
 
   search(tracks: MicroTracks, failure = e => {}): void {
     if (tracks.groups.length > 0) {
+      this._store.dispatch({type: ADD_MACRO_TRACKS, payload: undefined})
       let query = tracks.groups[0];
       let results = tracks.groups.reduce((l, g, i) => {
         if (i > 0 && g.source == query.source) l.push(g.chromosome_id);
@@ -49,7 +50,7 @@ export class MacroTracksService {
             response = this._http.post(s.macro.url, args);
           response.subscribe(res => {
             let tracks = res.json();
-            this._store.dispatch({type: ADD_MACRO_TRACKS, payload: tracks})
+            this._store.dispatch({type: ADD_MACRO_TRACKS, payload: tracks});
           }, failure);
         } else {
           failure(s.id + " doesn't serve macro track requests");

@@ -161,8 +161,8 @@ export class SearchComponent implements OnInit {
 
 
   private _onAlignedMicroTracks(tracks): void {
-    this.microTracks = tracks;
     if (tracks.groups.length > 0 && tracks.groups[0].genes.length > 0) {
+      this.microTracks = tracks;
       this.queryGenes = tracks.groups[0].genes;
       let num = (new Set(tracks.groups.map(g => g.id))).size - 1;
       this._alerts.pushAlert(new Alert(
