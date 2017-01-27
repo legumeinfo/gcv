@@ -27,6 +27,10 @@ export const SERVERS: Server[] = [
     plotGlobal: {
       type: POST,
       url: 'http://localhost:8000/services/global-plots/'
+    },
+    nearestGene: {
+      type: POST,
+      url: 'http://localhost:8000/services/nearest-gene/'
     }
   }
 ];

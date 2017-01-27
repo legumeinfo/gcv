@@ -58,4 +58,38 @@ export class MacroTracksService {
     }
     failure("no micro tracks provided");
   }
+
+  // return a promise and handle success/error in components
+  nearestGene(
+    source: string,
+    chromosome: number,
+    position: number,
+    success: Function,
+    failure = e => {}
+  ): void {
+    let idx = this._serverIDs.indexOf(source);
+    if (idx != -1) {
+      let s: Server = this._servers[idx];
+      if (s.hasOwnProperty('nearestGene')) {
+        let args = {
+          chromosome: chromosome,
+          position: position
+        };
+        let url = s.nearestGene.url;
+        let response: Observable<Response>;
+        if (s.nearestGene.type === GET)
+          response = this._http.get(url, args);
+        else
+          response = this._http.post(url, args);
+        response.subscribe(res => {
+          success(res.json());
+        }, failure);
+      } else {
+        failure(s.id + " doesn't serve nearest gene requests");
+      }
+    } else {
+      failure('invalid source: ' + source);
+    }
+
+  }
 }

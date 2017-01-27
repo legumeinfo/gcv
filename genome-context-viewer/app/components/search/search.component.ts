@@ -1,14 +1,14 @@
 // Angular
-import { ActivatedRoute }    from '@angular/router';
-import { BehaviorSubject }   from 'rxjs/BehaviorSubject';
+import { ActivatedRoute, Router } from '@angular/router';
+import { BehaviorSubject }        from 'rxjs/BehaviorSubject';
 import { Component,
          ElementRef,
          OnInit,
          QueryList,
          ViewChild,
          ViewChildren,
-         ViewEncapsulation } from '@angular/core';
-import { Observable }        from 'rxjs/Observable';
+         ViewEncapsulation }      from '@angular/core';
+import { Observable }             from 'rxjs/Observable';
 
 // App
 import { Alert }               from '../../models/alert.model';
@@ -162,7 +162,8 @@ export class SearchComponent implements OnInit {
               private _filterService: FilterService,
               private _macroTracksService: MacroTracksService,
               private _microTracksService: MicroTracksService,
-              private _plotsService: PlotsService) { }
+              private _plotsService: PlotsService,
+              private _router: Router) { }
 
   // Angular hooks
 
@@ -205,7 +206,9 @@ export class SearchComponent implements OnInit {
         this.queryGenes = tracks.groups[0].genes;
         this.macroArgs = {
           autoResize: true,
-          viewportDrag: this._viewportDrag
+          viewportDrag: function (d1, d2) {
+            this._viewportDrag(d1, d2);
+          }.bind(this)
         };
         this.macroArgs.viewport = {
           start: this.queryGenes[0].fmin,
@@ -264,7 +267,28 @@ export class SearchComponent implements OnInit {
   }
 
   private _viewportDrag(d1, d2): void {
-    console.log('invertval: ' + d1 + '-' + d2);
+    let server = this.routeSource;
+    let chromosome = (this.microTracks.groups.length)
+                   ? this.microTracks.groups[0].chromosome_id
+                   : undefined;
+    let position = parseInt((d1 + d2) / 2);
+    if (server !== undefined && chromosome !== undefined) {
+      let macroBack = this.macroTracks;
+      this.macroTracks = undefined;
+      this._macroTracksService.nearestGene(
+        server,
+        chromosome,
+        position,
+        function(tracks, g) {
+          this.macroTracks = tracks;
+          this._router.navigateByUrl('/search/' + server + '/' + g.name);
+        }.bind(this, macroBack),
+        function (tracks, m) {
+          this.macroTracks = tracks;
+          this._errorAlert(m);
+        }.bind(this, macroBack)
+      );
+    }
   }
 
   // public
