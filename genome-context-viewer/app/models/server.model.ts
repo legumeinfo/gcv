@@ -15,4 +15,5 @@ export class Server {
   macro: Request;
   geneLinks: Request;
   plotGlobal: Request;
+  nearestGene: Request;
 }
