@@ -6,7 +6,7 @@ import json
 from services.models import Organism, Cvterm, Feature, Featureloc, Phylonode,\
 FeatureRelationship, GeneOrder, Featureprop, GeneFamilyAssignment
 # search stuffs
-from django.db.models import Q
+from django.db.models import Q, Func, F
 # context view
 import operator
 # so anyone can use the services
@@ -628,7 +628,6 @@ def global_plots(request):
 def macro_synteny(request):
     # parse the POST data (Angular puts it in the request body)
     POST = json.loads(request.body)
-
     # make sure the request type is POST and that it contains a query (families)
     if request.method == 'POST' and 'chromosome' in POST and 'results' in POST:
         # get the query chromosome
@@ -676,6 +675,58 @@ def macro_synteny(request):
         # return the synteny data as encoded as json
         return HttpResponse(
             json.dumps(synteny_json),
+            content_type='application/json; charset=utf8'
+        )
+    return HttpResponseBadRequest
+
+
+# returns the gene on the given chromosome that is closest to the given position
+@csrf_exempt
+@ensure_nocache
+def nearest_gene(request):
+    # parse the POST data (Angular puts it in the request body)
+    POST = json.loads(request.body)
+    # make sure the request type is POST and that it contains the correct data
+    if request.method == 'POST' and 'chromosome' in POST and 'position' in POST:
+        # parse the position
+        pos = POST['position']
+        try:
+            pos = int(pos)
+        except:
+            raise Http404
+        # get the gene type
+        gene_type = list(
+            Cvterm.objects.only('pk').filter(name='gene')
+        )
+        if len(gene_type) == 0:
+            raise Http404
+        gene_type = gene_type[0]
+        # find the gene closest to the given position
+        loc = Featureloc.objects.only(
+            'feature_id',
+            'srcfeature_id',
+            'fmin',
+            'fmax',
+            'strand'
+        ).filter(
+            feature__type=gene_type, srcfeature=POST['chromosome']
+        ).annotate(dist=Func(
+            ((F('fmin') + F('fmax')) / 2) - pos, function='ABS'
+        )).order_by('dist').first()
+        gene = get_object_or_404(Feature, pk=loc.feature.pk)
+        family = GeneFamilyAssignment.objects.get(gene_id=gene.pk)
+        # jsonify the gene and return it
+        data = {
+            "name": gene.name,
+            "id": gene.pk,
+            "family": family.family_label,
+            "fmin": loc.fmin,
+            "fmax": loc.fmax,
+            "strand": loc.strand
+        }
+        # return the synteny data as encoded as json
+        return HttpResponse(
+            json.dumps(data),
             content_type='application/json; charset=utf8'
         )
     return HttpResponseBadRequest
