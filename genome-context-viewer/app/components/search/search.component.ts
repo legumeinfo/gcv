@@ -162,15 +162,17 @@ export class SearchComponent implements OnInit {
 
   private _onAlignedMicroTracks(tracks): void {
     if (tracks.groups.length > 0 && tracks.groups[0].genes.length > 0) {
-      this.microTracks = tracks;
-      this.queryGenes = tracks.groups[0].genes;
+      // alert how many tracks were returned
       let num = (new Set(tracks.groups.map(g => g.id))).size - 1;
       this._alerts.pushAlert(new Alert(
         (num) ? ((this._numReturned == num) ? ALERT_SUCCESS : ALERT_INFO) :
           ALERT_WARNING,
         this._numReturned + ' tracks returned; ' + num + ' aligned'
       ));
-      let familySizes = getFamilySizeMap(tracks);
+      // only selectively color when there are results
+      let familySizes = (tracks.groups > 1)
+                      ? getFamilySizeMap(tracks)
+                      : undefined;
 
       this.legendArgs = {
         autoResize: true,
@@ -208,6 +210,7 @@ export class SearchComponent implements OnInit {
         selectiveColoring: familySizes
       };
 
+      this.queryGenes = tracks.groups[0].genes;
       this.macroArgs = {
         autoResize: true,
         viewport: {
@@ -218,6 +221,8 @@ export class SearchComponent implements OnInit {
           this._viewportDrag(d1, d2);
         }.bind(this)
       };
+
+      this.microTracks = tracks;
     }
     this.hideLeftSlider();
   }

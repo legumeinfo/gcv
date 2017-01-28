@@ -190,14 +190,20 @@ GCV.Legend = class {
   _drawLegend() {
     var legend = this.viewer.append('g');
     // create the legend keys
+    var presentFamilies = this.data.groups.reduce((l, group) => {
+      return l.concat(group.genes.map(g => g.family));
+    }, []);
     var families = this.data.families.filter(f => {
-      return !(f.name == '' || (this.options.selectiveColoring !== undefined &&
-        this.options.selectiveColoring[f.id] == 1));
+      return presentFamilies.indexOf(f.id) != -1
+          && !(f.name == ''
+          || (this.options.selectiveColoring !== undefined
+             && this.options.selectiveColoring[f.id] == 1));
     });
     legend.keys = [];
     families.forEach((f, i) => {
       var k = this._drawKey(legend, f),
-          y = legend.node().getBBox().height + (2 * this._PAD);
+          y = legend.node().getBBox().height;
+      if (i > 0) y += 2 * this._PAD;
       k.attr('transform', 'translate(0, ' + y + ')');
       legend.keys.push(k);
     });
@@ -214,8 +220,8 @@ GCV.Legend = class {
     var legend = this._drawLegend();
     legend.attr('y', this._PAD);
     this._decorateResize(legend.resize);
-    var h = legend.node().getBBox().height + (2 * this._PAD);
-    this.viewer.attr('height', h);
+    var lBox = legend.node().getBBox();
+    this.viewer.attr('height', lBox.y + lBox.height + (2 * this._PAD));
     // create an auto resize iframe, if necessary
     if (this.options.autoResize) {
       this.resizer = this._autoResize(this.container, (e) => {
