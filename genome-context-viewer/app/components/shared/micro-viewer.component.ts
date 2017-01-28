@@ -11,6 +11,7 @@ import { Observable } from 'rxjs/Observable';
 
 // App
 import { ContextMenuComponent } from './context-menu.component';
+import { DataSaver }            from '../../models/data-saver.model';
 import { MicroTracks }          from '../../models/micro-tracks.model';
 
 declare var d3: any;
@@ -22,15 +23,21 @@ declare var GCV: any;
   template: `
     <spinner [data]="tracks"></spinner>
     <div #microViewer>
-      <context-menu #menu (saveImage)="saveImage()">
+      <context-menu #menu
+        (saveData)="saveAsJSON(tracks)"
+        (saveImage)="saveXMLasSVG(viewer.xml())" >
     </context-menu></div>
   `,
   styles: [ 'div { position: relative; }' ]
 })
 
-export class MicroViewerComponent implements AfterViewInit, OnChanges, OnDestroy {
+export class MicroViewerComponent extends DataSaver
+                                  implements AfterViewInit,
+                                             OnChanges,
+                                             OnDestroy {
 
   // inputs
+
   @Input() tracks: MicroTracks;
   @Input() colors: any;
   private _args;
@@ -46,7 +53,13 @@ export class MicroViewerComponent implements AfterViewInit, OnChanges, OnDestroy
 
   // variables
 
-  private _viewer = undefined;
+  viewer = undefined;
+
+  // constructor
+
+  constructor() {
+    super('micro-synteny');
+  }
 
   // Angular hooks
 
@@ -71,16 +84,16 @@ export class MicroViewerComponent implements AfterViewInit, OnChanges, OnDestroy
   // private
 
   private _destroy(): void {
-    if (this._viewer !== undefined) {
-      this._viewer.destroy();
-      this._viewer = undefined;
+    if (this.viewer !== undefined) {
+      this.viewer.destroy();
+      this.viewer = undefined;
     }
   }
 
   private _draw(): void {
     if (this.el !== undefined && this.tracks !== undefined) {
       this._destroy();
-      this._viewer = new GCV.Viewer(
+      this.viewer = new GCV.Viewer(
         this.el.nativeElement,
         this.colors,
         this.tracks,
@@ -96,14 +109,5 @@ export class MicroViewerComponent implements AfterViewInit, OnChanges, OnDestroy
 
   private _hideContextMenu(e): void {
     this.contextMenu.hide();
-  }
-
-  // public
-
-  saveData(): void { }
-
-  saveImage(): void {
-    if (this._viewer !== undefined)
-      this._viewer.save();
   }
 }

@@ -633,8 +633,8 @@ GCV.Synteny = class {
     return clone;
 	}
 
-  /** Saves the viewer to as an SVG. */
-  save() {
+  /** Generates the raw SVG xml. */
+  xml() {
     try {
       var isFileSaverSupported = !!new Blob();
     } catch (e) {
@@ -644,18 +644,7 @@ GCV.Synteny = class {
     var clone = this._inlineCopy();
     // generate the data
     var xml = (new XMLSerializer).serializeToString(clone.node());
-    var blob = new Blob([xml], {type: "image/svg+xml"});
-    // save the data
-    var url = window.URL.createObjectURL(blob);
-    var a = document.createElement('a');
-    a.style = 'display: none';
-    a.href = url;
-    var date = new Date();
-    a.download = 'gcv-macro-synteny-' + date.toISOString() + '.svg';
-    document.body.appendChild(a);
-    a.click();
-    window.URL.revokeObjectURL(url);
-    document.body.removeChild(a);
+    return xml;
   }
 
   /** Manually destroys the viewer. */
