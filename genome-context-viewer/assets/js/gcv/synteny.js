@@ -199,9 +199,12 @@ GCV.Synteny = class {
             return 'start';
           } return 'end';
         });
+      var padding = this._PAD + (2 * axis.tickPadding()),
+          lBox = label.node().getBBox();
+      xAxis.labelWidth = padding + lBox.width;
       label.style('text-anchor', 'end').attr('transform', (b) => {
-        var x = this.left - (this._PAD + (2 * axis.tickPadding())),
-            y = -(label.node().getBBox().height / 2);
+        var x = this.left - padding,
+            y = -(lBox.height / 2);
         return 'translate(' + x + ', ' + y + ')';
       });
     }.bind(this);
@@ -570,7 +573,8 @@ GCV.Synteny = class {
     this.viewer.selectAll('.synteny-tip').moveToFront();
     // draw the y-axis
     var yAxis = this._drawYAxis(ticks, t, b);
-    this.left = yAxis.node().getBBox().width + this._PAD;
+    this.left = Math.max(xAxis.labelWidth, yAxis.node().getBBox().width)
+              + this._PAD;
     yAxis.attr('transform', 'translate(' + this.left + ', 0)');
     this.left += this._PAD;
     this._resize();

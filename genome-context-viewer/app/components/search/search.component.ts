@@ -37,6 +37,7 @@ declare var contextColors: any;
 declare var Split: any;
 declare var getFamilySizeMap: any;
 declare var RegExp: any;  // TypeScript doesn't support regexp as argument...
+declare var parseInt: any;  // TypeScript doesn't recognize number inputs
 
 enum ContentTypes {
   VIEWERS,
@@ -120,39 +121,11 @@ export class SearchComponent implements OnInit {
 
   colors = contextColors;
 
-  microArgs: any = {
-    geneClick: function (g) {
-      this.selectGene(g);
-    }.bind(this),
-    nameClick: function (t) {
-      this.selectTrack(t);
-    }.bind(this),
-    plotClick: function (p) {
-      this.selectPlot(p);
-    }.bind(this),
-    autoResize: true,
-    boldFirst: true
-  };
-
-  legendArgs: any = {
-    familyClick: function (f) {
-      this.selectFamily(f);
-    }.bind(this),
-    autoResize: true
-  };
-
+  microArgs: any;
+  legendArgs: any;
   macroArgs: any;
 
-  plotArgs: any = {
-    autoResize: true,
-    outlier: -1,
-    geneClick: function (g) {
-      this.selectGene(g);
-    }.bind(this),
-    plotClick: function (p) {
-      this.selectPlot(p);
-    }.bind(this)
-	};
+  plotArgs: any;
 
   // constructor
 
@@ -167,77 +140,133 @@ export class SearchComponent implements OnInit {
 
   // Angular hooks
 
-  ngOnInit(): void {
-    // ui
+  private _initUI(): void {
     this.showViewers();
     this.showLocalPlot();
     this.hideLocalGlobalPlots();
     this.hideRightSlider();
-    // data
-    this._route.params.subscribe(params => {
-      this.invalidate();
-      this.hideLocalGlobalPlots();
-      this.routeSource = params['source'];
-      this.routeGene = params['gene'];
-      this.microArgs.highlight = [this.routeGene];
-    });
-    this._microTracksService.tracks.subscribe(tracks => {
-      this._numReturned = tracks.groups.length - 1;  // exclude query
-      this._macroTracksService.search(tracks);
-    });
+  }
+
+  private _onParams(params): void {
+    this.invalidate();
+    this.hideLocalGlobalPlots();
+    this.routeSource = params['source'];
+    this.routeGene = params['gene'];
+  }
+
+  private _onRawMicroTracks(tracks): void {
+    this._numReturned = tracks.groups.length - 1;  // exclude query
+    this._macroTracksService.search(tracks);
+  }
+
+
+  private _onAlignedMicroTracks(tracks): void {
+    if (tracks.groups.length > 0 && tracks.groups[0].genes.length > 0) {
+      // alert how many tracks were returned
+      let num = (new Set(tracks.groups.map(g => g.id))).size - 1;
+      this._alerts.pushAlert(new Alert(
+        (num) ? ((this._numReturned == num) ? ALERT_SUCCESS : ALERT_INFO) :
+          ALERT_WARNING,
+        this._numReturned + ' tracks returned; ' + num + ' aligned'
+      ));
+      // only selectively color when there are results
+      let familySizes = (tracks.groups > 1)
+                      ? getFamilySizeMap(tracks)
+                      : undefined;
+
+      this.legendArgs = {
+        autoResize: true,
+        familyClick: function (f) {
+          this.selectFamily(f);
+        }.bind(this),
+        selectiveColoring: familySizes
+      };
+
+      this.plotArgs = {
+        autoResize: true,
+        geneClick: function (g) {
+          this.selectGene(g);
+        }.bind(this),
+        outlier: -1,
+        plotClick: function (p) {
+          this.selectPlot(p);
+        }.bind(this),
+        selectiveColoring: familySizes
+	    }
+
+      this.microArgs = {
+        autoResize: true,
+        boldFirst: true,
+        geneClick: function (g) {
+          this.selectGene(g);
+        }.bind(this),
+        highlight: [this.routeGene],
+        plotClick: function (p) {
+          this.selectPlot(p);
+        }.bind(this),
+        nameClick: function (t) {
+          this.selectTrack(t);
+        }.bind(this),
+        selectiveColoring: familySizes
+      };
+
+      this.queryGenes = tracks.groups[0].genes;
+      this.macroArgs = {
+        autoResize: true,
+        viewport: {
+          start: this.queryGenes[0].fmin,
+          stop: this.queryGenes[this.queryGenes.length - 1].fmax
+        },
+        viewportDrag: function (d1, d2) {
+          this._viewportDrag(d1, d2);
+        }.bind(this)
+      };
+
+      this.microTracks = tracks;
+    }
+    this.hideLeftSlider();
+  }
+
+  private _onPlots(plots): void { this.microPlots = plots; }
+
+  private _onPlotSelection(plot): void {
+    this.selectedLocal = this.selectedGlobal = undefined;
+    if (this.selectedPlot == this.plotTypes.GLOBAL) this.showGlobalPlot();
+    else this.showLocalPlot();
+  }
+
+  private _onMacroTracks(tracks): void { this.macroTracks = tracks; }
+
+  ngOnInit(): void {
+    // initialize UI
+    this._initUI();
+
+    // subscribe to parameter changes
+    this._route.params.subscribe(this._onParams.bind(this));
+
+    // subscribe to micro-tracks changes
+    this._microTracksService.tracks.subscribe(this._onRawMicroTracks.bind(this));
     this._microTracks = Observable.combineLatest(
       this._alignmentService.tracks,
       this._filterService.regexp,
       this._filterService.order
     ).let(microTracksSelector({skipFirst: true}));
-    this._microTracks.subscribe(tracks => {
-      let familySizes = getFamilySizeMap(tracks);
-      this.microArgs.selectiveColoring = familySizes;
-      this.legendArgs.selectiveColoring = familySizes;
-      this.plotArgs.selectiveColoring = familySizes;
-      this.microTracks = tracks;
-      if (tracks.groups.length > 0 && tracks.groups[0].genes.length > 0) {
-        let num = (new Set(tracks.groups.map(g => g.id))).size - 1;
-        this._alerts.pushAlert(new Alert(
-          (num) ? ((this._numReturned == num) ? ALERT_SUCCESS : ALERT_INFO) :
-            ALERT_WARNING,
-          this._numReturned + ' tracks returned; ' + num + ' aligned'
-        ));
-        this.queryGenes = tracks.groups[0].genes;
-        this.macroArgs = {
-          autoResize: true,
-          viewportDrag: function (d1, d2) {
-            this._viewportDrag(d1, d2);
-          }.bind(this)
-        };
-        this.macroArgs.viewport = {
-          start: this.queryGenes[0].fmin,
-          stop: this.queryGenes[this.queryGenes.length - 1].fmax
-        }
-      } else {
-        this.microTracks = undefined;
-      }
-      this.hideLeftSlider();
-    });
+    this._microTracks.subscribe(this._onAlignedMicroTracks.bind(this));
+
+    // subscribe to micro-plots changes
     this._microPlots = Observable.combineLatest(
       this._plotsService.localPlots,
       this._microTracks,
     ).let(plotsSelector());
-    this._microPlots.subscribe(plots => {
-      this.microPlots = plots;
-    });
+    this._microPlots.subscribe(this._onPlots.bind(this));
+    this._plotsService.selectedPlot.subscribe(this._onPlotSelection.bind(this));
+
+    // subscribe to macro-track changes
     this._macroTracks = Observable.combineLatest(
       this._macroTracksService.tracks,
       this._microTracks
     ).let(macroTracksSelector());
-    this._macroTracks.subscribe(tracks => {
-      this.macroTracks = tracks;
-    });
-    this._plotsService.selectedPlot.subscribe(plot => {
-      this.selectedLocal = this.selectedGlobal = undefined;
-      if (this.selectedPlot == this.plotTypes.GLOBAL) this.showGlobalPlot();
-      else this.showLocalPlot();
-    });
+    this._macroTracks.subscribe(this._onMacroTracks.bind(this));
   }
 
   // private
@@ -295,7 +324,6 @@ export class SearchComponent implements OnInit {
 
   invalidate(): void {
     this.macroTracks = this.microPlots = this.microTracks = undefined;
-    this.macroArgs = undefined;
   }
 
   // main content
