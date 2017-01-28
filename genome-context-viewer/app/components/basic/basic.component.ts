@@ -40,7 +40,6 @@ export class BasicComponent implements OnInit {
   showHelp = this._showHelp.asObservable();
 
   // data
-  private _urlParams: Observable<Params>;
   queryGenes: string[];
 
   private _microTracks: Observable<MicroTracks>;
@@ -75,29 +74,33 @@ export class BasicComponent implements OnInit {
 
   // Angular hooks
 
-  ngOnInit(): void {
-    // ui
+  private _initUI(): void {
     this.hideRightSlider();
-    // data
-    this._urlParams = this._route.params;
-    this._urlParams.subscribe(params => {
-      this.invalidate();
-      this.queryGenes = params['genes'].split(',');
-      this.microArgs.highlight = this.queryGenes;
-    });
+  }
+
+  private _onParams(params): void {
+    this.invalidate();
+    this.queryGenes = params['genes'].split(',');
+    this.microArgs.highlight = this.queryGenes;
+  }
+
+  private _onMicroTracks(tracks): void {
+    this.microTracks = tracks;
+    let num = tracks.groups.length;
+    this._alerts.pushAlert(new Alert(
+      (num) ? ALERT_SUCCESS : ALERT_WARNING,
+      num + ' tracks returned'
+    ));
+    this.hideLeftSlider();
+  }
+
+  ngOnInit(): void {
+    this._route.params.subscribe(this._onParams.bind(this));
     this._microTracks = Observable.combineLatest(
       this._microTracksService.tracks,
       this._filterService.regexp
     ).let(microTracksSelector());
-    this._microTracks.subscribe(tracks => {
-      this.microTracks = tracks;
-      let num = tracks.groups.length;
-      this._alerts.pushAlert(new Alert(
-        (num) ? ALERT_SUCCESS : ALERT_WARNING,
-        num + ' tracks returned'
-      ));
-      this.hideLeftSlider();
-    });
+    this._microTracks.subscribe(this._onMicroTracks.bind(this));
   }
 
   // private
