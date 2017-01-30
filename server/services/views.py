@@ -30,16 +30,19 @@ def ensure_nocache(view):
 # these are services for the stand alone context viewer #
 #########################################################
 
+######
+# v1 #
+######
 
 # returns contexts centered at genes in the list provided
 @csrf_exempt
 @ensure_nocache
-def micro_synteny_basic(request):
+def v1_micro_synteny_basic(request):
     # parse the POST data (Angular puts it in the request body)
     POST = json.loads(request.body)
 
     # make sure the request type is POST and that it contains a list of genes
-    if request.method == 'POST' and 'genes' in POST:
+    if request.method == 'POST' and 'genes' in POST and 'neighbors' in POST:
         # prepare a generic response
         generic = HttpResponse(
             json.dumps('{"families":[], "groups":[]}'),
@@ -47,12 +50,13 @@ def micro_synteny_basic(request):
         )
 
         # how many genes will be displayed?
-        num = 8
-        if 'numNeighbors' in POST:
-            try:
-                num = int(POST['numNeighbors'])
-            except:
-                pass
+        num = POST['neighbors']
+        try:
+            num = int(num)
+            if num <= 0:
+                raise ValueError("neighbors can't be negative")
+        except:
+            return HttpResponseBadRequest
         # get the focus genes
         focus_genes = Feature.objects.only('organism_id', 'name')\
         .filter(name__in=POST['genes'])
@@ -240,12 +244,12 @@ def micro_synteny_basic(request):
 # resolves a focus gene name to a query track
 @csrf_exempt
 @ensure_nocache
-def micro_synteny_gene_to_query(request):
+def v1_gene_to_query_track(request):
     # parse the POST data (Angular puts it in the request body)
     POST = json.loads(request.body)
 
     # make sure the request type is POST and that it contains a focus gene name
-    if request.method == 'POST' and 'gene' in POST:
+    if request.method == 'POST' and 'gene' in POST and 'neighbors' in POST:
         # get the focus gene of the query track
         focus = get_object_or_404(Feature, name=POST['gene'])
         focus_id = focus.pk
@@ -254,12 +258,13 @@ def micro_synteny_gene_to_query(request):
             raise Http404
         focus_order = focus_order[0]
         # how many neighbors should there be?
-        num = 8
-        if 'numNeighbors' in POST:
-            try:
-                num = int(POST['numNeighbors'])
-            except:
-                pass
+        num = POST['neighbors']
+        try:
+            num = int(num)
+            if num <= 0:
+                raise ValueError("neighbors can't be negative")
+        except:
+            return HttpResponseBadRequest
         # get the gene family type
         gene_family_type = list(
             Cvterm.objects.only('pk').filter(name='gene family')
@@ -342,41 +347,35 @@ def micro_synteny_gene_to_query(request):
 # returns similar contexts to the families provided
 @csrf_exempt
 @ensure_nocache
-def micro_synteny_search(request):
+def v1_micro_synteny_search(request):
     # parse the POST data (Angular puts it in the request body)
     POST = json.loads(request.body)
 
     # make sure the request type is POST and that it contains a query (families)
-    if request.method == 'POST' and 'query' in POST:
+    if request.method == 'POST' and 'query' in POST and 'matched' in POST and 'intermediate' in POST:
 
         ###############################
         # begin - function parameters #
         ###############################
 
-        # how many neighbors should there be?
-        num = 8
-        if 'numNeighbors' in POST:
-            try:
-                num = int(POST['numNeighbors'])
-            except:
-                pass
         # how many matched_families should there be?
-        num_matched_families = 6
-        if 'numMatchedFamilies' in POST:
-            try:
-                num_matched_families = int(POST['numMatchedFamilies'])
-            except:
-                pass
+        num_matched_families = POST['matched']
+        try:
+            num_matched_families = int(num_matched_families)
+            if num_matched_families <= 0:
+                raise ValueError("matched can't be negative")
+        except:
+            return HttpResponseBadRequest
         # the number of non query family genes tolerated between each pair of
         # family genes
-        non_family = 5
-        if 'numNonFamily' in POST:
-            try:
-                non_family = int(POST['numNonFamily'])
-                if non_family > 20:
-                    non_family = 5
-            except:
-                pass
+        non_family = POST['intermediate']
+        try:
+            non_family = int(non_family)
+            if non_family <= 0:
+                raise ValueError("intermediate can't be negative")
+        except:
+            return HttpResponseBadRequest
+        # the number of non query family genes tolerated between each pair of
         # get the gene family type
         gene_family_type = list(
             Cvterm.objects.only('pk').filter(name='gene family')
@@ -561,12 +560,12 @@ def micro_synteny_search(request):
 # the query
 @csrf_exempt
 @ensure_nocache
-def global_plots(request):
+def v1_global_plots(request):
     # parse the POST data (Angular puts it in the request body)
     POST = json.loads(request.body)
 
     # make sure the request type is POST and that it contains a query (families)
-    if request.method == 'POST' and 'query' in POST and 'chromosomeID' in POST:
+    if request.method == 'POST' and 'query' in POST and 'chromosome' in POST:
         # get the gene family type
         gene_family_type = list(Cvterm.objects.only('pk')\
             .filter(name='gene family'))
@@ -576,7 +575,7 @@ def global_plots(request):
 
         # find all genes with the same families
         chromosome_gene_orders = GeneOrder.objects.filter(
-            chromosome=POST["chromosomeID"]
+            chromosome=POST["chromosome"]
         )
         chromosome_gene_ids = chromosome_gene_orders.values_list(
             "gene", flat=True
@@ -625,7 +624,7 @@ def global_plots(request):
 # returns chromosome scale synteny blocks for the chromosome of the given gene
 @csrf_exempt
 @ensure_nocache
-def macro_synteny(request):
+def v1_macro_synteny(request):
     # parse the POST data (Angular puts it in the request body)
     POST = json.loads(request.body)
     # make sure the request type is POST and that it contains a query (families)
@@ -683,7 +682,7 @@ def macro_synteny(request):
 # returns the gene on the given chromosome that is closest to the given position
 @csrf_exempt
 @ensure_nocache
-def nearest_gene(request):
+def v1_nearest_gene(request):
     # parse the POST data (Angular puts it in the request body)
     POST = json.loads(request.body)
     # make sure the request type is POST and that it contains the correct data
@@ -692,8 +691,10 @@ def nearest_gene(request):
         pos = POST['position']
         try:
             pos = int(pos)
+            if pos < 0:
+                raise ValueError("matched can't be negative")
         except:
-            raise Http404
+            return HttpResponseBadRequest
         # get the gene type
         gene_type = list(
             Cvterm.objects.only('pk').filter(name='gene')
@@ -729,4 +730,74 @@ def nearest_gene(request):
             json.dumps(data),
             content_type='application/json; charset=utf8'
         )
+    return HttpResponseBadRequest
+
+###############
+# depreciated #
+###############
+
+# returns contexts centered at genes in the list provided
+@csrf_exempt
+@ensure_nocache
+def micro_synteny_basic(request):
+    # parse the POST data (Angular puts it in the request body)
+    POST = json.loads(request.body)
+
+    # make sure the request type is POST and that it contains a list of genes
+    if request.method == 'POST' and 'genes' in POST and 'numNeighbors' in POST:
+        POST['neighbors'] = POST['numNeighbors']
+        del POST['numNeighbors']
+        request._body = json.dumps(POST)
+        return v1_micro_synteny_basic(request)
+    return HttpResponseBadRequest
+
+
+# resolves a focus gene name to a query track
+@csrf_exempt
+@ensure_nocache
+def gene_to_query(request):
+    # parse the POST data (Angular puts it in the request body)
+    POST = json.loads(request.body)
+
+    # make sure the request type is POST and that it contains a focus gene name
+    if request.method == 'POST' and 'gene' in POST and 'numNeighbors' in POST:
+        POST['neighbors'] = POST['numNeighbors']
+        del POST['numNeighbors']
+        request._body = json.dumps(POST)
+        return v1_gene_to_query_track(request)
+    return HttpResponseBadRequest
+
+
+# returns similar contexts to the families provided
+@csrf_exempt
+@ensure_nocache
+def micro_synteny_search(request):
+    # parse the POST data (Angular puts it in the request body)
+    POST = json.loads(request.body)
+
+    # make sure the request type is POST and that it contains a query (families)
+    if request.method == 'POST' and 'query' in POST and 'numNeighbors' in POST and 'numMatchedFamilies' in POST:
+        POST['matched'] = POST['numMatchedFamilies']
+        del POST['numMatchedFamilies']
+        POST['intermediate'] = POST['numNonFamily']
+        del POST['numNonFamily']
+        request._body = json.dumps(POST)
+        return v1_micro_synteny_search(request)
+    return HttpResponseBadRequest
+
+
+# returns all the GENES for the given chromosome that have the same family as
+# the query
+@csrf_exempt
+@ensure_nocache
+def global_plots(request):
+    # parse the POST data (Angular puts it in the request body)
+    POST = json.loads(request.body)
+
+    # make sure the request type is POST and that it contains a query (families)
+    if request.method == 'POST' and 'query' in POST and 'chromosomeID' in POST:
+        POST['chromosome'] = POST['chromosomeID']
+        del POST['chromosomeID']
+        request._body = json.dumps(POST)
+        return v1_global_plots(request)
     return HttpResponseBadRequest
