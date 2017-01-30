@@ -10,6 +10,7 @@ import { AfterViewInit,
 
 // App
 import { ContextMenuComponent } from './context-menu.component';
+import { DataSaver }            from '../../models/data-saver.model';
 import { MicroTracks }          from '../../models/micro-tracks.model';
 
 declare var d3: any;
@@ -21,13 +22,18 @@ declare var GCV: any;
   template: `
     <spinner [data]="microTracks"></spinner>
     <div #legend>
-      <context-menu #menu (saveImage)="saveImage()"></context-menu>
+      <context-menu #menu
+        (saveImage)="saveXMLasSVG(viewer.xml())" >
+      </context-menu>
     </div>
   `,
   styles: [ '' ]
 })
 
-export class LegendComponent implements AfterViewInit, OnChanges, OnDestroy {
+export class LegendComponent extends DataSaver
+                             implements AfterViewInit,
+                                        OnChanges,
+                                        OnDestroy {
 
   // inputs
 
@@ -46,7 +52,13 @@ export class LegendComponent implements AfterViewInit, OnChanges, OnDestroy {
 
   // variables
 
-  private _legend = undefined;
+  viewer = undefined;
+
+  // constructor
+
+  constructor() {
+    super('legend');
+  }
 
   // Angular hooks
 
@@ -71,19 +83,19 @@ export class LegendComponent implements AfterViewInit, OnChanges, OnDestroy {
   // private
 
   private _destroy(): void {
-    if (this._legend !== undefined) {
-      this._legend.destroy();
-      this._legend = undefined;
+    if (this.viewer !== undefined) {
+      this.viewer.destroy();
+      this.viewer = undefined;
     }
   }
 
   private _draw(): void {
     if (this.el !== undefined && this.microTracks !== undefined) {
-      if (this._legend !== undefined) {
-        this._legend.destroy();
-        this._legend = undefined;
+      if (this.viewer !== undefined) {
+        this.viewer.destroy();
+        this.viewer = undefined;
       }
-      this._legend = new GCV.Legend(
+      this.viewer = new GCV.Legend(
         this.el.nativeElement,
         this.colors,
         this.microTracks,
@@ -99,14 +111,5 @@ export class LegendComponent implements AfterViewInit, OnChanges, OnDestroy {
 
   private _hideContextMenu(e): void {
     this.contextMenu.hide();
-  }
-
-  // public
-
-  saveData(): void { }
-
-  saveImage(): void {
-    if (this._legend !== undefined)
-      this._legend.save();
   }
 }

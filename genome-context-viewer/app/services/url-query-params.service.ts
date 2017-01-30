@@ -1,9 +1,9 @@
-// TODO: investigate replacing with @ngrx/router-store
 // TODO: rehydrate store with meta-reducer and localStorage
 
 // Angular
 import { ActivatedRoute } from '@angular/router';
 import { Injectable }     from '@angular/core';
+import { Location }       from '@angular/common';
 import { Observable }     from 'rxjs/Observable';
 import { Router }         from '@angular/router';
 import { Store }          from '@ngrx/store';
@@ -16,8 +16,10 @@ import { ADD_QUERY_PARAMS } from '../constants/actions';
 @Injectable()
 export class UrlQueryParamsService {
   params: Observable<UrlQueryParams>;
+  private _prev: any = {};
 
   constructor(private _route: ActivatedRoute,
+              private _location: Location,
               private _router: Router,
               private _store: Store<AppStore>) {
     this._init();
@@ -29,12 +31,17 @@ export class UrlQueryParamsService {
       this._updateUrl(params);
     });
     this._route.queryParams.subscribe(params => {
+      this._prev = params;
       this._updateStore(params);
     });
   }
 
   private _updateUrl(params: any): void {
-    this._router.navigate([], {queryParams: params, relativeTo: this._route});
+    let extras = {queryParams: params, relativeTo: this._route};
+    let url = this._router.createUrlTree([], extras).toString();
+    if (Object.keys(this._prev).length == 0)
+      this._location.replaceState(url);
+    this._router.navigateByUrl(url);
   }
 
   private _updateStore(params: any): void {

@@ -207,6 +207,7 @@ export class MicroTracksService {
       let failed = [];
       let families: Family[] = [];
       let groups: Group[] = [query];
+      let geneIDs = query.genes.map(g => g.id);
       for (let i = 0; i < results.length; ++i) {
         let result = results[i];
         let source = sources[i];
@@ -217,11 +218,9 @@ export class MicroTracksService {
           // remove the query if present
           if (source.id == query.source) {
             tracks.groups = tracks.groups.filter(group  => {
-              if (group.species_id == query.species_id &&
-                  group.chromosome_id == query.chromosome_id &&
-                  group.genes.length >= query.genes.length) {
-                let geneIDs = group.genes.map(g => g.id);
-                return query.genes.some(g => geneIDs.indexOf(g.id) == -1);
+              if (group.species_id == query.species_id
+              && group.chromosome_id == query.chromosome_id) {
+                return group.genes.some(g => geneIDs.indexOf(g.id) == -1);
               } return true;
             });
           }

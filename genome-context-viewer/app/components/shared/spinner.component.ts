@@ -10,7 +10,11 @@ import { Component, Input } from '@angular/core';
       </div>
     </div>
   `,
-  styles: [ '' ]  // uses app level css
+  styles: [`
+    .grey-screen {
+      z-index: 100000000 !important;
+    }
+  `]  // uses app level css
 })
 
 export class SpinnerComponent {

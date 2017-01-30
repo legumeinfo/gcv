@@ -4,12 +4,13 @@ import { AfterViewInit,
          ElementRef,
          Input,
          OnChanges,
-         SimpleChanges,
          OnDestroy,
+         SimpleChanges,
          ViewChild } from '@angular/core';
 
 // App
 import { ContextMenuComponent } from './context-menu.component';
+import { DataSaver }            from '../../models/data-saver.model';
 import { Group }                from '../../models/group.model';
 
 declare var d3: any;
@@ -21,13 +22,18 @@ declare var GCV: any;
   template: `
     <spinner [data]="plot"></spinner>
     <div #plot>
-      <context-menu #menu (saveImage)="saveImage()"></context-menu>
+      <context-menu #menu
+        (saveImage)="saveXMLasSVG(viewer.xml())" >
+      </context-menu>
     </div>
   `,
   styles: [ 'div { position: relative; }' ]
 })
 
-export class PlotComponent implements AfterViewInit, OnChanges, OnDestroy {
+export class PlotComponent extends DataSaver
+                           implements AfterViewInit,
+                                      OnChanges,
+                                      OnDestroy {
 
   // inputs
 
@@ -47,8 +53,14 @@ export class PlotComponent implements AfterViewInit, OnChanges, OnDestroy {
 
   // variables
 
-  private _plot = undefined;
+  viewer = undefined;
   private _drawnSinceChange: boolean;
+
+  // constructor
+
+  constructor() {
+    super('plot');
+  }
 
   // Angular hooks
 
@@ -74,9 +86,9 @@ export class PlotComponent implements AfterViewInit, OnChanges, OnDestroy {
   // private
 
   private _destroy(): void {
-    if (this._plot !== undefined) {
-      this._plot.destroy();
-      this._plot = undefined;
+    if (this.viewer !== undefined) {
+      this.viewer.destroy();
+      this.viewer = undefined;
     }
   }
 
@@ -109,7 +121,7 @@ export class PlotComponent implements AfterViewInit, OnChanges, OnDestroy {
     (!this.visibleDraw || (this.visibleDraw && this._visible())) &&
     !this._drawnSinceChange) {
       this._destroy();
-      this._plot = new GCV.Plot(
+      this.viewer = new GCV.Plot(
         this.el.nativeElement,
         this.colors,
         this.plot,
@@ -117,12 +129,5 @@ export class PlotComponent implements AfterViewInit, OnChanges, OnDestroy {
       );
       this._drawnSinceChange = true;
     }
-  }
-
-  saveData(): void { }
-
-  saveImage(): void {
-    if (this._plot !== undefined)
-      this._plot.save();
   }
 }
