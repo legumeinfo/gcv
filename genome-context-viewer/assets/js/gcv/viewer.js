@@ -502,14 +502,14 @@ GCV.Viewer = class {
     }.bind(this, geneGroups, lineGroups, lines, lineTips);
     // how tips are rotated so they don't overflow the view
     var tips = track.selectAll('.synteny-tip');
-    track.rotateTips = function (tips, resize) {
+    track.adjustTips = function (tips, resize) {
       var vRect = obj.viewer.node().getBoundingClientRect();
       tips.classed('synteny-tip', false)
         .attr('transform', function (t) {
           var tRect = this.getBoundingClientRect(),
               h = Math.sqrt(Math.pow(tRect.width, 2) / 2),  // rotated height
-              r = (tRect.bottom + h > vRect.bottom) ? 45 : -45;
-          return 'rotate(' + r + ')';
+              o = (tRect.bottom + h > vRect.bottom) ? h : 0;
+          return 'translate(' + o + ', ' + (-o) + ') rotate(-45)';
         })
         .classed('synteny-tip', true);
       resize();
@@ -625,7 +625,7 @@ GCV.Viewer = class {
     this._decorateResize(resizeTracks);
     // rotate the tips now that all the tracks have been drawn
     tracks.forEach(function (t, i) {
-      t.rotateTips();
+      t.adjustTips();
     });
     // move all tips to front
     this.viewer.selectAll('.synteny-tip').moveToFront();

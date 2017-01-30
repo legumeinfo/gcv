@@ -353,20 +353,22 @@ GCV.Synteny = class {
       });
       tips.attr('transform', function (b) {
         var tip = d3.select(this),
-            x = obj.scale(tip.attr('data-x')),
-            y = tip.attr('data-y');
-        return 'translate(' + x +', ' + y + ') ' + tip.attr('data-rotate');
+            o = parseInt(tip.attr('data-offset')),
+            x = obj.scale(tip.attr('data-x')) + o,
+            y = parseInt(tip.attr('data-y')) - o;
+        //return 'translate(' + x +', ' + y + ') ' + tip.attr('data-rotate');
+        return 'translate(' + x +', ' + y + ') rotate(-45)';
       });
     }.bind(this, polygons, tips);
-    // how tips are rotated so they don't overflow the view
-    track.rotateTips = function (tips, resize) {
+    // how tips are adjusted so they don't overflow the view
+    track.adjustTips = function (tips, resize) {
       var vRect = obj.viewer.node().getBoundingClientRect();
       tips.classed('synteny-tip', false)
-        .attr('data-rotate', function (b) {
+        .attr('data-offset', function (b) {
           var tRect = this.getBoundingClientRect(),
-              h = Math.sqrt(Math.pow(tRect.width, 2) / 2),  // rotated height
-              r = (tRect.bottom + h > vRect.bottom) ? 45 : -45;
-          return 'rotate(' + r + ')';
+              d = Math.sqrt(Math.pow(tRect.width, 2) / 2);  // rotated height
+          return (tRect.bottom + d > vRect.bottom) ? d : 0;
+          //return 'rotate(' + r + ')';
         })
         .classed('synteny-tip', true);
       resize();
@@ -567,7 +569,7 @@ GCV.Synteny = class {
     this._decorateResize(resizeTracks);
     // rotate the tips now that all the tracks have been drawn
     tracks.forEach(function (t, i) {
-      t.rotateTips();
+      t.adjustTips();
     });
     // move all tips to front
     this.viewer.selectAll('.synteny-tip').moveToFront();
