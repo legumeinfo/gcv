@@ -76,7 +76,7 @@ export class SearchParamsComponent implements OnChanges, OnDestroy, OnInit {
     let defaultQuery = new QueryParams(
       DEFAULT_NEIGHBORS,
       [DEFAULT_SOURCE],
-      DEFAULT_MATCH,
+      DEFAULT_MATCHED,
       DEFAULT_INTERMEDIATE);
     this.queryGroup = this._fb.group(defaultQuery.formControls());
     let defaultAlignment = new AlignmentParams(
