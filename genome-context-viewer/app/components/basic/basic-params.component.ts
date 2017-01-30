@@ -14,6 +14,8 @@ import { Observable }             from 'rxjs/Observable';
 import { Alert }                 from '../../models/alert.model';
 import { ALERT_DANGER }          from '../../constants/alerts';
 import { AlertsService }         from '../../services/alerts.service';
+import { DEFAULT_NEIGHBORS,
+         DEFAULT_SOURCE }     from '../../constants/default-parameters';
 import { MicroTracksService }    from '../../services/micro-tracks.service';
 import { QueryParams }           from '../../models/query-params.model';
 import { SERVERS }               from '../../constants/servers';
@@ -64,7 +66,9 @@ export class BasicParamsComponent implements OnChanges, OnDestroy, OnInit {
 
   ngOnInit(): void {
     // initialize forms
-    let defaultQuery = new QueryParams(5, ['lis']);
+    let defaultQuery = new QueryParams(
+      DEFAULT_NEIGHBORS,
+      [DEFAULT_SOURCE]);
     this.queryGroup = this._fb.group(defaultQuery.formControls());
     // subscribe to url query param updates
     this._sub = this._url.params.subscribe(params => {

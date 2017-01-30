@@ -17,6 +17,16 @@ import { AlertsService }         from '../../services/alerts.service';
 import { ALIGNMENT_ALGORITHMS }  from '../../constants/alignment-algorithms';
 import { AlignmentParams }       from '../../models/alignment-params.model';
 import { AlignmentService }      from '../../services/alignment.service';
+import { DEFAULT_NEIGHBORS,
+         DEFAULT_MATCHED,
+         DEFAULT_INTERMEDIATE,
+         DEFAULT_SOURCE,
+         DEFAULT_ALIGNMENT,
+         DEFAULT_MATCH,
+         DEFAULT_MISMATCH,
+         DEFAULT_GAP,
+         DEFAULT_SCORE,
+         DEFAULT_THRESHOLD }     from '../../constants/default-parameters';
 import { MicroTracksService }    from '../../services/micro-tracks.service';
 import { QueryParams }           from '../../models/query-params.model';
 import { SERVERS }               from '../../constants/servers';
@@ -63,9 +73,19 @@ export class SearchParamsComponent implements OnChanges, OnDestroy, OnInit {
 
   ngOnInit(): void {
     // initialize forms
-    let defaultQuery = new QueryParams(5, ['lis'], 2, 2);
+    let defaultQuery = new QueryParams(
+      DEFAULT_NEIGHBORS,
+      [DEFAULT_SOURCE],
+      DEFAULT_MATCH,
+      DEFAULT_INTERMEDIATE);
     this.queryGroup = this._fb.group(defaultQuery.formControls());
-    let defaultAlignment = new AlignmentParams('repeat', 3, -1, -1, 25, 10)
+    let defaultAlignment = new AlignmentParams(
+      DEFAULT_ALIGNMENT,
+      DEFAULT_MATCH,
+      DEFAULT_MISMATCH,
+      DEFAULT_GAP,
+      DEFAULT_SCORE,
+      DEFAULT_THRESHOLD)
     this.alignmentGroup = this._fb.group(defaultAlignment.formControls());
     // subscribe to url query param updates
     this._sub = this._url.params.subscribe(params => {
