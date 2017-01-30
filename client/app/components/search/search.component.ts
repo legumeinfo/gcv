@@ -170,7 +170,7 @@ export class SearchComponent implements OnInit {
         this._numReturned + ' tracks returned; ' + num + ' aligned'
       ));
       // only selectively color when there are results
-      let familySizes = (tracks.groups > 1)
+      let familySizes = (tracks.groups.length > 1)
                       ? getFamilySizeMap(tracks)
                       : undefined;
 
