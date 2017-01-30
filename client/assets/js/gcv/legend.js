@@ -119,6 +119,7 @@ GCV.Legend = class {
     // create the scales used to plot genes
     // parse optional parameters
     this.options = Object.assign({}, options);
+    this.options.highlight = this.options.highlight || [];
     this.options.selectiveColoring = this.options.selectiveColoring;
     this.options.familyClick = this.options.familyClick || function (family) { };
     this.options.autoResize = this.options.autoResize || false;
@@ -164,7 +165,11 @@ GCV.Legend = class {
     var rect = key.append('rect')
       .attr('width', this._RECT_SIZE)
       .attr('height', this._RECT_SIZE)
-      .style('fill', () => this.colors(f.id));
+      .style('fill', () => this.colors(f.id))
+      .attr('class', () => {
+        if (this.options.highlight.indexOf(f.name) !== -1) return 'focus';
+        return '';
+      });
     // add then labels
     var text = key.append('text')
       .style('text-anchor', 'end')

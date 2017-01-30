@@ -174,11 +174,14 @@ export class SearchComponent implements OnInit {
                       ? getFamilySizeMap(tracks)
                       : undefined;
 
+      let i = tracks.groups[0].genes.map(g => g.name).indexOf(this.routeGene);
+      let focus = tracks.groups[0].genes[i];
       this.legendArgs = {
         autoResize: true,
         familyClick: function (f) {
           this.selectFamily(f);
         }.bind(this),
+        highlight: [focus.family],
         selectiveColoring: familySizes
       };
 

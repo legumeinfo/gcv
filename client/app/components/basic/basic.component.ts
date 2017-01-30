@@ -58,12 +58,7 @@ export class BasicComponent implements OnInit {
     autoResize: true
   };
 
-  legendArgs: any = {
-    familyClick: function (f) {
-      this.selectFamily(f);
-    }.bind(this),
-    autoResize: true
-  };
+  legendArgs: any;
 
   // constructor
 
@@ -85,12 +80,25 @@ export class BasicComponent implements OnInit {
   }
 
   private _onMicroTracks(tracks): void {
-    this.microTracks = tracks;
     let num = tracks.groups.length;
     this._alerts.pushAlert(new Alert(
       (num) ? ALERT_SUCCESS : ALERT_WARNING,
       num + ' tracks returned'
     ));
+    let highlight = tracks.groups.reduce((l, group) => {
+      let families = group.genes
+        .filter(g => this.queryGenes.indexOf(g.name) !== -1)
+        .map(g => g.family);
+      return l.concat(families);
+    }, []);
+    this.legendArgs = {
+      autoResize: true,
+      familyClick: function (f) {
+        this.selectFamily(f);
+      }.bind(this),
+      highlight: highlight
+    }
+    this.microTracks = tracks;
     this.hideLeftSlider();
   }
 
