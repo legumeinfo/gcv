@@ -31,7 +31,7 @@ urlpatterns = patterns('services.views',
     # search micro-synteny tracks
     url(r'^v1/micro-synteny-search/$', 'v1_micro_synteny_search'),
     # global dot plots
-    url(r'^v1/global-plots/$', 'v1_global_plots'),
+    url(r'^v1/global-plots/$', 'v1_global_plot'),
     # macro-synteny
     url(r'^v1/macro-synteny/$', 'v1_macro_synteny'),
     # genomic location to nearest gene

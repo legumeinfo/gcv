@@ -560,7 +560,7 @@ def v1_micro_synteny_search(request):
 # the query
 @csrf_exempt
 @ensure_nocache
-def v1_global_plots(request):
+def v1_global_plot(request):
     # parse the POST data (Angular puts it in the request body)
     POST = json.loads(request.body)
 
@@ -799,5 +799,5 @@ def global_plots(request):
         POST['chromosome'] = POST['chromosomeID']
         del POST['chromosomeID']
         request._body = json.dumps(POST)
-        return v1_global_plots(request)
+        return v1_global_plot(request)
     return HttpResponseBadRequest
