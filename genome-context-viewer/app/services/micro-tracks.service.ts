@@ -214,12 +214,12 @@ export class MicroTracksService {
           failed.push(source.id);
         } else {
           let tracks: MicroTracks = this._parseMicroTracksJSON(source, result);
-          // remove the query if present
+          // remove tracks that overlap with the query
           if (source.id == query.source) {
             tracks.groups = tracks.groups.filter(group  => {
               if (group.species_id == query.species_id
               && group.chromosome_id == query.chromosome_id) {
-                return group.genes.some(g => geneIDs.indexOf(g.id) == -1);
+                return !group.genes.some(g => geneIDs.indexOf(g.id) !== -1);
               } return true;
             });
           }
