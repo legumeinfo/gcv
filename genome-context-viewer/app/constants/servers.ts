@@ -6,19 +6,19 @@ export const SERVERS: Server[] = [
     name: 'Legume Information System',
     microBasic: {
       type: POST,
-      url: 'http://localhost:8000/services/micro-synteny-basic/'
+      url: 'http://localhost:8000/services/v1/micro-synteny-basic/'
     },
     microSearch: {
       type: POST,
-      url: 'http://localhost:8000/services/micro-synteny-search/'
+      url: 'http://localhost:8000/services/v1/micro-synteny-search/'
     },
     microQuery: {
       type: POST,
-      url: 'http://localhost:8000/services/micro-synteny-gene-to-query/'
+      url: 'http://localhost:8000/services/v1/gene-to-query-track/'
     },
     macro: {
       type: POST,
-      url: 'http://localhost:8000/services/macro-synteny/'
+      url: 'http://localhost:8000/services/v1/macro-synteny/'
     },
     geneLinks: {
       type: GET,
@@ -26,11 +26,11 @@ export const SERVERS: Server[] = [
     },
     plotGlobal: {
       type: POST,
-      url: 'http://localhost:8000/services/global-plots/'
+      url: 'http://localhost:8000/services/v1/global-plots/'
     },
     nearestGene: {
       type: POST,
-      url: 'http://localhost:8000/services/nearest-gene/'
+      url: 'http://localhost:8000/services/v1/nearest-gene/'
     }
   }
 ];

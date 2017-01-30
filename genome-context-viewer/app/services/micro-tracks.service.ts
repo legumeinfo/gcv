@@ -62,7 +62,7 @@ export class MicroTracksService {
   ): void {
     let args = {
       genes: queryGenes,
-      numNeighbors: params.neighbors
+      neighbors: params.neighbors
     };
 		// send requests to the selected servers
     let requests: Observable<Response>[] = [];
@@ -152,7 +152,7 @@ export class MicroTracksService {
       if (s.hasOwnProperty('microQuery')) {
         let args = {
           gene: queryGene,
-          numNeighbors: params.neighbors
+          neighbors: params.neighbors
         };
         let response: Observable<Response>;
         if (s.microQuery.type === GET)
@@ -174,9 +174,8 @@ export class MicroTracksService {
   trackSearch(query: Group, params: QueryParams, failure = e => {}): void {
     let args = {
       query: query.genes.map(g => g.family),
-      numNeighbors: params.neighbors,
-      numMatchedFamilies: params.matched,
-      numNonFamily: params.intermediate
+      matched: params.matched,
+      intermediate: params.intermediate
     };
 		// send requests to the selected servers
     let requests: Observable<Response>[] = [];

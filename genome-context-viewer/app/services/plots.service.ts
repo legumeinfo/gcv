@@ -119,7 +119,7 @@ export class PlotsService {
         if (s.hasOwnProperty('plotGlobal')) {
           let args = {
             query: this._query,
-            chromosomeID: local.chromosome_id
+            chromosome: local.chromosome_id
           };
           let response: Observable<Response>;
           if (s.plotGlobal.type === GET)
