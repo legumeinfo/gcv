@@ -4,55 +4,6 @@
 /** The Genomic Context Viewer namespace. */
 var GCV = GCV || {};
 
-// merge partitions from same chromosome with the interval scheduling
-// greedy algorithm
-// TODO: should be same group only
-//var partition_groups = [];
-//// sort the partition groups by "finish time"
-//partitions[id].sort(function (a, b) {
-//  return a[a.length-1].x-b[b.length-1].x;
-//});
-//// generate the merged tracks
-//while (partitions[id].length > 0) {
-//  var track_genes = [];
-//  var remove = [];
-//  for (var i = 0; i < partitions[id].length; i++) {
-//    // make sure the genes are ordered by x coordinate
-//    partitions[id].sort(function (a, b) {
-//      return a.x-b.x;
-//    });
-//    // greedy ordering
-//    var partition = partitions[id][i];
-//    if (track_genes.length == 0 ||
-//        partition[0].x > track_genes[track_genes.length-1].x) {
-//      track_genes = track_genes.concat(partition);
-//      remove.push(i);
-//    }
-//  }
-//  // remove the tracks that were merged
-//  for (var i = remove.length-1; i >= 0; i--) {
-//    partitions[id].splice(remove[i], 1);
-//  }
-//  // save the new group
-//  var group = clone(groups[id]);
-//  group.genes = track_genes.slice(0);
-//  partition_groups.push(group);
-//}
-//// order the new groups largest to smallest
-//partition_groups.sort(function (a, b) {
-//  return b.genes.length-a.genes.length;
-//});
-//// add the new groups to the data
-//for (var i = 0; i < partition_groups.length; i++) {
-//  partition_groups[i].genes = partition_groups[i].genes.map(
-//                              function(gene) {
-//                                gene.y = group_y;
-//                                return gene;
-//                              });
-//  group_y++;
-//  tracks.groups.push(partition_groups[i]);
-//}
-
 
 /**
   * Merges overlapping tracks from the same group to maximize alignment score.

@@ -43,7 +43,6 @@ export class AlignmentService {
         suffixScores: true
       });
       let alignments = [];
-      let scores = {};
       for (let i = 1; i < tracks.groups.length; ++i) {
         let result = tracks.groups[i];
         let al = algorithm(query.genes, result.genes, options);
@@ -54,7 +53,6 @@ export class AlignmentService {
           if (a.score >= options.threshold) {
             a.track = Object.assign({}, result);
             alignments.push(a);
-            scores[id] = (scores[id] || 0) + a.score;
           }
         }
       }

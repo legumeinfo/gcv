@@ -90,7 +90,7 @@ Alignment.smithWaterman = function (sequence, reference, options) {
           outRef.unshift(clone(ref[i - 1]));
           outSeq.unshift(null);
           i -= 1;
-      } else if (score == (up + options.scores.gap)) {
+      } else if (score == up + options.scores.gap) {
         outRef.unshift(null);
         outSeq.unshift(clone(seq[j - 1]));
         j -= 1;
@@ -186,9 +186,6 @@ Alignment.repeat = function (sequence, reference, options) {
         saving = false,
         length = 0;
     while (!(i == 0 && j == 0)) {
-      if (saving) {
-        alignments[index].score += a[i][j];
-      }
       if (j == 0) {
         if (saving && length < 2) {
           alignments.pop();
@@ -207,7 +204,7 @@ Alignment.repeat = function (sequence, reference, options) {
           length = 1;
           saving = true;
           j = jMax;
-          alignments.push({sequence: [], reference: [], score: 0});
+          alignments.push({sequence: [], reference: [], score: max});
           index++;
           // pad seq with the genes not traversed by the alignment
           for (var k = seq.length - 1; k >= j; k--) {
