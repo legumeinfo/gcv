@@ -29,11 +29,13 @@ GCV.merge = function (data) {
       var groupTracks = groups[id],
           merged = [];  // which tracks have been merged into another
       // iterate pairs of tracks to see if one is a sub-inversion of the other
-      for (var j = 0; j < groupTracks.length && merged.indexOf(j) == -1; j++) {
+      for (var j = 0; j < groupTracks.length; j++) {
+        if (merged.indexOf(j) != -1) continue;
         var jTrack = groupTracks[j],
             jLevels = 0,
             jIds = jTrack.genes.map(function (g) { return g.id; });
-        for (var k = j + 1; k < groupTracks.length && merged.indexOf(k) == -1; k++) {
+        for (var k = j + 1; k < groupTracks.length; k++) {
+          if (merged.indexOf(j) != -1 || merged.indexOf(k) != -1) continue;
           var kTrack = groupTracks[k],
               kLevels = 0,
               kIds = kTrack.genes.map(function (g) { return g.id; });
@@ -79,7 +81,7 @@ GCV.merge = function (data) {
                 kTrack.score += adjustment;
               }
             // k is the inversion
-            } else if (jIds.length == kIds.length) {
+            } else if (jIds.length >= kIds.length) {
               // get index list
               var indices = overlap.map(function (jId) {
                 return jIds.indexOf(jId);
