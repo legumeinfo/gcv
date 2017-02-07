@@ -278,10 +278,10 @@ GCV.Viewer = class {
               nextFmin = nextGene.fmin,
               nextFmax = nextGene.fmax;
           var dist = Math.min.apply(null, [
-            fmin - nextFmin,
-            fmax - nextFmin,
-            fmin - nextFmax,
-            fmax - nextFmin
+            Math.abs(fmin - nextFmin),
+            Math.abs(fmax - nextFmin),
+            Math.abs(fmin - nextFmax),
+            Math.abs(fmax - nextFmin)
           ]);
           distances.push(dist);
           minDistance = Math.min(minDistance, dist);
