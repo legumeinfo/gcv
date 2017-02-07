@@ -715,7 +715,11 @@ def v1_nearest_gene(request):
             ((F('fmin') + F('fmax')) / 2) - pos, function='ABS'
         )).order_by('dist').first()
         gene = get_object_or_404(Feature, pk=loc.feature.pk)
-        family = GeneFamilyAssignment.objects.get(gene_id=gene.pk)
+        family = None
+        try:
+            family = GeneFamilyAssignment.objects.get(gene_id=gene.pk)
+        except GeneFamilyAssignment.DoesNotExist:
+            family = GeneFamilyAssignment(family_label='')
         # jsonify the gene and return it
         data = {
             "name": gene.name,
