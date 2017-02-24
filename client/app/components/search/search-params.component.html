@@ -1,0 +1,66 @@
+<form (ngSubmit)="submit()">
+  <fieldset [formGroup]="queryGroup">
+    <legend>Query Parameters<a id="query-params-help" class="pull-right" (click)="queryHelp=!queryHelp"><span class="glyphicon glyphicon-question-sign"></span></a></legend>
+    <div class="form-group" [ngClass]="{'has-error': !queryGroup.controls.neighbors.valid}">
+      <label for="neighbors">Neighbors (min 1)</label>
+      <input type="number" class="form-control" formControlName="neighbors" >
+      <p class="help-block" *ngIf="queryHelp">Number of genes on either side of the query gene.</p>
+    </div>
+    <div class="form-group" [ngClass]="{'has-error': !queryGroup.controls.matched.valid}">
+      <label for="matched">Matched families (min 1)</label>
+      <input type="number" class="form-control" formControlName="matched" >
+      <p class="help-block" *ngIf="queryHelp">The minimum number of gene families that must match between the query track and each result track.</p>
+    </div>
+    <div class="form-group" [ngClass]="{'has-error': !queryGroup.controls.intermediate.valid}">
+      <label for="intermediate">Intermediate genes (min 1)</label>
+      <input type="number" class="form-control" formControlName="intermediate" >
+      <p class="help-block" *ngIf="queryHelp">The maximum number of non-matching genes between successive matching genes in a result track.</p>
+    </div>
+    <div class="form-group" [ngClass]="{'has-error': !queryGroup.controls.sources.valid}">
+      <label for="sources">Sources (min 1)</label>
+      <select multiple class="form-control" formControlName="sources" >
+        <option *ngFor="let src of sources" [value]="src.id">{{src.name}}</option>
+      </select>
+      <p class="help-block" *ngIf="queryHelp">Which databases to load data from.</p>
+    </div>
+  </fieldset>
+  <fieldset [formGroup]="alignmentGroup">
+    <legend>Alignment Parameters<a id="align-params-help" class="pull-right" (click)="alignmentHelp=!alignmentHelp"><span class="glyphicon glyphicon-question-sign"></span></a></legend>
+    <div class="form-group" ng-class="{'has-help': alignmentHelp}">
+      <label>Algorithm</label>
+			<div class="radio" *ngFor="let alg of algorithms">
+        <label>
+          <input type="radio" [value]="alg.id" formControlName="algorithm" />
+          {{alg.name}}
+        </label>
+      </div>
+      <span class="help-block" *ngIf="alignmentHelp">The sequence alignment algorithm used to align result tracks to the query track.</span>
+    </div>
+    <div class="form-group" [ngClass]="{'has-error': !alignmentGroup.controls.match.valid}">
+      <label for="match">Match (min 1)</label>
+      <input type="number" class="form-control" formControlName="match" >
+      <p class="help-block" *ngIf="alignmentHelp">How many points matching a gene family when aligning is worth.</p>
+    </div>
+    <div class="form-group" [ngClass]="{'has-error': !alignmentGroup.controls.mismatch.valid}">
+      <label for="mismatch">Mismatch (max -1)</label>
+      <input type="number" class="form-control" formControlName="mismatch" >
+      <p class="help-block" *ngIf="alignmentHelp">The penalty for mismatching gene families when aligning.</p>
+    </div>
+    <div class="form-group" [ngClass]="{'has-error': !alignmentGroup.controls.gap.valid}">
+      <label for="gap">Gap (max -1)</label>
+      <input type="number" class="form-control" formControlName="gap" >
+      <p class="help-block" *ngIf="alignmentHelp">The penalty for adding a gap when aligning gene families.</p>
+    </div>
+    <div class="form-group" [ngClass]="{'has-error': !alignmentGroup.controls.score.valid}">
+      <label for="score">Score (min 1)</label>
+      <input type="number" class="form-control" formControlName="score" >
+      <p class="help-block" *ngIf="alignmentHelp">The minimum score an aligned result track must have to be displayed.</p>
+    </div>
+    <div class="form-group" [ngClass]="{'has-error': !alignmentGroup.controls.threshold.valid}">
+      <label for="threshold">Threshold (min 1)</label>
+      <input type="number" class="form-control" formControlName="threshold" >
+      <p class="help-block" *ngIf="alignmentHelp">The minimum score a Repeat segment must have to contribute to the alignment.</p>
+    </div>
+    <button type="submit" class="btn btn-primary col-sm-12" [disabled]="!queryGroup.valid || !alignmentGroup.valid">Submit</button>
+  </fieldset>
+</form>

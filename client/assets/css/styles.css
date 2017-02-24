@@ -1,0 +1,75 @@
+body, html {
+  margin: 0;
+  padding: 0;
+  min-width: 400px;
+  overflow: hidden;
+}
+a {
+  cursor: pointer;
+}
+.navbar {
+  margin: 0;
+}
+.navbar button {
+  margin-right: 15px;
+}
+#main #viewer, #main #plots, #main #help {
+  width: 100%;
+  position: absolute;
+  top: 51px;
+  bottom: 51px;
+  /*overflow-x:hidden;
+  overflow-y:auto;*/
+}
+.alert-dismissible {
+  margin: 20px;
+}
+/* vertically and horizontally center spinner */
+.grey-screen {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  /* normal for browsers which cannot support rgba */
+  background-color: #FFFFFF;
+  /* 70% opacity for supported browsers */
+  background-color: rgba(255, 255, 255, 0.7);
+  /* IE 5.5+ support #BBFFFFFF is ~70% opacity on normal */
+  filter:progid:DXImageTransform.Microsoft.gradient(
+    startColorstr=#BBFFFFFF, endColorstr=#BBFFFFFF
+  );
+  /* IE 8 support */
+  -ms-filter: "progid:DXImageTransform.Microsoft.gradient(
+    startColorstr=#BBFFFFFF, endColorstr=#BBFFFFFF
+  )";
+  z-index: 100000000 !important;
+}
+.grey-screen .spinner {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  margin: 0;
+}
+.grey-screen .spinner img {
+  margin: -16px 0 0 -16px;
+}
+.form-group .help-block {
+  display: none;
+}
+.form-group.has-error .help-block, .form-group.has-help .help-block {
+  display: block;
+}
+
+#instructions {
+  margin: 20px;
+}
+
+/* make room for two button in the dismissible alerts */
+.alert-dismissible button.close {
+  margin-left: 10px;
+}
+/* override bootstrap autohide help-blocks in forms */
+.form-group .help-block {
+  display: block;
+}
