@@ -181,7 +181,7 @@ export class SearchComponent implements OnInit {
         familyClick: function (f) {
           this.selectFamily(f);
         }.bind(this),
-        highlight: [focus.family],
+        highlight: [focus != undefined ? focus.family : undefined],
         selectiveColoring: familySizes
       };
 
