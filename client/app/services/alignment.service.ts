@@ -38,10 +38,11 @@ export class AlignmentService {
         params.algorithm
       )].algorithm;
       let query = tracks.groups[0];
-      let options = Object.assign({}, params, {
+      let options = Object.assign({}, {
         accessor: g => g.family,
         suffixScores: true
       });
+      options.scores = Object.assign({}, params);
       let alignments = [];
       for (let i = 1; i < tracks.groups.length; ++i) {
         let result = tracks.groups[i];
@@ -50,7 +51,7 @@ export class AlignmentService {
         // save tracks that meet the threshold
         for (let j = 0; j < al.length; ++j) {
           let a = al[j];
-          if (a.score >= options.threshold) {
+          if (a.score >= options.scores.threshold) {
             a.track = Object.assign({}, result);
             alignments.push(a);
           }
