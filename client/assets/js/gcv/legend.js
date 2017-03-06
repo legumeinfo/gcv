@@ -37,9 +37,13 @@ GCV.Legend = class {
     * Fades everything in the view besides the given selection.
     * @param {object} selection - What's omitted from the fade.
     */
+  _beginHoverTimeout;
   _beginHover(selection) {
-    d3.selectAll('.GCV').classed('hovering', true);
-    selection.classed('active', true);
+    clearTimeout(this._beginHoverTimeout);
+    this._beginHoverTimeout = setTimeout(() => {
+      d3.selectAll('.GCV').classed('hovering', true);
+      selection.classed('active', true);
+    }, this.options.hoverDelay);
   }
 
   /**
@@ -51,6 +55,7 @@ GCV.Legend = class {
   _endHover(selection) {
     selection.classed('active', false);
     // delay unfading for smoother mouse dragging
+    clearTimeout(this._beginHoverTimeout);
     clearTimeout(this._hoverTimeout);
     this._hoverTimeout = setTimeout(function () {
       clearTimeout(this._hoverTimeout);
@@ -123,6 +128,7 @@ GCV.Legend = class {
     this.options.selectiveColoring = this.options.selectiveColoring;
     this.options.familyClick = this.options.familyClick || function (family) { };
     this.options.autoResize = this.options.autoResize || false;
+    this.options.hoverDelay = this.options.hoverDelay || 0;
     if (this.options.contextmenu)
       this.viewer.on('contextmenu', () => {
         this.options.contextmenu(d3.event);
