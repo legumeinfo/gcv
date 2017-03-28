@@ -406,7 +406,7 @@ GCV.Viewer = class {
           });
         obj._endHover(selection);
       })
-  	  .on('click', obj.options.geneClick);
+  	  .on('click', (g) => obj.options.geneClick(g, this.data.groups[i]));
   	// add genes to the gene groups
   	var genes = geneGroups.append('path')
   	  .attr('d', d3.svg.symbol().type('triangle-up').size(200))

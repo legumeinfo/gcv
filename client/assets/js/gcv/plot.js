@@ -292,7 +292,7 @@ GCV.Plot = class {
           });
         obj._endHover(selection);
       })
-  	  .on('click', this.options.geneClick);
+  	  .on('click', (g) => this.options.geneClick(g, this.data));
   	// add genes to the gene groups
   	var genes = points.geneGroups.append('circle')
       .attr('r', this._RADIUS)
