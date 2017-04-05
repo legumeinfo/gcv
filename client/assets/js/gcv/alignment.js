@@ -111,7 +111,7 @@ Alignment.smithWaterman = function (sequence, reference, options) {
   options.accessor = options.accessor || function (e) { return e; };
   options.scores = options.scores || {};
   options.scores.match = options.scores.match || 5;
-  options.scores.mismatch = options.scores.mismath = 0;
+  options.scores.mismatch = options.scores.mismatch || 0;
   options.scores.gap = options.scores.gap || -1;
 
   // perform forward and reverse alignments
@@ -288,7 +288,7 @@ Alignment.repeat = function (sequence, reference, options) {
   options.accessor = options.accessor || function (e) { return e; };
   options.scores = options.scores || {};
   options.scores.match = options.scores.match || 5;
-  options.scores.mismatch = options.scores.mismath = 0;
+  options.scores.mismatch = options.scores.mismatch || 0;
   options.scores.gap = options.scores.gap || -1;
   options.scores.threshold = options.scores.threshold || 10;
   options.suffixScores = options.suffixScores || false;

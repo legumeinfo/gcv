@@ -164,9 +164,13 @@ GCV.Viewer = class {
     * Fades everything in the view besides the given selection.
     * @param {object} selection - What's omitted from the fade.
     */
+  _beginHoverTimeout;
   _beginHover(selection) {
-    d3.selectAll('.GCV').classed('hovering', true);
-    selection.classed('active', true);
+    clearTimeout(this._beginHoverTimeout);
+    this._beginHoverTimeout = setTimeout(() => {
+      d3.selectAll('.GCV').classed('hovering', true);
+      selection.classed('active', true);
+    }, this.options.hoverDelay);
   }
 
   /**
@@ -174,14 +178,15 @@ GCV.Viewer = class {
     * being faded.
     * @param {object} selection - What's no longer omitted.
     */
-  _hoverTimeout = 0;
+  _endHoverTimeout = 0;
   _endHover(selection) {
     selection.classed('active', false);
     // delay unfading for smoother mouse dragging
-    clearTimeout(this._hoverTimeout);
-    this._hoverTimeout = setTimeout(function () {
-      clearTimeout(this._hoverTimeout);
-      this._hoverTimeout = undefined;
+    clearTimeout(this._beginHoverTimeout);
+    clearTimeout(this._endHoverTimeout);
+    this._endHoverTimeout = setTimeout(function () {
+      clearTimeout(this._endHoverTimeout);
+      this._endHoverTimeout = undefined;
       // make sure nothing is being hovered
       if (d3.selectAll('.GCV .active').empty()) {
         d3.selectAll('.GCV').classed('hovering', false);
@@ -307,6 +312,7 @@ GCV.Viewer = class {
     this.options.geneClick = this.options.geneClick || function (b) { };
     this.options.plotClick = this.options.plotClick;
     this.options.autoResize = this.options.autoResize || false;
+    this.options.hoverDelay = this.options.hoverDelay || 500;
     if (this.options.contextmenu)
       this.viewer.on('contextmenu', () => {
         this.options.contextmenu(d3.event);
@@ -400,7 +406,7 @@ GCV.Viewer = class {
           });
         obj._endHover(selection);
       })
-  	  .on('click', obj.options.geneClick);
+  	  .on('click', (g) => obj.options.geneClick(g, this.data.groups[i]));
   	// add genes to the gene groups
   	var genes = geneGroups.append('path')
   	  .attr('d', d3.svg.symbol().type('triangle-up').size(200))

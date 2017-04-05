@@ -187,7 +187,7 @@ export class SearchComponent implements OnInit {
 
       this.plotArgs = {
         autoResize: true,
-        geneClick: function (g) {
+        geneClick: function (g, track) {
           this.selectGene(g);
         }.bind(this),
         outlier: -1,
@@ -200,7 +200,7 @@ export class SearchComponent implements OnInit {
       this.microArgs = {
         autoResize: true,
         boldFirst: true,
-        geneClick: function (g) {
+        geneClick: function (g, track) {
           this.selectGene(g);
         }.bind(this),
         highlight: [this.routeGene],
