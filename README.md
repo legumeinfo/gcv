@@ -5,7 +5,7 @@ By adopting a common set of gene families, data-store operators can deploy feder
 
 This repository contains GCV itself (the client) and a basic server that demonstrates how the RESTful API GCV depends on can be implemented. 
 
-**User docs, the services API, and non-legume examples are available in the [https://github.com/legumeinfo/lis_context_viewer/wiki Wiki].**
+**User docs, the services API, and non-legume examples are available in the [Wiki](https://github.com/legumeinfo/lis_context_viewer/wiki).**
 
 ## Running GCV
 GCV is a standalone web-app that can be run locally on a personal computer or integrated into a website.
