@@ -49,7 +49,7 @@ export class BasicComponent implements OnInit {
   colors = contextColors;
 
   microArgs: any = {
-    geneClick: function (g) {
+    geneClick: function (g, track) {
       this.selectGene(g);
     }.bind(this),
     nameClick: function (t) {
