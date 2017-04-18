@@ -256,7 +256,8 @@ GCV.Synteny = class {
     */
   _drawTrack(i) {
     var obj = this,
-        c = this._COLORS[i % this._COLORS.length],
+        //c = this._COLORS[i % this._COLORS.length],
+        c = i % 2 ? '#C0C0C0' : '#000000',
         t = this.data.tracks[i];
     // create the track's rows of blocks
     this._blocksToRows(t.blocks);
