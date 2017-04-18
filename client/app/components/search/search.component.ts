@@ -222,7 +222,8 @@ export class SearchComponent implements OnInit {
         },
         viewportDrag: function (d1, d2) {
           this._viewportDrag(d1, d2);
-        }.bind(this)
+        }.bind(this),
+        highlight: tracks.groups.map(t => t.chromosome_name)
       };
 
       this.microTracks = tracks;
@@ -268,7 +269,7 @@ export class SearchComponent implements OnInit {
     this._macroTracks = Observable.combineLatest(
       this._macroTracksService.tracks,
       this._microTracks
-    ).let(macroTracksSelector());
+    ).let(macroTracksSelector(false));
     this._macroTracks.subscribe(this._onMacroTracks.bind(this));
   }
 

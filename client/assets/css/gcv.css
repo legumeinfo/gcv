@@ -1,7 +1,7 @@
 .GCV .pointer-events-none {
   pointer-events: none;
 }
-.GCV .outliers, .GCV .plot-label {
+.GCV .query, .GCV .outliers, .GCV .plot-label, .GCV .bold {
   font-weight: bold;
 }
 .GCV .label {
@@ -56,9 +56,6 @@
 .GCV text {
     font-family: sans-serif;
     font-size: 10px;
-}
-.GCV .query {
-  font-weight: bold;
 }
 .GCV .synteny-tip {
   display: none;

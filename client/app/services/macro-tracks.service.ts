@@ -41,7 +41,7 @@ export class MacroTracksService {
         if (s.hasOwnProperty('macro')) {
           let args = {
             chromosome: query.chromosome_id,
-            results: results
+            //results: results
           };
           let response: Observable<Response>;
           if (s.macro.type === GET)
