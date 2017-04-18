@@ -628,7 +628,7 @@ def v1_macro_synteny(request):
     # parse the POST data (Angular puts it in the request body)
     POST = json.loads(request.body)
     # make sure the request type is POST and that it contains a query (families)
-    if request.method == 'POST' and 'chromosome' in POST and 'results' in POST:
+    if request.method == 'POST' and 'chromosome' in POST:
         # get the query chromosome
         chromosome = get_object_or_404(Feature, pk=POST['chromosome'])
         # get the syntenic region cvterm
@@ -643,9 +643,15 @@ def v1_macro_synteny(request):
             .filter(srcfeature=chromosome, feature__type=synteny_type, rank=0))
         # get the chromosome each region belongs to
         region_ids = map(lambda b: b.feature_id, blocks)
-        regions = list(Featureloc.objects\
-            .only('feature', 'srcfeature')\
-            .filter(feature__in=region_ids, srcfeature__in=POST['results'], rank=1))
+        regions = None
+        if 'results' in POST:
+            regions = list(Featureloc.objects\
+                .only('feature', 'srcfeature')\
+                .filter(feature__in=region_ids, srcfeature__in=POST['results'], rank=1))
+        else:
+            regions = list(Featureloc.objects\
+                .only('feature', 'srcfeature')\
+                .filter(feature__in=region_ids, rank=1))
         region_to_chromosome = dict(
             (r.feature_id, r.srcfeature_id) for r in regions
         )
