@@ -1,6 +1,13 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { AfterViewInit,
+         Component,
+         ElementRef,
+         OnDestroy,
+         OnInit,
+         ViewChild } from '@angular/core';
 import { FilterService }                from '../../services/filter.service';
 import { UrlQueryParamsService }        from '../../services/url-query-params.service';
+
+declare var $: any;
 
 @Component({
   moduleId: module.id,
@@ -15,17 +22,36 @@ import { UrlQueryParamsService }        from '../../services/url-query-params.se
       </div>
       <button type="submit" class="btn btn-default">Filter</button>
     </form>
+    <ul class="nav navbar-nav">
+      <li><a #help class="color" data-toggle="tooltip" data-placement="top" title="A regular expression that filters the micro-synteny tracks"><span class="glyphicon glyphicon-question-sign"></span></a></li>
+    </ul>
   `,
-  styles: [ '' ]
+  styles: [`
+    form {
+      padding-right: 0;
+    }
+    form button {
+      margin-right: 0;
+    }
+    .color {
+      color: #337ab7 !important;
+    }
+  `]
 })
 
-export class RegexpComponent implements OnDestroy, OnInit {
+export class RegexpComponent implements AfterViewInit, OnDestroy, OnInit {
+  @ViewChild('help') el: ElementRef;
+
   model: any = {regexp: ''};
 
   private _sub: any;
 
   constructor(private _url: UrlQueryParamsService,
               private _filterService: FilterService) { }
+
+  ngAfterViewInit(): void {
+    $(this.el.nativeElement).tooltip();
+  }
 
   ngOnDestroy(): void {
     this._sub.unsubscribe();

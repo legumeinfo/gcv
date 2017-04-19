@@ -1,10 +1,17 @@
 // Angular
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { AfterViewInit,
+         Component,
+         ElementRef,
+         OnDestroy,
+         OnInit,
+         ViewChild } from '@angular/core';
 
 // App services
 import { FilterService }         from '../../services/filter.service';
 import { ORDER_ALGORITHMS }      from '../../constants/order-algorithms';
 import { UrlQueryParamsService } from '../../services/url-query-params.service';
+
+declare var $: any;
 
 @Component({
   moduleId: module.id,
@@ -19,11 +26,26 @@ import { UrlQueryParamsService } from '../../services/url-query-params.service';
         </select>
       </div>
     </form>
+    <ul class="nav navbar-nav">
+      <li><a #help class="color" data-toggle="tooltip" data-placement="top" title="How micro-synteny tracks should be ordered"><span class="glyphicon glyphicon-question-sign"></span></a></li>
+    </ul>
   `,
-  styles: [ '' ]
+  styles: [`
+    form {
+      padding-right: 0;
+    }
+    form button {
+      margin-right: 0;
+    }
+    .color {
+      color: #337ab7 !important;
+    }
+  `]
 })
 
-export class OrderingComponent implements OnDestroy, OnInit {
+export class OrderingComponent implements AfterViewInit, OnDestroy, OnInit {
+  @ViewChild('help') el: ElementRef;
+
   algorithms = ORDER_ALGORITHMS;
   private _ids = this.algorithms.map(a => a.id);
   model: any = {order: this.algorithms[0].id};
@@ -32,6 +54,10 @@ export class OrderingComponent implements OnDestroy, OnInit {
 
   constructor(private _filterService: FilterService,
               private _url: UrlQueryParamsService) { }
+
+  ngAfterViewInit(): void {
+    $(this.el.nativeElement).tooltip();
+  }
 
   ngOnDestroy(): void {
     this._sub.unsubscribe();

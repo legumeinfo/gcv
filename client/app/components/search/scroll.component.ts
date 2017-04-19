@@ -1,8 +1,11 @@
 // Angular
-import { Component,
+import { AfterViewInit,
+         Component,
+         ElementRef,
          Input,
          OnChanges,
-         SimpleChanges } from '@angular/core';
+         SimpleChanges,
+         ViewChild } from '@angular/core';
 import { Router }        from '@angular/router';
 
 // App
@@ -14,30 +17,44 @@ import { ALERT_SUCCESS,
 import { AlertsService } from '../../services/alerts.service';
 import { Gene }          from '../../models/gene.model';
 
+declare var $: any;
+
 @Component({
   moduleId: module.id,
   selector: 'scroll',
   template: `
-    <form id="scroll-form" class="navbar-form form-inline navbar-right">
-      <div class="input-group col-lg-12">
-        <span class="input-group-btn">
-          <button class="btn btn-default" type="button" (click)="scrollLeft(step.value)">
-            &nbsp;<span class="glyphicon glyphicon-chevron-left" aria-hidden="true"></span>&nbsp;
-          </button>
-        </span>
-        <input type="number" min="1" class="form-control" placeholder="<= Neighbors" value="{{maxStep()}}" #step>
-        <span class="input-group-btn">
-          <button class="btn btn-default" type="button" (click)="scrollRight(step.value)">
-            &nbsp;<span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span>&nbsp;
-          </button>
-        </span>
-      </div>
-    </form>
+    <div class="navbar-right">
+      <a #help class="pull-right" data-toggle="tooltip" data-placement="top" title="Slide the query track left or right by the given number of genes"><span class="glyphicon glyphicon-question-sign"></span></a>
+      <form id="scroll-form" class="navbar-form form-inline">
+        <div class="input-group col-lg-12">
+          <span class="input-group-btn">
+            <button class="btn btn-default" type="button" (click)="scrollLeft(step.value)">
+              &nbsp;<span class="glyphicon glyphicon-chevron-left" aria-hidden="true"></span>&nbsp;
+            </button>
+          </span>
+          <input type="number" min="1" class="form-control" placeholder="<= Neighbors" value="{{maxStep()}}" #step>
+          <span class="input-group-btn">
+            <button class="btn btn-default" type="button" (click)="scrollRight(step.value)">
+              &nbsp;<span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span>&nbsp;
+            </button>
+          </span>
+        </div>
+      </form>
+    </div>
   `,
-  styles: [ '' ]
+  styles: [`
+    .navbar-right {
+      margin-right: 10px;
+    }
+    .navbar-right a {
+      padding: 15px 0;
+    }
+  `]
 })
 
-export class ScrollComponent implements OnChanges {
+export class ScrollComponent implements AfterViewInit, OnChanges {
+  @ViewChild('help') el: ElementRef;
+
   @Input() query: Gene[];
   @Input() gene: string;
 
@@ -46,6 +63,10 @@ export class ScrollComponent implements OnChanges {
 
   constructor(private _alerts: AlertsService,
               private _router: Router) { }
+
+  ngAfterViewInit(): void {
+    $(this.el.nativeElement).tooltip();
+  }
 
   ngOnChanges(changes: SimpleChanges) {
     if (this.query !== undefined && this.gene !== undefined) {
