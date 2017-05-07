@@ -1,7 +1,11 @@
 # Genomic Context Viewer
-Genomic Context Viewer (GCV) is a web-app that visualizes genomic context data provided by third party services.
+The Genomic Context Viewer (GCV) is a web-app that visualizes genomic context data provided by third party services.
+Specifically, it uses gene family assignment as a unit of search and comparison.
+By adopting a common set of gene families, data-store operators can deploy federated instances of GCV.
 
 This repository contains GCV itself (the client) and a basic server that demonstrates how the RESTful API GCV depends on can be implemented. 
+
+**User docs, the services API, and non-legume examples are available in the [Wiki](https://github.com/legumeinfo/lis_context_viewer/wiki).**
 
 ## Running GCV
 GCV is a standalone web-app that can be run locally on a personal computer or integrated into a website.

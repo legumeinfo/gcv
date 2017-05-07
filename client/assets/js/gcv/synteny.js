@@ -155,6 +155,7 @@ GCV.Synteny = class {
     this.options.viewport = this.options.viewport || false;
     this.options.autoResize = this.options.autoResize || false;
     this.options.hoverDelay = this.options.hoverDelay || 500;
+    this.options.highlight = this.options.highlight || [];
     if (this.options.contextmenu)
       this.viewer.on('contextmenu', () => {
         this.options.contextmenu(d3.event);
@@ -256,7 +257,8 @@ GCV.Synteny = class {
     */
   _drawTrack(i) {
     var obj = this,
-        c = this._COLORS[i % this._COLORS.length],
+        //c = this._COLORS[i % this._COLORS.length],
+        c = i % 2 ? '#C0C0C0' : '#000000',
         t = this.data.tracks[i];
     // create the track's rows of blocks
     this._blocksToRows(t.blocks);
@@ -404,7 +406,12 @@ GCV.Synteny = class {
       .attr('class', 'axis')
       .call(axis);
     yAxis.selectAll('text')
-      .attr('class', function (y, i) { return 'macro-' + i.toString(); })
+      .attr('class', (y, i) => {
+        var cls = 'macro-' + i.toString();
+        if (this.options.highlight.indexOf(this.data.tracks[i].chromosome) != -1)
+          cls += ' bold';
+        return cls;
+      })
   	  .style('cursor', 'pointer')
       .on('mouseover', (y, i) => {
         var iStr = i.toString(),
