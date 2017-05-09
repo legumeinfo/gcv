@@ -431,6 +431,16 @@ GCV.Viewer = class {
   	  	  return '#ffffff';
   	  	} return obj.colors(g.family);
   	  });
+    // draw the background highlight
+    if (i % 2) {
+      var highY = obj.y(y)+genes.node().getBBox().y,
+          height = track.node().getBBox().height - highY;
+      track.highlight = track.append('rect')
+        .attr('y', highY)
+        .attr('height', height)
+        .attr('fill', '#e7e7e7')
+        .moveToBack();
+    }
     // add tooltips to the gene groups
     var geneTips = geneGroups.append('text')
       .attr('class', 'synteny-tip')
@@ -458,6 +468,9 @@ GCV.Viewer = class {
         transform.translate = [x, y];
         return transform;
       });
+      if (track.highlight !== undefined) {
+        track.highlight.attr('width', this.viewer.attr('width'));
+      }
     }.bind(this, geneGroups, lineGroups, lines, lineTips);
     // how tips are rotated so they don't overflow the view
     var tips = track.selectAll('.synteny-tip');
@@ -573,7 +586,7 @@ GCV.Viewer = class {
     var tracks = [];
     for (var i = 0; i < this.data.groups.length; i++) {
       // make the track and save it for the resize call
-      tracks.push(this._drawTrack(i));
+      tracks.push(this._drawTrack(i).moveToBack());
     }
     // decorate the resize function with that of the track
     var resizeTracks = function () {
