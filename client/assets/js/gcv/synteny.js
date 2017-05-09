@@ -262,16 +262,6 @@ GCV.Synteny = class {
         name = datum.genus + ' ' + datum.species,
         c = this.options.colors(name),
         t = this.data.tracks[i];
-		this.viewer.append('defs')
-		  .append('pattern')
-		    .attr('id', 'diagonalHatch')
-		    .attr('patternUnits', 'userSpaceOnUse')
-		    .attr('width', 4)
-		    .attr('height', 4)
-		  .append('path')
-		    .attr('d', 'M-1,1 l2,-2 M0,4 l4,-4 M3,5 l2,-2')
-		    .attr('stroke', c)
-		    .attr('stroke-width', 1);
     // create the track's rows of blocks
     this._blocksToRows(t.blocks);
   	// create the track
@@ -330,7 +320,7 @@ GCV.Synteny = class {
     // draw the blocks
   	var polygons = blocks.append('polygon')
       .attr('class', 'block')
-  	  .style('fill',  i % 2 ? c : 'url(#diagonalHatch)')
+  	  .style('fill',  c)
       .attr('points', function (b) {
         var yTop = ((obj._BLOCK_HEIGHT + obj._PAD) * b.y) + obj._PAD,
             yBottom = yTop + obj._BLOCK_HEIGHT,
@@ -342,6 +332,15 @@ GCV.Synteny = class {
           .attr('data-y-middle', yMiddle);
         return genPoints(b, yTop, yBottom, yMiddle);
       });
+    // draw the background highlight
+    if (i % 2) {
+      var box = track.node().getBBox();
+      track.highlight = track.append('rect')
+        .attr('y', obj._PAD)
+        .attr('height', box.height)
+        .attr('fill', '#e7e7e7')
+        .moveToBack();
+    }
     // draw the tooltips
     var tips = blocks.append('text')
       .attr('class', 'synteny-tip')
@@ -379,6 +378,9 @@ GCV.Synteny = class {
         //return 'translate(' + x +', ' + y + ') ' + tip.attr('data-rotate');
         return 'translate(' + x +', ' + y + ') rotate(-45)';
       });
+      if (track.highlight !== undefined) {
+        track.highlight.attr('width', this.viewer.attr('width'));
+      }
     }.bind(this, polygons, tips);
     // how tips are adjusted so they don't overflow the view
     track.adjustTips = function (tips, resize) {
