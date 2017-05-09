@@ -656,24 +656,36 @@ def v1_macro_synteny(request):
             (r.feature_id, r.srcfeature_id) for r in regions
         )
         # actually get the chromosomes
-        chromosomes = list(Feature.objects.only('name')\
+        chromosomes = list(Feature.objects.only('name', 'organism')\
             .filter(pk__in=region_to_chromosome.values()))
-        chromosome_names = dict((c.pk, c.name) for c in chromosomes)
+        chromosome_map = dict((c.pk, c) for c in chromosomes)
+        # get the chromosomes' organisms
+        organisms = Organism.objects.only('genus', 'species').filter(
+            pk__in=map(lambda c: c.organism_id, chromosomes)
+        )
+        organism_map = dict((o.pk, o) for o in organisms)
         # group the blocks by feature
         feature_locs = {}
         for l in blocks:
             if l.feature_id in region_to_chromosome:
                 orientation = '-' if l.strand == -1 else '+'
-                name = chromosome_names[region_to_chromosome[l.feature_id]]
-                feature_locs.setdefault(name, []).append(
+                c = chromosome_map[region_to_chromosome[l.feature_id]]
+                name = c.name
+                o = organism_map[c.organism_id]
+                species = o.species
+                genus = o.genus
+                feature_locs.setdefault((name, species, genus), []).append(
                     {'start':l.fmin, 'stop':l.fmax, 'orientation':orientation}
                 )
         # generate the json
         tracks = []
-        for name, blocks in feature_locs.iteritems():
-            tracks.append(
-                {'chromosome':name, 'blocks':blocks}
-            )
+        for (name, species, genus), blocks in feature_locs.iteritems():
+            tracks.append({
+                'chromosome': name,
+                'species': species,
+                'genus': genus,
+                'blocks': blocks
+            })
         synteny_json = {'chromosome': chromosome.name,
                         'length': chromosome.seqlen,
                         'tracks': tracks}
