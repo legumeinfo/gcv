@@ -156,6 +156,7 @@ GCV.Synteny = class {
     this.options.autoResize = this.options.autoResize || false;
     this.options.hoverDelay = this.options.hoverDelay || 500;
     this.options.highlight = this.options.highlight || [];
+    this.options.colors = this.options.colors || function (s) { return '#000000' };
     if (this.options.contextmenu)
       this.viewer.on('contextmenu', () => {
         this.options.contextmenu(d3.event);
@@ -257,7 +258,9 @@ GCV.Synteny = class {
     */
   _drawTrack(i) {
     var obj = this,
-        //c = this._COLORS[i % this._COLORS.length],
+        datum = this.data.tracks[i],
+        name = datum.genus + ' ' + datum.species,
+        c = this.options.colors(name),
         t = this.data.tracks[i];
 		this.viewer.append('defs')
 		  .append('pattern')
@@ -267,7 +270,7 @@ GCV.Synteny = class {
 		    .attr('height', 4)
 		  .append('path')
 		    .attr('d', 'M-1,1 l2,-2 M0,4 l4,-4 M3,5 l2,-2')
-		    .attr('stroke', '#000000')
+		    .attr('stroke', c)
 		    .attr('stroke-width', 1);
     // create the track's rows of blocks
     this._blocksToRows(t.blocks);
@@ -327,7 +330,7 @@ GCV.Synteny = class {
     // draw the blocks
   	var polygons = blocks.append('polygon')
       .attr('class', 'block')
-  	  .style('fill',  i % 2 ? '#000000' : 'url(#diagonalHatch)')
+  	  .style('fill',  i % 2 ? c : 'url(#diagonalHatch)')
       .attr('points', function (b) {
         var yTop = ((obj._BLOCK_HEIGHT + obj._PAD) * b.y) + obj._PAD,
             yBottom = yTop + obj._BLOCK_HEIGHT,
