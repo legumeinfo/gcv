@@ -15,6 +15,7 @@ import { MacroTracks }          from '../../models/macro-tracks.model';
 
 declare var d3: any;
 declare var GCV: any;
+declare var taxonChroma: any;
 
 @Component({
   moduleId: module.id,
@@ -71,6 +72,7 @@ export class MacroViewerComponent extends DataSaver
     this._args.click = function (e, m) {
       this._hideContextMenu(e, m);
     }.bind(this);
+    this._args.colors = function (s) { return taxonChroma.get(s) };
     this._draw();
   }
 

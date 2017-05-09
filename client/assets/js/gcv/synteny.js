@@ -156,6 +156,7 @@ GCV.Synteny = class {
     this.options.autoResize = this.options.autoResize || false;
     this.options.hoverDelay = this.options.hoverDelay || 500;
     this.options.highlight = this.options.highlight || [];
+    this.options.colors = this.options.colors || function (s) { return '#000000' };
     if (this.options.contextmenu)
       this.viewer.on('contextmenu', () => {
         this.options.contextmenu(d3.event);
@@ -257,8 +258,9 @@ GCV.Synteny = class {
     */
   _drawTrack(i) {
     var obj = this,
-        //c = this._COLORS[i % this._COLORS.length],
-        c = i % 2 ? '#C0C0C0' : '#000000',
+        datum = this.data.tracks[i],
+        name = datum.genus + ' ' + datum.species,
+        c = this.options.colors(name),
         t = this.data.tracks[i];
     // create the track's rows of blocks
     this._blocksToRows(t.blocks);
@@ -318,7 +320,7 @@ GCV.Synteny = class {
     // draw the blocks
   	var polygons = blocks.append('polygon')
       .attr('class', 'block')
-  	  .style('fill', c)
+  	  .style('fill',  c)
       .attr('points', function (b) {
         var yTop = ((obj._BLOCK_HEIGHT + obj._PAD) * b.y) + obj._PAD,
             yBottom = yTop + obj._BLOCK_HEIGHT,
@@ -330,6 +332,15 @@ GCV.Synteny = class {
           .attr('data-y-middle', yMiddle);
         return genPoints(b, yTop, yBottom, yMiddle);
       });
+    // draw the background highlight
+    if (i % 2) {
+      var box = track.node().getBBox();
+      track.highlight = track.append('rect')
+        .attr('y', obj._PAD)
+        .attr('height', box.height)
+        .attr('fill', '#e7e7e7')
+        .moveToBack();
+    }
     // draw the tooltips
     var tips = blocks.append('text')
       .attr('class', 'synteny-tip')
@@ -367,6 +378,9 @@ GCV.Synteny = class {
         //return 'translate(' + x +', ' + y + ') ' + tip.attr('data-rotate');
         return 'translate(' + x +', ' + y + ') rotate(-45)';
       });
+      if (track.highlight !== undefined) {
+        track.highlight.attr('width', this.viewer.attr('width'));
+      }
     }.bind(this, polygons, tips);
     // how tips are adjusted so they don't overflow the view
     track.adjustTips = function (tips, resize) {

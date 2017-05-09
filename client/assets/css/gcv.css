@@ -7,6 +7,10 @@
 .GCV .label {
   font-size: 10px;
 }
+.GCV .block, .GCV .point {
+    stroke: #000;
+    stroke-width: 1;
+}
 .GCV .focus {
     stroke: #000;
     stroke-width: 3;
