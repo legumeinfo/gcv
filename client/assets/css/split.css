@@ -1,0 +1,26 @@
+/* Split.js */
+.split {
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+.content {
+  border: 1px solid #E7E7E7;
+}
+.gutter {
+  background-color: #F8F8F8;
+  background-repeat: no-repeat;
+  background-position: 50%;
+}
+.gutter.gutter-horizontal {
+  cursor: col-resize;
+  background-image: url('assets/img/vertical.png');
+}
+.gutter.gutter-vertical {
+  cursor: row-resize;
+  background-image: url('assets/img/horizontal.png');
+}
+.split.split-horizontal, .gutter.gutter-horizontal {
+  height: 100%;
+  float: left;
+  overflow: hidden;
+}
