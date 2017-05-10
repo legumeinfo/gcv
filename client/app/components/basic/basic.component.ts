@@ -2,7 +2,7 @@
 import { ActivatedRoute, Params } from '@angular/router';
 import { BehaviorSubject }        from 'rxjs/BehaviorSubject';
 import { Component,
-         ElmentRef,
+         ElementRef,
          OnInit,
          ViewChild,
          ViewEncapsulation }      from '@angular/core';
