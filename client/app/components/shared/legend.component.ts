@@ -27,7 +27,7 @@ declare var GCV: any;
       </context-menu>
     </div>
   `,
-  styles: [ '' ]
+  styles: [ 'div { position: relative; }' ]
 })
 
 export class LegendComponent extends DataSaver

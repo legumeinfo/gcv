@@ -12,8 +12,8 @@ import { Component } from '@angular/core';
     #main-content {
       width: 100%;
       position: absolute;
-      top: 51px;
-      bottom: 51px;
+      top: 50px;
+      bottom: 50px;
     }
   `]
 })

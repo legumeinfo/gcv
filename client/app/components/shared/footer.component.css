@@ -1,9 +1,6 @@
 .navbar-static-bottom {
   border-radius: 0;
-  border-top: 1px solid #e7e7e7;
-  border-right: none;
-  border-bottom: none;
-  border-left: none;
+  border: none;
   position: absolute;
   width: 100%;
   bottom: 0;

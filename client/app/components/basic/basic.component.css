@@ -1,1 +1,7 @@
-
+.content {
+  height: 100%;
+  overflow-y: auto !important;
+}
+.right {
+  float: right;
+}

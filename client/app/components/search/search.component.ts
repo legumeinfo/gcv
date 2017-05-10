@@ -53,7 +53,7 @@ enum PlotTypes {
   moduleId: module.id,
   selector: 'search',
   templateUrl: 'search.component.html',
-  styleUrls: [ 'search.component.css' ],
+  styleUrls: [ 'search.component.css', '../../../assets/css/split.css' ],
   encapsulation: ViewEncapsulation.None
 })
 
@@ -63,19 +63,48 @@ export class SearchComponent implements OnInit {
   // EVIL: ElementRefs nested in switch cases are undefined when parent or child
   // AfterViewInit hooks are called, so routines that depend on them are called
   // via their setters.
-  private _splitTop: ElementRef;
-  private _splitTopSize = 50;
-  @ViewChild('splitTop')
-  set splitTop(el: ElementRef) {
-    this._splitTop = el;
+  private _splitSizes = {
+		left: 70,
+    right: 30,
+    topLeft: 50,
+    bottomLeft: 50,
+    topRight: 50,
+    bottomRight: 50
+  };
+  private _left: ElementRef;
+  @ViewChild('left')
+  set left(el: ElementRef) {
+    this._left = el;
     this._splitViewers();
   }
-
-  private _splitBottom: ElementRef;
-  private _splitBottomSize = 50;
-  @ViewChild('splitBottom')
-  set splitBottom(el: ElementRef) {
-    this._splitBottom = el;
+  private _topLeft: ElementRef;
+  @ViewChild('topLeft')
+  set topLeft(el: ElementRef) {
+    this._topLeft = el;
+    this._splitViewers();
+  }
+  private _bottomLeft: ElementRef;
+  @ViewChild('bottomLeft')
+  set bottomLeft(el: ElementRef) {
+    this._bottomLeft = el;
+    this._splitViewers();
+  }
+  private _right: ElementRef;
+  @ViewChild('right')
+  set right(el: ElementRef) {
+    this._right = el;
+    this._splitViewers();
+  }
+  private _topRight: ElementRef;
+  @ViewChild('topRight')
+  set topRight(el: ElementRef) {
+    this._topRight = el;
+    this._splitViewers();
+  }
+  private _bottomRight: ElementRef;
+  @ViewChild('bottomRight')
+  set bottomRight(el: ElementRef) {
+    this._bottomRight = el;
     this._splitViewers();
   }
 
@@ -91,8 +120,6 @@ export class SearchComponent implements OnInit {
   selectedPlot;
 
   selectedDetail;
-
-  rightSliderHidden: boolean;
 
   private _showHelp = new BehaviorSubject<boolean>(true);
   showHelp = this._showHelp.asObservable();
@@ -144,7 +171,6 @@ export class SearchComponent implements OnInit {
     this.showViewers();
     this.showLocalPlot();
     this.hideLocalGlobalPlots();
-    this.hideRightSlider();
   }
 
   private _onParams(params): void {
@@ -280,22 +306,58 @@ export class SearchComponent implements OnInit {
   }
 
   private _splitViewers(): void {
-    if (this._splitTop !== undefined && this._splitBottom !== undefined) {
-      let topEl = this._splitTop.nativeElement,
-          bottomEl = this._splitBottom.nativeElement;
-      let parseSize = (el): number => {
+    if (this._left !== undefined &&
+        this._topLeft !== undefined &&
+        this._bottomLeft !== undefined &&
+        this._right !== undefined &&
+        this._topRight !== undefined &&
+        this._bottomRight !== undefined) {
+      let parseWidth = (el): number => {
+        let regexp = new RegExp(/calc\(|\%(.*)/, 'g');
+        return parseFloat(el.style.width.replace(regexp, ''));
+      }
+      let parseHeight = (el): number => {
         let regexp = new RegExp(/calc\(|\%(.*)/, 'g');
         return parseFloat(el.style.height.replace(regexp, ''));
       }
-      Split([topEl, bottomEl], {
-        sizes: [this._splitTopSize, this._splitBottomSize],
-        direction: 'vertical',
+      let leftEl = this._left.nativeElement,
+          topLeftEl = this._topLeft.nativeElement,
+          bottomLeftEl = this._bottomLeft.nativeElement,
+          rightEl = this._right.nativeElement,
+          topRightEl = this._topRight.nativeElement,
+          bottomRightEl = this._bottomRight.nativeElement;
+      Split([leftEl, rightEl], {
+        sizes: [this._splitSizes.left, this._splitSizes.right],
+        gutterSize: 8,
+        cursor: 'col-resize',
         minSize: 0,
         onDragEnd: () => {
-          this._splitTopSize = parseSize(topEl);
-          this._splitBottomSize = parseSize(bottomEl);
+          this._splitSizes.left = parseWidth(leftEl);
+          this._splitSizes.right = parseWidth(rightEl);
         }
-      });
+      })
+      Split([topLeftEl, bottomLeftEl], {
+        sizes: [this._splitSizes.topLeft, this._splitSizes.bottomLeft],
+        direction: 'vertical',
+        gutterSize: 8,
+        cursor: 'row-resize',
+        minSize: 0,
+        onDragEnd: () => {
+          this._splitSizes.topLeft = parseHeight(topLeftEl);
+          this._splitSizes.bottomLeft = parseHeight(bottomLeftEl);
+        }
+      })
+      Split([topRightEl, bottomRightEl], {
+        sizes: [this._splitSizes.topRight, this._splitSizes.bottomRight],
+        direction: 'vertical',
+        gutterSize: 8,
+        cursor: 'row-resize',
+        minSize: 0,
+        onDragEnd: () => {
+          this._splitSizes.topRight = parseHeight(topRightEl);
+          this._splitSizes.bottomRight = parseHeight(bottomRightEl);
+        }
+      })
     }
   }
 
@@ -355,7 +417,6 @@ export class SearchComponent implements OnInit {
   selectPlot(plot: Group): void {
     this.showLocalGlobalPlots = true;
     this._plotsService.selectPlot(plot);
-    this.showRightSlider();
   }
 
   showGlobalPlot(): void {
@@ -395,20 +456,6 @@ export class SearchComponent implements OnInit {
   selectTrack(track: Group): void {
     let t = Object.assign(Object.create(Group.prototype), track);
     this.selectedDetail = t;
-  }
-
-  // right slider
-  hideRightSlider(): void {
-    this.rightSliderHidden = true;
-  }
-
-  showRightSlider(): void {
-    this.rightSliderHidden = false;
-  }
-
-  toggleRightSlider(): void {
-    if (this.rightSliderHidden) this.showRightSlider();
-    else this.hideRightSlider();
   }
 
   // help button

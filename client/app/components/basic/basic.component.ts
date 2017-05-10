@@ -1,7 +1,11 @@
 // Angular
 import { ActivatedRoute, Params } from '@angular/router';
 import { BehaviorSubject }        from 'rxjs/BehaviorSubject';
-import { Component, OnInit }      from '@angular/core';
+import { Component,
+         ElmentRef,
+         OnInit,
+         ViewChild,
+         ViewEncapsulation }      from '@angular/core';
 import { Observable }             from 'rxjs/Observable';
 
 // App
@@ -21,20 +25,38 @@ import { MicroTracksService }  from '../../services/micro-tracks.service';
 
 declare var d3: any;
 declare var contextColors: any;
+declare var Split: any;
 
 @Component({
   moduleId: module.id,
   selector: 'basic',
   templateUrl: 'basic.component.html',
-  styleUrls: [ 'basic.component.css' ]
+  styleUrls: [ 'basic.component.css', '../../../assets/css/split.css' ],
+  encapsulation: ViewEncapsulation.None
 })
 
 export class BasicComponent implements OnInit {
+  // view children
+
+  // EVIL: ElementRefs nested in switch cases are undefined when parent or child
+  // AfterViewInit hooks are called, so routines that depend on them are called
+  // via their setters.
+  private _left: ElementRef;
+  @ViewChild('left')
+  set left(el: ElementRef) {
+    this._left = el;
+    this._splitViewers();
+  }
+  private _right: ElementRef;
+  @ViewChild('right')
+  set right(el: ElementRef) {
+    this._right = el;
+    this._splitViewers();
+  }
+
   // UI
 
   selectedDetail;
-
-  rightSliderHidden: boolean;
 
   private _showHelp = new BehaviorSubject<boolean>(true);
   showHelp = this._showHelp.asObservable();
@@ -68,10 +90,6 @@ export class BasicComponent implements OnInit {
               private _microTracksService: MicroTracksService) { }
 
   // Angular hooks
-
-  private _initUI(): void {
-    this.hideRightSlider();
-  }
 
   private _onParams(params): void {
     this.invalidate();
@@ -113,6 +131,19 @@ export class BasicComponent implements OnInit {
 
   // private
 
+  private _splitViewers(): void {
+    if (this._left !== undefined && this._right !== undefined) {
+      let leftEl = this._left.nativeElement,
+          rightEl = this._right.nativeElement;
+      Split([leftEl, rightEl], {
+        sizes: [70, 30],
+        gutterSize: 8,
+        cursor: 'col-resize',
+        minSize: 0
+      })
+    }
+  }
+
   // public
 
   invalidate(): void {
@@ -144,20 +175,6 @@ export class BasicComponent implements OnInit {
   selectTrack(track: Group): void {
     let t = Object.assign(Object.create(Group.prototype), track);
     this.selectedDetail = t;
-  }
-
-  // right slider
-  hideRightSlider(): void {
-    this.rightSliderHidden = true;
-  }
-
-  showRightSlider(): void {
-    this.rightSliderHidden = false;
-  }
-
-  toggleRightSlider(): void {
-    if (this.rightSliderHidden) this.showRightSlider();
-    else this.hideRightSlider();
   }
 
   // help button
