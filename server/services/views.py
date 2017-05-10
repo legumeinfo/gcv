@@ -20,8 +20,11 @@ import time
 def ensure_nocache(view):
     def wrapper(request, *args, **kwargs):
         response = view(request, *args, **kwargs)
-        response['Cache-Control'] = 'max-age=3600, must-revalidate'
-        response['Expires'] = http_date(time.time() + 3600)
+        try:
+            response['Cache-Control'] = 'max-age=3600, must-revalidate'
+            response['Expires'] = http_date(time.time() + 3600)
+        except:
+            pass
         return response
     return wrapper
 
