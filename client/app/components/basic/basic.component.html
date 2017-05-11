@@ -14,16 +14,16 @@
     <div #left id="left" class="split split-horizontal content">
       <micro-viewer
         [tracks]="microTracks"
-        [colors]="colors"
+        [colors]="microColors"
         [args]="microArgs" >
       </micro-viewer>
     </div>
     <div #right id="right" class="split split-horizontal content">
       <!-- legend -->
       <app-legend class="right"
-        [microTracks]="microTracks"
-        [colors]="colors"
-        [args]="legendArgs" >
+        [data]="microLegend"
+        [colors]="microColors"
+        [args]="microLegendArgs" >
       </app-legend>
     </div>
   </main-content>

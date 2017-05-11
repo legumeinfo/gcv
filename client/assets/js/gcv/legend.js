@@ -90,7 +90,7 @@ GCV.Legend = class {
     * @param {HTMLElement|string} el - ID of or the element itself where the
     * viewer will be drawn in.
     * @param {object} colors - D3 family-to-color map.
-    * @param {object} data - The data the viewer will visualize.
+    * @param {object} data - A list of objects with name and id attributes.
     * @param {object} options - Optional parameters.
     */
   _init(el, colors, data, options) {
@@ -109,14 +109,7 @@ GCV.Legend = class {
     if (data === undefined) {
       throw new Error('"data" is undefined');
     }
-    this.data = JSON.parse(JSON.stringify(data));;
-    var seen = {};
-    this.data.families = this.data.families.reduce((l, f) => {
-      if (!seen[f.id]) {
-        seen[f.id] = true;
-        l.push(f);
-      } return l;
-    }, []);
+    this.data = JSON.parse(JSON.stringify(data));
     // create the viewer
     this.viewer = d3.select(this.container)
       .append('svg')
@@ -201,17 +194,13 @@ GCV.Legend = class {
   _drawLegend() {
     var legend = this.viewer.append('g');
     // create the legend keys
-    var presentFamilies = this.data.groups.reduce((l, group) => {
-      return l.concat(group.genes.map(g => g.family));
-    }, []);
-    var families = this.data.families.filter(f => {
-      return presentFamilies.indexOf(f.id) != -1
-          && !(f.name == ''
-          || (this.options.selectiveColoring !== undefined
-             && this.options.selectiveColoring[f.id] == 1));
+    var data = this.data.filter(f => {
+      if (this.options.selectiveColoring !== undefined)
+        return this.options.selectiveColoring[f.id] > 1;
+      return true;
     });
     legend.keys = [];
-    families.forEach((f, i) => {
+    data.forEach((f, i) => {
       var k = this._drawKey(legend, f),
           y = legend.node().getBBox().height;
       if (i > 0) y += 2 * this._PAD;

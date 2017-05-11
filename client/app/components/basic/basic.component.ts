@@ -66,9 +66,10 @@ export class BasicComponent implements OnInit {
 
   private _microTracks: Observable<MicroTracks>;
   microTracks: MicroTracks;
+  microLegend: any;
 
   // viewers
-  colors = contextColors;
+  microColors = contextColors;
 
   microArgs: any = {
     geneClick: function (g, track) {
@@ -80,7 +81,7 @@ export class BasicComponent implements OnInit {
     autoResize: true
   };
 
-  legendArgs: any;
+  microLegendArgs: any;
 
   // constructor
 
@@ -109,7 +110,7 @@ export class BasicComponent implements OnInit {
         .map(g => g.family);
       return l.concat(families);
     }, []);
-    this.legendArgs = {
+    this.microLegendArgs = {
       autoResize: true,
       familyClick: function (f) {
         this.selectFamily(f);
@@ -117,6 +118,19 @@ export class BasicComponent implements OnInit {
       highlight: highlight
     }
     this.microTracks = tracks;
+    var seen = {};
+    var uniqueFamilies = this.microTracks.families.reduce((l, f) => {
+      if (!seen[f.id]) {
+        seen[f.id] = true;
+        l.push(f);
+      } return l;
+    }, []);
+    var presentFamilies = this.microTracks.groups.reduce((l, group) => {
+      return l.concat(group.genes.map(g => g.family));
+    }, []);
+    this.microLegend = uniqueFamilies.filter(f => {
+      return presentFamilies.indexOf(f.id) != -1 && f.name != '';
+    });
     this.hideLeftSlider();
   }
 

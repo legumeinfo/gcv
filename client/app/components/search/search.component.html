@@ -30,21 +30,29 @@
         <div #bottomLeft id="bottom-left" class="split content">
 					<micro-viewer
             [tracks]="microTracks"
-            [colors]="colors"
+            [colors]="microColors"
             [args]="microArgs" >
 					</micro-viewer>
 				</div>
       </div>
       <div #right id="right" class="split split-horizontal">
-        <div #topRight id="top-right" class="split content"></div>
+        <div #topRight id="top-right" class="split content">
+          <div  class="vertical-fill">
+  				  <app-legend class="right"
+  				    [data]="macroLegend"
+  				    [colors]="macroColors"
+  				    [args]="macroLegendArgs" >
+  				  </app-legend>
+          </div>
+        </div>
         <div #bottomRight id="bottom-right" class="split content">
-  				<!-- legend -->
+  				<!-- micro legend -->
           <div class="legend">
             <div  class="vertical-fill">
   				    <app-legend class="right"
-  				      [microTracks]="microTracks"
-  				      [colors]="colors"
-  				      [args]="legendArgs" >
+  				      [data]="microLegend"
+  				      [colors]="microColors"
+  				      [args]="microLegendArgs" >
   				    </app-legend>
             </div>
   				  <!-- local and global dot plots -->
@@ -79,12 +87,12 @@
   				      <div class="inner-ratio" [ngSwitch]="selectedPlot">
   				        <plot *ngSwitchCase="plotTypes.LOCAL"
   				          [plot]="selectedLocal"
-  				          [colors]="colors"
+  				          [colors]="microColors"
   				          [args]="plotArgs" >
   				        </plot>
   				        <plot *ngSwitchCase="plotTypes.GLOBAL"
   				          [plot]="selectedGlobal"
-  				          [colors]="colors"
+  				          [colors]="microColors"
   				          [args]="plotArgs" >
   				        </plot>
   				      </div>

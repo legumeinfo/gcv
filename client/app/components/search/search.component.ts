@@ -34,6 +34,7 @@ import { PlotsService }        from '../../services/plots.service';
 
 declare var d3: any;
 declare var contextColors: any;
+declare var taxonChroma: any;
 declare var Split: any;
 declare var getFamilySizeMap: any;
 declare var RegExp: any;  // TypeScript doesn't support regexp as argument...
@@ -131,12 +132,14 @@ export class SearchComponent implements OnInit {
 
   private _microTracks: Observable<MicroTracks>;
   microTracks: MicroTracks;
+  microLegend: any;
   queryGenes: Gene[];
 
   private _microPlots: Observable<MicroTracks>;
   microPlots: MicroTracks;
 
   private _macroTracks: Observable<MacroTracks>;
+  macroLegend: any;
   macroTracks: MacroTracks;
 
   selectedLocal: Group;
@@ -146,11 +149,13 @@ export class SearchComponent implements OnInit {
 
   // viewers
 
-  colors = contextColors;
+  microColors = contextColors;
+  macroColors = function (s) { return taxonChroma.get(s) };
 
   microArgs: any;
-  legendArgs: any;
+  microLegendArgs: any;
   macroArgs: any;
+  macroLegendArgs: any;
 
   plotArgs: any;
 
@@ -202,13 +207,18 @@ export class SearchComponent implements OnInit {
 
       let i = tracks.groups[0].genes.map(g => g.name).indexOf(this.routeGene);
       let focus = tracks.groups[0].genes[i];
-      this.legendArgs = {
+      this.microLegendArgs = {
         autoResize: true,
         familyClick: function (f) {
           this.selectFamily(f);
         }.bind(this),
         highlight: [focus.family],
         selectiveColoring: familySizes
+      };
+
+      this.macroLegendArgs = {
+        autoResize: true,
+        highlight: [focus.family],
       };
 
       this.plotArgs = {
@@ -249,10 +259,24 @@ export class SearchComponent implements OnInit {
         viewportDrag: function (d1, d2) {
           this._viewportDrag(d1, d2);
         }.bind(this),
-        highlight: tracks.groups.map(t => t.chromosome_name)
+        highlight: tracks.groups.map(t => t.chromosome_name),
+        colors: this.macroColors
       };
 
       this.microTracks = tracks;
+      var seen = {};
+      var uniqueFamilies = this.microTracks.families.reduce((l, f) => {
+        if (!seen[f.id]) {
+          seen[f.id] = true;
+          l.push(f);
+        } return l;
+      }, []);
+      var presentFamilies = this.microTracks.groups.reduce((l, group) => {
+        return l.concat(group.genes.map(g => g.family));
+      }, []);
+      this.microLegend = uniqueFamilies.filter(f => {
+        return presentFamilies.indexOf(f.id) != -1 && f.name != '';
+      });
     }
     this.hideLeftSlider();
   }
@@ -265,7 +289,19 @@ export class SearchComponent implements OnInit {
     else this.showLocalPlot();
   }
 
-  private _onMacroTracks(tracks): void { this.macroTracks = tracks; }
+  private _onMacroTracks(tracks): void {
+    this.macroTracks = tracks;
+    if (tracks !== undefined) {
+      var seen = {};
+      this.macroLegend = tracks.tracks.reduce((l, t) => {
+        let name = t.genus + ' ' + t.species;
+        if (!seen[name]) {
+          seen[name] = true;
+          l.push({name: name, id: name});
+        } return l;
+      }, [])
+    }
+  }
 
   ngOnInit(): void {
     // initialize UI
@@ -389,7 +425,9 @@ export class SearchComponent implements OnInit {
   // public
 
   invalidate(): void {
-    this.macroTracks = this.microPlots = this.microTracks = undefined;
+    this.microTracks = this.microLegend = undefined;
+    this.macroTracks = this.macroLegend = undefined;
+    this.microPlots = undefined;
   }
 
   // main content
