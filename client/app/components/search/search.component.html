@@ -5,7 +5,7 @@
   <header>
 		<ul class="nav navbar-nav tabs" left>
       <li><toggle-button (toggleFn)="selectParams()">Parameters</toggle-button></li>
-      <li><toggle-button (toggleFn)="help()">Help</toggle-button></li>
+      <!--<li><toggle-button (toggleFn)="help()">Help</toggle-button></li>-->
       <li [ngClass]="{'active': selectedContent==contentTypes.VIEWERS}">
         <a (click)="showViewers()">Viewers</a>
       </li>
@@ -105,19 +105,11 @@
 
     <!-- all local plots -->
     <main-content *ngSwitchCase="contentTypes.PLOTS">
-      <gcv-help [name]="'Context Dot Plots'" [showing]="showHelp">
-        <ul>
-          <li>Hover gene to see name, highlight in dotplots</li>
-          <li>Click gene for links to more info</li>
-          <li>Click plot to load into single viewer</li>
-          <li>Click and drag zoom in on a plot</li>
-        </ul>
-      </gcv-help>
       <div class="plots" (scroll)="drawPlots()">
         <div class="plot col-sm-6 col-md-4" *ngFor="let p of microPlots">
           <plot
             [plot]="p"
-            [colors]="colors"
+            [colors]="microColors"
             [args]="plotArgs"
             [visibleDraw]="true" >
           </plot>
