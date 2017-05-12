@@ -260,19 +260,19 @@ GCV.Synteny = class {
     var obj = this,
         datum = this.data.tracks[i],
         name = datum.genus + ' ' + datum.species,
-        c = this.options.colors(name),
-        t = this.data.tracks[i];
+        c = this.options.colors(name);
     // create the track's rows of blocks
-    this._blocksToRows(t.blocks);
+    this._blocksToRows(datum.blocks);
   	// create the track
     var selector = 'macro-' + i.toString(),
   	    track = this.viewer.append('g')
           .attr('data-macro-track', i.toString())
-          .attr('data-chromosome', this.data.tracks[i].chromosome);
+          .attr('data-chromosome', datum.chromosome)
+          .attr('data-genus-species', datum.genus + ' ' + datum.species);
     track.offset = 0;
     // create the track's blocks
     var blocks = track.selectAll('block')
-  	  .data(t.blocks)
+  	  .data(datum.blocks)
   	  .enter()
       .append('g')
   	  .style('cursor', 'pointer')

@@ -339,7 +339,8 @@ GCV.Viewer = class {
   	// make svg group for the track
     var track = this.viewer.append('g')
           .attr('data-micro-track', i.toString())
-          .attr('data-chromosome', this.data.groups[i].chromosome_name),
+          .attr('data-chromosome', t.chromosome_name)
+          .attr('data-genus-species', t.genus + ' ' + t.species),
         neighbors = [];
     // add the lines
     for (var j = 0; j < t.genes.length - 1; j++) {
@@ -406,7 +407,7 @@ GCV.Viewer = class {
           });
         obj._endHover(selection);
       })
-  	  .on('click', (g) => obj.options.geneClick(g, this.data.groups[i]));
+  	  .on('click', (g) => obj.options.geneClick(g, t));
   	// add genes to the gene groups
   	var genes = geneGroups.append('path')
   	  .attr('d', d3.svg.symbol().type('triangle-up').size(200))

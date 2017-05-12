@@ -1,23 +1,3 @@
-<!-- right slider -->
-<right-slider [hide]="rightSliderHidden">
-
-  <gcv-help [name]="'Gene Family Legend'" [showing]="showHelp">
-    <ul>
-      <li>Hover to highlight family's members.</li>
-      <li>Click to list members and link to gene tree.</li>
-    </ul>
-  </gcv-help>
-
-  <!-- legend -->
-  <app-legend class="vertical-fill"
-    [microTracks]="microTracks"
-    [colors]="colors"
-    [args]="legendArgs" >
-  </app-legend>
-
-</right-slider>
-
-
 <!-- main content area -->
 <main>
 
@@ -27,26 +7,25 @@
       <li><toggle-button (toggleFn)="selectParams()">Parameters</toggle-button></li>
       <li><toggle-button (toggleFn)="help()">Help</toggle-button></li>
     </ul>
-    <ul class="nav navbar-nav navbar" right>
-      <li><toggle-button (toggleFn)="toggleRightSlider()">Legend</toggle-button></li>
-    </ul>
 	</header>
 
   <!-- main content -->
   <main-content>
-    <gcv-help [name]="'Genome Contexts'" [showing]="showHelp">
-      <ul>
-        <li>Hover gene to see name, highlight in dotplots</li>
-        <li>Click gene for links to more info</li>
-        <li>Hover track for all gene names</li>
-        <li>Click track to list all genes and track options</li>
-      </ul>
-    </gcv-help>
-    <micro-viewer
-      [tracks]="microTracks"
-      [colors]="colors"
-      [args]="microArgs" >
-    </micro-viewer>
+    <div #left id="left" class="split split-horizontal content">
+      <micro-viewer
+        [tracks]="microTracks"
+        [colors]="microColors"
+        [args]="microArgs" >
+      </micro-viewer>
+    </div>
+    <div #right id="right" class="split split-horizontal content">
+      <!-- legend -->
+      <app-legend class="right"
+        [data]="microLegend"
+        [colors]="microColors"
+        [args]="microLegendArgs" >
+      </app-legend>
+    </div>
   </main-content>
 
   <!-- footer -->

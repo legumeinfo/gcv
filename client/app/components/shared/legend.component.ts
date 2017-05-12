@@ -11,7 +11,6 @@ import { AfterViewInit,
 // App
 import { ContextMenuComponent } from './context-menu.component';
 import { DataSaver }            from '../../models/data-saver.model';
-import { MicroTracks }          from '../../models/micro-tracks.model';
 
 declare var d3: any;
 declare var GCV: any;
@@ -20,14 +19,14 @@ declare var GCV: any;
   moduleId: module.id,
   selector: 'app-legend',
   template: `
-    <spinner [data]="microTracks"></spinner>
+    <spinner [data]="data"></spinner>
     <div #legend>
       <context-menu #menu
         (saveImage)="saveXMLasSVG(viewer.xml())" >
       </context-menu>
     </div>
   `,
-  styles: [ '' ]
+  styles: [ 'div { position: relative; }' ]
 })
 
 export class LegendComponent extends DataSaver
@@ -37,7 +36,7 @@ export class LegendComponent extends DataSaver
 
   // inputs
 
-  @Input() microTracks: MicroTracks;
+  @Input() data: any;  // a list of objects with name and id attributes
   @Input() colors: any;
   private _args;
   @Input()
@@ -90,7 +89,7 @@ export class LegendComponent extends DataSaver
   }
 
   private _draw(): void {
-    if (this.el !== undefined && this.microTracks !== undefined) {
+    if (this.el !== undefined && this.data !== undefined) {
       if (this.viewer !== undefined) {
         this.viewer.destroy();
         this.viewer = undefined;
@@ -98,7 +97,7 @@ export class LegendComponent extends DataSaver
       this.viewer = new GCV.Legend(
         this.el.nativeElement,
         this.colors,
-        this.microTracks,
+        this.data,
         this._args
       );
     }
