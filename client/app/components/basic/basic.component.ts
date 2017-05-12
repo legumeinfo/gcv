@@ -112,7 +112,7 @@ export class BasicComponent implements OnInit {
     }, []);
     this.microLegendArgs = {
       autoResize: true,
-      familyClick: function (f) {
+      keyClick: function (f) {
         this.selectFamily(f);
       }.bind(this),
       highlight: highlight

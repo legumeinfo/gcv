@@ -89,7 +89,7 @@ GCV.Legend = class {
     * Parses parameters and initializes variables.
     * @param {HTMLElement|string} el - ID of or the element itself where the
     * viewer will be drawn in.
-    * @param {object} colors - D3 family-to-color map.
+    * @param {object} colors - Datum-to-color map.
     * @param {object} data - A list of objects with name and id attributes.
     * @param {object} options - Optional parameters.
     */
@@ -119,9 +119,10 @@ GCV.Legend = class {
     this.options = Object.assign({}, options);
     this.options.highlight = this.options.highlight || [];
     this.options.selectiveColoring = this.options.selectiveColoring;
-    this.options.familyClick = this.options.familyClick || function (family) { };
+    this.options.keyClick = this.options.keyClick || function (k) { };
     this.options.autoResize = this.options.autoResize || false;
     this.options.hoverDelay = this.options.hoverDelay || 0;
+    this.options.selector = this.options.selector || '';
     if (this.options.contextmenu)
       this.viewer.on('contextmenu', () => {
         this.options.contextmenu(d3.event);
@@ -147,18 +148,20 @@ GCV.Legend = class {
     // create the key group
     var key = legend.append('g')
       .attr('class', 'legend')
-      .attr('data-family', f.id)
+      .attr('data-' + this.options.selector, f.id)
   	  .style('cursor', 'pointer')
       .on('mouseover', function () {
-        var selection = d3.selectAll('.GCV [data-family="' + f.id + '"]');
+        var selector = '.GCV [data-' + obj.options.selector + '="' + f.id + '"]';
+        var selection = d3.selectAll(selector);
         obj._beginHover(selection);
       })
   	  .on('mouseout', function () {
-        var selection = d3.selectAll('.GCV [data-family="' + f.id + '"]');
+        var selector = '.GCV [data-' + obj.options.selector + '="' + f.id + '"]';
+        var selection = d3.selectAll(selector);
         obj._endHover(selection);
       })
       .on('click', () => {
-        this.options.familyClick(f);
+        this.options.keyClick(f);
       });
     // add the colored rectangles
     var rect = key.append('rect')
@@ -194,13 +197,13 @@ GCV.Legend = class {
   _drawLegend() {
     var legend = this.viewer.append('g');
     // create the legend keys
-    var data = this.data.filter(f => {
-      if (this.options.selectiveColoring !== undefined)
+    var entries = this.data.filter(f => {
+      if (this.options.selectiveColoring)
         return this.options.selectiveColoring[f.id] > 1;
       return true;
     });
     legend.keys = [];
-    data.forEach((f, i) => {
+    entries.forEach((f, i) => {
       var k = this._drawKey(legend, f),
           y = legend.node().getBBox().height;
       if (i > 0) y += 2 * this._PAD;

@@ -209,16 +209,18 @@ export class SearchComponent implements OnInit {
       let focus = tracks.groups[0].genes[i];
       this.microLegendArgs = {
         autoResize: true,
-        familyClick: function (f) {
+        keyClick: function (f) {
           this.selectFamily(f);
         }.bind(this),
         highlight: [focus.family],
-        selectiveColoring: familySizes
+        selectiveColoring: familySizes,
+        selector: 'family'
       };
 
       this.macroLegendArgs = {
         autoResize: true,
         highlight: [focus.family],
+        selector: 'genus-species'
       };
 
       this.plotArgs = {
