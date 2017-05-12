@@ -1,7 +1,7 @@
 /* Split.js */
 .split {
-  overflow-y: auto;
-  overflow-x: hidden;
+  position: relative;
+  overflow: hidden;
 }
 .content {
   border: 1px solid #E7E7E7;
