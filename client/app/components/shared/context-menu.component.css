@@ -28,8 +28,4 @@
 .dropdown-menu {
   min-width: 200px;
 }
-/*
-:host::content li {
-  color: red;  
-}
-*/
+::content > li { }
