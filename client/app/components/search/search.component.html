@@ -32,6 +32,33 @@
             [tracks]="microTracks"
             [colors]="microColors"
             [args]="microArgs" >
+      			<ul class="nav navbar-nav accordion">
+      			  <li [ngClass]="{'active': accordion==accordionTypes.REGEXP}">
+                <a (click)="setAccordion($event, accordionTypes.REGEXP)">
+                &nbsp;<span class="glyphicon glyphicon-filter" aria-hidden="true"></span>&nbsp;
+                </a>
+              </li>
+							<li class="target" [ngClass]="{'active': accordion==accordionTypes.REGEXP}">
+                <app-regexp></app-regexp>
+              </li>
+      			  <li [ngClass]="{'active': accordion==accordionTypes.ORDER}">
+                <a (click)="setAccordion($event, accordionTypes.ORDER)">
+                &nbsp;<span class="glyphicon glyphicon-triangle-bottom"></span><span class="glyphicon glyphicon-triangle-top"></span>&nbsp;
+                </a>
+              </li>
+							<li class="target" [ngClass]="{'active': accordion==accordionTypes.ORDER}">
+                <app-ordering></app-ordering>
+              </li>
+      			  <li [ngClass]="{'active': accordion==accordionTypes.SCROLL}">
+                <a (click)="setAccordion($event, accordionTypes.SCROLL)">
+                &nbsp;<span class="glyphicon glyphicon-chevron-left" aria-hidden="true"></span>
+                <span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span>&nbsp;
+                </a>
+              </li>
+              <li class="target" [ngClass]="{'active': accordion==accordionTypes.SCROLL}">
+                <scroll [gene]="routeGene" [query]="queryGenes" ></scroll>
+              </li>
+						</ul>
 					</micro-viewer>
 				</div>
       </div>
@@ -109,13 +136,6 @@
     </main-content>
 
   </div>
-
-  <!-- footer -->
-  <footer>
-    <app-regexp></app-regexp>
-    <app-ordering></app-ordering>
-    <scroll [gene]="routeGene" [query]="queryGenes"></scroll>
-  </footer>
 
 </main>
 

@@ -25,6 +25,7 @@ declare var GCV: any;
       [title]="'Micro-Synteny'"
       (saveData)="saveAsJSON(tracks)"
       (saveImage)="saveXMLasSVG(viewer.xml())" >
+      <ng-content navbar></ng-content>
     </context-menu>
     <div #microViewer class="viewer"></div>
   `,

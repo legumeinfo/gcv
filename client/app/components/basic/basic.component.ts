@@ -27,6 +27,10 @@ declare var d3: any;
 declare var contextColors: any;
 declare var Split: any;
 
+enum AccordionTypes {
+  REGEXP,
+}
+
 @Component({
   moduleId: module.id,
   selector: 'basic',
@@ -57,6 +61,9 @@ export class BasicComponent implements OnInit {
   // UI
 
   selectedDetail;
+
+  accordionTypes = AccordionTypes;
+  accordion = null;
 
   private _showHelp = new BehaviorSubject<boolean>(true);
   showHelp = this._showHelp.asObservable();
@@ -162,6 +169,12 @@ export class BasicComponent implements OnInit {
 
   invalidate(): void {
     this.microTracks = undefined;
+  }
+
+  // micro-synteny
+  setAccordion(e: any, value: any): void {
+    e.stopPropagation();
+    this.accordion = this.accordion == value ? null : value;
   }
 
   // left slider

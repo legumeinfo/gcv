@@ -50,6 +50,12 @@ enum PlotTypes {
   GLOBAL
 }
 
+enum AccordionTypes {
+  REGEXP,
+  ORDER,
+  SCROLL
+}
+
 @Component({
   moduleId: module.id,
   selector: 'search',
@@ -121,6 +127,9 @@ export class SearchComponent implements OnInit {
   selectedPlot;
 
   selectedDetail;
+
+  accordionTypes = AccordionTypes;
+  accordion = this.accordionTypes.SCROLL;
 
   private _showHelp = new BehaviorSubject<boolean>(true);
   showHelp = this._showHelp.asObservable();
@@ -430,6 +439,12 @@ export class SearchComponent implements OnInit {
     this.microTracks = this.microLegend = undefined;
     this.macroTracks = this.macroLegend = undefined;
     this.microPlots = undefined;
+  }
+
+  // micro-synteny
+  setAccordion(e: any, value: any): void {
+    e.stopPropagation();
+    this.accordion = (this.accordion == value) ? null : value;
   }
 
   // main content

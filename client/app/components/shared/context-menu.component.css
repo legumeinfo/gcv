@@ -3,7 +3,7 @@
   height: 28px;
   padding-right: 3px;
 }
-.navbar .navbar-brand{
+.navbar .navbar-brand {
   padding: 0px 12px;
   font-size: 16px;
   line-height: 28px;
@@ -28,4 +28,24 @@
 .dropdown-menu {
   min-width: 200px;
 }
+.navbar .navbar-content {
+  width: auto;
+  overflow: hidden;
+  height: 28px;
+}
 ::content > li { }
+:host /deep/ * {
+  border-radius: 0;
+}
+:host /deep/ .navbar form {
+  margin: 0;
+  padding-right: 0;
+  padding-left: 0;
+}
+:host /deep/ .navbar form .form-control {
+  height: 28px;
+}
+:host /deep/ .navbar form button {
+  padding-top: 3px;
+  padding-bottom: 3px;
+}

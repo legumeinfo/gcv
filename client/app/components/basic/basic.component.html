@@ -16,6 +16,16 @@
         [tracks]="microTracks"
         [colors]="microColors"
         [args]="microArgs" >
+      	<ul class="nav navbar-nav accordion">
+      	  <li [ngClass]="{'active': accordion==accordionTypes.REGEXP}">
+            <a (click)="setAccordion($event, accordionTypes.REGEXP)">
+            &nbsp;<span class="glyphicon glyphicon-filter" aria-hidden="true"></span>&nbsp;
+            </a>
+          </li>
+					<li class="target" [ngClass]="{'active': accordion==accordionTypes.REGEXP}">
+            <app-regexp></app-regexp>
+          </li>
+				</ul>
       </micro-viewer>
     </div>
     <div #right id="right" class="split split-horizontal content">
@@ -28,11 +38,6 @@
       </app-legend>
     </div>
   </main-content>
-
-  <!-- footer -->
-  <footer>
-    <app-regexp></app-regexp>
-  </footer>
 
 </main>
 

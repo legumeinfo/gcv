@@ -34,7 +34,6 @@ import { BasicComponent }            from './components/basic/basic.component';
 import { BasicParamsComponent }      from './components/basic/basic-params.component';
 import { ContextMenuComponent }      from './components/shared/context-menu.component';
 import { FamilyDetailComponent }     from './components/shared/family-detail.component';
-import { FooterComponent }           from './components/shared/footer.component';
 import { GeneDetailComponent }       from './components/shared/gene-detail.component';
 import { HeaderComponent }           from './components/shared/header.component';
 import { HelpComponent }             from './components/shared/help.component';
@@ -102,7 +101,6 @@ import { UrlQueryParamsService } from './services/url-query-params.service';
     BasicParamsComponent,
     ContextMenuComponent,
     FamilyDetailComponent,
-    FooterComponent,
     GeneDetailComponent,
     HeaderComponent,
     HelpComponent,

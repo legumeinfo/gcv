@@ -22,7 +22,7 @@ export const SERVERS: Server[] = [
     },
     geneLinks: {
       type: GET,
-      url: 'http://legumeinfo.org/gene_links/'
+      url: 'https://legumeinfo.org/gene_links/'
     },
     plotGlobal: {
       type: POST,

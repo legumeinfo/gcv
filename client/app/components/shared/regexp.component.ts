@@ -1,5 +1,4 @@
-import { AfterViewInit,
-         Component,
+import { Component,
          ElementRef,
          OnDestroy,
          OnInit,
@@ -13,34 +12,22 @@ declare var $: any;
   moduleId: module.id,
   selector: 'app-regexp',
   template: `
-    <form class="navbar-form navbar-left" (ngSubmit)="submit()" #regexpForm="ngForm">
-      <div class="form-group">
+    <form (ngSubmit)="submit()" #regexpForm="ngForm">
+      <div class="input-group">
         <input type="text" class="form-control" id="regexp"
           [(ngModel)]="model.regexp" name="regexp"
           #regexp="ngModel"
           placeholder="e.g. name1|name4|name2" >
+        <span class="input-group-btn">
+          <button class="btn btn-default" type="submit">Filter</button>
+        </span>
       </div>
-      <button type="submit" class="btn btn-default">Filter</button>
     </form>
-    <ul class="nav navbar-nav">
-      <li><a #help class="color" data-toggle="tooltip" data-placement="top" title="A regular expression that filters the micro-synteny tracks"><span class="glyphicon glyphicon-question-sign"></span></a></li>
-    </ul>
   `,
-  styles: [`
-    form {
-      padding-right: 0;
-    }
-    form button {
-      margin-right: 0;
-    }
-    .color {
-      color: #337ab7 !important;
-    }
-  `]
+  styles: [ 'form button { margin-right: 0; }' ]
 })
 
-export class RegexpComponent implements AfterViewInit, OnDestroy, OnInit {
-  @ViewChild('help') el: ElementRef;
+export class RegexpComponent implements OnDestroy, OnInit {
 
   model: any = {regexp: ''};
 
@@ -48,10 +35,6 @@ export class RegexpComponent implements AfterViewInit, OnDestroy, OnInit {
 
   constructor(private _url: UrlQueryParamsService,
               private _filterService: FilterService) { }
-
-  ngAfterViewInit(): void {
-    $(this.el.nativeElement).tooltip();
-  }
 
   ngOnDestroy(): void {
     this._sub.unsubscribe();
