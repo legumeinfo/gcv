@@ -152,7 +152,8 @@ export class SearchComponent implements OnInit {
   private _microPlots: Observable<MicroTracks>;
   microPlots: MicroTracks;
 
-  private _macroTracks: Observable<MacroTracks>;
+  private _macroTracks: Observable<[MacroTracks, MicroTracks]>;
+  private _macroSub: any;
   macroLegend: any;
   macroTracks: MacroTracks;
 
