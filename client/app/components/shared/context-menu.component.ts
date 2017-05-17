@@ -4,7 +4,7 @@ import { Component,
          EventEmitter,
          Input,
          Output,
-         ContentChildren } from '@angular/core';
+         ViewChild } from '@angular/core';
 
 @Component({
   moduleId: module.id,
@@ -18,7 +18,15 @@ export class ContextMenuComponent {
   @Output() saveData = new EventEmitter();
   @Output() saveImage = new EventEmitter();
 
-  @ContentChildren('item') items;
+  @ViewChild('dropdown') el: ElementRef;
+
+  private _hasContent(children: any): any {
+    for (var i = 0; i < children.length; i++) {
+      var c = children[i];
+      if (c.className === undefined || c.className !== 'native') return true;
+    }
+    return false;
+  }
 
   dataClick(): void {
     this.saveData.emit();
@@ -31,12 +39,14 @@ export class ContextMenuComponent {
   showDropdown(): boolean {
     return this.saveData.observers.length > 0
         || this.saveImage.observers.length > 0
-        || (this.items !== undefined && this.items.length > 0);
+        || (this.el !== undefined
+        && this._hasContent(this.el.nativeElement.children));
   }
 
   showSeparator(): boolean {
     return (this.saveData.observers.length > 0
         || this.saveImage.observers.length > 0)
-        && (this.items !== undefined && this.items.length > 0);
+        && (this.el !== undefined
+        && this._hasContent(this.el.nativeElement.children));
   }
 }

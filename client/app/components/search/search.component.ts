@@ -134,6 +134,11 @@ export class SearchComponent implements OnInit {
   private _showHelp = new BehaviorSubject<boolean>(true);
   showHelp = this._showHelp.asObservable();
 
+  macroConfig = {
+    order: true,
+    filter: false
+  }
+
   // data
 
   routeSource: string;
@@ -314,6 +319,14 @@ export class SearchComponent implements OnInit {
     }
   }
 
+  private _subscribeToMacro(): void {
+    if (this._macroSub !== undefined)
+      this._macroSub.unsubscribe();
+    this._macroSub = this._macroTracks
+      .let(macroTracksSelector(this.macroConfig.filter, this.macroConfig.order))
+      .subscribe(this._onMacroTracks.bind(this));
+  }
+
   ngOnInit(): void {
     // initialize UI
     this._initUI();
@@ -342,8 +355,8 @@ export class SearchComponent implements OnInit {
     this._macroTracks = Observable.combineLatest(
       this._macroTracksService.tracks,
       this._microTracks
-    ).let(macroTracksSelector(false));
-    this._macroTracks.subscribe(this._onMacroTracks.bind(this));
+    )
+    this._subscribeToMacro();
   }
 
   // private
@@ -453,6 +466,18 @@ export class SearchComponent implements OnInit {
     this.plotComponents.forEach(p => {
       p.draw();
     });
+  }
+
+  // macro-viewer
+
+  toggleMacroOrder(): void {
+    this.macroConfig.order = !this.macroConfig.order;
+    this._subscribeToMacro();
+  }
+
+  toggleMacroFilter(): void {
+    this.macroConfig.filter = !this.macroConfig.filter;
+    this._subscribeToMacro();
   }
 
   showPlots(): void {

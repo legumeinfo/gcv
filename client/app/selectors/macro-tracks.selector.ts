@@ -1,6 +1,6 @@
 import { MacroTracks } from '../models/macro-tracks.model';
 
-export const macroTracksSelector = (filter) => {
+export const macroTracksSelector = (filter, order) => {
   return state => state
     .map(([macroTracks, filteredMicroTracks]) => {
       if (macroTracks !== undefined && filteredMicroTracks.groups.length > 0) {
@@ -16,7 +16,7 @@ export const macroTracksSelector = (filter) => {
         macro.tracks.sort((a, b) => {
           var aIdx = chrs.indexOf(a.chromosome),
               bIdx = chrs.indexOf(b.chromosome);
-          if (aIdx == -1 && bIdx == -1)
+          if (!order || (aIdx == -1 && bIdx == -1))
             return a.chromosome.localeCompare(b.chromosome);
           else if (aIdx == -1 && bIdx != -1) return Infinity;
           else if (aIdx != -1 && bIdx == -1) return -Infinity;

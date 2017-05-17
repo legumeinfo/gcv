@@ -25,6 +25,18 @@
 					<macro-viewer
             [tracks]="macroTracks"
             [args]="macroArgs" >
+            <li><form>
+              <div class="checkbox">
+                <label>
+                  <input type="checkbox" [checked]="macroConfig.order" (change)="toggleMacroOrder()"> Micro-synteny ordering
+                </label>
+              </div>
+              <div class="checkbox">
+                <label>
+                  <input type="checkbox" [checked]="macroConfig.filter" (change)="toggleMacroFilter()"> Micro-synteny only
+                </label>
+              </div>
+            </form></li>
 					</macro-viewer>
 				</div>
         <div #bottomLeft id="bottom-left" class="split content">

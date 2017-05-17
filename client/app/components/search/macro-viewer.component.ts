@@ -24,6 +24,7 @@ declare var GCV: any;
       [title]="'Macro-Synteny'"
       (saveData)="saveAsJSON(tracks)"
       (saveImage)="saveXMLasSVG(viewer.xml())" >
+      <ng-content dropdown></ng-content>
     </context-menu>
     <div #macroViewer class="viewer"></div>
   `,
