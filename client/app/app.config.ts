@@ -18,7 +18,7 @@ export class AppConfig {
       this.http.get('../config.json').map(res => res.json()).catch((error: any):any => {
         console.log('Configuration file "config.json" could not be read');
         resolve(true);
-        return Observable.throw(error.json().error || 'Server error');
+        return Observable.throw(error || 'Server error');
       }).subscribe(responseData => {
         this.config = responseData;
         resolve(true);
