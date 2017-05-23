@@ -138,6 +138,7 @@ export class SearchComponent implements OnInit {
     order: true,
     filter: false
   }
+  private _macroSplit: any;
 
   // data
 
@@ -271,8 +272,13 @@ export class SearchComponent implements OnInit {
       let s = this._config.getServer(tracks.groups[0].source);
       if (s !== undefined && s.hasOwnProperty('macroColors')) {
         this.macroColors = s['macroColors'].function;
+        this._macroSplit.setSizes(
+          this._splitSizes.topRight,
+          this._splitSizes.bottomRight
+        );
       } else {
         this.macroColors = undefined;
+        this._macroSplit.collapse(0);
       }
       this.macroArgs = {
         autoResize: true,
@@ -374,12 +380,12 @@ export class SearchComponent implements OnInit {
   }
 
   private _splitViewers(): void {
-    if (this._left !== undefined &&
-        this._topLeft !== undefined &&
-        this._bottomLeft !== undefined &&
-        this._right !== undefined &&
-        this._topRight !== undefined &&
-        this._bottomRight !== undefined) {
+    if (this._left !== undefined
+    &&  this._topLeft !== undefined
+    &&  this._bottomLeft !== undefined
+    &&  this._right !== undefined
+    &&  this._topRight !== undefined
+    &&  this._bottomRight !== undefined) {
       let parseWidth = (el): number => {
         let regexp = new RegExp(/calc\(|\%(.*)/, 'g');
         return parseFloat(el.style.width.replace(regexp, ''));
@@ -415,7 +421,7 @@ export class SearchComponent implements OnInit {
           this._splitSizes.bottomLeft = parseHeight(bottomLeftEl);
         }
       })
-      Split([topRightEl, bottomRightEl], {
+      this._macroSplit = Split([topRightEl, bottomRightEl], {
         sizes: [this._splitSizes.topRight, this._splitSizes.bottomRight],
         direction: 'vertical',
         gutterSize: 8,
