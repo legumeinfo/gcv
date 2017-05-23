@@ -1,9 +1,9 @@
 import { AbstractControl, Validators } from '@angular/forms';
 import { POSITIVE_INT }                from '../constants/regex';
-import { SERVERS }                     from '../constants/servers';
+import { AppConfig }                   from '../app.config';
 
 export class QueryParams {
-  private _sourceIDs: string[] = SERVERS.map(s => s.id);
+  private _sourceIDs: string[] = AppConfig.SERVERS.map(s => s.id);
 
   private _sourcesValidator = (sources: AbstractControl): {[key: string]: any} => {
     if (!sources || !sources.value.length) return {invalidSources: {}};

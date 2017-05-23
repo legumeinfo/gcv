@@ -14,11 +14,11 @@ import { Observable }             from 'rxjs/Observable';
 import { Alert }                 from '../../models/alert.model';
 import { ALERT_DANGER }          from '../../constants/alerts';
 import { AlertsService }         from '../../services/alerts.service';
+import { AppConfig }             from '../../app.config';
 import { DEFAULT_NEIGHBORS,
-         DEFAULT_SOURCE }     from '../../constants/default-parameters';
+         DEFAULT_SOURCE }        from '../../constants/default-parameters';
 import { MicroTracksService }    from '../../services/micro-tracks.service';
 import { QueryParams }           from '../../models/query-params.model';
-import { SERVERS }               from '../../constants/servers';
 import { UrlQueryParamsService } from '../../services/url-query-params.service';
 
 @Component({
@@ -42,7 +42,7 @@ export class BasicParamsComponent implements OnChanges, OnDestroy, OnInit {
 
   queryGroup: FormGroup;
 
-  sources = SERVERS.filter(s => s.hasOwnProperty('microBasic'));
+  sources = AppConfig.SERVERS.filter(s => s.hasOwnProperty('microBasic'));
 
   private _sub: any;
 

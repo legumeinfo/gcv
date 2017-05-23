@@ -5,6 +5,7 @@ import { Observable }     from 'rxjs/Observable';
 import { Store }          from '@ngrx/store';
 
 // App
+import { AppConfig }         from '../app.config';
 import { ADD_MICRO_TRACKS }  from '../constants/actions';
 import { AppStore }          from '../models/app-store.model';
 import { Family }            from '../models/family.model';
@@ -13,14 +14,12 @@ import { GET, POST, Server } from '../models/server.model';
 import { Group }						 from '../models/group.model';
 import { MicroTracks }       from '../models/micro-tracks.model';
 import { QueryParams }       from '../models/query-params.model';
-import { SERVERS }           from '../constants/servers';
 
 @Injectable()
 export class MicroTracksService {
   tracks: Observable<MicroTracks>;
 
-  private _servers = SERVERS;
-  private _serverIDs = this._servers.map(s => s.id);
+  private _serverIDs = AppConfig.SERVERS.map(s => s.id);
 
   constructor(private _http: Http, private _store: Store<AppStore>) {
     this._init();
@@ -68,7 +67,7 @@ export class MicroTracksService {
     let requests: Observable<Response>[] = [];
     let sources = params.sources.reduce((l, s) => {
       let i = this._serverIDs.indexOf(s);
-      if (i != -1) l.push(this._servers[i]);
+      if (i != -1) l.push(AppConfig.SERVERS[i]);
       else failure('invalid source: ' + s);
       return l;
     }, []);
@@ -148,7 +147,7 @@ export class MicroTracksService {
     // fetch query track for gene
     let idx: number = this._serverIDs.indexOf(source);
     if (idx != -1) {
-      let s: Server = this._servers[idx];
+      let s: Server = AppConfig.SERVERS[idx];
       if (s.hasOwnProperty('microQuery')) {
         let args = {
           gene: queryGene,
@@ -181,7 +180,7 @@ export class MicroTracksService {
     let requests: Observable<Response>[] = [];
     let sources = params.sources.reduce((l, s) => {
       let i = this._serverIDs.indexOf(s);
-      if (i != -1) l.push(this._servers[i]);
+      if (i != -1) l.push(AppConfig.SERVERS[i]);
       else failure('invalid source: ' + s);
       return l;
     }, []);

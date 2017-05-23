@@ -5,11 +5,13 @@ import { Observable }         from 'rxjs/Rx';
 @Injectable()
 export class AppConfig {
 
-  private config: Object = null;
+  public static SERVERS: Array<any> = [];  // later frozen to be "const"
+
+  private config: Object = {};
 
   constructor(private http: Http) { }
 
-  public getConfig(key: any) {
+  public getConfig(key: any): any {
     return this.config[key];
   }
 
@@ -20,7 +22,9 @@ export class AppConfig {
         resolve(true);
         return Observable.throw(error || 'Server error');
       }).subscribe(responseData => {
-        this.config = responseData;
+        this.config = responseData || {};
+        AppConfig.SERVERS = this.getConfig('servers') || AppConfig.SERVERS;
+        Object.freeze(AppConfig.SERVERS);
         resolve(true);
       });
     });
