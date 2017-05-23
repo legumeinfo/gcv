@@ -4,7 +4,7 @@
     "name": "Legume Information System",
     "macroColors": {
       "scriptUrl": "https://cdn.rawgit.com/legumeinfo/lis-taxon-symbology/01e02d99/dist/bundle.js",
-      "function": "taxonChroma.get"
+      "functionName": "taxonChroma.get"
     },
     "microBasic": {
       "type": "POST",

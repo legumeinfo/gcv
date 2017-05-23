@@ -18,6 +18,7 @@ import { ALERT_SUCCESS,
          ALERT_DANGER }        from '../../constants/alerts';
 import { AlertsService }       from '../../services/alerts.service';
 import { AlignmentService }    from '../../services/alignment.service';
+import { AppConfig }           from '../../app.config';
 import { Family }              from '../../models/family.model';
 import { FilterService }       from '../../services/filter.service';
 import { Gene }                from '../../models/gene.model';
@@ -34,7 +35,6 @@ import { PlotsService }        from '../../services/plots.service';
 
 declare var d3: any;
 declare var contextColors: any;
-declare var taxonChroma: any;
 declare var Split: any;
 declare var getFamilySizeMap: any;
 declare var RegExp: any;  // TypeScript doesn't support regexp as argument...
@@ -165,7 +165,7 @@ export class SearchComponent implements OnInit {
   // viewers
 
   microColors = contextColors;
-  macroColors = function (s) { return taxonChroma.get(s) };
+  macroColors: any;
 
   microArgs: any;
   microLegendArgs: any;
@@ -179,6 +179,7 @@ export class SearchComponent implements OnInit {
   constructor(private _route: ActivatedRoute,
               private _alerts: AlertsService,
               private _alignmentService: AlignmentService,
+              private _config: AppConfig,
               private _filterService: FilterService,
               private _macroTracksService: MacroTracksService,
               private _microTracksService: MicroTracksService,
@@ -267,6 +268,12 @@ export class SearchComponent implements OnInit {
       };
 
       this.queryGenes = tracks.groups[0].genes;
+      let s = this._config.getServer(tracks.groups[0].source);
+      if (s !== undefined && s.hasOwnProperty('macroColors')) {
+        this.macroColors = s['macroColors'].function;
+      } else {
+        this.macroColors = undefined;
+      }
       this.macroArgs = {
         autoResize: true,
         viewport: {
@@ -309,7 +316,7 @@ export class SearchComponent implements OnInit {
   private _onMacroTracks(tracks): void {
     this.macroTracks = tracks;
     if (tracks !== undefined) {
-      var seen = {};
+      let seen = {};
       this.macroLegend = tracks.tracks.reduce((l, t) => {
         let name = t.genus + ' ' + t.species;
         if (!seen[name]) {
