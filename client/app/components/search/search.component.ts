@@ -53,7 +53,8 @@ enum PlotTypes {
 enum AccordionTypes {
   REGEXP,
   ORDER,
-  SCROLL
+  SCROLL,
+  SEARCH
 }
 
 @Component({

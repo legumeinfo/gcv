@@ -36,6 +36,7 @@ import { BasicParamsComponent }  from './components/basic/basic-params.component
 import { ContextMenuComponent }  from './components/shared/context-menu.component';
 import { FamilyDetailComponent } from './components/shared/family-detail.component';
 import { GeneDetailComponent }   from './components/shared/gene-detail.component';
+import { GeneSearchComponent }   from './components/search/gene-search.component';
 import { HeaderComponent }       from './components/shared/header.component';
 import { HelpComponent }         from './components/shared/help.component';
 import { InstructionsComponent } from './components/instructions/instructions.component';
@@ -103,6 +104,7 @@ import { UrlQueryParamsService } from './services/url-query-params.service';
     ContextMenuComponent,
     FamilyDetailComponent,
     GeneDetailComponent,
+    GeneSearchComponent,
     HeaderComponent,
     HelpComponent,
     InstructionsComponent,

@@ -45,6 +45,14 @@
             [colors]="microColors"
             [args]="microArgs" >
       			<ul class="nav navbar-nav accordion">
+      			  <li [ngClass]="{'active': accordion==accordionTypes.SEARCH}">
+                <a (click)="setAccordion($event, accordionTypes.SEARCH)">
+                &nbsp;<span class="glyphicon glyphicon-search" aria-hidden="true"></span>&nbsp;
+                </a>
+              </li>
+							<li class="target" [ngClass]="{'active': accordion==accordionTypes.SEARCH}">
+                <app-gene-search></app-gene-search>
+              </li>
       			  <li [ngClass]="{'active': accordion==accordionTypes.REGEXP}">
                 <a (click)="setAccordion($event, accordionTypes.REGEXP)">
                 &nbsp;<span class="glyphicon glyphicon-filter" aria-hidden="true"></span>&nbsp;
