@@ -272,10 +272,10 @@ export class SearchComponent implements OnInit {
       let s = this._config.getServer(tracks.groups[0].source);
       if (s !== undefined && s.hasOwnProperty('macroColors')) {
         this.macroColors = s['macroColors'].function;
-        this._macroSplit.setSizes(
+        this._macroSplit.setSizes([
           this._splitSizes.topRight,
           this._splitSizes.bottomRight
-        );
+        ]);
       } else {
         this.macroColors = undefined;
         this._macroSplit.collapse(0);
