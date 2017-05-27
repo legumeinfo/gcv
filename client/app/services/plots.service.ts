@@ -5,7 +5,8 @@ import { Observable }     from 'rxjs/Observable';
 import { Store }          from '@ngrx/store';
 
 // App
-import { AppStore }          from '../models/app-store.model';
+import { AppConfig }           from '../app.config';
+import { AppStore }            from '../models/app-store.model';
 import { ADD_GLOBAL_PLOTS,
          ADD_LOCAL_PLOTS,
          SELECT_PLOT,
@@ -14,7 +15,6 @@ import { Gene }                from '../models/gene.model';
 import { GET, POST, Server }   from '../models/server.model';
 import { Group }               from '../models/group.model';
 import { MicroTracks }         from '../models/micro-tracks.model';
-import { SERVERS }             from '../constants/servers';
 
 @Injectable()
 export class PlotsService {
@@ -28,8 +28,7 @@ export class PlotsService {
   private _selectedPlot: Group;
   selectedPlot: Observable<Group>;
 
-  private _servers = SERVERS;
-  private _serverIDs = this._servers.map(s => s.id);
+  private _serverIDs = AppConfig.SERVERS.map(s => s.id);
 
   constructor(private _http: Http, private _store: Store<AppStore>) {
     this._init();
@@ -115,7 +114,7 @@ export class PlotsService {
       let source = this._selectedPlot.source;
       idx = this._serverIDs.indexOf(source)
       if (idx != -1) {
-        let s: Server = this._servers[idx];
+        let s: Server = AppConfig.SERVERS[idx];
         if (s.hasOwnProperty('plotGlobal')) {
           let args = {
             query: this._query,

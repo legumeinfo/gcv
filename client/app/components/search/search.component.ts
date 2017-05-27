@@ -18,6 +18,7 @@ import { ALERT_SUCCESS,
          ALERT_DANGER }        from '../../constants/alerts';
 import { AlertsService }       from '../../services/alerts.service';
 import { AlignmentService }    from '../../services/alignment.service';
+import { AppConfig }           from '../../app.config';
 import { Family }              from '../../models/family.model';
 import { FilterService }       from '../../services/filter.service';
 import { Gene }                from '../../models/gene.model';
@@ -34,7 +35,6 @@ import { PlotsService }        from '../../services/plots.service';
 
 declare var d3: any;
 declare var contextColors: any;
-declare var taxonChroma: any;
 declare var Split: any;
 declare var getFamilySizeMap: any;
 declare var RegExp: any;  // TypeScript doesn't support regexp as argument...
@@ -48,6 +48,12 @@ enum ContentTypes {
 enum PlotTypes {
   LOCAL,
   GLOBAL
+}
+
+enum AccordionTypes {
+  REGEXP,
+  ORDER,
+  SCROLL
 }
 
 @Component({
@@ -122,8 +128,17 @@ export class SearchComponent implements OnInit {
 
   selectedDetail;
 
+  accordionTypes = AccordionTypes;
+  accordion = this.accordionTypes.SCROLL;
+
   private _showHelp = new BehaviorSubject<boolean>(true);
   showHelp = this._showHelp.asObservable();
+
+  macroConfig = {
+    order: true,
+    filter: false
+  }
+  private _macroSplit: any;
 
   // data
 
@@ -138,7 +153,8 @@ export class SearchComponent implements OnInit {
   private _microPlots: Observable<MicroTracks>;
   microPlots: MicroTracks;
 
-  private _macroTracks: Observable<MacroTracks>;
+  private _macroTracks: Observable<[MacroTracks, MicroTracks]>;
+  private _macroSub: any;
   macroLegend: any;
   macroTracks: MacroTracks;
 
@@ -150,7 +166,7 @@ export class SearchComponent implements OnInit {
   // viewers
 
   microColors = contextColors;
-  macroColors = function (s) { return taxonChroma.get(s) };
+  macroColors: any;
 
   microArgs: any;
   microLegendArgs: any;
@@ -164,6 +180,7 @@ export class SearchComponent implements OnInit {
   constructor(private _route: ActivatedRoute,
               private _alerts: AlertsService,
               private _alignmentService: AlignmentService,
+              private _config: AppConfig,
               private _filterService: FilterService,
               private _macroTracksService: MacroTracksService,
               private _microTracksService: MicroTracksService,
@@ -252,6 +269,17 @@ export class SearchComponent implements OnInit {
       };
 
       this.queryGenes = tracks.groups[0].genes;
+      let s = this._config.getServer(tracks.groups[0].source);
+      if (s !== undefined && s.hasOwnProperty('macroColors')) {
+        this.macroColors = s['macroColors'].function;
+        this._macroSplit.setSizes([
+          this._splitSizes.topRight,
+          this._splitSizes.bottomRight
+        ]);
+      } else {
+        this.macroColors = undefined;
+        this._macroSplit.collapse(0);
+      }
       this.macroArgs = {
         autoResize: true,
         viewport: {
@@ -294,7 +322,7 @@ export class SearchComponent implements OnInit {
   private _onMacroTracks(tracks): void {
     this.macroTracks = tracks;
     if (tracks !== undefined) {
-      var seen = {};
+      let seen = {};
       this.macroLegend = tracks.tracks.reduce((l, t) => {
         let name = t.genus + ' ' + t.species;
         if (!seen[name]) {
@@ -303,6 +331,14 @@ export class SearchComponent implements OnInit {
         } return l;
       }, [])
     }
+  }
+
+  private _subscribeToMacro(): void {
+    if (this._macroSub !== undefined)
+      this._macroSub.unsubscribe();
+    this._macroSub = this._macroTracks
+      .let(macroTracksSelector(this.macroConfig.filter, this.macroConfig.order))
+      .subscribe(this._onMacroTracks.bind(this));
   }
 
   ngOnInit(): void {
@@ -333,8 +369,8 @@ export class SearchComponent implements OnInit {
     this._macroTracks = Observable.combineLatest(
       this._macroTracksService.tracks,
       this._microTracks
-    ).let(macroTracksSelector(false));
-    this._macroTracks.subscribe(this._onMacroTracks.bind(this));
+    )
+    this._subscribeToMacro();
   }
 
   // private
@@ -344,12 +380,12 @@ export class SearchComponent implements OnInit {
   }
 
   private _splitViewers(): void {
-    if (this._left !== undefined &&
-        this._topLeft !== undefined &&
-        this._bottomLeft !== undefined &&
-        this._right !== undefined &&
-        this._topRight !== undefined &&
-        this._bottomRight !== undefined) {
+    if (this._left !== undefined
+    &&  this._topLeft !== undefined
+    &&  this._bottomLeft !== undefined
+    &&  this._right !== undefined
+    &&  this._topRight !== undefined
+    &&  this._bottomRight !== undefined) {
       let parseWidth = (el): number => {
         let regexp = new RegExp(/calc\(|\%(.*)/, 'g');
         return parseFloat(el.style.width.replace(regexp, ''));
@@ -385,7 +421,7 @@ export class SearchComponent implements OnInit {
           this._splitSizes.bottomLeft = parseHeight(bottomLeftEl);
         }
       })
-      Split([topRightEl, bottomRightEl], {
+      this._macroSplit = Split([topRightEl, bottomRightEl], {
         sizes: [this._splitSizes.topRight, this._splitSizes.bottomRight],
         direction: 'vertical',
         gutterSize: 8,
@@ -432,12 +468,30 @@ export class SearchComponent implements OnInit {
     this.microPlots = undefined;
   }
 
+  // micro-synteny
+  setAccordion(e: any, value: any): void {
+    e.stopPropagation();
+    this.accordion = (this.accordion == value) ? null : value;
+  }
+
   // main content
 
   drawPlots(): void {
     this.plotComponents.forEach(p => {
       p.draw();
     });
+  }
+
+  // macro-viewer
+
+  toggleMacroOrder(): void {
+    this.macroConfig.order = !this.macroConfig.order;
+    this._subscribeToMacro();
+  }
+
+  toggleMacroFilter(): void {
+    this.macroConfig.filter = !this.macroConfig.filter;
+    this._subscribeToMacro();
   }
 
   showPlots(): void {

@@ -4,21 +4,20 @@ import { Injectable }     from '@angular/core';
 import { Observable }     from 'rxjs/Observable';
 
 // App
+import { AppConfig }         from '../app.config';
 import { Gene }              from '../models/gene.model';
 import { GET, POST, Server } from '../models/server.model';
-import { SERVERS }           from '../constants/servers';
 
 @Injectable()
 export class DetailsService {
-  private _servers = SERVERS;
-  private _serverIDs = this._servers.map(s => s.id);
+  private _serverIDs = AppConfig.SERVERS.map(s => s.id);
 
   constructor(private _http: Http) { }
 
   getGeneDetails(gene: Gene, success: Function, failure = e => {}): void {
     let idx = this._serverIDs.indexOf(gene.source);
     if (idx != -1) {
-      let s: Server = this._servers[idx];
+      let s: Server = AppConfig.SERVERS[idx];
       if (s.hasOwnProperty('geneLinks')) {
         let url = s.geneLinks.url + gene.name + '/json';
         let response: Observable<Response>;

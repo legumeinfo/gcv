@@ -5,19 +5,18 @@ import { Observable }     from 'rxjs/Observable';
 import { Store }          from '@ngrx/store';
 
 // App
+import { AppConfig }         from '../app.config';
 import { ADD_MACRO_TRACKS }  from '../constants/actions';
 import { AppStore }          from '../models/app-store.model';
 import { GET, POST, Server } from '../models/server.model';
 import { MicroTracks }       from '../models/micro-tracks.model';
 import { MacroTracks }       from '../models/macro-tracks.model';
-import { SERVERS }           from '../constants/servers';
 
 @Injectable()
 export class MacroTracksService {
   tracks: Observable<MacroTracks>;
 
-  private _servers = SERVERS;
-  private _serverIDs = this._servers.map(s => s.id);
+  private _serverIDs = AppConfig.SERVERS.map(s => s.id);
 
   constructor(private _http: Http, private _store: Store<AppStore>) {
     this._init();
@@ -37,7 +36,7 @@ export class MacroTracksService {
       }, []);
       let idx = this._serverIDs.indexOf(query.source)
       if (idx != -1) {
-        let s: Server = this._servers[idx];
+        let s: Server = AppConfig.SERVERS[idx];
         if (s.hasOwnProperty('macro')) {
           let args = {
             chromosome: query.chromosome_id,
@@ -70,7 +69,7 @@ export class MacroTracksService {
   ): void {
     let idx = this._serverIDs.indexOf(source);
     if (idx != -1) {
-      let s: Server = this._servers[idx];
+      let s: Server = AppConfig.SERVERS[idx];
       if (s.hasOwnProperty('nearestGene')) {
         let args = {
           chromosome: chromosome,

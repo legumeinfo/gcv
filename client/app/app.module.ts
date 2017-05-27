@@ -1,6 +1,7 @@
 // Angular
 import './rxjs-extensions';
-import { NgModule }                         from '@angular/core';
+import { AppConfig }                        from './app.config';
+import { APP_INITIALIZER, NgModule }        from '@angular/core';
 import { BrowserModule }                    from '@angular/platform-browser';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { HttpModule }                       from '@angular/http';
@@ -29,32 +30,31 @@ import { selectedPlot }       from './reducers/selected-plot.store';
 import { urlQueryParams }     from './reducers/url-query-params.store';
 
 // App components
-import { AppComponent }              from './app.component';
-import { BasicComponent }            from './components/basic/basic.component';
-import { BasicParamsComponent }      from './components/basic/basic-params.component';
-import { ContextMenuComponent }      from './components/shared/context-menu.component';
-import { FamilyDetailComponent }     from './components/shared/family-detail.component';
-import { FooterComponent }           from './components/shared/footer.component';
-import { GeneDetailComponent }       from './components/shared/gene-detail.component';
-import { HeaderComponent }           from './components/shared/header.component';
-import { HelpComponent }             from './components/shared/help.component';
-import { InstructionsComponent }     from './components/instructions/instructions.component';
-import { LeftSliderComponent }       from './components/shared/left-slider.component';
-import { LegendComponent }           from './components/shared/legend.component';
-import { MacroViewerComponent }      from './components/search/macro-viewer.component';
-import { MainComponent }             from './components/shared/main.component';
-import { MainContentComponent }      from './components/shared/main-content.component';
-import { MicroViewerComponent }      from './components/shared/micro-viewer.component';
-import { NavComponent }              from './components/shared/nav.component';
-import { OrderingComponent }         from './components/search/ordering.component';
-import { PlotComponent }             from './components/shared/plot.component';
-import { RegexpComponent }           from './components/shared/regexp.component';
-import { ScrollComponent }           from './components/search/scroll.component';
-import { SearchComponent }           from './components/search/search.component';
-import { SearchParamsComponent }     from './components/search/search-params.component';
-import { SpinnerComponent }          from './components/shared/spinner.component';
-import { TrackDetailComponent }      from './components/shared/track-detail.component';
-import { ToggleButtonComponent }     from './components/shared/toggle-button.component';
+import { AppComponent }          from './app.component';
+import { BasicComponent }        from './components/basic/basic.component';
+import { BasicParamsComponent }  from './components/basic/basic-params.component';
+import { ContextMenuComponent }  from './components/shared/context-menu.component';
+import { FamilyDetailComponent } from './components/shared/family-detail.component';
+import { GeneDetailComponent }   from './components/shared/gene-detail.component';
+import { HeaderComponent }       from './components/shared/header.component';
+import { HelpComponent }         from './components/shared/help.component';
+import { InstructionsComponent } from './components/instructions/instructions.component';
+import { LeftSliderComponent }   from './components/shared/left-slider.component';
+import { LegendComponent }       from './components/shared/legend.component';
+import { MacroViewerComponent }  from './components/search/macro-viewer.component';
+import { MainComponent }         from './components/shared/main.component';
+import { MainContentComponent }  from './components/shared/main-content.component';
+import { MicroViewerComponent }  from './components/shared/micro-viewer.component';
+import { NavComponent }          from './components/shared/nav.component';
+import { OrderingComponent }     from './components/search/ordering.component';
+import { PlotComponent }         from './components/shared/plot.component';
+import { RegexpComponent }       from './components/shared/regexp.component';
+import { ScrollComponent }       from './components/search/scroll.component';
+import { SearchComponent }       from './components/search/search.component';
+import { SearchParamsComponent } from './components/search/search-params.component';
+import { SpinnerComponent }      from './components/shared/spinner.component';
+import { TrackDetailComponent }  from './components/shared/track-detail.component';
+import { ToggleButtonComponent } from './components/shared/toggle-button.component';
 
 // App services
 import { AlertsService }         from './services/alerts.service';
@@ -102,7 +102,6 @@ import { UrlQueryParamsService } from './services/url-query-params.service';
     BasicParamsComponent,
     ContextMenuComponent,
     FamilyDetailComponent,
-    FooterComponent,
     GeneDetailComponent,
     HeaderComponent,
     HelpComponent,
@@ -125,6 +124,14 @@ import { UrlQueryParamsService } from './services/url-query-params.service';
     ToggleButtonComponent
   ],
   providers: [
+    // Load site specific configuration
+    AppConfig,
+    {
+      provide: APP_INITIALIZER,
+      useFactory: (config: AppConfig) => () => config.load(),
+      deps: [AppConfig], multi: true
+    },
+    // App services
     AlertsService,
     AlignmentService,
     DetailsService,

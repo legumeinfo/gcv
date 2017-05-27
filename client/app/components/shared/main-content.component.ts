@@ -13,7 +13,7 @@ import { Component } from '@angular/core';
       width: 100%;
       position: absolute;
       top: 50px;
-      bottom: 50px;
+      bottom: 0;
     }
   `]
 })

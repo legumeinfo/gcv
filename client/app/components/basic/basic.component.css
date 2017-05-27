@@ -5,3 +5,42 @@
 .right {
   float: right;
 }
+/* micro-synteny content-menu accordion */
+.accordion {
+  width: 100%;
+  -ms-box-orient: horizontal;
+  display: -webkit-box;
+  display: -moz-box;
+  display: -ms-flexbox;
+  display: -moz-flex;
+  display: -webkit-flex;
+  display: flex;
+  -webkit-flex-flow: row;
+  flex-flow: row;
+}
+.accordion {
+  height: 28px;
+  padding: 0;
+  white-space: nowrap;
+}
+.accordion li a {
+  padding: 0 !important;
+  -webkit-touch-callout: none; /* iOS Safari */
+  -webkit-user-select: none; /* Safari */
+  -khtml-user-select: none; /* Konqueror HTML */
+  -moz-user-select: none; /* Firefox */
+  -ms-user-select: none; /* Internet Explorer/Edge */
+  user-select: none;
+}
+.accordion li.target {
+  max-width: 0%;
+  overflow: hidden;
+  -webkit-transition: max-width 0.35s ease;
+  -moz-transition: max-width 0.35s ease;
+  -o-transition: max-width 0.35s ease;
+  transition: max-width 0.35s ease;
+}
+.accordion li.target.active {
+  max-width: 100%;
+  flex-grow: 1;
+}

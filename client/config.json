@@ -1,0 +1,38 @@
+{"servers": [
+  {
+    "id": "lis",
+    "name": "Legume Information System",
+    "macroColors": {
+      "scriptUrl": "https://cdn.rawgit.com/legumeinfo/lis-taxon-symbology/01e02d99/dist/bundle.js",
+      "functionName": "taxonChroma.get"
+    },
+    "microBasic": {
+      "type": "POST",
+      "url": "http://localhost:8000/services/v1/micro-synteny-basic/"
+    },
+    "microSearch": {
+      "type": "POST",
+      "url": "http://localhost:8000/services/v1/micro-synteny-search/"
+    },
+    "microQuery": {
+      "type": "POST",
+      "url": "http://localhost:8000/services/v1/gene-to-query-track/"
+    },
+    "macro": {
+      "type": "POST",
+      "url": "http://localhost:8000/services/v1/macro-synteny/"
+    },
+    "geneLinks": {
+      "type": "GET",
+      "url": "https://legumeinfo.org/gene_links/"
+    },
+    "plotGlobal": {
+      "type": "POST",
+      "url": "http://localhost:8000/services/v1/global-plots/"
+    },
+    "nearestGene": {
+      "type": "POST",
+      "url": "http://localhost:8000/services/v1/nearest-gene/"
+    }
+  }
+]}

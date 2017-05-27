@@ -10,9 +10,8 @@ import { AfterViewInit,
 import { Observable } from 'rxjs/Observable';
 
 // App
-import { ContextMenuComponent } from './context-menu.component';
-import { DataSaver }            from '../../models/data-saver.model';
-import { MicroTracks }          from '../../models/micro-tracks.model';
+import { DataSaver }   from '../../models/data-saver.model';
+import { MicroTracks } from '../../models/micro-tracks.model';
 
 declare var d3: any;
 declare var GCV: any;
@@ -22,13 +21,25 @@ declare var GCV: any;
   selector: 'micro-viewer',
   template: `
     <spinner [data]="tracks"></spinner>
-    <div #microViewer>
-      <context-menu #menu
-        (saveData)="saveAsJSON(tracks)"
-        (saveImage)="saveXMLasSVG(viewer.xml())" >
-    </context-menu></div>
+    <context-menu #menu
+      [title]="'Micro-Synteny'"
+      (saveData)="saveAsJSON(tracks)"
+      (saveImage)="saveXMLasSVG(viewer.xml())" >
+      <ng-content navbar></ng-content>
+    </context-menu>
+    <div #microViewer class="viewer"></div>
   `,
-  styles: [ 'div { position: relative; }' ]
+  styles: [`
+    .viewer {
+      position: absolute;
+      top: 28px;
+      right: 0;
+      bottom: 0;
+      left: 0;
+      overflow-x: hidden;
+      overflow-y: auto;
+    }
+  `]
 })
 
 export class MicroViewerComponent extends DataSaver
@@ -49,7 +60,6 @@ export class MicroViewerComponent extends DataSaver
   // view children
 
   @ViewChild('microViewer') el: ElementRef;
-  @ViewChild('menu') contextMenu: ContextMenuComponent;
 
   // variables
 
@@ -68,12 +78,6 @@ export class MicroViewerComponent extends DataSaver
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-    this._args.contextmenu = function (e, m) {
-      this._showContextMenu(e, m);
-    }.bind(this);
-    this._args.click = function (e, m) {
-      this._hideContextMenu(e, m);
-    }.bind(this);
     this._draw();
   }
 
@@ -100,14 +104,5 @@ export class MicroViewerComponent extends DataSaver
         this._args
       );
     }
-  }
-
-  private _showContextMenu(e): void {
-    e.preventDefault();
-    this.contextMenu.show(e.layerX, e.layerY);
-  }
-
-  private _hideContextMenu(e): void {
-    this.contextMenu.hide();
   }
 }

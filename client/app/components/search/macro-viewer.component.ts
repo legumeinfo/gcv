@@ -9,9 +9,8 @@ import { AfterViewInit,
          ViewChild } from '@angular/core';
 
 // App
-import { ContextMenuComponent } from '../shared/context-menu.component';
-import { DataSaver }            from '../../models/data-saver.model';
-import { MacroTracks }          from '../../models/macro-tracks.model';
+import { DataSaver }   from '../../models/data-saver.model';
+import { MacroTracks } from '../../models/macro-tracks.model';
 
 declare var d3: any;
 declare var GCV: any;
@@ -21,14 +20,25 @@ declare var GCV: any;
   selector: 'macro-viewer',
   template: `
     <spinner [data]="tracks"></spinner>
-    <div #macroViewer>
-      <context-menu #menu
-        (saveData)="saveAsJSON(tracks)"
-        (saveImage)="saveXMLasSVG(viewer.xml())" >
-      </context-menu>
-    </div>
+    <context-menu #menu
+      [title]="'Macro-Synteny'"
+      (saveData)="saveAsJSON(tracks)"
+      (saveImage)="saveXMLasSVG(viewer.xml())" >
+      <ng-content dropdown></ng-content>
+    </context-menu>
+    <div #macroViewer class="viewer"></div>
   `,
-  styles: [ 'div { position: relative; }' ]
+  styles: [`
+    .viewer {
+      position: absolute;
+      top: 28px;
+      right: 0;
+      bottom: 0;
+      left: 0;
+      overflow-x: hidden;
+      overflow-y: auto;
+    }
+  `]
 })
 
 export class MacroViewerComponent extends DataSaver
@@ -48,7 +58,6 @@ export class MacroViewerComponent extends DataSaver
   // view children
 
   @ViewChild('macroViewer') el: ElementRef;
-  @ViewChild('menu') contextMenu: ContextMenuComponent;
 
   viewer = undefined;
 
@@ -65,12 +74,6 @@ export class MacroViewerComponent extends DataSaver
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-    this._args.contextmenu = function (e, m) {
-      this._showContextMenu(e, m);
-    }.bind(this);
-    this._args.click = function (e, m) {
-      this._hideContextMenu(e, m);
-    }.bind(this);
     this._draw();
   }
 
@@ -96,14 +99,5 @@ export class MacroViewerComponent extends DataSaver
         this._args
       );
     }
-  }
-
-  private _showContextMenu(e): void {
-    e.preventDefault();
-    this.contextMenu.show(e.layerX, e.layerY);
-  }
-
-  private _hideContextMenu(e): void {
-    this.contextMenu.hide();
   }
 }

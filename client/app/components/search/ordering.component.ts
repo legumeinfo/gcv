@@ -1,6 +1,5 @@
 // Angular
-import { AfterViewInit,
-         Component,
+import { Component,
          ElementRef,
          OnDestroy,
          OnInit,
@@ -17,8 +16,8 @@ declare var $: any;
   moduleId: module.id,
   selector: 'app-ordering',
   template: `
-    <form id="order-form" class="navbar-form navbar-left" #orderForm="ngForm">
-      <div class="form-group">
+    <form #orderForm="ngForm">
+      <div class="input-group">
         <select class="form-control" id="order"
             (change)="update()"
             [(ngModel)]="model.order" name="order">
@@ -26,25 +25,11 @@ declare var $: any;
         </select>
       </div>
     </form>
-    <ul class="nav navbar-nav">
-      <li><a #help class="color" data-toggle="tooltip" data-placement="top" title="How micro-synteny tracks should be ordered"><span class="glyphicon glyphicon-question-sign"></span></a></li>
-    </ul>
   `,
-  styles: [`
-    form {
-      padding-right: 0;
-    }
-    form button {
-      margin-right: 0;
-    }
-    .color {
-      color: #337ab7 !important;
-    }
-  `]
+  styles: [ '.input-group { display: inline; }' ]
 })
 
-export class OrderingComponent implements AfterViewInit, OnDestroy, OnInit {
-  @ViewChild('help') el: ElementRef;
+export class OrderingComponent implements OnDestroy, OnInit {
 
   algorithms = ORDER_ALGORITHMS;
   private _ids = this.algorithms.map(a => a.id);
@@ -54,10 +39,6 @@ export class OrderingComponent implements AfterViewInit, OnDestroy, OnInit {
 
   constructor(private _filterService: FilterService,
               private _url: UrlQueryParamsService) { }
-
-  ngAfterViewInit(): void {
-    $(this.el.nativeElement).tooltip();
-  }
 
   ngOnDestroy(): void {
     this._sub.unsubscribe();

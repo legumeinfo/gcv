@@ -9,9 +9,8 @@ import { AfterViewInit,
          ViewChild } from '@angular/core';
 
 // App
-import { ContextMenuComponent } from './context-menu.component';
-import { DataSaver }            from '../../models/data-saver.model';
-import { Group }                from '../../models/group.model';
+import { DataSaver } from '../../models/data-saver.model';
+import { Group }     from '../../models/group.model';
 
 declare var d3: any;
 declare var GCV: any;
@@ -21,11 +20,7 @@ declare var GCV: any;
   selector: 'plot',
   template: `
     <spinner [data]="plot"></spinner>
-    <div #plot>
-      <context-menu #menu
-        (saveImage)="saveXMLasSVG(viewer.xml())" >
-      </context-menu>
-    </div>
+    <div #plot></div>
   `,
   styles: [ 'div { position: relative; }' ]
 })
@@ -49,7 +44,6 @@ export class PlotComponent extends DataSaver
   // view children
 
   @ViewChild('plot') el: ElementRef;
-  @ViewChild('menu') contextMenu: ContextMenuComponent;
 
   // variables
 
@@ -69,12 +63,6 @@ export class PlotComponent extends DataSaver
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-    this._args.contextmenu = function (e, m) {
-      this._showContextMenu(e, m);
-    }.bind(this);
-    this._args.click = function (e, m) {
-      this._hideContextMenu(e, m);
-    }.bind(this);
     this._drawnSinceChange = false;
     this.draw();
   }
@@ -103,15 +91,6 @@ export class PlotComponent extends DataSaver
     const hVisible = lViz || rViz;
 		if (vVisible && hVisible) return true;
     return false;
-  }
-
-  private _showContextMenu(e): void {
-    e.preventDefault();
-    this.contextMenu.show(e.layerX, e.layerY);
-  }
-
-  private _hideContextMenu(e): void {
-    this.contextMenu.hide();
   }
 
   // public

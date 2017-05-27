@@ -9,8 +9,7 @@ import { AfterViewInit,
          ViewChild } from '@angular/core';
 
 // App
-import { ContextMenuComponent } from './context-menu.component';
-import { DataSaver }            from '../../models/data-saver.model';
+import { DataSaver } from '../../models/data-saver.model';
 
 declare var d3: any;
 declare var GCV: any;
@@ -20,13 +19,24 @@ declare var GCV: any;
   selector: 'app-legend',
   template: `
     <spinner [data]="data"></spinner>
-    <div #legend>
-      <context-menu #menu
-        (saveImage)="saveXMLasSVG(viewer.xml())" >
-      </context-menu>
-    </div>
+    <context-menu #menu
+      title="{{title}}"
+      (saveData)="saveAsJSON(tracks)"
+      (saveImage)="saveXMLasSVG(viewer.xml())" >
+    </context-menu>
+    <div #legend class="viewer"></div>
   `,
-  styles: [ 'div { position: relative; }' ]
+  styles: [`
+    .viewer {
+      position: absolute;
+      top: 28px;
+      right: 0;
+      bottom: 0;
+      left: 0;
+      overflow-x: hidden;
+      overflow-y: auto;
+    }
+  `]
 })
 
 export class LegendComponent extends DataSaver
@@ -36,6 +46,7 @@ export class LegendComponent extends DataSaver
 
   // inputs
 
+  @Input() title: string;
   @Input() data: any;  // a list of objects with name and id attributes
   @Input() colors: any;
   private _args;
@@ -47,7 +58,6 @@ export class LegendComponent extends DataSaver
   // view children
 
   @ViewChild('legend') el: ElementRef;
-  @ViewChild('menu') contextMenu: ContextMenuComponent;
 
   // variables
 
@@ -62,12 +72,6 @@ export class LegendComponent extends DataSaver
   // Angular hooks
 
   ngOnChanges(changes: SimpleChanges): void {
-    this._args.contextmenu = function (e, m) {
-      this._showContextMenu(e, m);
-    }.bind(this);
-    this._args.click = function (e, m) {
-      this._hideContextMenu(e, m);
-    }.bind(this);
     this._draw();
   }
 
@@ -101,14 +105,5 @@ export class LegendComponent extends DataSaver
         this._args
       );
     }
-  }
-
-  private _showContextMenu(e): void {
-    e.preventDefault();
-    this.contextMenu.show(e.layerX, e.layerY);
-  }
-
-  private _hideContextMenu(e): void {
-    this.contextMenu.hide();
   }
 }
