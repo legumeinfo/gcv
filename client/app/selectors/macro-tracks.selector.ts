@@ -6,7 +6,7 @@ export const macroTracksSelector = (filter, order) => {
       if (macroTracks !== undefined && filteredMicroTracks.groups.length > 0) {
         let query = filteredMicroTracks.groups[0];
         let chrs = filteredMicroTracks.groups.reduce((l, g, i) => {
-          if (i > 0 && g.source == query.source) l.push(g.chromosome_name);
+          if (i > 0) l.push(g.chromosome_name);
           return l;
         }, []);
         let macro = Object.assign({}, macroTracks);
