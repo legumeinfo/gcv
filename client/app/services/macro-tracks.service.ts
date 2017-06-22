@@ -11,6 +11,7 @@ import { AppStore }          from '../models/app-store.model';
 import { GET, POST, Server } from '../models/server.model';
 import { MicroTracks }       from '../models/micro-tracks.model';
 import { MacroTracks }       from '../models/macro-tracks.model';
+import { QueryParams }       from '../models/query-params.model';
 
 @Injectable()
 export class MacroTracksService {
@@ -26,35 +27,59 @@ export class MacroTracksService {
     this.tracks = this._store.select('macroTracks');
   }
 
-  search(tracks: MicroTracks, failure = e => {}): void {
+  search(tracks: MicroTracks, params: QueryParams, failure = e => {}): void {
     if (tracks.groups.length > 0) {
       this._store.dispatch({type: ADD_MACRO_TRACKS, payload: undefined})
       let query = tracks.groups[0];
-      let results = tracks.groups.reduce((l, g, i) => {
-        if (i > 0 && g.source == query.source) l.push(g.chromosome_id);
+      let args = {
+        chromosome: query.chromosome_id
+      };
+		  // send requests to the selected servers
+      let requests: Observable<Response>[] = [];
+      let sources = params.sources.reduce((l, s) => {
+        let i = this._serverIDs.indexOf(s);
+        if (i != -1) l.push(AppConfig.SERVERS[i]);
+        else failure('invalid source: ' + s);
         return l;
       }, []);
-      let idx = this._serverIDs.indexOf(query.source)
-      if (idx != -1) {
-        let s: Server = AppConfig.SERVERS[idx];
+      for (let i = 0; i < sources.length; ++i) {
+        let s: Server = sources[i];
         if (s.hasOwnProperty('macro')) {
-          let args = {
-            chromosome: query.chromosome_id,
-            //results: results
-          };
           let response: Observable<Response>;
           if (s.macro.type === GET)
             response = this._http.get(s.macro.url, args);
           else
             response = this._http.post(s.macro.url, args);
-          response.subscribe(res => {
-            let tracks = res.json();
-            this._store.dispatch({type: ADD_MACRO_TRACKS, payload: tracks});
-          }, failure);
+          requests.push(response
+            .map(res => res.json())
+            .catch(() => Observable.empty())
+            .defaultIfEmpty(null));
         } else {
-          failure(s.id + " doesn't serve macro track requests");
+          failure(s.id + " doesn't serve basic micro track requests");
         }
       }
+      // aggregate the results
+      Observable.forkJoin(requests).subscribe(results => {
+        let failed = [];
+        let macro = undefined;
+        for (let i = 0; i < results.length; ++i) {
+          let result = <any>results[i];
+          let source = sources[i];
+          if (result == null) {
+            failed.push(source.id);
+          } else {
+            // aggregate the tracks
+            if (macro === undefined) {
+              macro = result;
+            } else {
+              macro.tracks.push.apply(macro.tracks, result.tracks);
+            }
+          }
+        }
+        if (failed.length > 0)
+          failure('failed to retrieve data from sources: ' + failed.join(', '));
+        this._store.dispatch({type: ADD_MACRO_TRACKS, payload: macro});
+      });
     }
     failure("no micro tracks provided");
   }

@@ -11,27 +11,28 @@ import { Component,
 import { Observable }             from 'rxjs/Observable';
 
 // App
-import { Alert }               from '../../models/alert.model';
+import { Alert }                 from '../../models/alert.model';
 import { ALERT_SUCCESS,
          ALERT_INFO,
          ALERT_WARNING,
-         ALERT_DANGER }        from '../../constants/alerts';
-import { AlertsService }       from '../../services/alerts.service';
-import { AlignmentService }    from '../../services/alignment.service';
-import { AppConfig }           from '../../app.config';
-import { Family }              from '../../models/family.model';
-import { FilterService }       from '../../services/filter.service';
-import { Gene }                from '../../models/gene.model';
-import { Group }               from '../../models/group.model';
-import { MacroTracks }         from '../../models/macro-tracks.model';
-import { macroTracksSelector } from '../../selectors/macro-tracks.selector';
-import { MacroTracksService }  from '../../services/macro-tracks.service';
-import { MicroTracks }         from '../../models/micro-tracks.model';
-import { microTracksSelector } from '../../selectors/micro-tracks.selector';
-import { MicroTracksService }  from '../../services/micro-tracks.service';
-import { PlotComponent }       from '../shared/plot.component';
-import { plotsSelector }       from '../../selectors/plots.selector';
-import { PlotsService }        from '../../services/plots.service';
+         ALERT_DANGER }          from '../../constants/alerts';
+import { AlertsService }         from '../../services/alerts.service';
+import { AlignmentService }      from '../../services/alignment.service';
+import { AppConfig }             from '../../app.config';
+import { Family }                from '../../models/family.model';
+import { FilterService }         from '../../services/filter.service';
+import { Gene }                  from '../../models/gene.model';
+import { Group }                 from '../../models/group.model';
+import { MacroTracks }           from '../../models/macro-tracks.model';
+import { macroTracksSelector }   from '../../selectors/macro-tracks.selector';
+import { MacroTracksService }    from '../../services/macro-tracks.service';
+import { MicroTracks }           from '../../models/micro-tracks.model';
+import { microTracksSelector }   from '../../selectors/micro-tracks.selector';
+import { MicroTracksService }    from '../../services/micro-tracks.service';
+import { PlotComponent }         from '../shared/plot.component';
+import { plotsSelector }         from '../../selectors/plots.selector';
+import { PlotsService }          from '../../services/plots.service';
+import { SearchParamsComponent } from './search-params.component';
 
 declare var d3: any;
 declare var contextColors: any;
@@ -116,6 +117,8 @@ export class SearchComponent implements OnInit {
   }
 
   @ViewChildren(PlotComponent) plotComponents: QueryList<PlotComponent>;
+
+  @ViewChild(SearchParamsComponent) searchParams: SearchParamsComponent;
 
   // UI
 
@@ -204,7 +207,10 @@ export class SearchComponent implements OnInit {
 
   private _onRawMicroTracks(tracks): void {
     this._numReturned = tracks.groups.length - 1;  // exclude query
-    this._macroTracksService.search(tracks);
+    let params = this.searchParams.queryGroup
+    if (params !== undefined) {
+      this._macroTracksService.search(tracks, params.getRawValue());
+    }
   }
 
 
