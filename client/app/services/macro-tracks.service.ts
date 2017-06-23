@@ -75,6 +75,9 @@ export class MacroTracksService {
               macro.tracks.push.apply(macro.tracks, result.tracks);
               if (macro.length === null) {
                 macro.length = result.length;
+                //safest to assume that the service that knows the length
+                //should also have the say on the chromosome_id
+                macro.chromosome_id = result.chromosome_id;
               }
             }
           }
