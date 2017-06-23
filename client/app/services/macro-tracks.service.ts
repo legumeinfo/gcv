@@ -32,7 +32,7 @@ export class MacroTracksService {
       this._store.dispatch({type: ADD_MACRO_TRACKS, payload: undefined})
       let query = tracks.groups[0];
       let args = {
-        chromosome: query.chromosome_id
+        chromosome: query.chromosome_name
       };
 		  // send requests to the selected servers
       let requests: Observable<Response>[] = [];
@@ -73,6 +73,9 @@ export class MacroTracksService {
               macro = result;
             } else {
               macro.tracks.push.apply(macro.tracks, result.tracks);
+              if (macro.length === null) {
+                macro.length = result.length;
+              }
             }
           }
         }

@@ -633,7 +633,7 @@ def v1_macro_synteny(request):
     # make sure the request type is POST and that it contains a query (families)
     if request.method == 'POST' and 'chromosome' in POST:
         # get the query chromosome
-        chromosome = get_object_or_404(Feature, pk=POST['chromosome'])
+        chromosome = get_object_or_404(Feature, name=POST['chromosome'])
         # get the syntenic region cvterm
         synteny_type = list(Cvterm.objects.only('pk')\
             .filter(name='syntenic_region'))
