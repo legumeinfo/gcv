@@ -26,7 +26,6 @@ import { MicroTracksService }  from '../../services/micro-tracks.service';
 declare var d3: any;
 declare var contextColors: any;
 declare var Split: any;
-declare var Graph: any;
 
 enum AccordionTypes {
   REGEXP,
@@ -107,7 +106,6 @@ export class BasicComponent implements OnInit {
   }
 
   private _onMicroTracks(tracks): void {
-    console.log(Graph.frequentedRegions(tracks, 0.5, 10, 2, 3, {omit: [""]}));
     let num = tracks.groups.length;
     this._alerts.pushAlert(new Alert(
       (num) ? ALERT_SUCCESS : ALERT_WARNING,
