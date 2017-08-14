@@ -4,16 +4,36 @@
 var Graph = Graph || {};
 
 
-Graph.Undirected = class {
+Graph.Graph = class {
   constructor(edgeDelimiter) {
+    // make the class effectively abstract
+    if (new.target === Graph.Graph) {
+      throw new TypeError("Cannot construct Graph instances directly");
+    }
+    this.checkStaticOverride("Node");
+    this.checkOverride("removeNodeEdges");
+    this.checkOverride("addEdge");
+    this.checkOverride("updateEdge");
+    this.checkOverride("removeEdge");
+    this.checkOverride("getEdge");
     this.ed    = edgeDelimiter || ":";
     this.nodes = {};
     this.edges = {};
   }
   // primitive operations
+  checkStaticOverride(attr) {
+    if (this.constructor[attr] === undefined) {
+      throw new TypeError(this.constructor.name + " must override static attribute: " + attr);
+    }
+  }
+  checkOverride(attr) {
+    if (this[attr] === undefined) {
+      throw new TypeError(this.constructor.name + " must override attribute: " + attr);
+    }
+  }
   addNode(id, attr) {
     if (!this.nodes.hasOwnProperty(id)) {
-      this.nodes[id] = new Graph.Node(attr);
+      this.nodes[id] = new this.constructor.Node(attr);
     } return this.getNode(id);
   }
   updateNode(id, attr) {
@@ -23,9 +43,7 @@ Graph.Undirected = class {
   }
   removeNode(id) {
     if (this.nodes.hasOwnProperty(id)) {
-      this.nodes[id].neighbors.forEach((v) => {
-        this.removeEdge(id, v);
-      });
+      this.removeNodeEdges(id);
       delete this.nodes[id];
     }
   }
@@ -33,6 +51,84 @@ Graph.Undirected = class {
     if (this.nodes.hasOwnProperty(id)) {
       return this.nodes[id];
     } return null;
+  }
+}
+
+
+Graph.Node = class {
+  constructor(attr) {
+    // make the class effectively abstract
+    if (new.target === Graph.Node) {
+      throw new TypeError("Cannot construct Node instances directly");
+    }
+    this.attr = attr;
+  }
+}
+
+
+Graph.Directed = class extends Graph.Graph {
+  constructor(edgeDelimiter) {
+    super(edgeDelimiter)
+    this.inNeighbors  = {};
+    this.outNeighbors = {};
+  }
+  static Node = class extends Graph.Node {
+    constructor(attr) {
+      super(att);
+      this.inNeighbors  = new Set();
+      this.outNeighbors = new Set();
+    }
+  }
+  // primitive operations
+  getEdgeId(u, v) {
+    return u + this.ed + v;
+  }
+  addEdge(u, v, attr) {
+    var e = this.getEdgeId(u, v);
+    if (!this.edges.hasOwnProperty(e)) {
+      this.nodes[u].outNeighbors.add(v);
+      this.nodes[v].inNeighbors.add(u);
+      this.edges[e] = attr;
+    }
+  }
+  updateEdge(u, v, attr) {
+    var e = this.getEdgeId(u, v);
+    if (this.edges.hasOwnProperty(e)) {
+      this.edges[e] = attr;
+    }
+  }
+  removeEdge(u, v) {
+    var e = this.getEdgeId(u, v);
+    if (this.edges.hasOwnProperty(e)) {
+      delete this.edges[e];
+      this.nodes[u].outNeighbors.delete(v);
+      this.nodes[v].inNeighbors.delete(u);
+    }
+  }
+  getEdge(u, v) {
+    var e = this.getEdgeId(u, v);
+    if (this.edges.hasOwnProperty(e)) {
+      return this.edges[e];
+    } return null;
+  }
+}
+
+
+Graph.Undirected = class extends Graph.Graph {
+  constructor(edgeDelimiter) {
+    super(edgeDelimiter);
+  }
+  static Node = class extends Graph.Node {
+    constructor(attr) {
+      super(attr);
+      this.neighbors = new Set();
+    }
+  }
+  // primitive operations
+  removeNodeEdges(id) {
+    this.nodes[id].neighbors.forEach((v) => {
+      this.removeEdge(id, v);
+    });
   }
   getEdgeId(u, v) {
     return (u < v) ? u + this.ed + v : v + this.ed + u;
@@ -102,14 +198,6 @@ Graph.Undirected = class {
       });
       this.removeNode(remove);
     }
-  }
-}
-
-
-Graph.Node = class {
-  constructor(attr) {
-    this.attr      = attr;
-    this.neighbors = new Set();
   }
 }
 
@@ -222,7 +310,8 @@ Graph.FR = class {
   * for it to be considered frequent.
   * @param {number} minsize - Minimum size (number of nodes) of a region to be
   * considered frequent.
-  * @return {int} - The computed score.
+  * @param {object} options - Optional parameters.
+  * @return {Array<FRs>} - An array of FR hierarchies.
   */
 Graph.frequentedRegions =
 function(tracks, alpha, kappa, minsup, minsize, options) {
@@ -304,4 +393,90 @@ function(tracks, alpha, kappa, minsup, minsize, options) {
   }
   // return interesting FRs identified by traversing hierarchy
   return (fr !== null) ? findFRs(fr, minsup, minsize, 0) : [];
+}
+
+
+Graph.hmmDelete = class {
+  constructor() {
+    this.paths = {};
+    this.probablities = {};
+  }
+}
+
+
+Graph.hmmInsert = class {
+  constructor() {
+    this.paths = {};
+    this.probablities = {};
+  }
+}
+
+
+Graph.hmmMatch = class {
+  constructor(paths, probabilities) {
+    this.paths = paths || {};
+    this.probablities = probablities || {};
+  }
+}
+
+
+/**
+  * An HMM based MSA algorithm.
+  * @param {object} tracks - Ordered GCV track data.
+  * @param {function} alignmentF - The alignment algorithm to be used.
+  * @return {int} - The computed score.
+  */
+Graph.hmmMSA = function(tracks, alignmentF) {
+  var getConsensus = function(hmm) {
+
+  }
+  var threadAlignment = function(hmm, a) {
+
+  }
+  var performSurgery = function(hmm) {
+
+  }
+  // 1) construct the graph from the first track
+  var hmm = new Graph.Directed(),
+      l = tracks.groups[0].genes.length;
+  // add nodes
+  hmm.addNode("s");
+  for (var i = 0; i < l; i++) {
+    var id = "m" + i,
+        m = new Graph.hmmMatch({0: i}, {tracks.groups[0].genes[i].family: 1.0});
+    hmm.addNode(id, m);
+    id = "i" + i;
+    hmm.addNode(id, new Graph.hmmInsert());
+    id = "d" + i;
+    hmm.addNode(id, new Graph.hmmDelete());
+  }
+  hmm.addNode("i" + l, new Graph.hmmInsert());
+  hmm.addNode("e");
+  // add edges
+  g.addEdge("s", "m0", 1.0);
+  g.addEdge("s", "i0", 0.0);
+  g.addEdge("s", "d0", 0.0);
+  for (var i = 0; i < l - 1; i++) {
+    g.addEdge("m" + i, "m" + (i + 1), 1.0);
+    g.addEdge("m" + i, "i" + (i + 1), 0.0);
+    g.addEdge("m" + i, "d" + (i + 1), 0.0);
+    g.addEdge("i" + i, "i" + i, 0.0);
+    g.addEdge("i" + i, "m" + i, 0.0);
+    g.addEdge("i" + i, "d" + i, 0.0);
+    g.addEdge("d" + i, "d" + (i + 1), 0.0);
+    g.addEdge("d" + i, "m" + (i + 1), 0.0);
+    g.addEdge("d" + i, "i" + (i + 1), 0.0);
+  }
+  g.addEdge("m" + l - 1, "i" + l, 0.0);
+  g.addEdge("m" + l - 1, "e", 1.0);
+  g.addEdge("i" + l, "i" + l, 0.0);
+  g.addEdge("i" + l, "e", 0.0);
+  g.addEdge("d" + l - 1, "i" + l, 0.0);
+  g.addEdge("d" + l - 1, "e", 0.0);
+  // 2) iteratively add each remaining track to the alignment
+  for (var i = 1; i < tracks.groups.length; i++) {
+    // a) align to the consensus
+    // b) update the transition and emission probabilities using the new alignment
+    // c) if necessary, perform surgery on the graph
+  }
 }
