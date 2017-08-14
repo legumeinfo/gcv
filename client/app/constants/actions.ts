@@ -1,9 +1,6 @@
 // alignmentFilter
 export const SET_ALIGNMENT = 'SET_ALIGNMENT';
 
-// alignedMicroTracks
-export const ADD_ALIGNED_MICRO_TRACKS = 'ADD_ALIGED_MICRO_TRACKS';
-
 // alignmentParams
 export const ADD_ALIGNMENT_PARAMS = 'ADD_ALIGNMENT_PARAMS';
 

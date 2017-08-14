@@ -15,24 +15,25 @@ import { Alert }                 from '../../models/alert.model';
 import { ALERT_SUCCESS,
          ALERT_INFO,
          ALERT_WARNING,
-         ALERT_DANGER }          from '../../constants/alerts';
-import { AlertsService }         from '../../services/alerts.service';
-import { AlignmentService }      from '../../services/alignment.service';
-import { AppConfig }             from '../../app.config';
-import { Family }                from '../../models/family.model';
-import { FilterService }         from '../../services/filter.service';
-import { Gene }                  from '../../models/gene.model';
-import { Group }                 from '../../models/group.model';
-import { MacroTracks }           from '../../models/macro-tracks.model';
-import { macroTracksSelector }   from '../../selectors/macro-tracks.selector';
-import { MacroTracksService }    from '../../services/macro-tracks.service';
-import { MicroTracks }           from '../../models/micro-tracks.model';
-import { microTracksSelector }   from '../../selectors/micro-tracks.selector';
-import { MicroTracksService }    from '../../services/micro-tracks.service';
-import { PlotComponent }         from '../shared/plot.component';
-import { plotsSelector }         from '../../selectors/plots.selector';
-import { PlotsService }          from '../../services/plots.service';
-import { SearchParamsComponent } from './search-params.component';
+         ALERT_DANGER }              from '../../constants/alerts';
+import { AlertsService }             from '../../services/alerts.service';
+import { AlignmentService }          from '../../services/alignment.service';
+import { AppConfig }                 from '../../app.config';
+import { Family }                    from '../../models/family.model';
+import { FilterService }             from '../../services/filter.service';
+import { Gene }                      from '../../models/gene.model';
+import { Group }                     from '../../models/group.model';
+import { MacroTracks }               from '../../models/macro-tracks.model';
+import { macroTracksSelector }       from '../../selectors/macro-tracks.selector';
+import { MacroTracksService }        from '../../services/macro-tracks.service';
+import { MicroTracks }               from '../../models/micro-tracks.model';
+import { microTracksSelector }       from '../../selectors/micro-tracks.selector';
+import { MicroTracksService }        from '../../services/micro-tracks.service';
+import { pairwiseAlignmentSelector } from '../../selectors/pairwise-alignment.selector';
+import { PlotComponent }             from '../shared/plot.component';
+import { plotsSelector }             from '../../selectors/plots.selector';
+import { PlotsService }              from '../../services/plots.service';
+import { SearchParamsComponent }     from './search-params.component';
 
 declare var d3: any;
 declare var contextColors: any;
@@ -148,6 +149,7 @@ export class SearchComponent implements OnInit {
   routeSource: string;
   routeGene: string;
 
+  private _alignedTracks: Observable<MicroTracks>;
   private _microTracks: Observable<MicroTracks>;
   microTracks: MicroTracks;
   microLegend: any;
@@ -356,8 +358,12 @@ export class SearchComponent implements OnInit {
 
     // subscribe to micro-tracks changes
     this._microTracksService.tracks.subscribe(this._onRawMicroTracks.bind(this));
+    this._alignedTracks = Observable.combineLatest(
+      this._microTracksService.tracks,
+      this._alignmentService.alignmentParams
+    ).let(pairwiseAlignmentSelector());
     this._microTracks = Observable.combineLatest(
-      this._alignmentService.tracks,
+      this._alignedTracks,
       this._filterService.regexp,
       this._filterService.order
     ).let(microTracksSelector({skipFirst: true}));

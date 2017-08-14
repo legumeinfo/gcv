@@ -9,19 +9,20 @@ import { Component,
 import { Observable }             from 'rxjs/Observable';
 
 // App
-import { Alert }               from '../../models/alert.model';
+import { Alert }                    from '../../models/alert.model';
 import { ALERT_SUCCESS,
          ALERT_INFO,
          ALERT_WARNING,
-         ALERT_DANGER }        from '../../constants/alerts';
-import { AlertsService }       from '../../services/alerts.service';
-import { Family }              from '../../models/family.model';
-import { FilterService }       from '../../services/filter.service';
-import { Gene }                from '../../models/gene.model';
-import { Group }               from '../../models/group.model';
-import { MicroTracks }         from '../../models/micro-tracks.model';
-import { microTracksSelector } from '../../selectors/micro-tracks.selector';
-import { MicroTracksService }  from '../../services/micro-tracks.service';
+         ALERT_DANGER }             from '../../constants/alerts';
+import { AlertsService }            from '../../services/alerts.service';
+import { Family }                   from '../../models/family.model';
+import { FilterService }            from '../../services/filter.service';
+import { frequentedRegionsSelector } from '../../selectors/frequented-regions.selector';
+import { Gene }                     from '../../models/gene.model';
+import { Group }                    from '../../models/group.model';
+import { MicroTracks }              from '../../models/micro-tracks.model';
+import { microTracksSelector }      from '../../selectors/micro-tracks.selector';
+import { MicroTracksService }       from '../../services/micro-tracks.service';
 
 declare var d3: any;
 declare var contextColors: any;
@@ -71,6 +72,7 @@ export class BasicComponent implements OnInit {
   // data
   queryGenes: string[];
 
+  private _groupedTracks: Observable<MicroTracks>;
   private _microTracks: Observable<MicroTracks>;
   microTracks: MicroTracks;
   microLegend: any;
@@ -143,8 +145,12 @@ export class BasicComponent implements OnInit {
 
   ngOnInit(): void {
     this._route.params.subscribe(this._onParams.bind(this));
+    this._groupedTracks = Observable.combineLatest(
+      this._microTracksService.tracks
+      // TODO: add FR parameters?
+    ).let(frequentedRegionsSelector());
     this._microTracks = Observable.combineLatest(
-      this._microTracksService.tracks,
+      this._groupedTracks,
       this._filterService.regexp
     ).let(microTracksSelector());
     this._microTracks.subscribe(this._onMicroTracks.bind(this));

@@ -15,7 +15,6 @@ import { StoreLogMonitorModule, useLogMonitor } from '@ngrx/store-log-monitor';
 import { StoreModule }                          from '@ngrx/store';
 
 // reducers
-import { alignedMicroTracks } from './reducers/aligned-micro-tracks.store';
 import { alignmentParams }    from './reducers/alignment-params.store';
 import { globalPlots }        from './reducers/global-plots.store';
 import { localPlots }         from './reducers/local-plots.store';
@@ -74,7 +73,6 @@ import { UrlQueryParamsService } from './services/url-query-params.service';
     HttpModule,
     ReactiveFormsModule,
     StoreModule.provideStore({
-      alignedMicroTracks,
       alignmentParams,
       globalPlots,
       localPlots,
