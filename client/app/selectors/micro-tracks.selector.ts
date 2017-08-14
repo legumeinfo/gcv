@@ -25,7 +25,7 @@ export const microTracksSelector = (options?: any) => {
         let max   = null,
             maxFR = null;;
         for (let i = 0; i < results.length; i++) {
-          if (max = null || results[i]["nodes"].length > max) {
+          if (max == null || results[i]["nodes"].length > max) {
             max = results[i]["nodes"].length;
             maxFR = results[i];
           }
