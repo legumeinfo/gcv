@@ -396,26 +396,96 @@ function(tracks, alpha, kappa, minsup, minsize, options) {
 }
 
 
-Graph.hmmDelete = class {
-  constructor() {
-    this.paths = {};
-    this.probablities = {};
+Graph.MSAHMM = class extends Graph.Directed {
+  constructor(size, observations, edgeDelimiter) {
+    super(edgeDelimiter)
+    this.size = size;
+    constructModel(observations);
+  }
+  static State = class {
+    constructor() {
+      this.paths = new Set();
+    }
+    addPath(pId) {
+      this.paths.add(pId);
+    }
+  }
+  constructModel(observations) {
+    // add nodes
+    hmm.addNode("s");
+    for (var i = 0; i < l; i++) {
+      var id = "m" + i,
+          m = new Graph.hmmMatch(families);
+      hmm.addNode(id, m);
+      id = "i" + i;
+      hmm.addNode(id, new Graph.hmmInsert());
+      id = "d" + i;
+      hmm.addNode(id, new Graph.hmmNode());
+    }
+    hmm.addNode("i" + l, new Graph.hmmInsert());
+    hmm.addNode("e");
+    // add edges
+    g.addEdge("s", "m0", 1.0);
+    g.addEdge("s", "i0", 0.0);
+    g.addEdge("s", "d0", 0.0);
+    for (var i = 0; i < l - 1; i++) {
+      g.addEdge("m" + i, "m" + (i + 1), 1.0);
+      g.addEdge("m" + i, "i" + (i + 1), 0.0);
+      g.addEdge("m" + i, "d" + (i + 1), 0.0);
+      g.addEdge("i" + i, "i" + i, 0.0);
+      g.addEdge("i" + i, "m" + i, 0.0);
+      g.addEdge("i" + i, "d" + i, 0.0);
+      g.addEdge("d" + i, "d" + (i + 1), 0.0);
+      g.addEdge("d" + i, "m" + (i + 1), 0.0);
+      g.addEdge("d" + i, "i" + (i + 1), 0.0);
+    }
+    g.addEdge("m" + l - 1, "i" + l, 0.0);
+    g.addEdge("m" + l - 1, "e", 1.0);
+    g.addEdge("i" + l, "i" + l, 0.0);
+    g.addEdge("i" + l, "e", 0.0);
+    g.addEdge("d" + l - 1, "i" + l, 0.0);
+    g.addEdge("d" + l - 1, "e", 0.0);
   }
 }
 
 
-Graph.hmmInsert = class {
+Graph.MSAHMM.InsertState = class extends Graph.MSAHMM.State {
   constructor() {
-    this.paths = {};
-    this.probablities = {};
+    super();
+    this.insertions = {};
+  }
+  addPath(pId, o) {
+    super.addPath(pId);
+    if (!this.insertions.hasOwnProperty(pId)) {
+      this.insertions[pId] = [];
+    }
+    this.insertions[pId].put(o);
   }
 }
 
 
-Graph.hmmMatch = class {
-  constructor(paths, probabilities) {
-    this.paths = paths || {};
-    this.probablities = probablities || {};
+Graph.MSAHMM.MatchState = class extends Graph.MSAHMM.State {
+  constructor(observations) {
+    super();
+    this.emissions = {};
+    this.counts = {};
+    this.numObservations = observations.size();
+    var p = 1 / numObservations;
+    observations.forEach((o) => {
+      this.emissions[o] = p;
+      this.counts[o]    = 1;  // pseudo-count of for computing emissions
+    });
+  }
+  addPath(pId, o) {
+    super.addPath(pId);
+    this.counts[o]       += 1;
+    this.numObservations += 1;
+    for (var o in this.emmisions) {
+      if (this.emmisions.hasOwnProperty(o)) {
+        var p = this.counts[o] / this.numObservations;
+        this.emmisions[o] = p;
+      }
+    }
   }
 }
 
@@ -426,56 +496,32 @@ Graph.hmmMatch = class {
   * @param {function} alignmentF - The alignment algorithm to be used.
   * @return {int} - The computed score.
   */
-Graph.hmmMSA = function(tracks, alignmentF) {
-  var getConsensus = function(hmm) {
-
-  }
-  var threadAlignment = function(hmm, a) {
-
+Graph.msa = function(tracks, alignmentF) {
+  var embedAlignmentPath = function(hmm, pId, states, observations) {
+    for (var i = 0; i < states.length; i++) {
+      var n = hmm.getNode(states[i]).attr;
+      if (n instanceof Graph.hmmInsert || n instanceof Graph.hmmMatch) {
+        n.addPath(pId, observations[i]);
+      } else {
+        n.addPath(pId);
+      }
+    }
   }
   var performSurgery = function(hmm) {
 
   }
   // 1) construct the graph from the first track
-  var hmm = new Graph.Directed(),
-      l = tracks.groups[0].genes.length;
-  // add nodes
-  hmm.addNode("s");
-  for (var i = 0; i < l; i++) {
-    var id = "m" + i,
-        m = new Graph.hmmMatch({0: i}, {tracks.groups[0].genes[i].family: 1.0});
-    hmm.addNode(id, m);
-    id = "i" + i;
-    hmm.addNode(id, new Graph.hmmInsert());
-    id = "d" + i;
-    hmm.addNode(id, new Graph.hmmDelete());
+  var l = tracks.groups[0].genes.length,
+      families = new Set();
+  for (var i = 0; i < tracks.groups.length; i++) {
+    for (var j = 0; j < tracks.groups[i].genes.length; j++) {
+      families.add(tracks.groups[i].genes[j].family);
+    }
   }
-  hmm.addNode("i" + l, new Graph.hmmInsert());
-  hmm.addNode("e");
-  // add edges
-  g.addEdge("s", "m0", 1.0);
-  g.addEdge("s", "i0", 0.0);
-  g.addEdge("s", "d0", 0.0);
-  for (var i = 0; i < l - 1; i++) {
-    g.addEdge("m" + i, "m" + (i + 1), 1.0);
-    g.addEdge("m" + i, "i" + (i + 1), 0.0);
-    g.addEdge("m" + i, "d" + (i + 1), 0.0);
-    g.addEdge("i" + i, "i" + i, 0.0);
-    g.addEdge("i" + i, "m" + i, 0.0);
-    g.addEdge("i" + i, "d" + i, 0.0);
-    g.addEdge("d" + i, "d" + (i + 1), 0.0);
-    g.addEdge("d" + i, "m" + (i + 1), 0.0);
-    g.addEdge("d" + i, "i" + (i + 1), 0.0);
-  }
-  g.addEdge("m" + l - 1, "i" + l, 0.0);
-  g.addEdge("m" + l - 1, "e", 1.0);
-  g.addEdge("i" + l, "i" + l, 0.0);
-  g.addEdge("i" + l, "e", 0.0);
-  g.addEdge("d" + l - 1, "i" + l, 0.0);
-  g.addEdge("d" + l - 1, "e", 0.0);
+  var hmm = new Graph.Directed(l, families);
   // 2) iteratively add each remaining track to the alignment
   for (var i = 1; i < tracks.groups.length; i++) {
-    // a) align to the consensus
+    // a) align to HMM
     // b) update the transition and emission probabilities using the new alignment
     // c) if necessary, perform surgery on the graph
   }
