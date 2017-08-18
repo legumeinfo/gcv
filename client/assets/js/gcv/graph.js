@@ -405,21 +405,41 @@ function(tracks, alpha, kappa, minsup, minsize, options) {
 Graph.MSAHMM = class extends Graph.Directed {
   constructor(numColumns, characters, edgeDelimiter) {
     super(edgeDelimiter)
-    this.numColumns    = numColumns;
-    this.numCharacters = characters.size;
+    this.numColumns      = numColumns;
+    this.numCharacters   = characters.size;
+    this.baseProbability = 1 / (2 + this.numCharacters);
     this.constructModel(characters);
   }
   static State = class {
     constructor() {
-      this.paths = new Set();
+      this.transitionCounts = {};
     }
-    addPath(pId) {
-      this.paths.add(pId);
-    }
+    //addPath(pId, n) {
+    //  if (!this.paths.hasOwnProperty(pId)) {
+    //    this.paths[pId] = [];
+    //  }
+    //  this.paths[pId].push(n);
+    //}
+  }
+  // primitive operations
+  addEdge(u, v, attr) {
+    super.addEdge(u, v, attr);
+    this.nodes[u].attr.transitionCounts[v] = 0;
+  }
+  removeEdge(u, v) {
+    super.removeEdge(u, v, attr);
+    delete this.nodes[u].attr.transitionCounts[v];
+  }
+  // hmm operations
+  indelTransitionProbability(pathsOnState, pathsOnTransition) {
+    return (this.baseProbability * (pathsOnState + 1)) / (pathsOnTransition + 1);
+  }
+  matchTransitionProbability(pathsOnState, pathsOnTransition) {
+    return this.numCharacters * this.indelTransitionProbability(pathsOnTransition, pathsOnState);
   }
   constructModel(characters) {
     // add nodes
-    this.addNode("s");
+    this.addNode("s", new Graph.MSAHMM.State());
     for (var i = 0; i < this.numColumns; i++) {
       var id = "m" + i,
           m  = new Graph.MSAHMM.MatchState(characters);
@@ -430,28 +450,72 @@ Graph.MSAHMM = class extends Graph.Directed {
       this.addNode(id, new Graph.MSAHMM.State());
     }
     this.addNode("i" + this.numColumns, new Graph.MSAHMM.InsertState());
-    this.addNode("e");
+    this.addNode("e", new Graph.MSAHMM.State());
     // add edges
-    this.addEdge("s", "m0", 1.0);
-    this.addEdge("s", "i0", 0.0);
-    this.addEdge("s", "d0", 0.0);
+    this.addEdge("s", "m0");
+    this.addEdge("s", "i0");
+    this.addEdge("s", "d0");
     for (var i = 0; i < this.numColumns - 1; i++) {
-      this.addEdge("m" + i, "m" + (i + 1), 1.0);
-      this.addEdge("m" + i, "i" + (i + 1), 0.0);
-      this.addEdge("m" + i, "d" + (i + 1), 0.0);
-      this.addEdge("i" + i, "i" + i, 0.0);
-      this.addEdge("i" + i, "m" + i, 0.0);
-      this.addEdge("i" + i, "d" + i, 0.0);
-      this.addEdge("d" + i, "d" + (i + 1), 0.0);
-      this.addEdge("d" + i, "m" + (i + 1), 0.0);
-      this.addEdge("d" + i, "i" + (i + 1), 0.0);
+      this.addEdge("m" + i, "m" + (i + 1));
+      this.addEdge("m" + i, "i" + (i + 1));
+      this.addEdge("m" + i, "d" + (i + 1));
+      this.addEdge("i" + i, "i" + i);
+      this.addEdge("i" + i, "m" + i);
+      this.addEdge("i" + i, "d" + i);
+      this.addEdge("d" + i, "d" + (i + 1));
+      this.addEdge("d" + i, "m" + (i + 1));
+      this.addEdge("d" + i, "i" + (i + 1));
     }
-    this.addEdge("m" + (this.numColumns - 1), "i" + this.numColumns, 0.0);
-    this.addEdge("m" + (this.numColumns - 1), "e", 1.0);
-    this.addEdge("i" + this.numColumns, "i" + this.numColumns, 0.0);
-    this.addEdge("i" + this.numColumns, "e", 0.0);
-    this.addEdge("d" + (this.numColumns - 1), "i" + this.numColumns, 0.0);
-    this.addEdge("d" + (this.numColumns - 1), "e", 0.0);
+    this.addEdge("m" + (this.numColumns - 1), "i" + this.numColumns);
+    this.addEdge("m" + (this.numColumns - 1), "e");
+    this.addEdge("i" + this.numColumns, "i" + this.numColumns);
+    this.addEdge("i" + this.numColumns, "e");
+    this.addEdge("d" + (this.numColumns - 1), "i" + this.numColumns);
+    this.addEdge("d" + (this.numColumns - 1), "e");
+    this.updateTransitionProbabilities();
+  }
+  updateTransitionProbabilities() {
+    for (var id in this.nodes) {
+      if (this.nodes.hasOwnProperty(id)) {
+        this.updateNodeTransitionProbabilities(id);
+      }
+    }
+  }
+  updateNodeTransitionProbabilities(id) {
+    var pathsOnState = 0;
+    for (var pId in this.nodes[id].attr.transitionCounts) {
+      if (this.nodes[id].attr.transitionCounts.hasOwnProperty(pId)) {
+        pathsOnState += this.nodes[id].attr.transitionCounts[pId];
+      }
+    }
+    if (id == "d" + (this.numColumns - 1) ||
+        id == "m" + (this.numColumns - 1) ||
+        id == "i" + this.numColumns) {
+      for (var nId in this.nodes[id].attr.transitionCounts) {
+        if (this.nodes[id].attr.transitionCounts.hasOwnProperty(nId)) {
+          var pathsOnTransition = this.nodes[id].attr.transitionCounts[nId];
+          var p = this.indelTransitionProbability(pathsOnState, pathsOnTransition);
+          if (nId.startsWith("s")) {
+            p *= 2;
+          }
+          this.updateEdge(id, nId, p);
+        }
+      }
+
+    } else {
+      for (var nId in this.nodes[id].attr.transitionCounts) {
+        if (this.nodes[id].attr.transitionCounts.hasOwnProperty(nId)) {
+          var pathsOnTransition = this.nodes[id].attr.transitionCounts[nId];
+          var p;
+          if (nId.startsWith("m")) {
+            p = this.matchTransitionProbability(pathsOnState, pathsOnTransition);
+          } else {
+            p = this.indelTransitionProbability(pathsOnState, pathsOnTransition);
+          }
+          this.updateEdge(id, nId, p);
+        }
+      }
+    }
   }
 }
 
@@ -459,39 +523,51 @@ Graph.MSAHMM = class extends Graph.Directed {
 Graph.MSAHMM.InsertState = class extends Graph.MSAHMM.State {
   constructor() {
     super();
-    this.insertions = {};
+    //this.insertions = {};
   }
-  addPath(pId, o) {
-    super.addPath(pId);
-    if (!this.insertions.hasOwnProperty(pId)) {
-      this.insertions[pId] = [];
-    }
-    this.insertions[pId].put(o);
-  }
+  //addPath(pId, o) {
+  //  super.addPath(pId);
+  //  if (!this.insertions.hasOwnProperty(pId)) {
+  //    this.insertions[pId] = [];
+  //  }
+  //  this.insertions[pId].put(o);
+  //}
 }
 
 
 Graph.MSAHMM.MatchState = class extends Graph.MSAHMM.State {
   constructor(characters) {
     super();
-    this.emissions       = {};
-    this.counts          = {};
-    this.numObservations = characters.size;
-    var p                = 1 / this.numObservations;
+    this.emissionCounts         = {};
+    this.emissionProbabilities = {};
+    this.pseudoCount            = characters.size;
+    var p                       = 1 / this.pseudoCount;
+    //this.numObservations = characters.size;
     characters.forEach((o) => {
-      this.emissions[o] = p;
-      this.counts[o]    = 1;  // pseudo-count of for computing emissions
+      this.emissionCounts[o]        = 1;  // pseudo-count
+      this.emissionProbabilities[o] = p;
     });
   }
-  addPath(pId, o) {
-    super.addPath(pId);
-    this.counts[o]       += 1;
-    this.numObservations += 1;
-    for (var o in this.emmisions) {
-      if (this.emmisions.hasOwnProperty(o)) {
-        var p = this.counts[o] / this.numObservations;
-        this.emmisions[o] = p;
-      }
+  //addPath(pId, o) {
+  //  super.addPath(pId);
+  //  this.counts[o]       += 1;
+  //  this.numObservations += 1;
+  //  for (var o in this.emmisions) {
+  //    if (this.emmisions.hasOwnProperty(o)) {
+  //      var p = this.counts[o] / this.numObservations;
+  //      this.emmisions[o] = p;
+  //    }
+  //  }
+  //}
+}
+
+Graph.viterbi = function(hmm, seq) {
+  var probabilities = {},
+      pointers      = {};
+  for (var id in hmm.nodes) {
+    if (hmm.nodes.hasOwnProperty(id)) {
+      probabilities[id] = {};
+      pointers[id]      = {};
     }
   }
 }
@@ -504,14 +580,14 @@ Graph.MSAHMM.MatchState = class extends Graph.MSAHMM.State {
   */
 Graph.msa = function(groups) {
   var embedAlignmentPath = function(hmm, pId, states, observations) {
-    for (var i = 0; i < states.length; i++) {
-      var n = hmm.getNode(states[i]).attr;
-      if (n instanceof Graph.hmmInsert || n instanceof Graph.hmmMatch) {
-        n.addPath(pId, observations[i]);
-      } else {
-        n.addPath(pId);
-      }
-    }
+    //for (var i = 0; i < states.length; i++) {
+    //  var n = hmm.getNode(states[i]).attr;
+    //  if (n instanceof Graph.hmmInsert || n instanceof Graph.hmmMatch) {
+    //    n.addPath(pId, observations[i]);
+    //  } else {
+    //    n.addPath(pId);
+    //  }
+    //}
   }
   var performSurgery = function(hmm) {
 
