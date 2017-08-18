@@ -68,18 +68,24 @@ Graph.Node = class {
 
 Graph.Directed = class extends Graph.Graph {
   constructor(edgeDelimiter) {
-    super(edgeDelimiter)
-    this.inNeighbors  = {};
-    this.outNeighbors = {};
+    super(edgeDelimiter);
   }
   static Node = class extends Graph.Node {
     constructor(attr) {
-      super(att);
+      super(attr);
       this.inNeighbors  = new Set();
       this.outNeighbors = new Set();
     }
   }
   // primitive operations
+  removeNodeEdges(id) {
+    this.nodes[id].outNeighbors.forEach((v) => {
+      this.removeEdge(id, v);
+    });
+    this.nodes[id].inNeighbors.forEach((v) => {
+      this.removeEdge(v, id);
+    });
+  }
   getEdgeId(u, v) {
     return u + this.ed + v;
   }
@@ -397,10 +403,11 @@ function(tracks, alpha, kappa, minsup, minsize, options) {
 
 
 Graph.MSAHMM = class extends Graph.Directed {
-  constructor(size, observations, edgeDelimiter) {
+  constructor(numColumns, characters, edgeDelimiter) {
     super(edgeDelimiter)
-    this.size = size;
-    constructModel(observations);
+    this.numColumns    = numColumns;
+    this.numCharacters = characters.size;
+    this.constructModel(characters);
   }
   static State = class {
     constructor() {
@@ -410,41 +417,41 @@ Graph.MSAHMM = class extends Graph.Directed {
       this.paths.add(pId);
     }
   }
-  constructModel(observations) {
+  constructModel(characters) {
     // add nodes
-    hmm.addNode("s");
-    for (var i = 0; i < l; i++) {
+    this.addNode("s");
+    for (var i = 0; i < this.numColumns; i++) {
       var id = "m" + i,
-          m = new Graph.hmmMatch(families);
-      hmm.addNode(id, m);
+          m  = new Graph.MSAHMM.MatchState(characters);
+      this.addNode(id, m);
       id = "i" + i;
-      hmm.addNode(id, new Graph.hmmInsert());
+      this.addNode(id, new Graph.MSAHMM.InsertState());
       id = "d" + i;
-      hmm.addNode(id, new Graph.hmmNode());
+      this.addNode(id, new Graph.MSAHMM.State());
     }
-    hmm.addNode("i" + l, new Graph.hmmInsert());
-    hmm.addNode("e");
+    this.addNode("i" + this.numColumns, new Graph.MSAHMM.InsertState());
+    this.addNode("e");
     // add edges
-    g.addEdge("s", "m0", 1.0);
-    g.addEdge("s", "i0", 0.0);
-    g.addEdge("s", "d0", 0.0);
-    for (var i = 0; i < l - 1; i++) {
-      g.addEdge("m" + i, "m" + (i + 1), 1.0);
-      g.addEdge("m" + i, "i" + (i + 1), 0.0);
-      g.addEdge("m" + i, "d" + (i + 1), 0.0);
-      g.addEdge("i" + i, "i" + i, 0.0);
-      g.addEdge("i" + i, "m" + i, 0.0);
-      g.addEdge("i" + i, "d" + i, 0.0);
-      g.addEdge("d" + i, "d" + (i + 1), 0.0);
-      g.addEdge("d" + i, "m" + (i + 1), 0.0);
-      g.addEdge("d" + i, "i" + (i + 1), 0.0);
+    this.addEdge("s", "m0", 1.0);
+    this.addEdge("s", "i0", 0.0);
+    this.addEdge("s", "d0", 0.0);
+    for (var i = 0; i < this.numColumns - 1; i++) {
+      this.addEdge("m" + i, "m" + (i + 1), 1.0);
+      this.addEdge("m" + i, "i" + (i + 1), 0.0);
+      this.addEdge("m" + i, "d" + (i + 1), 0.0);
+      this.addEdge("i" + i, "i" + i, 0.0);
+      this.addEdge("i" + i, "m" + i, 0.0);
+      this.addEdge("i" + i, "d" + i, 0.0);
+      this.addEdge("d" + i, "d" + (i + 1), 0.0);
+      this.addEdge("d" + i, "m" + (i + 1), 0.0);
+      this.addEdge("d" + i, "i" + (i + 1), 0.0);
     }
-    g.addEdge("m" + l - 1, "i" + l, 0.0);
-    g.addEdge("m" + l - 1, "e", 1.0);
-    g.addEdge("i" + l, "i" + l, 0.0);
-    g.addEdge("i" + l, "e", 0.0);
-    g.addEdge("d" + l - 1, "i" + l, 0.0);
-    g.addEdge("d" + l - 1, "e", 0.0);
+    this.addEdge("m" + (this.numColumns - 1), "i" + this.numColumns, 0.0);
+    this.addEdge("m" + (this.numColumns - 1), "e", 1.0);
+    this.addEdge("i" + this.numColumns, "i" + this.numColumns, 0.0);
+    this.addEdge("i" + this.numColumns, "e", 0.0);
+    this.addEdge("d" + (this.numColumns - 1), "i" + this.numColumns, 0.0);
+    this.addEdge("d" + (this.numColumns - 1), "e", 0.0);
   }
 }
 
@@ -465,13 +472,13 @@ Graph.MSAHMM.InsertState = class extends Graph.MSAHMM.State {
 
 
 Graph.MSAHMM.MatchState = class extends Graph.MSAHMM.State {
-  constructor(observations) {
+  constructor(characters) {
     super();
-    this.emissions = {};
-    this.counts = {};
-    this.numObservations = observations.size();
-    var p = 1 / numObservations;
-    observations.forEach((o) => {
+    this.emissions       = {};
+    this.counts          = {};
+    this.numObservations = characters.size;
+    var p                = 1 / this.numObservations;
+    characters.forEach((o) => {
       this.emissions[o] = p;
       this.counts[o]    = 1;  // pseudo-count of for computing emissions
     });
@@ -492,11 +499,10 @@ Graph.MSAHMM.MatchState = class extends Graph.MSAHMM.State {
 
 /**
   * An HMM based MSA algorithm.
-  * @param {object} tracks - Ordered GCV track data.
-  * @param {function} alignmentF - The alignment algorithm to be used.
+  * @param {Array} tracks - groups attribute of GCV track data.
   * @return {int} - The computed score.
   */
-Graph.msa = function(tracks, alignmentF) {
+Graph.msa = function(groups) {
   var embedAlignmentPath = function(hmm, pId, states, observations) {
     for (var i = 0; i < states.length; i++) {
       var n = hmm.getNode(states[i]).attr;
@@ -511,16 +517,17 @@ Graph.msa = function(tracks, alignmentF) {
 
   }
   // 1) construct the graph from the first track
-  var l = tracks.groups[0].genes.length,
+  var l = groups[0].genes.length,
       families = new Set();
-  for (var i = 0; i < tracks.groups.length; i++) {
-    for (var j = 0; j < tracks.groups[i].genes.length; j++) {
-      families.add(tracks.groups[i].genes[j].family);
+  for (var i = 0; i < groups.length; i++) {
+    for (var j = 0; j < groups[i].genes.length; j++) {
+      families.add(groups[i].genes[j].family);
     }
   }
-  var hmm = new Graph.Directed(l, families);
+  var hmm = new Graph.MSAHMM(l, families);
+  console.log(hmm);
   // 2) iteratively add each remaining track to the alignment
-  for (var i = 1; i < tracks.groups.length; i++) {
+  for (var i = 1; i < groups.length; i++) {
     // a) align to HMM
     // b) update the transition and emission probabilities using the new alignment
     // c) if necessary, perform surgery on the graph
