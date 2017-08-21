@@ -593,7 +593,7 @@ Graph.MSAHMM.viterbi = function(hmm, seq) {
       return [id];
     }
     var ptr = ptrs[id][i],
-        path = traceback(ptrs, i - !ptr.startsWith("d"));  // arithmetic HACK!
+        path = traceback(ptr, i - !id.startsWith("d"));  // arithmetic HACK!
     path.push(id);
     return path;
   }
@@ -627,8 +627,8 @@ Graph.MSAHMM.viterbi = function(hmm, seq) {
       }
       propagate(ij, dj, i);
       if (j < hmm.numColumns - 1) {
-        djnext = "d" + (j + 1);
-        mjnext = "m" + (j + 1);
+        var djnext = "d" + (j + 1);
+        var mjnext = "m" + (j + 1);
         // delete and merge transitions out of deletion j
         propagate(dj, djnext, i);
         propagate(dj, mjnext, i);
@@ -636,7 +636,7 @@ Graph.MSAHMM.viterbi = function(hmm, seq) {
         propagate(mj, djnext, i);
         propagate(mj, mjnext, i);
       }
-      ijnext = "i" + (j + 1);
+      var ijnext = "i" + (j + 1);
       // insertion transition out of delete j
       propagate(dj, ijnext, i);
       // insertion transition out of match j
@@ -657,22 +657,24 @@ Graph.MSAHMM.viterbi = function(hmm, seq) {
 }
 
 
+Graph.MSAHMM.embedPath = function(hmm, pId, seq, path) {
+  for (var i = 0; i < path.length; i++) {
+    var n = hmm.getNode(path[i]).attr;
+    if (n instanceof Graph.hmmInsert || n instanceof Graph.hmmMatch) {
+      n.addPath(pId, seq[i]);
+    } else {
+      n.addPath(pId);
+    }
+  }
+}
+
+
 /**
   * An HMM based MSA algorithm.
   * @param {Array} tracks - groups attribute of GCV track data.
   * @return {int} - The computed score.
   */
 Graph.msa = function(groups) {
-  var embedAlignmentPath = function(hmm, pId, states, observations) {
-    //for (var i = 0; i < states.length; i++) {
-    //  var n = hmm.getNode(states[i]).attr;
-    //  if (n instanceof Graph.hmmInsert || n instanceof Graph.hmmMatch) {
-    //    n.addPath(pId, observations[i]);
-    //  } else {
-    //    n.addPath(pId);
-    //  }
-    //}
-  }
   var performSurgery = function(hmm) {
 
   }
@@ -689,9 +691,10 @@ Graph.msa = function(groups) {
   // 2) iteratively add each remaining track to the alignment
   for (var i = 1; i < groups.length; i++) {
     // a) align to HMM
-    var seq = groups[i].genes.map((g) => g.family);
-    Graph.MSAHMM.viterbi(hmm, seq);
-    // b) update the transition and emission probabilities using the new alignment
+    var seq  = groups[i].genes.map((g) => g.family),
+        path = Graph.MSAHMM.viterbi(hmm, seq);
+    console.log(path);
+    // b) embed alignment path and update transition and emission probabilities
     // c) if necessary, perform surgery on the graph
   }
 }
