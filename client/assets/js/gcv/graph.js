@@ -414,12 +414,12 @@ Graph.MSAHMM = class extends Graph.Directed {
     constructor() {
       this.transitionCounts = {};
     }
-    //addPath(pId, n) {
-    //  if (!this.paths.hasOwnProperty(pId)) {
-    //    this.paths[pId] = [];
-    //  }
-    //  this.paths[pId].push(n);
-    //}
+    incrementTransition(id) {
+      if (!this.transitionCounts.hasOwnProperty(id)) {
+        this.transitionCounts[id] = 0;
+      }
+      this.transitionCounts[id] += 1;
+    }
   }
   // primitive operations
   addEdge(u, v, attr) {
@@ -438,8 +438,8 @@ Graph.MSAHMM = class extends Graph.Directed {
     return this.numCharacters * this.indelTransitionProbability(pathsOnTransition, pathsOnState);
   }
   constructModel(characters) {
-    // add nodes
-    this.addNode("s", new Graph.MSAHMM.State());
+    // add nodes w/ absolute lexicographical ordering
+    this.addNode("a", new Graph.MSAHMM.State());
     for (var i = 0; i < this.numColumns; i++) {
       var id = "m" + i,
           m  = new Graph.MSAHMM.MatchState(characters);
@@ -450,11 +450,11 @@ Graph.MSAHMM = class extends Graph.Directed {
       this.addNode(id, new Graph.MSAHMM.State());
     }
     this.addNode("i" + this.numColumns, new Graph.MSAHMM.InsertState());
-    this.addNode("e", new Graph.MSAHMM.State());
+    this.addNode("z", new Graph.MSAHMM.State());
     // add edges
-    this.addEdge("s", "m0");
-    this.addEdge("s", "i0");
-    this.addEdge("s", "d0");
+    this.addEdge("a", "m0");
+    this.addEdge("a", "i0");
+    this.addEdge("a", "d0");
     for (var i = 0; i < this.numColumns - 1; i++) {
       this.addEdge("m" + i, "m" + (i + 1));
       this.addEdge("m" + i, "i" + (i + 1));
@@ -467,11 +467,11 @@ Graph.MSAHMM = class extends Graph.Directed {
       this.addEdge("d" + i, "i" + (i + 1));
     }
     this.addEdge("m" + (this.numColumns - 1), "i" + this.numColumns);
-    this.addEdge("m" + (this.numColumns - 1), "e");
+    this.addEdge("m" + (this.numColumns - 1), "z");
     this.addEdge("i" + this.numColumns, "i" + this.numColumns);
-    this.addEdge("i" + this.numColumns, "e");
+    this.addEdge("i" + this.numColumns, "z");
     this.addEdge("d" + (this.numColumns - 1), "i" + this.numColumns);
-    this.addEdge("d" + (this.numColumns - 1), "e");
+    this.addEdge("d" + (this.numColumns - 1), "z");
     this.updateTransitionProbabilities();
   }
   updateTransitionProbabilities() {
@@ -495,13 +495,12 @@ Graph.MSAHMM = class extends Graph.Directed {
         if (this.nodes[id].attr.transitionCounts.hasOwnProperty(nId)) {
           var pathsOnTransition = this.nodes[id].attr.transitionCounts[nId];
           var p = this.indelTransitionProbability(pathsOnState, pathsOnTransition);
-          if (nId.startsWith("s")) {
+          if (nId.startsWith("a")) {
             p *= 2;
           }
           this.updateEdge(id, nId, p);
         }
       }
-
     } else {
       for (var nId in this.nodes[id].attr.transitionCounts) {
         if (this.nodes[id].attr.transitionCounts.hasOwnProperty(nId)) {
@@ -523,26 +522,26 @@ Graph.MSAHMM = class extends Graph.Directed {
 Graph.MSAHMM.InsertState = class extends Graph.MSAHMM.State {
   constructor() {
     super();
-    //this.insertions = {};
+    this.paths = {};
   }
-  //addPath(pId, o) {
-  //  super.addPath(pId);
-  //  if (!this.insertions.hasOwnProperty(pId)) {
-  //    this.insertions[pId] = [];
-  //  }
-  //  this.insertions[pId].put(o);
-  //}
+  addPath(pId, o) {
+    if (!this.paths.hasOwnProperty(pId)) {
+      this.paths[pId] = [];
+    }
+    this.paths[pId].put(o);
+  }
 }
 
 
 Graph.MSAHMM.MatchState = class extends Graph.MSAHMM.State {
   constructor(characters) {
     super();
+    this.countAmplifier         = 1;
+    this.paths                  = {};
     this.emissionCounts         = {};
-    this.emissionProbabilities = {};
-    this.pseudoCount            = characters.size;
-    var p                       = 1 / this.pseudoCount;
-    //this.numObservations = characters.size;
+    this.emissionProbabilities  = {};
+    this.numObservations        = characters.size;
+    var p                       = 1 / this.numObservations;
     characters.forEach((o) => {
       this.emissionCounts[o]        = 1;  // pseudo-count
       this.emissionProbabilities[o] = p;
@@ -551,17 +550,17 @@ Graph.MSAHMM.MatchState = class extends Graph.MSAHMM.State {
   emit(o) {
     return this.emissionProbabilities[o];
   }
-  //addPath(pId, o) {
-  //  super.addPath(pId);
-  //  this.counts[o]       += 1;
-  //  this.numObservations += 1;
-  //  for (var o in this.emmisions) {
-  //    if (this.emmisions.hasOwnProperty(o)) {
-  //      var p = this.counts[o] / this.numObservations;
-  //      this.emmisions[o] = p;
-  //    }
-  //  }
-  //}
+  addPath(pId, o) {
+    this.paths[pId] = o;
+    this.emissionCounts[o] += this.countAmplifier;
+    this.numObservations   += this.countAmplifier;
+    for (var o in this.emissionProbabilities) {
+      if (this.emissionCounts.hasOwnProperty(o)) {
+        var p = this.emissionCounts[o] / this.numObservations;
+        this.emissionProbabilities[o] = p;
+      }
+    }
+  }
 }
 
 Graph.MSAHMM.viterbi = function(hmm, seq) {
@@ -575,21 +574,23 @@ Graph.MSAHMM.viterbi = function(hmm, seq) {
   }
   // a generic probability forward propagate function
   var propagate = function(from, to, i) {
-    var current   = probs[to][i] || -Infinity,
-        candidate = probs[from][i - !to.startsWith("d")] +  // arithmetic HACK!
-                    Math.log(hmm.getEdge(from, to));
+    var currentProb = probs[to][i] || -Infinity,
+        currentPtr  = ptrs[to][i] || "",
+        candidate   = probs[from][i - !to.startsWith("d")] +  // arithmetic HACK!
+                      Math.log(hmm.getEdge(from, to));
     if (to.startsWith("m")) {
       candidate += hmm.getNode(to).attr.emit(seq[i]);
     }
     // TODO: use preferred transitions to resolve ties
-    if (candidate > current || (candidate == current && from.startsWith("m"))) {
+    if (candidate > currentProb ||
+       (candidate == currentProb && currentPtr < from)) {
       probs[to][i] = candidate;
       ptrs[to][i]  = from;
     }
   }
   // recursively identifies the sequence's most probable path through the HMM
   var traceback = function(id, i) {
-    if (id == "s") {
+    if (id == "a") {
       return [id];
     }
     var ptr = ptrs[id][i],
@@ -598,7 +599,7 @@ Graph.MSAHMM.viterbi = function(hmm, seq) {
     return path;
   }
   // seed start state
-  var s = "s";
+  var s = "a";
   probs[s][-1] = 0;  // = log(1)
   // propagate pre-sequence deletion probabilities
   var dj = "d0";
@@ -648,7 +649,7 @@ Graph.MSAHMM.viterbi = function(hmm, seq) {
     }
   }
   // compute one time transitions out of start state
-  var e = "e";
+  var e = "z";
   propagate(dj, e, seq.length);
   propagate(ij, e, seq.length);
   propagate(mj, e, seq.length);
@@ -657,14 +658,18 @@ Graph.MSAHMM.viterbi = function(hmm, seq) {
 }
 
 
-Graph.MSAHMM.embedPath = function(hmm, pId, seq, path) {
-  for (var i = 0; i < path.length; i++) {
-    var n = hmm.getNode(path[i]).attr;
-    if (n instanceof Graph.hmmInsert || n instanceof Graph.hmmMatch) {
-      n.addPath(pId, seq[i]);
-    } else {
-      n.addPath(pId);
+Graph.MSAHMM.embedPath = function(hmm, pId, path, seq) {
+  var i = seq.length - 1;
+  for (var j = 0; j < path.length - 1; j++) {
+    var from = path[j],
+        to   = path[j + 1],
+        n    = hmm.getNode(from).attr;
+    if (n instanceof Graph.MSAHMM.InsertState ||
+        n instanceof Graph.MSAHMM.MatchState) {
+      n.addPath(pId, seq[i--]);
     }
+    n.incrementTransition(to);
+    hmm.updateNodeTransitionProbabilities(from);
   }
 }
 
@@ -687,14 +692,17 @@ Graph.msa = function(groups) {
     }
   }
   var hmm = new Graph.MSAHMM(l, families);
-  console.log(hmm);
   // 2) iteratively add each remaining track to the alignment
-  for (var i = 1; i < groups.length; i++) {
+  for (var i = 0; i < groups.length; i++) {
+    console.log(groups[i].chromosome_name);
     // a) align to HMM
     var seq  = groups[i].genes.map((g) => g.family),
         path = Graph.MSAHMM.viterbi(hmm, seq);
+    console.log(seq);
     console.log(path);
     // b) embed alignment path and update transition and emission probabilities
+    Graph.MSAHMM.embedPath(hmm, i, path, seq);
     // c) if necessary, perform surgery on the graph
   }
+  console.log(hmm);
 }
