@@ -528,7 +528,7 @@ Graph.MSAHMM.InsertState = class extends Graph.MSAHMM.State {
     if (!this.paths.hasOwnProperty(pId)) {
       this.paths[pId] = [];
     }
-    this.paths[pId].put(o);
+    this.paths[pId].push(o);
   }
 }
 
@@ -536,7 +536,7 @@ Graph.MSAHMM.InsertState = class extends Graph.MSAHMM.State {
 Graph.MSAHMM.MatchState = class extends Graph.MSAHMM.State {
   constructor(characters) {
     super();
-    this.countAmplifier         = 1;
+    this.countAmplifier         = 1000;
     this.paths                  = {};
     this.emissionCounts         = {};
     this.emissionProbabilities  = {};
@@ -659,14 +659,14 @@ Graph.MSAHMM.viterbi = function(hmm, seq) {
 
 
 Graph.MSAHMM.embedPath = function(hmm, pId, path, seq) {
-  var i = seq.length - 1;
+  var i = 0;
   for (var j = 0; j < path.length - 1; j++) {
     var from = path[j],
         to   = path[j + 1],
         n    = hmm.getNode(from).attr;
     if (n instanceof Graph.MSAHMM.InsertState ||
         n instanceof Graph.MSAHMM.MatchState) {
-      n.addPath(pId, seq[i--]);
+      n.addPath(pId, seq[i++]);
     }
     n.incrementTransition(to);
     hmm.updateNodeTransitionProbabilities(from);
@@ -703,6 +703,7 @@ Graph.msa = function(groups) {
     // b) embed alignment path and update transition and emission probabilities
     Graph.MSAHMM.embedPath(hmm, i, path, seq);
     // c) if necessary, perform surgery on the graph
+    console.log(JSON.parse(JSON.stringify(hmm)));
   }
   console.log(hmm);
 }
