@@ -532,11 +532,11 @@ Graph.MSAHMM.InsertState = class extends Graph.MSAHMM.State {
 Graph.MSAHMM.MatchState = class extends Graph.MSAHMM.State {
   constructor(characters) {
     super();
-    this.countAmplifier         = 10;
     this.paths                  = {};
     this.emissionCounts         = {};
     this.emissionProbabilities  = {};
     this.numObservations        = characters.size;
+    this.countAmplifier         = this.numObservations;
     var p                       = 1 / this.numObservations;
     characters.forEach((o) => {
       this.emissionCounts[o]        = 1;  // pseudo-count
@@ -678,7 +678,31 @@ Graph.MSAHMM.embedPath = function(hmm, pId, path, seq) {
   * @param {Array} tracks - groups attribute of GCV track data.
   * @return {int} - The computed score.
   */
-Graph.msa = function(groups) {
+Graph.msa = function(tracks) {
+  var groups = JSON.parse(JSON.stringify(tracks))
+  var align = function(path, genes) {
+    var x = 0,
+        j = 0,
+        insertionSize = 0;
+    for (var i = 1; i < path.length; i++) {
+      var n = path[i];
+      if (n.startsWith("m") || n.startsWith("d") || n == "z") {
+        if (insertionSize > 0) {
+          var step = 1 / (insertionSize + 1);
+          for (var k = insertionSize; k > 0; k--) {
+            genes[j++].x = x - (k * step);
+          }
+          insertionSize = 0;
+        }
+        if (n.startsWith("m")) {
+          genes[j++].x = x;
+        }
+        x++;
+      } else {
+        insertionSize++;
+      }
+    }
+  }
   var performSurgery = function(hmm) {
 
   }
@@ -706,14 +730,18 @@ Graph.msa = function(groups) {
       console.log(seq1);
       console.log(path1);
       Graph.MSAHMM.embedPath(hmm, i, path1, seq1);
+      align(path1, groups[i].genes);
     } else {
       console.log("reverse");
       console.log(seq2);
       console.log(path2);
       Graph.MSAHMM.embedPath(hmm, i, path2, seq2);
+      groups[i].genes.reverse()
+      align(path2, groups[i].genes);
     }
     // c) if necessary, perform surgery on the graph
     console.log(JSON.parse(JSON.stringify(hmm)));
   }
   console.log(hmm);
+  return groups;
 }

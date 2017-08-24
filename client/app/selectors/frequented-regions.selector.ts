@@ -49,8 +49,7 @@ export const frequentedRegionsSelector = () => {
             let gId = "group" + j + ".";
             group[i]["chromosome_name"] = gId.concat(group[i]["chromosome_name"]);
           }
-          grouped = grouped.concat(group);
-          Graph.msa(group);
+          grouped = grouped.concat(Graph.msa(group));
           frTracks.groups = frTracks.groups.filter(function(t, i) {
             return supporting.indexOf(i) == -1;
           });
