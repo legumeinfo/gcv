@@ -10,7 +10,7 @@ export const frequentedRegionsSelector = () => {
       let frTracks = JSON.parse(JSON.stringify(tracks)),
           grouped  = [],
           results  = [];
-      let aggregateSupport = (fr, identified) => {
+      let aggregateSupport = (fr, identified?) => {
         if (identified === undefined) identified = new Set();
         let supporting = fr.supporting.map(n => parseInt(n)).filter((n, i) => {
           return !identified.has(n);
