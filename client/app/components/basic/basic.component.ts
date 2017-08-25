@@ -124,7 +124,8 @@ export class BasicComponent implements OnInit {
       keyClick: function (f) {
         this.selectFamily(f);
       }.bind(this),
-      highlight: highlight
+      highlight: highlight,
+      selector: 'family'
     }
     this.microTracks = tracks;
     var seen = {};
