@@ -135,7 +135,10 @@ export class BasicComponent implements OnInit {
       selector: 'family'
     }
     this.microArgs = {
-        selectiveColoring: familySizes
+        selectiveColoring: familySizes,
+        geneClick: function (g, track) {
+          this.selectGene(g);
+        }.bind(this)
     };
     this.microTracks = tracks;
     var seen = {};
