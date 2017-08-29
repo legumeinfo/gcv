@@ -27,6 +27,7 @@ import { MicroTracksService }       from '../../services/micro-tracks.service';
 declare var d3: any;
 declare var contextColors: any;
 declare var Split: any;
+declare var getFamilySizeMap: any;
 
 enum AccordionTypes {
   REGEXP,
@@ -90,6 +91,7 @@ export class BasicComponent implements OnInit {
     autoResize: true
   };
 
+  microArgs: any;
   microLegendArgs: any;
 
   // constructor
@@ -113,6 +115,10 @@ export class BasicComponent implements OnInit {
       (num) ? ALERT_SUCCESS : ALERT_WARNING,
       num + ' tracks returned'
     ));
+    // only selectively color when there are results
+    let familySizes = (tracks.groups.length > 1)
+                      ? getFamilySizeMap(tracks)
+                      : undefined;
     let highlight = tracks.groups.reduce((l, group) => {
       let families = group.genes
         .filter(g => this.queryGenes.indexOf(g.name) !== -1)
@@ -124,8 +130,16 @@ export class BasicComponent implements OnInit {
       keyClick: function (f) {
         this.selectFamily(f);
       }.bind(this),
-      highlight: highlight
+      highlight: highlight,
+      selectiveColoring: familySizes,
+      selector: 'family'
     }
+    this.microArgs = {
+        selectiveColoring: familySizes,
+        geneClick: function (g, track) {
+          this.selectGene(g);
+        }.bind(this)
+    };
     this.microTracks = tracks;
     var seen = {};
     var uniqueFamilies = this.microTracks.families.reduce((l, f) => {
