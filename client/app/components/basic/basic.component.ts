@@ -91,7 +91,6 @@ export class BasicComponent implements OnInit {
     autoResize: true
   };
 
-  microArgs: any;
   microLegendArgs: any;
 
   // constructor
@@ -134,7 +133,7 @@ export class BasicComponent implements OnInit {
       selectiveColoring: familySizes,
       selector: 'family'
     }
-    this.microArgs.selectiveColoring: familySizes;
+    this.microArgs.selectiveColoring = familySizes;
     this.microTracks = tracks;
     var seen = {};
     var uniqueFamilies = this.microTracks.families.reduce((l, f) => {
