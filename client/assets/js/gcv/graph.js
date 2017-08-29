@@ -4,9 +4,11 @@
 var Graph = Graph || {};
 
 
+/**
+  * An effectively abstract class describing what it means to be a graph.
+  */
 Graph.Graph = class {
   constructor(edgeDelimiter) {
-    // make the class effectively abstract
     if (new.target === Graph.Graph) {
       throw new TypeError("Cannot construct Graph instances directly");
     }
@@ -38,7 +40,7 @@ Graph.Graph = class {
   }
   updateNode(id, attr) {
     if (this.nodes.hasOwnProperty(id)) {
-      this.nodes[id] = attr;
+      this.nodes[id].attr = attr;
     }
   }
   removeNode(id) {
@@ -55,9 +57,11 @@ Graph.Graph = class {
 }
 
 
+/**
+  * An effectively abstract class describing what it means to be a graph node.
+  */
 Graph.Node = class {
   constructor(attr) {
-    // make the class effectively abstract
     if (new.target === Graph.Node) {
       throw new TypeError("Cannot construct Node instances directly");
     }
@@ -66,6 +70,9 @@ Graph.Node = class {
 }
 
 
+/**
+  * A directed graph that implements the abstract Graph class.
+  */
 Graph.Directed = class extends Graph.Graph {
   constructor(edgeDelimiter) {
     super(edgeDelimiter);
@@ -106,10 +113,12 @@ Graph.Directed = class extends Graph.Graph {
   removeEdge(u, v) {
     var e = this.getEdgeId(u, v);
     if (this.edges.hasOwnProperty(e)) {
+      var attr = this.edges[e];
       delete this.edges[e];
       this.nodes[u].outNeighbors.delete(v);
       this.nodes[v].inNeighbors.delete(u);
-    }
+      return attr;
+    } return null;
   }
   getEdge(u, v) {
     var e = this.getEdgeId(u, v);
@@ -120,6 +129,9 @@ Graph.Directed = class extends Graph.Graph {
 }
 
 
+/**
+  * An undirected graph that implements the abstract Graph class.
+  */
 Graph.Undirected = class extends Graph.Graph {
   constructor(edgeDelimiter) {
     super(edgeDelimiter);
@@ -156,10 +168,12 @@ Graph.Undirected = class extends Graph.Graph {
   removeEdge(u, v) {
     var e = this.getEdgeId(u, v);
     if (this.edges.hasOwnProperty(e)) {
+      var attr = this.edges[e];
       delete this.edges[e];
       this.nodes[u].neighbors.delete(v);
       this.nodes[v].neighbors.delete(u);
-    }
+      return attr;
+    } return null;
   }
   getEdge(u, v) {
     var e = this.getEdgeId(u, v);
@@ -208,6 +222,9 @@ Graph.Undirected = class extends Graph.Graph {
 }
 
 
+/**
+  * A class that represents a Frequented Region.
+  */
 Graph.FR = class {
   constructor(nodes) {
     this.nodes = nodes || [];
@@ -307,7 +324,7 @@ Graph.FR = class {
 
 
 /**
-  * The Frequented Regions Algorithm.
+  * The Frequented Regions Algorithm  (Cleary, et al, ACM-BCB 2017).
   * @param {object} tracks - GCV track data.
   * @param {number} alpha - Fraction of region nodes a supporting path must
   * traverse.
@@ -379,8 +396,6 @@ function(tracks, alpha, kappa, minsup, minsize, options) {
   }
   // iteratively contract edges in most support first order
   var fr = null;
-  console.log("num nodes: " + Object.keys(g.nodes).length);
-  console.log("num edges: " + Object.keys(g.edges).length);
   while (Object.keys(g.edges).length > 1) {
     // find max edge weight
     var maxFR = null,
@@ -402,30 +417,30 @@ function(tracks, alpha, kappa, minsup, minsize, options) {
 }
 
 
+/**
+  * A specialized directed graph that implements a profile Hidden Markov Model
+  * (HMM) with the canonical Multiple Sequence Alignment (MSA) topology.
+  */
 Graph.MSAHMM = class extends Graph.Directed {
   constructor(numColumns, characters, edgeDelimiter) {
     super(edgeDelimiter)
     this.numColumns      = numColumns;
+    this.characters      = characters;
     this.numCharacters   = characters.size;
-    //this.baseProbability = 1 / (2 + this.numCharacters);
     this.constructModel(characters);
   }
   static State = class {
-    constructor() {
-      this.transitionCounts = {};
-    }
-    incrementTransition(id) {
-      this.transitionCounts[id] += 1;
-    }
+    // [Delete]State does not know what paths traverse it because no character
+    // is associated with a delete state and the traversal can be inferred from
+    // the path's absence in the insert and match states in the same column.
+    constructor() { }
   }
   // primitive operations
   addEdge(u, v, attr) {
     super.addEdge(u, v, attr);
-    this.nodes[u].attr.transitionCounts[v] = 0;
   }
   removeEdge(u, v) {
-    super.removeEdge(u, v, attr);
-    delete this.nodes[u].attr.transitionCounts[v];
+    return super.removeEdge(u, v);
   }
   // hmm operations
   constructModel(characters) {
@@ -465,13 +480,11 @@ Graph.MSAHMM = class extends Graph.Directed {
     this.addEdge("d" + (this.numColumns - 1), "z");
     this.updateTransitionProbabilities();
   }
-  indelTransitionProbability(pathsOnState, pathsOnTransition) {
-    //return (this.baseProbability * (pathsOnState + 1)) / (pathsOnTransition + 1);
-    return (1 + pathsOnTransition) / (2 + this.numCharacters + pathsOnState);
+  indelTransitionProbability() {
+    return 1 / (2 + this.numCharacters);
   }
-  matchTransitionProbability(pathsOnState, pathsOnTransition) {
-    return (this.numCharacters + pathsOnTransition) /
-           (2 + this.numCharacters + pathsOnState);
+  matchTransitionProbability() {
+    return this.numCharacters / (2 + this.numCharacters);
   }
   updateTransitionProbabilities() {
     for (var id in this.nodes) {
@@ -481,40 +494,30 @@ Graph.MSAHMM = class extends Graph.Directed {
     }
   }
   updateNodeTransitionProbabilities(id) {
-    var pathsOnState = 0;
-    for (var pId in this.nodes[id].attr.transitionCounts) {
-      if (this.nodes[id].attr.transitionCounts.hasOwnProperty(pId)) {
-        pathsOnState += this.nodes[id].attr.transitionCounts[pId];
-      }
-    }
     if (id == "d" + (this.numColumns - 1) ||
         id == "m" + (this.numColumns - 1) ||
         id == "i" + this.numColumns) {
-      for (var nId in this.nodes[id].attr.transitionCounts) {
-        if (this.nodes[id].attr.transitionCounts.hasOwnProperty(nId)) {
-          var pathsOnTransition = this.nodes[id].attr.transitionCounts[nId];
-          var p = (1 + pathsOnTransition) / (2 + pathsOnState);
-          this.updateEdge(id, nId, p);
-        }
-      }
+      this.nodes[id].outNeighbors.forEach((nId) => {
+        this.updateEdge(id, nId, 1 / 2);
+      });
     } else {
-      for (var nId in this.nodes[id].attr.transitionCounts) {
-        if (this.nodes[id].attr.transitionCounts.hasOwnProperty(nId)) {
-          var pathsOnTransition = this.nodes[id].attr.transitionCounts[nId];
-          var p;
-          if (nId.startsWith("m")) {
-            p = this.matchTransitionProbability(pathsOnState, pathsOnTransition);
-          } else {
-            p = this.indelTransitionProbability(pathsOnState, pathsOnTransition);
-          }
-          this.updateEdge(id, nId, p);
+      this.nodes[id].outNeighbors.forEach((nId) => {
+        var p;
+        if (nId.startsWith("m")) {
+          p = this.matchTransitionProbability();
+        } else {
+          p = this.indelTransitionProbability();
         }
-      }
+        this.updateEdge(id, nId, p);
+      });
     }
   }
 }
 
 
+/**
+  * A class representing an insertion state in an MSA profile HMM.
+  */
 Graph.MSAHMM.InsertState = class extends Graph.MSAHMM.State {
   constructor() {
     super();
@@ -529,6 +532,9 @@ Graph.MSAHMM.InsertState = class extends Graph.MSAHMM.State {
 }
 
 
+/**
+  * A class representing a match state in an MSA profile HMM.
+  */
 Graph.MSAHMM.MatchState = class extends Graph.MSAHMM.State {
   constructor(characters) {
     super();
@@ -559,6 +565,15 @@ Graph.MSAHMM.MatchState = class extends Graph.MSAHMM.State {
   }
 }
 
+
+/**
+  * A message passing implementation of the Viterbi algorithm.
+  * @param{MSAHMM} hmm - The HMM in which to find the optimal path.
+  * @param{Array} seq - An ordered array of strings representing the sequence
+  * for which a state path is to be computed.
+  * return {Array} - An ordered array of state IDs describing the most sequence
+  * path through the HMM.
+  */
 Graph.MSAHMM.viterbi = function(hmm, seq) {
   var probs = {},
       ptrs  = {};
@@ -649,14 +664,22 @@ Graph.MSAHMM.viterbi = function(hmm, seq) {
   propagate(ilast, e, seq.length);
   propagate(mj, e, seq.length);
   // follow the pointers from the end state to the start state to get the path
-  console.log(probs);
-  console.log(ptrs);
   var path = traceback(e, seq.length);
   path.probability = probs["z"][seq.length];
   return path;
 }
 
 
+/**
+  * Embeds the given sequence along the given state path in the given HMM.
+  * @param{MSAHMM} hmm - The HMM in which to embed the sequence path.
+  * @param{String} pId - The ID of the sequence for which the path is being
+  * embedded.
+  * @param{Array} path - An ordered array of state IDs describing the sequence
+  * path to be embedded.
+  * @param{Array} seq - An ordered array of strings representing the sequence
+  * for which a path is being embedded.
+  */
 Graph.MSAHMM.embedPath = function(hmm, pId, path, seq) {
   var i = 0;
   for (var j = 0; j < path.length - 1; j++) {
@@ -667,8 +690,159 @@ Graph.MSAHMM.embedPath = function(hmm, pId, path, seq) {
         n instanceof Graph.MSAHMM.MatchState) {
       n.addPath(pId, seq[i++]);
     }
-    n.incrementTransition(to);
-    //hmm.updateNodeTransitionProbabilities(from);
+  }
+}
+
+
+/**
+  * Gets an embedded sequence's path through the current topology of the graph.
+  * @param{MSAHMM} hmm - The HMM to find the path through.
+  * @param{String} pId - The ID of the sequence for which to get the path.
+  * return {Array} - An ordered array of state IDs describing the sequence path.
+  */
+Graph.MSAHMM.getPath = function(hmm, pId) {
+  var path = ["a"];
+  for (var j = 0; j < hmm.numColumns; j++) {
+    var i      = "i" + j,
+        ipaths = hmm.getNode(i).attr.paths,
+        m      = "m" + j,
+        mpaths = hmm.getNode(m).attr.paths,
+        d      = "d" + j;
+    if (ipaths.hasOwnProperty(pId) || mpaths.hasOwnProperty(pId)) {
+      if (ipaths.hasOwnProperty(pId)) {
+        for (var k = 0; k < ipaths[pId].length; k++) {
+          path.push(i);
+        }
+      }
+      if (mpaths.hasOwnProperty(pId)) {
+        path.push(m);
+      }
+    } else {
+      path.push(d);
+    }
+  }
+  var i      = "i" + hmm.numColumns,
+      ipaths = hmm.getNode(i).attr.paths;
+  if (ipaths.hasOwnProperty(pId)) {
+    for (var k = 0; k < ipaths[pId].length; k++) {
+      path.push(i);
+    }
+  }
+  path.push("z");
+  return path;
+}
+
+
+/**
+  * Converts the insertion states into one or more match states if  traversed by
+  * a path. This may invalidate previously generated paths.
+  * @param {MSAHMM} hmm - The model to perform surgery one.
+  */
+Graph.MSAHMM.performSurgery = function(hmm) {
+  var growBy = 0;
+  for (var j = 0; j <= hmm.numColumns; j += (growBy + 1)) { 
+    growBy = 0;
+    var ipaths = hmm.nodes["i" + j].attr.paths;
+    // if one or more paths traverses the insert state
+    if (Object.keys(ipaths).length > 0) {
+      // find the largest number of consecutive insertions
+      for (var pId in ipaths) {
+        if (ipaths.hasOwnProperty(pId)) {
+          growBy = Math.max(growBy, ipaths[pId].length);
+        }
+      }
+      // add growBy new columns to the end of the model and shift probabilities
+      var l = hmm.numColumns;
+      for (var k = l + growBy - 1; k >= j; k--) {
+        var knext  = k + 1,
+            dk     = "d" + k,
+            ik     = "i" + knext,
+            mk     = "m" + k,
+            dknext = "d" + knext,
+            mknext = "m" + knext;
+        // add new nodes and edges
+        if (k >= l - 1) {
+          // add a new column
+          if (k >= l) {
+            hmm.addNode(dk);
+            hmm.addNode(ik);
+            hmm.addNode(mk);
+            hmm.addEdge(dk, ik);
+            hmm.addEdge(ik, ik);
+            hmm.addEdge(mk, ik);
+          }
+          // connect this and the next column
+          if (k == l + growBy - 1) {
+            hmm.addEdge(dk, "z");
+            hmm.addEdge(ik, "z");
+            hmm.addEdge(mk, "z");
+          } else {
+            hmm.addEdge(dk, dknext);
+            hmm.addEdge(dk, mknext);
+            hmm.addEdge(ik, dknext);
+            hmm.addEdge(ik, mknext);
+            hmm.addEdge(mk, dknext);
+            hmm.addEdge(mk, mknext);
+          }
+        }
+        // shift the existing probabilities
+        if (k >= j + growBy) {
+          var shift      = k - growBy,
+              shiftNext  = shift + 1,
+              dshift     = "d" + shift,
+              ishift     = "i" + shiftNext,
+              mshift     = "m" + shift,
+              dshiftNext = "d" + shiftNext,
+              mshiftNext = "m" + shiftNext;
+          // shift nodes
+          hmm.updateNode(dk, hmm.getNode(dshift).attr);
+          hmm.updateNode(ik, hmm.getNode(ishift).attr);
+          hmm.updateNode(mk, hmm.getNode(mshift).attr);
+          // shift edges
+          if (k == l + growBy - 1) {
+            hmm.updateEdge(dk, "z", hmm.removeEdge(dshift, "z"));
+            hmm.updateEdge(ik, "z", hmm.removeEdge(ishift, "z"));
+            hmm.updateEdge(mk, "z", hmm.removeEdge(mshift, "z"));
+          } else {
+            hmm.updateEdge(dk, dknext, hmm.getEdge(dshift, dshiftNext));
+            hmm.updateEdge(dk, mknext, hmm.getEdge(dshift, mshiftNext));
+            hmm.updateEdge(ik, dknext, hmm.getEdge(ishift, dshiftNext));
+            hmm.updateEdge(ik, mknext, hmm.getEdge(ishift, mshiftNext));
+            hmm.updateEdge(mk, dknext, hmm.getEdge(mshift, dshiftNext));
+            hmm.updateEdge(mk, mknext, hmm.getEdge(mshift, mshiftNext));
+          }
+          hmm.updateEdge(dk, ik, hmm.getEdge(dshift, ishift));
+          hmm.updateEdge(ik, ik, hmm.getEdge(ishift, ishift));
+          hmm.updateEdge(mk, ik, hmm.getEdge(mshift, ishift));
+        // generate new states
+        } else {
+          hmm.updateNode(dk, new Graph.MSAHMM.State());
+          hmm.updateNode(ik, new Graph.MSAHMM.InsertState());
+          hmm.updateNode(mk, new Graph.MSAHMM.MatchState(hmm.characters));
+        }
+      }
+      // expand the inserted paths into the new match states 
+      for (var pId in ipaths) {
+        if (ipaths.hasOwnProperty(pId)) {
+          for (var k = 0; k < ipaths[pId].length; k++) {
+            var o = ipaths[pId][k],
+                m = "m" + (j + k);
+            hmm.nodes[m].attr.addPath(pId, o);
+          }
+        }
+      }
+      hmm.updateNode("i" + j, new Graph.MSAHMM.InsertState());
+      // compute the transition probabilities for each inserted column
+      for (var k = Math.max(0, j - 1); k < j + growBy; k++) {
+        var d = "d" + k,
+            i = "i" + (k + 1),
+            m = "m" + k;
+        hmm.updateNodeTransitionProbabilities(d);
+        hmm.updateNodeTransitionProbabilities(i);
+        hmm.updateNodeTransitionProbabilities(m);
+      }
+      hmm.numColumns += growBy;
+    }
   }
 }
 
@@ -703,9 +877,6 @@ Graph.msa = function(tracks) {
       }
     }
   }
-  var performSurgery = function(hmm) {
-
-  }
   // 1) construct the graph from the first track
   var l = groups[0].genes.length,
       families = new Set();
@@ -716,9 +887,7 @@ Graph.msa = function(tracks) {
   }
   var hmm = new Graph.MSAHMM(l, families);
   // 2) iteratively add each remaining track to the alignment
-  console.log(JSON.parse(JSON.stringify(hmm)));
   for (var i = 0; i < groups.length; i++) {
-    console.log(groups[i].chromosome_name);
     // a) align to HMM
     var seq1  = groups[i].genes.map((g) => g.family),
         path1 = Graph.MSAHMM.viterbi(hmm, seq1),
@@ -726,22 +895,20 @@ Graph.msa = function(tracks) {
         path2 = Graph.MSAHMM.viterbi(hmm, seq2);
     // b) embed alignment path and update transition and emission probabilities
     if (path1.probability >= path2.probability) {
-      console.log("forward");
-      console.log(seq1);
-      console.log(path1);
       Graph.MSAHMM.embedPath(hmm, i, path1, seq1);
-      align(path1, groups[i].genes);
+      //align(path1, groups[i].genes);
     } else {
-      console.log("reverse");
-      console.log(seq2);
-      console.log(path2);
       Graph.MSAHMM.embedPath(hmm, i, path2, seq2);
-      groups[i].genes.reverse()
-      align(path2, groups[i].genes);
+      groups[i].genes.reverse();
+      groups[i].genes.map((g) => { g.strand *= -1 });
+      //align(path2, groups[i].genes);
     }
     // c) if necessary, perform surgery on the graph
-    console.log(JSON.parse(JSON.stringify(hmm)));
+    Graph.MSAHMM.performSurgery(hmm);
   }
-  console.log(hmm);
+  // generate each track's final alignment
+  for (var i = 0; i < groups.length; i++) {
+    align(Graph.MSAHMM.getPath(hmm, i), groups[i].genes)
+  }
   return groups;
 }

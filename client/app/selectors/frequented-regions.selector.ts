@@ -27,7 +27,7 @@ export const frequentedRegionsSelector = () => {
       }
       let j = 0;
       do {
-        results = Graph.frequentedRegions(frTracks, 0.5, 10, 2, 3, {omit: [""]});
+        results = Graph.frequentedRegions(frTracks, 0.5, 10, 2, 5, {omit: [""]});
         let max   = null,
             maxFR = null;;
         for (let i = 0; i < results.length; i++) {
