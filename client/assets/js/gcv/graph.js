@@ -461,16 +461,18 @@ Graph.MSAHMM = class extends Graph.Directed {
     this.addEdge("a", "m0");
     this.addEdge("a", "i0");
     this.addEdge("a", "d0");
-    for (var i = 0; i < this.numColumns - 1; i++) {
-      this.addEdge("m" + i, "m" + (i + 1));
-      this.addEdge("m" + i, "i" + (i + 1));
-      this.addEdge("m" + i, "d" + (i + 1));
+    for (var i = 0; i < this.numColumns; i++) {
+      if (i < this.numColumns - 1) {
+        this.addEdge("m" + i, "m" + (i + 1));
+        this.addEdge("m" + i, "i" + (i + 1));
+        this.addEdge("m" + i, "d" + (i + 1));
+        this.addEdge("d" + i, "d" + (i + 1));
+        this.addEdge("d" + i, "m" + (i + 1));
+        this.addEdge("d" + i, "i" + (i + 1));
+      }
       this.addEdge("i" + i, "i" + i);
       this.addEdge("i" + i, "m" + i);
       this.addEdge("i" + i, "d" + i);
-      this.addEdge("d" + i, "d" + (i + 1));
-      this.addEdge("d" + i, "m" + (i + 1));
-      this.addEdge("d" + i, "i" + (i + 1));
     }
     this.addEdge("m" + (this.numColumns - 1), "i" + this.numColumns);
     this.addEdge("m" + (this.numColumns - 1), "z");
@@ -753,6 +755,7 @@ Graph.MSAHMM.performSurgery = function(hmm) {
       }
       // add growBy new columns to the end of the model and shift probabilities
       var l = hmm.numColumns;
+      hmm.numColumns += growBy;
       for (var k = l + growBy - 1; k >= j; k--) {
         var knext  = k + 1,
             dk     = "d" + k,
@@ -761,21 +764,20 @@ Graph.MSAHMM.performSurgery = function(hmm) {
             dknext = "d" + knext,
             mknext = "m" + knext;
         // add new nodes and edges
-        if (k >= l - 1) {
-          // add a new column
-          if (k >= l) {
-            hmm.addNode(dk);
-            hmm.addNode(ik);
-            hmm.addNode(mk);
-            hmm.addEdge(dk, ik);
-            hmm.addEdge(ik, ik);
-            hmm.addEdge(mk, ik);
-          }
-          // connect this and the next column
+        if (k >= l) {
+          // add new column
+          hmm.addNode(dk);
+          hmm.addNode(ik);
+          hmm.addNode(mk);
+          hmm.addEdge(dk, ik);
+          hmm.addEdge(ik, ik);
+          hmm.addEdge(mk, ik);
+          // add new end state transitions
           if (k == l + growBy - 1) {
-            hmm.addEdge(dk, "z");
-            hmm.addEdge(ik, "z");
-            hmm.addEdge(mk, "z");
+            hmm.addEdge(dk, "z", hmm.removeEdge("d" + (l - 1), "z"));
+            hmm.addEdge(ik, "z", hmm.removeEdge("i" + l, "z"));
+            hmm.addEdge(mk, "z", hmm.removeEdge("m" + (l - 1), "z"));
+          // add edges between current and previously added new column
           } else {
             hmm.addEdge(dk, dknext);
             hmm.addEdge(dk, mknext);
@@ -783,6 +785,19 @@ Graph.MSAHMM.performSurgery = function(hmm) {
             hmm.addEdge(ik, mknext);
             hmm.addEdge(mk, dknext);
             hmm.addEdge(mk, mknext);
+          }
+          // add edges between old last column and first new column
+          if (k == l) {
+            var kprev  = k - 1,
+                dkprev = "d" + kprev,
+                ikprev = "i" + k,
+                mkprev = "m" + kprev;
+            hmm.addEdge(dkprev, dk);
+            hmm.addEdge(dkprev, mk);
+            hmm.addEdge(ikprev, dk);
+            hmm.addEdge(ikprev, mk);
+            hmm.addEdge(mkprev, dk);
+            hmm.addEdge(mkprev, mk);
           }
         }
         // shift the existing probabilities
@@ -799,11 +814,7 @@ Graph.MSAHMM.performSurgery = function(hmm) {
           hmm.updateNode(ik, hmm.getNode(ishift).attr);
           hmm.updateNode(mk, hmm.getNode(mshift).attr);
           // shift edges
-          if (k == l + growBy - 1) {
-            hmm.updateEdge(dk, "z", hmm.removeEdge(dshift, "z"));
-            hmm.updateEdge(ik, "z", hmm.removeEdge(ishift, "z"));
-            hmm.updateEdge(mk, "z", hmm.removeEdge(mshift, "z"));
-          } else {
+          if (k < l + growBy - 1) {
             hmm.updateEdge(dk, dknext, hmm.getEdge(dshift, dshiftNext));
             hmm.updateEdge(dk, mknext, hmm.getEdge(dshift, mshiftNext));
             hmm.updateEdge(ik, dknext, hmm.getEdge(ishift, dshiftNext));
@@ -833,15 +844,17 @@ Graph.MSAHMM.performSurgery = function(hmm) {
       }
       hmm.updateNode("i" + j, new Graph.MSAHMM.InsertState());
       // compute the transition probabilities for each inserted column
-      for (var k = Math.max(0, j - 1); k < j + growBy; k++) {
-        var d = "d" + k,
-            i = "i" + (k + 1),
-            m = "m" + k;
-        hmm.updateNodeTransitionProbabilities(d);
-        hmm.updateNodeTransitionProbabilities(i);
-        hmm.updateNodeTransitionProbabilities(m);
+      if (j == 0) {
+        hmm.updateNodeTransitionProbabilities("a");
       }
-      hmm.numColumns += growBy;
+      for (var k = Math.max(0, j - 1); k < j + growBy; k++) {
+        var dk = "d" + k,
+            ik = "i" + (k + 1),
+            mk = "m" + k;
+        hmm.updateNodeTransitionProbabilities(dk);
+        hmm.updateNodeTransitionProbabilities(ik);
+        hmm.updateNodeTransitionProbabilities(mk);
+      }
     }
   }
 }
@@ -853,7 +866,7 @@ Graph.MSAHMM.performSurgery = function(hmm) {
   * @return {int} - The computed score.
   */
 Graph.msa = function(tracks) {
-  var groups = JSON.parse(JSON.stringify(tracks))
+  var groups = JSON.parse(JSON.stringify(tracks));
   var align = function(path, genes) {
     var x = 0,
         j = 0,
