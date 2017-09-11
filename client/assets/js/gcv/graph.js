@@ -909,19 +909,25 @@ Graph.msa = function(tracks) {
     // b) embed alignment path and update transition and emission probabilities
     if (path1.probability >= path2.probability) {
       Graph.MSAHMM.embedPath(hmm, i, path1, seq1);
-      //align(path1, groups[i].genes);
     } else {
       Graph.MSAHMM.embedPath(hmm, i, path2, seq2);
-      groups[i].genes.reverse();
-      groups[i].genes.map((g) => { g.strand *= -1 });
-      //align(path2, groups[i].genes);
     }
     // c) if necessary, perform surgery on the graph
     Graph.MSAHMM.performSurgery(hmm);
   }
   // generate each track's final alignment
   for (var i = 0; i < groups.length; i++) {
-    align(Graph.MSAHMM.getPath(hmm, i), groups[i].genes)
+    var seq1  = groups[i].genes.map((g) => g.family),
+        path1 = Graph.MSAHMM.viterbi(hmm, seq1),
+        seq2  = seq1.slice().reverse(),
+        path2 = Graph.MSAHMM.viterbi(hmm, seq2);
+    if (path1.probability >= path2.probability) {
+      align(path1, groups[i].genes);
+    } else {
+      groups[i].genes.reverse();
+      groups[i].genes.map((g) => { g.strand *= -1 });
+      align(path2, groups[i].genes);
+    }
   }
   return groups;
 }
