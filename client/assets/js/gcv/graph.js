@@ -866,7 +866,14 @@ Graph.MSAHMM.performSurgery = function(hmm) {
   * @return {int} - The computed score.
   */
 Graph.msa = function(tracks) {
-  var groups = JSON.parse(JSON.stringify(tracks));
+  var groups = JSON.parse(JSON.stringify(tracks)),
+      counts = getFamilySizeMap({groups: groups});
+  for (var i = 0; i < groups.length; i++) {
+    groups[i].genes = groups[i].genes.filter(g => {
+      return g.family != "" && counts[g.family] > 1;
+    });
+  }
+  var rawGroups = JSON.parse(JSON.stringify(tracks));
   var align = function(path, genes) {
     var x = 0,
         j = 0,
@@ -890,7 +897,7 @@ Graph.msa = function(tracks) {
       }
     }
   }
-  // 1) construct the graph from the first track
+  // 1) construct a HMM with a column for each gene in the first track
   var l = groups[0].genes.length,
       families = new Set();
   for (var i = 0; i < groups.length; i++) {
@@ -899,7 +906,7 @@ Graph.msa = function(tracks) {
     }
   }
   var hmm = new Graph.MSAHMM(l, families);
-  // 2) iteratively add each remaining track to the alignment
+  // 2) iteratively train the HMM on the filtered tracks
   for (var i = 0; i < groups.length; i++) {
     // a) align to HMM
     var seq1  = groups[i].genes.map((g) => g.family),
@@ -915,19 +922,19 @@ Graph.msa = function(tracks) {
     // c) if necessary, perform surgery on the graph
     Graph.MSAHMM.performSurgery(hmm);
   }
-  // generate each track's final alignment
-  for (var i = 0; i < groups.length; i++) {
-    var seq1  = groups[i].genes.map((g) => g.family),
+  // align the unfiltered tracks to the trained HMM
+  for (var i = 0; i < rawGroups.length; i++) {
+    var seq1  = rawGroups[i].genes.map((g) => g.family),
         path1 = Graph.MSAHMM.viterbi(hmm, seq1),
         seq2  = seq1.slice().reverse(),
         path2 = Graph.MSAHMM.viterbi(hmm, seq2);
     if (path1.probability >= path2.probability) {
-      align(path1, groups[i].genes);
+      align(path1, rawGroups[i].genes);
     } else {
-      groups[i].genes.reverse();
-      groups[i].genes.map((g) => { g.strand *= -1 });
-      align(path2, groups[i].genes);
+      rawGroups[i].genes.reverse();
+      rawGroups[i].genes.map((g) => { g.strand *= -1 });
+      align(path2, rawGroups[i].genes);
     }
   }
-  return groups;
+  return rawGroups;
 }
