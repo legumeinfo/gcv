@@ -499,9 +499,10 @@ Graph.MSAHMM = class extends Graph.Directed {
     if (id == "d" + (this.numColumns - 1) ||
         id == "m" + (this.numColumns - 1) ||
         id == "i" + this.numColumns) {
-      this.nodes[id].outNeighbors.forEach((nId) => {
-        this.updateEdge(id, nId, 1 / 2);
-      });
+      var ilast = "i" + this.numColumns,
+          p     = this.indelTransitionProbability();
+      this.updateEdge(id, ilast, p);
+      this.updateEdge(id, "z", 1 - p);
     } else {
       this.nodes[id].outNeighbors.forEach((nId) => {
         var p;
@@ -544,7 +545,7 @@ Graph.MSAHMM.MatchState = class extends Graph.MSAHMM.State {
     this.emissionCounts         = {};
     this.emissionProbabilities  = {};
     this.numObservations        = characters.size;
-    this.countAmplifier         = this.numObservations;
+    this.countAmplifier         = Math.pow(this.numObservations, 1.5);
     var p                       = 1 / this.numObservations;
     characters.forEach((o) => {
       this.emissionCounts[o]        = 1;  // pseudo-count
@@ -552,7 +553,7 @@ Graph.MSAHMM.MatchState = class extends Graph.MSAHMM.State {
     });
   }
   emit(o) {
-    return this.emissionProbabilities[o];
+    return this.emissionProbabilities[o] || 0;
   }
   addPath(pId, o) {
     this.paths[pId] = o;
