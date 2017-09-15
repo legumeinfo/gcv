@@ -571,7 +571,7 @@ Graph.MSAHMM.MatchState = class extends Graph.MSAHMM.State {
 
 /**
   * A message passing implementation of the Viterbi algorithm.
-  * @param{MSAHMM} hmm - The HMM in which to find the optimal path.
+  * @param{MSAHMM} hmm - The HMM in which to find the most probable path.
   * @param{Array} seq - An ordered array of strings representing the sequence
   * for which a state path is to be computed.
   * return {Array} - An ordered array of state IDs describing the most sequence
@@ -862,6 +862,152 @@ Graph.MSAHMM.performSurgery = function(hmm) {
 
 
 /**
+  * Computes the emission probabilities for a sequence given a path through an
+  * HMM.
+  * @param{MSAHMM} hmm - The model that will emit the probabilities.
+  * @param{Object} counts - Maps sequence characters to their number of
+  * occurrences. Characters with counts less than 2 are given emission
+  * probability 0.
+  * @param{Array} seq - The sequence to compute emission probabilities for.
+  * @param{Array} path - A (Viterbi) path that maps sequence members to HMM
+  * match states.
+  * return {Array} - A sequence of emission probabilities with corresponding to
+  * seq.
+  */
+Graph.MSAHMM.sequenceEmissions = function(hmm, counts, seq, path) {
+  var eseq = [],
+      j    = 0;
+  for (var i = 1; i < path.length; i++) {
+    var n = path[i];
+    if (n.startsWith("m") && counts[seq[j]] > 1) {
+      eseq.push(hmm.getNode(n).attr.emit(seq[j++]));
+    } else if (n.startsWith("i")) {
+      eseq.push(0);
+      j++;
+    }
+  }
+  return eseq;
+}
+
+
+/**
+  * Aligns the set of genes to their corresponding Viterbi path.
+  * @param{Array} genes - The set of genes to align.
+  * @param{Array} path - The corresponding Viterbi path.
+  */
+Graph.MSAHMM.alignToPath = function(genes, path) {
+  var x = 0,
+      j = 0,
+      insertionSize = 0;
+  for (var i = 1; i < path.length; i++) {
+    var n = path[i];
+    if (n.startsWith("m") || n.startsWith("d") || n == "z") {
+      if (insertionSize > 0) {
+        var step = 1 / (insertionSize + 1);
+        for (var k = insertionSize; k > 0; k--) {
+          genes[j++].x = x - (k * step);
+        }
+        insertionSize = 0;
+      }
+      if (n.startsWith("m")) {
+        genes[j++].x = x;
+      }
+      x++;
+    } else {
+      insertionSize++;
+    }
+  }
+}
+
+
+/**
+  * Takes a forward and a reverse emission sequence and creates an orientation
+  * sequence that represents the most probable sub-sequences orientations of
+  * the sequence from which the emission sequences were derived.
+  * @param{Array} eseq1 - The forward orientation emission probability sequence.
+  * @param{Array} eseq2 - The reverse orientation emission probability sequence.
+  * return{Array} - An orientation sequence with "f" for forward oriented
+  * members and "r" for reverse oriented members.
+  */
+Graph.MSAHMM.orientationSequence = function(eseq1, eseq2) {
+  // determine if each character was better aligned in the forward (f) or
+  // reverse alignment (r), or if they effectively tied (t)
+  var merged  = [],
+      rlocs   = [],
+      fcounts = [0];
+  for (var i = 0; i < eseq1.length; i++) {
+    var p1 = eseq1[i],
+        p2 = eseq2[eseq2.length - (i + 1)];
+    if (p1 > p2 /*&& p2 > 0*/) {
+      merged.push('f');
+      fcounts[rlocs.length] += 1;
+    } else if (p1 < p2) {
+      merged.push('r');
+      rlocs.push(i);
+      fcounts.push(0);
+    } else {
+      merged.push('t');
+    }
+  }
+  rlocs.push(eseq1.length);
+  fcounts.push(0);
+  // resolve ties and flip characters that fracture larger blocks
+  for (var i = 0; i < rlocs.length - 1; i++) {
+    var l = rlocs[i];
+    // convert t chains between r's with one or less f's to r's
+    if (fcounts[i + 1] <= 1) {
+      for (var j = l + 1; j < rlocs[i + 1]; j++) {
+        merged[j] = 'r';
+      }
+    // flip island r's
+    } else {
+      if (l - 1 >= 0 && merged[l - 1] != 'r') {
+        merged[l] = 'f';
+      }
+      for (var j = l + 1; j < rlocs[i + 1]; j++) {
+        merged[j] = 'f';
+      }
+    }
+  }
+  // get the edge case - there's an inversion at the beginning
+  if (merged[rlocs[0]] == 'r' && fcounts[0] <= 1) {
+    for (var j = 0; j < rlocs[0]; j++) {
+      merged[j] = 'r';
+    }
+  } else {
+    for (var j = 0; j < rlocs[0]; j++) {
+      merged[j] = 'f';
+    }
+  }
+  return merged;
+}
+
+
+/**
+  * Combines a forward and a reverse oriented gene sequence according to an
+  * orientation sequence.
+  * @param{Array} genes1 - The forward oriented gene sequence.
+  * @param{Array} genes2 - The reverse oriented gene sequence.
+  * @param{Array} oseq - The orientation sequence that dictates what parts of
+  * each oriented gene sequence are represented in the output gene sequence.
+  * return{Array} - An oriented gene sequence.
+  */
+Graph.MSAHMM.orientatedGenes = function(genes1, genes2, oseq) {
+  var genes = [];
+  for (var i = 0; i < oseq.length; i++) {
+    if (oseq[i] == 'f') {
+      genes.push(genes1[i]);
+    } else if (oseq[i] == 'r') {
+      var g = genes2[oseq.length - (i + 1)];
+      g.y = 1;
+      genes.push(g);
+    }
+  }
+  return genes;
+}
+
+
+/**
   * An HMM based MSA algorithm.
   * @param {Array} tracks - groups attribute of GCV track data.
   * @return {int} - The computed score.
@@ -875,29 +1021,6 @@ Graph.msa = function(tracks) {
     });
   }
   var rawGroups = JSON.parse(JSON.stringify(tracks));
-  var align = function(path, genes) {
-    var x = 0,
-        j = 0,
-        insertionSize = 0;
-    for (var i = 1; i < path.length; i++) {
-      var n = path[i];
-      if (n.startsWith("m") || n.startsWith("d") || n == "z") {
-        if (insertionSize > 0) {
-          var step = 1 / (insertionSize + 1);
-          for (var k = insertionSize; k > 0; k--) {
-            genes[j++].x = x - (k * step);
-          }
-          insertionSize = 0;
-        }
-        if (n.startsWith("m")) {
-          genes[j++].x = x;
-        }
-        x++;
-      } else {
-        insertionSize++;
-      }
-    }
-  }
   // 1) construct a HMM with a column for each gene in the first track
   var l = groups[0].genes.length,
       families = new Set();
@@ -925,16 +1048,24 @@ Graph.msa = function(tracks) {
   }
   // align the unfiltered tracks to the trained HMM
   for (var i = 0; i < rawGroups.length; i++) {
-    var seq1  = rawGroups[i].genes.map((g) => g.family),
-        path1 = Graph.MSAHMM.viterbi(hmm, seq1),
-        seq2  = seq1.slice().reverse(),
-        path2 = Graph.MSAHMM.viterbi(hmm, seq2);
+    var genes1 = JSON.parse(JSON.stringify(rawGroups[i].genes)),
+        seq1   = rawGroups[i].genes.map((g) => g.family),
+        path1  = Graph.MSAHMM.viterbi(hmm, seq1),
+        eseq1  = Graph.MSAHMM.sequenceEmissions(hmm, counts, seq1, path1);
+    Graph.MSAHMM.alignToPath(genes1, path1);
+    var genes2 = JSON.parse(JSON.stringify(genes1)),
+        seq2   = seq1.slice().reverse(),
+        path2  = Graph.MSAHMM.viterbi(hmm, seq2),
+        eseq2  = Graph.MSAHMM.sequenceEmissions(hmm, counts, seq2, path2);
+    genes2.reverse();
+    genes2.map((g) => { g.strand *= -1 });
+    Graph.MSAHMM.alignToPath(genes2, path2);
     if (path1.probability >= path2.probability) {
-      align(path1, rawGroups[i].genes);
+      var oseq = Graph.MSAHMM.orientationSequence(eseq1, eseq2);
+      rawGroups[i].genes = Graph.MSAHMM.orientatedGenes(genes1, genes2, oseq);
     } else {
-      rawGroups[i].genes.reverse();
-      rawGroups[i].genes.map((g) => { g.strand *= -1 });
-      align(path2, rawGroups[i].genes);
+      var oseq = Graph.MSAHMM.orientationSequence(eseq2, eseq1);
+      rawGroups[i].genes = Graph.MSAHMM.orientatedGenes(genes2, genes1, oseq);
     }
   }
   return rawGroups;
