@@ -874,12 +874,12 @@ Graph.MSAHMM.performSurgery = function(hmm) {
   * return {Array} - A sequence of emission probabilities with corresponding to
   * seq.
   */
-Graph.MSAHMM.sequenceEmissions = function(hmm, counts, seq, path) {
+Graph.MSAHMM.sequenceEmissions = function(hmm, /*counts,*/ seq, path) {
   var eseq = [],
       j    = 0;
   for (var i = 1; i < path.length; i++) {
     var n = path[i];
-    if (n.startsWith("m") && counts[seq[j]] > 1) {
+    if (n.startsWith("m") /*&& counts[seq[j]] > 1*/) {
       eseq.push(hmm.getNode(n).attr.emit(seq[j++]));
     } else if (n.startsWith("i")) {
       eseq.push(0);
@@ -1026,16 +1026,22 @@ Graph.msa = function(tracks) {
       families = new Set();
   for (var i = 0; i < groups.length; i++) {
     for (var j = 0; j < groups[i].genes.length; j++) {
-      families.add(groups[i].genes[j].family);
+      var f = groups[i].genes[j].family;
+      families.add('+' + f);
+      families.add('-' + f);
     }
   }
   var hmm = new Graph.MSAHMM(l, families);
   // 2) iteratively train the HMM on the filtered tracks
   for (var i = 0; i < groups.length; i++) {
     // a) align to HMM
-    var seq1  = groups[i].genes.map((g) => g.family),
+    var seq1  = groups[i].genes.map(g => {
+          return (g.strand == -1 ? '-' : '+') + g.family;
+        }),
         path1 = Graph.MSAHMM.viterbi(hmm, seq1),
-        seq2  = seq1.slice().reverse(),
+        seq2  = groups[i].genes.slice().reverse().map(g => {
+          return (g.strand == -1 ? '+' : '-') + g.family;
+        }),
         path2 = Graph.MSAHMM.viterbi(hmm, seq2);
     // b) embed alignment path and update transition and emission probabilities
     if (path1.probability >= path2.probability) {
@@ -1049,16 +1055,19 @@ Graph.msa = function(tracks) {
   // align the unfiltered tracks to the trained HMM
   for (var i = 0; i < rawGroups.length; i++) {
     var genes1 = JSON.parse(JSON.stringify(rawGroups[i].genes)),
-        seq1   = rawGroups[i].genes.map((g) => g.family),
+        seq1   = genes1.map(g => {
+          return (g.strand == -1 ? '-' : '+') + g.family;
+        }),
         path1  = Graph.MSAHMM.viterbi(hmm, seq1),
-        eseq1  = Graph.MSAHMM.sequenceEmissions(hmm, counts, seq1, path1);
+        eseq1  = Graph.MSAHMM.sequenceEmissions(hmm, /*counts,*/ seq1, path1);
     Graph.MSAHMM.alignToPath(genes1, path1);
-    var genes2 = JSON.parse(JSON.stringify(genes1)),
-        seq2   = seq1.slice().reverse(),
+    var genes2 = JSON.parse(JSON.stringify(genes1)).reverse(),
+        seq2   = genes2.map(g => {
+          return (g.strand == -1 ? '+' : '-') + g.family;
+        }),
         path2  = Graph.MSAHMM.viterbi(hmm, seq2),
-        eseq2  = Graph.MSAHMM.sequenceEmissions(hmm, counts, seq2, path2);
-    genes2.reverse();
-    genes2.map((g) => { g.strand *= -1 });
+        eseq2  = Graph.MSAHMM.sequenceEmissions(hmm, /*counts,*/ seq2, path2);
+    genes2.forEach((g) => { g.strand *= -1 });
     Graph.MSAHMM.alignToPath(genes2, path2);
     if (path1.probability >= path2.probability) {
       var oseq = Graph.MSAHMM.orientationSequence(eseq1, eseq2);
