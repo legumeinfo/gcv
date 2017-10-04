@@ -1,5 +1,5 @@
 // Angular
-import { Http, Response } from '@angular/http';
+import { Http, RequestOptionsArgs , Response } from '@angular/http';
 import { Injectable }     from '@angular/core';
 import { Observable }     from 'rxjs/Observable';
 import { Store }          from '@ngrx/store';
@@ -119,7 +119,7 @@ export class PlotsService {
           let args = {
             query: this._query,
             chromosome: local.chromosome_id
-          };
+          } as RequestOptionsArgs;
           let response: Observable<Response>;
           if (s.plotGlobal.type === GET)
             response = this._http.get(s.plotGlobal.url, args);

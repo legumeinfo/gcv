@@ -1,5 +1,5 @@
 // Angular
-import { Http, Response } from '@angular/http';
+import { Http, RequestOptionsArgs, Response } from '@angular/http';
 import { Injectable }     from '@angular/core';
 import { Observable }     from 'rxjs/Observable';
 import { Store }          from '@ngrx/store';
@@ -62,7 +62,7 @@ export class MicroTracksService {
     let args = {
       genes: queryGenes,
       neighbors: params.neighbors
-    };
+    } as RequestOptionsArgs;
 		// send requests to the selected servers
     let requests: Observable<Response>[] = [];
     let sources = params.sources.reduce((l, s) => {
@@ -152,7 +152,7 @@ export class MicroTracksService {
         let args = {
           gene: queryGene,
           neighbors: params.neighbors
-        };
+        } as RequestOptionsArgs;
         let response: Observable<Response>;
         if (s.microQuery.type === GET)
           response = this._http.get(s.microQuery.url, args)
@@ -175,7 +175,7 @@ export class MicroTracksService {
       query: query.genes.map(g => g.family),
       matched: params.matched,
       intermediate: params.intermediate
-    };
+    } as RequestOptionsArgs;
 		// send requests to the selected servers
     let requests: Observable<Response>[] = [];
     let sources = params.sources.reduce((l, s) => {

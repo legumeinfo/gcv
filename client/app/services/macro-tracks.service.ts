@@ -1,5 +1,5 @@
 // Angular
-import { Http, Response } from '@angular/http';
+import { Http, RequestOptionsArgs, Response } from '@angular/http';
 import { Injectable }     from '@angular/core';
 import { Observable }     from 'rxjs/Observable';
 import { Store }          from '@ngrx/store';
@@ -33,7 +33,7 @@ export class MacroTracksService {
       let query = tracks.groups[0];
       let args = {
         chromosome: query.chromosome_name
-      };
+      } as RequestOptionsArgs;
 		  // send requests to the selected servers
       let requests: Observable<Response>[] = [];
       let sources = params.sources.reduce((l, s) => {
@@ -105,7 +105,7 @@ export class MacroTracksService {
         let args = {
           chromosome: chromosome,
           position: position
-        };
+        } as RequestOptionsArgs;
         let url = s.nearestGene.url;
         let response: Observable<Response>;
         if (s.nearestGene.type === GET)

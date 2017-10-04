@@ -28,7 +28,7 @@ enum DetailTypes {
 })
 
 export class LeftSliderComponent implements OnChanges {
-  @Input() selected: Family | Gene | Group;
+  @Input() selected: Family | Gene | Group | Object;
   @Input() tracks: MicroTracks;
 
   state = SLIDER_ACTIVE;

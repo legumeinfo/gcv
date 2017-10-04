@@ -16,9 +16,9 @@ export const pairwiseAlignmentSelector = () => {
     let query = tracks.groups[0];
     let options = Object.assign({}, {
       accessor: g => g.family,
-      suffixScores: true
+      suffixScores: true,
+      scores: Object.assign({}, params)
     });
-    options.scores = Object.assign({}, params);
     let alignments = [];
     for (let i = 1; i < tracks.groups.length; ++i) {
       let result = tracks.groups[i];
