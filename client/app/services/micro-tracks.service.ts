@@ -41,6 +41,61 @@ export class MicroTracksService {
 
   private _parseMicroTracksJSON(source: Server, json: any): MicroTracks {
     let tracks: MicroTracks = JSON.parse(json);
+    // combine overlapping tracks
+    var mergeTracks = (toMerge) => {
+      let merged = toMerge[0];
+      let seen = new Set(merged.genes.map(g => g.id));
+      for (let i = 1; i < toMerge.length; i++) {
+        for (let j = 0; j < toMerge[i].genes; j++) {
+          let g = toMerge[i].genes[j];
+          if (!seen.has(g.id)) {
+            seen.add(g.id);
+            merged.genes.push(g);
+          }
+        }
+      }
+      return merged;
+    }
+    let groups = [];
+    let bins = {};
+    for (let i = 0; i < tracks.groups.length; ++i) {
+      let t = tracks.groups[i];
+      let id = t.species_id.toString() + t.chromosome_id.toString();
+      if (!bins.hasOwnProperty(id)) bins[id] = [];
+      bins[id].push(t);
+    }
+    for (var id in bins) {
+      let bin = bins[id];
+      if (bin.length > 1) {
+        let breaks = [];
+        for (let i = 0; i < bin.length; i++) {
+          let mins  = bin[i].genes.map(g => Math.min(g.fmin, g.fmax));
+          let maxs  = bin[i].genes.map(g => Math.max(g.fmin, g.fmax));
+          let begin = Math.min.apply(null, mins);
+          let end   = Math.max.apply(null, maxs);
+          breaks.push({v: begin, c: 1, i: i}); 
+          breaks.push({v: end, c: -1, i: i}); 
+        }
+        breaks.sort((a, b) => {
+          if (a.v < b.v || a.v > b.v) return a.v - b.v;
+          if (a.c < b.c || a.c > b.c) return b.c - a.c;
+          return a.i - b.i;
+        });
+        let counter = 0;
+        let toMerge = [];
+        for (let i = 0; i < breaks.length; i++) {
+          let b = breaks[i];
+          if (b.c > 0) toMerge.push(bin[b.i]);
+          counter += b.c;
+          if (counter == 0) {
+            groups.push(mergeTracks(toMerge));
+            toMerge = [];
+          }
+        }
+      }
+    }
+    tracks.groups = groups;
+    // assign initial coordinates
     for (let i = 0; i < tracks.groups.length; ++i) {
       let group: Group = tracks.groups[i];
       this._prepareTrack(source.id, group);

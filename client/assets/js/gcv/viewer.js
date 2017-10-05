@@ -11,7 +11,7 @@ var GCV = GCV || {};
   */
 GCV.merge = function (data) {
   // make a copy of the data (tracks)
-  var tracks = $.extend(true, {}, data);
+  var tracks = JSON.parse(JSON.stringify(data));
   if (data.groups.length > 0) {
     // groups tracks by group id
     var groups = {};
