@@ -6,7 +6,7 @@ import { Store }          from '@ngrx/store';
 
 // App
 import { AppConfig }         from '../app.config';
-import { ADD_MACRO_TRACKS }  from '../constants/actions';
+import { StoreActions }      from '../constants/store-actions';
 import { AppStore }          from '../models/app-store.model';
 import { GET, POST, Server } from '../models/server.model';
 import { MicroTracks }       from '../models/micro-tracks.model';
@@ -29,7 +29,8 @@ export class MacroTracksService {
 
   search(tracks: MicroTracks, params: QueryParams, failure = e => {}): void {
     if (tracks.groups.length > 0) {
-      this._store.dispatch({type: ADD_MACRO_TRACKS, payload: undefined})
+      this._store.dispatch({type: StoreActions.ADD_MACRO_TRACKS,
+        payload: undefined});
       let query = tracks.groups[0];
       let args = {
         chromosome: query.chromosome_name
@@ -84,7 +85,8 @@ export class MacroTracksService {
         }
         if (failed.length > 0)
           failure('failed to retrieve data from sources: ' + failed.join(', '));
-        this._store.dispatch({type: ADD_MACRO_TRACKS, payload: macro});
+        this._store.dispatch({type: StoreActions.ADD_MACRO_TRACKS,
+          payload: macro});
       });
     }
     failure("no micro tracks provided");

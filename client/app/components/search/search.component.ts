@@ -11,11 +11,8 @@ import { Component,
 import { Observable }             from 'rxjs/Observable';
 
 // App
-import { Alert }                 from '../../models/alert.model';
-import { ALERT_SUCCESS,
-         ALERT_INFO,
-         ALERT_WARNING,
-         ALERT_DANGER }              from '../../constants/alerts';
+import { Alert }                     from '../../models/alert.model';
+import { Alerts }                    from '../../constants/alerts';
 import { AlertsService }             from '../../services/alerts.service';
 import { AlignmentService }          from '../../services/alignment.service';
 import { AppConfig }                 from '../../app.config';
@@ -221,8 +218,8 @@ export class SearchComponent implements OnInit {
       // alert how many tracks were returned
       let num = (new Set(tracks.groups.map(g => g.id))).size - 1;
       this._alerts.pushAlert(new Alert(
-        (num) ? ((this._numReturned == num) ? ALERT_SUCCESS : ALERT_INFO) :
-          ALERT_WARNING,
+        (num) ? ((this._numReturned == num) ? Alerts.ALERT_SUCCESS :
+          Alerts.ALERT_INFO) : Alerts.ALERT_WARNING,
         this._numReturned + ' tracks returned; ' + num + ' aligned'
       ));
       // only selectively color when there are results
@@ -388,7 +385,7 @@ export class SearchComponent implements OnInit {
   // private
 
   private _errorAlert(message: string): void {
-    this._alerts.pushAlert(new Alert(ALERT_DANGER, message));
+    this._alerts.pushAlert(new Alert(Alerts.ALERT_DANGER, message));
   }
 
   private _splitViewers(): void {

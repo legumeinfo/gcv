@@ -5,16 +5,13 @@ import { Observable }     from 'rxjs/Observable';
 import { Store }          from '@ngrx/store';
 
 // App
-import { AppConfig }           from '../app.config';
-import { AppStore }            from '../models/app-store.model';
-import { ADD_GLOBAL_PLOTS,
-         ADD_LOCAL_PLOTS,
-         SELECT_PLOT,
-         UPDATE_GLOBAL_PLOTS } from '../constants/actions';
-import { Gene }                from '../models/gene.model';
-import { GET, POST, Server }   from '../models/server.model';
-import { Group }               from '../models/group.model';
-import { MicroTracks }         from '../models/micro-tracks.model';
+import { AppConfig }         from '../app.config';
+import { AppStore }          from '../models/app-store.model';
+import { StoreActions }      from '../constants/store-actions';
+import { Gene }              from '../models/gene.model';
+import { GET, POST, Server } from '../models/server.model';
+import { Group }             from '../models/group.model';
+import { MicroTracks }       from '../models/micro-tracks.model';
 
 @Injectable()
 export class PlotsService {
@@ -38,8 +35,9 @@ export class PlotsService {
     this._store.select('microTracks').subscribe((tracks: MicroTracks) => {
       this._parseQuery(tracks);
       let localPlots = this._plotTracks(tracks);
-      this._store.dispatch({type: ADD_LOCAL_PLOTS, payload: localPlots});
-      this._store.dispatch({type: ADD_GLOBAL_PLOTS, payload: []});
+      this._store.dispatch({type: StoreActions.ADD_LOCAL_PLOTS,
+        payload: localPlots});
+      this._store.dispatch({type: StoreActions.ADD_GLOBAL_PLOTS, payload: []});
     });
     this._store.select('globalPlots').subscribe((plots: Group[]) => {
       this._globalPlots = plots;
@@ -103,7 +101,7 @@ export class PlotsService {
   }
 
   selectPlot(plot: Group): void {
-    this._store.dispatch({type: SELECT_PLOT, payload: plot});
+    this._store.dispatch({type: StoreActions.SELECT_PLOT, payload: plot});
   }
 
   getSelectedGlobal(success: Function, failure = e => {}): void {
@@ -131,7 +129,8 @@ export class PlotsService {
             for (let i = 0; i < plot.genes.length; ++i) {
               plot.genes[i].source = plot.source;
             }
-            this._store.dispatch({type: UPDATE_GLOBAL_PLOTS, payload: plot})
+            this._store.dispatch({type: StoreActions.UPDATE_GLOBAL_PLOTS,
+              payload: plot})
             success(plot);
           }, failure);
         } else {

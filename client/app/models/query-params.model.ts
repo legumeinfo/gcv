@@ -1,6 +1,6 @@
-import { AbstractControl, Validators }         from '@angular/forms';
-import { POSITIVE_INT, POSITIVE_INT_AND_ZERO } from '../constants/regex';
-import { AppConfig }                           from '../app.config';
+import { AbstractControl, Validators } from '@angular/forms';
+import { Regex }                       from '../constants/regex';
+import { AppConfig }                   from '../app.config';
 
 export class QueryParams {
   private _sourceIDs: string[] = AppConfig.SERVERS.map(s => s.id);
@@ -22,7 +22,7 @@ export class QueryParams {
     let controls: any = {
       neighbors: [this.neighbors, Validators.compose([
         Validators.required,
-        Validators.pattern(POSITIVE_INT)
+        Validators.pattern(Regex.POSITIVE_INT)
       ])],
       sources: [this.sources, Validators.compose([
         Validators.required,
@@ -32,13 +32,13 @@ export class QueryParams {
     if (this.matched !== undefined) {
       controls.matched = [this.matched, Validators.compose([
         Validators.required,
-        Validators.pattern(POSITIVE_INT)
+        Validators.pattern(Regex.POSITIVE_INT)
       ])];
     }
     if (this.intermediate !== undefined) {
       controls.intermediate = [this.intermediate, Validators.compose([
         Validators.required,
-        Validators.pattern(POSITIVE_INT_AND_ZERO)
+        Validators.pattern(Regex.POSITIVE_INT_AND_ZERO)
       ])];
     }
     return controls;

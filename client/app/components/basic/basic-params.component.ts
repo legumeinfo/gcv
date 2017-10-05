@@ -12,7 +12,7 @@ import { Observable }             from 'rxjs/Observable';
 
 // App
 import { Alert }                  from '../../models/alert.model';
-import { ALERT_DANGER }           from '../../constants/alerts';
+import { Alerts }                 from '../../constants/alerts';
 import { AlertsService }          from '../../services/alerts.service';
 import { AppConfig }              from '../../app.config';
 import { ClusteringParams }       from '../../models/clustering-params.model';
@@ -72,7 +72,7 @@ export class BasicParamsComponent implements OnChanges, OnDestroy, OnInit {
     // initialize forms
     let defaultQuery = new QueryParams(
       DefaultQueryParams.DEFAULT_NEIGHBORS,
-      [DefaultQueryParams.DEFAULT_SOURCE]);
+      [DefaultQueryParams.DEFAULT_SOURCE] as string[]);
     this.queryGroup = this._fb.group(defaultQuery.formControls());
     let defaultClustering = new ClusteringParams(
       DefaultClusteringParams.DEFAULT_ALPHA,
@@ -107,7 +107,7 @@ export class BasicParamsComponent implements OnChanges, OnDestroy, OnInit {
     this._tracksService.basicQuery(
       this.queryGenes,
       this.queryGroup.getRawValue(),
-      e => this._alerts.pushAlert(new Alert(ALERT_DANGER, e))
+      e => this._alerts.pushAlert(new Alert(Alerts.ALERT_DANGER, e))
     );
   }
 

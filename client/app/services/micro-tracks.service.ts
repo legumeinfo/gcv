@@ -6,7 +6,6 @@ import { Store }          from '@ngrx/store';
 
 // App
 import { AppConfig }         from '../app.config';
-import { ADD_MICRO_TRACKS }  from '../constants/actions';
 import { AppStore }          from '../models/app-store.model';
 import { Family }            from '../models/family.model';
 import { Gene }              from '../models/gene.model';
@@ -14,6 +13,7 @@ import { GET, POST, Server } from '../models/server.model';
 import { Group }						 from '../models/group.model';
 import { MicroTracks }       from '../models/micro-tracks.model';
 import { QueryParams }       from '../models/query-params.model';
+import { StoreActions }      from '../constants/store-actions';
 
 @Injectable()
 export class MicroTracksService {
@@ -134,7 +134,8 @@ export class MicroTracksService {
         failure('failed to retrieve data from sources: ' + failed.join(', '));
       let aggregateTracks = new MicroTracks(families, groups);
       this._idTracks(aggregateTracks);
-      this._store.dispatch({type: ADD_MICRO_TRACKS, payload: aggregateTracks})
+      this._store.dispatch({type: StoreActions.ADD_MICRO_TRACKS,
+        payload: aggregateTracks})
     });
   }
 
@@ -231,7 +232,8 @@ export class MicroTracksService {
         failure('failed to retrieve data from sources: ' + failed.join(', '));
       let aggregateTracks = new MicroTracks(families, groups);
       this._idTracks(aggregateTracks);
-      this._store.dispatch({type: ADD_MICRO_TRACKS, payload: aggregateTracks})
+      this._store.dispatch({type: StoreActions.ADD_MICRO_TRACKS,
+        payload: aggregateTracks})
     });
 	}
 }

@@ -10,10 +10,7 @@ import { Observable }             from 'rxjs/Observable';
 
 // App
 import { Alert }                     from '../../models/alert.model';
-import { ALERT_SUCCESS,
-         ALERT_INFO,
-         ALERT_WARNING,
-         ALERT_DANGER }              from '../../constants/alerts';
+import { Alerts }                    from '../../constants/alerts';
 import { AlertsService }             from '../../services/alerts.service';
 import { ClusteringService }         from '../../services/clustering.service';
 import { Family }                    from '../../models/family.model';
@@ -113,7 +110,7 @@ export class BasicComponent implements OnInit {
   private _onMicroTracks(tracks): void {
     let num = tracks.groups.length;
     this._alerts.pushAlert(new Alert(
-      (num) ? ALERT_SUCCESS : ALERT_WARNING,
+      (num) ? Alerts.ALERT_SUCCESS : Alerts.ALERT_WARNING,
       num + ' tracks returned'
     ));
     // only selectively color when there are results

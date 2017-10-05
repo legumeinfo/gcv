@@ -1,10 +1,10 @@
-import { ADD_ALIGNMENT_PARAMS }   from '../constants/actions';
-import { AlignmentParams }        from '../models/alignment-params.model';
+import { StoreActions }    from '../constants/store-actions';
+import { AlignmentParams } from '../models/alignment-params.model';
 
 export const alignmentParams = (state: AlignmentParams, {type, payload}) => {
   switch (type) {
     // replaces the existing state with the new state
-    case ADD_ALIGNMENT_PARAMS:
+    case StoreActions.ADD_ALIGNMENT_PARAMS:
       return payload;
     default:
       return state;

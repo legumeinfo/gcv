@@ -5,7 +5,7 @@ export const ORDER_ALGORITHMS: Algorithm[] = [
     id: 'chromosome',
     name: 'Chromosome name',
     algorithm: (tracks, options) => {
-      let orderedTracks = JSON.parse(JSON.stringify(tracks);
+      let orderedTracks = JSON.parse(JSON.stringify(tracks));
       if (orderedTracks !== undefined) {
         options = options || {};
         options.skipFirst = options.skipFirst || false;
@@ -23,7 +23,7 @@ export const ORDER_ALGORITHMS: Algorithm[] = [
     id: 'distance',
     name: 'Edit distance',
     algorithm: (tracks, options) => {
-      let orderedTracks = JSON.parse(JSON.stringify(tracks);
+      let orderedTracks = JSON.parse(JSON.stringify(tracks));
       if (orderedTracks !== undefined) {
         options = options || {};
         options.skipFirst = options.skipFirst || false;

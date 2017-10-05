@@ -4,9 +4,9 @@ import { Observable } from 'rxjs/Observable';
 import { Store }      from '@ngrx/store';
 
 // App store
-import { ADD_CLUSTERING_PARAMS } from '../constants/actions';
-import { ClusteringParams }      from '../models/clustering-params.model';
-import { AppStore }              from '../models/app-store.model';
+import { AppStore }          from '../models/app-store.model';
+import { ClusteringParams }  from '../models/clustering-params.model';
+import { StoreActions }      from '../constants/store-actions';
 
 @Injectable()
 export class ClusteringService {
@@ -18,6 +18,7 @@ export class ClusteringService {
 
   updateParams(params: ClusteringParams): void {
     if (params !== undefined)
-      this._store.dispatch({type: ADD_CLUSTERING_PARAMS, payload: params});
+      this._store.dispatch({type: StoreActions.ADD_CLUSTERING_PARAMS,
+        payload: params});
 	}
 }

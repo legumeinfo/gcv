@@ -4,9 +4,9 @@ import { Observable } from 'rxjs/Observable';
 import { Store }      from '@ngrx/store';
 
 // App store
-import { ADD_ALIGNMENT_PARAMS } from '../constants/actions';
-import { AlignmentParams }      from '../models/alignment-params.model';
-import { AppStore }             from '../models/app-store.model';
+import { AlignmentParams } from '../models/alignment-params.model';
+import { AppStore }        from '../models/app-store.model';
+import { StoreActions }    from '../constants/store-actions';
 
 @Injectable()
 export class AlignmentService {
@@ -18,6 +18,7 @@ export class AlignmentService {
 
   updateParams(params: AlignmentParams): void {
     if (params !== undefined)
-      this._store.dispatch({type: ADD_ALIGNMENT_PARAMS, payload: params});
+      this._store.dispatch({type: StoreActions.ADD_ALIGNMENT_PARAMS,
+        payload: params});
 	}
 }

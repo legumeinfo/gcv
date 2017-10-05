@@ -12,7 +12,7 @@ import { FormBuilder, FormGroup } from '@angular/forms';
 
 // App services
 import { Alert }                 from '../../models/alert.model';
-import { ALERT_DANGER }          from '../../constants/alerts';
+import { Alerts }                from '../../constants/alerts';
 import { AlertsService }         from '../../services/alerts.service';
 import { ALIGNMENT_ALGORITHMS }  from '../../constants/alignment-algorithms';
 import { AlignmentParams }       from '../../models/alignment-params.model';
@@ -67,7 +67,7 @@ export class SearchParamsComponent implements OnChanges, OnDestroy, OnInit {
     // initialize forms
     let defaultQuery = new QueryParams(
       DefaultQueryParams.DEFAULT_NEIGHBORS,
-      [DefaultQueryParams.DEFAULT_SOURCE],
+      [DefaultQueryParams.DEFAULT_SOURCE] as string[],
       DefaultQueryParams.DEFAULT_MATCHED,
       DefaultQueryParams.DEFAULT_INTERMEDIATE);
     this.queryGroup = this._fb.group(defaultQuery.formControls());
@@ -105,7 +105,7 @@ export class SearchParamsComponent implements OnChanges, OnDestroy, OnInit {
       this.source,
       this.gene,
       this.queryGroup.getRawValue(),
-      e => this._alerts.pushAlert(new Alert(ALERT_DANGER, e))
+      e => this._alerts.pushAlert(new Alert(Alerts.ALERT_DANGER, e))
     );
   }
 
