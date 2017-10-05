@@ -11,3 +11,9 @@ export const DEFAULT_MISMATCH = -1;
 export const DEFAULT_GAP = -1;
 export const DEFAULT_SCORE = 30;
 export const DEFAULT_THRESHOLD = 25;
+
+// clustering parameters
+export const DEFAULT_ALPHA = 0.5;
+export const DEFAULT_KAPPA = 10;
+export const DEFAULT_MINSUP = 2;
+export const DEFAULT_MINSIZE = 5;

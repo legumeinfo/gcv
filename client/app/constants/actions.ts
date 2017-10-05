@@ -4,6 +4,9 @@ export const SET_ALIGNMENT = 'SET_ALIGNMENT';
 // alignmentParams
 export const ADD_ALIGNMENT_PARAMS = 'ADD_ALIGNMENT_PARAMS';
 
+// clusteringParams
+export const ADD_CLUSTERING_PARAMS = 'ADD_CLUSTERING_PARAMS';
+
 // globalPlots
 export const ADD_GLOBAL_PLOTS    = 'ADD_GLOBAL_PLOTS';
 export const UPDATE_GLOBAL_PLOTS = 'UPDATE_GLOBAL_PLOTS';

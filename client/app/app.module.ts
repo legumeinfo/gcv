@@ -16,6 +16,7 @@ import { StoreModule }                          from '@ngrx/store';
 
 // reducers
 import { alignmentParams }    from './reducers/alignment-params.store';
+import { clusteringParams }   from './reducers/clustering-params.store';
 import { globalPlots }        from './reducers/global-plots.store';
 import { localPlots }         from './reducers/local-plots.store';
 import { macroTracks }        from './reducers/macro-tracks.store';
@@ -58,6 +59,7 @@ import { ToggleButtonComponent } from './components/shared/toggle-button.compone
 // App services
 import { AlertsService }         from './services/alerts.service';
 import { AlignmentService }      from './services/alignment.service';
+import { ClusteringService }     from './services/clustering.service';
 import { DetailsService }        from './services/details.service';
 import { FilterService }         from './services/filter.service';
 import { MacroTracksService }    from './services/macro-tracks.service';
@@ -74,6 +76,7 @@ import { UrlQueryParamsService } from './services/url-query-params.service';
     ReactiveFormsModule,
     StoreModule.provideStore({
       alignmentParams,
+      clusteringParams,
       globalPlots,
       localPlots,
       macroTracks,
@@ -132,6 +135,7 @@ import { UrlQueryParamsService } from './services/url-query-params.service';
     // App services
     AlertsService,
     AlignmentService,
+    ClusteringService,
     DetailsService,
     FilterService,
     MacroTracksService,

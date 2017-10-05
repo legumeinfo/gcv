@@ -1,6 +1,6 @@
-import { AbstractControl, Validators } from '@angular/forms';
-import { POSITIVE_INT }                from '../constants/regex';
-import { AppConfig }                   from '../app.config';
+import { AbstractControl, Validators }         from '@angular/forms';
+import { POSITIVE_INT, POSITIVE_INT_AND_ZERO } from '../constants/regex';
+import { AppConfig }                           from '../app.config';
 
 export class QueryParams {
   private _sourceIDs: string[] = AppConfig.SERVERS.map(s => s.id);
@@ -38,7 +38,7 @@ export class QueryParams {
     if (this.intermediate !== undefined) {
       controls.intermediate = [this.intermediate, Validators.compose([
         Validators.required,
-        Validators.pattern(POSITIVE_INT)
+        Validators.pattern(POSITIVE_INT_AND_ZERO)
       ])];
     }
     return controls;

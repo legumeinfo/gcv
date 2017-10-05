@@ -7,10 +7,6 @@ import { Store }      from '@ngrx/store';
 import { ADD_ALIGNMENT_PARAMS } from '../constants/actions';
 import { AlignmentParams }      from '../models/alignment-params.model';
 import { AppStore }             from '../models/app-store.model';
-import { MicroTracks }          from '../models/micro-tracks.model';
-
-declare var Alignment: any;
-declare var GCV: any;
 
 @Injectable()
 export class AlignmentService {

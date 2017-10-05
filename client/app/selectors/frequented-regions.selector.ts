@@ -3,10 +3,8 @@ import { MicroTracks } from '../models/micro-tracks.model';
 declare var Graph: any;
 
 export const frequentedRegionsSelector = () => {
-  return state => state
-    // args[0] = MicroTracks
-    .map((args) => {
-      let tracks = Object.assign({}, args[0]);
+  return state => state.map(([tracks, params]) => {
+      let tracks = Object.assign({}, tracks);
       let frTracks = JSON.parse(JSON.stringify(tracks)),
           grouped  = [],
           results  = [];
@@ -27,7 +25,8 @@ export const frequentedRegionsSelector = () => {
       }
       let j = 0;
       do {
-        results = Graph.frequentedRegions(frTracks, 0.5, 10, 2, 5, {omit: [""]});
+        results = Graph.frequentedRegions(frTracks, params.alpha, params.kappa,
+          params.minsup, params.minsize, {omit: [""]});
         let max   = null,
             maxFR = null;;
         for (let i = 0; i < results.length; i++) {

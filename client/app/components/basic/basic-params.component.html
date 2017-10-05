@@ -13,6 +13,29 @@
       </select>
       <p class="help-block" *ngIf="help">Which databases to load data from.</p>
     </div>
-    <button type="submit" class="btn btn-primary col-sm-12" [disabled]="!queryGroup.valid">Submit</button>
+  </fieldset>
+  <fieldset [formGroup]="clusteringGroup">
+    <legend>Clustering Parameters<a id="align-params-help" class="pull-right" (click)="clusteringHelp=!clusteringHelp"><span class="glyphicon glyphicon-question-sign"></span></a></legend>
+    <div class="form-group" [ngClass]="{'has-error': !clusteringGroup.controls.alpha.valid}">
+      <label for="alpha">Identity (in (0,1])</label>
+      <input type="number" step="0.01" class="form-control" formControlName="alpha" >
+      <p class="help-block" *ngIf="clusteringHelp">What percent of the genes in a track need to match the genes in a cluster to be considered a member.</p>
+    </div>
+    <div class="form-group" [ngClass]="{'has-error': !clusteringGroup.controls.kappa.valid}">
+      <label for="kappa">Max Insertion Size (min 0)</label>
+      <input type="number" class="form-control" formControlName="kappa" >
+      <p class="help-block" *ngIf="clusteringHelp">The maximum number of non-matching genes between successive matching genes in a track relative to its cluster.</p>
+    </div>
+    <div class="form-group" [ngClass]="{'has-error': !clusteringGroup.controls.minsup.valid}">
+      <label for="minsup">Min Support (min 2)</label>
+      <input type="number" class="form-control" formControlName="minsup" >
+      <p class="help-block" *ngIf="clusteringHelp">The minimum number of tracks a cluster must contain to be reported.</p>
+    </div>
+    <div class="form-group" [ngClass]="{'has-error': !clusteringGroup.controls.minsize.valid}">
+      <label for="minsize">Min Size (min 1)</label>
+      <input type="number" class="form-control" formControlName="minsize" >
+      <p class="help-block" *ngIf="clusteringHelp">The minimum numbers of genes a cluster must contain to be reported.</p>
+    </div>
+    <button type="submit" class="btn btn-primary col-sm-12" [disabled]="!queryGroup.valid || !clusteringGroup.valid">Submit</button>
   </fieldset>
 </form>

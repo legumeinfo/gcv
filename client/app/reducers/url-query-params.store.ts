@@ -25,8 +25,15 @@ export const urlQueryParams = (state: any = Object.create(UrlQueryParams.prototy
               case 'gap':
               case 'score':
               case 'threshold':
+              case 'kappa':
+              case 'minsup':
+              case 'minsize':
                 let x = parseInt(source[prop]);
                 if (Number.isInteger(x)) target[prop] = x;
+                break;
+              case 'alpha':
+                let y = parseFloat(source[prop]);
+                if (Number(y) === y && y % 1 !== 0) target[prop] = y;
                 break;
               case 'sources':
                 let sources = [];
