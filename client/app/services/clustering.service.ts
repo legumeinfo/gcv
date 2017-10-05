@@ -17,6 +17,7 @@ export class ClusteringService {
   }
 
   updateParams(params: ClusteringParams): void {
-    this._store.dispatch({type: ADD_CLUSTERING_PARAMS, payload: params});
+    if (params !== undefined)
+      this._store.dispatch({type: ADD_CLUSTERING_PARAMS, payload: params});
 	}
 }

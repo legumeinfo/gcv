@@ -11,21 +11,17 @@ import { FormBuilder, FormGroup } from '@angular/forms';
 import { Observable }             from 'rxjs/Observable';
 
 // App
-import { Alert }                 from '../../models/alert.model';
-import { ALERT_DANGER }          from '../../constants/alerts';
-import { AlertsService }         from '../../services/alerts.service';
-import { AppConfig }             from '../../app.config';
-import { ClusteringParams }      from '../../models/clustering-params.model';
-import { ClusteringService }     from '../../services/clustering.service';
-import { DEFAULT_NEIGHBORS,
-         DEFAULT_SOURCE,
-         DEFAULT_ALPHA,
-         DEFAULT_KAPPA,
-         DEFAULT_MINSUP,
-         DEFAULT_MINSIZE }       from '../../constants/default-parameters';
-import { MicroTracksService }    from '../../services/micro-tracks.service';
-import { QueryParams }           from '../../models/query-params.model';
-import { UrlQueryParamsService } from '../../services/url-query-params.service';
+import { Alert }                  from '../../models/alert.model';
+import { ALERT_DANGER }           from '../../constants/alerts';
+import { AlertsService }          from '../../services/alerts.service';
+import { AppConfig }              from '../../app.config';
+import { ClusteringParams }       from '../../models/clustering-params.model';
+import { ClusteringService }      from '../../services/clustering.service';
+import { DefaultClusteringParams,
+         DefaultQueryParams }     from '../../constants/default-parameters';
+import { MicroTracksService }     from '../../services/micro-tracks.service';
+import { QueryParams }            from '../../models/query-params.model';
+import { UrlQueryParamsService }  from '../../services/url-query-params.service';
 
 @Component({
   moduleId: module.id,
@@ -75,14 +71,14 @@ export class BasicParamsComponent implements OnChanges, OnDestroy, OnInit {
   ngOnInit(): void {
     // initialize forms
     let defaultQuery = new QueryParams(
-      DEFAULT_NEIGHBORS,
-      [DEFAULT_SOURCE]);
+      DefaultQueryParams.DEFAULT_NEIGHBORS,
+      [DefaultQueryParams.DEFAULT_SOURCE]);
     this.queryGroup = this._fb.group(defaultQuery.formControls());
     let defaultClustering = new ClusteringParams(
-      DEFAULT_ALPHA,
-      DEFAULT_KAPPA,
-      DEFAULT_MINSUP,
-      DEFAULT_MINSIZE);
+      DefaultClusteringParams.DEFAULT_ALPHA,
+      DefaultClusteringParams.DEFAULT_KAPPA,
+      DefaultClusteringParams.DEFAULT_MINSUP,
+      DefaultClusteringParams.DEFAULT_MINSIZE);
     this.clusteringGroup = this._fb.group(defaultClustering.formControls());
     // subscribe to url query param updates
     this._sub = this._url.params.subscribe(params => {

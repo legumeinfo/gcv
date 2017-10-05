@@ -1,19 +1,25 @@
 // query parameters
-export const DEFAULT_NEIGHBORS = 10;
-export const DEFAULT_MATCHED = 4;
-export const DEFAULT_INTERMEDIATE = 5;
-export const DEFAULT_SOURCE = 'lis';
+export const enum DefaultQueryParams {
+  DEFAULT_NEIGHBORS = 10,
+  DEFAULT_MATCHED = 4,
+  DEFAULT_INTERMEDIATE = 5,
+  DEFAULT_SOURCE = 'lis'
+}
 
 // alignment parameters
-export const DEFAULT_ALIGNMENT = 'repeat'
-export const DEFAULT_MATCH = 10;
-export const DEFAULT_MISMATCH = -1;
-export const DEFAULT_GAP = -1;
-export const DEFAULT_SCORE = 30;
-export const DEFAULT_THRESHOLD = 25;
+export const enum DefaultAlignmentParams {
+  DEFAULT_ALIGNMENT = 'repeat'
+  DEFAULT_MATCH = 10,
+  DEFAULT_MISMATCH = -1,
+  DEFAULT_GAP = -1,
+  DEFAULT_SCORE = 30,
+  DEFAULT_THRESHOLD = 25
+}
 
 // clustering parameters
-export const DEFAULT_ALPHA = 0.5;
-export const DEFAULT_KAPPA = 10;
-export const DEFAULT_MINSUP = 2;
-export const DEFAULT_MINSIZE = 5;
+export const enum DefaultClusteringParams {
+  DEFAULT_ALPHA = 0.5,
+  DEFAULT_KAPPA = 10,
+  DEFAULT_MINSUP = 2,
+  DEFAULT_MINSIZE = 5
+}

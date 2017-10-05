@@ -4,9 +4,9 @@ declare var Graph: any;
 
 export const frequentedRegionsSelector = () => {
   return state => state.map(([tracks, params]) => {
-      let tracks = Object.assign({}, tracks);
-      let frTracks = JSON.parse(JSON.stringify(tracks)),
-          grouped  = [],
+    let frTracks = JSON.parse(JSON.stringify(tracks));
+    if (frTracks !== undefined && params !== undefined) {
+      let grouped  = [],
           results  = [];
       let aggregateSupport = (fr, identified?) => {
         if (identified === undefined) identified = new Set();
@@ -36,8 +36,6 @@ export const frequentedRegionsSelector = () => {
           }
         }
         if (maxFR != null) {
-          console.log("group" + j);
-          console.log(maxFR);
           let supporting = aggregateSupport(maxFR),
               group      = [],
               copyTracks = JSON.parse(JSON.stringify(frTracks)).groups;
@@ -55,7 +53,8 @@ export const frequentedRegionsSelector = () => {
         }
         j++;
       } while (results.length > 0);
-      tracks.groups = grouped.concat(frTracks.groups);
-      return tracks;
-    })
+      frTracks.groups = grouped.concat(frTracks.groups);
+    }
+    return frTracks;
+  })
 };

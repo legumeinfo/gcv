@@ -17,6 +17,7 @@ export class AlignmentService {
   }
 
   updateParams(params: AlignmentParams): void {
-    this._store.dispatch({type: ADD_ALIGNMENT_PARAMS, payload: params});
+    if (params !== undefined)
+      this._store.dispatch({type: ADD_ALIGNMENT_PARAMS, payload: params});
 	}
 }

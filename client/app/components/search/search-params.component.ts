@@ -18,16 +18,8 @@ import { ALIGNMENT_ALGORITHMS }  from '../../constants/alignment-algorithms';
 import { AlignmentParams }       from '../../models/alignment-params.model';
 import { AlignmentService }      from '../../services/alignment.service';
 import { AppConfig }             from '../../app.config';
-import { DEFAULT_NEIGHBORS,
-         DEFAULT_MATCHED,
-         DEFAULT_INTERMEDIATE,
-         DEFAULT_SOURCE,
-         DEFAULT_ALIGNMENT,
-         DEFAULT_MATCH,
-         DEFAULT_MISMATCH,
-         DEFAULT_GAP,
-         DEFAULT_SCORE,
-         DEFAULT_THRESHOLD }     from '../../constants/default-parameters';
+import { DefaultAlignmentParams,
+         DefaultQueryParams }    from '../../constants/default-parameters';
 import { MicroTracksService }    from '../../services/micro-tracks.service';
 import { QueryParams }           from '../../models/query-params.model';
 import { UrlQueryParamsService } from '../../services/url-query-params.service';
@@ -74,18 +66,18 @@ export class SearchParamsComponent implements OnChanges, OnDestroy, OnInit {
   ngOnInit(): void {
     // initialize forms
     let defaultQuery = new QueryParams(
-      DEFAULT_NEIGHBORS,
-      [DEFAULT_SOURCE],
-      DEFAULT_MATCHED,
-      DEFAULT_INTERMEDIATE);
+      DefaultQueryParams.DEFAULT_NEIGHBORS,
+      [DefaultQueryParams.DEFAULT_SOURCE],
+      DefaultQueryParams.DEFAULT_MATCHED,
+      DefaultQueryParams.DEFAULT_INTERMEDIATE);
     this.queryGroup = this._fb.group(defaultQuery.formControls());
     let defaultAlignment = new AlignmentParams(
-      DEFAULT_ALIGNMENT,
-      DEFAULT_MATCH,
-      DEFAULT_MISMATCH,
-      DEFAULT_GAP,
-      DEFAULT_SCORE,
-      DEFAULT_THRESHOLD)
+      DefaultAlignmentParams.DEFAULT_ALIGNMENT,
+      DefaultAlignmentParams.DEFAULT_MATCH,
+      DefaultAlignmentParams.DEFAULT_MISMATCH,
+      DefaultAlignmentParams.DEFAULT_GAP,
+      DefaultAlignmentParams.DEFAULT_SCORE,
+      DefaultAlignmentParams.DEFAULT_THRESHOLD);
     this.alignmentGroup = this._fb.group(defaultAlignment.formControls());
     // subscribe to url query param updates
     this._sub = this._url.params.subscribe(params => {
