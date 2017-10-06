@@ -92,6 +92,8 @@ export class MicroTracksService {
             toMerge = [];
           }
         }
+      } else {
+        groups.push(bin[0]);
       }
     }
     tracks.groups = groups;
