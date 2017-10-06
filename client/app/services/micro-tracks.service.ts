@@ -1,8 +1,9 @@
 // Angular
 import { Http, RequestOptionsArgs, Response } from '@angular/http';
-import { Injectable }     from '@angular/core';
-import { Observable }     from 'rxjs/Observable';
-import { Store }          from '@ngrx/store';
+import { Injectable }                         from '@angular/core';
+import { Location }                           from '@angular/common';
+import { Observable }                         from 'rxjs/Observable';
+import { Store }                              from '@ngrx/store';
 
 // App
 import { AppConfig }         from '../app.config';
@@ -21,11 +22,9 @@ export class MicroTracksService {
 
   private _serverIDs = AppConfig.SERVERS.map(s => s.id);
 
-  constructor(private _http: Http, private _store: Store<AppStore>) {
-    this._init();
-  }
-
-  private _init(): void {
+  constructor(private _http: Http,
+              private _location: Location,
+              private _store: Store<AppStore>) {
     this.tracks = this._store.select('microTracks');
   }
 
@@ -219,7 +218,10 @@ export class MicroTracksService {
         response.map(res => JSON.parse(res.json())).subscribe(query => {
           this._prepareTrack(source, query);
           this.trackSearch(query, params, failure);
-        }, failure);
+        }, e => {
+          this._location.back();
+          failure(e);
+        });
       } else {
         failure(s.id + " doesn't serve micro track gene search requests");
       }

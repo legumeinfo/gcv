@@ -22,10 +22,6 @@ export class UrlQueryParamsService {
               private _location: Location,
               private _router: Router,
               private _store: Store<AppStore>) {
-    this._init();
-  }
-
-  private _init(): void {
     this.params = this._store.select('urlQueryParams');
     this.params.subscribe(params => {
       this._updateUrl(params);

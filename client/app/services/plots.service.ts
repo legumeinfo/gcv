@@ -28,10 +28,6 @@ export class PlotsService {
   private _serverIDs = AppConfig.SERVERS.map(s => s.id);
 
   constructor(private _http: Http, private _store: Store<AppStore>) {
-    this._init();
-  }
-
-  private _init(): void {
     this._store.select('microTracks').subscribe((tracks: MicroTracks) => {
       this._parseQuery(tracks);
       let localPlots = this._plotTracks(tracks);
