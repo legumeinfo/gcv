@@ -9,10 +9,7 @@ import { Router }        from '@angular/router';
 
 // App
 import { Alert }         from '../../models/alert.model';
-import { ALERT_SUCCESS,
-         ALERT_INFO,
-         ALERT_WARNING,
-         ALERT_DANGER }  from '../../constants/alerts';
+import { Alerts }        from '../../constants/alerts';
 import { AlertsService } from '../../services/alerts.service';
 import { Gene }          from '../../models/gene.model';
 
@@ -68,7 +65,7 @@ export class ScrollComponent implements OnChanges {
   private _stepSizeValid(stepNum: number): boolean {
     if (isNaN(stepNum) || stepNum <= 0) {
       this._alerts.pushAlert(new Alert(
-        ALERT_WARNING,
+        Alerts.ALERT_WARNING,
         'Scrolling step size must be specified >= 1'
       ));
       return false;
@@ -87,7 +84,7 @@ export class ScrollComponent implements OnChanges {
       this._search(idx);
     else
       this._alerts.pushAlert(new Alert(
-        ALERT_WARNING,
+        Alerts.ALERT_WARNING,
         'Scrolling step size must be <= current value of neighbors.'
       ));
   }
@@ -102,7 +99,7 @@ export class ScrollComponent implements OnChanges {
       this._search(idx);
     else {
       this._alerts.pushAlert(new Alert(
-          ALERT_WARNING,
+          Alerts.ALERT_WARNING,
         'Scrolling step size must be <= current value of neighbors.'
       ));
     }

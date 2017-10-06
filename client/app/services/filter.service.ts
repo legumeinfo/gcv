@@ -4,11 +4,9 @@ import { Observable }      from 'rxjs/Observable';
 import { Store }           from '@ngrx/store';
 
 // App
-import { Algorithm }  from '../models/algorithm.model';
-import { AppStore }   from '../models/app-store.model';
-import { SET_ALIGNMENT,
-         SET_ORDER,
-         SET_REGEXP } from '../constants/actions';
+import { Algorithm }    from '../models/algorithm.model';
+import { AppStore }     from '../models/app-store.model';
+import { StoreActions } from '../constants/store-actions';
 
 @Injectable()
 export class FilterService {
@@ -27,14 +25,14 @@ export class FilterService {
   }
 
   setAlignment(alignment: Algorithm): void {
-    this._store.dispatch({type: SET_ALIGNMENT, payload: alignment});
+    this._store.dispatch({type: StoreActions.SET_ALIGNMENT, payload: alignment});
   }
 
   setOrder(order: string): void {
-    this._store.dispatch({type: SET_ORDER, payload: order});
+    this._store.dispatch({type: StoreActions.SET_ORDER, payload: order});
   }
 
   setRegexp(regexp: string): void {
-    this._store.dispatch({type: SET_REGEXP, payload: regexp});
+    this._store.dispatch({type: StoreActions.SET_REGEXP, payload: regexp});
   }
 }

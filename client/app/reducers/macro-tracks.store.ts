@@ -1,9 +1,9 @@
-import { ADD_MACRO_TRACKS } from '../constants/actions';
+import { StoreActions } from '../constants/store-actions';
 
 export const macroTracks = (state: any = undefined,
 {type, payload}) => {
   switch (type) {
-    case ADD_MACRO_TRACKS:
+    case StoreActions.ADD_MACRO_TRACKS:
       return payload;
     default:
       return state;

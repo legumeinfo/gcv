@@ -4,7 +4,7 @@ import { RouterModule, Routes } from '@angular/router';
 
 // app
 import { BasicComponent }        from './components/basic/basic.component';
-import { DEFAULT_SOURCE }        from './constants/default-parameters';
+import { DefaultQueryParams }    from './constants/default-parameters';
 import { InstructionsComponent } from './components/instructions/instructions.component';
 import { SearchComponent }       from './components/search/search.component';
 
@@ -14,7 +14,7 @@ const routes: Routes = [
   {path: 'instructions', component: InstructionsComponent},
   {
     path: 'search/:gene',
-    redirectTo: '/search/' + DEFAULT_SOURCE + '/:gene',
+    redirectTo: '/search/' + DefaultQueryParams.DEFAULT_SOURCE + '/:gene',
     pathMatch: 'full'
   },
   {path: 'search/:source/:gene', component: SearchComponent}

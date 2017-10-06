@@ -1,5 +1,5 @@
-import { Algorithm }  from '../models/algorithm.model';
-import { SET_REGEXP } from '../constants/actions';
+import { Algorithm }    from '../models/algorithm.model';
+import { StoreActions } from '../constants/store-actions';
 
 export const regexpFilter = (
   state: Algorithm = new Algorithm('regexp', 'Regular Expression', t => t),
@@ -17,7 +17,7 @@ export const regexpFilter = (
     return filteredTracks;
   }
   switch (type) {
-    case SET_REGEXP:
+    case StoreActions.SET_REGEXP:
       return new Algorithm(
         'regexp',
         'Regular Expression',

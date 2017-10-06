@@ -1,4 +1,4 @@
-import { ADD_QUERY_PARAMS }     from '../constants/actions';
+import { StoreActions }         from '../constants/store-actions';
 import { ALIGNMENT_ALGORITHMS } from '../constants/alignment-algorithms';
 import { AppConfig }            from '../app.config';
 import { ORDER_ALGORITHMS }     from '../constants/order-algorithms';
@@ -8,7 +8,7 @@ export const urlQueryParams = (state: any = Object.create(UrlQueryParams.prototy
 {type, payload}) => {
   // TODO: add getters/setters in UrlQueryParams so Object.assign can be used
   switch (type) {
-    case ADD_QUERY_PARAMS:
+    case StoreActions.ADD_QUERY_PARAMS:
       // how params are copied to the url
       let sourceIDs = AppConfig.SERVERS.map(s => s.id);
       let alignmentIDs = ALIGNMENT_ALGORITHMS.map(a => a.id);
@@ -25,8 +25,15 @@ export const urlQueryParams = (state: any = Object.create(UrlQueryParams.prototy
               case 'gap':
               case 'score':
               case 'threshold':
+              case 'kappa':
+              case 'minsup':
+              case 'minsize':
                 let x = parseInt(source[prop]);
                 if (Number.isInteger(x)) target[prop] = x;
+                break;
+              case 'alpha':
+                let y = parseFloat(source[prop]);
+                if (Number(y) === y && y % 1 !== 0) target[prop] = y;
                 break;
               case 'sources':
                 let sources = [];

@@ -9,9 +9,9 @@ import { Router }         from '@angular/router';
 import { Store }          from '@ngrx/store';
 
 // App store
-import { AppStore }         from '../models/app-store.model';
-import { UrlQueryParams }   from '../models/url-query-params.model';
-import { ADD_QUERY_PARAMS } from '../constants/actions';
+import { AppStore }       from '../models/app-store.model';
+import { UrlQueryParams } from '../models/url-query-params.model';
+import { StoreActions }   from '../constants/store-actions';
 
 @Injectable()
 export class UrlQueryParamsService {
@@ -45,7 +45,7 @@ export class UrlQueryParamsService {
   }
 
   private _updateStore(params: any): void {
-    this._store.dispatch({type: ADD_QUERY_PARAMS, payload: params});
+    this._store.dispatch({type: StoreActions.ADD_QUERY_PARAMS, payload: params});
   }
 
   updateParams(params: any): void {
