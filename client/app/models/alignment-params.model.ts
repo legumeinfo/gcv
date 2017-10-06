@@ -1,6 +1,6 @@
 import { AbstractControl, Validators } from '@angular/forms';
 import { ALIGNMENT_ALGORITHMS }        from '../constants/alignment-algorithms';
-import { POSITIVE_INT, NEGATIVE_INT }  from '../constants/regex';
+import { Regex }                       from '../constants/regex';
 
 export class AlignmentParams {
   private _algorithms: string = ALIGNMENT_ALGORITHMS.map(a => a.id).join('|');
@@ -22,23 +22,23 @@ export class AlignmentParams {
       ])],
       match: [this.match, Validators.compose([
         Validators.required,
-        Validators.pattern(POSITIVE_INT)
+        Validators.pattern(Regex.POSITIVE_INT)
       ])],
       mismatch: [this.mismatch, Validators.compose([
         Validators.required,
-        Validators.pattern(NEGATIVE_INT)
+        Validators.pattern(Regex.NEGATIVE_INT)
       ])],
       gap: [this.gap, Validators.compose([
         Validators.required,
-        Validators.pattern(NEGATIVE_INT)
+        Validators.pattern(Regex.NEGATIVE_INT)
       ])],
       score: [this.score, Validators.compose([
         Validators.required,
-        Validators.pattern(POSITIVE_INT)
+        Validators.pattern(Regex.POSITIVE_INT)
       ])],
       threshold: [this.threshold, Validators.compose([
         Validators.required,
-        Validators.pattern(POSITIVE_INT)
+        Validators.pattern(Regex.POSITIVE_INT)
       ])]
     };
   }

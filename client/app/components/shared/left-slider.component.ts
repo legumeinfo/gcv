@@ -5,12 +5,12 @@ import { Component,
          SimpleChanges } from '@angular/core';
 
 // App
-import { Family }                         from '../../models/family.model';
-import { Gene }                           from '../../models/gene.model';
-import { Group }                          from '../../models/group.model';
-import { MicroTracks }                    from '../../models/micro-tracks.model';
-import { SLIDER_ACTIVE, SLIDER_INACTIVE } from '../../constants/toggle-slider';
-import { toggleSlider }                   from '../../animations/toggle-slider.animation';
+import { Family }       from '../../models/family.model';
+import { Gene }         from '../../models/gene.model';
+import { Group }        from '../../models/group.model';
+import { MicroTracks }  from '../../models/micro-tracks.model';
+import { SliderStates } from '../../constants/slider-states';
+import { toggleSlider } from '../../animations/toggle-slider.animation';
 
 enum DetailTypes {
   PARAMS,
@@ -28,10 +28,10 @@ enum DetailTypes {
 })
 
 export class LeftSliderComponent implements OnChanges {
-  @Input() selected: Family | Gene | Group;
+  @Input() selected: Family | Gene | Group | Object;
   @Input() tracks: MicroTracks;
 
-  state = SLIDER_ACTIVE;
+  state = SliderStates.SLIDER_ACTIVE;
 
   detailTypes = DetailTypes;
   selectedDetail;
@@ -55,7 +55,7 @@ export class LeftSliderComponent implements OnChanges {
       this.show();
     } else if (this.selected instanceof Object) {
       if (this.selectedDetail == DetailTypes.PARAMS &&
-      this.state == SLIDER_ACTIVE) {
+      this.state == SliderStates.SLIDER_ACTIVE) {
         this.hide();
       } else {
         this.selectedDetail = DetailTypes.PARAMS;
@@ -67,10 +67,10 @@ export class LeftSliderComponent implements OnChanges {
   }
   
   hide(): void {
-    this.state = SLIDER_INACTIVE;
+    this.state = SliderStates.SLIDER_INACTIVE;
   }
   
   show(): void {
-    this.state = SLIDER_ACTIVE;
+    this.state = SliderStates.SLIDER_ACTIVE;
   }
 }

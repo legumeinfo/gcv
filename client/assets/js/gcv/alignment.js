@@ -322,7 +322,7 @@ Alignment.repeat = function (sequence, reference, options) {
   */
 Alignment.trackify = function (data, alignments) {
   // make a copy of the data (tracks) and only save the first group (query)
-  var aligned = $.extend(true, {}, data),
+  var aligned = JSON.parse(JSON.stringify(data)),
       query = aligned.groups[0];
   if (query !== undefined) {
     aligned.groups = [query];

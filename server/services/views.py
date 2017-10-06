@@ -208,8 +208,8 @@ def v1_micro_synteny_basic(request):
                         '", "id":"' + family_id + '"}')
             group = ('{"chromosome_name":"' + srcfeature.name +
                 '", "chromosome_id":' + str(srcfeature.feature_id) +
-                ', "species_name":"' + organism.genus[0] +
-                '.' + organism.species +
+                ', "genus":"' + organism.genus +
+                '", "species":"' + organism.species +
                 '", "species_id":' + str(gene.organism_id)+', "genes":[')
             order = order_map[gene.pk]
             track_genes = track_gene_map[order.pk]
@@ -425,9 +425,7 @@ def v1_micro_synteny_search(request):
         organism_ids = chromosomes.values_list('organism_id', flat=True)
         organisms = list(Organism.objects.only('genus', 'species')\
             .filter(pk__in=organism_ids))
-        id_organism_map = dict(
-            (o.pk, o.genus[ 0 ]+'.'+o.species) for o in organisms
-        )
+        id_organism_map = dict((o.pk, o) for o in organisms)
 
         # construct tracks for each chromosome
         tracks = {}
@@ -528,8 +526,9 @@ def v1_micro_synteny_search(request):
                     str(gene_loc_map[g].fmin) + ', "fmax":' +
                     str(gene_loc_map[g].fmax) + ', "strand":' +
                     str(gene_loc_map[g].strand)+'}')
-            group = ('{"species_name":"' +
-                str(id_organism_map[id_chromosome_map[chromosome_id].organism_id]) +
+            o = id_organism_map[id_chromosome_map[chromosome_id].organism_id]
+            group = ('{"genus":"' + o.genus +
+                '", "species":"' + o.species +
                 '", "species_id":' +
                 str(id_chromosome_map[chromosome_id].organism_id) +
                 ', "chromosome_name":"' + id_chromosome_map[chromosome_id].name +

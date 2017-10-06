@@ -11,6 +11,11 @@ export class UrlQueryParams {
   gap: number;
   score: number;
   threshold: number;
+  // clustering params
+  alpha: number;
+  kappa: number;
+  minsup: number;
+  minsize: number;
   // filters
   regexp: string;
   order: string;  // SortingAlgorithm ID
