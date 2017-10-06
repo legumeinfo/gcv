@@ -209,7 +209,7 @@ def v1_micro_synteny_basic(request):
             group = ('{"chromosome_name":"' + srcfeature.name +
                 '", "chromosome_id":' + str(srcfeature.feature_id) +
                 ', "genus":"' + organism.genus +
-                '", "species":"' organism.species +
+                '", "species":"' + organism.species +
                 '", "species_id":' + str(gene.organism_id)+', "genes":[')
             order = order_map[gene.pk]
             track_genes = track_gene_map[order.pk]
