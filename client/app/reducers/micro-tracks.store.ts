@@ -1,9 +1,9 @@
-import { ADD_MICRO_TRACKS } from '../constants/actions';
+import { StoreActions } from '../constants/store-actions';
 
 export const microTracks = (state: any = {families: [], groups: []},
 {type, payload}) => {
   switch (type) {
-    case ADD_MICRO_TRACKS:
+    case StoreActions.ADD_MICRO_TRACKS:
       return payload;
     default:
       return state;

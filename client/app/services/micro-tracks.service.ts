@@ -1,12 +1,12 @@
 // Angular
-import { Http, Response } from '@angular/http';
-import { Injectable }     from '@angular/core';
-import { Observable }     from 'rxjs/Observable';
-import { Store }          from '@ngrx/store';
+import { Http, RequestOptionsArgs, Response } from '@angular/http';
+import { Injectable }                         from '@angular/core';
+import { Location }                           from '@angular/common';
+import { Observable }                         from 'rxjs/Observable';
+import { Store }                              from '@ngrx/store';
 
 // App
 import { AppConfig }         from '../app.config';
-import { ADD_MICRO_TRACKS }  from '../constants/actions';
 import { AppStore }          from '../models/app-store.model';
 import { Family }            from '../models/family.model';
 import { Gene }              from '../models/gene.model';
@@ -14,6 +14,7 @@ import { GET, POST, Server } from '../models/server.model';
 import { Group }						 from '../models/group.model';
 import { MicroTracks }       from '../models/micro-tracks.model';
 import { QueryParams }       from '../models/query-params.model';
+import { StoreActions }      from '../constants/store-actions';
 
 @Injectable()
 export class MicroTracksService {
@@ -21,11 +22,9 @@ export class MicroTracksService {
 
   private _serverIDs = AppConfig.SERVERS.map(s => s.id);
 
-  constructor(private _http: Http, private _store: Store<AppStore>) {
-    this._init();
-  }
-
-  private _init(): void {
+  constructor(private _http: Http,
+              private _location: Location,
+              private _store: Store<AppStore>) {
     this.tracks = this._store.select('microTracks');
   }
 
@@ -41,6 +40,63 @@ export class MicroTracksService {
 
   private _parseMicroTracksJSON(source: Server, json: any): MicroTracks {
     let tracks: MicroTracks = JSON.parse(json);
+    // combine overlapping tracks
+    var mergeTracks = (toMerge) => {
+      let merged = toMerge[0];
+      let seen = new Set(merged.genes.map(g => g.id));
+      for (let i = 1; i < toMerge.length; i++) {
+        for (let j = 0; j < toMerge[i].genes; j++) {
+          let g = toMerge[i].genes[j];
+          if (!seen.has(g.id)) {
+            seen.add(g.id);
+            merged.genes.push(g);
+          }
+        }
+      }
+      return merged;
+    }
+    let groups = [];
+    let bins = {};
+    for (let i = 0; i < tracks.groups.length; ++i) {
+      let t = tracks.groups[i];
+      let id = t.species_id.toString() + t.chromosome_id.toString();
+      if (!bins.hasOwnProperty(id)) bins[id] = [];
+      bins[id].push(t);
+    }
+    for (var id in bins) {
+      let bin = bins[id];
+      if (bin.length > 1) {
+        let breaks = [];
+        for (let i = 0; i < bin.length; i++) {
+          let mins  = bin[i].genes.map(g => Math.min(g.fmin, g.fmax));
+          let maxs  = bin[i].genes.map(g => Math.max(g.fmin, g.fmax));
+          let begin = Math.min.apply(null, mins);
+          let end   = Math.max.apply(null, maxs);
+          breaks.push({v: begin, c: 1, i: i}); 
+          breaks.push({v: end, c: -1, i: i}); 
+        }
+        breaks.sort((a, b) => {
+          if (a.v < b.v || a.v > b.v) return a.v - b.v;
+          if (a.c < b.c || a.c > b.c) return b.c - a.c;
+          return a.i - b.i;
+        });
+        let counter = 0;
+        let toMerge = [];
+        for (let i = 0; i < breaks.length; i++) {
+          let b = breaks[i];
+          if (b.c > 0) toMerge.push(bin[b.i]);
+          counter += b.c;
+          if (counter == 0) {
+            groups.push(mergeTracks(toMerge));
+            toMerge = [];
+          }
+        }
+      } else {
+        groups.push(bin[0]);
+      }
+    }
+    tracks.groups = groups;
+    // assign initial coordinates
     for (let i = 0; i < tracks.groups.length; ++i) {
       let group: Group = tracks.groups[i];
       this._prepareTrack(source.id, group);
@@ -62,7 +118,7 @@ export class MicroTracksService {
     let args = {
       genes: queryGenes,
       neighbors: params.neighbors
-    };
+    } as RequestOptionsArgs;
 		// send requests to the selected servers
     let requests: Observable<Response>[] = [];
     let sources = params.sources.reduce((l, s) => {
@@ -134,7 +190,8 @@ export class MicroTracksService {
         failure('failed to retrieve data from sources: ' + failed.join(', '));
       let aggregateTracks = new MicroTracks(families, groups);
       this._idTracks(aggregateTracks);
-      this._store.dispatch({type: ADD_MICRO_TRACKS, payload: aggregateTracks})
+      this._store.dispatch({type: StoreActions.ADD_MICRO_TRACKS,
+        payload: aggregateTracks})
     });
   }
 
@@ -152,7 +209,7 @@ export class MicroTracksService {
         let args = {
           gene: queryGene,
           neighbors: params.neighbors
-        };
+        } as RequestOptionsArgs;
         let response: Observable<Response>;
         if (s.microQuery.type === GET)
           response = this._http.get(s.microQuery.url, args)
@@ -161,7 +218,10 @@ export class MicroTracksService {
         response.map(res => JSON.parse(res.json())).subscribe(query => {
           this._prepareTrack(source, query);
           this.trackSearch(query, params, failure);
-        }, failure);
+        }, e => {
+          this._location.back();
+          failure(e);
+        });
       } else {
         failure(s.id + " doesn't serve micro track gene search requests");
       }
@@ -175,7 +235,7 @@ export class MicroTracksService {
       query: query.genes.map(g => g.family),
       matched: params.matched,
       intermediate: params.intermediate
-    };
+    } as RequestOptionsArgs;
 		// send requests to the selected servers
     let requests: Observable<Response>[] = [];
     let sources = params.sources.reduce((l, s) => {
@@ -231,7 +291,8 @@ export class MicroTracksService {
         failure('failed to retrieve data from sources: ' + failed.join(', '));
       let aggregateTracks = new MicroTracks(families, groups);
       this._idTracks(aggregateTracks);
-      this._store.dispatch({type: ADD_MICRO_TRACKS, payload: aggregateTracks})
+      this._store.dispatch({type: StoreActions.ADD_MICRO_TRACKS,
+        payload: aggregateTracks})
     });
 	}
 }

@@ -15,8 +15,8 @@ import { StoreLogMonitorModule, useLogMonitor } from '@ngrx/store-log-monitor';
 import { StoreModule }                          from '@ngrx/store';
 
 // reducers
-import { alignedMicroTracks } from './reducers/aligned-micro-tracks.store';
 import { alignmentParams }    from './reducers/alignment-params.store';
+import { clusteringParams }   from './reducers/clustering-params.store';
 import { globalPlots }        from './reducers/global-plots.store';
 import { localPlots }         from './reducers/local-plots.store';
 import { macroTracks }        from './reducers/macro-tracks.store';
@@ -36,6 +36,7 @@ import { BasicParamsComponent }  from './components/basic/basic-params.component
 import { ContextMenuComponent }  from './components/shared/context-menu.component';
 import { FamilyDetailComponent } from './components/shared/family-detail.component';
 import { GeneDetailComponent }   from './components/shared/gene-detail.component';
+import { GeneSearchComponent }   from './components/search/gene-search.component';
 import { HeaderComponent }       from './components/shared/header.component';
 import { HelpComponent }         from './components/shared/help.component';
 import { InstructionsComponent } from './components/instructions/instructions.component';
@@ -59,6 +60,7 @@ import { ToggleButtonComponent } from './components/shared/toggle-button.compone
 // App services
 import { AlertsService }         from './services/alerts.service';
 import { AlignmentService }      from './services/alignment.service';
+import { ClusteringService }     from './services/clustering.service';
 import { DetailsService }        from './services/details.service';
 import { FilterService }         from './services/filter.service';
 import { MacroTracksService }    from './services/macro-tracks.service';
@@ -74,8 +76,8 @@ import { UrlQueryParamsService } from './services/url-query-params.service';
     HttpModule,
     ReactiveFormsModule,
     StoreModule.provideStore({
-      alignedMicroTracks,
       alignmentParams,
+      clusteringParams,
       globalPlots,
       localPlots,
       macroTracks,
@@ -103,6 +105,7 @@ import { UrlQueryParamsService } from './services/url-query-params.service';
     ContextMenuComponent,
     FamilyDetailComponent,
     GeneDetailComponent,
+    GeneSearchComponent,
     HeaderComponent,
     HelpComponent,
     InstructionsComponent,
@@ -134,6 +137,7 @@ import { UrlQueryParamsService } from './services/url-query-params.service';
     // App services
     AlertsService,
     AlignmentService,
+    ClusteringService,
     DetailsService,
     FilterService,
     MacroTracksService,

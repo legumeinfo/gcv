@@ -1,8 +1,8 @@
-import { SELECT_PLOT } from '../constants/actions';
+import { StoreActions } from '../constants/store-actions';
 
 export const selectedPlot = (state: any = undefined, {type, payload}) => {
   switch (type) {
-    case SELECT_PLOT:
+    case StoreActions.SELECT_PLOT:
       return payload;
     default:
       return state;

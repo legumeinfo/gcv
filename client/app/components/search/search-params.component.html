@@ -7,12 +7,12 @@
       <p class="help-block" *ngIf="queryHelp">Number of genes on either side of the query gene.</p>
     </div>
     <div class="form-group" [ngClass]="{'has-error': !queryGroup.controls.matched.valid}">
-      <label for="matched">Matched families (min 1)</label>
+      <label for="matched">Min Matched families (min 1)</label>
       <input type="number" class="form-control" formControlName="matched" >
       <p class="help-block" *ngIf="queryHelp">The minimum number of gene families that must match between the query track and each result track.</p>
     </div>
     <div class="form-group" [ngClass]="{'has-error': !queryGroup.controls.intermediate.valid}">
-      <label for="intermediate">Intermediate genes (min 1)</label>
+      <label for="intermediate">Max Insertion Size (min 0)</label>
       <input type="number" class="form-control" formControlName="intermediate" >
       <p class="help-block" *ngIf="queryHelp">The maximum number of non-matching genes between successive matching genes in a result track.</p>
     </div>

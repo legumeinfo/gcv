@@ -3,7 +3,6 @@ import { Component, Input, OnDestroy, OnInit } from '@angular/core';
 
 // App
 import { Alert }         from '../../models/alert.model';
-import { ALERT_INFO }    from '../../constants/alerts';
 import { AlertsService } from '../../services/alerts.service';
 
 declare var $: any;

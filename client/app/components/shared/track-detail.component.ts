@@ -11,7 +11,7 @@ import { Group }          from '../../models/group.model';
   moduleId: module.id,
   selector: 'track-detail',
   template: `
-    <h4>{{track.species_name}} - {{track.chromosome_name}}</h4>
+    <h4>{{track.genus[0]}}.{{track.species}} - {{track.chromosome_name}}</h4>
     <p><a href="#/search/{{track.source}}/{{focus}}">Search for similar contexts</a></p>
     <p>Genes:</p>
     <ul>

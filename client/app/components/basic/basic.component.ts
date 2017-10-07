@@ -9,23 +9,23 @@ import { Component,
 import { Observable }             from 'rxjs/Observable';
 
 // App
-import { Alert }               from '../../models/alert.model';
-import { ALERT_SUCCESS,
-         ALERT_INFO,
-         ALERT_WARNING,
-         ALERT_DANGER }        from '../../constants/alerts';
-import { AlertsService }       from '../../services/alerts.service';
-import { Family }              from '../../models/family.model';
-import { FilterService }       from '../../services/filter.service';
-import { Gene }                from '../../models/gene.model';
-import { Group }               from '../../models/group.model';
-import { MicroTracks }         from '../../models/micro-tracks.model';
-import { microTracksSelector } from '../../selectors/micro-tracks.selector';
-import { MicroTracksService }  from '../../services/micro-tracks.service';
+import { Alert }                     from '../../models/alert.model';
+import { Alerts }                    from '../../constants/alerts';
+import { AlertsService }             from '../../services/alerts.service';
+import { ClusteringService }         from '../../services/clustering.service';
+import { Family }                    from '../../models/family.model';
+import { FilterService }             from '../../services/filter.service';
+import { frequentedRegionsSelector } from '../../selectors/frequented-regions.selector';
+import { Gene }                      from '../../models/gene.model';
+import { Group }                     from '../../models/group.model';
+import { MicroTracks }               from '../../models/micro-tracks.model';
+import { microTracksSelector }       from '../../selectors/micro-tracks.selector';
+import { MicroTracksService }        from '../../services/micro-tracks.service';
 
 declare var d3: any;
 declare var contextColors: any;
 declare var Split: any;
+declare var getFamilySizeMap: any;
 
 enum AccordionTypes {
   REGEXP,
@@ -71,6 +71,7 @@ export class BasicComponent implements OnInit {
   // data
   queryGenes: string[];
 
+  private _groupedTracks: Observable<MicroTracks>;
   private _microTracks: Observable<MicroTracks>;
   microTracks: MicroTracks;
   microLegend: any;
@@ -94,6 +95,7 @@ export class BasicComponent implements OnInit {
 
   constructor(private _route: ActivatedRoute,
               private _alerts: AlertsService,
+              private _clusteringService: ClusteringService,
               private _filterService: FilterService,
               private _microTracksService: MicroTracksService) { }
 
@@ -108,9 +110,13 @@ export class BasicComponent implements OnInit {
   private _onMicroTracks(tracks): void {
     let num = tracks.groups.length;
     this._alerts.pushAlert(new Alert(
-      (num) ? ALERT_SUCCESS : ALERT_WARNING,
+      (num) ? Alerts.ALERT_SUCCESS : Alerts.ALERT_WARNING,
       num + ' tracks returned'
     ));
+    // only selectively color when there are results
+    let familySizes = (tracks.groups.length > 1)
+                      ? getFamilySizeMap(tracks)
+                      : undefined;
     let highlight = tracks.groups.reduce((l, group) => {
       let families = group.genes
         .filter(g => this.queryGenes.indexOf(g.name) !== -1)
@@ -123,8 +129,10 @@ export class BasicComponent implements OnInit {
         this.selectFamily(f);
       }.bind(this),
       highlight: highlight,
+      selectiveColoring: familySizes,
       selector: 'family'
     }
+    this.microArgs.selectiveColoring = familySizes;
     this.microTracks = tracks;
     var seen = {};
     var uniqueFamilies = this.microTracks.families.reduce((l, f) => {
@@ -143,9 +151,16 @@ export class BasicComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    // subscribe to parameter changes
     this._route.params.subscribe(this._onParams.bind(this));
-    this._microTracks = Observable.combineLatest(
+
+    // subscribe to micro-tracks changes
+    this._groupedTracks = Observable.combineLatest(
       this._microTracksService.tracks,
+      this._clusteringService.clusteringParams
+    ).let(frequentedRegionsSelector());
+    this._microTracks = Observable.combineLatest(
+      this._groupedTracks,
       this._filterService.regexp
     ).let(microTracksSelector());
     this._microTracks.subscribe(this._onMicroTracks.bind(this));
