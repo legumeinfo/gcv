@@ -1,3 +1,3 @@
-app/**/*.js
-app/**/*.js.map
+src/**/*.js
+src/**/*.js.map
 node_modules/*
