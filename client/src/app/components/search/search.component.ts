@@ -1,4 +1,4 @@
-// Angular
+// Angular + dependencies
 import { ActivatedRoute, Router } from '@angular/router';
 import { BehaviorSubject }        from 'rxjs/BehaviorSubject';
 import { Component,
@@ -9,6 +9,8 @@ import { Component,
          ViewChildren,
          ViewEncapsulation }      from '@angular/core';
 import { Observable }             from 'rxjs/Observable';
+import { Split }                  from 'split.js';
+import * as d3                    from 'd3';
 
 // App
 import { Alert }                     from '../../models/alert.model';
@@ -32,9 +34,7 @@ import { plotsSelector }             from '../../selectors/plots.selector';
 import { PlotsService }              from '../../services/plots.service';
 import { SearchParamsComponent }     from './search-params.component';
 
-declare var d3: any;
 declare var contextColors: any;
-declare var Split: any;
 declare var getFamilySizeMap: any;
 declare var RegExp: any;  // TypeScript doesn't support regexp as argument...
 declare var parseInt: any;  // TypeScript doesn't recognize number inputs

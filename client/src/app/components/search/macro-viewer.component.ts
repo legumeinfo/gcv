@@ -1,4 +1,4 @@
-// Angular
+// Angular + dependencies
 import { AfterViewInit,
          Component,
          ElementRef,
@@ -7,12 +7,12 @@ import { AfterViewInit,
          OnDestroy,
          SimpleChanges,
          ViewChild } from '@angular/core';
+import * as d3       from 'd3';
 
 // App
 import { DataSaver }   from '../../models/data-saver.model';
 import { MacroTracks } from '../../models/macro-tracks.model';
 
-declare var d3: any;
 declare var GCV: any;
 
 @Component({

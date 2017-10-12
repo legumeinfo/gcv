@@ -1,11 +1,10 @@
-// Angular
+// Angular + dependencies
 import { Component, Input, OnDestroy, OnInit } from '@angular/core';
+import { $ }                                   from 'jquery';
 
 // App
 import { Alert }         from '../../models/alert.model';
 import { AlertsService } from '../../services/alerts.service';
-
-declare var $: any;
 
 @Component({
   moduleId: module.id,

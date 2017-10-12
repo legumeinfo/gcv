@@ -1,4 +1,4 @@
-// Angular
+// Angular + dependencies
 import { ActivatedRoute, Params } from '@angular/router';
 import { BehaviorSubject }        from 'rxjs/BehaviorSubject';
 import { Component,
@@ -7,6 +7,8 @@ import { Component,
          ViewChild,
          ViewEncapsulation }      from '@angular/core';
 import { Observable }             from 'rxjs/Observable';
+import { Split }                  from 'split.js';
+import * as d3                    from 'd3';
 
 // App
 import { Alert }                     from '../../models/alert.model';
@@ -22,9 +24,7 @@ import { MicroTracks }               from '../../models/micro-tracks.model';
 import { microTracksSelector }       from '../../selectors/micro-tracks.selector';
 import { MicroTracksService }        from '../../services/micro-tracks.service';
 
-declare var d3: any;
 declare var contextColors: any;
-declare var Split: any;
 declare var getFamilySizeMap: any;
 
 enum AccordionTypes {
@@ -35,7 +35,7 @@ enum AccordionTypes {
   moduleId: module.id,
   selector: 'basic',
   templateUrl: 'basic.component.html',
-  styleUrls: [ 'basic.component.css', '../../../assets/css/split.css' ],
+  styleUrls: [ 'basic.component.css' ],
   encapsulation: ViewEncapsulation.None
 })
 

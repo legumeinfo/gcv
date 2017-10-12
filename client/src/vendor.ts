@@ -17,5 +17,8 @@ import '@ngrx/store-log-monitor';
 // RxJS
 import 'rxjs';
 
-// Other vendors for example jQuery, Lodash or Bootstrap
-// You can import js, ts, css, sass, ...
+// various
+import 'bootstrap';
+import 'd3';
+import 'jquery';
+import 'split.js';

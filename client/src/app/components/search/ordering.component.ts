@@ -10,8 +10,6 @@ import { FilterService }         from '../../services/filter.service';
 import { ORDER_ALGORITHMS }      from '../../constants/order-algorithms';
 import { UrlQueryParamsService } from '../../services/url-query-params.service';
 
-declare var $: any;
-
 @Component({
   moduleId: module.id,
   selector: 'app-ordering',

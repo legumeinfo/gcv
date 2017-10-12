@@ -5,15 +5,13 @@ import { Component,
          OnChanges,
          SimpleChanges,
          ViewChild } from '@angular/core';
-import { Router }        from '@angular/router';
+import { Router }    from '@angular/router';
 
 // App
 import { Alert }         from '../../models/alert.model';
 import { Alerts }        from '../../constants/alerts';
 import { AlertsService } from '../../services/alerts.service';
 import { Gene }          from '../../models/gene.model';
-
-declare var $: any;
 
 @Component({
   moduleId: module.id,

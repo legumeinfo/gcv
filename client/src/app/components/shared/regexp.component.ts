@@ -1,12 +1,13 @@
+// Angular
 import { Component,
          ElementRef,
          OnDestroy,
          OnInit,
          ViewChild } from '@angular/core';
+
+// App
 import { FilterService }                from '../../services/filter.service';
 import { UrlQueryParamsService }        from '../../services/url-query-params.service';
-
-declare var $: any;
 
 @Component({
   moduleId: module.id,

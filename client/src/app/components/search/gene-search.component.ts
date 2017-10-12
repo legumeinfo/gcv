@@ -5,8 +5,6 @@ import { Router }    from '@angular/router';
 // App
 import { AppConfig } from '../../app.config';
 
-declare var $: any;
-
 @Component({
   moduleId: module.id,
   selector: 'app-gene-search',
