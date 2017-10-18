@@ -11,7 +11,7 @@ import { Gene }           from '../../models/gene.model';
 import { MicroTracks }    from '../../models/micro-tracks.model';
 
 @Component({
-  moduleId: module.id,
+  moduleId: module.id.toString(),
   selector: 'family-detail',
   template: `
     <h4>{{family.name}}</h4>

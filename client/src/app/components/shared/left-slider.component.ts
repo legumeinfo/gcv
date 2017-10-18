@@ -20,7 +20,7 @@ enum DetailTypes {
 }
 
 @Component({
-  moduleId: module.id,
+  moduleId: module.id.toString(),
   selector: 'left-slider',
   templateUrl: 'left-slider.component.html',
   styleUrls: [ 'left-slider.component.css' ],

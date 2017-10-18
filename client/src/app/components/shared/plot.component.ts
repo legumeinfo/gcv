@@ -8,15 +8,14 @@ import { AfterViewInit,
          SimpleChanges,
          ViewChild } from '@angular/core';
 import * as d3       from 'd3';
+import { GCV }       from '../../../assets/js/gcv';
 
 // App
 import { DataSaver } from '../../models/data-saver.model';
 import { Group }     from '../../models/group.model';
 
-declare var GCV: any;
-
 @Component({
-  moduleId: module.id,
+  moduleId: module.id.toString(),
   selector: 'plot',
   template: `
     <spinner [data]="plot"></spinner>
@@ -100,7 +99,7 @@ export class PlotComponent extends DataSaver
     (!this.visibleDraw || (this.visibleDraw && this._visible())) &&
     !this._drawnSinceChange) {
       this._destroy();
-      this.viewer = new GCV.Plot(
+      this.viewer = new GCV.visualization.Plot(
         this.el.nativeElement,
         this.colors,
         this.plot,

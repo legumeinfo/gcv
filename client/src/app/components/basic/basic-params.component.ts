@@ -24,7 +24,7 @@ import { QueryParams }            from '../../models/query-params.model';
 import { UrlQueryParamsService }  from '../../services/url-query-params.service';
 
 @Component({
-  moduleId: module.id,
+  moduleId: module.id.toString(),
   selector: 'basic-params',
   templateUrl: 'basic-params.component.html',
   styleUrls: [ 'basic-params.component.css' ]

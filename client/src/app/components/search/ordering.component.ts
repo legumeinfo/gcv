@@ -11,7 +11,7 @@ import { ORDER_ALGORITHMS }      from '../../constants/order-algorithms';
 import { UrlQueryParamsService } from '../../services/url-query-params.service';
 
 @Component({
-  moduleId: module.id,
+  moduleId: module.id.toString(),
   selector: 'app-ordering',
   template: `
     <form #orderForm="ngForm">

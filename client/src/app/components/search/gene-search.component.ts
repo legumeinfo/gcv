@@ -6,7 +6,7 @@ import { Router }    from '@angular/router';
 import { AppConfig } from '../../app.config';
 
 @Component({
-  moduleId: module.id,
+  moduleId: module.id.toString(),
   selector: 'app-gene-search',
   template: `
     <form (ngSubmit)="submit()" #gneSearchForm="ngForm">

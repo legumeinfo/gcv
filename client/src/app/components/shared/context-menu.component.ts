@@ -7,7 +7,7 @@ import { Component,
          ViewChild } from '@angular/core';
 
 @Component({
-  moduleId: module.id,
+  moduleId: module.id.toString(),
   selector: 'context-menu',
   templateUrl: 'context-menu.component.html',
   styleUrls: [ 'context-menu.component.css' ]

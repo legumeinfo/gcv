@@ -9,7 +9,7 @@ import { DetailsService } from '../../services/details.service';
 import { Gene }           from '../../models/gene.model';
 
 @Component({
-  moduleId: module.id,
+  moduleId: module.id.toString(),
   selector: 'gene-detail',
   template: `
     <spinner [data]="links"></spinner>

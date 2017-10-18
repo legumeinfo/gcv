@@ -1,6 +1,5 @@
 import { MicroTracks } from '../models/micro-tracks.model';
-
-declare var Graph: any;
+import { GCV }         from '../../assets/js/gcv';
 
 export const frequentedRegionsSelector = () => {
   return state => state.map(([tracks, params]) => {
@@ -25,7 +24,7 @@ export const frequentedRegionsSelector = () => {
       }
       let j = 0;
       do {
-        results = Graph.frequentedRegions(frTracks, params.alpha, params.kappa,
+        results = GCV.graph.frequentedRegions(frTracks, params.alpha, params.kappa,
           params.minsup, params.minsize, {omit: [""]});
         let max   = null,
             maxFR = null;;
@@ -46,7 +45,7 @@ export const frequentedRegionsSelector = () => {
             let gId = "group" + j + ".";
             group[i]["chromosome_name"] = gId.concat(group[i]["chromosome_name"]);
           }
-          grouped = grouped.concat(Graph.msa(group));
+          grouped = grouped.concat(GCV.alignment.msa(group));
           frTracks.groups = frTracks.groups.filter(function(t, i) {
             return supporting.indexOf(i) == -1;
           });

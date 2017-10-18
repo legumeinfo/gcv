@@ -8,7 +8,7 @@ import { Component,
 import { Group }          from '../../models/group.model';
 
 @Component({
-  moduleId: module.id,
+  moduleId: module.id.toString(),
   selector: 'track-detail',
   template: `
     <h4>{{track.genus[0]}}.{{track.species}} - {{track.chromosome_name}}</h4>

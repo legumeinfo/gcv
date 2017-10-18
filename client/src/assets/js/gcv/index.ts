@@ -13,4 +13,4 @@ var GCV = {
 }
 
 // export to global namespace
-export default GCV;
+export { GCV };

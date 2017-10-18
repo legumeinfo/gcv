@@ -10,7 +10,7 @@ import { FilterService }                from '../../services/filter.service';
 import { UrlQueryParamsService }        from '../../services/url-query-params.service';
 
 @Component({
-  moduleId: module.id,
+  moduleId: module.id.toString(),
   selector: 'app-regexp',
   template: `
     <form (ngSubmit)="submit()" #regexpForm="ngForm">

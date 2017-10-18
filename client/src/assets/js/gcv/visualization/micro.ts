@@ -16,7 +16,7 @@ export class Micro extends Visualizer {
   private y: any;
 
   // Constants
-  private readonly GLYPH_SIZE = 30;
+  private GLYPH_SIZE: number;
 
   /** Resizes the viewer and x scale. Will be decorated by other components. */
   protected resize() {
@@ -39,6 +39,7 @@ export class Micro extends Visualizer {
     */
   protected init(el, colors, data, options) {
     super.init(el, colors, data);
+    this.GLYPH_SIZE = 30;
     // create the viewer
     var levels = data.groups.map(group => {
       return Math.max.apply(null, group.genes.map(gene => gene.y)) + 1;
@@ -116,6 +117,7 @@ export class Micro extends Visualizer {
       this.viewer.on('click', () => {
         this.options.click(d3.event);
       });
+    this.right = this.PAD;
     super.initResize();
   }
 

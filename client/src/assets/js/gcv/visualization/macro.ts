@@ -12,8 +12,8 @@ export class Macro extends Visualizer {
   private scale: any;
 
   // Constants
-  private readonly BLOCK_HEIGHT = 11;
-  private readonly PTR_LEN      = 5;
+  private BLOCK_HEIGHT: number;
+  private PTR_LEN: number;
 
   /** Resizes the viewer and scale. Will be decorated by other components. */
   protected resize() {
@@ -33,6 +33,9 @@ export class Macro extends Visualizer {
     */
   protected init(el, data, colors, options) {
     super.init(el, colors, data);
+    this.viewer.attr('height', this.PAD);
+    this.BLOCK_HEIGHT = 11;
+    this.PTR_LEN      = 5;
     // compute the space required for chromosome names
 		var chromosomes = data.tracks.map(function (t) { return t.chromosome; });
     this.left = 0;

@@ -11,7 +11,7 @@ export abstract class Visualizer {
   protected viewer: any;
 
   // constants
-  protected readonly PAD = 2;
+  protected readonly PAD;
 
   /**
     * Adds a hidden iframe that calls the given resize event whenever its width
@@ -128,6 +128,7 @@ export abstract class Visualizer {
     * @param {object} options - Optional parameters.
     */
   constructor(el, colors, data, options) {
+    this.PAD = 2;
     this.init(el, colors, data, options);
     this.draw();
   }

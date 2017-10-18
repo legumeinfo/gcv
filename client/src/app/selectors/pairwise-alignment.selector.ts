@@ -1,9 +1,6 @@
 import { ALIGNMENT_ALGORITHMS } from '../constants/alignment-algorithms';
-import { MicroTracks } from '../models/micro-tracks.model';
-
-declare var Alignment: any;
-declare var GCV: any;
-declare var Graph: any;
+import { MicroTracks }          from '../models/micro-tracks.model';
+import { GCV }                  from '../../assets/js/gcv';
 
 export const pairwiseAlignmentSelector = () => {
   let algorithms = ALIGNMENT_ALGORITHMS;
@@ -36,9 +33,9 @@ export const pairwiseAlignmentSelector = () => {
         }
       }
       // convert the alignments into tracks
-      alignedTracks = Alignment.trackify(alignedTracks, alignments);
+      alignedTracks = GCV.alignment.trackify(alignedTracks, alignments);
       // merge tracks from same alignment set remove residual suffix scores
-      alignedTracks = GCV.merge(alignedTracks);
+      alignedTracks = GCV.alignment.merge(alignedTracks);
       for (let i = 1; i < alignedTracks.groups.length; ++i) {
         let genes = alignedTracks.groups[i].genes;
         for (let j = 0; j < genes.length; ++j) {

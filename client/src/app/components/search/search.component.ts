@@ -9,8 +9,9 @@ import { Component,
          ViewChildren,
          ViewEncapsulation }      from '@angular/core';
 import { Observable }             from 'rxjs/Observable';
-import { Split }                  from 'split.js';
+import * as Split                 from 'split.js';
 import * as d3                    from 'd3';
+import { GCV }                    from '../../../assets/js/gcv';
 
 // App
 import { Alert }                     from '../../models/alert.model';
@@ -34,8 +35,6 @@ import { plotsSelector }             from '../../selectors/plots.selector';
 import { PlotsService }              from '../../services/plots.service';
 import { SearchParamsComponent }     from './search-params.component';
 
-declare var contextColors: any;
-declare var getFamilySizeMap: any;
 declare var RegExp: any;  // TypeScript doesn't support regexp as argument...
 declare var parseInt: any;  // TypeScript doesn't recognize number inputs
 
@@ -57,7 +56,7 @@ enum AccordionTypes {
 }
 
 @Component({
-  moduleId: module.id,
+  moduleId: module.id.toString(),
   selector: 'search',
   templateUrl: 'search.component.html',
   styleUrls: [ 'search.component.css', '../../../assets/css/split.css' ],
@@ -168,7 +167,7 @@ export class SearchComponent implements OnInit {
 
   // viewers
 
-  microColors = contextColors;
+  microColors = GCV.common.colors;
   macroColors: any;
 
   microArgs: any;
@@ -225,7 +224,7 @@ export class SearchComponent implements OnInit {
       ));
       // only selectively color when there are results
       let familySizes = (tracks.groups.length > 1)
-                      ? getFamilySizeMap(tracks)
+                      ? GCV.common.getFamilySizeMap(tracks)
                       : undefined;
 
       let i = tracks.groups[0].genes.map(g => g.name).indexOf(this.routeGene);

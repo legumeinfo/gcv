@@ -6,7 +6,7 @@ import { Visualizer } from './visualizer';
 export class Legend extends Visualizer {
 
   // Constants
-  private readonly RECT_SIZE = 18;
+  private RECT_SIZE: number;
 
   /** Resizes the viewer and x scale. Will be decorated by other components. */
   protected resize() {
@@ -25,6 +25,7 @@ export class Legend extends Visualizer {
     */
   protected init(el, colors, data, options?) {
     super.init(el, colors, data);
+    this.RECT_SIZE = 18;
     // create the scales used to plot genes
     // parse optional parameters
     this.options = Object.assign({}, options);

@@ -8,14 +8,13 @@ import { AfterViewInit,
          SimpleChanges,
          ViewChild } from '@angular/core';
 import * as d3       from 'd3';
+import { GCV }       from '../../../assets/js/gcv';
 
 // App
 import { DataSaver } from '../../models/data-saver.model';
 
-declare var GCV: any;
-
 @Component({
-  moduleId: module.id,
+  moduleId: module.id.toString(),
   selector: 'app-legend',
   template: `
     <spinner [data]="data"></spinner>
@@ -98,7 +97,7 @@ export class LegendComponent extends DataSaver
         this.viewer.destroy();
         this.viewer = undefined;
       }
-      this.viewer = new GCV.Legend(
+      this.viewer = new GCV.visualization.Legend(
         this.el.nativeElement,
         this.colors,
         this.data,

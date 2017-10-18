@@ -5,10 +5,12 @@ export abstract class Graph {
   ed: String;
   nodes: Object;
   edges: Object;
+  Child: any;
   constructor(edgeDelimiter=":") {
     if (new.target === Graph) {
       throw new TypeError("Cannot construct Graph instances directly");
     }
+    this.Child = new.target;
     this.checkStaticOverride("Node");
     this.ed    = edgeDelimiter;
     this.nodes = {};
@@ -36,7 +38,7 @@ export abstract class Graph {
   }
   addNode(id, attr) {
     if (!this.nodes.hasOwnProperty(id)) {
-      this.nodes[id] = new Graph.Node(attr);
+      this.nodes[id] = new this.Child.Node(attr);
     } return this.getNode(id);
   }
   updateNode(id, attr) {

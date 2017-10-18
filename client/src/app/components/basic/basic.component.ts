@@ -7,8 +7,9 @@ import { Component,
          ViewChild,
          ViewEncapsulation }      from '@angular/core';
 import { Observable }             from 'rxjs/Observable';
-import { Split }                  from 'split.js';
+import * as Split                 from 'split.js';
 import * as d3                    from 'd3';
+import { GCV }                    from '../../../assets/js/gcv';
 
 // App
 import { Alert }                     from '../../models/alert.model';
@@ -24,15 +25,12 @@ import { MicroTracks }               from '../../models/micro-tracks.model';
 import { microTracksSelector }       from '../../selectors/micro-tracks.selector';
 import { MicroTracksService }        from '../../services/micro-tracks.service';
 
-declare var contextColors: any;
-declare var getFamilySizeMap: any;
-
 enum AccordionTypes {
   REGEXP,
 }
 
 @Component({
-  moduleId: module.id,
+  moduleId: module.id.toString(),
   selector: 'basic',
   templateUrl: 'basic.component.html',
   styleUrls: [ 'basic.component.css' ],
@@ -77,7 +75,7 @@ export class BasicComponent implements OnInit {
   microLegend: any;
 
   // viewers
-  microColors = contextColors;
+  microColors = GCV.common.colors;
 
   microArgs: any = {
     geneClick: function (g, track) {
@@ -115,7 +113,7 @@ export class BasicComponent implements OnInit {
     ));
     // only selectively color when there are results
     let familySizes = (tracks.groups.length > 1)
-                      ? getFamilySizeMap(tracks)
+                      ? GCV.common.getFamilySizeMap(tracks)
                       : undefined;
     let highlight = tracks.groups.reduce((l, group) => {
       let families = group.genes

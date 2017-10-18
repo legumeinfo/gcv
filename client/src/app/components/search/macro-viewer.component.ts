@@ -8,15 +8,14 @@ import { AfterViewInit,
          SimpleChanges,
          ViewChild } from '@angular/core';
 import * as d3       from 'd3';
+import { GCV }       from '../../../assets/js/gcv';
 
 // App
 import { DataSaver }   from '../../models/data-saver.model';
 import { MacroTracks } from '../../models/macro-tracks.model';
 
-declare var GCV: any;
-
 @Component({
-  moduleId: module.id,
+  moduleId: module.id.toString(),
   selector: 'macro-viewer',
   template: `
     <spinner [data]="tracks"></spinner>
@@ -93,7 +92,7 @@ export class MacroViewerComponent extends DataSaver
   private _draw(): void {
     if (this.el !== undefined && this.tracks !== undefined) {
       this._destroy();
-      this.viewer = new GCV.Synteny(
+      this.viewer = new GCV.visualization.Macro(
         this.el.nativeElement,
         this.tracks,
         this._args

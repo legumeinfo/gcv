@@ -14,7 +14,7 @@ import { AlertsService } from '../../services/alerts.service';
 import { Gene }          from '../../models/gene.model';
 
 @Component({
-  moduleId: module.id,
+  moduleId: module.id.toString(),
   selector: 'scroll',
   template: `
     <form>

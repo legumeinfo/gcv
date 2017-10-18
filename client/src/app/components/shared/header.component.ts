@@ -1,13 +1,13 @@
 // Angular + dependencies
 import { Component, Input, OnDestroy, OnInit } from '@angular/core';
-import { $ }                                   from 'jquery';
+import * as $                                  from 'jquery';
 
 // App
 import { Alert }         from '../../models/alert.model';
 import { AlertsService } from '../../services/alerts.service';
 
 @Component({
-  moduleId: module.id,
+  moduleId: module.id.toString(),
   selector: 'header',
   templateUrl: 'header.component.html',
   styleUrls: [ 'header.component.css' ]

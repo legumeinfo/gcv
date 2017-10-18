@@ -7,7 +7,7 @@ import { Observable } from 'rxjs/Observable';
 const SELECTOR = 'gcv-help';
 
 @Component({
-  moduleId: module.id,
+  moduleId: module.id.toString(),
   selector: SELECTOR,
   template: `
     <div class="alert alert-info alert-dismissible" role="alert" [hidden]="!show">

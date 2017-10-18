@@ -1,7 +1,7 @@
 import { Component, EventEmitter, Output } from '@angular/core';
 
 @Component({
-  moduleId: module.id,
+  moduleId: module.id.toString(),
   selector: 'toggle-button',
   template: '<button type="button" class="btn btn-default navbar-btn" (click)="toggle()"><ng-content></ng-content></button>',
   styles: [ '' ]

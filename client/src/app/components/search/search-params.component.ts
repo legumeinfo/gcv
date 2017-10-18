@@ -25,7 +25,7 @@ import { QueryParams }           from '../../models/query-params.model';
 import { UrlQueryParamsService } from '../../services/url-query-params.service';
 
 @Component({
-  moduleId: module.id,
+  moduleId: module.id.toString(),
   selector: 'search-params',
   templateUrl: 'search-params.component.html',
   styleUrls: [ 'search-params.component.css' ]

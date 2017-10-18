@@ -9,15 +9,14 @@ import { AfterViewInit,
          ViewChild }  from '@angular/core';
 import { Observable } from 'rxjs/Observable';
 import * as d3        from 'd3';
+import { GCV }        from '../../../assets/js/gcv';
 
 // App
 import { DataSaver }   from '../../models/data-saver.model';
 import { MicroTracks } from '../../models/micro-tracks.model';
 
-declare var GCV: any;
-
 @Component({
-  moduleId: module.id,
+  moduleId: module.id.toString(),
   selector: 'micro-viewer',
   template: `
     <spinner [data]="tracks"></spinner>
@@ -97,7 +96,7 @@ export class MicroViewerComponent extends DataSaver
   private _draw(): void {
     if (this.el !== undefined && this.tracks !== undefined) {
       this._destroy();
-      this.viewer = new GCV.Viewer(
+      this.viewer = new GCV.visualization.Micro(
         this.el.nativeElement,
         this.colors,
         this.tracks,
