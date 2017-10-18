@@ -51,6 +51,9 @@ a {
   left: 50%;
   margin: 0;
 }
+.grey-screen .spinner::after {
+  content: url('../img/spinner.gif');
+}
 .grey-screen .spinner img {
   margin: -16px 0 0 -16px;
 }
