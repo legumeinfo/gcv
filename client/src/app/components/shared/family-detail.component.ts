@@ -39,7 +39,7 @@ export class FamilyDetailComponent implements OnChanges {
   ngOnChanges(changes: SimpleChanges): void {
     if (this.family !== undefined) {
       this.genes = this.tracks.groups.reduce((l, group) => {
-        let genes = group.genes.filter(g => g.family == this.family.name);
+        let genes = group.genes.filter(g => this.family.id.includes(g.family));
         l.push.apply(l, genes);
         return l;
       }, []);

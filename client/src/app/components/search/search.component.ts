@@ -229,16 +229,6 @@ export class SearchComponent implements OnInit {
 
       let i = tracks.groups[0].genes.map(g => g.name).indexOf(this.routeGene);
       let focus = tracks.groups[0].genes[i];
-      this.microLegendArgs = {
-        autoResize: true,
-        keyClick: function (f) {
-          this.selectFamily(f);
-        }.bind(this),
-        highlight: [focus != undefined ? focus.family : undefined],
-        selectiveColoring: familySizes,
-        selector: 'family'
-      };
-
       this.macroLegendArgs = {
         autoResize: true,
         highlight: [focus != undefined ? focus.family : undefined],
@@ -306,6 +296,22 @@ export class SearchComponent implements OnInit {
           l.push(f);
         } return l;
       }, []);
+      var d = ",";
+      var singletonIds = uniqueFamilies.filter(f => {
+        return familySizes[f.id] == 1;
+      }).map(f => f.id).join(d);
+      this.microLegendArgs = {
+        autoResize: true,
+        keyClick: function (f) {
+          this.selectFamily(f);
+        }.bind(this),
+        highlight: [focus != undefined ? focus.family : undefined],
+        selectiveColoring: familySizes,
+        selector: 'family',
+        blank: {name: "Singletons", id: singletonIds},
+        blankDashed: {name: "Orphans", id: ""},
+        multiDelimiter: d
+      };
       var presentFamilies = this.microTracks.groups.reduce((l, group) => {
         return l.concat(group.genes.map(g => g.family));
       }, []);

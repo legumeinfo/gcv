@@ -28,13 +28,16 @@ export class Legend extends Visualizer {
     this.RECT_SIZE = 18;
     // create the scales used to plot genes
     // parse optional parameters
-    this.options = Object.assign({}, options);
-    this.options.highlight = this.options.highlight || [];
+    this.options                   = Object.assign({}, options);
+    this.options.highlight         = this.options.highlight || [];
     this.options.selectiveColoring = this.options.selectiveColoring;
-    this.options.keyClick = this.options.keyClick || function (k) { };
-    this.options.autoResize = this.options.autoResize || false;
-    this.options.hoverDelay = this.options.hoverDelay || 0;
-    this.options.selector = this.options.selector || '';
+    this.options.keyClick          = this.options.keyClick || function (k) { };
+    this.options.autoResize        = this.options.autoResize || false;
+    this.options.hoverDelay        = this.options.hoverDelay || 0;
+    this.options.selector          = this.options.selector || '';
+    this.options.blank             = this.options.blank || undefined;
+    this.options.blankDashed       = this.options.blankDashed || undefined;
+    this.options.multiDelimiter    = this.options.multiDelimiter || undefined;
     if (this.options.contextmenu)
       this.viewer.on('contextmenu', () => {
         this.options.contextmenu(d3.event);
@@ -60,13 +63,19 @@ export class Legend extends Visualizer {
       .attr('data-' + this.options.selector, f.id)
   	  .style('cursor', 'pointer')
       .on('mouseover', function () {
-        var selector = '.GCV [data-' + obj.options.selector + '="' + f.id + '"]';
-        var selection = d3.selectAll(selector);
+        var selectors = [];
+        for (var s of f.id.split(obj.options.multiDelimiter)) {
+          selectors.push('.GCV [data-' + obj.options.selector + '="' + s + '"]');
+        }
+        var selection = d3.selectAll(selectors.join(", "));
         obj.beginHover(selection);
       })
   	  .on('mouseout', function () {
-        var selector = '.GCV [data-' + obj.options.selector + '="' + f.id + '"]';
-        var selection = d3.selectAll(selector);
+        var selectors = [];
+        for (var s of f.id.split(obj.options.multiDelimiter)) {
+          selectors.push('.GCV [data-' + obj.options.selector + '="' + s + '"]');
+        }
+        var selection = d3.selectAll(selectors.join(", "));
         obj.endHover(selection);
       })
       .on('click', () => {
@@ -76,10 +85,19 @@ export class Legend extends Visualizer {
     var rect = key.append('rect')
       .attr('width', this.RECT_SIZE)
       .attr('height', this.RECT_SIZE)
-      .style('fill', () => this.colors(f.id))
+      .style('fill', () => {
+        if (f === this.options.blank || f === this.options.blankDashed) {
+          return '#FFFFFF';
+        } return this.colors(f.id);
+      })
       .attr('class', () => {
-        if (this.options.highlight.indexOf(f.name) !== -1) return 'focus';
-        return '';
+        if (this.options.highlight.indexOf(f.name) !== -1) {
+          return 'focus'
+        } else if (f === this.options.blank) {
+          return 'single';
+        } else if (f === this.options.blankDashed) {
+          return 'no_fam';
+        } return '';
       });
     // add then labels
     var text = key.append('text')
@@ -106,11 +124,18 @@ export class Legend extends Visualizer {
   private drawLegend() {
     var legend = this.viewer.append('g');
     // create the legend keys
-    var entries = this.data.filter(f => {
+    var entries = [];
+    if (this.options.blank !== undefined) {
+      entries.push(this.options.blank);
+    }
+    if (this.options.blankDashed !== undefined) {
+      entries.push(this.options.blankDashed);
+    }
+    entries = entries.concat(this.data.filter(f => {
       if (this.options.selectiveColoring)
         return this.options.selectiveColoring[f.id] > 1;
       return true;
-    });
+    }));
     legend.keys = [];
     entries.forEach((f, i) => {
       var k = this.drawKey(legend, f),

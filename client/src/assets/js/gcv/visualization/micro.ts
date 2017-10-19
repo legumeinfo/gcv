@@ -100,15 +100,15 @@ export class Micro extends Visualizer {
       .domain([minDistance, maxDistance])
       .range([.1, 5]);
     // parse optional parameters
-    this.options = Object.assign({}, options);
-    this.options.boldFirst = this.options.boldFirst || false;
-    this.options.highlight = this.options.highlight || [];
+    this.options                   = Object.assign({}, options);
+    this.options.boldFirst         = this.options.boldFirst || false;
+    this.options.highlight         = this.options.highlight || [];
     this.options.selectiveColoring = this.options.selectiveColoring;
-    this.options.nameClick = this.options.nameClick || function (y, i) { };
-    this.options.geneClick = this.options.geneClick || function (b) { };
-    this.options.plotClick = this.options.plotClick;
-    this.options.autoResize = this.options.autoResize || false;
-    this.options.hoverDelay = this.options.hoverDelay || 500;
+    this.options.nameClick         = this.options.nameClick || function (y, i) { };
+    this.options.geneClick         = this.options.geneClick || function (b) { };
+    this.options.plotClick         = this.options.plotClick;
+    this.options.autoResize        = this.options.autoResize || false;
+    this.options.hoverDelay        = this.options.hoverDelay || 500;
     if (this.options.contextmenu)
       this.viewer.on('contextmenu', () => {
         this.options.contextmenu(d3.event);
