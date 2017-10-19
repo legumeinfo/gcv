@@ -12,10 +12,10 @@
   <!-- main content -->
   <main-content>
     <div #left id="left" class="split split-horizontal content">
-      <micro-viewer
-        [tracks]="microTracks"
+      <viewer-micro
+        [data]="microTracks"
         [colors]="microColors"
-        [args]="microArgs" >
+        [arguments]="microArgs" >
       	<ul class="nav navbar-nav accordion">
       	  <li [ngClass]="{'active': accordion==accordionTypes.REGEXP}">
             <a (click)="setAccordion($event, accordionTypes.REGEXP)">
@@ -26,16 +26,15 @@
             <app-regexp></app-regexp>
           </li>
 				</ul>
-      </micro-viewer>
+      </viewer-micro>
     </div>
     <div #right id="right" class="split split-horizontal content">
       <!-- legend -->
-      <app-legend
-        [title]="'Micro Legend'"
+      <viewer-legend
         [data]="microLegend"
         [colors]="microColors"
-        [args]="microLegendArgs" >
-      </app-legend>
+        [arguments]="microLegendArgs" >
+      </viewer-legend>
     </div>
   </main-content>
 

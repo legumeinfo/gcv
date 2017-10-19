@@ -41,14 +41,14 @@ import { HeaderComponent }       from './components/shared/header.component';
 import { HelpComponent }         from './components/shared/help.component';
 import { InstructionsComponent } from './components/instructions/instructions.component';
 import { LeftSliderComponent }   from './components/shared/left-slider.component';
-import { LegendComponent }       from './components/shared/legend.component';
-import { MacroViewerComponent }  from './components/search/macro-viewer.component';
+import { LegendViewerComponent } from './components/viewers/legend.component';
+import { MacroViewerComponent }  from './components/viewers/macro.component';
 import { MainComponent }         from './components/shared/main.component';
 import { MainContentComponent }  from './components/shared/main-content.component';
-import { MicroViewerComponent }  from './components/shared/micro-viewer.component';
+import { MicroViewerComponent }  from './components/viewers/micro.component';
 import { NavComponent }          from './components/shared/nav.component';
 import { OrderingComponent }     from './components/search/ordering.component';
-import { PlotComponent }         from './components/shared/plot.component';
+import { PlotViewerComponent }   from './components/viewers/plot.component';
 import { RegexpComponent }       from './components/shared/regexp.component';
 import { ScrollComponent }       from './components/search/scroll.component';
 import { SearchComponent }       from './components/search/search.component';
@@ -110,14 +110,14 @@ import { UrlQueryParamsService } from './services/url-query-params.service';
     HelpComponent,
     InstructionsComponent,
     LeftSliderComponent,
-    LegendComponent,
+    LegendViewerComponent,
     MacroViewerComponent,
     MainComponent,
     MainContentComponent,
     MicroViewerComponent,
     NavComponent,
     OrderingComponent,
-    PlotComponent,
+    PlotViewerComponent,
     RegexpComponent,
     ScrollComponent,
     SearchComponent,

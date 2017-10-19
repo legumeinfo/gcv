@@ -30,7 +30,7 @@ import { MicroTracks }               from '../../models/micro-tracks.model';
 import { microTracksSelector }       from '../../selectors/micro-tracks.selector';
 import { MicroTracksService }        from '../../services/micro-tracks.service';
 import { pairwiseAlignmentSelector } from '../../selectors/pairwise-alignment.selector';
-import { PlotComponent }             from '../shared/plot.component';
+import { PlotViewerComponent }       from '../viewers/plot.component';
 import { plotsSelector }             from '../../selectors/plots.selector';
 import { PlotsService }              from '../../services/plots.service';
 import { SearchParamsComponent }     from './search-params.component';
@@ -114,7 +114,7 @@ export class SearchComponent implements OnInit {
     this._splitViewers();
   }
 
-  @ViewChildren(PlotComponent) plotComponents: QueryList<PlotComponent>;
+  @ViewChildren(PlotViewerComponent) plotComponents: QueryList<PlotViewerComponent>;
 
   @ViewChild(SearchParamsComponent) searchParams: SearchParamsComponent;
 

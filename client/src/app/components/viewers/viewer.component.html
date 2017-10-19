@@ -1,0 +1,8 @@
+<spinner [data]="data"></spinner>
+<context-menu #menu
+  [title]="title"
+  (saveData)="saveAsJSON(data)"
+  (saveImage)="saveXMLasSVG(viewer.xml())" >
+  <ng-content dropdown></ng-content>
+</context-menu>
+<div #viewer class="viewer"></div>
