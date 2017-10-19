@@ -31,7 +31,6 @@
     "reflect-metadata": "^0.1.8",
     "rxjs": "^5.0.2",
     "split.js": "^1.1.4",
-    "systemjs": "0.19.39",
     "zone.js": "^0.7.4"
   },
   "devDependencies": {
