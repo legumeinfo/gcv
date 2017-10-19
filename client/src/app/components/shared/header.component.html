@@ -1,0 +1,29 @@
+<div class="navbar navbar-default navbar-static-top">
+  <div class="container-fluid">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="http://legumeinfo.org/" target="_blank">
+        <img alt="Brand" src="../../../assets/img/papillionoid.png" (mouseenter)="toggleBrand()" (mouseleave)="toggleBrand()">
+        <span>LIS - Legume Information System <small>Information about legume traits for crop improvement</small></span>
+      </a>
+    </div>
+    <div class="collapse navbar-collapse">
+      <ng-content select="[left]"></ng-content>
+      <div>
+        <div class="navbar-right">
+          <ng-content select="[right]"></ng-content>
+        </div>
+        <div class="alerts" *ngIf="alerts">
+          <div role="alert" [className]="'alert ' + alert.type">
+            {{alert.message}}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

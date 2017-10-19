@@ -2,10 +2,9 @@
   "name": "genome-context-viewer",
   "version": "1.0.0",
   "scripts": {
-    "start": "tsc && concurrently \"tsc -w\" \"lite-server\" ",
-    "lite": "lite-server",
-    "tsc": "tsc",
-    "tsc:w": "tsc -w"
+    "start": "webpack-dev-server --inline --progress --port 3000",
+    "test": "karma start",
+    "build": "rimraf dist && webpack --config config/webpack.prod.js --progress --profile --bail"
   },
   "author": "Alan Cleary",
   "license": "GPL-3.0",
@@ -32,17 +31,35 @@
     "reflect-metadata": "^0.1.8",
     "rxjs": "^5.0.2",
     "split.js": "^1.1.4",
-    "systemjs": "0.19.39",
     "zone.js": "^0.7.4"
   },
   "devDependencies": {
     "@types/core-js": "^0.9.34",
+    "@types/jasmine": "2.5.36",
     "@types/node": "^6.0.45",
-    "babel-cli": "^6.18.0",
-    "babel-plugin-transform-class-properties": "^6.19.0",
-    "babel-preset-latest": "^6.16.0",
+    "angular2-template-loader": "^0.6.0",
+    "awesome-typescript-loader": "^3.0.4",
     "concurrently": "^3.0.0",
-    "lite-server": "^2.2.2",
-    "typescript": "^2.0.3"
+    "copy-webpack-plugin": "^4.1.1",
+    "css-loader": "^0.26.1",
+    "extract-text-webpack-plugin": "2.0.0-beta.5",
+    "file-loader": "^0.9.0",
+    "html-loader": "^0.4.3",
+    "html-webpack-plugin": "^2.16.1",
+    "jasmine-core": "^2.4.1",
+    "karma": "^1.2.0",
+    "karma-chrome-launcher": "^2.0.0",
+    "karma-jasmine": "^1.0.2",
+    "karma-sourcemap-loader": "^0.3.7",
+    "karma-webpack": "^2.0.1",
+    "null-loader": "^0.1.1",
+    "raw-loader": "^0.5.1",
+    "rimraf": "^2.5.2",
+    "style-loader": "^0.13.1",
+    "to-string-loader": "^1.1.5",
+    "typescript": "^2.0.3",
+    "webpack": "2.2.1",
+    "webpack-dev-server": "2.4.1",
+    "webpack-merge": "^3.0.0"
   }
 }
