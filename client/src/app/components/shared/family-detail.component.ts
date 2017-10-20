@@ -15,8 +15,8 @@ import { MicroTracks }    from '../../models/micro-tracks.model';
   selector: 'family-detail',
   template: `
     <h4>{{family.name}}</h4>
-    <p><a href="/index.html#/basic/{{gene_list}}">View genes in pan-view</a></p>
-    <p><a href="http://legumeinfo.org/chado_gene_phylotree_v2?family={{family.name}}&gene_name={{gene_list}}">View genes in phylogram</a></p>
+    <p><a href="/index.html#/basic/{{geneList}}">View genes in pan-view</a></p>
+    <p *ngIf="linkablePhylo"><a href="http://legumeinfo.org/chado_gene_phylotree_v2?family={{family.name}}&gene_name={{geneList}}">View genes in phylogram</a></p>
     <p>Genes:</p>
     <ul>
       <li *ngFor="let gene of genes">
@@ -32,18 +32,26 @@ export class FamilyDetailComponent implements OnChanges {
   @Input() tracks: MicroTracks;
 
   genes: Gene[];
-  gene_list: string;
+  geneList: string;
+  linkablePhylo: boolean;
+  
 
   constructor(private _detailsService: DetailsService) { }
 
   ngOnChanges(changes: SimpleChanges): void {
     if (this.family !== undefined) {
       this.genes = this.tracks.groups.reduce((l, group) => {
-        let genes = group.genes.filter(g => this.family.id.includes(g.family));
+        let genes = group.genes.filter(g => {
+          return (g.family.length > 0 && this.family.id.includes(g.family)) ||
+            g.family == this.family.id;
+        });
         l.push.apply(l, genes);
         return l;
       }, []);
-      this.gene_list = this.genes.map(x => x.name).join(',');
+      this.linkablePhylo = this.family.id != "" && new Set(this.genes.map(g => {
+        return g.family;
+      })).size == 1;
+      this.geneList = this.genes.map(x => x.name).join(',');
     }
   }
 }
