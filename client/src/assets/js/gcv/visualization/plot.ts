@@ -393,6 +393,7 @@ export class Plot extends Visualizer {
         this.resize();
       });
     }
+    this.resize();
   }
   
   // Public

@@ -517,6 +517,7 @@ export class Macro extends Visualizer {
     // add bottom padding
     var h = parseInt(this.viewer.attr('height')) + this.PAD;
     this.viewer.attr('height', h);
+    this.resize();
   }
   
   // Public

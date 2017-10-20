@@ -165,5 +165,6 @@ export class Legend extends Visualizer {
         this.resize();
       });
     }
+    this.resize();
   }
 }

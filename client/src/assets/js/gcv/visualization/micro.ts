@@ -402,6 +402,7 @@ export class Micro extends Visualizer {
         this.resize();
       });
     }
+    this.resize();
   }
   
   // Public
