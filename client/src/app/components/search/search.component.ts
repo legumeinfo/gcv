@@ -305,9 +305,9 @@ export class SearchComponent implements OnInit {
       });
 
       var d = ",";
-      var singletonIds = uniqueFamilies.filter(f => {
+      var singletonIds = ["singleton"].concat(uniqueFamilies.filter(f => {
         return familySizes[f.id] == 1;
-      }).map(f => f.id).join(d);
+      }).map(f => f.id)).join(d);
       this.microLegendArgs = {
         autoResize: true,
         keyClick: function (f) {
