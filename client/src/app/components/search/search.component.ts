@@ -289,13 +289,21 @@ export class SearchComponent implements OnInit {
       };
 
       this.microTracks = tracks;
-      var seen = {};
-      var uniqueFamilies = this.microTracks.families.reduce((l, f) => {
-        if (!seen[f.id]) {
-          seen[f.id] = true;
-          l.push(f);
-        } return l;
-      }, []);
+      var orderedUniqueFamilyIds = new Set();
+      this.microTracks.groups.forEach(group => {
+        group.genes.forEach(gene => {
+          orderedUniqueFamilyIds.add(gene.family);
+        });
+      });
+      var familyMap = {};
+      this.microTracks.families.forEach(f => {
+        familyMap[f.id] = f;
+      });
+      var uniqueFamilies = [];
+      orderedUniqueFamilyIds.forEach(id => {
+        if (familyMap[id] !== undefined) uniqueFamilies.push(familyMap[id]);
+      });
+
       var d = ",";
       var singletonIds = uniqueFamilies.filter(f => {
         return familySizes[f.id] == 1;
