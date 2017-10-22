@@ -15,7 +15,7 @@ import { MicroTracks }    from '../../models/micro-tracks.model';
   selector: 'family-detail',
   template: `
     <h4>{{family.name}}</h4>
-    <p><a href="/index.html#/basic/{{geneList}}">View genes in pan-view</a></p>
+    <p><a href="#/basic/{{geneList}}">View genes in pan-view</a></p>
     <p *ngIf="linkablePhylo"><a href="http://legumeinfo.org/chado_gene_phylotree_v2?family={{family.name}}&gene_name={{geneList}}">View genes in phylogram</a></p>
     <p>Genes:</p>
     <ul>
