@@ -134,15 +134,14 @@ export function frequentedRegions
   var findFRs = function(root, minsup, minsize, prevsup) {
     var frs = [];
     var sup = prevsup;
-    if (root.nodes.length >= minsize) {
-      if (root.supporting.length >= minsup && root.supporting.length > sup) {
-        frs.push(root);
-        sup = root.supporting.length;
-      }
-      if (root.descendants.length > 0) {  // always 0 or 2 descendants
-        root.descendants = findFRs(root.descendants[0], minsup, minsize, sup)
-                   .concat(findFRs(root.descendants[1], minsup, minsize, sup));
-      }
+    if (root.nodes.length >= minsize && root.supporting.length >= minsup &&
+    root.supporting.length > prevsup) {
+      frs.push(root);
+      sup = root.supporting.length;
+    }
+    if (root.descendants.length > 0) {
+      root.descendants = findFRs(root.descendants[0], minsup, minsize, sup)
+                 .concat(findFRs(root.descendants[1], minsup, minsize, sup));
     }
     if (frs.length > 0) {
       return frs;
