@@ -1,7 +1,8 @@
 // Angular + dependencies
 import { ActivatedRoute, Params } from '@angular/router';
 import { BehaviorSubject }        from 'rxjs/BehaviorSubject';
-import { Component,
+import { AfterViewInit,
+         Component,
          ElementRef,
          OnInit,
          ViewChild,
@@ -37,7 +38,7 @@ enum AccordionTypes {
   encapsulation: ViewEncapsulation.None
 })
 
-export class BasicComponent implements OnInit {
+export class BasicComponent implements AfterViewInit, OnInit {
   // view children
 
   // EVIL: ElementRefs nested in switch cases are undefined when parent or child
@@ -168,6 +169,10 @@ export class BasicComponent implements OnInit {
   ngOnInit(): void {
     // subscribe to parameter changes
     this._route.params.subscribe(this._onParams.bind(this));
+  }
+
+  ngAfterViewInit(): void {
+    // don't subscribe to data until view loaded so drawing doesn't fail
 
     // subscribe to micro-tracks changes
     this._groupedTracks = Observable.combineLatest(
