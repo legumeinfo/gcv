@@ -134,14 +134,15 @@ export function frequentedRegions
   var findFRs = function(root, minsup, minsize, prevsup) {
     var frs = [];
     var sup = prevsup;
-    if (root.nodes.length >= minsize && root.supporting.length >= minsup &&
-    root.supporting.length > prevsup) {
-      frs.push(root);
-      sup = root.supporting.length;
-    }
-    if (root.descendants.length > 0) {
-      root.descendants = findFRs(root.descendants[0], minsup, minsize, sup)
-                 .concat(findFRs(root.descendants[1], minsup, minsize, sup));
+    if (root.nodes.length >= minsize) {
+      if (root.supporting.length >= minsup && root.supporting.length > sup) {
+        frs.push(root);
+        sup = root.supporting.length;
+      }
+      if (root.descendants.length > 0) {  // always 0 or 2 descendants
+        root.descendants = findFRs(root.descendants[0], minsup, minsize, sup)
+                   .concat(findFRs(root.descendants[1], minsup, minsize, sup));
+      }
     }
     if (frs.length > 0) {
       return frs;
@@ -180,7 +181,7 @@ export function frequentedRegions
   }
   // iteratively contract edges in most support first order
   var fr = null;
-  while (Object.keys(g.edges).length > 1) {
+  while (Object.keys(g.edges).length > 0) {
     // find max edge weight
     var maxFR = null,
         maxE  = null;
@@ -191,7 +192,9 @@ export function frequentedRegions
         maxE  = e;
       }
     }
-    fr = maxFR;
+    if (fr == null || fr.nodes.length < maxFR.nodes.length) {
+      fr = maxFR;
+    }
     var [u, v] = maxE.split(g.ed);
     // contract edge
     g.contractEdge(u, v, contractF, updateF);
