@@ -25,7 +25,7 @@
 					<viewer-macro
             [data]="macroTracks"
             [arguments]="macroArgs" >
-            <li><form>
+            <li dropdown><form>
               <div class="checkbox">
                 <label>
                   <input type="checkbox" [checked]="macroConfig.order" (change)="toggleMacroOrder()"> Micro-synteny ordering
@@ -44,7 +44,7 @@
             [data]="microTracks"
             [colors]="microColors"
             [arguments]="microArgs" >
-      			<ul class="nav navbar-nav accordion">
+      			<ul navbar class="nav navbar-nav accordion">
       			  <li [ngClass]="{'active': accordion==accordionTypes.SEARCH}">
                 <a (click)="setAccordion($event, accordionTypes.SEARCH)">
                 &nbsp;<span class="glyphicon glyphicon-search" aria-hidden="true"></span>&nbsp;
