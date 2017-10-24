@@ -98,72 +98,74 @@ export class BasicComponent implements AfterViewInit, OnInit {
   }
 
   private _onMicroTracks(tracks): void {
-    let num = tracks.groups.length;
-    this._alerts.pushAlert(new Alert(
-      (num) ? Alerts.ALERT_SUCCESS : Alerts.ALERT_WARNING,
-      num + ' tracks returned'
-    ));
-    // only selectively color when there are results
-    let familySizes = (tracks.groups.length > 1)
-                      ? GCV.common.getFamilySizeMap(tracks)
-                      : undefined;
-    let highlight = tracks.groups.reduce((l, group) => {
-      let families = group.genes
-        .filter(g => this.queryGenes.indexOf(g.name) !== -1)
-        .map(g => g.family);
-      return l.concat(families);
-    }, []);
-    this.microArgs = {
-      geneClick: function (g, track) {
-        this.selectGene(g);
-      }.bind(this),
-      nameClick: function (t) {
-        this.selectTrack(t);
-      }.bind(this),
-      autoResize: true,
-      selectiveColoring: familySizes,
-      highlight: this.queryGenes
-    };
+    if (tracks.groups.length > 0 && tracks.groups[0].genes.length > 0) {
+      let num = tracks.groups.length;
+      this._alerts.pushAlert(new Alert(
+        (num) ? Alerts.ALERT_SUCCESS : Alerts.ALERT_WARNING,
+        num + ' tracks returned'
+      ));
+      // only selectively color when there are results
+      let familySizes = (tracks.groups.length > 1)
+                        ? GCV.common.getFamilySizeMap(tracks)
+                        : undefined;
+      let highlight = tracks.groups.reduce((l, group) => {
+        let families = group.genes
+          .filter(g => this.queryGenes.indexOf(g.name) !== -1)
+          .map(g => g.family);
+        return l.concat(families);
+      }, []);
+      this.microArgs = {
+        geneClick: function (g, track) {
+          this.selectGene(g);
+        }.bind(this),
+        nameClick: function (t) {
+          this.selectTrack(t);
+        }.bind(this),
+        autoResize: true,
+        selectiveColoring: familySizes,
+        highlight: this.queryGenes
+      };
 
-    this.microTracks = tracks;
-    var orderedUniqueFamilyIds = new Set();
-    this.microTracks.groups.forEach(group => {
-      group.genes.forEach(gene => {
-        orderedUniqueFamilyIds.add(gene.family);
+      this.microTracks = tracks;
+      var orderedUniqueFamilyIds = new Set();
+      this.microTracks.groups.forEach(group => {
+        group.genes.forEach(gene => {
+          orderedUniqueFamilyIds.add(gene.family);
+        });
       });
-    });
-    var familyMap = {};
-    this.microTracks.families.forEach(f => {
-      familyMap[f.id] = f;
-    });
-    var uniqueFamilies = [];
-    orderedUniqueFamilyIds.forEach(id => {
-      if (familyMap[id] !== undefined) uniqueFamilies.push(familyMap[id]);
-    });
+      var familyMap = {};
+      this.microTracks.families.forEach(f => {
+        familyMap[f.id] = f;
+      });
+      var uniqueFamilies = [];
+      orderedUniqueFamilyIds.forEach(id => {
+        if (familyMap[id] !== undefined) uniqueFamilies.push(familyMap[id]);
+      });
 
-    var d = ",";
-    var singletonIds = ["singleton"].concat(uniqueFamilies.filter(f => {
-      return familySizes[f.id] == 1;
-    }).map(f => f.id)).join(d);
-    this.microLegendArgs = {
-      autoResize: true,
-      keyClick: function (f) {
-        this.selectFamily(f);
-      }.bind(this),
-      highlight: highlight,
-      selectiveColoring: familySizes,
-      selector: 'family',
-      blank: {name: "Singletons", id: singletonIds},
-      blankDashed: {name: "Orphans", id: ""},
-      multiDelimiter: d
+      var d = ",";
+      var singletonIds = ["singleton"].concat(uniqueFamilies.filter(f => {
+        return familySizes[f.id] == 1;
+      }).map(f => f.id)).join(d);
+      this.microLegendArgs = {
+        autoResize: true,
+        keyClick: function (f) {
+          this.selectFamily(f);
+        }.bind(this),
+        highlight: highlight,
+        selectiveColoring: familySizes,
+        selector: 'family',
+        blank: {name: "Singletons", id: singletonIds},
+        blankDashed: {name: "Orphans", id: ""},
+        multiDelimiter: d
+      }
+      var presentFamilies = this.microTracks.groups.reduce((l, group) => {
+        return l.concat(group.genes.map(g => g.family));
+      }, []);
+      this.microLegend = uniqueFamilies.filter(f => {
+        return presentFamilies.indexOf(f.id) != -1 && f.name != '';
+      });
+      this.hideLeftSlider();
     }
-    var presentFamilies = this.microTracks.groups.reduce((l, group) => {
-      return l.concat(group.genes.map(g => g.family));
-    }, []);
-    this.microLegend = uniqueFamilies.filter(f => {
-      return presentFamilies.indexOf(f.id) != -1 && f.name != '';
-    });
-    this.hideLeftSlider();
   }
 
   ngOnInit(): void {
