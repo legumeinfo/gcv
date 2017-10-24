@@ -10,12 +10,14 @@ export class FR {
   paths: Object;
   intervals: Object;
   supporting: Array<any>;
+  avgAlpha: number;
   constructor(nodes=[]) {
     this.nodes       = nodes;
     this.descendants = [];
     this.paths       = {};
     this.intervals   = {};
     this.supporting  = [];
+    this.avgAlpha    = 0;
   }
   addToPath(pId, n, kappa) {
     if (!this.paths.hasOwnProperty(pId)) {
@@ -71,15 +73,24 @@ export class FR {
   computeSupport(alpha, hardSpan) {
     this.mergeIntervals(hardSpan);
     this.supporting = [];
+    this.avgAlpha = 0;
     for (var pId in this.intervals) {
       if (this.intervals.hasOwnProperty(pId)) {
+        var maxAlpha = 0;
         for (var i = 0; i < this.intervals[pId].length; i++) {
-          if (this.intervals[pId][i][2] / this.nodes.length >= alpha) {
+          var iAlpha = this.intervals[pId][i][2] / this.nodes.length;
+          if (iAlpha >= alpha) {
             this.supporting.push(pId);
-            break;
+            if (iAlpha > maxAlpha) {
+              maxAlpha = iAlpha;
+            }
           }
         }
+        this.avgAlpha += maxAlpha;
       }
+    }
+    if (this.supporting.length > 0) {
+      this.avgAlpha /= this.supporting.length;
     }
   }
   merge(other) {
@@ -186,7 +197,7 @@ export function frequentedRegions
         maxE  = null;
     for (var e in g.edges) {
       if (g.edges.hasOwnProperty(e) && (maxFR == null ||
-      maxFR.supporting.length < g.edges[e].supporting.length)) {
+      maxFR.avgAlpha < g.edges[e].avgAlpha)) {
         maxFR = g.edges[e];
         maxE  = e;
       }
