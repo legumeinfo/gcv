@@ -13,7 +13,12 @@ import { StoreActions }          from './constants/store-actions';
 
 const routes: Routes = [
   {path: '', redirectTo: '/instructions', pathMatch: 'full'},
-  {path: 'basic/:genes', component: BasicComponent},
+  {path: 'panview/:genes', component: BasicComponent},
+  {
+    path: 'basic/:genes', 
+    redirectTo: 'panview/:genes',
+    pathMatch: 'full'
+  },
   {path: 'instructions', component: InstructionsComponent},
   {
     path: 'search/:gene',
