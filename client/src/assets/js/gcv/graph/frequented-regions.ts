@@ -178,14 +178,18 @@ export function frequentedRegions
   }
   // add edges with FRs resulting from contraction as attributes
   for (var i = 0; i < tracks["groups"].length; i++) {
-    for (var j = 0; j < tracks["groups"][i]["genes"].length - 1; j++) {
+    var prevId = null,
+        prevN  = null;
+    for (var j = 0; j < tracks["groups"][i]["genes"].length; j++) {
       var id  = tracks["groups"][i]["genes"][j]["family"],
-          n   = g.getNode(id),
-          id2 = tracks["groups"][i]["genes"][j + 1]["family"],
-          n2  = g.getNode(id2);
-      if (g.getEdge(id, id2) == null && id != id2 &&  // TODO: handle copies!
-      omit.indexOf(id) == -1 && omit.indexOf(id2) == -1) {
-        g.addEdge(id, id2, updateF(n.attr, n2.attr));
+          n   = g.getNode(id);
+      if (prevN != null && n != null &&
+      g.getEdge(prevId, id) == null && prevId != id) {
+        g.addEdge(prevId, id, updateF(prevN.attr, n.attr));
+      }
+      if (n != null && prevId != id) {
+        prevId = id;
+        prevN  = n;
       }
     }
   }
