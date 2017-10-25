@@ -15,7 +15,7 @@ const routes: Routes = [
   {path: '', redirectTo: '/instructions', pathMatch: 'full'},
   {path: 'multi/:genes', component: BasicComponent},
   {
-    path: 'multi/:genes', 
+    path: 'basic/:genes', 
     redirectTo: 'multi/:genes',
     pathMatch: 'full'
   },
