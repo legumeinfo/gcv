@@ -19,6 +19,9 @@ import { Viewer } from './viewer.component';
       overflow-x: hidden;
       overflow-y: auto;
     }
+    .viewer /deep/ .GCV {
+      float: right;
+    }
   `]
 })
 
