@@ -43,7 +43,7 @@ a {
   -ms-filter: "progid:DXImageTransform.Microsoft.gradient(
     startColorstr=#BBFFFFFF, endColorstr=#BBFFFFFF
   )";
-  z-index: 100000000 !important;
+  z-index: 100000 !important;
 }
 .grey-screen .spinner {
   position: absolute;
