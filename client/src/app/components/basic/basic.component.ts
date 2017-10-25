@@ -206,7 +206,7 @@ export class BasicComponent implements AfterViewInit, OnInit {
   // public
 
   invalidate(): void {
-    this.microTracks = undefined;
+    this.microTracks = this.microLegend = undefined;
   }
 
   // micro-synteny
