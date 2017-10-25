@@ -1,5 +1,5 @@
 <spinner [data]="data"></spinner>
-<context-menu #menu
+<context-menu *ngIf="!noContext" #menu
   [title]="title"
   (saveData)="saveAsJSON(data)"
   (saveImage)="saveXMLasSVG(viewer.xml())" >

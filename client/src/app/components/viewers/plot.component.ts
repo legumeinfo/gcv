@@ -20,6 +20,8 @@ export class PlotViewerComponent extends Viewer {
 
   @Input() visibleDraw: boolean;
 
+  noContext = true;
+
   private drawnSinceChange: boolean;
 
   constructor() {

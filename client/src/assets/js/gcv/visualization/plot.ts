@@ -330,11 +330,8 @@ export class Plot extends Visualizer {
     function resetAxis() {
     	xAxis.axis.tickValues(obj.xScale.domain().map(Math.trunc));
       xAxis.transition().duration(500).call(xAxis.axis)
-        .selectAll('.tick text')
-        .style('text-anchor', (t, i) => {
-          if (i % 2 == 0) return 'start';
-          return 'end';
-        });
+        .selectAll('.tick:last-of-type text')
+        .style('text-anchor', 'end');
     }
     return clearButton;
   }
