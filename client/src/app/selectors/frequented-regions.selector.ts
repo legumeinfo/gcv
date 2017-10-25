@@ -24,8 +24,8 @@ export const frequentedRegionsSelector = () => {
       }
       let j = 0;
       do {
-        results = GCV.graph.frequentedRegions(frTracks, params.alpha, params.kappa,
-          params.minsup, params.minsize, {omit: [""]});
+        results = GCV.graph.frequentedRegions(frTracks, params.alpha,
+          params.kappa, params.minsup, params.minsize, {omit: [""]});
         let max   = null,
             maxFR = null;;
         for (let i = 0; i < results.length; i++) {

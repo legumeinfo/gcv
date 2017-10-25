@@ -89,9 +89,6 @@ export class FR {
         this.avgAlpha += maxAlpha;
       }
     }
-    if (this.supporting.length > 0) {
-      this.avgAlpha /= this.supporting.length;
-    }
   }
   merge(other) {
     var fr = new FR()
