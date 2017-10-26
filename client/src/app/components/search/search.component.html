@@ -25,7 +25,7 @@
 					<viewer-macro
             [data]="macroTracks"
             [arguments]="macroArgs" >
-            <li><form>
+            <li dropdown><form>
               <div class="checkbox">
                 <label>
                   <input type="checkbox" [checked]="macroConfig.order" (change)="toggleMacroOrder()"> Micro-synteny ordering
@@ -44,7 +44,7 @@
             [data]="microTracks"
             [colors]="microColors"
             [arguments]="microArgs" >
-      			<ul class="nav navbar-nav accordion">
+      			<ul navbar class="nav navbar-nav accordion">
       			  <li [ngClass]="{'active': accordion==accordionTypes.SEARCH}">
                 <a (click)="setAccordion($event, accordionTypes.SEARCH)">
                 &nbsp;<span class="glyphicon glyphicon-search" aria-hidden="true"></span>&nbsp;
@@ -104,32 +104,39 @@
             </div>
   				  <!-- local and global dot plots -->
   				  <div class="local-global-plots" *ngIf="showLocalGlobalPlots">
-              <context-menu [title]="'Dot Plots'" >
-  				      <ul class="nav navbar-nav tabs" navbar>
-  				        <li [ngClass]="{'active': selectedPlot==plotTypes.LOCAL}">
-  				          <a (click)="showLocalPlot()">Local</a>
-  				        </li>
-  				        <li [ngClass]="{'active': selectedPlot==plotTypes.GLOBAL}">
-  				          <a (click)="showGlobalPlot()">Global</a>
-  				        </li>
-  				      </ul>
-  				      <ul class="nav navbar-nav navbar-right" navbar>
-  				        <li>
-  				          <a><span class="glyphicon glyphicon-remove" aria-hidden="true" (click)="hideLocalGlobalPlots()"></span></a>
-  				        </li>
-  				      </ul>
-              </context-menu>
   				    <div class="outer-ratio">
   				      <div class="inner-ratio" [ngSwitch]="selectedPlot">
   				        <viewer-plot *ngSwitchCase="plotTypes.LOCAL"
   				          [data]="selectedLocal"
   				          [colors]="microColors"
   				          [arguments]="plotArgs" >
+  				          <ul class="nav navbar-nav tabs" navbar>
+  				            <li [ngClass]="{'active': selectedPlot==plotTypes.LOCAL}">
+  				              <a (click)="showLocalPlot()">Local</a>
+  				            </li>
+  				            <li [ngClass]="{'active': selectedPlot==plotTypes.GLOBAL}">
+  				              <a (click)="showGlobalPlot()">Global</a>
+  				            </li>
+  				          </ul>
+  				          <li navright>
+  				            <a><span class="glyphicon glyphicon-remove" aria-hidden="true" (click)="hideLocalGlobalPlots()"></span></a>
+  				          </li>
   				        </viewer-plot>
   				        <viewer-plot *ngSwitchCase="plotTypes.GLOBAL"
   				          [data]="selectedGlobal"
   				          [colors]="microColors"
   				          [arguments]="plotArgs" >
+  				          <ul class="nav navbar-nav tabs" navbar>
+  				            <li [ngClass]="{'active': selectedPlot==plotTypes.LOCAL}">
+  				              <a (click)="showLocalPlot()">Local</a>
+  				            </li>
+  				            <li [ngClass]="{'active': selectedPlot==plotTypes.GLOBAL}">
+  				              <a (click)="showGlobalPlot()">Global</a>
+  				            </li>
+  				          </ul>
+  				          <li navright>
+  				            <a><span class="glyphicon glyphicon-remove" aria-hidden="true" (click)="hideLocalGlobalPlots()"></span></a>
+  				          </li>
   				        </viewer-plot>
   				      </div>
   				    </div>

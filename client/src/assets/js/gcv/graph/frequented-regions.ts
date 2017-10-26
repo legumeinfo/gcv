@@ -10,12 +10,14 @@ export class FR {
   paths: Object;
   intervals: Object;
   supporting: Array<any>;
+  avgAlpha: number;
   constructor(nodes=[]) {
     this.nodes       = nodes;
     this.descendants = [];
     this.paths       = {};
     this.intervals   = {};
     this.supporting  = [];
+    this.avgAlpha    = 0;
   }
   addToPath(pId, n, kappa) {
     if (!this.paths.hasOwnProperty(pId)) {
@@ -71,14 +73,20 @@ export class FR {
   computeSupport(alpha, hardSpan) {
     this.mergeIntervals(hardSpan);
     this.supporting = [];
+    this.avgAlpha = 0;
     for (var pId in this.intervals) {
       if (this.intervals.hasOwnProperty(pId)) {
+        var maxAlpha = 0;
         for (var i = 0; i < this.intervals[pId].length; i++) {
-          if (this.intervals[pId][i][2] / this.nodes.length >= alpha) {
+          var iAlpha = this.intervals[pId][i][2] / this.nodes.length;
+          if (iAlpha >= alpha) {
             this.supporting.push(pId);
-            break;
+            if (iAlpha > maxAlpha) {
+              maxAlpha = iAlpha;
+            }
           }
         }
+        this.avgAlpha += maxAlpha;
       }
     }
   }
@@ -167,31 +175,37 @@ export function frequentedRegions
   }
   // add edges with FRs resulting from contraction as attributes
   for (var i = 0; i < tracks["groups"].length; i++) {
-    for (var j = 0; j < tracks["groups"][i]["genes"].length - 1; j++) {
+    var prevId = null,
+        prevN  = null;
+    for (var j = 0; j < tracks["groups"][i]["genes"].length; j++) {
       var id  = tracks["groups"][i]["genes"][j]["family"],
-          n   = g.getNode(id),
-          id2 = tracks["groups"][i]["genes"][j + 1]["family"],
-          n2  = g.getNode(id2);
-      if (g.getEdge(id, id2) == null && id != id2 &&  // TODO: handle copies!
-      omit.indexOf(id) == -1 && omit.indexOf(id2) == -1) {
-        g.addEdge(id, id2, updateF(n.attr, n2.attr));
+          n   = g.getNode(id);
+      if (prevN != null && n != null &&
+      g.getEdge(prevId, id) == null && prevId != id) {
+        g.addEdge(prevId, id, updateF(prevN.attr, n.attr));
+      }
+      if (n != null && prevId != id) {
+        prevId = id;
+        prevN  = n;
       }
     }
   }
   // iteratively contract edges in most support first order
   var fr = null;
-  while (Object.keys(g.edges).length > 1) {
+  while (Object.keys(g.edges).length > 0) {
     // find max edge weight
     var maxFR = null,
         maxE  = null;
     for (var e in g.edges) {
       if (g.edges.hasOwnProperty(e) && (maxFR == null ||
-      maxFR.supporting.length < g.edges[e].supporting.length)) {
+      maxFR.avgAlpha < g.edges[e].avgAlpha)) {
         maxFR = g.edges[e];
         maxE  = e;
       }
     }
-    fr = maxFR;
+    if (fr == null || fr.nodes.length < maxFR.nodes.length) {
+      fr = maxFR;
+    }
     var [u, v] = maxE.split(g.ed);
     // contract edge
     g.contractEdge(u, v, contractF, updateF);

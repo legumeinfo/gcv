@@ -1,10 +1,13 @@
 import { StoreActions } from '../constants/store-actions';
 
-export const microTracks = (state: any = {families: [], groups: []},
+const defaultState = {families: [], groups: []};
+export const microTracks = (state: any = defaultState,
 {type, payload}) => {
   switch (type) {
     case StoreActions.ADD_MICRO_TRACKS:
       return payload;
+    case StoreActions.RESET:
+      return defaultState;
     default:
       return state;
   }

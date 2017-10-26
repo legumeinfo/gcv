@@ -15,7 +15,6 @@ import { MicroTracks }    from '../../models/micro-tracks.model';
   selector: 'family-detail',
   template: `
     <h4>{{family.name}}</h4>
-    <p><a href="#/basic/{{geneList}}">View genes in pan-view</a></p>
     <p *ngIf="linkablePhylo"><a href="http://legumeinfo.org/chado_gene_phylotree_v2?family={{family.name}}&gene_name={{geneList}}">View genes in phylogram</a></p>
     <p>Genes:</p>
     <ul>
@@ -39,7 +38,7 @@ export class FamilyDetailComponent implements OnChanges {
   constructor(private _detailsService: DetailsService) { }
 
   ngOnChanges(changes: SimpleChanges): void {
-    if (this.family !== undefined) {
+    if (this.family !== undefined && this.tracks !== undefined) {
       this.genes = this.tracks.groups.reduce((l, group) => {
         let genes = group.genes.filter(g => {
           return (g.family.length > 0 && this.family.id.includes(g.family)) ||

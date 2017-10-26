@@ -20,6 +20,8 @@ export class PlotViewerComponent extends Viewer {
 
   @Input() visibleDraw: boolean;
 
+  noContext = true;
+
   private drawnSinceChange: boolean;
 
   constructor() {
@@ -49,6 +51,7 @@ export class PlotViewerComponent extends Viewer {
     (!this.visibleDraw || (this.visibleDraw && this.visible())) &&
     !this.drawnSinceChange) {
       this.destroy();
+      var colorDomainStr = localStorage.getItem("viewer-micro-color-domain");
       this.viewer = new GCV.visualization.Plot(
         this.el.nativeElement,
         this.colors,
@@ -56,6 +59,7 @@ export class PlotViewerComponent extends Viewer {
         this.args
       );
       this.drawnSinceChange = true;
+      localStorage.setItem("viewer-micro-color-domain", this.colors.domain());
     }
   }
 }

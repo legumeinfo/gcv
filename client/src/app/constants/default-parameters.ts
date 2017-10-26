@@ -18,7 +18,7 @@ export const enum DefaultAlignmentParams {
 
 // clustering parameters
 export const enum DefaultClusteringParams {
-  DEFAULT_ALPHA   = 0.5,
+  DEFAULT_ALPHA   = 0.85,
   DEFAULT_KAPPA   = 10,
   DEFAULT_MINSUP  = 2,
   DEFAULT_MINSIZE = 5

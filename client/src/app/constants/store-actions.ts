@@ -1,4 +1,5 @@
 export const enum StoreActions {
+  RESET                 = 'RESET',
   SET_ALIGNMENT         = 'SET_ALIGNMENT',
   ADD_ALIGNMENT_PARAMS  = 'ADD_ALIGNMENT_PARAMS',
   ADD_CLUSTERING_PARAMS = 'ADD_CLUSTERING_PARAMS',

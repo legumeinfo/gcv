@@ -16,7 +16,7 @@
         [data]="microTracks"
         [colors]="microColors"
         [arguments]="microArgs" >
-      	<ul class="nav navbar-nav accordion">
+      	<ul navbar class="nav navbar-nav accordion">
       	  <li [ngClass]="{'active': accordion==accordionTypes.REGEXP}">
             <a (click)="setAccordion($event, accordionTypes.REGEXP)">
             &nbsp;<span class="glyphicon glyphicon-filter" aria-hidden="true"></span>&nbsp;
