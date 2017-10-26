@@ -31,12 +31,17 @@ export class MicroViewerComponent extends Viewer {
   draw(): void {
     if (this.el !== undefined && this.data !== undefined) {
       this.destroy();
+      var colorDomainStr = localStorage.getItem("viewer-micro-color-domain");
+      if (colorDomainStr != null) {
+        this.colors.domain(colorDomainStr.split(","));
+      }
       this.viewer = new GCV.visualization.Micro(
         this.el.nativeElement,
         this.colors,
         this.data,
         this.args
       );
+      localStorage.setItem("viewer-micro-color-domain", this.colors.domain());
     }
   }
 }
