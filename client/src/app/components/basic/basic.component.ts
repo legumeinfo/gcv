@@ -144,7 +144,7 @@ export class BasicComponent implements AfterViewInit, OnInit {
 
       var d = ",";
       var singletonIds = ["singleton"].concat(uniqueFamilies.filter(f => {
-        return familySizes[f.id] == 1;
+        return familySizes === undefined || familySizes[f.id] == 1;
       }).map(f => f.id)).join(d);
       this.microLegendArgs = {
         autoResize: true,
