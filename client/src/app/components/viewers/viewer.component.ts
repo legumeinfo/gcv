@@ -23,7 +23,7 @@ export abstract class Viewer implements AfterViewInit, OnChanges, OnDestroy {
 
   // view children
 
-  @ViewChild('viewer') el: ElementRef;
+  @ViewChild('viewerContainer') el: ElementRef;
 
   // variables
   title: String;
