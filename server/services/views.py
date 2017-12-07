@@ -374,7 +374,7 @@ def v1_micro_synteny_search(request):
         non_family = POST['intermediate']
         try:
             non_family = int(non_family)
-            if non_family <= 0:
+            if non_family < 0:
                 raise ValueError("intermediate can't be negative")
         except:
             return HttpResponseBadRequest
