@@ -33,7 +33,7 @@ export const urlQueryParams = (state: any = Object.create(UrlQueryParams.prototy
                 break;
               case 'alpha':
                 let y = parseFloat(source[prop]);
-                if (Number(y) === y && y % 1 !== 0) target[prop] = y;
+                if (Number(y) === y && y > 0 && y <= 1) target[prop] = y;
                 break;
               case 'sources':
                 let sources = [];
