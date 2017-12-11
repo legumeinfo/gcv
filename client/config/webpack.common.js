@@ -17,6 +17,10 @@ module.exports = {
   module: {
     rules: [
       {
+        test: /\.json$/,
+        loader: 'file-loader?name=[name].json'
+      },
+      {
         test: /\.ts$/,
         loaders: [
           {

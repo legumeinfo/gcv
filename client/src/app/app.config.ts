@@ -1,6 +1,9 @@
+// Angular
 import { Http }               from '@angular/http';
 import { Inject, Injectable } from '@angular/core';
 import { Observable }         from 'rxjs/Rx';
+// App
+const configFile = require('../config.json');
 
 declare var document: any;
 
@@ -84,7 +87,7 @@ export class AppConfig {
 
   public load(): Promise<any> {
     return new Promise((resolve, reject) => {
-      this.http.get('../config.json').map(res => res.json()).catch((error: any):any => {
+      this.http.get(configFile).map(res => res.json()).catch((error: any):any => {
         console.log('Configuration file "config.json" could not be read');
         resolve(true);
         return Observable.throw(error || 'Server error');
