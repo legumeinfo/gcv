@@ -28,6 +28,7 @@ import { MicroTracksService }        from '../../services/micro-tracks.service';
 
 enum AccordionTypes {
   REGEXP,
+  ORDER
 }
 
 @Component({
@@ -212,7 +213,7 @@ export class MultiComponent implements AfterViewInit, OnInit {
   // micro-synteny
   setAccordion(e: any, value: any): void {
     e.stopPropagation();
-    this.accordion = this.accordion == value ? null : value;
+    this.accordion = (this.accordion == value) ? null : value;
   }
 
   // left slider
