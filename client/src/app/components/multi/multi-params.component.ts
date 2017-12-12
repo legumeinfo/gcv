@@ -45,7 +45,7 @@ export class MultiParamsComponent implements OnChanges, OnDestroy, OnInit {
   queryGroup: FormGroup;
   clusteringGroup: FormGroup;
 
-  sources = AppConfig.SERVERS.filter(s => s.hasOwnProperty('microBasic'));
+  sources = AppConfig.SERVERS.filter(s => s.hasOwnProperty('microMulti'));
 
   private _sub: any;
 

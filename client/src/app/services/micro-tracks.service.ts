@@ -129,18 +129,18 @@ export class MicroTracksService {
     }, []);
     for (let i = 0; i < sources.length; ++i) {
       let s: Server = sources[i];
-      if (s.hasOwnProperty('microBasic')) {
+      if (s.hasOwnProperty('microMulti')) {
         let response: Observable<Response>;
-        if (s.microBasic.type === GET)
-          response = this._http.get(s.microBasic.url, args);
+        if (s.microMulti.type === GET)
+          response = this._http.get(s.microMulti.url, args);
         else
-          response = this._http.post(s.microBasic.url, args);
+          response = this._http.post(s.microMulti.url, args);
         requests.push(response
           .map(res => res.json())
           .catch(() => Observable.empty())
           .defaultIfEmpty(null));
       } else {
-        failure(s.id + " doesn't serve basic micro track requests");
+        failure(s.id + " doesn't serve multi micro track requests");
       }
     }
     // aggregate the results
@@ -257,7 +257,7 @@ export class MicroTracksService {
           .catch(() => Observable.empty())
           .defaultIfEmpty(null));
       } else {
-        failure(s.id + " doesn't serve basic micro track requests");
+        failure(s.id + " doesn't serve multi micro track requests");
       }
     }
     // aggregate the results

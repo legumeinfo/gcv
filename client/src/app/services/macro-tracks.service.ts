@@ -52,7 +52,7 @@ export class MacroTracksService {
             .catch(() => Observable.empty())
             .defaultIfEmpty(null));
         } else {
-          failure(s.id + " doesn't serve basic micro track requests");
+          failure(s.id + " doesn't serve macro track requests");
         }
       }
       // aggregate the results
