@@ -184,7 +184,8 @@ export class MultiComponent implements AfterViewInit, OnInit {
     ).let(frequentedRegionsSelector());
     this._microTracks = Observable.combineLatest(
       this._groupedTracks,
-      this._filterService.regexp
+      this._filterService.regexp,
+      this._filterService.order
     ).let(microTracksSelector());
     this._microTracks.subscribe(this._onMicroTracks.bind(this));
   }

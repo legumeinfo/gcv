@@ -47,7 +47,7 @@ import { MainComponent }         from './components/shared/main.component';
 import { MainContentComponent }  from './components/shared/main-content.component';
 import { MicroViewerComponent }  from './components/viewers/micro.component';
 import { NavComponent }          from './components/shared/nav.component';
-import { OrderingComponent }     from './components/search/ordering.component';
+import { OrderingComponent }     from './components/shared/ordering.component';
 import { PlotViewerComponent }   from './components/viewers/plot.component';
 import { RegexpComponent }       from './components/shared/regexp.component';
 import { ScrollComponent }       from './components/search/scroll.component';

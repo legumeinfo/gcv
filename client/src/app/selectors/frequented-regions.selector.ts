@@ -42,7 +42,7 @@ export const frequentedRegionsSelector = () => {
             group.push(copyTracks[supporting[i]]);
           }
           for (let i = 0; i < group.length; i++) {
-            let gId = "group" + j + ".";
+            let gId = "group-" + j + ".";
             group[i]["chromosome_name"] = gId.concat(group[i]["chromosome_name"]);
           }
           grouped = grouped.concat(GCV.alignment.msa(group));
@@ -52,6 +52,11 @@ export const frequentedRegionsSelector = () => {
         }
         j++;
       } while (results.length > 0);
+      let gId = "group-none.";
+      for (let i = 0; i < frTracks.groups.length; i++) {
+        frTracks.groups[i]["chromosome_name"] =
+          gId.concat(frTracks.groups[i]["chromosome_name"]);
+      }
       frTracks.groups = grouped.concat(frTracks.groups);
     }
     return frTracks;
