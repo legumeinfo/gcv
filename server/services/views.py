@@ -200,7 +200,7 @@ def v1_micro_synteny_basic(request):
             focus_loc = focus_loc_map[gene.pk]
             srcfeature = srcfeature_map[focus_loc.srcfeature_id]
             organism = organism_map[gene.organism_id]
-            family_id = family_map[gene.pk]
+            family_id = "" if gene.pk not in family_map else family_map[gene.pk]
             if len(family_id) > 0:
                 focus_family_id = family_id
                 if family_id not in families:
