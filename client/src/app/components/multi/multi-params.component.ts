@@ -25,12 +25,12 @@ import { UrlQueryParamsService }  from '../../services/url-query-params.service'
 
 @Component({
   moduleId: module.id.toString(),
-  selector: 'basic-params',
-  templateUrl: 'basic-params.component.html',
-  styleUrls: [ 'basic-params.component.css' ]
+  selector: 'multi-params',
+  templateUrl: 'multi-params.component.html',
+  styleUrls: [ 'multi-params.component.css' ]
 })
 
-export class BasicParamsComponent implements OnChanges, OnDestroy, OnInit {
+export class MultiParamsComponent implements OnChanges, OnDestroy, OnInit {
   // IO
   @Input() queryGenes: string[];
   @Output() invalid = new EventEmitter();
@@ -61,7 +61,7 @@ export class BasicParamsComponent implements OnChanges, OnDestroy, OnInit {
 
   ngOnChanges(changes: SimpleChanges): void {
     if (this.queryGroup !== undefined)
-      this._basicQuery();
+      this._multiQuery();
   }
 
   ngOnDestroy(): void {
@@ -103,8 +103,8 @@ export class BasicParamsComponent implements OnChanges, OnDestroy, OnInit {
 
   // private
 
-  private _basicQuery(): void {
-    this._tracksService.basicQuery(
+  private _multiQuery(): void {
+    this._tracksService.multiQuery(
       this.queryGenes,
       this.queryGroup.getRawValue(),
       e => this._alerts.pushAlert(new Alert(Alerts.ALERT_DANGER, e))
@@ -118,7 +118,7 @@ export class BasicParamsComponent implements OnChanges, OnDestroy, OnInit {
       if (this.queryGroup.dirty) {
         this.submitted.emit();
         let params = this.queryGroup.getRawValue();
-        this._basicQuery();
+        this._multiQuery();
         this.queryGroup.reset(params);
         this._url.updateParams(Object.assign({}, params));
       }

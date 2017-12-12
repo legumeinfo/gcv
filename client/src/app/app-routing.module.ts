@@ -5,7 +5,7 @@ import { Store }                        from '@ngrx/store';
 
 // app
 import { AppStore }              from './models/app-store.model';
-import { BasicComponent }        from './components/basic/basic.component';
+import { MultiComponent }        from './components/multi/multi.component';
 import { DefaultQueryParams }    from './constants/default-parameters';
 import { InstructionsComponent } from './components/instructions/instructions.component';
 import { SearchComponent }       from './components/search/search.component';
@@ -13,7 +13,7 @@ import { StoreActions }          from './constants/store-actions';
 
 const routes: Routes = [
   {path: '', redirectTo: '/instructions', pathMatch: 'full'},
-  {path: 'multi/:genes', component: BasicComponent},
+  {path: 'multi/:genes', component: MultiComponent},
   {
     path: 'basic/:genes', 
     redirectTo: 'multi/:genes',

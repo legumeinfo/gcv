@@ -110,7 +110,7 @@ export class MicroTracksService {
     }
   }
 
-  basicQuery(
+  multiQuery(
     queryGenes: string[],
     params: QueryParams,
     failure = e => {}

@@ -32,13 +32,13 @@ enum AccordionTypes {
 
 @Component({
   moduleId: module.id.toString(),
-  selector: 'basic',
-  templateUrl: 'basic.component.html',
-  styleUrls: [ 'basic.component.css' ],
+  selector: 'multi',
+  templateUrl: 'multi.component.html',
+  styleUrls: [ 'multi.component.css' ],
   encapsulation: ViewEncapsulation.None
 })
 
-export class BasicComponent implements AfterViewInit, OnInit {
+export class MultiComponent implements AfterViewInit, OnInit {
   // view children
 
   // EVIL: ElementRefs nested in switch cases are undefined when parent or child
