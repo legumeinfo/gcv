@@ -335,7 +335,7 @@ def v1_gene_to_query_track(request):
                 str(floc.fmin) + ', "fmax":' + str(floc.fmax) + ', "strand":' +
                 str(floc.strand) + ', "x":' + str(i) + ', "y":0}')
             query_align.append((g, family))
-        query_group = ('{"species_name":"' + organism.genus[0] + '.' +
+        query_group = ('{"genus":"' + organism.genus + '", "species":"' +
             organism.species + '", "species_id":' + str(organism.pk) +
             ', "chromosome_name":"' + chromosome.name + '", "chromosome_id":' +
             str(chromosome.pk) + ', "genes":[' + ','.join(genes) + ']}')
