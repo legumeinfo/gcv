@@ -24,10 +24,10 @@ export class MacroTracksService {
     this.tracks = this._store.select('macroTracks');
   }
 
-  private checkSetCache(chromosome: string, sources: Array<any>) {
+  private _checkSetCache(chromosome: string, sources: Array<any>) {
     if (this._searchCache.chromosome == chromosome &&
     this._searchCache.sources.length == sources.length &&
-    this._searchCache.sources.every((v,i)=> v === sources[i])) {
+    this._searchCache.sources.every((v,i) => v === sources[i])) {
       return true;
     }
     this._searchCache.chromosome = chromosome;
@@ -44,7 +44,7 @@ export class MacroTracksService {
         else failure('invalid source: ' + s);
         return l;
       }, []);
-      if (!this.checkSetCache(query.chromosome_name, sources)) {
+      if (!this._checkSetCache(query.chromosome_name, sources)) {
         this._store.dispatch({type: StoreActions.ADD_MACRO_TRACKS,
           payload: undefined});
         let args = {

@@ -8,6 +8,8 @@ export const microTracks = (state: any = defaultState,
       return payload;
     case StoreActions.RESET:
       return defaultState;
+    case StoreActions.CLONE_MICRO:
+      return JSON.parse(JSON.stringify(state));
     default:
       return state;
   }

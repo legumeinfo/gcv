@@ -8,6 +8,7 @@ export const enum StoreActions {
   ADD_LOCAL_PLOTS       = 'ADD_LOCAL_PLOTS',
   ADD_MACRO_TRACKS      = 'ADD_MACRO_TRACKS',
   ADD_MICRO_TRACKS      = 'ADD_MICRO_TRACKS',
+  CLONE_MICRO           = 'CLONE_MICRO',
   SET_ORDER             = 'SET_ORDER',
   SET_REGEXP            = 'SET_REGEXP',
   SELECT_PLOT           = 'SELECT_PLOT',

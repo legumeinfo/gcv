@@ -20,12 +20,25 @@ import { StoreActions }      from '../constants/store-actions';
 export class MicroTracksService {
   tracks: Observable<MicroTracks>;
 
-  private _serverIDs = AppConfig.SERVERS.map(s => s.id);
+  private _serverIDs   = AppConfig.SERVERS.map(s => s.id);
+  private _searchCache = {query: '', params: ''};
 
   constructor(private _http: Http,
               private _location: Location,
               private _store: Store<AppStore>) {
     this.tracks = this._store.select('microTracks');
+  }
+
+  private _checkSetCache(query: Group, params: QueryParams) {
+    let queryString  = JSON.stringify(query),
+        paramsString = JSON.stringify(params);
+    if (this._searchCache.query == queryString &&
+    this._searchCache.params == paramsString) {
+      return true;
+    }
+    this._searchCache.query  = queryString;
+    this._searchCache.params = paramsString;
+    return false;
   }
 
   private _prepareTrack(source: string, track: Group): void {
@@ -231,68 +244,72 @@ export class MicroTracksService {
   }
 
   trackSearch(query: Group, params: QueryParams, failure = e => {}): void {
-    let args = {
-      query: query.genes.map(g => g.family),
-      matched: params.matched,
-      intermediate: params.intermediate
-    } as RequestOptionsArgs;
-		// send requests to the selected servers
-    let requests: Observable<Response>[] = [];
-    let sources = params.sources.reduce((l, s) => {
-      let i = this._serverIDs.indexOf(s);
-      if (i != -1) l.push(AppConfig.SERVERS[i]);
-      else failure('invalid source: ' + s);
-      return l;
-    }, []);
-    for (let i = 0; i < sources.length; ++i) {
-      let s: Server = sources[i];
-      if (s.hasOwnProperty('microSearch')) {
-        let response: Observable<Response>;
-        if (s.microSearch.type === GET)
-          response = this._http.get(s.microSearch.url, args);
-        else
-          response = this._http.post(s.microSearch.url, args);
-        requests.push(response
-          .map(res => res.json())
-          .catch(() => Observable.empty())
-          .defaultIfEmpty(null));
-      } else {
-        failure(s.id + " doesn't serve multi micro track requests");
-      }
-    }
-    // aggregate the results
-    Observable.forkJoin(requests).subscribe(results => {
-      let failed = [];
-      let families: Family[] = [];
-      let groups: Group[] = [query];
-      let geneIDs = query.genes.map(g => g.id);
-      for (let i = 0; i < results.length; ++i) {
-        let result = results[i];
-        let source = sources[i];
-        if (result == null) {
-          failed.push(source.id);
+    if (!this._checkSetCache(query, params)) {
+      let args = {
+        query: query.genes.map(g => g.family),
+        matched: params.matched,
+        intermediate: params.intermediate
+      } as RequestOptionsArgs;
+		  // send requests to the selected servers
+      let requests: Observable<Response>[] = [];
+      let sources = params.sources.reduce((l, s) => {
+        let i = this._serverIDs.indexOf(s);
+        if (i != -1) l.push(AppConfig.SERVERS[i]);
+        else failure('invalid source: ' + s);
+        return l;
+      }, []);
+      for (let i = 0; i < sources.length; ++i) {
+        let s: Server = sources[i];
+        if (s.hasOwnProperty('microSearch')) {
+          let response: Observable<Response>;
+          if (s.microSearch.type === GET)
+            response = this._http.get(s.microSearch.url, args);
+          else
+            response = this._http.post(s.microSearch.url, args);
+          requests.push(response
+            .map(res => res.json())
+            .catch(() => Observable.empty())
+            .defaultIfEmpty(null));
         } else {
-          let tracks: MicroTracks = this._parseMicroTracksJSON(source, result);
-          // remove tracks that overlap with the query
-          if (source.id == query.source) {
-            tracks.groups = tracks.groups.filter(group  => {
-              if (group.species_id == query.species_id
-              && group.chromosome_id == query.chromosome_id) {
-                return !group.genes.some(g => geneIDs.indexOf(g.id) !== -1);
-              } return true;
-            });
-          }
-          // aggregate the remaining tracks
-          families.push.apply(families, tracks.families);
-          groups.push.apply(groups, tracks.groups);
+          failure(s.id + " doesn't serve multi micro track requests");
         }
       }
-      if (failed.length > 0)
-        failure('failed to retrieve data from sources: ' + failed.join(', '));
-      let aggregateTracks = new MicroTracks(families, groups);
-      this._idTracks(aggregateTracks);
-      this._store.dispatch({type: StoreActions.ADD_MICRO_TRACKS,
-        payload: aggregateTracks})
-    });
+      // aggregate the results
+      Observable.forkJoin(requests).subscribe(results => {
+        let failed = [];
+        let families: Family[] = [];
+        let groups: Group[] = [query];
+        let geneIDs = query.genes.map(g => g.id);
+        for (let i = 0; i < results.length; ++i) {
+          let result = results[i];
+          let source = sources[i];
+          if (result == null) {
+            failed.push(source.id);
+          } else {
+            let tracks: MicroTracks = this._parseMicroTracksJSON(source, result);
+            // remove tracks that overlap with the query
+            if (source.id == query.source) {
+              tracks.groups = tracks.groups.filter(group  => {
+                if (group.species_id == query.species_id
+                && group.chromosome_id == query.chromosome_id) {
+                  return !group.genes.some(g => geneIDs.indexOf(g.id) !== -1);
+                } return true;
+              });
+            }
+            // aggregate the remaining tracks
+            families.push.apply(families, tracks.families);
+            groups.push.apply(groups, tracks.groups);
+          }
+        }
+        if (failed.length > 0)
+          failure('failed to retrieve data from sources: ' + failed.join(', '));
+        let aggregateTracks = new MicroTracks(families, groups);
+        this._idTracks(aggregateTracks);
+        this._store.dispatch({type: StoreActions.ADD_MICRO_TRACKS,
+          payload: aggregateTracks})
+      });
+    } else {
+      this._store.dispatch({type: StoreActions.CLONE_MICRO});
+    }
 	}
 }
