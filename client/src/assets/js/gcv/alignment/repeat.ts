@@ -149,31 +149,26 @@ export default function repeat (sequence, reference, options) {
   }
 
   // parse optional parameters
-  var options = options || {};
-  options.accessor = options.accessor || function (e) { return e; };
-  options.scores = options.scores || {};
-  options.scores.match = options.scores.match || 5;
-  options.scores.mismatch = options.scores.mismatch || 0;
-  options.scores.gap = options.scores.gap || -1;
+  var options              = options || {};
+  options.accessor         = options.accessor || function (e) { return e; };
+  options.scores           = options.scores || {};
+  options.scores.match     = options.scores.match || 5;
+  options.scores.mismatch  = options.scores.mismatch || 0;
+  options.scores.gap       = options.scores.gap || -1;
   options.scores.threshold = options.scores.threshold || 10;
-  options.suffixScores = options.suffixScores || false;
+  options.suffixScores     = options.suffixScores || false;
+  options.reverse          = options.reverse || function (s) {
+    var r = s.slice();
+    r.reverse();
+    return r;
+  };
 
   // perform forward and reverse alignments
 	var forwards = align(sequence, reference),
-      reverseReference = reference.slice(0);
-	reverseReference.reverse();
+      reverseReference = options.reverse(reference);
 	var reverses = align(sequence, reverseReference);
 
   // clone each object in the arrays and flip the strand for each selected gene
-  var output = forwards;
-  for (var i = 0; i < reverses.length; i++) {
-    var a = reverses[i];
-    for (var j = 0; j < a.reference.length; j++) {
-      if(a.reference[j] != null) {
-        a.reference[j].strand = -a.reference[j].strand;
-      }
-    }
-    output.push(a);
-  }
+  var output = forwards.concat(reverses);
 	return output;
 }

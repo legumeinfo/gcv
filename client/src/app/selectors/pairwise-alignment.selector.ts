@@ -14,7 +14,13 @@ export const pairwiseAlignmentSelector = () => {
       )].algorithm;
       let query = alignedTracks.groups[0];
       let options = Object.assign({}, {
-        accessor: g => g.family,
+        accessor: g => (g.strand == -1 ? '-' : '+') + g.family,
+        reverse: s => {
+          let r = JSON.parse(JSON.stringify(s));
+          r.reverse();
+          r.forEach(g => g.strand *= -1);
+          return r;
+        },
         suffixScores: true,
         scores: Object.assign({}, params)
       });

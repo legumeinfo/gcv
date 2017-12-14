@@ -88,31 +88,24 @@ export default function smithWaterman (sequence, reference, options) {
   }
 
   // parse optional parameters
-  var options = options || {};
-  options.accessor = options.accessor || function (e) { return e; };
-  options.scores = options.scores || {};
-  options.scores.match = options.scores.match || 5;
+  var options             = options || {};
+  options.accessor        = options.accessor || function (e) { return e; };
+  options.scores          = options.scores || {};
+  options.scores.match    = options.scores.match || 5;
   options.scores.mismatch = options.scores.mismatch || 0;
-  options.scores.gap = options.scores.gap || -1;
+  options.scores.gap      = options.scores.gap || -1;
+  options.reverse         = options.reverse || function (s) {
+    var r = s.slice();
+    r.reverse();
+    return r;
+  };
 
   // perform forward and reverse alignments
 	var forward = align(sequence, reference),
-      reverseReference = reference.slice(0);
-	reverseReference.reverse();
+      reverseReference = options.reverse(reference);
 	var reverse = align(sequence, reverseReference);
 
   // output the highest scoring alignment
-  var output;
-	if (forward.score >= reverse.score) {
-    output = forward
-	} else {
-    // clone each element in the array and flip the strand
-    for (var i = 0; i < reverse.reference.length; i++) {
-      if (reverse.reference[i] != null) {
-        reverse.reference[i].strand = -reverse.reference[i].strand;
-      }
-    }
-    output = reverse;
-  }
+  var output = forward.score >= reverse.score ? forward : reverse;
   return [output];
 }
