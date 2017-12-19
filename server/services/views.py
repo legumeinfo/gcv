@@ -869,3 +869,80 @@ def v1_1_chromosome(request):
             content_type='application/json; charset=utf8'
         )
     return HttpResponseBadRequest
+
+
+# computes chromosome scale synteny blocks for the given chromosome (ordered
+# list of gene families)
+@csrf_exempt
+@ensure_nocache
+def v1_1_macro_synteny(request):
+    # parse the POST data (Angular puts it in the request body)
+    POST = json.loads(request.body)
+    # make sure the request type is POST and that it contains a query (families)
+    if request.method == 'POST' and 'chromosome' in POST:
+        # get the query chromosome
+        chromosome = get_object_or_404(Feature, name=POST['chromosome'])
+        # get the syntenic region cvterm
+        synteny_type = list(Cvterm.objects.only('pk')\
+            .filter(name='syntenic_region'))
+        if len(synteny_type) == 0:
+            raise Http404
+        synteny_type = synteny_type[0]
+        # get all the related featurelocs
+        blocks = list(Featureloc.objects\
+            .only('feature', 'fmin', 'fmax', 'strand')\
+            .filter(srcfeature=chromosome, feature__type=synteny_type, rank=0))
+        # get the chromosome each region belongs to
+        region_ids = map(lambda b: b.feature_id, blocks)
+        regions = None
+        if 'results' in POST:
+            regions = list(Featureloc.objects\
+                .only('feature', 'srcfeature')\
+                .filter(feature__in=region_ids, srcfeature__in=POST['results'], rank=1))
+        else:
+            regions = list(Featureloc.objects\
+                .only('feature', 'srcfeature')\
+                .filter(feature__in=region_ids, rank=1))
+        region_to_chromosome = dict(
+            (r.feature_id, r.srcfeature_id) for r in regions
+        )
+        # actually get the chromosomes
+        chromosomes = list(Feature.objects.only('name', 'organism')\
+            .filter(pk__in=region_to_chromosome.values()))
+        chromosome_map = dict((c.pk, c) for c in chromosomes)
+        # get the chromosomes' organisms
+        organisms = Organism.objects.only('genus', 'species').filter(
+            pk__in=map(lambda c: c.organism_id, chromosomes)
+        )
+        organism_map = dict((o.pk, o) for o in organisms)
+        # group the blocks by feature
+        feature_locs = {}
+        for l in blocks:
+            if l.feature_id in region_to_chromosome:
+                orientation = '-' if l.strand == -1 else '+'
+                c = chromosome_map[region_to_chromosome[l.feature_id]]
+                name = c.name
+                o = organism_map[c.organism_id]
+                species = o.species
+                genus = o.genus
+                feature_locs.setdefault((name, species, genus), []).append(
+                    {'start':l.fmin, 'stop':l.fmax, 'orientation':orientation}
+                )
+        # generate the json
+        tracks = []
+        for (name, species, genus), blocks in feature_locs.iteritems():
+            tracks.append({
+                'chromosome': name,
+                'species': species,
+                'genus': genus,
+                'blocks': blocks
+            })
+        synteny_json = {'chromosome': chromosome.name,
+                        'length': chromosome.seqlen,
+                        'tracks': tracks}
+        # return the synteny data as encoded as json
+        return HttpResponse(
+            json.dumps(synteny_json),
+            content_type='application/json; charset=utf8'
+        )
+    return HttpResponseBadRequest
