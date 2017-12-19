@@ -35,5 +35,10 @@ urlpatterns = patterns('services.views',
     # macro-synteny
     url(r'^v1/macro-synteny/$', 'v1_macro_synteny'),
     # genomic location to nearest gene
-    url(r'^v1/nearest-gene/$', 'v1_nearest_gene')
+    url(r'^v1/nearest-gene/$', 'v1_nearest_gene'),
+
+    # v1.1
+
+    # chromosome
+    url(r'^v1_1/chromosome/$', 'v1_1_chromosome'),
 )

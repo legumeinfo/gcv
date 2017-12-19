@@ -826,3 +826,46 @@ def global_plots(request):
         request._body = json.dumps(POST)
         return v1_global_plot(request)
     return HttpResponseBadRequest
+
+
+########
+# v1.1 #
+########
+
+
+# returns the requested chromosome (ordered list of gene families)
+@csrf_exempt
+@ensure_nocache
+def v1_1_chromosome(request):
+    # parse the POST data (Angular puts it in the request body)
+    POST = json.loads(request.body)
+    # make sure the request type is POST and that it contains a query (families)
+    if request.method == 'POST' and 'chromosome' in POST:
+        # get the query chromosome
+        chromosome = get_object_or_404(Feature, name=POST['chromosome'])
+
+        # get all the genes on the query chromosomes
+        genes = list(GeneOrder.objects.only(
+            'gene_id',
+            'number',
+            'chromosome_id'
+        ).filter(chromosome=chromosome).order_by('number').values_list('gene_id', flat=True))
+
+        # get all the families on the query chromosome
+        gene_families = list(GeneFamilyAssignment.objects.only(
+            'gene_id',
+            'family_label'
+        ).filter(gene__in=genes))
+        gene_family_map = dict((o.gene_id, o.family_label) for o in gene_families)
+
+        # create an ordered list of gene families
+        ordered_families = []
+        for g_id in genes:
+            ordered_families.append(gene_family_map.get(g_id, ''))
+
+        # return the chromosome as encoded as json
+        return HttpResponse(
+            json.dumps(ordered_families),
+            content_type='application/json; charset=utf8'
+        )
+    return HttpResponseBadRequest
