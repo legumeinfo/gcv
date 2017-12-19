@@ -16,4 +16,5 @@ export class Server {
   geneLinks: Request;
   plotGlobal: Request;
   nearestGene: Request;
+  chromosome: Request;
 }

@@ -35,6 +35,34 @@ export class MacroTracksService {
     return false;
   }
 
+  getChromosome(
+    source: string,
+    chromosome: string,
+    failure = e => {}
+  ): void {
+    // fetch query track for gene
+    let idx: number = this._serverIDs.indexOf(source);
+    if (idx != -1) {
+      let s: Server = AppConfig.SERVERS[idx];
+      if (s.hasOwnProperty('chromosome')) {
+        let args = {chromosome: chromosome} as RequestOptionsArgs;
+        let response: Observable<Response>;
+        if (s.chromosome.type === GET)
+          response = this._http.get(s.chromosome.url, args)
+        else
+          response = this._http.post(s.chromosome.url, args)
+        response.map(res => res.json()).subscribe(query => {
+          console.log('chromosome:');
+          console.log(query);
+        }, failure);
+      } else {
+        failure(s.id + " doesn't serve chromosome requests");
+      }
+    } else {
+      failure('invalid source: ' + source);
+    }
+  }
+
   search(tracks: MicroTracks, params: QueryParams, failure = e => {}): void {
     if (tracks.groups.length > 0) {
       let query = tracks.groups[0];

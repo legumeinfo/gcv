@@ -208,7 +208,9 @@ export class SearchComponent implements AfterViewInit, OnInit {
   private _onRawMicroTracks(tracks): void {
     this._numReturned = tracks.groups.length - 1;  // exclude query
     let params = this.searchParams.queryGroup
-    if (params !== undefined) {
+    if (params !== undefined && tracks.groups.length > 0) {
+      let query = tracks.groups[0];
+      this._macroTracksService.getChromosome(query.source, query.chromosome_name);
       this._macroTracksService.search(tracks, params.getRawValue());
     }
   }
