@@ -126,42 +126,44 @@ END$$;
 print "Fetching preliminaries\n";
 
 my $query_string;
-# get the gene lis_properties cv from the database
-my $cv_id = $conn->selectrow_array("SELECT cv_id FROM cv WHERE name='LIS_properties' LIMIT 1;");
+# get the app-specific GCV_properties cv from the database
+my $cv_id = $conn->selectrow_array("SELECT cv_id FROM cv WHERE name='GCV_properties' LIMIT 1;");
 # does it exist?
 if( !$cv_id ) {
-    $query_string = "INSERT INTO cv (name) VALUES ('LIS_properties');";
+    $query_string = "INSERT INTO cv (name) VALUES ('GCV_properties');";
     if ( !$conn->do($query_string) ) {
-        Retreat("Failed to add an entry into the cv table  for LIS_properties\n");
+        Retreat("Failed to add an entry into the cv table  for GCV_properties\n");
     }
-    $cv_id = $conn->selectrow_array("SELECT cv_id FROM cv WHERE name='LIS_properties' LIMIT 1;");
+    $cv_id = $conn->selectrow_array("SELECT cv_id FROM cv WHERE name='GCV_properties' LIMIT 1;");
 }
 
-# get the dbxref entry for gene family
-my $dbxref_id = $conn->selectrow_array("SELECT dbxref_id FROM dbxref WHERE accession='gene_family' LIMIT 1;");
+# just use the "null entry for getting around not-null constraints" dbxref that 
+# comes as part of stock chado 
+my $dbxref_id = $conn->selectrow_array("SELECT dbxref_id FROM dbxref WHERE accession='local:null' LIMIT 1;");
 # does it exist?
 if( !$dbxref_id ) {
     # does the db entry for ncgr exist?
-    my $db_id = $conn->selectrow_array("SELECT db_id FROM db WHERE name ilike 'NCGR' LIMIT 1;");
+    my $db_id = $conn->selectrow_array("SELECT db_id FROM db WHERE name ilike 'null' LIMIT 1;");
+    #recreate if necessary
     if( !$db_id ) {
-        $query_string = "INSERT INTO db (name) VALUES ('NCGR');";
+        $query_string = "INSERT INTO db (name, description) VALUES ('null', 'a fake database for local items');";
         if ( !$conn->do($query_string) ) {
-            Retreat("Failed to add an entry into the db table  for NCGR\n");
+            Retreat("Failed to add an entry into the db table for the null db\n");
         }
-        $db_id = $conn->selectrow_array("SELECT db_id FROM db WHERE name='NCGR' LIMIT 1;");
+        $db_id = $conn->selectrow_array("SELECT db_id FROM db WHERE name='null' LIMIT 1;");
     }
-    $query_string = "INSERT INTO dbxref (db_id, accession) VALUES ($db_id, 'gene_family');";
+    $query_string = "INSERT INTO dbxref (db_id, accession) VALUES ($db_id, 'local:null');";
     if ( !$conn->do($query_string) ) {
-        Retreat("Failed to add an entry into the dbxref table to gene_family\n");
+        Retreat("Failed to add an entry into the dbxref table for local:null\n");
     }
-    $dbxref_id = $conn->selectrow_array("SELECT dbxref_id FROM dbxref WHERE accession='gene_family' LIMIT 1;");
+    $dbxref_id = $conn->selectrow_array("SELECT dbxref_id FROM dbxref WHERE accession='local:null' LIMIT 1;");
 }
 
 # check to see if there's a cvterm for gene families in the database
 my $gene_family_id = $conn->selectrow_array("SELECT cvterm_id FROM cvterm WHERE name='gene family' LIMIT 1;");
 # does it exist?
 if ( !$gene_family_id ) {
-    $query_string = "INSERT INTO cvterm (cv_id, name, definition, dbxref_id) VALUES ($cv_id, 'gene family', 'Links a gene to a phylogenetic tree one of its polypeptides is a member of.', $dbxref_id);";
+    $query_string = "INSERT INTO cvterm (cv_id, name, definition, dbxref_id) VALUES ($cv_id, 'gene family', 'a group of genes presumed to be related by common ancestry', $dbxref_id);";
     if ( !$conn->do($query_string) ) {
         Retreat("Failed to add feature to database\n");
     }
