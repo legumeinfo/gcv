@@ -44,13 +44,6 @@ This library is free software; you can redistribute it and/or modify it under th
 
 
 
-# see if the user needs help
-my $man = 0;
-my $help = 0;
-#GetOptions('help|?' => \$help, man => \$man) or pod2usage(2);
-pod2usage(1) if $help;
-pod2usage(-exitval => 0, -verbose => 2) if $man;
-
 # get the command line options and environment variables
 my ($port);
 $port = $ENV{CHADO_DB_PORT} if ($ENV{CHADO_DB_PORT});
@@ -65,13 +58,24 @@ $host = $ENV{CHADO_DB_HOST} if ($ENV{CHADO_DB_HOST});
 my $nuke = 0;
 my $family_name;
 
+# see if the user needs help
+my $man = 0;
+my $help = 0;
+
 GetOptions("nuke"             => \$nuke,
            "family_name=s"      => \$family_name,
            "dbname=s"           => \$dbname,
            "username=s"         => \$username,
            "password=s"         => \$password,
            "host=s"             => \$host,
-           "port=i"             => \$port) || Retreat("Error in command line arguments\n");
+           "port=i"             => \$port,
+           "help|?"             => \$help,
+           "man"                => \$man,
+           ) or pod2usage(2);
+
+pod2usage(1) if $help;
+pod2usage(-exitval => 0, -verbose => 2) if $man;
+
 
 
 # create a data source name
