@@ -11,13 +11,13 @@ use Cwd 'abs_path'; # for executing the indexing script
 
 =head1 NAME
 
-gmod_gene_ordering.pl - Orders all the genes in the database by their order on their respective chromosomes in the featureprop table.
+gmod_gene_ordering.pl - Orders all the genes in the database by their order on their respective chromosomes in the gene_order table.
 
 =head1 SYNOPSIS
 
   gmod_gene_ordering.pl [options]
 
-  --nuke        Removes all previous gene ordering entries from featureprop
+  --nuke        Removes all previous gene ordering entries from gene_order
   --dbname      The name of the chado database (default=chado)
   --username    The username to access the database with (default=chado)
   --password    The password to log into the database with
@@ -26,11 +26,11 @@ gmod_gene_ordering.pl - Orders all the genes in the database by their order on t
 
 =head1 DESCRIPTION
 
-Each gene on a chromosome will be given an entry in the featureprop table. The feature_id value will be that of the gene and the value will be the gene's ordering number.
+Each gene on a chromosome will be given an entry in the gene_order table. The feature_id value will be that of the gene and the value will be the gene's ordering number.
 
-If the --nuke flag is given all previous gene ordering entries in the featureprop table will be deleted.
+If the --nuke flag is given all previous gene ordering entries in the gene_order table will be deleted.
 
-A new entry will not be made in the featureprop table for a gene if an entry already exists for that gene and chromosome.
+A new entry will not be made in the gene_order table for a gene if an entry already exists for that gene and chromosome.
 
 =head1 AUTHOR
 
@@ -43,13 +43,6 @@ This library is free software; you can redistribute it and/or modify it under th
 
 
 
-# see if the user needs help
-my $man = 0;
-my $help = 0;
-#GetOptions('help|?' => \$help, man => \$man) or pod2usage(2);
-pod2usage(1) if $help;
-pod2usage(-exitval => 0, -verbose => 2) if $man;
-
 # get the command line options and environment variables
 my ($port);
 $port = $ENV{CHADO_DB_PORT} if ($ENV{CHADO_DB_PORT});
@@ -61,14 +54,24 @@ my $password = "";
 $password = $ENV{CHADO_DB_PASS} if ($ENV{CHADO_DB_USER});
 my $host = "localhost";
 $host = $ENV{CHADO_DB_HOST} if ($ENV{CHADO_DB_HOST});
+
 my $nuke = 0;
+
+# see if the user needs help
+my $man = 0;
+my $help = 0;
 
 GetOptions("nuke|?"             => \$nuke,
            "dbname=s"           => \$dbname,
            "username=s"         => \$username,
            "password=s"         => \$password,
            "host=s"             => \$host,
-           "port=i"             => \$port) || Retreat("Error in command line arguments\n");
+           "port=i"             => \$port,
+           "help|?"             => \$help,
+           "man"                => \$man,
+           ) || pod2usage(2);
+pod2usage(1) if $help;
+pod2usage(-exitval => 0, -verbose => 2) if $man;
 
 
 # create a data source name
@@ -125,7 +128,7 @@ if( !$conn->do("CREATE TABLE IF NOT EXISTS gene_order(gene_order_id SERIAL PRIMA
 }
 
 
-# nuke the old featureprop entries... if we're supposed to
+# nuke the old gene_order entries... if we're supposed to
 if( $nuke ) {
     print "Deleting old entries\n";
     if( !$conn->do("DELETE FROM gene_order;") ) {
