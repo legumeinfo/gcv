@@ -1,19 +1,26 @@
-# import http stuffs
-from django.shortcuts import render, get_object_or_404
-from django.http import HttpResponse, HttpResponseBadRequest, Http404
-import json
-# import our models and helpers
-from services.models import Organism, Cvterm, Cv, Feature, Featureloc, Phylonode,\
-FeatureRelationship, GeneOrder, Featureprop, GeneFamilyAssignment
-# search stuffs
-from django.db.models import Q, Func, F
-# context view
-import operator
-# so anyone can use the services
+# Django
+from django.db.models             import F, Func, Q
+from django.http                  import Http404, HttpResponse, \
+    HttpResponseBadRequest
+from django.shortcuts             import get_object_or_404, render
+from django.utils.http            import http_date
 from django.views.decorators.csrf import csrf_exempt
-# time stuff for caching
-from django.utils.http import http_date
+
+# application
+from services.models import Cv, Cvterm, Feature, Featureloc, Featureprop, \
+    FeatureRelationship, GeneFamilyAssignment, GeneOrder, Organism, Phylonode
+
+# Python
+import heapq
+import json
+import operator
 import time
+from collections import defaultdict
+
+# additional packages
+#import dask.dataframe as dd
+#import networkx       as nx
+#import pandas         as pd
 
 
 # decorator for invalidating the cache every hour
@@ -59,7 +66,7 @@ def v1_micro_synteny_basic(request):
             if num <= 0:
                 raise ValueError("neighbors can't be negative")
         except:
-            return HttpResponseBadRequest
+            return HttpResponseBadRequest()
         # get the focus genes
         focus_genes = Feature.objects.only('organism_id', 'name')\
         .filter(name__in=POST['genes'])
@@ -241,7 +248,7 @@ def v1_micro_synteny_basic(request):
             json.dumps(view_json),
             content_type='application/json; charset=utf8'
         )
-    return HttpResponseBadRequest
+    return HttpResponseBadRequest()
 
 
 # resolves a focus gene name to a query track
@@ -267,7 +274,7 @@ def v1_gene_to_query_track(request):
             if num <= 0:
                 raise ValueError("neighbors can't be negative")
         except:
-            return HttpResponseBadRequest
+            return HttpResponseBadRequest()
         # get the gene family type
         gene_family_type = list(
             Cvterm.objects.only('pk').filter(name='gene family')
@@ -344,7 +351,7 @@ def v1_gene_to_query_track(request):
             json.dumps(query_group),
             content_type='application/json; charset=utf8'
         )
-    return HttpResponseBadRequest
+    return HttpResponseBadRequest()
 
 
 # returns similar contexts to the families provided
@@ -368,7 +375,7 @@ def v1_micro_synteny_search(request):
             if num_matched_families <= 0:
                 raise ValueError("matched can't be negative")
         except:
-            return HttpResponseBadRequest
+            return HttpResponseBadRequest()
         # the number of non query family genes tolerated between each pair of
         # family genes
         non_family = POST['intermediate']
@@ -377,7 +384,7 @@ def v1_micro_synteny_search(request):
             if non_family < 0:
                 raise ValueError("intermediate can't be negative")
         except:
-            return HttpResponseBadRequest
+            return HttpResponseBadRequest()
         # the number of non query family genes tolerated between each pair of
         # get the gene family type
         gene_family_type = list(
@@ -555,7 +562,7 @@ def v1_micro_synteny_search(request):
             json.dumps(view_json),
             content_type='application/json; charset=utf8'
         )
-    return HttpResponseBadRequest
+    return HttpResponseBadRequest()
 
 
 # returns all the GENES for the given chromosome that have the same family as
@@ -620,7 +627,7 @@ def v1_global_plot(request):
             json.dumps(gene_json),
             content_type='application/json; charset=utf8'
         )
-    return HttpResponseBadRequest
+    return HttpResponseBadRequest()
 
 
 # returns chromosome scale synteny blocks for the chromosome of the given gene
@@ -696,7 +703,7 @@ def v1_macro_synteny(request):
             json.dumps(synteny_json),
             content_type='application/json; charset=utf8'
         )
-    return HttpResponseBadRequest
+    return HttpResponseBadRequest()
 
 
 # returns the gene on the given chromosome that is closest to the given position
@@ -714,7 +721,7 @@ def v1_nearest_gene(request):
             if pos < 0:
                 raise ValueError("matched can't be negative")
         except:
-            return HttpResponseBadRequest
+            return HttpResponseBadRequest()
         # get the gene type
         sequence_cv = Cv.objects.only('pk').filter(name='sequence')
         gene_type = list(
@@ -755,7 +762,7 @@ def v1_nearest_gene(request):
             json.dumps(data),
             content_type='application/json; charset=utf8'
         )
-    return HttpResponseBadRequest
+    return HttpResponseBadRequest()
 
 ###############
 # depreciated #
@@ -774,7 +781,7 @@ def micro_synteny_basic(request):
         del POST['numNeighbors']
         request._body = json.dumps(POST)
         return v1_micro_synteny_basic(request)
-    return HttpResponseBadRequest
+    return HttpResponseBadRequest()
 
 
 # resolves a focus gene name to a query track
@@ -790,7 +797,7 @@ def gene_to_query(request):
         del POST['numNeighbors']
         request._body = json.dumps(POST)
         return v1_gene_to_query_track(request)
-    return HttpResponseBadRequest
+    return HttpResponseBadRequest()
 
 
 # returns similar contexts to the families provided
@@ -808,7 +815,7 @@ def micro_synteny_search(request):
         del POST['numNonFamily']
         request._body = json.dumps(POST)
         return v1_micro_synteny_search(request)
-    return HttpResponseBadRequest
+    return HttpResponseBadRequest()
 
 
 # returns all the GENES for the given chromosome that have the same family as
@@ -825,7 +832,7 @@ def global_plots(request):
         del POST['chromosomeID']
         request._body = json.dumps(POST)
         return v1_global_plot(request)
-    return HttpResponseBadRequest
+    return HttpResponseBadRequest()
 
 
 ########
@@ -849,7 +856,9 @@ def v1_1_chromosome(request):
             'gene_id',
             'number',
             'chromosome_id'
-        ).filter(chromosome=chromosome).order_by('number').values_list('gene_id', flat=True))
+        ).filter(chromosome=chromosome)
+         .order_by('number')
+         .values_list('gene_id', flat=True))
 
         # get all the families on the query chromosome
         gene_families = list(GeneFamilyAssignment.objects.only(
@@ -868,81 +877,115 @@ def v1_1_chromosome(request):
             json.dumps(ordered_families),
             content_type='application/json; charset=utf8'
         )
-    return HttpResponseBadRequest
+    return HttpResponseBadRequest()
 
 
 # computes chromosome scale synteny blocks for the given chromosome (ordered
 # list of gene families)
+import time
 @csrf_exempt
 @ensure_nocache
 def v1_1_macro_synteny(request):
     # parse the POST data (Angular puts it in the request body)
+    print "get post"
     POST = json.loads(request.body)
     # make sure the request type is POST and that it contains a query (families)
-    if request.method == 'POST' and 'chromosome' in POST:
-        # get the query chromosome
-        chromosome = get_object_or_404(Feature, name=POST['chromosome'])
-        # get the syntenic region cvterm
-        synteny_type = list(Cvterm.objects.only('pk')\
-            .filter(name='syntenic_region'))
-        if len(synteny_type) == 0:
-            raise Http404
-        synteny_type = synteny_type[0]
-        # get all the related featurelocs
-        blocks = list(Featureloc.objects\
-            .only('feature', 'fmin', 'fmax', 'strand')\
-            .filter(srcfeature=chromosome, feature__type=synteny_type, rank=0))
-        # get the chromosome each region belongs to
-        region_ids = map(lambda b: b.feature_id, blocks)
-        regions = None
-        if 'results' in POST:
-            regions = list(Featureloc.objects\
-                .only('feature', 'srcfeature')\
-                .filter(feature__in=region_ids, srcfeature__in=POST['results'], rank=1))
-        else:
-            regions = list(Featureloc.objects\
-                .only('feature', 'srcfeature')\
-                .filter(feature__in=region_ids, rank=1))
-        region_to_chromosome = dict(
-            (r.feature_id, r.srcfeature_id) for r in regions
-        )
-        # actually get the chromosomes
-        chromosomes = list(Feature.objects.only('name', 'organism')\
-            .filter(pk__in=region_to_chromosome.values()))
-        chromosome_map = dict((c.pk, c) for c in chromosomes)
-        # get the chromosomes' organisms
-        organisms = Organism.objects.only('genus', 'species').filter(
-            pk__in=map(lambda c: c.organism_id, chromosomes)
-        )
-        organism_map = dict((o.pk, o) for o in organisms)
-        # group the blocks by feature
-        feature_locs = {}
-        for l in blocks:
-            if l.feature_id in region_to_chromosome:
-                orientation = '-' if l.strand == -1 else '+'
-                c = chromosome_map[region_to_chromosome[l.feature_id]]
-                name = c.name
-                o = organism_map[c.organism_id]
-                species = o.species
-                genus = o.genus
-                feature_locs.setdefault((name, species, genus), []).append(
-                    {'start':l.fmin, 'stop':l.fmax, 'orientation':orientation}
-                )
-        # generate the json
-        tracks = []
-        for (name, species, genus), blocks in feature_locs.iteritems():
-            tracks.append({
-                'chromosome': name,
-                'species': species,
-                'genus': genus,
-                'blocks': blocks
-            })
-        synteny_json = {'chromosome': chromosome.name,
-                        'length': chromosome.seqlen,
-                        'tracks': tracks}
-        # return the synteny data as encoded as json
-        return HttpResponse(
-            json.dumps(synteny_json),
-            content_type='application/json; charset=utf8'
-        )
-    return HttpResponseBadRequest
+    if request.method == 'POST' and 'query' in POST and 'families' in POST:
+        # parse the parameters
+        query = json.loads(POST['families'])
+        # TODO: should be passed by user
+        maxinsert = 10 + 1
+
+        # get all chromosomes in the database
+        chromosome_cvs = list(Cvterm.objects.filter(name='chromosome'))
+        t0 = time.time()
+        chromosome_ids = list(Feature.objects.only('feature_id').filter(
+          Q(type__in=chromosome_cvs) & ~Q(name=POST['query'])
+        ))
+        t1 = time.time()
+        total = t1-t0
+        print total
+        print str(len(chromosome_ids)) + " chromosomes ids"
+
+        # get the gene orders of each chromosomes
+        # TODO: parallelize - one thread for each chromosome
+        orders = list(GeneOrder.objects.filter(chromosome__in=chromosome_ids)
+          .order_by('chromosome_id', 'number'))
+        gene_ids = map(lambda g: g.gene_id, orders)
+
+        # get the gene families of the chromosomes
+        # TODO: parallelize - one thread for each chromosome's genes
+        families = list(GeneFamilyAssignment.objects
+          .filter(gene__in=gene_ids))
+        gene_family_map = dict((f.gene_id, f.family_label) for f in families)
+
+        # make an ordered list of gene families for each chromosome
+        chromosomes = defaultdict(list)
+        for o in orders:
+            f = gene_family_map.get(o.gene_id, '')
+            chromosomes[o.chromosome_id].append(f)
+
+        # make a dictionary that maps families to query gene numbers
+        family_num_map = defaultdict(list)
+        for i in range(len(query)):
+          f = query[i]
+          if f != '':
+            family_num_map[f].append(i)
+
+        # mine synteny from each chromosome
+        t0 = time.time()
+        count = 1
+        total = len(chromosomes)
+        print str(total) + " chromosomes"
+        for chromosome in chromosomes.itervalues():
+          print str(count) + " of " + str(total)
+          count += 1
+          # generate number pairs ORDERED BY QUERY GENE NUMBER THEN CHROMOSOME
+          # GENE NUMBER - this is a topological sorting
+          pairs = []
+          for i in range(len(chromosome)):
+            f = chromosome[i]
+            if f in family_num_map:
+              nums = family_num_map[f]
+              pairs.extend(map(lambda n: (n, i), nums))
+          print str(len(pairs)) + " pairs"
+
+          # "construct" a DAG and compute longest paths using a recurrence
+          # relation similar to that of DAGchainer
+          heap     = []  # orders paths by length
+          pointers = {}  # points to the previous node (pair) in a path
+          scores   = {}  # the length of the longest path ending at each node
+          # iterate nodes, which are in DAG order
+          for i in range(len(pairs)):
+            n1, n2 = p1 = pairs[i]
+            scores[p1] = -1
+            # iterate preceding nodes in DAG from closest to furtherest
+            for j in reversed(range(i)):
+              m1, m2 = p2 = pairs[j]
+              # the query and chromosome must agree on the ordering
+              # n1 <= m1 is always true
+              if n2 <= m2:
+                d1 = m1 - n1
+                d2 = m2 - n2
+                # are the nodes close enough to be in the same path?
+                if d1 <= maxinsert and d2 <= maxinsert:
+                  s = scores[p2] - 1
+                  if s < scores[p1]:
+                    scores[p1]   = s
+                    pointers[p1] = p2
+                # if this node is too far away then all remaining nodes are too
+                else:
+                  break
+            heapq.heappush(heap, (scores[p1], p1))
+
+        t1 = time.time()
+        total = t1-t0
+        print total
+
+        ## create and return JSON
+        #return HttpResponse(
+        #    json.dumps([]),
+        #    content_type='application/json; charset=utf8'
+        #)
+    print "bad request"
+    return HttpResponseBadRequest()

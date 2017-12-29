@@ -20,7 +20,7 @@
     },
     "macro": {
       "type": "POST",
-      "url": "http://localhost:8000/services/v1/macro-synteny/"
+      "url": "http://localhost:8000/services/v1_1/macro-synteny/"
     },
     "geneLinks": {
       "type": "GET",

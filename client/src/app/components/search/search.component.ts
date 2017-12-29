@@ -210,8 +210,18 @@ export class SearchComponent implements AfterViewInit, OnInit {
     let params = this.searchParams.queryGroup
     if (params !== undefined && tracks.groups.length > 0) {
       let query = tracks.groups[0];
-      this._macroTracksService.getChromosome(query.source, query.chromosome_name);
-      this._macroTracksService.search(tracks, params.getRawValue());
+      this._macroTracksService.getChromosome(
+        query.source,
+        query.chromosome_name,
+        chromosome => {
+          this._macroTracksService.federatedSearch(
+            query.chromosome_name,
+            chromosome,
+            params.getRawValue()
+          );
+        }
+      );
+      //this._macroTracksService.search(tracks, params.getRawValue());
     }
   }
 
