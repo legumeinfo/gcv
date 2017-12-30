@@ -11,7 +11,6 @@ from services.models import Cv, Cvterm, Feature, Featureloc, Featureprop, \
     FeatureRelationship, GeneFamilyAssignment, GeneOrder, Organism, Phylonode
 
 # Python
-import heapq
 import json
 import operator
 import time
@@ -940,43 +939,53 @@ def v1_1_macro_synteny(request):
         for chromosome in chromosomes.itervalues():
           print str(count) + " of " + str(total)
           count += 1
-          # generate number pairs ORDERED BY QUERY GENE NUMBER THEN CHROMOSOME
+          # generate number pairs ORDERED BY CHROMOSOME GENE NUMBER THEN QUERY
           # GENE NUMBER - this is a topological sorting
           pairs = []
           for i in range(len(chromosome)):
             f = chromosome[i]
             if f in family_num_map:
               nums = family_num_map[f]
-              pairs.extend(map(lambda n: (n, i), nums))
+              pairs.extend(map(lambda n: (i, n), nums))
           print str(len(pairs)) + " pairs"
 
           # "construct" a DAG and compute longest paths using a recurrence
           # relation similar to that of DAGchainer
-          heap     = []  # orders paths by length
-          pointers = {}  # points to the previous node (pair) in a path
-          scores   = {}  # the length of the longest path ending at each node
+          path_ends = []  # orders path end nodes longest to shortest
+          pointers  = {}  # points to the previous node (pair) in a path
+          scores    = {}  # the length of the longest path ending at each node
           # iterate nodes, which are in DAG order
           for i in range(len(pairs)):
             n1, n2 = p1 = pairs[i]
-            scores[p1] = -1
+            scores[p1] = 1
             # iterate preceding nodes in DAG from closest to furtherest
             for j in reversed(range(i)):
               m1, m2 = p2 = pairs[j]
               # the query and chromosome must agree on the ordering
               # n1 <= m1 is always true
+              d1 = m1 - n1
               if n2 <= m2:
-                d1 = m1 - n1
                 d2 = m2 - n2
                 # are the nodes close enough to be in the same path?
                 if d1 <= maxinsert and d2 <= maxinsert:
-                  s = scores[p2] - 1
-                  if s < scores[p1]:
+                  s = scores[p2] + 1
+                  if s > scores[p1]:
                     scores[p1]   = s
                     pointers[p1] = p2
-                # if this node is too far away then all remaining nodes are too
-                else:
-                  break
-            heapq.heappush(heap, (scores[p1], p1))
+              # if this node is too far away then all remaining nodes are too
+              if d1 > maxinsert:
+                break
+            path_ends.append((scores[p1], p1))
+          # traceback longest paths and get endpoints
+          paths = []
+          path_ends.sort(reverse=True)
+          for _, end in path_ends:
+            if end in pointers:  # note: singletons aren't in pointers
+              begin = end
+              while begin in pointers:
+                begin = pointers.pop(begin)
+              paths.append((begin, end))
+          print str(len(paths)) + " blocks"
 
         t1 = time.time()
         total = t1-t0
