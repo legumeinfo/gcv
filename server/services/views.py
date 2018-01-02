@@ -859,6 +859,16 @@ def v1_1_chromosome(request):
          .order_by('number')
          .values_list('gene_id', flat=True))
 
+        # get the genomic locations of the genes
+        flocs = list(Featureloc.objects.only(
+            'feature_id',
+            'fmin',
+            'fmax',
+            'strand'
+        ).filter(feature__in=genes))
+        gene_loc_map = dict((f.feature_id, {'fmin': f.fmin, 'fmax': f.fmax})
+            for f in flocs)
+
         # get all the families on the query chromosome
         gene_families = list(GeneFamilyAssignment.objects.only(
             'gene_id',
@@ -867,13 +877,20 @@ def v1_1_chromosome(request):
         gene_family_map = dict((o.gene_id, o.family_label) for o in gene_families)
 
         # create an ordered list of gene families
+        ordered_locs     = []
         ordered_families = []
         for g_id in genes:
+            ordered_locs.append(gene_loc_map[g_id])
             ordered_families.append(gene_family_map.get(g_id, ''))
 
         # return the chromosome as encoded as json
+        output_json = {
+            'locations': ordered_locs,
+            'families':  ordered_families,
+            'length':    chromosome.seqlen
+        }
         return HttpResponse(
-            json.dumps(ordered_families),
+            json.dumps(output_json),
             content_type='application/json; charset=utf8'
         )
     return HttpResponseBadRequest()
@@ -891,19 +908,15 @@ def v1_1_macro_synteny(request):
     # make sure the request type is POST and that it contains a query (families)
     if request.method == 'POST' and 'query' in POST and 'families' in POST:
         # parse the parameters
-        query = json.loads(POST['families'])
+        query = POST['families']
         # TODO: should be passed by user
-        maxinsert = 10 + 1
+        maxinsert = 25 + 1
 
         # get all chromosomes in the database
         chromosome_cvs = list(Cvterm.objects.filter(name='chromosome'))
-        t0 = time.time()
         chromosome_ids = list(Feature.objects.only('feature_id').filter(
           Q(type__in=chromosome_cvs) & ~Q(name=POST['query'])
         ))
-        t1 = time.time()
-        total = t1-t0
-        print total
         print str(len(chromosome_ids)) + " chromosomes ids"
 
         # get the gene orders of each chromosomes
@@ -919,10 +932,12 @@ def v1_1_macro_synteny(request):
         gene_family_map = dict((f.gene_id, f.family_label) for f in families)
 
         # make an ordered list of gene families for each chromosome
-        chromosomes = defaultdict(list)
+        chromosomes_as_genes    = defaultdict(list)
+        chromosomes_as_families = defaultdict(list)
         for o in orders:
+            chromosomes_as_genes[o.chromosome_id].append(o.gene_id)
             f = gene_family_map.get(o.gene_id, '')
-            chromosomes[o.chromosome_id].append(f)
+            chromosomes_as_families[o.chromosome_id].append(f)
 
         # make a dictionary that maps families to query gene numbers
         family_num_map = defaultdict(list)
@@ -934,9 +949,11 @@ def v1_1_macro_synteny(request):
         # mine synteny from each chromosome
         t0 = time.time()
         count = 1
-        total = len(chromosomes)
+        total = len(chromosomes_as_families)
         print str(total) + " chromosomes"
-        for chromosome in chromosomes.itervalues():
+        paths     = defaultdict(list)
+        end_genes = []
+        for c_id, chromosome in chromosomes_as_families.iteritems():
           print str(count) + " of " + str(total)
           count += 1
           # generate number pairs ORDERED BY CHROMOSOME GENE NUMBER THEN QUERY
@@ -977,24 +994,62 @@ def v1_1_macro_synteny(request):
                 break
             path_ends.append((scores[p1], p1))
           # traceback longest paths and get endpoints
-          paths = []
           path_ends.sort(reverse=True)
           for _, end in path_ends:
             if end in pointers:  # note: singletons aren't in pointers
               begin = end
               while begin in pointers:
                 begin = pointers.pop(begin)
-              paths.append((begin, end))
-          print str(len(paths)) + " blocks"
+              paths[c_id].append((begin, end))
+              end_genes.append(chromosomes_as_genes[c_id][begin[0]])
+              end_genes.append(chromosomes_as_genes[c_id][end[0]])
+          print str(len(paths[c_id])) + " blocks"
 
         t1 = time.time()
         total = t1-t0
         print total
 
-        ## create and return JSON
-        #return HttpResponse(
-        #    json.dumps([]),
-        #    content_type='application/json; charset=utf8'
-        #)
+        # get the genomic locations of the genes that each path begin/ends at
+        # TODO: parallelize - one thread for each chromosome
+        flocs = list(Featureloc.objects.only(
+            'feature_id',
+            'fmin',
+            'fmax',
+            'strand'
+        ).filter(feature__in=end_genes))
+        gene_loc_map = dict((f.feature_id, {'fmin': f.fmin, 'fmax': f.fmax})
+            for f in flocs)
+
+        # generate the JSON
+        # TODO: parallelize - one thread for each chromosome
+        tracks = []
+        for c_id, c_paths in paths.iteritems():
+            blocks = []
+            for begin, end in c_paths:
+                begin_gene = chromosomes_as_genes[c_id][begin[0]]
+                end_gene   = chromosomes_as_genes[c_id][end[0]]
+                begin_loc  = gene_loc_map[begin_gene]
+                end_loc    = gene_loc_map[end_gene]
+                start      = min(begin_loc['fmin'], begin_loc['fmax'])
+                stop       = max(end_loc['fmin'], end_loc['fmax'])
+                blocks.append({
+                    'query_start': begin[1],
+                    'query_stop':   end[1],
+                    'start':       start,
+                    'stop':        stop,
+                    'orientation': '+'
+                })
+            tracks.append({
+                'chromosome': str(c_id),
+                'species':    'species',
+                'genus':      'genus',
+                'blocks':     blocks
+            })
+
+        # create and return JSON
+        return HttpResponse(
+            json.dumps(tracks),
+            content_type='application/json; charset=utf8'
+        )
     print "bad request"
     return HttpResponseBadRequest()
