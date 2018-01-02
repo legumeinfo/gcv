@@ -52,7 +52,7 @@ export class MacroTracksService {
           response = this._http.get(s.chromosome.url, args)
         else
           response = this._http.post(s.chromosome.url, args)
-        response.map(res => res.text()).subscribe(query => {
+        response.map(res => res.json()).subscribe(query => {
           success(query);
         }, failure);
       } else {
@@ -63,7 +63,7 @@ export class MacroTracksService {
     }
   }
 
-  federatedSearch(chromosome: string, families: string, params: QueryParams,
+  federatedSearch(name: string, chromosome: any, params: QueryParams,
   failure = e => {}): void {
     let sources = params.sources.reduce((l, s) => {
       let i = this._serverIDs.indexOf(s);
@@ -71,12 +71,12 @@ export class MacroTracksService {
       else failure('invalid source: ' + s);
       return l;
     }, []);
-    if (!this._checkSetCache(chromosome, sources)) {
+    if (!this._checkSetCache(name, sources)) {
       this._store.dispatch({type: StoreActions.ADD_MACRO_TRACKS,
         payload: undefined});
       let args = {
-        query: chromosome,
-        families: families
+        query: name,
+        families: chromosome.families
       } as RequestOptionsArgs;
 		  // send requests to the selected servers
       let requests: Observable<Response>[] = [];
@@ -99,25 +99,30 @@ export class MacroTracksService {
       // aggregate the results
       Observable.forkJoin(requests).subscribe(results => {
         let failed = [];
-        let macro = undefined;
+        //let macro = undefined;
+        let macro = {
+          chromosome: name,
+          length:     chromosome.length,
+          tracks:     []
+        };
         for (let i = 0; i < results.length; ++i) {
-          let result = <any>results[i];
+          let tracks = <any>results[i];
           let source = sources[i];
-          if (result == null) {
+          if (tracks == null) {
             failed.push(source.id);
           } else {
-            // aggregate the tracks
-            if (macro === undefined) {
-              macro = result;
-            } else {
-              macro.tracks.push.apply(macro.tracks, result.tracks);
-              if (macro.length === null) {
-                macro.length = result.length;
-                //safest to assume that the service that knows the length
-                //should also have the say on the chromosome_id
-                macro.chromosome_id = result.chromosome_id;
-              }
+            for (let i = 0; i < tracks.length; ++i) {
+              tracks[i].blocks = tracks[i].blocks.map(b => {
+                let start = chromosome.locations[b.query_start],
+                    stop  = chromosome.locations[b.query_stop];
+                return {
+                  start:       Math.min(start.fmin, start.fmax),
+                  stop:        Math.max(stop.fmin, stop.fmax),
+                  orientation: b.orientation
+                };
+              });
             }
+            macro.tracks.push.apply(macro.tracks, tracks);
           }
         }
         if (failed.length > 0)
