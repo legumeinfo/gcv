@@ -903,25 +903,28 @@ import time
 @ensure_nocache
 def v1_1_macro_synteny(request):
     # parse the POST data (Angular puts it in the request body)
-    print "get post"
     POST = json.loads(request.body)
     # make sure the request type is POST and that it contains a query (families)
     if request.method == 'POST' and 'query' in POST and 'families' in POST:
+        t0 = time.time()
         # parse the parameters
         query = POST['families']
         # TODO: should be passed by user
         maxinsert = 25 + 1
+        minsize   = 100
 
         # get all chromosomes in the database
         chromosome_cvs = list(Cvterm.objects.filter(name='chromosome'))
-        chromosome_ids = list(Feature.objects.only('feature_id').filter(
-          Q(type__in=chromosome_cvs) & ~Q(name=POST['query'])
-        ))
-        print str(len(chromosome_ids)) + " chromosomes ids"
+        chromosomes = list(Feature.objects
+            .only('feature_id', 'name', 'organism_id')
+            .filter(Q(type__in=chromosome_cvs) & ~Q(name=POST['query'])))
+        chromosome_map = dict((c.feature_id, c) for c in chromosomes)
+        print str(len(chromosomes)) + " chromosomes ids"
 
         # get the gene orders of each chromosomes
         # TODO: parallelize - one thread for each chromosome
-        orders = list(GeneOrder.objects.filter(chromosome__in=chromosome_ids)
+        orders = list(GeneOrder.objects
+          .filter(chromosome__in=chromosome_map.keys())
           .order_by('chromosome_id', 'number'))
         gene_ids = map(lambda g: g.gene_id, orders)
 
@@ -947,7 +950,6 @@ def v1_1_macro_synteny(request):
             family_num_map[f].append(i)
 
         # mine synteny from each chromosome
-        t0 = time.time()
         count = 1
         total = len(chromosomes_as_families)
         print str(total) + " chromosomes"
@@ -964,7 +966,6 @@ def v1_1_macro_synteny(request):
             if f in family_num_map:
               nums = family_num_map[f]
               pairs.extend(map(lambda n: (i, n), nums))
-          print str(len(pairs)) + " pairs"
 
           # "construct" a DAG and compute longest paths using a recurrence
           # relation similar to that of DAGchainer
@@ -980,9 +981,9 @@ def v1_1_macro_synteny(request):
               m1, m2 = p2 = pairs[j]
               # the query and chromosome must agree on the ordering
               # n1 <= m1 is always true
-              d1 = m1 - n1
-              if n2 <= m2:
-                d2 = m2 - n2
+              d1 = n1 - m1
+              if m2 <= n2:
+                d2 = n2 - m2
                 # are the nodes close enough to be in the same path?
                 if d1 <= maxinsert and d2 <= maxinsert:
                   s = scores[p2] + 1
@@ -997,17 +998,16 @@ def v1_1_macro_synteny(request):
           path_ends.sort(reverse=True)
           for _, end in path_ends:
             if end in pointers:  # note: singletons aren't in pointers
+              if scores[end] < minsize:
+                break
               begin = end
               while begin in pointers:
                 begin = pointers.pop(begin)
-              paths[c_id].append((begin, end))
-              end_genes.append(chromosomes_as_genes[c_id][begin[0]])
-              end_genes.append(chromosomes_as_genes[c_id][end[0]])
-          print str(len(paths[c_id])) + " blocks"
-
-        t1 = time.time()
-        total = t1-t0
-        print total
+              length = scores[end] - scores[begin]
+              if length >= minsize:
+                paths[c_id].append((begin, end))
+                end_genes.append(chromosomes_as_genes[c_id][begin[0]])
+                end_genes.append(chromosomes_as_genes[c_id][end[0]])
 
         # get the genomic locations of the genes that each path begin/ends at
         # TODO: parallelize - one thread for each chromosome
@@ -1019,6 +1019,12 @@ def v1_1_macro_synteny(request):
         ).filter(feature__in=end_genes))
         gene_loc_map = dict((f.feature_id, {'fmin': f.fmin, 'fmax': f.fmax})
             for f in flocs)
+
+        # get the organism of each chromosome that has blocks
+        organism_ids = map(lambda c: chromosome_map[c].organism_id, paths.keys())
+        organisms = list(Organism.objects.only('genus', 'species')
+            .filter(pk__in=organism_ids))
+        organism_map = dict((o.pk, o) for o in organisms)
 
         # generate the JSON
         # TODO: parallelize - one thread for each chromosome
@@ -1034,22 +1040,27 @@ def v1_1_macro_synteny(request):
                 stop       = max(end_loc['fmin'], end_loc['fmax'])
                 blocks.append({
                     'query_start': begin[1],
-                    'query_stop':   end[1],
+                    'query_stop':  end[1],
                     'start':       start,
                     'stop':        stop,
                     'orientation': '+'
                 })
+            c = chromosome_map[c_id]
+            organism = organism_map[c.organism_id]
             tracks.append({
-                'chromosome': str(c_id),
-                'species':    'species',
-                'genus':      'genus',
+                'chromosome': c.name,
+                'species':    organism.species,
+                'genus':      organism.genus,
                 'blocks':     blocks
             })
+
+        t1 = time.time()
+        total = t1-t0
+        print total
 
         # create and return JSON
         return HttpResponse(
             json.dumps(tracks),
             content_type='application/json; charset=utf8'
         )
-    print "bad request"
     return HttpResponseBadRequest()
