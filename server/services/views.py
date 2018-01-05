@@ -943,11 +943,23 @@ def v1_1_macro_synteny(request):
           .order_by('chromosome_id', 'number'))
         gene_ids = map(lambda g: g.gene_id, orders)
 
+        t1 = time.time()
+        total = t1-t0
+        print total
+        t0 = t1
+
         # get the gene families of the chromosomes
         # TODO: parallelize - one thread for each chromosome's genes
-        families = list(GeneFamilyAssignment.objects
-          .filter(gene__in=gene_ids))
+        families = list(GeneFamilyAssignment.objects.all())
+        #families = list(GeneFamilyAssignment.objects
+          #.filter(gene__in=gene_ids))
         gene_family_map = dict((f.gene_id, f.family_label) for f in families)
+
+        t1 = time.time()
+        total = t1-t0
+        print total
+        t0 = t1
+        print "this is the bad one " + str(total)
 
         # make an ordered list of gene families for each chromosome
         chromosomes_as_genes    = defaultdict(list)
@@ -1031,6 +1043,10 @@ def v1_1_macro_synteny(request):
             end_genes.append(chromosomes_as_genes[c_id][begin[0]])
             end_genes.append(chromosomes_as_genes[c_id][end[0]])
 
+          t1 = time.time()
+          total = t1-t0
+          print total
+          t0 = t1
         # get the genomic locations of the genes that each path begin/ends at
         # TODO: parallelize - one thread for each chromosome
         flocs = list(Featureloc.objects.only(
@@ -1042,6 +1058,10 @@ def v1_1_macro_synteny(request):
         gene_loc_map = dict((f.feature_id, {'fmin': f.fmin, 'fmax': f.fmax})
             for f in flocs)
 
+        t1 = time.time()
+        total = t1-t0
+        print total
+        t0 = t1
         # get the organism of each chromosome that has blocks
         organism_ids = map(lambda c: chromosome_map[c].organism_id, paths.keys())
         organisms = list(Organism.objects.only('genus', 'species')
