@@ -1,12 +1,14 @@
 # Django
+from django.db.backends.signals   import connection_created
 from django.db.models             import F, Func, Q
+from django.dispatch              import receiver
 from django.http                  import Http404, HttpResponse, \
     HttpResponseBadRequest
 from django.shortcuts             import get_object_or_404, render
 from django.utils.http            import http_date
 from django.views.decorators.csrf import csrf_exempt
 
-# application
+# services app
 from services.models import Cv, Cvterm, Feature, Featureloc, Featureprop, \
     FeatureRelationship, GeneFamilyAssignment, GeneOrder, Organism, Phylonode
 
@@ -17,10 +19,23 @@ import time
 from collections import defaultdict
 from itertools   import chain
 
-# additional packages
-#import dask.dataframe as dd
-#import networkx       as nx
-#import pandas         as pd
+
+# globals that store pre-loaded data
+GENE_FAMILY_MAP = None
+GENE_ORDERS     = None
+
+
+# listen for ready signal from the database
+@receiver(connection_created)
+def db_ready_handler(sender, **kwargs):
+    print 'Pre-loading macro-synteny data...'
+    global GENE_FAMILY_MAP, GENE_ORDERS
+    families        = GeneFamilyAssignment.objects.all().iterator()
+    GENE_FAMILY_MAP = dict((f.gene_id, f.family_label) for f in families)
+    GENE_ORDERS     = list(GeneOrder.objects.all()\
+                        .order_by('chromosome_id', 'number'))
+    # only want to run on the initial database connection
+    connection_created.disconnect(db_ready_handler)
 
 
 # decorator for invalidating the cache every hour
@@ -917,57 +932,45 @@ import time
 @csrf_exempt
 @ensure_nocache
 def v1_1_macro_synteny(request):
+    global GENE_FAMILY_MAP, GENE_ORDERS
     # parse the POST data (Angular puts it in the request body)
     POST = json.loads(request.body)
     # make sure the request type is POST and that it contains a query (families)
     if request.method == 'POST' and 'query' in POST and 'families' in POST:
-        t0 = time.time()
+        T0 = t0 = time.time()
         # parse the parameters
         query = POST['families']
         # TODO: should be passed by user
-        maxinsert = 25 + 1
-        minsize   = 10
+        maxinsert = 10 + 1
+        minsize   = 25 + 1
 
         # get all chromosomes in the database
         chromosome_cvs = list(Cvterm.objects.filter(name='chromosome'))
+
+        t1 = time.time()
+        total = t1-t0
+        print "chromosome CVs: " + str(total)
+        t0 = t1
+
         chromosomes = list(Feature.objects
             .only('feature_id', 'name', 'organism_id')
             .filter(Q(type__in=chromosome_cvs) & ~Q(name=POST['query'])))
         chromosome_map = dict((c.feature_id, c) for c in chromosomes)
         print str(len(chromosomes)) + " chromosomes ids"
 
-        # get the gene orders of each chromosomes
-        # TODO: parallelize - one thread for each chromosome
-        orders = list(GeneOrder.objects
-          .filter(chromosome__in=chromosome_map.keys())
-          .order_by('chromosome_id', 'number'))
-        gene_ids = map(lambda g: g.gene_id, orders)
-
         t1 = time.time()
         total = t1-t0
-        print total
+        print "chromosomes: " + str(total)
         t0 = t1
-
-        # get the gene families of the chromosomes
-        # TODO: parallelize - one thread for each chromosome's genes
-        families = list(GeneFamilyAssignment.objects.all())
-        #families = list(GeneFamilyAssignment.objects
-          #.filter(gene__in=gene_ids))
-        gene_family_map = dict((f.gene_id, f.family_label) for f in families)
-
-        t1 = time.time()
-        total = t1-t0
-        print total
-        t0 = t1
-        print "this is the bad one " + str(total)
 
         # make an ordered list of gene families for each chromosome
         chromosomes_as_genes    = defaultdict(list)
         chromosomes_as_families = defaultdict(list)
-        for o in orders:
-            chromosomes_as_genes[o.chromosome_id].append(o.gene_id)
-            f = gene_family_map.get(o.gene_id, '')
-            chromosomes_as_families[o.chromosome_id].append(f)
+        for o in GENE_ORDERS:
+            if o.chromosome_id in chromosome_map:
+                chromosomes_as_genes[o.chromosome_id].append(o.gene_id)
+                f = GENE_FAMILY_MAP.get(o.gene_id, '')
+                chromosomes_as_families[o.chromosome_id].append(f)
 
         # make a dictionary that maps families to query gene numbers
         family_num_map = defaultdict(list)
@@ -976,15 +979,18 @@ def v1_1_macro_synteny(request):
           if f != '':
             family_num_map[f].append(i)
 
+        t1 = time.time()
+        total = t1-t0
+        print "filtering: " + str(total)
+        T1 = t0 = t1
+
         # mine synteny from each chromosome
         count = 1
-        total = len(chromosomes_as_families)
-        print str(total) + " chromosomes"
+        num = len(chromosomes_as_families)
+        print str(num) + " chromosomes"
         paths     = defaultdict(list)
         end_genes = []
         for c_id, chromosome in chromosomes_as_families.iteritems():
-          print str(count) + " of " + str(total)
-          count += 1
           # generate number pairs ORDERED BY CHROMOSOME GENE NUMBER THEN QUERY
           # GENE NUMBER - this is a topological sorting
           pairs = []
@@ -1045,7 +1051,8 @@ def v1_1_macro_synteny(request):
 
           t1 = time.time()
           total = t1-t0
-          print total
+          print "\t" + str(count) + " of " + str(num) + ": " + str(total)
+          count += 1
           t0 = t1
         # get the genomic locations of the genes that each path begin/ends at
         # TODO: parallelize - one thread for each chromosome
@@ -1059,14 +1066,20 @@ def v1_1_macro_synteny(request):
             for f in flocs)
 
         t1 = time.time()
-        total = t1-t0
-        print total
+        total = t1-T1
+        print "algorithm: " + str(total)
         t0 = t1
+
         # get the organism of each chromosome that has blocks
         organism_ids = map(lambda c: chromosome_map[c].organism_id, paths.keys())
         organisms = list(Organism.objects.only('genus', 'species')
             .filter(pk__in=organism_ids))
         organism_map = dict((o.pk, o) for o in organisms)
+
+        t1 = time.time()
+        total = t1-t0
+        print "organsisms: " + str(total)
+        t0 = t1
 
         # generate the JSON
         # TODO: parallelize - one thread for each chromosome
@@ -1100,7 +1113,10 @@ def v1_1_macro_synteny(request):
 
         t1 = time.time()
         total = t1-t0
-        print total
+        print "json: " + str(total)
+
+        total = t1-T0
+        print "total: " + str(total)
 
         # create and return JSON
         return HttpResponse(
