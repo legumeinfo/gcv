@@ -16,8 +16,9 @@ from services.models import Cv, Cvterm, Feature, Featureloc, Featureprop, \
 import json
 import operator
 import time
-from collections import defaultdict
-from itertools   import chain
+from collections     import defaultdict
+from itertools       import chain
+from multiprocessing import Pool as ThreadPool
 
 
 # globals that store pre-loaded data
@@ -926,6 +927,69 @@ def macro_synteny_traceback(path_ends, pointers, scores, minsize):
         yield (begin, end)
 
 
+def macro_synteny_paths(((c_id, chromosome), (family_num_map, maxinsert, minsize, chromosome_as_genes))):
+  # generate number pairs ORDERED BY CHROMOSOME GENE NUMBER THEN QUERY
+  # GENE NUMBER - this is a topological sorting
+  pairs = []
+  for i in range(len(chromosome)):
+    f = chromosome[i]
+    if f in family_num_map:
+      nums = family_num_map[f]
+      pairs.extend(map(lambda n: (i, n), nums))
+
+  # "construct" a DAG and compute longest paths using a recurrence
+  # relation similar to that of DAGchainer
+  f_path_ends = []  # orders path end nodes longest to shortest
+  f_pointers  = {}  # points to the previous node (pair) in a path
+  f_scores    = {}  # the length of the longest path ending at each node
+  r_path_ends = []
+  r_pointers  = {}
+  r_scores    = {}
+  # iterate nodes, which are in DAG order
+  for i in range(len(pairs)):
+    n1, n2 = p1 = pairs[i]
+    f_scores[p1] = r_scores[p1] = 1
+    # iterate preceding nodes in DAG from closest to furtherest
+    for j in reversed(range(i)):
+      m1, m2 = p2 = pairs[j]
+      # the query and chromosome must agree on the ordering
+      # n1 <= m1 is always true
+      d1 = n1 - m1
+      # forward blocks
+      if m2 <= n2:
+        d2 = n2 - m2
+        # are the nodes close enough to be in the same path?
+        if d1 <= maxinsert and d2 <= maxinsert:
+          s = f_scores[p2] + 1
+          if s > f_scores[p1]:
+            f_scores[p1]   = s
+            f_pointers[p1] = p2
+      # reverse blocks
+      if m2 >= n2:
+        d2 = m2 - n2
+        # are the nodes close enough to be in the same path?
+        if d1 <= maxinsert and d2 <= maxinsert:
+          s = r_scores[p2] + 1
+          if s > r_scores[p1]:
+            r_scores[p1]   = s
+            r_pointers[p1] = p2
+      # if this node is too far away then all remaining nodes are too
+      if d1 > maxinsert:
+        break
+    f_path_ends.append((f_scores[p1], p1))
+    r_path_ends.append((r_scores[p1], p1))
+  # traceback longest paths and get endpoints
+  f = macro_synteny_traceback(f_path_ends, f_pointers, f_scores, minsize)
+  r = macro_synteny_traceback(r_path_ends, r_pointers, r_scores, minsize)
+  paths     = []
+  end_genes = []
+  for begin, end in chain(f, r):
+    paths.append((begin, end))
+    end_genes.append(chromosome_as_genes[begin[0]])
+    end_genes.append(chromosome_as_genes[end[0]])
+  return (c_id, paths, end_genes)
+
+
 # computes chromosome scale synteny blocks for the given chromosome (ordered
 # list of gene families)
 import time
@@ -937,6 +1001,8 @@ def v1_1_macro_synteny(request):
     POST = json.loads(request.body)
     # make sure the request type is POST and that it contains a query (families)
     if request.method == 'POST' and 'query' in POST and 'families' in POST:
+        pool = ThreadPool(4)
+
         T0 = t0 = time.time()
         # parse the parameters
         query = POST['families']
@@ -988,72 +1054,15 @@ def v1_1_macro_synteny(request):
         count = 1
         num = len(chromosomes_as_families)
         print str(num) + " chromosomes"
-        paths     = defaultdict(list)
+        args = [(family_num_map, maxinsert, minsize, chromosomes_as_genes[c_id]) for c_id in chromosomes_as_families]
+        results = pool.map(macro_synteny_paths, zip(chromosomes_as_families.iteritems(), args))
+        paths     = {}
         end_genes = []
-        for c_id, chromosome in chromosomes_as_families.iteritems():
-          # generate number pairs ORDERED BY CHROMOSOME GENE NUMBER THEN QUERY
-          # GENE NUMBER - this is a topological sorting
-          pairs = []
-          for i in range(len(chromosome)):
-            f = chromosome[i]
-            if f in family_num_map:
-              nums = family_num_map[f]
-              pairs.extend(map(lambda n: (i, n), nums))
+        for c_id, c_paths, c_end_genes in results:
+            if c_paths:
+                paths[c_id] = c_paths
+                end_genes.extend(c_end_genes)
 
-          # "construct" a DAG and compute longest paths using a recurrence
-          # relation similar to that of DAGchainer
-          f_path_ends = []  # orders path end nodes longest to shortest
-          f_pointers  = {}  # points to the previous node (pair) in a path
-          f_scores    = {}  # the length of the longest path ending at each node
-          r_path_ends = []
-          r_pointers  = {}
-          r_scores    = {}
-          # iterate nodes, which are in DAG order
-          for i in range(len(pairs)):
-            n1, n2 = p1 = pairs[i]
-            f_scores[p1] = r_scores[p1] = 1
-            # iterate preceding nodes in DAG from closest to furtherest
-            for j in reversed(range(i)):
-              m1, m2 = p2 = pairs[j]
-              # the query and chromosome must agree on the ordering
-              # n1 <= m1 is always true
-              d1 = n1 - m1
-              # forward blocks
-              if m2 <= n2:
-                d2 = n2 - m2
-                # are the nodes close enough to be in the same path?
-                if d1 <= maxinsert and d2 <= maxinsert:
-                  s = f_scores[p2] + 1
-                  if s > f_scores[p1]:
-                    f_scores[p1]   = s
-                    f_pointers[p1] = p2
-              # reverse blocks
-              if m2 >= n2:
-                d2 = m2 - n2
-                # are the nodes close enough to be in the same path?
-                if d1 <= maxinsert and d2 <= maxinsert:
-                  s = r_scores[p2] + 1
-                  if s > r_scores[p1]:
-                    r_scores[p1]   = s
-                    r_pointers[p1] = p2
-              # if this node is too far away then all remaining nodes are too
-              if d1 > maxinsert:
-                break
-            f_path_ends.append((f_scores[p1], p1))
-            r_path_ends.append((r_scores[p1], p1))
-          # traceback longest paths and get endpoints
-          f = macro_synteny_traceback(f_path_ends, f_pointers, f_scores, minsize)
-          r = macro_synteny_traceback(r_path_ends, r_pointers, r_scores, minsize)
-          for begin, end in chain(f, r):
-            paths[c_id].append((begin, end))
-            end_genes.append(chromosomes_as_genes[c_id][begin[0]])
-            end_genes.append(chromosomes_as_genes[c_id][end[0]])
-
-          t1 = time.time()
-          total = t1-t0
-          print "\t" + str(count) + " of " + str(num) + ": " + str(total)
-          count += 1
-          t0 = t1
         # get the genomic locations of the genes that each path begin/ends at
         # TODO: parallelize - one thread for each chromosome
         flocs = list(Featureloc.objects.only(
@@ -1117,6 +1126,8 @@ def v1_1_macro_synteny(request):
 
         total = t1-T0
         print "total: " + str(total)
+
+        pool.close()
 
         # create and return JSON
         return HttpResponse(
