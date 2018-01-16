@@ -946,6 +946,7 @@ def macro_synteny_paths(((c_id, chromosome), (family_num_map, maxinsert, minsize
   r_pointers  = {}
   r_scores    = {}
   # iterate nodes, which are in DAG order
+  t0 = time.time()
   for i in range(len(pairs)):
     n1, n2 = p1 = pairs[i]
     f_scores[p1] = r_scores[p1] = 1
@@ -978,6 +979,10 @@ def macro_synteny_paths(((c_id, chromosome), (family_num_map, maxinsert, minsize
         break
     f_path_ends.append((f_scores[p1], p1))
     r_path_ends.append((r_scores[p1], p1))
+  t1 = time.time()
+  total = t1-t0
+  print str(c_id) + " DAG:\t" + str(total)
+  t0 = t1
   # traceback longest paths and get endpoints
   f = macro_synteny_traceback(f_path_ends, f_pointers, f_scores, minsize)
   r = macro_synteny_traceback(r_path_ends, r_pointers, r_scores, minsize)
@@ -987,6 +992,9 @@ def macro_synteny_paths(((c_id, chromosome), (family_num_map, maxinsert, minsize
     paths.append((begin, end))
     end_genes.append(chromosome_as_genes[begin[0]])
     end_genes.append(chromosome_as_genes[end[0]])
+  t1 = time.time()
+  total = t1-t0
+  print str(c_id) + " traceback:\t" + str(total)
   return (c_id, paths, end_genes)
 
 
@@ -1128,6 +1136,203 @@ def v1_1_macro_synteny(request):
         print "total: " + str(total)
 
         pool.close()
+
+        # create and return JSON
+        return HttpResponse(
+            json.dumps(tracks),
+            content_type='application/json; charset=utf8'
+        )
+    return HttpResponseBadRequest()
+
+
+@csrf_exempt
+@ensure_nocache
+def v1_1_macro_synteny_geometric(request):
+    global GENE_FAMILY_MAP, GENE_ORDERS
+    # parse the POST data (Angular puts it in the request body)
+    POST = json.loads(request.body)
+    # make sure the request type is POST and that it contains a query (families)
+    if request.method == 'POST' and 'query' in POST and 'families' in POST:
+        T0 = t0 = time.time()
+        # parse the parameters
+        query = POST['families']
+        # TODO: should be passed by user
+        maxinsert = 10 + 1
+        minsize   = 25 + 1
+
+        # get all chromosomes in the database
+        chromosome_cvs = list(Cvterm.objects.filter(name='chromosome'))
+
+        t1 = time.time()
+        total = t1-t0
+        print "chromosome CVs: " + str(total)
+        t0 = t1
+
+        chromosomes = list(Feature.objects
+            .only('feature_id', 'name', 'organism_id')
+            .filter(Q(type__in=chromosome_cvs) & ~Q(name=POST['query'])))
+        chromosome_map = dict((c.feature_id, c) for c in chromosomes)
+        print str(len(chromosomes)) + " chromosomes ids"
+
+        t1 = time.time()
+        total = t1-t0
+        print "chromosomes: " + str(total)
+        t0 = t1
+
+        # make an ordered list of gene families for each chromosome
+        chromosomes_as_genes    = defaultdict(list)
+        chromosomes_as_families = defaultdict(list)
+        for o in GENE_ORDERS:
+            if o.chromosome_id in chromosome_map:
+                chromosomes_as_genes[o.chromosome_id].append(o.gene_id)
+                f = GENE_FAMILY_MAP.get(o.gene_id, '')
+                chromosomes_as_families[o.chromosome_id].append(f)
+
+        # make a dictionary that maps families to query gene numbers
+        family_num_map = defaultdict(list)
+        for i in range(len(query)):
+          f = query[i]
+          if f != '':
+            family_num_map[f].append(i)
+
+        t1 = time.time()
+        total = t1-t0
+        print "filtering: " + str(total)
+        T1 = t0 = t1
+
+        # mine synteny from each chromosome
+        count = 1
+        num = len(chromosomes_as_families)
+        print str(num) + " chromosomes"
+        paths     = defaultdict(list)
+        end_genes = []
+        for c_id, chromosome in chromosomes_as_families.iteritems():
+          # generate number pairs ORDERED BY CHROMOSOME GENE NUMBER THEN QUERY
+          # GENE NUMBER - this is a topological sorting
+          pairs = []
+          for i in range(len(chromosome)):
+            f = chromosome[i]
+            if f in family_num_map:
+              nums = family_num_map[f]
+              pairs.extend(map(lambda n: (i, n), nums))
+
+          # "construct" a DAG and compute longest paths using a recurrence
+          # relation similar to that of DAGchainer
+          f_path_ends = []  # orders path end nodes longest to shortest
+          f_pointers  = {}  # points to the previous node (pair) in a path
+          f_scores    = {}  # the length of the longest path ending at each node
+          r_path_ends = []
+          r_pointers  = {}
+          r_scores    = {}
+          # iterate nodes, which are in DAG order
+          for i in range(len(pairs)):
+            n1, n2 = p1 = pairs[i]
+            f_scores[p1] = r_scores[p1] = 1
+            # iterate preceding nodes in DAG from closest to furtherest
+            for j in reversed(range(i)):
+              m1, m2 = p2 = pairs[j]
+              # the query and chromosome must agree on the ordering
+              # n1 <= m1 is always true
+              d1 = n1 - m1
+              # forward blocks
+              if m2 <= n2:
+                d2 = n2 - m2
+                # are the nodes close enough to be in the same path?
+                if d1 <= maxinsert and d2 <= maxinsert:
+                  s = f_scores[p2] + 1
+                  if s > f_scores[p1]:
+                    f_scores[p1]   = s
+                    f_pointers[p1] = p2
+              # reverse blocks
+              if m2 >= n2:
+                d2 = m2 - n2
+                # are the nodes close enough to be in the same path?
+                if d1 <= maxinsert and d2 <= maxinsert:
+                  s = r_scores[p2] + 1
+                  if s > r_scores[p1]:
+                    r_scores[p1]   = s
+                    r_pointers[p1] = p2
+              # if this node is too far away then all remaining nodes are too
+              if d1 > maxinsert:
+                break
+            f_path_ends.append((f_scores[p1], p1))
+            r_path_ends.append((r_scores[p1], p1))
+          # traceback longest paths and get endpoints
+          f = macro_synteny_traceback(f_path_ends, f_pointers, f_scores, minsize)
+          r = macro_synteny_traceback(r_path_ends, r_pointers, r_scores, minsize)
+          for begin, end in chain(f, r):
+            paths[c_id].append((begin, end))
+            end_genes.append(chromosomes_as_genes[c_id][begin[0]])
+            end_genes.append(chromosomes_as_genes[c_id][end[0]])
+
+          t1 = time.time()
+          total = t1-t0
+          print "\t" + str(count) + " of " + str(num) + ": " + str(total)
+          count += 1
+          t0 = t1
+        # get the genomic locations of the genes that each path begin/ends at
+        # TODO: parallelize - one thread for each chromosome
+        flocs = list(Featureloc.objects.only(
+            'feature_id',
+            'fmin',
+            'fmax',
+            'strand'
+        ).filter(feature__in=end_genes))
+        gene_loc_map = dict((f.feature_id, {'fmin': f.fmin, 'fmax': f.fmax})
+            for f in flocs)
+
+        t1 = time.time()
+        total = t1-T1
+        print "algorithm: " + str(total)
+        t0 = t1
+
+        # get the organism of each chromosome that has blocks
+        organism_ids = map(lambda c: chromosome_map[c].organism_id, paths.keys())
+        organisms = list(Organism.objects.only('genus', 'species')
+            .filter(pk__in=organism_ids))
+        organism_map = dict((o.pk, o) for o in organisms)
+
+        t1 = time.time()
+        total = t1-t0
+        print "organsisms: " + str(total)
+        t0 = t1
+
+        # generate the JSON
+        # TODO: parallelize - one thread for each chromosome
+        tracks = []
+        for c_id, c_paths in paths.iteritems():
+            blocks = []
+            for begin, end in c_paths:
+                begin_gene = chromosomes_as_genes[c_id][begin[0]]
+                end_gene   = chromosomes_as_genes[c_id][end[0]]
+                begin_loc  = gene_loc_map[begin_gene]
+                end_loc    = gene_loc_map[end_gene]
+                start      = min(begin_loc['fmin'], begin_loc['fmax'])
+                stop       = max(end_loc['fmin'], end_loc['fmax'])
+                query_start, query_stop, orientation = (begin[1], end[1], '+') \
+                    if begin[1] < end[1] else (end[1], begin[1], '-')
+                blocks.append({
+                    'query_start': query_start,
+                    'query_stop':  query_stop,
+                    'start':       start,
+                    'stop':        stop,
+                    'orientation': orientation
+                })
+            c = chromosome_map[c_id]
+            organism = organism_map[c.organism_id]
+            tracks.append({
+                'chromosome': c.name,
+                'species':    organism.species,
+                'genus':      organism.genus,
+                'blocks':     blocks
+            })
+
+        t1 = time.time()
+        total = t1-t0
+        print "json: " + str(total)
+
+        total = t1-T0
+        print "total: " + str(total)
 
         # create and return JSON
         return HttpResponse(
