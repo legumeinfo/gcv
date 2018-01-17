@@ -927,13 +927,13 @@ def macro_synteny_traceback(path_ends, pointers, scores, minsize):
         yield (begin, end)
 
 
-def macro_synteny_paths(((c_id, chromosome), (family_num_map, maxinsert, minsize, chromosome_as_genes))):
+def macro_synteny_paths(((c_id, chromosome), (family_num_map, maxinsert, minsize, chromosome_as_genes, mask))):
   # generate number pairs ORDERED BY CHROMOSOME GENE NUMBER THEN QUERY
   # GENE NUMBER - this is a topological sorting
   pairs = []
   for i in range(len(chromosome)):
     f = chromosome[i]
-    if f in family_num_map:
+    if f in family_num_map and f not in mask:
       nums = family_num_map[f]
       pairs.extend(map(lambda n: (i, n), nums))
 
@@ -946,6 +946,7 @@ def macro_synteny_paths(((c_id, chromosome), (family_num_map, maxinsert, minsize
   r_pointers  = {}
   r_scores    = {}
   # iterate nodes, which are in DAG order
+  t0 = time.time()
   for i in range(len(pairs)):
     n1, n2 = p1 = pairs[i]
     f_scores[p1] = r_scores[p1] = 1
@@ -978,6 +979,10 @@ def macro_synteny_paths(((c_id, chromosome), (family_num_map, maxinsert, minsize
         break
     f_path_ends.append((f_scores[p1], p1))
     r_path_ends.append((r_scores[p1], p1))
+  t1 = time.time()
+  total = t1-t0
+  print str(c_id) + " DAG:\t" + str(total)
+  t0 = t1
   # traceback longest paths and get endpoints
   f = macro_synteny_traceback(f_path_ends, f_pointers, f_scores, minsize)
   r = macro_synteny_traceback(r_path_ends, r_pointers, r_scores, minsize)
@@ -987,6 +992,9 @@ def macro_synteny_paths(((c_id, chromosome), (family_num_map, maxinsert, minsize
     paths.append((begin, end))
     end_genes.append(chromosome_as_genes[begin[0]])
     end_genes.append(chromosome_as_genes[end[0]])
+  t1 = time.time()
+  total = t1-t0
+  print str(c_id) + " traceback:\t" + str(total)
   return (c_id, paths, end_genes)
 
 
@@ -1007,8 +1015,9 @@ def v1_1_macro_synteny(request):
         # parse the parameters
         query = POST['families']
         # TODO: should be passed by user
-        maxinsert = 10 + 1
-        minsize   = 25 + 1
+        maxinsert = 20 + 1
+        minsize   = 10 + 1
+        familymask = 10
 
         # get all chromosomes in the database
         chromosome_cvs = list(Cvterm.objects.filter(name='chromosome'))
@@ -1032,18 +1041,28 @@ def v1_1_macro_synteny(request):
         # make an ordered list of gene families for each chromosome
         chromosomes_as_genes    = defaultdict(list)
         chromosomes_as_families = defaultdict(list)
+        chromosome_family_counts = defaultdict(lambda: defaultdict(int))
+        chromosome_masks = defaultdict(set)
         for o in GENE_ORDERS:
             if o.chromosome_id in chromosome_map:
                 chromosomes_as_genes[o.chromosome_id].append(o.gene_id)
                 f = GENE_FAMILY_MAP.get(o.gene_id, '')
                 chromosomes_as_families[o.chromosome_id].append(f)
+                chromosome_family_counts[o.chromosome_id][f] += 1
+                if chromosome_family_counts[o.chromosome_id][f] > familymask:
+                    chromosome_masks[o.chromosome_id].add(f)
 
         # make a dictionary that maps families to query gene numbers
         family_num_map = defaultdict(list)
+        mask = set()
         for i in range(len(query)):
           f = query[i]
           if f != '':
             family_num_map[f].append(i)
+            if len(family_num_map[f]) > familymask:
+                mask.add(f)
+        for f in mask:
+          del family_num_map[f]
 
         t1 = time.time()
         total = t1-t0
@@ -1054,7 +1073,8 @@ def v1_1_macro_synteny(request):
         count = 1
         num = len(chromosomes_as_families)
         print str(num) + " chromosomes"
-        args = [(family_num_map, maxinsert, minsize, chromosomes_as_genes[c_id]) for c_id in chromosomes_as_families]
+        args = [(family_num_map, maxinsert, minsize, chromosomes_as_genes[c_id], chromosome_masks[c_id]) for c_id in chromosomes_as_families]
+        #args = [(family_num_map, maxinsert, minsize, chromosomes_as_genes[c_id], set()) for c_id in chromosomes_as_families]
         results = pool.map(macro_synteny_paths, zip(chromosomes_as_families.iteritems(), args))
         paths     = {}
         end_genes = []
