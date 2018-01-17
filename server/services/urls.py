@@ -42,5 +42,6 @@ urlpatterns = patterns('services.views',
     # chromosome
     url(r'^v1_1/chromosome/$', 'v1_1_chromosome'),
     # macro-synteny
-    url(r'^v1_1/macro-synteny/$', 'v1_1_macro_synteny'),
+    #url(r'^v1_1/macro-synteny/$', 'v1_1_macro_synteny'),
+    url(r'^v1_1/macro-synteny/$', 'v1_1_macro_synteny_geometric'),
 )
