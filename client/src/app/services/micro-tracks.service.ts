@@ -1,4 +1,5 @@
 // Angular
+import { BehaviorSubject }                    from 'rxjs/BehaviorSubject';
 import { Http, RequestOptionsArgs, Response } from '@angular/http';
 import { Injectable }                         from '@angular/core';
 import { Location }                           from '@angular/common';
@@ -18,6 +19,9 @@ import { StoreActions }      from '../constants/store-actions';
 
 @Injectable()
 export class MicroTracksService {
+  private _query = new BehaviorSubject({});
+  query = this._query.asObservable();
+
   tracks: Observable<MicroTracks>;
 
   private _serverIDs   = AppConfig.SERVERS.map(s => s.id);
@@ -230,6 +234,7 @@ export class MicroTracksService {
           response = this._http.post(s.microQuery.url, args)
         response.map(res => JSON.parse(res.json())).subscribe(query => {
           this._prepareTrack(source, query);
+          this._query.next(query);
           this.trackSearch(query, params, failure);
         }, e => {
           this._location.back();
@@ -311,5 +316,5 @@ export class MicroTracksService {
     } else {
       this._store.dispatch({type: StoreActions.CLONE_MICRO});
     }
-	}
+  }
 }
