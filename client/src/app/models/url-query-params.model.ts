@@ -1,4 +1,8 @@
 export class UrlQueryParams {
+  // block params
+  bmatched: number;
+  bintermediate: number;
+  bmask: number;
   // query params
   neighbors: number;
   sources: string[];

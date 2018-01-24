@@ -20,5 +20,5 @@ export class AlignmentService {
     if (params !== undefined)
       this._store.dispatch({type: StoreActions.ADD_ALIGNMENT_PARAMS,
         payload: params});
-	}
+  }
 }

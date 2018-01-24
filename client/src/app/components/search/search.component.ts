@@ -199,15 +199,17 @@ export class SearchComponent implements AfterViewInit, OnInit {
   }
 
   private _onParams(params): void {
-    this.invalidate();
+    this.invalidateAll();
     this.hideLocalGlobalPlots();
     this.routeSource = params['source'];
     this.routeGene = params['gene'];
   }
 
-  private _onSearchQuery(query): void {
+  private _onSearchQuery([query, blockParams]): void {
     let params = this.searchParams.queryGroup
     if (params !== undefined) {
+      //this.invalidateMicro();
+      this.invalidateMacro();
       this._macroTracksService.getChromosome(
         query.source,
         query.chromosome_name,
@@ -215,7 +217,8 @@ export class SearchComponent implements AfterViewInit, OnInit {
           this._macroTracksService.federatedSearch(
             query.chromosome_name,
             chromosome,
-            params.getRawValue()
+            params.getRawValue(),
+            blockParams
           );
         }
       );
@@ -386,7 +389,10 @@ export class SearchComponent implements AfterViewInit, OnInit {
     // don't subscribe to data until view loaded so drawing doesn't fail
 
     // subscribe to query changes
-    this._microTracksService.query.subscribe(this._onSearchQuery.bind(this));
+    Observable.combineLatest(
+      this._microTracksService.query,
+      this._macroTracksService.params
+    ).subscribe(this._onSearchQuery.bind(this));
 
     // subscribe to micro-tracks changes
     this._microTracksService.tracks.subscribe(this._onRawMicroTracks.bind(this));
@@ -506,10 +512,22 @@ export class SearchComponent implements AfterViewInit, OnInit {
 
   // public
 
-  invalidate(): void {
-    this.microTracks = this.microLegend = undefined;
+  invalidateMacro(): void {
     this.macroTracks = this.macroLegend = undefined;
+  }
+
+  invalidateMicro(): void {
+    this.microTracks = this.microLegend = undefined;
+  }
+
+  invalidatePlots(): void {
     this.microPlots = undefined;
+  }
+
+  invalidateAll(): void {
+    this.invalidateMacro();
+    this.invalidateMicro();
+    this.invalidatePlots();
   }
 
   // micro-synteny

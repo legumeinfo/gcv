@@ -1,4 +1,5 @@
 // Angular
+import { BehaviorSubject }                    from 'rxjs/BehaviorSubject';
 import { Http, RequestOptionsArgs, Response } from '@angular/http';
 import { Injectable }                         from '@angular/core';
 import { Observable }                         from 'rxjs/Observable';
@@ -6,6 +7,7 @@ import { Store }                              from '@ngrx/store';
 
 // App
 import { AppConfig }         from '../app.config';
+import { BlockParams }       from '../models/block-params.model';
 import { StoreActions }      from '../constants/store-actions';
 import { AppStore }          from '../models/app-store.model';
 import { GET, POST, Server } from '../models/server.model';
@@ -15,6 +17,9 @@ import { QueryParams }       from '../models/query-params.model';
 
 @Injectable()
 export class MacroTracksService {
+  private _params = new BehaviorSubject({});
+  params = this._params.asObservable();
+
   tracks: Observable<MacroTracks>;
 
   private _serverIDs   = AppConfig.SERVERS.map(s => s.id);
@@ -63,20 +68,23 @@ export class MacroTracksService {
     }
   }
 
-  federatedSearch(name: string, chromosome: any, params: QueryParams,
-  failure = e => {}): void {
-    let sources = params.sources.reduce((l, s) => {
+  federatedSearch(name: string, chromosome: any, queryParams: QueryParams,
+  blockParams: BlockParams, failure = e => {}): void {
+    let sources = queryParams.sources.reduce((l, s) => {
       let i = this._serverIDs.indexOf(s);
       if (i != -1) l.push(AppConfig.SERVERS[i]);
       else failure('invalid source: ' + s);
       return l;
     }, []);
-    if (!this._checkSetCache(name, sources)) {
+    //if (!this._checkSetCache(name, sources)) {
       this._store.dispatch({type: StoreActions.ADD_MACRO_TRACKS,
         payload: undefined});
       let args = {
         query: name,
-        families: chromosome.families
+        families: chromosome.families,
+        matched: blockParams.bmatched,
+        intermediate: blockParams.bintermediate,
+        mask: blockParams.bmask
       } as RequestOptionsArgs;
 		  // send requests to the selected servers
       let requests: Observable<Response>[] = [];
@@ -130,7 +138,7 @@ export class MacroTracksService {
         this._store.dispatch({type: StoreActions.ADD_MACRO_TRACKS,
           payload: macro});
       });
-    }
+    //}
   }
 
   search(tracks: MicroTracks, params: QueryParams, failure = e => {}): void {
@@ -232,5 +240,10 @@ export class MacroTracksService {
       failure('invalid source: ' + source);
     }
 
+  }
+
+  updateParams(params: BlockParams): void {
+    if (params !== undefined)
+      this._params.next(params);
   }
 }
