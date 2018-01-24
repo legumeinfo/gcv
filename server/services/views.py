@@ -1026,16 +1026,17 @@ def v1_1_macro_synteny(request):
     # parse the POST data (Angular puts it in the request body)
     POST = json.loads(request.body)
     # make sure the request type is POST and that it contains a query (families)
-    if request.method == 'POST' and 'query' in POST and 'families' in POST:
+    if request.method == 'POST' and 'query' in POST and 'families' in POST and\
+    'matched' in POST and 'intermediate' in POST and 'mask' in POST:
         pool = ThreadPool(4)
 
         T0 = t0 = time.time()
         # parse the parameters
         query = POST['families']
         # TODO: should be passed by user
-        maxinsert = 20 + 1
-        minsize   = 10 + 1
-        familymask = 10
+        maxinsert = POST['matched'] + 1
+        minsize   = POST['intermediate'] + 1
+        familymask = POST['mask']
 
         # make a dictionary that maps families to query gene numbers
         family_num_map = defaultdict(list)
@@ -1057,8 +1058,10 @@ def v1_1_macro_synteny(request):
         # mine synteny from each chromosome
         args = []
         for c_id in CHROMOSOMES_AS_FAMILIES:
-          genes = CHROMOSOMES_AS_GENES[c_id] if c_id != POST['query'] else []
-          counts = CHROMOSOME_FAMILY_COUNTS[c_id] if c_id != POST['query'] else []
+          #genes = CHROMOSOMES_AS_GENES[c_id] if c_id != POST['query'] else []
+          #counts = CHROMOSOME_FAMILY_COUNTS[c_id] if c_id != POST['query'] else []
+          genes = CHROMOSOMES_AS_GENES[c_id]
+          counts = CHROMOSOME_FAMILY_COUNTS[c_id]
           c_args = (family_num_map, maxinsert, minsize, familymask, genes, counts)
           args.append(c_args)
         data = zip(CHROMOSOMES_AS_FAMILIES.iteritems(), args)
