@@ -205,11 +205,9 @@ export class SearchComponent implements AfterViewInit, OnInit {
     this.routeGene = params['gene'];
   }
 
-  private _onRawMicroTracks(tracks): void {
-    this._numReturned = tracks.groups.length - 1;  // exclude query
+  private _onSearchQuery(query): void {
     let params = this.searchParams.queryGroup
-    if (params !== undefined && tracks.groups.length > 0) {
-      let query = tracks.groups[0];
+    if (params !== undefined) {
       this._macroTracksService.getChromosome(
         query.source,
         query.chromosome_name,
@@ -221,8 +219,11 @@ export class SearchComponent implements AfterViewInit, OnInit {
           );
         }
       );
-      //this._macroTracksService.search(tracks, params.getRawValue());
     }
+  }
+
+  private _onRawMicroTracks(tracks): void {
+    this._numReturned = tracks.groups.length - 1;  // exclude query
   }
 
 
@@ -383,6 +384,9 @@ export class SearchComponent implements AfterViewInit, OnInit {
 
   ngAfterViewInit(): void {
     // don't subscribe to data until view loaded so drawing doesn't fail
+
+    // subscribe to query changes
+    this._microTracksService.query.subscribe(this._onSearchQuery.bind(this));
 
     // subscribe to micro-tracks changes
     this._microTracksService.tracks.subscribe(this._onRawMicroTracks.bind(this));
