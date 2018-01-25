@@ -23,9 +23,6 @@ import { macroTracks }        from './reducers/macro-tracks.store';
 import { microTracks }        from './reducers/micro-tracks.store';
 import { orderFilter }        from './filters/order.filter';
 import { regexpFilter }       from './filters/regexp.filter';
-import { selectedFamily }     from './reducers/selected-family.store';
-import { selectedGene }       from './reducers/selected-gene.store';
-import { selectedMicroTrack } from './reducers/selected-micro-track.store';
 import { selectedPlot }       from './reducers/selected-plot.store';
 import { urlQueryParams }     from './reducers/url-query-params.store';
 
@@ -84,8 +81,6 @@ import { UrlQueryParamsService } from './services/url-query-params.service';
       microTracks,
       orderFilter,
       regexpFilter,
-      selectedFamily,
-      selectedGene,
       selectedPlot,
       urlQueryParams
     }),
