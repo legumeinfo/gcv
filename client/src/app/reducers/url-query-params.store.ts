@@ -17,6 +17,9 @@ export const urlQueryParams = (state: any = Object.create(UrlQueryParams.prototy
         for (let prop in source) {
           if (source.hasOwnProperty(prop)) {
             switch(prop) {
+              case 'bmatched':
+              case 'bintermediate':
+              case 'bmask':
               case 'neighbors':
               case 'matched':
               case 'intermediate':

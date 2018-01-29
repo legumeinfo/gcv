@@ -1,3 +1,10 @@
+// block parameters
+export const enum DefaultBlockParams {
+  DEFAULT_MATCHED      = 20,
+  DEFAULT_INTERMEDIATE = 10,
+  DEFAULT_MASK         = 10
+}
+
 // query parameters
 export const enum DefaultQueryParams {
   DEFAULT_NEIGHBORS    = 10,
