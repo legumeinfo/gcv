@@ -12,14 +12,14 @@ export class QueryParams {
   };
 
   constructor(
-    public neighbors: number,
-    public sources: string[],  // Server IDs
-    public matched?: number,
-    public intermediate?: number
+    public neighbors: number    = 10,
+    public sources: string[]    = ['lis'],  // Server IDs
+    public matched: number      = 4,
+    public intermediate: number = 5
   ) { }
 
   formControls(): any {
-    let controls: any = {
+    return {
       neighbors: [this.neighbors, Validators.compose([
         Validators.required,
         Validators.pattern(Regex.POSITIVE_INT)
@@ -27,20 +27,15 @@ export class QueryParams {
       sources: [this.sources, Validators.compose([
         Validators.required,
         this._sourcesValidator
-      ])]
-    };
-    if (this.matched !== undefined) {
-      controls.matched = [this.matched, Validators.compose([
+      ])],
+      matched: [this.matched, Validators.compose([
         Validators.required,
         Validators.pattern(Regex.POSITIVE_INT)
-      ])];
-    }
-    if (this.intermediate !== undefined) {
-      controls.intermediate = [this.intermediate, Validators.compose([
+      ])],
+      intermediate: [this.intermediate, Validators.compose([
         Validators.required,
         Validators.pattern(Regex.POSITIVE_INT_AND_ZERO)
-      ])];
-    }
-    return controls;
+      ])],
+    };
   }
 }

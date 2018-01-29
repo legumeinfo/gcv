@@ -6,9 +6,9 @@ import { Component,
          ViewChild } from '@angular/core';
 
 // App services
-import { FilterService }         from '../../services/filter.service';
-import { ORDER_ALGORITHMS }      from '../../constants/order-algorithms';
-import { UrlQueryParamsService } from '../../services/url-query-params.service';
+import { FilterService }    from '../../services/filter.service';
+import { ORDER_ALGORITHMS } from '../../constants/order-algorithms';
+import { UrlService }       from '../../services/url.service';
 
 @Component({
   moduleId: module.id.toString(),
@@ -36,14 +36,14 @@ export class OrderingComponent implements OnDestroy, OnInit {
   private _sub: any;
 
   constructor(private _filterService: FilterService,
-              private _url: UrlQueryParamsService) { }
+              private _url: UrlService) { }
 
   ngOnDestroy(): void {
     this._sub.unsubscribe();
   }
 
   ngOnInit(): void {
-    this._sub = this._url.params.subscribe(params => {
+    this._sub = this._url.urlQueryParams.subscribe(params => {
       if (params['order'])
         this.model.order = params['order'];
     });
@@ -54,7 +54,7 @@ export class OrderingComponent implements OnDestroy, OnInit {
     var idx = this._ids.indexOf(this.model.order);
     if (idx != -1) {
       this._filterService.setOrder(this.model.order);
-      this._url.updateParams(this.model);
+      //this._url.updateParams(this.model);
     }
   }
 }

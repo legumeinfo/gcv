@@ -6,6 +6,8 @@ import { Store }          from '@ngrx/store';
 
 // App
 import { AppConfig }         from '../app.config';
+import { AppRoutes }        from '../constants/app-routes';
+import { AppRouteService }   from './app-route.service';
 import { AppStore }          from '../models/app-store.model';
 import { StoreActions }      from '../constants/store-actions';
 import { Gene }              from '../models/gene.model';
@@ -14,38 +16,59 @@ import { Group }             from '../models/group.model';
 import { MicroTracks }       from '../models/micro-tracks.model';
 
 @Injectable()
-export class PlotsService {
+export class PlotsService extends AppRouteService {
   // TODO: make this more reactive
+  localPlots: Observable<Array<Group>>;
+  selectedPlot: Observable<Group>;
+
   private _query: any[];
   private _familyMap: any;
 
   private _globalPlots: Group[];
   private _localPlots: Group[];
-  localPlots: Observable<Array<Group>>;
   private _selectedPlot: Group;
-  selectedPlot: Observable<Group>;
 
   private _serverIDs = AppConfig.SERVERS.map(s => s.id);
 
   constructor(private _http: Http, private _store: Store<AppStore>) {
-    this._store.select('microTracks').subscribe((tracks: MicroTracks) => {
-      this._parseQuery(tracks);
-      let localPlots = this._plotTracks(tracks);
-      this._store.dispatch({type: StoreActions.ADD_LOCAL_PLOTS,
-        payload: localPlots});
-      this._store.dispatch({type: StoreActions.ADD_GLOBAL_PLOTS, payload: []});
-    });
-    this._store.select('globalPlots').subscribe((plots: Group[]) => {
-      this._globalPlots = plots;
-    });
-    this.localPlots = this._store.select('localPlots');
-    this.localPlots.subscribe(plots => {
-      this._localPlots = plots;
-    });
+    super(_store);
+
+    // initialize observables
+    this.localPlots   = this._store.select('localPlots');
     this.selectedPlot = this._store.select('selectedPlot');
-    this.selectedPlot.subscribe(plot => {
-      this._selectedPlot = plot;
-    });
+    let microTracks   = this._store.select<MicroTracks>('microTracks');
+    let globalPlots   = this._store.select<Array<Group>>('globalPlots');
+
+    // subscribe to changes that update local plots
+    this.localPlots
+      .filter(plot => this._route == AppRoutes.SEARCH)
+      .subscribe(plots => this._localPlots = plots);
+
+    // subscribe to changes that update the selected plot
+    this.selectedPlot
+      .filter(plot => this._route == AppRoutes.SEARCH)
+      .subscribe(plot => this._selectedPlot = plot);
+
+    // subscribe to changes 
+    microTracks
+      .filter(tracks => this._route == AppRoutes.SEARCH)
+      .subscribe((tracks: MicroTracks) => {
+        this._parseQuery(tracks);
+        let localPlots = this._plotTracks(tracks),
+            action1    = {
+                type: StoreActions.ADD_LOCAL_PLOTS,
+                payload: localPlots
+              };
+        this._store.dispatch(action1);
+        let action2 = {type: StoreActions.ADD_GLOBAL_PLOTS, payload: []};
+        this._store.dispatch(action2);
+      });
+
+    globalPlots
+      .filter(plots => this._route == AppRoutes.SEARCH)
+      .subscribe((plots: Group[]) => {
+        this._globalPlots = plots;
+      });
   }
 
   private _parseQuery(tracks: MicroTracks): void {

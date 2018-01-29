@@ -8,24 +8,25 @@ import { AppStore }              from './models/app-store.model';
 import { MultiComponent }        from './components/multi/multi.component';
 import { DefaultQueryParams }    from './constants/default-parameters';
 import { InstructionsComponent } from './components/instructions/instructions.component';
+import { AppRoutes }             from './constants/app-routes';
 import { SearchComponent }       from './components/search/search.component';
 import { StoreActions }          from './constants/store-actions';
 
 const routes: Routes = [
   {path: '', redirectTo: '/instructions', pathMatch: 'full'},
-  {path: 'multi/:genes', component: MultiComponent},
+  {path: AppRoutes.MULTI + '/:genes', component: MultiComponent},
   {
     path: 'basic/:genes', 
-    redirectTo: 'multi/:genes',
+    redirectTo: AppRoutes.MULTI + '/:genes',
     pathMatch: 'full'
   },
   {path: 'instructions', component: InstructionsComponent},
   {
-    path: 'search/:gene',
-    redirectTo: '/search/' + DefaultQueryParams.DEFAULT_SOURCE + '/:gene',
+    path: AppRoutes.SEARCH + '/:gene',
+    redirectTo: AppRoutes.SEARCH + '/' + DefaultQueryParams.DEFAULT_SOURCE + '/:gene',
     pathMatch: 'full'
   },
-  {path: 'search/:source/:gene', component: SearchComponent}
+  {path: AppRoutes.SEARCH + '/:source/:gene', component: SearchComponent}
 ];
 
 @NgModule({

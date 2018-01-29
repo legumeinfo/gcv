@@ -24,7 +24,7 @@ import { DefaultAlignmentParams, DefaultBlockParams,
 import { MacroTracksService }    from '../../services/macro-tracks.service';
 import { MicroTracksService }    from '../../services/micro-tracks.service';
 import { QueryParams }           from '../../models/query-params.model';
-import { UrlQueryParamsService } from '../../services/url-query-params.service';
+//import { UrlService }            from '../../services/url.service';
 
 @Component({
   moduleId: module.id.toString(),
@@ -33,7 +33,8 @@ import { UrlQueryParamsService } from '../../services/url-query-params.service';
   styleUrls: [ 'search-params.component.css' ]
 })
 
-export class SearchParamsComponent implements OnChanges, OnDestroy, OnInit {
+//export class SearchParamsComponent implements OnChanges, OnDestroy, OnInit {
+export class SearchParamsComponent implements OnInit {
 
   // component IO
 
@@ -55,7 +56,7 @@ export class SearchParamsComponent implements OnChanges, OnDestroy, OnInit {
   sources = AppConfig.SERVERS.filter(s => s.hasOwnProperty('microSearch'));
   algorithms = ALIGNMENT_ALGORITHMS;
 
-  private _sub: any;
+  //private _sub: any;
 
   // constructor
 
@@ -63,59 +64,54 @@ export class SearchParamsComponent implements OnChanges, OnDestroy, OnInit {
               private _alignmentService: AlignmentService,
               private _fb: FormBuilder,
               private _macroTracksService: MacroTracksService,
-              private _microTracksService: MicroTracksService,
-              private _url: UrlQueryParamsService) { }
+              private _microTracksService: MicroTracksService) { }
 
   // Angular hooks
 
-  ngOnChanges(changes: SimpleChanges) {
-    if (this.queryGroup !== undefined)
-      this._geneSearch();
-  }
+  //ngOnChanges(changes: SimpleChanges) {
+  //  if (this.queryGroup !== undefined)
+  //    this._geneSearch();
+  //}
 
-  ngOnDestroy(): void {
-    this._sub.unsubscribe();
-  }
+  //ngOnDestroy(): void {
+  //  this._sub.unsubscribe();
+  //}
 
   ngOnInit(): void {
-    // initialize block form
-    let defaultBlock = new BlockParams(
-      DefaultBlockParams.DEFAULT_MATCHED,
-      DefaultBlockParams.DEFAULT_INTERMEDIATE,
-      DefaultBlockParams.DEFAULT_MASK);
+    // initialize block group and subscribe to store updates
+    let defaultBlock = new BlockParams();
     this.blockGroup = this._fb.group(defaultBlock.formControls());
+    this._macroTracksService.blockParams.subscribe(params => {
+      this._updateGroup(this.blockGroup, params);
+    });
 
-    // initialize query form
-    let defaultQuery = new QueryParams(
-      DefaultQueryParams.DEFAULT_NEIGHBORS,
-      [DefaultQueryParams.DEFAULT_SOURCE] as string[],
-      DefaultQueryParams.DEFAULT_MATCHED,
-      DefaultQueryParams.DEFAULT_INTERMEDIATE);
+    // initialize query group and subscribe to store updates
+    let defaultQuery = new QueryParams();
     this.queryGroup = this._fb.group(defaultQuery.formControls());
+    this._microTracksService.queryParams.subscribe(params => {
+      this._updateGroup(this.queryGroup, params);
+    });
 
-    // initialize alignment form
-    let defaultAlignment = new AlignmentParams(
-      DefaultAlignmentParams.DEFAULT_ALIGNMENT,
-      DefaultAlignmentParams.DEFAULT_MATCH,
-      DefaultAlignmentParams.DEFAULT_MISMATCH,
-      DefaultAlignmentParams.DEFAULT_GAP,
-      DefaultAlignmentParams.DEFAULT_SCORE,
-      DefaultAlignmentParams.DEFAULT_THRESHOLD);
+    // initialize alignment group and subscribe to store updates
+    let defaultAlignment = new AlignmentParams();
     this.alignmentGroup = this._fb.group(defaultAlignment.formControls());
+    this._alignmentService.alignmentParams.subscribe(params => {
+      this._updateGroup(this.alignmentGroup, params);
+    });
 
     // subscribe to url query param updates
-    this._sub = this._url.params.subscribe(params => {
-      // update block params
-      this._paramUpdateGroup(this.blockGroup, params);
-      // update query params
-      this._paramUpdateGroup(this.queryGroup, params);
-      // update alignment params
-      this._paramUpdateGroup(this.alignmentGroup, params);
-      // resubmit the params form if necessary
-      if (this.blockGroup.dirty || this.queryGroup.dirty ||
-      this.alignmentGroup.dirty)
-        this.submit();
-    });
+    //this._sub = this._url.params.subscribe(params => {
+    //  // update block params
+    //  this._paramUpdateGroup(this.blockGroup, params);
+    //  // update query params
+    //  this._paramUpdateGroup(this.queryGroup, params);
+    //  // update alignment params
+    //  this._paramUpdateGroup(this.alignmentGroup, params);
+    //  // resubmit the params form if necessary
+    //  if (this.blockGroup.dirty || this.queryGroup.dirty ||
+    //  this.alignmentGroup.dirty)
+    //    this.submit();
+    //});
 
     // submit the updated form
     this.blockGroup.markAsDirty();
@@ -126,22 +122,26 @@ export class SearchParamsComponent implements OnChanges, OnDestroy, OnInit {
 
   // private
 
-  private _geneSearch(): void {
-    this._microTracksService.geneSearch(
-      this.source,
-      this.gene,
-      this.queryGroup.getRawValue(),
-      e => this._alerts.pushAlert(new Alert(Alerts.ALERT_DANGER, e))
-    );
+  private _updateGroup(group, params) {
+    group.patchValue(params);
   }
 
-  private _paramUpdateGroup(group, params): void {
-    let oldValue = group.getRawValue();
-    group.patchValue(params);
-    let newValue = group.getRawValue();
-    if (JSON.stringify(oldValue) !== JSON.stringify(newValue))
-      group.markAsDirty();
-  }
+  //private _geneSearch(): void {
+  //  this._microTracksService.geneSearch(
+  //    this.source,
+  //    this.gene,
+  //    this.queryGroup.getRawValue(),
+  //    e => this._alerts.pushAlert(new Alert(Alerts.ALERT_DANGER, e))
+  //  );
+  //}
+
+  //private _paramUpdateGroup(group, params): void {
+  //  let oldValue = group.getRawValue();
+  //  group.patchValue(params);
+  //  let newValue = group.getRawValue();
+  //  if (JSON.stringify(oldValue) !== JSON.stringify(newValue))
+  //    group.markAsDirty();
+  //}
 
   private _submitGroup(group, callback=params=>{}): void {
     if (group.dirty) {
@@ -149,22 +149,24 @@ export class SearchParamsComponent implements OnChanges, OnDestroy, OnInit {
       let params = group.getRawValue();
       callback(params);
       group.reset(params);
-      this._url.updateParams(Object.assign({}, params));
+      //this._url.updateParams(Object.assign({}, params));
     }
   }
 
   // public
 
   submit(): void {
-    if (this.queryGroup.valid && this.alignmentGroup.valid) {
+    if (this.blockGroup.valid && this.queryGroup.valid &&
+    this.alignmentGroup.valid) {
       // submit block params
       this._submitGroup(this.blockGroup, params => {
         this._macroTracksService.updateParams(params);
       });
       // submit query params
       this._submitGroup(this.queryGroup, params => {
-        this.submitted.emit();
-        this._geneSearch()
+        //this.submitted.emit();
+        //this._geneSearch()
+        this._microTracksService.updateParams(params);
       });
       // submit alignment params
       this._submitGroup(this.alignmentGroup, params => {

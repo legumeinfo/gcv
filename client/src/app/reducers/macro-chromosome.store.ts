@@ -1,8 +1,8 @@
 import { StoreActions } from '../constants/store-actions';
 
-export const macroTracks = (state: any, {type, payload}) => {
+export const macroChromosome = (state: any, {type, payload}) => {
   switch (type) {
-    case StoreActions.ADD_MACRO_TRACKS:
+    case StoreActions.NEW_MACRO_CHROMOSOME:
       return payload;
     default:
       return state;

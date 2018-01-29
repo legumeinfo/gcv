@@ -1,5 +1,4 @@
 // Angular
-import { BehaviorSubject }                    from 'rxjs/BehaviorSubject';
 import { Http, RequestOptionsArgs, Response } from '@angular/http';
 import { Injectable }                         from '@angular/core';
 import { Observable }                         from 'rxjs/Observable';
@@ -7,80 +6,99 @@ import { Store }                              from '@ngrx/store';
 
 // App
 import { AppConfig }         from '../app.config';
+import { AppRoutes }         from '../constants/app-routes';
+import { AppRouteService }   from './app-route.service';
 import { BlockParams }       from '../models/block-params.model';
 import { StoreActions }      from '../constants/store-actions';
 import { AppStore }          from '../models/app-store.model';
 import { GET, POST, Server } from '../models/server.model';
+import { Group }             from '../models/group.model';
 import { MicroTracks }       from '../models/micro-tracks.model';
 import { MacroTracks }       from '../models/macro-tracks.model';
 import { QueryParams }       from '../models/query-params.model';
 
 @Injectable()
-export class MacroTracksService {
-  private _params = new BehaviorSubject({});
-  params = this._params.asObservable();
-
-  tracks: Observable<MacroTracks>;
+export class MacroTracksService extends AppRouteService {
+  blockParams: Observable<BlockParams>;
+  macroTracks: Observable<MacroTracks>;
 
   private _serverIDs   = AppConfig.SERVERS.map(s => s.id);
-  private _searchCache = {chromosome: '', sources: []};
 
   constructor(private _http: Http, private _store: Store<AppStore>) {
-    this.tracks = this._store.select('macroTracks');
+    super(_store);
+
+    // initialize observables
+    this.blockParams     = this._store.select('blockParams');
+    this.macroTracks     = this._store.select('macroTracks');
+    let searchQueryTrack = this._store.select<Group>('searchQueryTrack');
+    let macroChromosome  = this._store.select<Array<string>>('macroChromosome');
+    let queryParams      = this._store.select<QueryParams>('queryParams');
+
+    // subscribe to changes that initialize macro chromosome searches
+    searchQueryTrack
+      .filter(track => this._route == AppRoutes.SEARCH && track !== undefined)
+      .subscribe(track => this.getChromosome(track));
+
+    // subscribe to changes that initialize macro searches
+    Observable
+      .combineLatest(macroChromosome, this.blockParams, queryParams)
+      .filter(([chromosome, blockParams, queryParams]) => {
+        return this._route == AppRoutes.SEARCH && chromosome !== undefined;
+      })
+      .subscribe(([chromosome, blockParams, queryParams]) => {
+        this.federatedSearch(chromosome, blockParams, queryParams);
+      });
   }
 
-  private _checkSetCache(chromosome: string, sources: Array<any>) {
-    if (this._searchCache.chromosome == chromosome &&
-    this._searchCache.sources.length == sources.length &&
-    this._searchCache.sources.every((v,i) => v === sources[i])) {
-      return true;
-    }
-    this._searchCache.chromosome = chromosome;
-    this._searchCache.sources    = sources.slice();
-    return false;
-  }
-
-  getChromosome(
-    source: string,
-    chromosome: string,
-    success = e => {},
-    failure = e => {}
-  ): void {
+  //getChromosome(
+  //  source: string,
+  //  chromosome: string,
+  //  success = e => {},
+  //  failure = e => {}
+  //): void {
+  getChromosome(queryTrack: Group): void {
     // fetch query track for gene
-    let idx: number = this._serverIDs.indexOf(source);
+    let idx: number = this._serverIDs.indexOf(queryTrack.source);
     if (idx != -1) {
       let s: Server = AppConfig.SERVERS[idx];
       if (s.hasOwnProperty('chromosome')) {
-        let args = {chromosome: chromosome} as RequestOptionsArgs;
+        let args = {chromosome: queryTrack.chromosome_name} as RequestOptionsArgs;
         let response: Observable<Response>;
         if (s.chromosome.type === GET)
           response = this._http.get(s.chromosome.url, args)
         else
           response = this._http.post(s.chromosome.url, args)
         response.map(res => res.json()).subscribe(query => {
-          success(query);
-        }, failure);
+          //success(query);
+          let action = {
+            type: StoreActions.NEW_MACRO_CHROMOSOME,
+            payload: query
+          };
+          this._store.dispatch(action);
+        });
+        //, failure);
       } else {
-        failure(s.id + " doesn't serve chromosome requests");
+        //failure(s.id + " doesn't serve chromosome requests");
       }
     } else {
-      failure('invalid source: ' + source);
+      //failure('invalid source: ' + source);
     }
   }
 
-  federatedSearch(name: string, chromosome: any, queryParams: QueryParams,
-  blockParams: BlockParams, failure = e => {}): void {
+  //federatedSearch(name: string, chromosome: any, queryParams: QueryParams,
+  //blockParams: BlockParams, failure = e => {}): void {
+  federatedSearch(chromosome: any, blockParams: BlockParams,
+  queryParams: QueryParams): void {
     let sources = queryParams.sources.reduce((l, s) => {
       let i = this._serverIDs.indexOf(s);
       if (i != -1) l.push(AppConfig.SERVERS[i]);
-      else failure('invalid source: ' + s);
+      //else failure('invalid source: ' + s);
       return l;
     }, []);
     //if (!this._checkSetCache(name, sources)) {
       this._store.dispatch({type: StoreActions.ADD_MACRO_TRACKS,
         payload: undefined});
       let args = {
-        query: name,
         families: chromosome.families,
         matched: blockParams.bmatched,
         intermediate: blockParams.bintermediate,
@@ -101,7 +119,7 @@ export class MacroTracksService {
             .catch(() => Observable.empty())
             .defaultIfEmpty(null));
         } else {
-          failure(s.id + " doesn't serve macro track requests");
+          //failure(s.id + " doesn't serve macro track requests");
         }
       }
       // aggregate the results
@@ -109,7 +127,7 @@ export class MacroTracksService {
         let failed = [];
         //let macro = undefined;
         let macro = {
-          chromosome: name,
+          chromosome: 'name',
           length:     chromosome.length,
           tracks:     []
         };
@@ -133,10 +151,10 @@ export class MacroTracksService {
             macro.tracks.push.apply(macro.tracks, tracks);
           }
         }
-        if (failed.length > 0)
-          failure('failed to retrieve data from sources: ' + failed.join(', '));
-        this._store.dispatch({type: StoreActions.ADD_MACRO_TRACKS,
-          payload: macro});
+        //if (failed.length > 0)
+        //  failure('failed to retrieve data from sources: ' + failed.join(', '));
+        let action = {type: StoreActions.ADD_MACRO_TRACKS, payload: macro};
+        this._store.dispatch(action);
       });
     //}
   }
@@ -243,7 +261,7 @@ export class MacroTracksService {
   }
 
   updateParams(params: BlockParams): void {
-    if (params !== undefined)
-      this._params.next(params);
+    let action = {type: StoreActions.UPDATE_BLOCK_PARAMS, payload: params};
+    this._store.dispatch(action);
   }
 }

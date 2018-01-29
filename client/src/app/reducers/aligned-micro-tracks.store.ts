@@ -1,9 +1,10 @@
 import { MicroTracks }  from '../models/micro-tracks.model';
 import { StoreActions } from '../constants/store-actions';
 
-export const microTracks = (state: any = new MicroTracks(), {type, payload}) => {
+export const alignedMicroTracks = (state = new MicroTracks(),
+{type, payload}) => {
   switch (type) {
-    case StoreActions.ADD_MICRO_TRACKS:
+    case StoreActions.NEW_ALIGNED_TRACKS:
       return payload;
     default:
       return state;

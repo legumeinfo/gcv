@@ -4,9 +4,9 @@ import { Regex }      from '../constants/regex';
 export class BlockParams {
 
   constructor(
-    public bmatched: number,
-    public bintermediate: number,
-    public bmask: number
+    public bmatched: number      = 20,
+    public bintermediate: number = 10,
+    public bmask: number         = 10
   ) { }
 
   formControls(): any {

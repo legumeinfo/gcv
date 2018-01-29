@@ -8,4 +8,5 @@ export class Gene {
   source?: string;  // Server ID
   x?: number;
   y?: number;
+  suffixScore?: number;
 }

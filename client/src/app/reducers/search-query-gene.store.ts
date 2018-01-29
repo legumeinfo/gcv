@@ -1,8 +1,8 @@
 import { StoreActions } from '../constants/store-actions';
 
-export const macroTracks = (state: any, {type, payload}) => {
+export const searchQueryGene = (state: any, {type, payload}) => {
   switch (type) {
-    case StoreActions.ADD_MACRO_TRACKS:
+    case StoreActions.NEW_SEARCH_QUERY_GENE:
       return payload;
     default:
       return state;

@@ -1,6 +1,5 @@
 // Angular + dependencies
-import { ActivatedRoute, Router } from '@angular/router';
-import { BehaviorSubject }        from 'rxjs/BehaviorSubject';
+import { Router } from '@angular/router';
 import { AfterViewInit,
          Component,
          ElementRef,
@@ -30,7 +29,6 @@ import { MacroTracksService }        from '../../services/macro-tracks.service';
 import { MicroTracks }               from '../../models/micro-tracks.model';
 import { microTracksSelector }       from '../../selectors/micro-tracks.selector';
 import { MicroTracksService }        from '../../services/micro-tracks.service';
-import { pairwiseAlignmentSelector } from '../../selectors/pairwise-alignment.selector';
 import { PlotViewerComponent }       from '../viewers/plot.component';
 import { plotsSelector }             from '../../selectors/plots.selector';
 import { PlotsService }              from '../../services/plots.service';
@@ -71,7 +69,7 @@ export class SearchComponent implements AfterViewInit, OnInit {
   // AfterViewInit hooks are called, so routines that depend on them are called
   // via their setters.
   private _splitSizes = {
-		left: 70,
+    left: 70,
     right: 30,
     topLeft: 50,
     bottomLeft: 50,
@@ -117,8 +115,6 @@ export class SearchComponent implements AfterViewInit, OnInit {
 
   @ViewChildren(PlotViewerComponent) plotComponents: QueryList<PlotViewerComponent>;
 
-  @ViewChild(SearchParamsComponent) searchParams: SearchParamsComponent;
-
   // UI
 
   contentTypes = ContentTypes;
@@ -133,9 +129,6 @@ export class SearchComponent implements AfterViewInit, OnInit {
   accordionTypes = AccordionTypes;
   accordion = this.accordionTypes.SCROLL;
 
-  private _showHelp = new BehaviorSubject<boolean>(true);
-  showHelp = this._showHelp.asObservable();
-
   macroConfig = {
     order: true,
     filter: false
@@ -144,16 +137,11 @@ export class SearchComponent implements AfterViewInit, OnInit {
 
   // data
 
-  routeSource: string;
-  routeGene: string;
-
-  private _alignedTracks: Observable<MicroTracks>;
   private _microTracks: Observable<MicroTracks>;
   microTracks: MicroTracks;
   microLegend: any;
   queryGenes: Gene[];
 
-  private _microPlots: Observable<MicroTracks>;
   microPlots: MicroTracks;
 
   private _macroTracks: Observable<[MacroTracks, MicroTracks]>;
@@ -180,8 +168,7 @@ export class SearchComponent implements AfterViewInit, OnInit {
 
   // constructor
 
-  constructor(private _route: ActivatedRoute,
-              private _alerts: AlertsService,
+  constructor(private _alerts: AlertsService,
               private _alignmentService: AlignmentService,
               private _config: AppConfig,
               private _filterService: FilterService,
@@ -196,33 +183,6 @@ export class SearchComponent implements AfterViewInit, OnInit {
     this.showViewers();
     this.showLocalPlot();
     this.hideLocalGlobalPlots();
-  }
-
-  private _onParams(params): void {
-    this.invalidateAll();
-    this.hideLocalGlobalPlots();
-    this.routeSource = params['source'];
-    this.routeGene = params['gene'];
-  }
-
-  private _onSearchQuery([query, blockParams]): void {
-    let params = this.searchParams.queryGroup
-    if (params !== undefined) {
-      //this.invalidateMicro();
-      this.invalidateMacro();
-      this._macroTracksService.getChromosome(
-        query.source,
-        query.chromosome_name,
-        chromosome => {
-          this._macroTracksService.federatedSearch(
-            query.chromosome_name,
-            chromosome,
-            params.getRawValue(),
-            blockParams
-          );
-        }
-      );
-    }
   }
 
   private _onRawMicroTracks(tracks): void {
@@ -244,11 +204,11 @@ export class SearchComponent implements AfterViewInit, OnInit {
                       ? GCV.common.getFamilySizeMap(tracks)
                       : undefined;
 
-      let i = tracks.groups[0].genes.map(g => g.name).indexOf(this.routeGene);
-      let focus = tracks.groups[0].genes[i];
+      //let i = tracks.groups[0].genes.map(g => g.name).indexOf(this.routeGene);
+      //let focus = tracks.groups[0].genes[i];
       this.macroLegendArgs = {
         autoResize: true,
-        highlight: [focus != undefined ? focus.family : undefined],
+        //highlight: [focus != undefined ? focus.family : undefined],
         selector: 'genus-species'
       };
 
@@ -270,7 +230,7 @@ export class SearchComponent implements AfterViewInit, OnInit {
         geneClick: function (g, track) {
           this.selectGene(g);
         }.bind(this),
-        highlight: [this.routeGene],
+        //highlight: [this.routeGene],
         plotClick: function (p) {
           this.selectPlot(p);
         }.bind(this),
@@ -330,7 +290,7 @@ export class SearchComponent implements AfterViewInit, OnInit {
         keyClick: function (f) {
           this.selectFamily(f);
         }.bind(this),
-        highlight: [focus != undefined ? focus.family : undefined],
+        //highlight: [focus != undefined ? focus.family : undefined],
         selectiveColoring: familySizes,
         selector: 'family',
         blank: {name: "Singletons", id: singletonIds},
@@ -355,72 +315,67 @@ export class SearchComponent implements AfterViewInit, OnInit {
     else this.showLocalPlot();
   }
 
-  private _onMacroTracks(tracks): void {
-    this.macroTracks = tracks;
-    if (tracks !== undefined) {
-      let seen = {};
-      this.macroLegend = tracks.tracks.reduce((l, t) => {
-        let name = t.genus + ' ' + t.species;
-        if (!seen[name]) {
-          seen[name] = true;
-          l.push({name: name, id: name});
-        } return l;
-      }, [])
-    }
-  }
+  //private _onMacroTracks(tracks): void {
+  //  this.macroTracks = tracks;
+  //  if (tracks !== undefined) {
+  //    let seen = {};
+  //    this.macroLegend = tracks.tracks.reduce((l, t) => {
+  //      let name = t.genus + ' ' + t.species;
+  //      if (!seen[name]) {
+  //        seen[name] = true;
+  //        l.push({name: name, id: name});
+  //      } return l;
+  //    }, [])
+  //  }
+  //}
 
-  private _subscribeToMacro(): void {
-    if (this._macroSub !== undefined)
-      this._macroSub.unsubscribe();
-    this._macroSub = this._macroTracks
-      .let(macroTracksSelector(this.macroConfig.filter, this.macroConfig.order))
-      .subscribe(this._onMacroTracks.bind(this));
-  }
+  //private _subscribeToMacro(): void {
+  //  if (this._macroSub !== undefined)
+  //    this._macroSub.unsubscribe();
+  //  this._macroSub = this._macroTracks
+  //    .let(macroTracksSelector(this.macroConfig.filter, this.macroConfig.order))
+  //    .subscribe(this._onMacroTracks.bind(this));
+  //}
 
   ngOnInit(): void {
     // initialize UI
     this._initUI();
-
-    // subscribe to parameter changes
-    this._route.params.subscribe(this._onParams.bind(this));
   }
 
   ngAfterViewInit(): void {
     // don't subscribe to data until view loaded so drawing doesn't fail
 
-    // subscribe to query changes
-    Observable.combineLatest(
-      this._microTracksService.query,
-      this._macroTracksService.params
-    ).subscribe(this._onSearchQuery.bind(this));
-
     // subscribe to micro-tracks changes
-    this._microTracksService.tracks.subscribe(this._onRawMicroTracks.bind(this));
-    this._alignedTracks = Observable.combineLatest(
-      this._microTracksService.tracks,
-      this._alignmentService.alignmentParams
-    ).let(pairwiseAlignmentSelector());
+    this._microTracksService.microTracks.subscribe(tracks => {
+      this._onRawMicroTracks(tracks);
+    });
+
+    // subscribe to aligned micro tracks
     this._microTracks = Observable.combineLatest(
-      this._alignedTracks,
+      this._alignmentService.alignedMicroTracks,
       this._filterService.regexp,
       this._filterService.order
     ).let(microTracksSelector({skipFirst: true}));
-    this._microTracks.subscribe(this._onAlignedMicroTracks.bind(this));
+    this._microTracks.subscribe(tracks => {
+      this._onAlignedMicroTracks(tracks);
+    });
 
     // subscribe to micro-plots changes
-    this._microPlots = Observable.combineLatest(
-      this._plotsService.localPlots,
-      this._microTracks,
-    ).let(plotsSelector());
-    this._microPlots.subscribe(this._onPlots.bind(this));
+    Observable
+      .combineLatest(this._plotsService.localPlots, this._microTracks)
+      .let(plotsSelector())
+      .subscribe(plots => this._onPlots(plots));
     this._plotsService.selectedPlot.subscribe(this._onPlotSelection.bind(this));
 
     // subscribe to macro-track changes
-    this._macroTracks = Observable.combineLatest(
-      this._macroTracksService.tracks,
-      this._microTracks
-    )
-    this._subscribeToMacro();
+    this._macroTracksService.macroTracks.subscribe(tracks => {
+      this.macroTracks = tracks;
+    });
+    //this._macroTracks = Observable.combineLatest(
+    //  this._macroTracksService.macroTracks,
+    //  this._microTracks
+    //)
+    //this._subscribeToMacro();
   }
 
   // private
@@ -485,30 +440,30 @@ export class SearchComponent implements AfterViewInit, OnInit {
     }
   }
 
-  private _viewportDrag(d1, d2): void {
-    let server = this.routeSource;
-    let chromosome = (this.microTracks.groups.length)
-                   ? this.microTracks.groups[0].chromosome_id
-                   : undefined;
-    let position = parseInt((d1 + d2) / 2);
-    if (server !== undefined && chromosome !== undefined) {
-      let macroBack = this.macroTracks;
-      this.macroTracks = undefined;
-      this._macroTracksService.nearestGene(
-        server,
-        chromosome,
-        position,
-        function(tracks, g) {
-          this.macroTracks = tracks;
-          this._router.navigateByUrl('/search/' + server + '/' + g.name);
-        }.bind(this, macroBack),
-        function (tracks, m) {
-          this.macroTracks = tracks;
-          this._errorAlert(m);
-        }.bind(this, macroBack)
-      );
-    }
-  }
+  //private _viewportDrag(d1, d2): void {
+  //  let server = this.routeSource;
+  //  let chromosome = (this.microTracks.groups.length)
+  //                 ? this.microTracks.groups[0].chromosome_id
+  //                 : undefined;
+  //  let position = parseInt((d1 + d2) / 2);
+  //  if (server !== undefined && chromosome !== undefined) {
+  //    let macroBack = this.macroTracks;
+  //    this.macroTracks = undefined;
+  //    this._macroTracksService.nearestGene(
+  //      server,
+  //      chromosome,
+  //      position,
+  //      function(tracks, g) {
+  //        this.macroTracks = tracks;
+  //        this._router.navigateByUrl('/search/' + server + '/' + g.name);
+  //      }.bind(this, macroBack),
+  //      function (tracks, m) {
+  //        this.macroTracks = tracks;
+  //        this._errorAlert(m);
+  //      }.bind(this, macroBack)
+  //    );
+  //  }
+  //}
 
   // public
 
@@ -548,12 +503,12 @@ export class SearchComponent implements AfterViewInit, OnInit {
 
   toggleMacroOrder(): void {
     this.macroConfig.order = !this.macroConfig.order;
-    this._subscribeToMacro();
+    //this._subscribeToMacro();
   }
 
   toggleMacroFilter(): void {
     this.macroConfig.filter = !this.macroConfig.filter;
-    this._subscribeToMacro();
+    //this._subscribeToMacro();
   }
 
   showPlots(): void {
@@ -612,10 +567,5 @@ export class SearchComponent implements AfterViewInit, OnInit {
   selectTrack(track: Group): void {
     let t = Object.assign(Object.create(Group.prototype), track);
     this.selectedDetail = t;
-  }
-
-  // help button
-  help(): void {
-    this._showHelp.next(true);
   }
 }

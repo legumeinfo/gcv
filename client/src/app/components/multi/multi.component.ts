@@ -16,15 +16,16 @@ import { GCV }                    from '../../../assets/js/gcv';
 import { Alert }                     from '../../models/alert.model';
 import { Alerts }                    from '../../constants/alerts';
 import { AlertsService }             from '../../services/alerts.service';
+import { AlignmentService }          from '../../services/alignment.service';
 import { ClusteringService }         from '../../services/clustering.service';
 import { Family }                    from '../../models/family.model';
 import { FilterService }             from '../../services/filter.service';
-import { frequentedRegionsSelector } from '../../selectors/frequented-regions.selector';
 import { Gene }                      from '../../models/gene.model';
 import { Group }                     from '../../models/group.model';
 import { MicroTracks }               from '../../models/micro-tracks.model';
 import { microTracksSelector }       from '../../selectors/micro-tracks.selector';
 import { MicroTracksService }        from '../../services/micro-tracks.service';
+import { UrlService }                from '../../services/url.service';
 
 enum AccordionTypes {
   REGEXP,
@@ -71,8 +72,6 @@ export class MultiComponent implements AfterViewInit, OnInit {
   // data
   queryGenes: string[];
 
-  private _groupedTracks: Observable<MicroTracks>;
-  private _microTracks: Observable<MicroTracks>;
   microTracks: MicroTracks;
   microLegend: any;
 
@@ -87,9 +86,11 @@ export class MultiComponent implements AfterViewInit, OnInit {
 
   constructor(private _route: ActivatedRoute,
               private _alerts: AlertsService,
+              private _alignmentService: AlignmentService,
               private _clusteringService: ClusteringService,
               private _filterService: FilterService,
-              private _microTracksService: MicroTracksService) { }
+              private _microTracksService: MicroTracksService,
+              private _urlService: UrlService) { }
 
   // Angular hooks
 
@@ -176,18 +177,17 @@ export class MultiComponent implements AfterViewInit, OnInit {
 
   ngAfterViewInit(): void {
     // don't subscribe to data until view loaded so drawing doesn't fail
-
-    // subscribe to micro-tracks changes
-    this._groupedTracks = Observable.combineLatest(
-      this._microTracksService.tracks,
-      this._clusteringService.clusteringParams
-    ).let(frequentedRegionsSelector());
-    this._microTracks = Observable.combineLatest(
-      this._groupedTracks,
-      this._filterService.regexp,
-      this._filterService.order
-    ).let(microTracksSelector());
-    this._microTracks.subscribe(this._onMicroTracks.bind(this));
+    Observable
+      .combineLatest(
+        this._alignmentService.alignedMicroTracks,
+        this._filterService.regexp,
+        this._filterService.order
+      )
+      //.takeUntil(this._urlService.searchQueryGene)
+      .let(microTracksSelector())
+      .subscribe(tracks => {
+        this._onMicroTracks(tracks)
+      });
   }
 
   // private

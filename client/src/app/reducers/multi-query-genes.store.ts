@@ -1,8 +1,8 @@
 import { StoreActions } from '../constants/store-actions';
 
-export const macroTracks = (state: any, {type, payload}) => {
+export const multiQueryGenes = (state: Array<string>, {type, payload}) => {
   switch (type) {
-    case StoreActions.ADD_MACRO_TRACKS:
+    case StoreActions.NEW_MULTI_QUERY_GENES:
       return payload;
     default:
       return state;

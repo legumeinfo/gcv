@@ -6,12 +6,12 @@ export class AlignmentParams {
   private _algorithms: string = ALIGNMENT_ALGORITHMS.map(a => a.id).join('|');
 
   constructor(
-    public algorithm: string,  // Algorithm ID
-    public match: number,
-    public mismatch: number,
-    public gap: number,
-    public score: number,
-    public threshold: number
+    public algorithm: string = 'repeat',  // Algorithm ID
+    public match: number     = 10,
+    public mismatch: number  = -1,
+    public gap: number       = -1,
+    public score: number     = 30,
+    public threshold: number = 25
   ) { }
 
   formControls(): any {

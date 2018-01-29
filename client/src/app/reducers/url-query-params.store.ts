@@ -8,7 +8,7 @@ export const urlQueryParams = (state: any = Object.create(UrlQueryParams.prototy
 {type, payload}) => {
   // TODO: add getters/setters in UrlQueryParams so Object.assign can be used
   switch (type) {
-    case StoreActions.ADD_QUERY_PARAMS:
+    case StoreActions.ADD_URL_QUERY_PARAMS:
       // how params are copied to the url
       let sourceIDs = AppConfig.SERVERS.map(s => s.id);
       let alignmentIDs = ALIGNMENT_ALGORITHMS.map(a => a.id);

@@ -9,4 +9,6 @@ export class Group {
   genes: Gene[];
   source?: string;  // Server ID
   id: number;  // unique
+  score?: number;
+  cluster?: number;
 }

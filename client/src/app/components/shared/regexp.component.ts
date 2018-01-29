@@ -6,8 +6,8 @@ import { Component,
          ViewChild } from '@angular/core';
 
 // App
-import { FilterService }                from '../../services/filter.service';
-import { UrlQueryParamsService }        from '../../services/url-query-params.service';
+import { FilterService } from '../../services/filter.service';
+import { UrlService }    from '../../services/url.service';
 
 @Component({
   moduleId: module.id.toString(),
@@ -34,7 +34,7 @@ export class RegexpComponent implements OnDestroy, OnInit {
 
   private _sub: any;
 
-  constructor(private _url: UrlQueryParamsService,
+  constructor(private _url: UrlService,
               private _filterService: FilterService) { }
 
   ngOnDestroy(): void {
@@ -42,7 +42,7 @@ export class RegexpComponent implements OnDestroy, OnInit {
   }
 
   ngOnInit(): void {
-    this._sub = this._url.params.subscribe(params => {
+    this._sub = this._url.urlQueryParams.subscribe(params => {
       if (params['regexp'])
         this.model.regexp = params['regexp'];
     });
@@ -51,6 +51,6 @@ export class RegexpComponent implements OnDestroy, OnInit {
 
   submit(): void {
     this._filterService.setRegexp(this.model.regexp);
-    this._url.updateParams(this.model);
+    //this._url.updateParams(this.model);
   }
 }

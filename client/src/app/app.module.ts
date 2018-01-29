@@ -15,16 +15,25 @@ import { StoreLogMonitorModule, useLogMonitor } from '@ngrx/store-log-monitor';
 import { StoreModule }                          from '@ngrx/store';
 
 // reducers
-import { alignmentParams }    from './reducers/alignment-params.store';
-import { clusteringParams }   from './reducers/clustering-params.store';
-import { globalPlots }        from './reducers/global-plots.store';
-import { localPlots }         from './reducers/local-plots.store';
-import { macroTracks }        from './reducers/macro-tracks.store';
-import { microTracks }        from './reducers/micro-tracks.store';
-import { orderFilter }        from './filters/order.filter';
-import { regexpFilter }       from './filters/regexp.filter';
-import { selectedPlot }       from './reducers/selected-plot.store';
-import { urlQueryParams }     from './reducers/url-query-params.store';
+import { alignedMicroTracks }   from './reducers/aligned-micro-tracks.store';
+import { alignmentParams }      from './reducers/alignment-params.store';
+import { blockParams }          from './reducers/block-params.store';
+import { clusteredMicroTracks } from './reducers/clustered-micro-tracks.store';
+import { clusteringParams }     from './reducers/clustering-params.store';
+import { globalPlots }          from './reducers/global-plots.store';
+import { localPlots }           from './reducers/local-plots.store';
+import { macroChromosome }      from './reducers/macro-chromosome.store';
+import { macroTracks }          from './reducers/macro-tracks.store';
+import { microTracks }          from './reducers/micro-tracks.store';
+import { multiQueryGenes }      from './reducers/multi-query-genes.store';
+import { orderFilter }          from './filters/order.filter';
+import { queryParams }          from './reducers/query-params.store';
+import { regexpFilter }         from './filters/regexp.filter';
+import { route }                from './reducers/route.store';
+import { searchQueryGene }      from './reducers/search-query-gene.store';
+import { searchQueryTrack }     from './reducers/search-query-track.store';
+import { selectedPlot }         from './reducers/selected-plot.store';
+import { urlQueryParams }       from './reducers/url-query-params.store';
 
 // App components
 import { AppComponent }          from './app.component';
@@ -63,7 +72,7 @@ import { FilterService }         from './services/filter.service';
 import { MacroTracksService }    from './services/macro-tracks.service';
 import { MicroTracksService }    from './services/micro-tracks.service';
 import { PlotsService }          from './services/plots.service';
-import { UrlQueryParamsService } from './services/url-query-params.service';
+import { UrlService }            from './services/url.service';
 
 @NgModule({
   imports: [
@@ -73,14 +82,23 @@ import { UrlQueryParamsService } from './services/url-query-params.service';
     HttpModule,
     ReactiveFormsModule,
     StoreModule.provideStore({
+      alignedMicroTracks,
       alignmentParams,
+      blockParams,
+      clusteredMicroTracks,
       clusteringParams,
       globalPlots,
       localPlots,
+      macroChromosome,
       macroTracks,
       microTracks,
+      multiQueryGenes,
       orderFilter,
+      queryParams,
       regexpFilter,
+      route,
+      searchQueryGene,
+      searchQueryTrack,
       selectedPlot,
       urlQueryParams
     }),
@@ -138,7 +156,7 @@ import { UrlQueryParamsService } from './services/url-query-params.service';
     MacroTracksService,
     MicroTracksService,
     PlotsService,
-    UrlQueryParamsService
+    UrlService
   ],
   bootstrap: [ AppComponent ],
 })
