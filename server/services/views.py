@@ -1026,8 +1026,8 @@ def v1_1_macro_synteny(request):
     # parse the POST data (Angular puts it in the request body)
     POST = json.loads(request.body)
     # make sure the request type is POST and that it contains a query (families)
-    if request.method == 'POST' and 'query' in POST and 'families' in POST and\
-    'matched' in POST and 'intermediate' in POST and 'mask' in POST:
+    if request.method == 'POST' and 'families' in POST and 'matched' in POST and\
+    'intermediate' in POST and 'mask' in POST:
         pool = ThreadPool(4)
 
         T0 = t0 = time.time()
