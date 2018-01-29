@@ -937,7 +937,7 @@ def v1_1_chromosome(request):
     return HttpResponseBadRequest()
 
 
-def macro_synteny_traceback(path_ends, pointers, scores, minsize):
+def macro_synteny_traceback(path_ends, pointers, scores, minsize, maxsize):
   path_ends.sort(reverse=True)
   for _, end in path_ends:
     if end in pointers:  # note: singletons aren't in pointers
@@ -947,12 +947,12 @@ def macro_synteny_traceback(path_ends, pointers, scores, minsize):
       while begin in pointers:
         begin = pointers.pop(begin)
       length = scores[end] - scores[begin]
-      if length >= minsize:
+      if length >= minsize and end[0] - begin[0] < maxsize:
         yield (begin, end)
 
 
 def macro_synteny_paths(((c_id, chromosome), (family_num_map, maxinsert,
-minsize, familymask, chromosome_as_genes, family_counts))):
+minsize, maxsize, familymask, chromosome_as_genes, family_counts))):
   # generate number pairs ORDERED BY CHROMOSOME GENE NUMBER THEN QUERY
   # GENE NUMBER - this is a topological sorting
   pairs = []
@@ -1004,8 +1004,8 @@ minsize, familymask, chromosome_as_genes, family_counts))):
     f_path_ends.append((f_scores[p1], p1))
     r_path_ends.append((r_scores[p1], p1))
   # traceback longest paths and get endpoints
-  f = macro_synteny_traceback(f_path_ends, f_pointers, f_scores, minsize)
-  r = macro_synteny_traceback(r_path_ends, r_pointers, r_scores, minsize)
+  f = macro_synteny_traceback(f_path_ends, f_pointers, f_scores, minsize, maxsize)
+  r = macro_synteny_traceback(r_path_ends, r_pointers, r_scores, minsize, maxsize)
   paths     = []
   end_genes = []
   for begin, end in chain(f, r):
@@ -1036,6 +1036,7 @@ def v1_1_macro_synteny(request):
         # TODO: should be passed by user
         maxinsert = POST['matched'] + 1
         minsize   = POST['intermediate'] + 1
+        maxsize   = len(query) - 1
         familymask = POST['mask']
 
         # make a dictionary that maps families to query gene numbers
@@ -1062,7 +1063,7 @@ def v1_1_macro_synteny(request):
           #counts = CHROMOSOME_FAMILY_COUNTS[c_id] if c_id != POST['query'] else []
           genes = CHROMOSOMES_AS_GENES[c_id]
           counts = CHROMOSOME_FAMILY_COUNTS[c_id]
-          c_args = (family_num_map, maxinsert, minsize, familymask, genes, counts)
+          c_args = (family_num_map, maxinsert, minsize, maxsize, familymask, genes, counts)
           args.append(c_args)
         data = zip(CHROMOSOMES_AS_FAMILIES.iteritems(), args)
         results = pool.map(macro_synteny_paths, data)
