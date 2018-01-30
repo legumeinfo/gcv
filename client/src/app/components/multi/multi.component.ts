@@ -76,7 +76,10 @@ export class MultiComponent implements AfterViewInit {
               private _urlService: UrlService) {
     // subscribe to multi query genes
     this._urlService.multiQueryGenes
-      .subscribe(genes => this.queryGenes = genes);
+      .subscribe(genes => {
+        this.queryGenes = genes;
+        this.hideLeftSlider();
+      });
   }
 
   // Angular hooks

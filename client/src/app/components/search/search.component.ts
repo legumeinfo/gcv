@@ -166,7 +166,7 @@ export class SearchComponent implements AfterViewInit, OnInit {
               private _filterService: FilterService,
               private _macroTracksService: MacroTracksService,
               private _plotsService: PlotsService,
-              private _router: Router
+              private _router: Router,
               private _urlService: UrlService) {
     // subscribe to search query gene
     this._urlService.searchQueryGene
@@ -174,6 +174,7 @@ export class SearchComponent implements AfterViewInit, OnInit {
       .subscribe(searchQuery => {
         this._querySource = searchQuery.source;
         this._queryGene   = searchQuery.gene;
+        this.hideLeftSlider();
       });
   }
 
