@@ -2,6 +2,7 @@
 import { Http, RequestOptionsArgs, Response } from '@angular/http';
 import { Injectable }                         from '@angular/core';
 import { Observable }                         from 'rxjs/Observable';
+import { Router }                             from '@angular/router';
 import { Store }                              from '@ngrx/store';
 
 // App
@@ -20,19 +21,24 @@ import { QueryParams }       from '../models/query-params.model';
 @Injectable()
 export class MacroTracksService extends AppRouteService {
   blockParams: Observable<BlockParams>;
+  macroChromosome: Observable<any>;
   macroTracks: Observable<MacroTracks>;
 
+  private _searchQueryGene: Observable<any>;
   private _serverIDs   = AppConfig.SERVERS.map(s => s.id);
 
-  constructor(private _http: Http, private _store: Store<AppStore>) {
+  constructor(private _http: Http,
+              private _router: Router,
+              private _store: Store<AppStore>) {
     super(_store);
 
     // initialize observables
-    this.blockParams     = this._store.select('blockParams');
-    this.macroTracks     = this._store.select('macroTracks');
-    let searchQueryTrack = this._store.select<Group>('searchQueryTrack');
-    let macroChromosome  = this._store.select<Array<string>>('macroChromosome');
-    let queryParams      = this._store.select<QueryParams>('queryParams');
+    this.blockParams      = this._store.select('blockParams');
+    this.macroChromosome  = this._store.select('macroChromosome');
+    this.macroTracks      = this._store.select('macroTracks');
+    this._searchQueryGene = this._store.select('searchQueryGene');
+    let searchQueryTrack  = this._store.select<Group>('searchQueryTrack');
+    let queryParams       = this._store.select<QueryParams>('queryParams');
 
     // subscribe to changes that initialize macro chromosome searches
     searchQueryTrack
@@ -41,7 +47,7 @@ export class MacroTracksService extends AppRouteService {
 
     // subscribe to changes that initialize macro searches
     Observable
-      .combineLatest(macroChromosome, this.blockParams, queryParams)
+      .combineLatest(this.macroChromosome, this.blockParams, queryParams)
       .filter(([chromosome, blockParams, queryParams]) => {
         return this._route == AppRoutes.SEARCH && chromosome !== undefined;
       })
@@ -50,12 +56,6 @@ export class MacroTracksService extends AppRouteService {
       });
   }
 
-  //getChromosome(
-  //  source: string,
-  //  chromosome: string,
-  //  success = e => {},
-  //  failure = e => {}
-  //): void {
   getChromosome(queryTrack: Group): void {
     // fetch query track for gene
     let idx: number = this._serverIDs.indexOf(queryTrack.source);
@@ -85,8 +85,6 @@ export class MacroTracksService extends AppRouteService {
     }
   }
 
-  //federatedSearch(name: string, chromosome: any, queryParams: QueryParams,
-  //blockParams: BlockParams, failure = e => {}): void {
   federatedSearch(chromosome: any, blockParams: BlockParams,
   queryParams: QueryParams): void {
     let sources = queryParams.sources.reduce((l, s) => {
@@ -226,38 +224,37 @@ export class MacroTracksService extends AppRouteService {
     failure("no micro tracks provided");
   }
 
-  // return a promise and handle success/error in components
-  nearestGene(
-    source: string,
-    chromosome: number,
-    position: number,
-    success: Function,
-    failure = e => {}
-  ): void {
-    let idx = this._serverIDs.indexOf(source);
-    if (idx != -1) {
-      let s: Server = AppConfig.SERVERS[idx];
-      if (s.hasOwnProperty('nearestGene')) {
-        let args = {
-          chromosome: chromosome,
-          position: position
-        } as RequestOptionsArgs;
-        let url = s.nearestGene.url;
-        let response: Observable<Response>;
-        if (s.nearestGene.type === GET)
-          response = this._http.get(url, args);
-        else
-          response = this._http.post(url, args);
-        response.subscribe(res => {
-          success(res.json());
-        }, failure);
-      } else {
-        failure(s.id + " doesn't serve nearest gene requests");
-      }
-    } else {
-      failure('invalid source: ' + source);
-    }
-
+  // finds the nearest gene on the query chromosome and pushes it to the store
+  nearestGene(position: number): void {
+    // get the current search query gene and macro-synteny query chromosome
+    Observable
+      .combineLatest(this._searchQueryGene, this.macroChromosome)
+      .subscribe(([queryGene, chromosome]) => {
+        let locations = chromosome.locations,
+            genes     = chromosome.genes;
+        // find the closest gene via binary search
+        let lo = 0,
+            hi = locations.length - 1,
+            mid: number;
+        while (lo < hi) {
+          mid = Math.floor((lo + hi) / 2);
+          let loc = locations[mid];
+          if (loc.fmin < position && loc.fmax < position) {
+            lo = mid + 1;
+          } else if (loc.fmin > position && loc.fmax > position) {
+            hi = mid;
+          } else {
+            break;
+          }
+        }
+        queryGene.gene = genes[mid];
+        // navigate to the new gene in the url
+        let url = '/' + AppRoutes.SEARCH +
+                  '/' + queryGene.source +
+                  '/' + queryGene.gene;
+        this._router.navigateByUrl(url);
+      })
+      .unsubscribe();
   }
 
   updateParams(params: BlockParams): void {

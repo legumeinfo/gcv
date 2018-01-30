@@ -423,27 +423,8 @@ export class SearchComponent implements AfterViewInit, OnInit {
   }
 
   private _viewportDrag(d1, d2): void {
-    let server = this._querySource;
-    let chromosome = (this.microTracks.groups.length)
-                   ? this.microTracks.groups[0].chromosome_id
-                   : undefined;
     let position = parseInt((d1 + d2) / 2);
-    if (server !== undefined && chromosome !== undefined) {
-      let macroBack = this.macroTracks;
-      this.macroTracks = undefined;
-      this._macroTracksService.nearestGene(
-        server,
-        chromosome,
-        position,
-        function(tracks, g) {
-          this.macroTracks = tracks;
-          this._router.navigateByUrl('/search/' + server + '/' + g.name);
-        }.bind(this, macroBack),
-        function (tracks, m) {
-          this.macroTracks = tracks;
-        }.bind(this, macroBack)
-      );
-    }
+    this._macroTracksService.nearestGene(position);
   }
 
   // public
