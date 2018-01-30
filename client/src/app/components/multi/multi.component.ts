@@ -52,7 +52,10 @@ export class MultiComponent implements AfterViewInit {
 
   // UI
 
+  // what to show in left slider
   selectedDetail;
+
+  // micro viewer accordion
   accordionTypes = AccordionTypes;
   accordion = null;
 

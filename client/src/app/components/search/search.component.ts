@@ -10,13 +10,9 @@ import { AfterViewInit,
          ViewEncapsulation }      from '@angular/core';
 import { Observable }             from 'rxjs/Observable';
 import * as Split                 from 'split.js';
-import * as d3                    from 'd3';
 import { GCV }                    from '../../../assets/js/gcv';
 
 // App
-import { Alert }                     from '../../models/alert.model';
-import { Alerts }                    from '../../constants/alerts';
-import { AlertsService }             from '../../services/alerts.service';
 import { AlignmentService }          from '../../services/alignment.service';
 import { AppConfig }                 from '../../app.config';
 import { Family }                    from '../../models/family.model';
@@ -28,11 +24,10 @@ import { macroTracksSelector }       from '../../selectors/macro-tracks.selector
 import { MacroTracksService }        from '../../services/macro-tracks.service';
 import { MicroTracks }               from '../../models/micro-tracks.model';
 import { microTracksSelector }       from '../../selectors/micro-tracks.selector';
-import { MicroTracksService }        from '../../services/micro-tracks.service';
 import { PlotViewerComponent }       from '../viewers/plot.component';
 import { plotsSelector }             from '../../selectors/plots.selector';
 import { PlotsService }              from '../../services/plots.service';
-import { SearchParamsComponent }     from './search-params.component';
+import { UrlService }          from '../../services/url.service';
 
 declare var RegExp: any;  // TypeScript doesn't support regexp as argument...
 declare var parseInt: any;  // TypeScript doesn't recognize number inputs
@@ -117,15 +112,19 @@ export class SearchComponent implements AfterViewInit, OnInit {
 
   // UI
 
+  // show viewers or dot plots
   contentTypes = ContentTypes;
   selectedContent;
 
+  // show dot plots and local or global
   plotTypes = PlotTypes;
   showLocalGlobalPlots: boolean;
   selectedPlot;
 
+  // what to show in left slider
   selectedDetail;
 
+  // micro synteny accordion
   accordionTypes = AccordionTypes;
   accordion = this.accordionTypes.SCROLL;
 
@@ -136,46 +135,47 @@ export class SearchComponent implements AfterViewInit, OnInit {
   private _macroSplit: any;
 
   // data
+  private _querySource: string;
+  private _queryGene: string;
 
-  private _microTracks: Observable<MicroTracks>;
-  microTracks: MicroTracks;
-  microLegend: any;
-  queryGenes: Gene[];
-
-  microPlots: MicroTracks;
-
-  private _macroTracks: Observable<[MacroTracks, MicroTracks]>;
-  private _macroSub: any;
-  macroLegend: any;
-  macroTracks: MacroTracks;
-
+  // dot plots
+  microPlots: any;//MicroTracks;
   selectedLocal: Group;
   selectedGlobal: Group;
 
-  private _numReturned: number;
-
   // viewers
-
+  microTracks: MicroTracks;
+  microLegend: any;
+  queryGenes: Gene[];
   microColors = GCV.common.colors;
   macroColors: any;
-
   microArgs: any;
   microLegendArgs: any;
+  private _macroTracks: Observable<[MacroTracks, any]>;//Observable<[MacroTracks, MicroTracks]>;
+  private _macroSub: any;
+  macroLegend: any;
+  macroTracks: MacroTracks;
   macroArgs: any;
   macroLegendArgs: any;
-
   plotArgs: any;
 
   // constructor
 
-  constructor(private _alerts: AlertsService,
-              private _alignmentService: AlignmentService,
+  constructor(private _alignmentService: AlignmentService,
               private _config: AppConfig,
               private _filterService: FilterService,
               private _macroTracksService: MacroTracksService,
-              private _microTracksService: MicroTracksService,
               private _plotsService: PlotsService,
-              private _router: Router) { }
+              private _router: Router
+              private _urlService: UrlService) {
+    // subscribe to search query gene
+    this._urlService.searchQueryGene
+      .filter(searchQuery => searchQuery !== undefined)
+      .subscribe(searchQuery => {
+        this._querySource = searchQuery.source;
+        this._queryGene   = searchQuery.gene;
+      });
+  }
 
   // Angular hooks
 
@@ -185,33 +185,24 @@ export class SearchComponent implements AfterViewInit, OnInit {
     this.hideLocalGlobalPlots();
   }
 
-  private _onRawMicroTracks(tracks): void {
-    this._numReturned = tracks.groups.length - 1;  // exclude query
-  }
-
 
   private _onAlignedMicroTracks(tracks): void {
     if (tracks.groups.length > 0 && tracks.groups[0].genes.length > 0) {
-      // alert how many tracks were returned
-      let num = (new Set(tracks.groups.map(g => g.id))).size - 1;
-      this._alerts.pushAlert(new Alert(
-        (num) ? ((this._numReturned == num) ? Alerts.ALERT_SUCCESS :
-          Alerts.ALERT_INFO) : Alerts.ALERT_WARNING,
-        this._numReturned + ' tracks returned; ' + num + ' aligned'
-      ));
-      // only selectively color when there are results
+      // compute how many genes each family has
       let familySizes = (tracks.groups.length > 1)
                       ? GCV.common.getFamilySizeMap(tracks)
                       : undefined;
 
-      //let i = tracks.groups[0].genes.map(g => g.name).indexOf(this.routeGene);
-      //let focus = tracks.groups[0].genes[i];
+      // macro viewer arguments
+      let i = tracks.groups[0].genes.map(g => g.name).indexOf(this._queryGene);
+      let focus = tracks.groups[0].genes[i];
       this.macroLegendArgs = {
         autoResize: true,
-        //highlight: [focus != undefined ? focus.family : undefined],
+        highlight: [focus != undefined ? focus.family : undefined],
         selector: 'genus-species'
       };
 
+      // dot plot arguments
       this.plotArgs = {
         autoResize: true,
         geneClick: function (g, track) {
@@ -222,15 +213,16 @@ export class SearchComponent implements AfterViewInit, OnInit {
           this.selectPlot(p);
         }.bind(this),
         selectiveColoring: familySizes
-	    }
+        }
 
+      // micro viewer arguments
       this.microArgs = {
         autoResize: true,
         boldFirst: true,
         geneClick: function (g, track) {
           this.selectGene(g);
         }.bind(this),
-        //highlight: [this.routeGene],
+        highlight: [this._queryGene],
         plotClick: function (p) {
           this.selectPlot(p);
         }.bind(this),
@@ -240,6 +232,7 @@ export class SearchComponent implements AfterViewInit, OnInit {
         selectiveColoring: familySizes
       };
 
+      // macro viewer arguments
       this.queryGenes = tracks.groups[0].genes;
       let s = this._config.getServer(tracks.groups[0].source);
       if (s !== undefined && s.hasOwnProperty('macroColors')) {
@@ -265,15 +258,14 @@ export class SearchComponent implements AfterViewInit, OnInit {
         colors: this.macroColors
       };
 
-      this.microTracks = tracks;
       var orderedUniqueFamilyIds = new Set();
-      this.microTracks.groups.forEach(group => {
+      tracks.groups.forEach(group => {
         group.genes.forEach(gene => {
           orderedUniqueFamilyIds.add(gene.family);
         });
       });
       var familyMap = {};
-      this.microTracks.families.forEach(f => {
+      tracks.families.forEach(f => {
         familyMap[f.id] = f;
       });
       var uniqueFamilies = [];
@@ -281,6 +273,7 @@ export class SearchComponent implements AfterViewInit, OnInit {
         if (familyMap[id] !== undefined) uniqueFamilies.push(familyMap[id]);
       });
 
+      // micro legend arguments
       var d = ",";
       var singletonIds = ["singleton"].concat(uniqueFamilies.filter(f => {
         return familySizes === undefined || familySizes[f.id] == 1;
@@ -290,24 +283,24 @@ export class SearchComponent implements AfterViewInit, OnInit {
         keyClick: function (f) {
           this.selectFamily(f);
         }.bind(this),
-        //highlight: [focus != undefined ? focus.family : undefined],
+        highlight: [focus != undefined ? focus.family : undefined],
         selectiveColoring: familySizes,
         selector: 'family',
         blank: {name: "Singletons", id: singletonIds},
         blankDashed: {name: "Orphans", id: ""},
         multiDelimiter: d
       };
-      var presentFamilies = this.microTracks.groups.reduce((l, group) => {
+      var presentFamilies = tracks.groups.reduce((l, group) => {
         return l.concat(group.genes.map(g => g.family));
       }, []);
       this.microLegend = uniqueFamilies.filter(f => {
         return presentFamilies.indexOf(f.id) != -1 && f.name != '';
       });
-    }
-    this.hideLeftSlider();
-  }
 
-  private _onPlots(plots): void { this.microPlots = plots; }
+      // micro track data
+      this.microTracks = tracks;
+    }
+  }
 
   private _onPlotSelection(plot): void {
     this.selectedLocal = this.selectedGlobal = undefined;
@@ -315,74 +308,62 @@ export class SearchComponent implements AfterViewInit, OnInit {
     else this.showLocalPlot();
   }
 
-  //private _onMacroTracks(tracks): void {
-  //  this.macroTracks = tracks;
-  //  if (tracks !== undefined) {
-  //    let seen = {};
-  //    this.macroLegend = tracks.tracks.reduce((l, t) => {
-  //      let name = t.genus + ' ' + t.species;
-  //      if (!seen[name]) {
-  //        seen[name] = true;
-  //        l.push({name: name, id: name});
-  //      } return l;
-  //    }, [])
-  //  }
-  //}
+  private _onMacroTracks(tracks): void {
+    this.macroTracks = tracks;
+    if (tracks !== undefined) {
+      let seen = {};
+      this.macroLegend = tracks.tracks.reduce((l, t) => {
+        let name = t.genus + ' ' + t.species;
+        if (!seen[name]) {
+          seen[name] = true;
+          l.push({name: name, id: name});
+        } return l;
+      }, [])
+    }
+  }
 
-  //private _subscribeToMacro(): void {
-  //  if (this._macroSub !== undefined)
-  //    this._macroSub.unsubscribe();
-  //  this._macroSub = this._macroTracks
-  //    .let(macroTracksSelector(this.macroConfig.filter, this.macroConfig.order))
-  //    .subscribe(this._onMacroTracks.bind(this));
-  //}
+  private _subscribeToMacro(): void {
+    if (this._macroSub !== undefined)
+      this._macroSub.unsubscribe();
+    this._macroSub = this._macroTracks
+      .let(macroTracksSelector(this.macroConfig.filter, this.macroConfig.order))
+      .subscribe(this._onMacroTracks.bind(this));
+  }
 
   ngOnInit(): void {
-    // initialize UI
     this._initUI();
   }
 
   ngAfterViewInit(): void {
     // don't subscribe to data until view loaded so drawing doesn't fail
 
-    // subscribe to micro-tracks changes
-    this._microTracksService.microTracks.subscribe(tracks => {
-      this._onRawMicroTracks(tracks);
-    });
-
     // subscribe to aligned micro tracks
-    this._microTracks = Observable.combineLatest(
-      this._alignmentService.alignedMicroTracks,
-      this._filterService.regexp,
-      this._filterService.order
-    ).let(microTracksSelector({skipFirst: true}));
-    this._microTracks.subscribe(tracks => {
-      this._onAlignedMicroTracks(tracks);
-    });
+    let microTracks = Observable
+      .combineLatest(
+        this._alignmentService.alignedMicroTracks,
+        this._filterService.regexp,
+        this._filterService.order)
+      .let(microTracksSelector({skipFirst: true}));
+    microTracks
+      .subscribe(tracks => this._onAlignedMicroTracks(tracks));
 
     // subscribe to micro-plots changes
     Observable
-      .combineLatest(this._plotsService.localPlots, this._microTracks)
+      .combineLatest(this._plotsService.localPlots, microTracks)
       .let(plotsSelector())
-      .subscribe(plots => this._onPlots(plots));
-    this._plotsService.selectedPlot.subscribe(this._onPlotSelection.bind(this));
+      .subscribe(plots => this.microPlots = plots);
+    this._plotsService.selectedPlot
+      .subscribe(this._onPlotSelection.bind(this));
 
     // subscribe to macro-track changes
-    this._macroTracksService.macroTracks.subscribe(tracks => {
-      this.macroTracks = tracks;
-    });
-    //this._macroTracks = Observable.combineLatest(
-    //  this._macroTracksService.macroTracks,
-    //  this._microTracks
-    //)
-    //this._subscribeToMacro();
+    this._macroTracksService.macroTracks
+      .subscribe(tracks => this.macroTracks = tracks);
+    this._macroTracks = Observable
+      .combineLatest(this._macroTracksService.macroTracks, microTracks)
+    this._subscribeToMacro();
   }
 
   // private
-
-  private _errorAlert(message: string): void {
-    this._alerts.pushAlert(new Alert(Alerts.ALERT_DANGER, message));
-  }
 
   private _splitViewers(): void {
     if (this._left !== undefined
@@ -399,11 +380,11 @@ export class SearchComponent implements AfterViewInit, OnInit {
         let regexp = new RegExp(/calc\(|\%(.*)/, 'g');
         return parseFloat(el.style.height.replace(regexp, ''));
       }
-      let leftEl = this._left.nativeElement,
-          topLeftEl = this._topLeft.nativeElement,
-          bottomLeftEl = this._bottomLeft.nativeElement,
-          rightEl = this._right.nativeElement,
-          topRightEl = this._topRight.nativeElement,
+      let leftEl        = this._left.nativeElement,
+          topLeftEl     = this._topLeft.nativeElement,
+          bottomLeftEl  = this._bottomLeft.nativeElement,
+          rightEl       = this._right.nativeElement,
+          topRightEl    = this._topRight.nativeElement,
           bottomRightEl = this._bottomRight.nativeElement;
       Split([leftEl, rightEl], {
         sizes: [this._splitSizes.left, this._splitSizes.right],
@@ -411,7 +392,7 @@ export class SearchComponent implements AfterViewInit, OnInit {
         cursor: 'col-resize',
         minSize: 0,
         onDragEnd: () => {
-          this._splitSizes.left = parseWidth(leftEl);
+          this._splitSizes.left  = parseWidth(leftEl);
           this._splitSizes.right = parseWidth(rightEl);
         }
       })
@@ -422,7 +403,7 @@ export class SearchComponent implements AfterViewInit, OnInit {
         cursor: 'row-resize',
         minSize: 0,
         onDragEnd: () => {
-          this._splitSizes.topLeft = parseHeight(topLeftEl);
+          this._splitSizes.topLeft    = parseHeight(topLeftEl);
           this._splitSizes.bottomLeft = parseHeight(bottomLeftEl);
         }
       })
@@ -433,57 +414,38 @@ export class SearchComponent implements AfterViewInit, OnInit {
         cursor: 'row-resize',
         minSize: 0,
         onDragEnd: () => {
-          this._splitSizes.topRight = parseHeight(topRightEl);
+          this._splitSizes.topRight    = parseHeight(topRightEl);
           this._splitSizes.bottomRight = parseHeight(bottomRightEl);
         }
       })
     }
   }
 
-  //private _viewportDrag(d1, d2): void {
-  //  let server = this.routeSource;
-  //  let chromosome = (this.microTracks.groups.length)
-  //                 ? this.microTracks.groups[0].chromosome_id
-  //                 : undefined;
-  //  let position = parseInt((d1 + d2) / 2);
-  //  if (server !== undefined && chromosome !== undefined) {
-  //    let macroBack = this.macroTracks;
-  //    this.macroTracks = undefined;
-  //    this._macroTracksService.nearestGene(
-  //      server,
-  //      chromosome,
-  //      position,
-  //      function(tracks, g) {
-  //        this.macroTracks = tracks;
-  //        this._router.navigateByUrl('/search/' + server + '/' + g.name);
-  //      }.bind(this, macroBack),
-  //      function (tracks, m) {
-  //        this.macroTracks = tracks;
-  //        this._errorAlert(m);
-  //      }.bind(this, macroBack)
-  //    );
-  //  }
-  //}
+  private _viewportDrag(d1, d2): void {
+    let server = this._querySource;
+    let chromosome = (this.microTracks.groups.length)
+                   ? this.microTracks.groups[0].chromosome_id
+                   : undefined;
+    let position = parseInt((d1 + d2) / 2);
+    if (server !== undefined && chromosome !== undefined) {
+      let macroBack = this.macroTracks;
+      this.macroTracks = undefined;
+      this._macroTracksService.nearestGene(
+        server,
+        chromosome,
+        position,
+        function(tracks, g) {
+          this.macroTracks = tracks;
+          this._router.navigateByUrl('/search/' + server + '/' + g.name);
+        }.bind(this, macroBack),
+        function (tracks, m) {
+          this.macroTracks = tracks;
+        }.bind(this, macroBack)
+      );
+    }
+  }
 
   // public
-
-  invalidateMacro(): void {
-    this.macroTracks = this.macroLegend = undefined;
-  }
-
-  invalidateMicro(): void {
-    this.microTracks = this.microLegend = undefined;
-  }
-
-  invalidatePlots(): void {
-    this.microPlots = undefined;
-  }
-
-  invalidateAll(): void {
-    this.invalidateMacro();
-    this.invalidateMicro();
-    this.invalidatePlots();
-  }
 
   // micro-synteny
   setAccordion(e: any, value: any): void {
@@ -503,12 +465,12 @@ export class SearchComponent implements AfterViewInit, OnInit {
 
   toggleMacroOrder(): void {
     this.macroConfig.order = !this.macroConfig.order;
-    //this._subscribeToMacro();
+    this._subscribeToMacro();
   }
 
   toggleMacroFilter(): void {
     this.macroConfig.filter = !this.macroConfig.filter;
-    //this._subscribeToMacro();
+    this._subscribeToMacro();
   }
 
   showPlots(): void {
@@ -532,13 +494,11 @@ export class SearchComponent implements AfterViewInit, OnInit {
 
   showGlobalPlot(): void {
     this.selectedPlot = this.plotTypes.GLOBAL;
-    this._plotsService.getSelectedGlobal(plot => {
-      this.selectedGlobal = plot;
-    });
+    this._plotsService.getSelectedGlobal(plot => this.selectedGlobal = plot);
   }
 
   showLocalPlot(): void {
-    this.selectedPlot = this.plotTypes.LOCAL;
+    this.selectedPlot  = this.plotTypes.LOCAL;
     this.selectedLocal = this._plotsService.getSelectedLocal();
   }
 
