@@ -943,24 +943,27 @@ def macro_synteny_traceback(path_ends, pointers, scores, minsize, maxsize):
     if end in pointers:  # note: singletons aren't in pointers
       if scores[end] < minsize:
         break
+      trivial = scores[end] == maxsize
       begin = end
       while begin in pointers:
         begin = pointers.pop(begin)
       length = scores[end] - scores[begin]
-      if length >= minsize and end[0] - begin[0] < maxsize:
+      if length >= minsize and not trivial:
         yield (begin, end)
 
 
 def macro_synteny_paths(((c_id, chromosome), (family_num_map, maxinsert,
-minsize, maxsize, familymask, chromosome_as_genes, family_counts))):
+minsize, familymask, chromosome_as_genes, family_counts))):
   # generate number pairs ORDERED BY CHROMOSOME GENE NUMBER THEN QUERY
   # GENE NUMBER - this is a topological sorting
   pairs = []
+  maxsize = 0
   for i in range(len(chromosome)):
     f = chromosome[i]
     if f in family_num_map and family_counts[f] <= familymask:
       nums = family_num_map[f]
       pairs.extend(map(lambda n: (i, n), nums))
+      maxsize += 1
 
   # "construct" a DAG and compute longest paths using a recurrence
   # relation similar to that of DAGchainer
@@ -1036,7 +1039,6 @@ def v1_1_macro_synteny(request):
         # TODO: should be passed by user
         maxinsert = POST['matched'] + 1
         minsize   = POST['intermediate'] + 1
-        maxsize   = len(query) - 1
         familymask = POST['mask']
 
         # make a dictionary that maps families to query gene numbers
@@ -1063,7 +1065,7 @@ def v1_1_macro_synteny(request):
           #counts = CHROMOSOME_FAMILY_COUNTS[c_id] if c_id != POST['query'] else []
           genes = CHROMOSOMES_AS_GENES[c_id]
           counts = CHROMOSOME_FAMILY_COUNTS[c_id]
-          c_args = (family_num_map, maxinsert, minsize, maxsize, familymask, genes, counts)
+          c_args = (family_num_map, maxinsert, minsize, familymask, genes, counts)
           args.append(c_args)
         data = zip(CHROMOSOMES_AS_FAMILIES.iteritems(), args)
         results = pool.map(macro_synteny_paths, data)
