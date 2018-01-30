@@ -1,31 +1,22 @@
 // Angular + dependencies
-import { ActivatedRoute, Params } from '@angular/router';
-import { BehaviorSubject }        from 'rxjs/BehaviorSubject';
 import { AfterViewInit,
          Component,
          ElementRef,
-         OnInit,
          ViewChild,
-         ViewEncapsulation }      from '@angular/core';
-import { Observable }             from 'rxjs/Observable';
-import * as Split                 from 'split.js';
-import * as d3                    from 'd3';
-import { GCV }                    from '../../../assets/js/gcv';
+         ViewEncapsulation } from '@angular/core';
+import { Observable }        from 'rxjs/Observable';
+import * as Split            from 'split.js';
+import { GCV }               from '../../../assets/js/gcv';
 
 // App
-import { Alert }                     from '../../models/alert.model';
-import { Alerts }                    from '../../constants/alerts';
-import { AlertsService }             from '../../services/alerts.service';
-import { AlignmentService }          from '../../services/alignment.service';
-import { ClusteringService }         from '../../services/clustering.service';
-import { Family }                    from '../../models/family.model';
-import { FilterService }             from '../../services/filter.service';
-import { Gene }                      from '../../models/gene.model';
-import { Group }                     from '../../models/group.model';
-import { MicroTracks }               from '../../models/micro-tracks.model';
-import { microTracksSelector }       from '../../selectors/micro-tracks.selector';
-import { MicroTracksService }        from '../../services/micro-tracks.service';
-import { UrlService }                from '../../services/url.service';
+import { AlignmentService }    from '../../services/alignment.service';
+import { Family }              from '../../models/family.model';
+import { FilterService }       from '../../services/filter.service';
+import { Gene }                from '../../models/gene.model';
+import { Group }               from '../../models/group.model';
+import { MicroTracks }         from '../../models/micro-tracks.model';
+import { microTracksSelector } from '../../selectors/micro-tracks.selector';
+import { UrlService }          from '../../services/url.service';
 
 enum AccordionTypes {
   REGEXP,
@@ -40,7 +31,7 @@ enum AccordionTypes {
   encapsulation: ViewEncapsulation.None
 })
 
-export class MultiComponent implements AfterViewInit, OnInit {
+export class MultiComponent implements AfterViewInit {
   // view children
 
   // EVIL: ElementRefs nested in switch cases are undefined when parent or child
@@ -62,60 +53,39 @@ export class MultiComponent implements AfterViewInit, OnInit {
   // UI
 
   selectedDetail;
-
   accordionTypes = AccordionTypes;
   accordion = null;
 
-  private _showHelp = new BehaviorSubject<boolean>(true);
-  showHelp = this._showHelp.asObservable();
-
   // data
   queryGenes: string[];
-
   microTracks: MicroTracks;
   microLegend: any;
 
   // viewers
   microColors = GCV.common.colors;
-
   microArgs: any;
-
   microLegendArgs: any;
 
   // constructor
 
-  constructor(private _route: ActivatedRoute,
-              private _alerts: AlertsService,
-              private _alignmentService: AlignmentService,
-              private _clusteringService: ClusteringService,
+  constructor(private _alignmentService: AlignmentService,
               private _filterService: FilterService,
-              private _microTracksService: MicroTracksService,
-              private _urlService: UrlService) { }
+              private _urlService: UrlService) {
+    // subscribe to multi query genes
+    this._urlService.multiQueryGenes
+      .subscribe(genes => this.queryGenes = genes);
+  }
 
   // Angular hooks
 
-  private _onParams(params): void {
-    this.invalidate();
-    this.queryGenes = params['genes'].split(',');
-  }
-
   private _onMicroTracks(tracks): void {
     if (tracks.groups.length > 0 && tracks.groups[0].genes.length > 0) {
-      let num = tracks.groups.length;
-      this._alerts.pushAlert(new Alert(
-        (num) ? Alerts.ALERT_SUCCESS : Alerts.ALERT_WARNING,
-        num + ' tracks returned'
-      ));
-      // only selectively color when there are results
+      // compute how many genes each family has
       let familySizes = (tracks.groups.length > 1)
                         ? GCV.common.getFamilySizeMap(tracks)
                         : undefined;
-      let highlight = tracks.groups.reduce((l, group) => {
-        let families = group.genes
-          .filter(g => this.queryGenes.indexOf(g.name) !== -1)
-          .map(g => g.family);
-        return l.concat(families);
-      }, []);
+
+      // micro viewer arguments
       this.microArgs = {
         geneClick: function (g, track) {
           this.selectGene(g);
@@ -128,22 +98,27 @@ export class MultiComponent implements AfterViewInit, OnInit {
         highlight: this.queryGenes
       };
 
-      this.microTracks = tracks;
+      // micro legend arguments
+      let highlight = tracks.groups.reduce((l, group) => {
+        let families = group.genes
+          .filter(g => this.queryGenes.indexOf(g.name) !== -1)
+          .map(g => g.family);
+        return l.concat(families);
+      }, []);
       var orderedUniqueFamilyIds = new Set();
-      this.microTracks.groups.forEach(group => {
+      tracks.groups.forEach(group => {
         group.genes.forEach(gene => {
           orderedUniqueFamilyIds.add(gene.family);
         });
       });
       var familyMap = {};
-      this.microTracks.families.forEach(f => {
+      tracks.families.forEach(f => {
         familyMap[f.id] = f;
       });
       var uniqueFamilies = [];
       orderedUniqueFamilyIds.forEach(id => {
         if (familyMap[id] !== undefined) uniqueFamilies.push(familyMap[id]);
       });
-
       var d = ",";
       var singletonIds = ["singleton"].concat(uniqueFamilies.filter(f => {
         return familySizes === undefined || familySizes[f.id] == 1;
@@ -160,19 +135,18 @@ export class MultiComponent implements AfterViewInit, OnInit {
         blankDashed: {name: "Orphans", id: ""},
         multiDelimiter: d
       }
-      var presentFamilies = this.microTracks.groups.reduce((l, group) => {
+
+      // micro legend data
+      var presentFamilies = tracks.groups.reduce((l, group) => {
         return l.concat(group.genes.map(g => g.family));
       }, []);
       this.microLegend = uniqueFamilies.filter(f => {
         return presentFamilies.indexOf(f.id) != -1 && f.name != '';
       });
-      this.hideLeftSlider();
-    }
-  }
 
-  ngOnInit(): void {
-    // subscribe to parameter changes
-    this._route.params.subscribe(this._onParams.bind(this));
+      // micro track data
+      this.microTracks = tracks;
+    }
   }
 
   ngAfterViewInit(): void {
@@ -183,7 +157,6 @@ export class MultiComponent implements AfterViewInit, OnInit {
         this._filterService.regexp,
         this._filterService.order
       )
-      //.takeUntil(this._urlService.searchQueryGene)
       .let(microTracksSelector())
       .subscribe(tracks => {
         this._onMicroTracks(tracks)
@@ -207,10 +180,6 @@ export class MultiComponent implements AfterViewInit, OnInit {
 
   // public
 
-  invalidate(): void {
-    this.microTracks = this.microLegend = undefined;
-  }
-
   // micro-synteny
   setAccordion(e: any, value: any): void {
     e.stopPropagation();
@@ -224,6 +193,7 @@ export class MultiComponent implements AfterViewInit, OnInit {
   hideLeftSlider(): void {
     this.selectedDetail = null;
   }
+
 
   selectParams(): void {
     this.selectedDetail = {};
@@ -242,10 +212,5 @@ export class MultiComponent implements AfterViewInit, OnInit {
   selectTrack(track: Group): void {
     let t = Object.assign(Object.create(Group.prototype), track);
     this.selectedDetail = t;
-  }
-
-  // help button
-  help(): void {
-    this._showHelp.next(true);
   }
 }
