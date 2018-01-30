@@ -900,6 +900,10 @@ def v1_1_chromosome(request):
          .order_by('number')
          .values_list('gene_id', flat=True))
 
+        gene_names = list(Feature.objects.only('name').filter(
+          feature_id__in=genes))
+        gene_name_map = dict((g.pk, g.name) for g in gene_names)
+
         # get the genomic locations of the genes
         flocs = list(Featureloc.objects.only(
             'feature_id',
@@ -918,14 +922,17 @@ def v1_1_chromosome(request):
         gene_family_map = dict((o.gene_id, o.family_label) for o in gene_families)
 
         # create an ordered list of gene families
+        ordered_names    = []
         ordered_locs     = []
         ordered_families = []
         for g_id in genes:
+            ordered_names.append(gene_name_map[g_id])
             ordered_locs.append(gene_loc_map[g_id])
             ordered_families.append(gene_family_map.get(g_id, ''))
 
         # return the chromosome as encoded as json
         output_json = {
+            'genes':     ordered_names,
             'locations': ordered_locs,
             'families':  ordered_families,
             'length':    chromosome.seqlen
