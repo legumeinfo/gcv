@@ -16,7 +16,7 @@ from services.models import Cv, Cvterm, Feature, Featureloc, Featureprop, \
 import json
 import operator
 import time
-from collections     import defaultdict
+from collections     import defaultdict, OrderedDict
 from itertools       import chain
 from multiprocessing import Pool as ThreadPool
 
@@ -900,6 +900,10 @@ def v1_1_chromosome(request):
          .order_by('number')
          .values_list('gene_id', flat=True))
 
+        gene_names = list(Feature.objects.only('name').filter(
+          feature_id__in=genes))
+        gene_name_map = dict((g.pk, g.name) for g in gene_names)
+
         # get the genomic locations of the genes
         flocs = list(Featureloc.objects.only(
             'feature_id',
@@ -918,14 +922,17 @@ def v1_1_chromosome(request):
         gene_family_map = dict((o.gene_id, o.family_label) for o in gene_families)
 
         # create an ordered list of gene families
+        ordered_names    = []
         ordered_locs     = []
         ordered_families = []
         for g_id in genes:
+            ordered_names.append(gene_name_map[g_id])
             ordered_locs.append(gene_loc_map[g_id])
             ordered_families.append(gene_family_map.get(g_id, ''))
 
         # return the chromosome as encoded as json
         output_json = {
+            'genes':     ordered_names,
             'locations': ordered_locs,
             'families':  ordered_families,
             'length':    chromosome.seqlen
@@ -937,7 +944,7 @@ def v1_1_chromosome(request):
     return HttpResponseBadRequest()
 
 
-def macro_synteny_traceback(path_ends, pointers, scores, minsize, maxsize):
+def macro_synteny_traceback(path_ends, pointers, scores, minsize):
   path_ends.sort(reverse=True)
   for _, end in path_ends:
     if end in pointers:  # note: singletons aren't in pointers
@@ -947,12 +954,12 @@ def macro_synteny_traceback(path_ends, pointers, scores, minsize, maxsize):
       while begin in pointers:
         begin = pointers.pop(begin)
       length = scores[end] - scores[begin]
-      if length >= minsize and end[0] - begin[0] < maxsize:
+      if length >= minsize:
         yield (begin, end)
 
 
-def macro_synteny_paths(((c_id, chromosome), (family_num_map, maxinsert,
-minsize, maxsize, familymask, chromosome_as_genes, family_counts))):
+def macro_synteny_paths(((c_id, chromosome), (family_num_map, trivial_blocks, maxinsert,
+minsize, familymask, chromosome_as_genes, family_counts))):
   # generate number pairs ORDERED BY CHROMOSOME GENE NUMBER THEN QUERY
   # GENE NUMBER - this is a topological sorting
   pairs = []
@@ -1004,14 +1011,24 @@ minsize, maxsize, familymask, chromosome_as_genes, family_counts))):
     f_path_ends.append((f_scores[p1], p1))
     r_path_ends.append((r_scores[p1], p1))
   # traceback longest paths and get endpoints
-  f = macro_synteny_traceback(f_path_ends, f_pointers, f_scores, minsize, maxsize)
-  r = macro_synteny_traceback(r_path_ends, r_pointers, r_scores, minsize, maxsize)
+  f = macro_synteny_traceback(f_path_ends, f_pointers, f_scores, minsize)
+  r = macro_synteny_traceback(r_path_ends, r_pointers, r_scores, minsize)
   paths     = []
   end_genes = []
-  for begin, end in chain(f, r):
-    paths.append((begin, end))
-    end_genes.append(chromosome_as_genes[begin[0]])
-    end_genes.append(chromosome_as_genes[end[0]])
+  trivial_catcher = []
+  for block in chain(f, r):
+    if block in trivial_blocks:
+      trivial_catcher.append(block)
+    else:
+      begin, end = block
+      paths.append((begin, end))
+      end_genes.append(chromosome_as_genes[begin[0]])
+      end_genes.append(chromosome_as_genes[end[0]])
+  if len(trivial_catcher) != len(trivial_blocks):
+    for begin, end in trivial_catcher:
+      paths.append((begin, end))
+      end_genes.append(chromosome_as_genes[begin[0]])
+      end_genes.append(chromosome_as_genes[end[0]])
   return (c_id, paths, end_genes)
 
 
@@ -1033,23 +1050,40 @@ def v1_1_macro_synteny(request):
         T0 = t0 = time.time()
         # parse the parameters
         query = POST['families']
-        # TODO: should be passed by user
         maxinsert = POST['matched'] + 1
         minsize   = POST['intermediate'] + 1
-        maxsize   = len(query) - 1
         familymask = POST['mask']
 
         # make a dictionary that maps families to query gene numbers
         family_num_map = defaultdict(list)
+        self_matches = OrderedDict()
         mask = set()
         for i in range(len(query)):
           f = query[i]
           if f != '':
+            self_matches[i] = None
             family_num_map[f].append(i)
             if len(family_num_map[f]) > familymask:
                 mask.add(f)
+        # remove families that have too many members
         for f in mask:
+          for i in family_num_map[f]:
+            del self_matches[i]
           del family_num_map[f]
+        # compute all trivial self comparison blocks
+        trivial_blocks = set()
+        begin, _ = self_matches.popitem(last=False)
+        end = begin
+        for i in self_matches:
+          if i - end > maxinsert:
+            if end - begin >= minsize:
+              block = ((begin, begin), (end, end))
+              trivial_blocks.add(block)
+            begin = i
+          end = i
+        if end - begin >= minsize:
+          block = ((begin, begin), (end, end))
+          trivial_blocks.add(block)
 
         t1 = time.time()
         total = t1-t0
@@ -1059,11 +1093,9 @@ def v1_1_macro_synteny(request):
         # mine synteny from each chromosome
         args = []
         for c_id in CHROMOSOMES_AS_FAMILIES:
-          #genes = CHROMOSOMES_AS_GENES[c_id] if c_id != POST['query'] else []
-          #counts = CHROMOSOME_FAMILY_COUNTS[c_id] if c_id != POST['query'] else []
           genes = CHROMOSOMES_AS_GENES[c_id]
           counts = CHROMOSOME_FAMILY_COUNTS[c_id]
-          c_args = (family_num_map, maxinsert, minsize, maxsize, familymask, genes, counts)
+          c_args = (family_num_map, trivial_blocks, maxinsert, minsize, familymask, genes, counts)
           args.append(c_args)
         data = zip(CHROMOSOMES_AS_FAMILIES.iteritems(), args)
         results = pool.map(macro_synteny_paths, data)
