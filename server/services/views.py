@@ -14,6 +14,7 @@ from services.models import Cv, Cvterm, Feature, Featureloc, Featureprop, \
 
 # Python
 import json
+import math
 import operator
 import time
 from collections     import defaultdict, OrderedDict
@@ -981,9 +982,12 @@ minsize, familymask, chromosome_as_genes, family_counts))):
   for i in range(len(pairs)):
     n1, n2 = p1 = pairs[i]
     f_scores[p1] = r_scores[p1] = 1
+    dist = float('inf')
     # iterate preceding nodes in DAG from closest to furtherest
     for j in reversed(range(i)):
       m1, m2 = p2 = pairs[j]
+      if n1 == m1:
+        continue
       # the query and chromosome must agree on the ordering
       # n1 <= m1 is always true
       d1 = n1 - m1
@@ -993,18 +997,22 @@ minsize, familymask, chromosome_as_genes, family_counts))):
         # are the nodes close enough to be in the same path?
         if d1 <= maxinsert and d2 <= maxinsert:
           s = f_scores[p2] + 1
-          if s > f_scores[p1]:
+          d = math.sqrt(math.pow(d1, 2) + math.pow(d2, 2))
+          if s > f_scores[p1] or (s == f_scores[p1] and d < dist):
             f_scores[p1]   = s
             f_pointers[p1] = p2
+            dist           = d
       # reverse blocks
       if m2 > n2:
         d2 = m2 - n2
         # are the nodes close enough to be in the same path?
         if d1 <= maxinsert and d2 <= maxinsert:
           s = r_scores[p2] + 1
-          if s > r_scores[p1]:
+          d = math.sqrt(math.pow(d1, 2) + math.pow(d2, 2))
+          if s > r_scores[p1] or (s == f_scores[p1] and d < dist):
             r_scores[p1]   = s
             r_pointers[p1] = p2
+            dist           = d
       # if this node is too far away then all remaining nodes are too
       if d1 > maxinsert:
         break
@@ -1049,9 +1057,9 @@ def v1_1_macro_synteny(request):
 
         T0 = t0 = time.time()
         # parse the parameters
-        query = POST['families']
-        maxinsert = POST['matched'] + 1
-        minsize   = POST['intermediate'] + 1
+        query      = POST['families']
+        maxinsert  = POST['intermediate'] + 1
+        minsize    = POST['matched'] + 1
         familymask = POST['mask']
 
         # make a dictionary that maps families to query gene numbers
