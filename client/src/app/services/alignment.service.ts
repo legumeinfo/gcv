@@ -9,6 +9,7 @@ import { AlignmentParams }      from '../models/alignment-params.model';
 import { AppRoutes }            from '../constants/app-routes';
 import { AppRouteService }      from './app-route.service';
 import { AppStore }             from '../models/app-store.model';
+import { argsByValue }          from '../decorators/args-by-value.decorator';
 import { GCV }                  from '../../assets/js/gcv';
 import { MicroTracks }          from '../models/micro-tracks.model';
 import { StoreActions }         from '../constants/store-actions';
@@ -42,6 +43,7 @@ export class AlignmentService extends AppRouteService {
       .subscribe(tracks => this._multiAlignTracks(tracks));
   }
 
+  @argsByValue()
   private _alignTracks(tracks: MicroTracks, params: AlignmentParams): void {
     // get the alignment algorithm
     let algorithmID = this._algorithmIDs.indexOf(params.algorithm),
@@ -93,6 +95,7 @@ export class AlignmentService extends AppRouteService {
     this._store.dispatch(action);
   }
 
+  @argsByValue()
   private _multiAlignTracks(tracks: MicroTracks): void {
     // bin tracks by their clusters
     let clusters = {};
@@ -119,6 +122,7 @@ export class AlignmentService extends AppRouteService {
     this._store.dispatch(action);
   }
 
+  @argsByValue()
   updateParams(params: AlignmentParams): void {
     let action = {type: StoreActions.UPDATE_ALIGNMENT_PARAMS, payload: params};
     this._store.dispatch(action);

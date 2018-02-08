@@ -7,6 +7,7 @@ import { Store }      from '@ngrx/store';
 import { AppRoutes }        from '../constants/app-routes';
 import { AppRouteService }  from './app-route.service';
 import { AppStore }         from '../models/app-store.model';
+import { argsByValue }      from '../decorators/args-by-value.decorator';
 import { ClusteringParams } from '../models/clustering-params.model';
 import { GCV }              from '../../assets/js/gcv';
 import { MicroTracks }      from '../models/micro-tracks.model';
@@ -32,6 +33,7 @@ export class ClusteringService extends AppRouteService {
       });
   }
 
+  @argsByValue()
   clusterMicroTracks(tracks: MicroTracks, params: ClusteringParams): void {
     let grouped  = [],
         results  = [];
@@ -92,6 +94,7 @@ export class ClusteringService extends AppRouteService {
     this._store.dispatch(action);
   }
 
+  @argsByValue()
   updateParams(params: ClusteringParams): void {
     let action = {type: StoreActions.UPDATE_CLUSTERING_PARAMS, payload: params};
     this._store.dispatch(action);

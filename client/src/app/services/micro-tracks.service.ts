@@ -10,6 +10,7 @@ import { AppConfig }         from '../app.config';
 import { AppRoutes }         from '../constants/app-routes';
 import { AppRouteService }   from './app-route.service';
 import { AppStore }          from '../models/app-store.model';
+import { argsByValue }       from '../decorators/args-by-value.decorator';
 import { Family }            from '../models/family.model';
 import { Gene }              from '../models/gene.model';
 import { GET, POST, Server } from '../models/server.model';
@@ -24,7 +25,7 @@ export class MicroTracksService extends AppRouteService {
   searchQueryTrack: Observable<Group>;
   microTracks: Observable<MicroTracks>;
 
-  private _serverIDs   = AppConfig.SERVERS.map(s => s.id);
+  private _serverIDs = AppConfig.SERVERS.map(s => s.id);
 
   constructor(private _http: Http,
               private _location: Location,
@@ -151,7 +152,7 @@ export class MicroTracksService extends AppRouteService {
     }
   }
 
-  //multiQuery(queryGenes: string[], params: QueryParams, failure = e=>{}): void {
+  @argsByValue()
   multiQuery(queryGenes: string[], params: QueryParams) {
     let args = {
       genes: queryGenes,
@@ -236,8 +237,7 @@ export class MicroTracksService extends AppRouteService {
     });
   }
 
-  //geneSearch(source: string, queryGene: string, params: QueryParams,
-  //failure=e=>{}): void {
+  @argsByValue()
   geneSearch(queryGene: any, params: QueryParams): void {
     // fetch query track for gene
     let idx: number = this._serverIDs.indexOf(queryGene.source);
@@ -273,7 +273,7 @@ export class MicroTracksService extends AppRouteService {
     }
   }
 
-  //trackSearch(query: Group, params: QueryParams, failure=e=>{}): void {
+  @argsByValue()
   trackSearch(query: Group, params: QueryParams): void {
     let args = {
       query: query.genes.map(g => g.family),
@@ -343,6 +343,7 @@ export class MicroTracksService extends AppRouteService {
     });
   }
 
+  @argsByValue()
   updateParams(params: QueryParams): void {
     let action = {type: StoreActions.UPDATE_QUERY_PARAMS, payload: params};
     this._store.dispatch(action);

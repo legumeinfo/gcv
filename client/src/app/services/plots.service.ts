@@ -1,14 +1,15 @@
 // Angular
 import { Http, RequestOptionsArgs , Response } from '@angular/http';
-import { Injectable }     from '@angular/core';
-import { Observable }     from 'rxjs/Observable';
-import { Store }          from '@ngrx/store';
+import { Injectable }                          from '@angular/core';
+import { Observable }                          from 'rxjs/Observable';
+import { Store }                               from '@ngrx/store';
 
 // App
 import { AppConfig }         from '../app.config';
-import { AppRoutes }        from '../constants/app-routes';
+import { AppRoutes }         from '../constants/app-routes';
 import { AppRouteService }   from './app-route.service';
 import { AppStore }          from '../models/app-store.model';
+import { argsByValue }       from '../decorators/args-by-value.decorator';
 import { StoreActions }      from '../constants/store-actions';
 import { Gene }              from '../models/gene.model';
 import { GET, POST, Server } from '../models/server.model';
@@ -108,8 +109,9 @@ export class PlotsService extends AppRouteService {
     return plotGenes;
   }
 
+  @argsByValue()
   private _plotTracks(tracks): Group[] {
-    let plots = JSON.parse(JSON.stringify(tracks.groups)); 
+    let plots = tracks.groups; 
     if (plots.length > 0) {
   	  for (let i = 0; i < plots.length; ++i) {
         let g = plots[i];
