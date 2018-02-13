@@ -1,24 +1,20 @@
 // Angular
-import { Component,
-         EventEmitter,
-         OnInit,
-         Output }                 from '@angular/core';
-import { FormBuilder, FormGroup } from '@angular/forms';
+import { Component, EventEmitter, OnInit, Output } from "@angular/core";
+import { FormBuilder, FormGroup } from "@angular/forms";
 
 // App
-import { AppConfig }          from '../../app.config';
-import { ClusteringParams }   from '../../models/clustering-params.model';
-import { ClusteringService }  from '../../services/clustering.service';
-import { MicroTracksService } from '../../services/micro-tracks.service';
-import { QueryParams }        from '../../models/query-params.model';
+import { AppConfig } from "../../app.config";
+import { ClusteringParams } from "../../models/clustering-params.model";
+import { QueryParams } from "../../models/query-params.model";
+import { ClusteringService } from "../../services/clustering.service";
+import { MicroTracksService } from "../../services/micro-tracks.service";
 
 @Component({
   moduleId: module.id.toString(),
-  selector: 'multi-params',
-  templateUrl: 'multi-params.component.html',
-  styleUrls: [ 'multi-params.component.css' ]
+  selector: "multi-params",
+  styles: [ require("./multi-params.component.scss") ],
+  template: require("./multi-params.component.html"),
 })
-
 export class MultiParamsComponent implements OnInit {
   // IO
   @Output() invalid = new EventEmitter();
@@ -32,46 +28,32 @@ export class MultiParamsComponent implements OnInit {
   clusteringGroup: FormGroup;
 
   // form data
-  sources = AppConfig.SERVERS.filter(s => s.hasOwnProperty('microMulti'));
+  sources = AppConfig.SERVERS.filter((s) => s.hasOwnProperty("microMulti"));
 
   // constructor
-  constructor(private _clusteringService: ClusteringService,
-              private _fb: FormBuilder,
-              private _microTracksService: MicroTracksService) { }
+  constructor(private clusteringService: ClusteringService,
+              private fb: FormBuilder,
+              private microTracksService: MicroTracksService) { }
 
   // Angular hooks
 
   ngOnInit(): void {
     // initialize query group and subscribe to store updates
-    let defaultQuery = new QueryParams();
-    this.queryGroup  = this._fb.group(defaultQuery.formControls());
-    this._microTracksService.queryParams
-      .subscribe(params => this._updateGroup(this.queryGroup, params));
+    const defaultQuery = new QueryParams();
+    this.queryGroup  = this.fb.group(defaultQuery.formControls());
+    this.microTracksService.queryParams
+      .subscribe((params) => this._updateGroup(this.queryGroup, params));
 
     // initialize clustering group and subscribe to store updates
-    let defaultClustering = new ClusteringParams();
-    this.clusteringGroup  = this._fb.group(defaultClustering.formControls());
-    this._clusteringService.clusteringParams
-      .subscribe(params => this._updateGroup(this.queryGroup, params));
+    const defaultClustering = new ClusteringParams();
+    this.clusteringGroup  = this.fb.group(defaultClustering.formControls());
+    this.clusteringService.clusteringParams
+      .subscribe((params) => this._updateGroup(this.queryGroup, params));
 
     // submit the updated form
     this.queryGroup.markAsDirty();
     this.clusteringGroup.markAsDirty();
     this.submit();
-  }
-
-  // private
-
-  private _updateGroup(group, params) {
-    group.patchValue(params);
-  }
-
-  private _submitGroup(group, callback=params=>{}): void {
-    if (group.dirty) {
-      let params = group.getRawValue();
-      callback(params);
-      group.reset(params);
-    }
   }
 
   // public
@@ -80,15 +62,29 @@ export class MultiParamsComponent implements OnInit {
     if (this.queryGroup.valid && this.clusteringGroup.valid) {
       this.valid.emit();
       // submit query params
-      this._submitGroup(this.queryGroup, params => {
-        this._microTracksService.updateParams(params);
+      this._submitGroup(this.queryGroup, (params) => {
+        this.microTracksService.updateParams(params);
       });
       // submit clustering params
-      this._submitGroup(this.clusteringGroup, params => {
-        this._clusteringService.updateParams(params);
+      this._submitGroup(this.clusteringGroup, (params) => {
+        this.clusteringService.updateParams(params);
       });
     } else {
       this.invalid.emit();
+    }
+  }
+
+  // private
+
+  private _updateGroup(group, params) {
+    group.patchValue(params);
+  }
+
+  private _submitGroup(group, callback): void {
+    if (group.dirty) {
+      const params = group.getRawValue();
+      callback(params);
+      group.reset(params);
     }
   }
 }

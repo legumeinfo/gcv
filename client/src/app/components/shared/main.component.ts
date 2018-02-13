@@ -1,10 +1,9 @@
-import { Component } from '@angular/core';
+import { Component } from "@angular/core";
 
 @Component({
   moduleId: module.id.toString(),
-  selector: 'main',
-  templateUrl: 'main.component.html',
-  styleUrls: [ 'main.component.css' ]
+  selector: "main",
+  styles: [ require("./main.component.scss") ],
+  template: require("./main.component.html"),
 })
-
 export class MainComponent { }

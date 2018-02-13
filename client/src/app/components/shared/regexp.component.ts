@@ -1,17 +1,15 @@
 // Angular
-import { Component,
-         ElementRef,
-         OnDestroy,
-         OnInit,
-         ViewChild } from '@angular/core';
+import { Component, ElementRef, OnDestroy, OnInit,
+  ViewChild } from "@angular/core";
 
 // App
-import { FilterService } from '../../services/filter.service';
-import { UrlService }    from '../../services/url.service';
+import { FilterService } from "../../services/filter.service";
+import { UrlService } from "../../services/url.service";
 
 @Component({
   moduleId: module.id.toString(),
-  selector: 'app-regexp',
+  selector: "app-regexp",
+  styles: [ "form button { margin-right: 0; }" ],
   template: `
     <form (ngSubmit)="submit()" #regexpForm="ngForm">
       <div class="input-group">
@@ -25,32 +23,31 @@ import { UrlService }    from '../../services/url.service';
       </div>
     </form>
   `,
-  styles: [ 'form button { margin-right: 0; }' ]
 })
-
 export class RegexpComponent implements OnDestroy, OnInit {
 
-  model: any = {regexp: ''};
+  model: any = {regexp: ""};
 
-  private _sub: any;
+  private sub: any;
 
-  constructor(private _url: UrlService,
-              private _filterService: FilterService) { }
+  constructor(private url: UrlService,
+              private filterService: FilterService) { }
 
   ngOnDestroy(): void {
-    this._sub.unsubscribe();
+    this.sub.unsubscribe();
   }
 
   ngOnInit(): void {
-    this._sub = this._url.urlQueryParams.subscribe(params => {
-      if (params['regexp'])
-        this.model.regexp = params['regexp'];
+    this.sub = this.url.urlQueryParams.subscribe((params) => {
+      if (params.regexp) {
+        this.model.regexp = params.regexp;
+      }
     });
     this.submit();
   }
 
   submit(): void {
-    this._filterService.setRegexp(this.model.regexp);
-    //this._url.updateParams(this.model);
+    this.filterService.setRegexp(this.model.regexp);
+    // this.url.updateParams(this.model);
   }
 }

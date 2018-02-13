@@ -1,7 +1,6 @@
-<!-- main content area -->
+
 <main>
 
-  <!-- header -->
   <header>
     <ul class="nav navbar-nav tabs" left>
       <li><toggle-button (toggleFn)="selectParams()">Parameters</toggle-button></li>
@@ -14,168 +13,150 @@
     </ul>
   </header>
 
-  <!-- main content -->
-  <div [ngSwitch]="selectedContent">
+  <main-content [hidden]="selectedContent!==contentTypes.VIEWERS">
+    <div #left id="left" class="split split-horizontal">
 
-    <!-- micro/macro viewers -->
-    <main-content *ngSwitchCase="contentTypes.VIEWERS">
-      <div #left id="left" class="split split-horizontal">
-
-        <div #topLeft id="top-left" class="split content">
-          <!-- macro-synteny viewer -->
-          <viewer-macro
-            [data]="macroTracks"
-            [arguments]="macroArgs" >
-            <li dropdown><form>
-              <div class="checkbox">
-                <label>
-                  <input type="checkbox" [checked]="macroConfig.order" (change)="toggleMacroOrder()"> Micro-synteny ordering
-                </label>
-              </div>
-              <div class="checkbox">
-                <label>
-                  <input type="checkbox" [checked]="macroConfig.filter" (change)="toggleMacroFilter()"> Micro-synteny only
-                </label>
-              </div>
-            </form></li>
-          </viewer-macro>
-        </div>
-
-        <div #bottomLeft id="bottom-left" class="split content">
-          <!-- micro-synteny viewer -->
-          <viewer-micro
-            [data]="microTracks"
-            [colors]="microColors"
-            [arguments]="microArgs" >
-            <ul navbar class="nav navbar-nav accordion">
-              <li [ngClass]="{'active': accordion==accordionTypes.SEARCH}">
-                <a (click)="setAccordion($event, accordionTypes.SEARCH)">
-                &nbsp;<span class="glyphicon glyphicon-search" aria-hidden="true"></span>&nbsp;
-                </a>
-              </li>
-              <li class="target" [ngClass]="{'active': accordion==accordionTypes.SEARCH}">
-                <app-gene-search></app-gene-search>
-              </li>
-              <li [ngClass]="{'active': accordion==accordionTypes.REGEXP}">
-                <a (click)="setAccordion($event, accordionTypes.REGEXP)">
-                &nbsp;<span class="glyphicon glyphicon-filter" aria-hidden="true"></span>&nbsp;
-                </a>
-              </li>
-              <li class="target" [ngClass]="{'active': accordion==accordionTypes.REGEXP}">
-                <app-regexp></app-regexp>
-              </li>
-              <li [ngClass]="{'active': accordion==accordionTypes.ORDER}">
-                <a (click)="setAccordion($event, accordionTypes.ORDER)">
-                &nbsp;<span class="glyphicon glyphicon-triangle-bottom"></span><span class="glyphicon glyphicon-triangle-top"></span>&nbsp;
-                </a>
-              </li>
-              <li class="target" [ngClass]="{'active': accordion==accordionTypes.ORDER}">
-                <app-ordering></app-ordering>
-              </li>
-              <li [ngClass]="{'active': accordion==accordionTypes.SCROLL}">
-                <a (click)="setAccordion($event, accordionTypes.SCROLL)">
-                &nbsp;<span class="glyphicon glyphicon-chevron-left" aria-hidden="true"></span>
-                <span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span>&nbsp;
-                </a>
-              </li>
-              <li class="target" [ngClass]="{'active': accordion==accordionTypes.SCROLL}">
-                <scroll [gene]="routeGene" [query]="queryGenes" ></scroll>
-              </li>
-            </ul>
-          </viewer-micro>
-        </div>
-
+      <div #topLeft id="top-left" class="split content">
+        <viewer-macro
+          [data]="macroTracks"
+          [arguments]="macroArgs" >
+          <li dropdown><form>
+            <div class="checkbox">
+              <label>
+                <input type="checkbox" [checked]="macroConfig.order" (change)="toggleMacroOrder()"> Micro-synteny ordering
+              </label>
+            </div>
+            <div class="checkbox">
+              <label>
+                <input type="checkbox" [checked]="macroConfig.filter" (change)="toggleMacroFilter()"> Micro-synteny only
+              </label>
+            </div>
+          </form></li>
+        </viewer-macro>
       </div>
 
-      <div #right id="right" class="split split-horizontal">
-        <div #topRight id="top-right" class="split content">
-          <div class="legend" *ngIf="macroColors">
-            <!-- macro-synteny legend -->
+      <div #bottomLeft id="bottom-left" class="split content">
+        <viewer-micro
+          [data]="microTracks"
+          [colors]="microColors"
+          [arguments]="microArgs" >
+          <ul navbar class="nav navbar-nav accordion">
+            <li [ngClass]="{'active': accordion==accordionTypes.SEARCH}">
+              <a (click)="setAccordion($event, accordionTypes.SEARCH)">
+              &nbsp;<span class="glyphicon glyphicon-search" aria-hidden="true"></span>&nbsp;
+              </a>
+            </li>
+            <li class="target" [ngClass]="{'active': accordion==accordionTypes.SEARCH}">
+              <app-gene-search></app-gene-search>
+            </li>
+            <li [ngClass]="{'active': accordion==accordionTypes.REGEXP}">
+              <a (click)="setAccordion($event, accordionTypes.REGEXP)">
+              &nbsp;<span class="glyphicon glyphicon-filter" aria-hidden="true"></span>&nbsp;
+              </a>
+            </li>
+            <li class="target" [ngClass]="{'active': accordion==accordionTypes.REGEXP}">
+              <app-regexp></app-regexp>
+            </li>
+            <li [ngClass]="{'active': accordion==accordionTypes.ORDER}">
+              <a (click)="setAccordion($event, accordionTypes.ORDER)">
+              &nbsp;<span class="glyphicon glyphicon-triangle-bottom"></span><span class="glyphicon glyphicon-triangle-top"></span>&nbsp;
+              </a>
+            </li>
+            <li class="target" [ngClass]="{'active': accordion==accordionTypes.ORDER}">
+              <app-ordering></app-ordering>
+            </li>
+            <li [ngClass]="{'active': accordion==accordionTypes.SCROLL}">
+              <a (click)="setAccordion($event, accordionTypes.SCROLL)">
+              &nbsp;<span class="glyphicon glyphicon-chevron-left" aria-hidden="true"></span>
+              <span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span>&nbsp;
+              </a>
+            </li>
+            <li class="target" [ngClass]="{'active': accordion==accordionTypes.SCROLL}">
+              <scroll [gene]="routeGene" [query]="queryGenes" ></scroll>
+            </li>
+          </ul>
+        </viewer-micro>
+      </div>
+    </div>
+
+    <div #right id="right" class="split split-horizontal">
+      <div #topRight id="top-right" class="split content">
+        <div class="legend">
+          <viewer-legend
+            [data]="macroLegend"
+            [colors]="macroColors"
+            [arguments]="macroLegendArgs" >
+          </viewer-legend>
+        </div>
+      </div>
+      <div #bottomRight id="bottom-right" class="split content">
+        <div class="legend">
+          <div class="vertical-fill">
             <viewer-legend
-              [data]="macroLegend"
-              [colors]="macroColors"
-              [arguments]="macroLegendArgs" >
+              [data]="microLegend"
+              [colors]="microColors"
+              [arguments]="microLegendArgs" >
             </viewer-legend>
           </div>
-        </div>
-        <div #bottomRight id="bottom-right" class="split content">
-          <div class="legend">
-            <div class="vertical-fill">
-              <!-- micro-synteny legend -->
-              <viewer-legend
-                [data]="microLegend"
-                [colors]="microColors"
-                [arguments]="microLegendArgs" >
-              </viewer-legend>
-            </div>
-            <!-- local and global dot plots -->
-            <div class="local-global-plots" *ngIf="showLocalGlobalPlots">
-              <div class="outer-ratio">
-                <div class="inner-ratio" [ngSwitch]="selectedPlot">
-                  <!-- local dot plot -->
-                  <viewer-plot *ngSwitchCase="plotTypes.LOCAL"
-                    [data]="selectedLocal"
-                    [colors]="microColors"
-                    [arguments]="plotArgs" >
-                    <ul class="nav navbar-nav tabs" navbar>
-                      <li [ngClass]="{'active': selectedPlot==plotTypes.LOCAL}">
-                        <a (click)="showLocalPlot()">Local</a>
-                      </li>
-                      <li [ngClass]="{'active': selectedPlot==plotTypes.GLOBAL}">
-                        <a (click)="showGlobalPlot()">Global</a>
-                      </li>
-                    </ul>
-                    <li navright>
-                      <a><span class="glyphicon glyphicon-remove" aria-hidden="true" (click)="hideLocalGlobalPlots()"></span></a>
+          <div class="local-global-plots" [hidden]="!showLocalGlobalPlots">
+            <div class="outer-ratio">
+              <div class="inner-ratio" [ngSwitch]="selectedPlot">
+                <viewer-plot *ngSwitchCase="plotTypes.LOCAL"
+                  [data]="selectedLocal"
+                  [colors]="microColors"
+                  [arguments]="plotArgs" >
+                  <ul class="nav navbar-nav tabs" navbar>
+                    <li [ngClass]="{'active': selectedPlot==plotTypes.LOCAL}">
+                      <a (click)="showLocalPlot()">Local</a>
                     </li>
-                  </viewer-plot>
-                  <!-- global dot plot -->
-                  <viewer-plot *ngSwitchCase="plotTypes.GLOBAL"
-                    [data]="selectedGlobal"
-                    [colors]="microColors"
-                    [arguments]="plotArgs" >
-                    <ul class="nav navbar-nav tabs" navbar>
-                      <li [ngClass]="{'active': selectedPlot==plotTypes.LOCAL}">
-                        <a (click)="showLocalPlot()">Local</a>
-                      </li>
-                      <li [ngClass]="{'active': selectedPlot==plotTypes.GLOBAL}">
-                        <a (click)="showGlobalPlot()">Global</a>
-                      </li>
-                    </ul>
-                    <li navright>
-                      <a><span class="glyphicon glyphicon-remove" aria-hidden="true" (click)="hideLocalGlobalPlots()"></span></a>
+                    <li [ngClass]="{'active': selectedPlot==plotTypes.GLOBAL}">
+                      <a (click)="showGlobalPlot()">Global</a>
                     </li>
-                  </viewer-plot>
-                </div>
+                  </ul>
+                  <li navright>
+                    <a><span class="glyphicon glyphicon-remove" aria-hidden="true" (click)="hideLocalGlobalPlots()"></span></a>
+                  </li>
+                </viewer-plot>
+                <viewer-plot *ngSwitchCase="plotTypes.GLOBAL"
+                  [data]="selectedGlobal"
+                  [colors]="microColors"
+                  [arguments]="plotArgs" >
+                  <ul class="nav navbar-nav tabs" navbar>
+                    <li [ngClass]="{'active': selectedPlot==plotTypes.LOCAL}">
+                      <a (click)="showLocalPlot()">Local</a>
+                    </li>
+                    <li [ngClass]="{'active': selectedPlot==plotTypes.GLOBAL}">
+                      <a (click)="showGlobalPlot()">Global</a>
+                    </li>
+                  </ul>
+                  <li navright>
+                    <a><span class="glyphicon glyphicon-remove" aria-hidden="true" (click)="hideLocalGlobalPlots()"></span></a>
+                  </li>
+                </viewer-plot>
               </div>
             </div>
           </div>
         </div>
       </div>
-    </main-content>
+    </div>
+  </main-content>
 
-    <main-content *ngSwitchCase="contentTypes.PLOTS">
-      <div class="plots" (scroll)="drawPlots()">
-        <!-- all local plots -->
-        <div class="plot col-sm-6 col-md-4" *ngFor="let p of microPlots">
-          <viewer-plot
-            [data]="p"
-            [colors]="microColors"
-            [arguments]="plotArgs"
-            [visibleDraw]="true" >
-          </viewer-plot>
-        </div>
+  <main-content [hidden]="selectedContent!==contentTypes.PLOTS">
+    <div class="plots" (scroll)="drawPlots()">
+      <div class="plot col-sm-6 col-md-4" *ngFor="let p of microPlots">
+        <viewer-plot
+          [data]="p"
+          [colors]="microColors"
+          [arguments]="plotArgs"
+          [visibleDraw]="true" >
+        </viewer-plot>
       </div>
-    </main-content>
-
-  </div>
+    </div>
+  </main-content>
 
 </main>
 
-
-<!-- left slider -->
 <left-slider [selected]="selectedDetail" [tracks]="microTracks">
-  <!-- view parameters -->
   <search-params
     (invalid)="selectParams()"
     (valid)="hideLeftSlider()" >

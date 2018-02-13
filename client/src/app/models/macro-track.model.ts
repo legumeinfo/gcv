@@ -1,4 +1,4 @@
-import { MacroBlock } from './macro-block.model';
+import { MacroBlock } from "./macro-block.model";
 
 export interface MacroTrack {
   chromosome: string;

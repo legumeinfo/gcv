@@ -1,18 +1,23 @@
 // Angular
-import { BehaviorSubject } from 'rxjs/BehaviorSubject';
-import { Injectable }      from '@angular/core';
-import { Observable }      from 'rxjs/Observable';
+import { Injectable } from "@angular/core";
+import { BehaviorSubject } from "rxjs/BehaviorSubject";
+import { Observable } from "rxjs/Observable";
 
 // App
-import { Alert }  from '../models/alert.model';
-import { Alerts } from '../constants/alerts';
+import { Alerts } from "../constants/alerts";
+import { Alert } from "../models/alert.model";
 
 @Injectable()
 export class AlertsService {
-  private _alerts = new BehaviorSubject(new Alert(Alerts.ALERT_INFO, ''));
-  alerts = this._alerts.asObservable();
+  alerts: Observable<Alert>;
+  private alertsBehavior: BehaviorSubject<Alert>;
+
+  constructor() {
+    this.alertsBehavior = new BehaviorSubject(new Alert(Alerts.ALERT_INFO, ""));
+    this.alerts = this.alertsBehavior.asObservable();
+  }
 
   pushAlert(a: Alert): void {
-    this._alerts.next(a);
+    this.alertsBehavior.next(a);
   }
 }

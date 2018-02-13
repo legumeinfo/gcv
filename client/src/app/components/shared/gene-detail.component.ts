@@ -1,16 +1,14 @@
 // Angular
-import { Component,
-         Input, 
-         OnChanges,
-         SimpleChanges } from '@angular/core';
+import { Component, Input, OnChanges, SimpleChanges } from "@angular/core";
 
 // App
-import { DetailsService } from '../../services/details.service';
-import { Gene }           from '../../models/gene.model';
+import { Gene } from "../../models/gene.model";
+import { DetailsService } from "../../services/details.service";
 
 @Component({
   moduleId: module.id.toString(),
-  selector: 'gene-detail',
+  selector: "gene-detail",
+  styles: [ "" ],
   template: `
     <spinner [data]="links"></spinner>
     <h4>{{gene.name}}</h4>
@@ -22,21 +20,19 @@ import { Gene }           from '../../models/gene.model';
       </li>
     </ul>
   `,
-  styles: [ '' ]
 })
-
 export class GeneDetailComponent implements OnChanges {
   @Input() gene: Gene;
 
   links: any[];
 
-  constructor(private _detailsService: DetailsService) { }
+  constructor(private detailsService: DetailsService) { }
 
   ngOnChanges(changes: SimpleChanges): void {
     this.links = undefined;
     if (this.gene !== undefined) {
       this.links = undefined;
-      this._detailsService.getGeneDetails(this.gene, links => {
+      this.detailsService.getGeneDetails(this.gene, (links) => {
         this.links = links;
       });
     }

@@ -1,13 +1,9 @@
-import { Graph } from './graph';
-
+import { Graph } from "./graph";
 
 /**
-  * A directed graph that implements the abstract Graph class.
-  */
+ * A directed graph that implements the abstract Graph class.
+ */
 export class Directed extends Graph {
-  constructor(edgeDelimiter?) {
-    super(edgeDelimiter);
-  }
   static Node = class extends Graph.Node {
     inNeighbors: Set<any>;
     outNeighbors: Set<any>;
@@ -16,6 +12,9 @@ export class Directed extends Graph {
       this.inNeighbors  = new Set();
       this.outNeighbors = new Set();
     }
+  };
+  constructor(edgeDelimiter?) {
+    super(edgeDelimiter);
   }
   // primitive operations
   removeNodeEdges(id) {
@@ -30,7 +29,7 @@ export class Directed extends Graph {
     return u + this.ed + v;
   }
   addEdge(u, v, attr?) {
-    var e = this.getEdgeId(u, v);
+    const e = this.getEdgeId(u, v);
     if (!this.edges.hasOwnProperty(e)) {
       this.nodes[u].outNeighbors.add(v);
       this.nodes[v].inNeighbors.add(u);
@@ -38,25 +37,27 @@ export class Directed extends Graph {
     }
   }
   updateEdge(u, v, attr) {
-    var e = this.getEdgeId(u, v);
+    const e = this.getEdgeId(u, v);
     if (this.edges.hasOwnProperty(e)) {
       this.edges[e] = attr;
     }
   }
   removeEdge(u, v) {
-    var e = this.getEdgeId(u, v);
+    const e = this.getEdgeId(u, v);
     if (this.edges.hasOwnProperty(e)) {
-      var attr = this.edges[e];
+      const attr = this.edges[e];
       delete this.edges[e];
       this.nodes[u].outNeighbors.delete(v);
       this.nodes[v].inNeighbors.delete(u);
       return attr;
-    } return null;
+    }
+    return null;
   }
   getEdge(u, v) {
-    var e = this.getEdgeId(u, v);
+    const e = this.getEdgeId(u, v);
     if (this.edges.hasOwnProperty(e)) {
       return this.edges[e];
-    } return null;
+    }
+    return null;
   }
 }

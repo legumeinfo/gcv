@@ -1,4 +1,4 @@
-import { Gene } from './gene.model';
+import { Gene } from "./gene.model";
 
 export class Group {
   species_id: number;

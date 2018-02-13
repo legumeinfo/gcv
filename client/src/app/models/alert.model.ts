@@ -1,6 +1,3 @@
 export class Alert {
-  constructor(
-    public type: string,
-    public message: string
-    ) { }
+  constructor(public type: string, public message: string) { }
 }

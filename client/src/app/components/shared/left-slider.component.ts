@@ -1,34 +1,30 @@
 // Angular
-import { Component,
-         Input,
-         OnChanges,
-         SimpleChanges } from '@angular/core';
+import { Component, Input, OnChanges, SimpleChanges } from "@angular/core";
 
 // App
-import { Family }       from '../../models/family.model';
-import { Gene }         from '../../models/gene.model';
-import { Group }        from '../../models/group.model';
-import { MicroTracks }  from '../../models/micro-tracks.model';
-import { SliderStates } from '../../constants/slider-states';
-import { toggleSlider } from '../../animations/toggle-slider.animation';
+import { toggleSlider } from "../../animations/toggle-slider.animation";
+import { SliderStates } from "../../constants/slider-states";
+import { Family } from "../../models/family.model";
+import { Gene } from "../../models/gene.model";
+import { Group } from "../../models/group.model";
+import { MicroTracks } from "../../models/micro-tracks.model";
 
 enum DetailTypes {
   PARAMS,
   GENE,
   FAMILY,
-  TRACK
+  TRACK,
 }
 
 @Component({
+  animations: [ toggleSlider ],
   moduleId: module.id.toString(),
-  selector: 'left-slider',
-  templateUrl: 'left-slider.component.html',
-  styleUrls: [ 'left-slider.component.css' ],
-  animations: [ toggleSlider ]
+  selector: "left-slider",
+  styles: [ require("./left-slider.component.scss") ],
+  template: require("./left-slider.component.html"),
 })
-
 export class LeftSliderComponent implements OnChanges {
-  @Input() selected: Family | Gene | Group | Object;
+  @Input() selected: Family | Gene | Group | object;
   @Input() tracks: MicroTracks;
 
   state = SliderStates.SLIDER_ACTIVE;
@@ -54,8 +50,8 @@ export class LeftSliderComponent implements OnChanges {
       this.track = this.selected;
       this.show();
     } else if (this.selected instanceof Object) {
-      if (this.selectedDetail == DetailTypes.PARAMS &&
-      this.state == SliderStates.SLIDER_ACTIVE) {
+      if (this.selectedDetail === DetailTypes.PARAMS &&
+      this.state === SliderStates.SLIDER_ACTIVE) {
         this.hide();
       } else {
         this.selectedDetail = DetailTypes.PARAMS;
@@ -65,11 +61,11 @@ export class LeftSliderComponent implements OnChanges {
       this.hide();
     }
   }
-  
+
   hide(): void {
     this.state = SliderStates.SLIDER_INACTIVE;
   }
-  
+
   show(): void {
     this.state = SliderStates.SLIDER_ACTIVE;
   }

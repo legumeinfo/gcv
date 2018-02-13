@@ -1,17 +1,18 @@
-<!-- main content area -->
 <main>
 
-  <!-- header -->
   <header>
     <ul class="nav navbar-nav tabs" left>
       <li><toggle-button (toggleFn)="selectParams()">Parameters</toggle-button></li>
     </ul>
   </header>
 
-  <!-- main content -->
   <main-content>
     <div #left id="left" class="split split-horizontal content">
-      <!-- micro-synteny viewer -->
+      <div #topLeft id="top-left" class="split content">
+        <p>top left</p>
+      </div>
+
+      <div #bottomLeft id="bottom-left" class="split content">
       <viewer-micro
         [data]="microTracks"
         [colors]="microColors"
@@ -35,15 +36,20 @@
           </li>
         </ul>
       </viewer-micro>
+      </div>
     </div>
 
     <div #right id="right" class="split split-horizontal content">
-      <!-- legend -->
+      <div #topRight id="top-right" class="split content">
+        <p>top right</p>
+      </div>
+      <div #bottomRight id="bottom-right" class="split content">
       <viewer-legend
         [data]="microLegend"
         [colors]="microColors"
         [arguments]="microLegendArgs" >
       </viewer-legend>
+      </div>
     </div>
 
   </main-content>
@@ -51,9 +57,7 @@
 </main>
 
 
-<!-- left slider -->
 <left-slider [selected]="selectedDetail" [tracks]="microTracks">
-  <!-- view parameters -->
   <multi-params
     (invalid)="selectParams()"
     (valid)="hideLeftSlider()" >
