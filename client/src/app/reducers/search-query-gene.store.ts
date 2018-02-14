@@ -1,10 +1,10 @@
-import { StoreActions } from '../constants/store-actions';
+import * as searchQueryGeneActions from "../actions/search-query-gene.actions";
 
-export const searchQueryGene = (state: any, {type, payload}) => {
-  switch (type) {
-    case StoreActions.NEW_SEARCH_QUERY_GENE:
-      return payload;
+export function reducer(state, action: searchQueryGeneActions.Actions) {
+  switch (action.type) {
+    case searchQueryGeneActions.NEW:
+      return action.payload;
     default:
       return state;
   }
-};
+}

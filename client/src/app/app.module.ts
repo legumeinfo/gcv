@@ -48,6 +48,10 @@ import { MicroTracksService } from "./services/micro-tracks.service";
 import { PlotsService } from "./services/plots.service";
 import { UrlService } from "./services/url.service";
 
+// ngrx store
+import { StoreModule } from "@ngrx/store";
+import { reducers } from "./reducers";
+
 @NgModule({
   bootstrap:    [ AppComponent ],
   declarations: [
@@ -85,6 +89,7 @@ import { UrlService } from "./services/url.service";
     FormsModule,
     HttpModule,
     ReactiveFormsModule,
+    StoreModule.forRoot(reducers),
   ],
   providers: [
     AppConfig,

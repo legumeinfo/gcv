@@ -1,10 +1,10 @@
-import { StoreActions } from '../constants/store-actions';
+import * as multiQueryGeneActions from "../actions/multi-query-genes.actions";
 
-export const multiQueryGenes = (state: Array<string>, {type, payload}) => {
-  switch (type) {
-    case StoreActions.NEW_MULTI_QUERY_GENES:
-      return payload;
+export function reducer(state, action: multiQueryGeneActions.Actions) {
+  switch (action.type) {
+    case multiQueryGeneActions.NEW:
+      return action.payload;
     default:
       return state;
   }
-};
+}

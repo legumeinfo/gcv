@@ -1,12 +1,17 @@
-import { MicroTracks }  from '../models/micro-tracks.model';
-import { StoreActions } from '../constants/store-actions';
+import * as alignedMicroTrackActions from "../actions/aligned-micro-tracks.actions";
+import { MicroTracks } from "../models/micro-tracks.model";
 
-export const alignedMicroTracks = (state = new MicroTracks(),
-{type, payload}) => {
-  switch (type) {
-    case StoreActions.NEW_ALIGNED_TRACKS:
-      return payload;
+export function reducer(
+  state = new MicroTracks(),
+  action: alignedMicroTrackActions.Actions,
+) {
+  switch (action.type) {
+    case alignedMicroTrackActions.NEW:
+      return action.payload;
+    case alignedMicroTrackActions.ADD:
+      // TODO: clone state and add merge with payload
+      return action.payload;
     default:
       return state;
   }
-};
+}

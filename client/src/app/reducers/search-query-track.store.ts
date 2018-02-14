@@ -1,11 +1,10 @@
-import { Group }        from '../models/group.model';
-import { StoreActions } from '../constants/store-actions';
+import * as searchQueryTrackActions from "../actions/search-query-track.actions";
 
-export const searchQueryTrack = (state: Group, {type, payload}) => {
-  switch (type) {
-    case StoreActions.NEW_SEARCH_QUERY_TRACK:
-      return payload;
+export function reducer(state, action: searchQueryTrackActions.Actions) {
+  switch (action.type) {
+    case searchQueryTrackActions.NEW:
+      return action.payload;
     default:
       return state;
   }
-};
+}

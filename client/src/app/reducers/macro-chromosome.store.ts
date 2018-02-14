@@ -1,10 +1,10 @@
-import { StoreActions } from '../constants/store-actions';
+import * as macroChromosomeActions from "../actions/macro-chromosome.actions";
 
-export const macroChromosome = (state: any, {type, payload}) => {
-  switch (type) {
-    case StoreActions.NEW_MACRO_CHROMOSOME:
-      return payload;
+export function reducer(state, action: macroChromosomeActions.Actions) {
+  switch (action.type) {
+    case macroChromosomeActions.NEW:
+      return action.payload;
     default:
       return state;
   }
-};
+}

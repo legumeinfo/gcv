@@ -1,11 +1,14 @@
-import { BlockParams }  from '../models/block-params.model';
-import { StoreActions } from '../constants/store-actions';
+import * as blockParamActions from "../actions/block-params.actions";
+import { BlockParams } from "../models/block-params.model";
 
-export const blockParams = (state = new BlockParams(), {type, payload}) => {
-  switch (type) {
-    case StoreActions.UPDATE_BLOCK_PARAMS:
-      return payload;
+export function reducer(
+  state = new BlockParams(),
+  action: blockParamActions.Actions,
+) {
+  switch (action.type) {
+    case blockParamActions.NEW:
+      return action.payload;
     default:
       return state;
   }
-};
+}

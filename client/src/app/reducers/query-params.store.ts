@@ -1,11 +1,14 @@
-import { QueryParams }  from '../models/query-params.model';
-import { StoreActions } from '../constants/store-actions';
+import * as queryParamActions from "../actions/query-params.actions";
+import { QueryParams } from "../models/query-params.model";
 
-export const queryParams = (state = new QueryParams(), {type, payload}) => {
-  switch (type) {
-    case StoreActions.UPDATE_QUERY_PARAMS:
-      return payload;
+export function reducer(
+  state = new QueryParams(),
+  action: queryParamActions.Actions,
+) {
+  switch (action.type) {
+    case queryParamActions.NEW:
+      return action.payload;
     default:
       return state;
   }
-};
+}

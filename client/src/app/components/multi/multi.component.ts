@@ -38,7 +38,7 @@ export class MultiComponent implements AfterViewInit {
   selectedDetail = null;
 
   // micro viewer accordion
-  accordionTypes = {REGEXP:0, ORDER:1};
+  readonly accordionTypes = {REGEXP: 0, ORDER: 1};
   accordion = null;
 
   // data
@@ -68,13 +68,13 @@ export class MultiComponent implements AfterViewInit {
 
   ngAfterViewInit(): void {
     Split([this.left.nativeElement, this.right.nativeElement], {
-        direction: "horizontal"
+        direction: "horizontal",
       });
     Split([this.topLeft.nativeElement, this.bottomLeft.nativeElement], {
-        direction: "vertical"
+        direction: "vertical",
       });
     Split([this.topRight.nativeElement, this.bottomRight.nativeElement], {
-        direction: "vertical"
+        direction: "vertical",
       });
     // don"t subscribe to data until view loaded so drawing doesn"t fail
     Observable

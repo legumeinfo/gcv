@@ -1,10 +1,13 @@
-import { StoreActions } from '../constants/store-actions';
+import * as macroTrackActions from "../actions/macro-tracks.actions";
 
-export const macroTracks = (state: any, {type, payload}) => {
-  switch (type) {
-    case StoreActions.ADD_MACRO_TRACKS:
-      return payload;
+export function reducer(state, action: macroTrackActions.Actions) {
+  switch (action.type) {
+    case macroTrackActions.NEW:
+      return action.payload;
+    case macroTrackActions.ADD:
+      // TODO: clone state and add merge with payload
+      return action.payload;
     default:
       return state;
   }
-};
+}

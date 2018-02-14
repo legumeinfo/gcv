@@ -3,11 +3,11 @@ import { NgModule } from "@angular/core";
 import { RouterModule, Routes } from "@angular/router";
 
 // App
-import { AppRoutes } from "./constants/app-routes";
 // import { DefaultQueryParams } from "./constants/default-parameters";
 import { InstructionsComponent } from "./components/instructions/instructions.component";
 import { MultiComponent } from "./components/multi/multi.component";
 import { SearchComponent } from "./components/search/search.component";
+import { AppRoutes } from "./constants/app-routes";
 
 const routes: Routes = [
   {
@@ -42,6 +42,6 @@ const routes: Routes = [
 
 @NgModule({
   exports: [ RouterModule ],
-  imports: [ RouterModule.forRoot(routes, {useHash: true,}) ],
+  imports: [ RouterModule.forRoot(routes, {useHash: true}) ],
 })
 export class AppRoutingModule { }

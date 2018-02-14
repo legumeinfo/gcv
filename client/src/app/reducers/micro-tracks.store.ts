@@ -1,11 +1,17 @@
-import { MicroTracks }  from '../models/micro-tracks.model';
-import { StoreActions } from '../constants/store-actions';
+import * as microTrackActions from "../actions/micro-tracks.actions";
+import { MicroTracks } from "../models/micro-tracks.model";
 
-export const microTracks = (state: any = new MicroTracks(), {type, payload}) => {
-  switch (type) {
-    case StoreActions.ADD_MICRO_TRACKS:
-      return payload;
+export function reducer(
+  state = new MicroTracks(),
+  action: microTrackActions.Actions,
+) {
+  switch (action.type) {
+    case microTrackActions.NEW:
+      return action.payload;
+    case microTrackActions.ADD:
+      // TODO: clone state and add merge with payload
+      return action.payload;
     default:
       return state;
   }
-};
+}

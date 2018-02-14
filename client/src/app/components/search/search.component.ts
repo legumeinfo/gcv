@@ -51,7 +51,7 @@ export class SearchComponent implements AfterViewInit, OnInit {
   selectedContent;
 
   // show dot plots and local or global
-  readonly plotTypes = {LOCAL:0, GLOBAL:1};
+  readonly plotTypes = {LOCAL: 0, GLOBAL: 1};
   showLocalGlobalPlots: boolean;
   selectedPlot;
 
@@ -59,7 +59,7 @@ export class SearchComponent implements AfterViewInit, OnInit {
   selectedDetail = null;
 
   // micro synteny accordion
-  readonly accordionTypes = {REGEXP:0, ORDER:1, SCROLL:2, SEARCH:3};
+  readonly accordionTypes = {REGEXP: 0, ORDER: 1, SCROLL: 2, SEARCH: 3};
   accordion = this.accordionTypes.SCROLL;
 
   macroConfig = {
@@ -113,13 +113,13 @@ export class SearchComponent implements AfterViewInit, OnInit {
 
   ngAfterViewInit(): void {
     Split([this.left.nativeElement, this.right.nativeElement], {
-        direction: "horizontal"
+        direction: "horizontal",
       });
     Split([this.topLeft.nativeElement, this.bottomLeft.nativeElement], {
-        direction: "vertical"
+        direction: "vertical",
       });
     Split([this.topRight.nativeElement, this.bottomRight.nativeElement], {
-        direction: "vertical"
+        direction: "vertical",
       });
     // don"t subscribe to data until view loaded so drawing doesn"t fail
 
