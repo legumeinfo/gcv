@@ -1,5 +1,9 @@
+// Angular
+import { isDevMode } from "@angular/core";
+
 // store
 import { ActionReducerMap } from "@ngrx/store";
+import { storeFreeze } from "ngrx-store-freeze";
 
 // reducers
 import * as fromAlignedMicroTracks from "./aligned-micro-tracks.store";
@@ -46,3 +50,6 @@ export const reducers = {
   searchQueryGene: fromSearchQueryGene.reducer,
   searchQueryTrack: fromSearchQueryTrack.reducer,
 };
+
+// export const metaReducers: MetaReducer<State>[] = isDevMode()
+export const metaReducers = isDevMode() ? [storeFreeze] : [];

@@ -49,8 +49,8 @@ import { PlotsService } from "./services/plots.service";
 import { UrlService } from "./services/url.service";
 
 // ngrx store
+import { reducers, metaReducers } from "./reducers";
 import { StoreModule } from "@ngrx/store";
-import { reducers } from "./reducers";
 
 @NgModule({
   bootstrap:    [ AppComponent ],
@@ -89,7 +89,7 @@ import { reducers } from "./reducers";
     FormsModule,
     HttpModule,
     ReactiveFormsModule,
-    StoreModule.forRoot(reducers),
+    StoreModule.forRoot(reducers, {metaReducers}),
   ],
   providers: [
     AppConfig,
