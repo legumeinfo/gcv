@@ -19,7 +19,12 @@ implements RouterStateSerializer<RouterStateUrl> {
     }
 
     const { url, root: { queryParams } } = routerState;
-    const { params } = route;
+    let { params } = route;
+
+    if (params.genes) {
+      params = Object.assign({}, params);
+      params.genes = params.genes.split(",");
+    }
 
     return { url, params, queryParams };
   }
