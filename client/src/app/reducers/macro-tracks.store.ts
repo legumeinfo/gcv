@@ -1,6 +1,14 @@
 import * as macroTrackActions from "../actions/macro-tracks.actions";
+import { MacroTrack } from "../models/macro-track.model";
 
-export function reducer(state, action: macroTrackActions.Actions) {
+// interface that MacroTracks implements
+export interface State {
+  chromosome: string;
+  length: number;
+  tracks: MacroTrack[];
+}
+
+export function reducer(state, action: macroTrackActions.Actions): State {
   switch (action.type) {
     case macroTrackActions.NEW:
       return action.payload;

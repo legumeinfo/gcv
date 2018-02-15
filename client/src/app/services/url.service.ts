@@ -4,10 +4,11 @@
 import { Location } from "@angular/common";
 import { Injectable } from "@angular/core";
 import { ActivatedRoute, Router, RoutesRecognized } from "@angular/router";
+import { Store } from "@ngrx/store";
 import { Observable } from "rxjs/Observable";
-// import { Store } from "@ngrx/store";
 
 // App store
+import * as fromRoot from "../reducers";
 import { AppRoutes } from "../constants/app-routes";
 import { StoreActions } from "../constants/store-actions";
 import { AlignmentParams } from "../models/alignment-params.model";
@@ -27,7 +28,11 @@ export class UrlService {
   constructor(private route: ActivatedRoute,
               private location: Location,
               private router: Router,
-              /*private _store: Store<AppStore>*/) {
+              private store: Store<fromRoot.State>) {
+    console.log('url service');
+    this.store.select(fromRoot.getRouterState).subscribe((state) => {
+      console.log(state);
+    });
     // initialize observables
     // this.multiQueryGenes = this._store.select("multiQueryGenes");
     // this.searchQueryGene = this._store.select("searchQueryGene");

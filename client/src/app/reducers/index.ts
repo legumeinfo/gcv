@@ -1,11 +1,14 @@
 // Angular
 import { isDevMode } from "@angular/core";
+import { Params, RouterStateSnapshot } from '@angular/router';
 
 // store
-import { ActionReducerMap } from "@ngrx/store";
+import * as fromRouter from "@ngrx/router-store";
+import { ActionReducerMap, createFeatureSelector, MetaReducer } from "@ngrx/store";
 import { storeFreeze } from "ngrx-store-freeze";
 
 // reducers
+import { RouterStateUrl } from "../utils/custom-router-state-serializer.util";
 import * as fromAlignedMicroTracks from "./aligned-micro-tracks.store";
 import * as fromAlignmentParams from "./alignment-params.store";
 import * as fromBlockParams from "./block-params.store";
@@ -19,24 +22,23 @@ import * as fromQueryParams from "./query-params.store";
 import * as fromSearchQueryGene from "./search-query-gene.store";
 import * as fromSearchQueryTrack from "./search-query-track.store";
 
-// export interface State {
-//   alignedMicroTracks: fromAlignedMicroTracks.state,
-//   clusteredMicroTracks: fromClusteredMicroTracks.state,
-//   microTracks: fromMicroTracks.state,
-//   alignmentParams: fromAlignmentParams.state,
-//   clusteringParams: fromClusteringParams.state,
-//   macroChromosome: fromMacroChromosome.state,
-//   multiQueryGenes: fromMultiQueryGenes.state,
-//   searchQueryGene: fromSearchQueryGene.state,
-//   blockParams: fromBlockParams.state,
-//   macroTracks: fromMacroTracks.state,
-//   queryParams: fromQueryParams.state,
-//   searchQueryTrack: fromSearchQueryTrack.state,
-//   router: fromRouter.RouterReducerState<RouterStateUrl>;
-// }
+export interface State {
+  alignedMicroTracks: fromAlignedMicroTracks.State;
+  alignmentParams: fromAlignmentParams.State;
+  blockParams: fromBlockParams.State;
+  clusteredMicroTracks: fromClusteredMicroTracks.State;
+  clusteringParams: fromClusteringParams.State;
+  macroChromosome: fromMacroChromosome.State;
+  macroTracks: fromMacroTracks.State;
+  microTracks: fromMicroTracks.State;
+  multiQueryGenes: fromMultiQueryGenes.State;
+  queryParams: fromQueryParams.State;
+  router: fromRouter.RouterReducerState<RouterStateUrl>;
+  searchQueryGene: fromSearchQueryGene.State;
+  searchQueryTrack: fromSearchQueryTrack.State;
+}
 
-// export const reducers: ActionReducerMap<State> = {
-export const reducers = {
+export const reducers: ActionReducerMap<State> = {
   alignedMicroTracks: fromAlignedMicroTracks.reducer,
   alignmentParams: fromAlignmentParams.reducer,
   blockParams: fromBlockParams.reducer,
@@ -47,9 +49,13 @@ export const reducers = {
   microTracks: fromMicroTracks.reducer,
   multiQueryGenes: fromMultiQueryGenes.reducer,
   queryParams: fromQueryParams.reducer,
+  router: fromRouter.routerReducer,
   searchQueryGene: fromSearchQueryGene.reducer,
   searchQueryTrack: fromSearchQueryTrack.reducer,
 };
 
+export const getRouterState = createFeatureSelector
+  <fromRouter.RouterReducerState<RouterStateUrl>>("router");
+
 // export const metaReducers: MetaReducer<State>[] = isDevMode()
-export const metaReducers = isDevMode() ? [storeFreeze] : [];
+export const metaReducers: MetaReducer<State>[]= isDevMode() ? [storeFreeze] : [];

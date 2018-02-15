@@ -49,8 +49,10 @@ import { PlotsService } from "./services/plots.service";
 import { UrlService } from "./services/url.service";
 
 // ngrx store
-import { reducers, metaReducers } from "./reducers";
+import { RouterStateSerializer, StoreRouterConnectingModule } from "@ngrx/router-store";
 import { StoreModule } from "@ngrx/store";
+import { metaReducers, reducers } from "./reducers";
+import { CustomRouterStateSerializer } from "./utils/custom-router-state-serializer.util";
 
 @NgModule({
   bootstrap:    [ AppComponent ],
@@ -90,6 +92,7 @@ import { StoreModule } from "@ngrx/store";
     HttpModule,
     ReactiveFormsModule,
     StoreModule.forRoot(reducers, {metaReducers}),
+    StoreRouterConnectingModule.forRoot({stateKey: "router"}),
   ],
   providers: [
     AppConfig,
@@ -98,6 +101,10 @@ import { StoreModule } from "@ngrx/store";
       multi: true,
       provide: APP_INITIALIZER,
       useFactory: (config: AppConfig) => () => config.load(),
+    },
+    {
+      provide: RouterStateSerializer,
+      useClass: CustomRouterStateSerializer,
     },
     AlertsService,
     AlignmentService,
