@@ -7,7 +7,7 @@ export const ADD = "[MICRO_TRACKS] ADD";
 // send a new set of micro tracks
 export class New implements Action {
   readonly type = NEW;
-  constructor(public payload: MicroTracks) { }
+  constructor() { }
 }
 
 // add to the micro tracks already in the store

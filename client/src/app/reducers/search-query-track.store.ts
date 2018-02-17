@@ -1,25 +1,28 @@
+import { createFeatureSelector, createSelector } from "@ngrx/store";
 import * as searchQueryTrackActions from "../actions/search-query-track.actions";
-import { Gene } from "../models/gene.model";
+import { Group } from "../models/group.model";
 
-// interface that Group implements
 export interface State {
-  species_id: number;
-  genus: string;
-  species: string;
-  chromosome_id: number;
-  chromosome_name: string;
-  genes: Gene[];
-  source?: string;
-  id: number;
-  score?: number;
-  cluster?: number;
+  searchQueryTrack: Group;
 }
 
-export function reducer(state, action: searchQueryTrackActions.Actions): State {
+export const initialState: State = {searchQueryTrack: undefined};
+
+export function reducer(
+  state = initialState,
+  action: searchQueryTrackActions.Actions,
+): State {
   switch (action.type) {
     case searchQueryTrackActions.NEW:
-      return action.payload;
+      return {searchQueryTrack: action.payload};
     default:
       return state;
   }
 }
+
+export const getSearchQueryTrackState = createFeatureSelector<State>("searchQueryTrack");
+
+export const getSearchQueryTrack = createSelector(
+  getSearchQueryTrackState,
+  (state) => state.searchQueryTrack,
+);

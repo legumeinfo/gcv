@@ -1,4 +1,5 @@
 // Angular
+import { HttpClientModule } from '@angular/common/http';
 import { APP_INITIALIZER, NgModule } from "@angular/core";
 import { FormsModule, ReactiveFormsModule } from "@angular/forms";
 import { HttpModule } from "@angular/http";
@@ -90,6 +91,7 @@ import { CustomRouterStateSerializer } from "./utils/custom-router-state-seriali
     BrowserModule,
     FormsModule,
     HttpModule,
+    HttpClientModule,
     ReactiveFormsModule,
     StoreModule.forRoot(reducers, {metaReducers}),
     StoreRouterConnectingModule.forRoot({stateKey: "router"}),
@@ -111,6 +113,7 @@ import { CustomRouterStateSerializer } from "./utils/custom-router-state-seriali
     ClusteringService,
     DetailsService,
     FilterService,
+    HttpClientModule,
     MacroTracksService,
     MicroTracksService,
     PlotsService,

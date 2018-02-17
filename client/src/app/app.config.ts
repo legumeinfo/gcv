@@ -31,20 +31,9 @@ export class AppConfig {
     return server;
   }
 
-  public load(): Promise<any> {
-    return new Promise((resolve, reject) => {
-      this.http.get(configFile)
-        .map((res) => res.json())
-        .catch((error: any): any => {
-          resolve(true);
-          return Observable.throw(error || "Server error");
-        })
-        .subscribe((responseData) => {
-          this.config = responseData || {};
-          this._loadServers(this.getConfig("servers") || AppConfig.SERVERS);
-          resolve(true);
-        });
-    });
+  public load() {
+    this.config = configFile;
+    this._loadServers(this.getConfig("servers") || AppConfig.SERVERS);
   }
 
   // general support for namespace function strings

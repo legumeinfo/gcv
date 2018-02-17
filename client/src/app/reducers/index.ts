@@ -1,6 +1,6 @@
 // Angular
 import { isDevMode } from "@angular/core";
-import { Params, RouterStateSnapshot } from '@angular/router';
+import { Params, RouterStateSnapshot } from "@angular/router";
 
 // store
 import * as fromRouter from "@ngrx/router-store";
@@ -54,8 +54,4 @@ export const reducers: ActionReducerMap<State> = {
   searchQueryTrack: fromSearchQueryTrack.reducer,
 };
 
-export const getRouterState = createFeatureSelector
-  <fromRouter.RouterReducerState<RouterStateUrl>>("router");
-
-// export const metaReducers: MetaReducer<State>[] = isDevMode()
-export const metaReducers: MetaReducer<State>[]= isDevMode() ? [storeFreeze] : [];
+export const metaReducers: Array<MetaReducer<State>> = isDevMode() ? [storeFreeze] : [];

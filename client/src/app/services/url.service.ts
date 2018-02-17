@@ -9,10 +9,11 @@ import { Observable } from "rxjs/Observable";
 
 // App store
 import * as fromRoot from "../reducers";
+import * as fromRouter from "../reducers/router.store";
 import { AppRoutes } from "../constants/app-routes";
 import { StoreActions } from "../constants/store-actions";
 import { AlignmentParams } from "../models/alignment-params.model";
-import { AppStore } from "../models/app-store.model";
+// import { AppStore } from "../models/app-store.model";
 import { BlockParams } from "../models/block-params.model";
 import { QueryParams } from "../models/query-params.model";
 import { UrlQueryParams } from "../models/url-query-params.model";
@@ -30,7 +31,7 @@ export class UrlService {
               private router: Router,
               private store: Store<fromRoot.State>) {
     console.log('url service');
-    this.store.select(fromRoot.getRouterState).subscribe((state) => {
+    this.store.select(fromRouter.getRouterState).subscribe((state) => {
       console.log(state);
     });
     // initialize observables

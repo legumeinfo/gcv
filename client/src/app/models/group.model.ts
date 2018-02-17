@@ -7,8 +7,9 @@ export class Group {
   chromosome_id: number;
   chromosome_name: string;
   genes: Gene[];
+  // TODO: introduce options as mixins
   source?: string;  // Server ID
-  id: number;  // unique
+  id?: number;  // unique
   score?: number;
   cluster?: number;
 }
