@@ -5,6 +5,11 @@ import * as fromRouter from "@ngrx/router-store";
 export const getRouterState = createFeatureSelector
   <fromRouter.RouterReducerState<RouterStateUrl>>("router");
 
+export const getParams = createSelector(
+  getRouterState,
+  (route) => route.state.params,
+);
+
 export const getSearchRoute = createSelector(
   getRouterState,
   (route) => {

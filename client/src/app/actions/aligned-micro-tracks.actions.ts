@@ -7,7 +7,7 @@ export const ADD = "[ALIGNED_MICRO_TRACKS] ADD";
 // send a new set of aligned micro tracks
 export class New implements Action {
   readonly type = NEW;
-  constructor(public payload: MicroTracks) { }
+  constructor() { }
 }
 
 // add to the aligned micro tracks already in the store

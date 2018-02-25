@@ -1,42 +1,54 @@
-// Angular + dependencies
+// Angular
 import { Injectable } from "@angular/core";
 import { Observable } from "rxjs/Observable";
-// import { Store }      from "@ngrx/store";
-
-// App
+// store
+import { Store } from "@ngrx/store";
+import * as clusteredMicroTracksActions from "../actions/clustered-micro-tracks.actions";
+import * as fromRoot from "../reducers";
+import * as fromClusteredMicroTracks from "../reducers/clustered-micro-tracks.store";
+import * as fromClusteringParams from "../reducers/clustering-params.store";
+import * as fromMicroTracks from "../reducers/micro-tracks.store";// App
+import * as fromRouter from "../reducers/router.store";
+// app
 import { GCV } from "../../assets/js/gcv";
-import { AppRoutes } from "../constants/app-routes";
-import { StoreActions } from "../constants/store-actions";
-import { argsByValue } from "../decorators/args-by-value.decorator";
-import { AppStore } from "../models/app-store.model";
 import { ClusteringParams } from "../models/clustering-params.model";
 import { MicroTracks } from "../models/micro-tracks.model";
-import { AppRouteService } from "./app-route.service";
 
 @Injectable()
-export class ClusteringService extends AppRouteService {
+export class ClusteringService {
+  clusteredMicroTracks: Observable<MicroTracks>;
   clusteringParams: Observable<ClusteringParams>;
 
-  constructor(/*private _store: Store<AppStore>*/) {
-    super(/*_store*/);
-
+  constructor(private store: Store<fromRoot.State>) {
     // initialize observables
-    // this.clusteringParams = this._store.select("clusteringParams");
-    // let microTracks       = this._store.select<MicroTracks>("microTracks");
-    this.clusteringParams = Observable.empty<ClusteringParams>();
-    const microTracks = Observable.empty<MicroTracks>();
+    this.clusteredMicroTracks = this.store.select(fromClusteredMicroTracks.getClusteredMicroTracks);
+    this.clusteringParams = this.store.select(fromClusteringParams.getClusteringParams);
+    const microTracks = this.store.select(fromMicroTracks.getMicroTracks);
+    const routeParams = this.store.select(fromRouter.getParams);
 
     // subscribe to changes that initialize clustering
     Observable
       .combineLatest(microTracks, this.clusteringParams)
-      .filter(([tracks, params]) => this.route === AppRoutes.MULTI)
-      .subscribe(([tracks, params]) => {
+      .withLatestFrom(routeParams)
+      .filter(([[tracks, params], route]) => {
+          return route.genes !== undefined;
+      })
+      .subscribe(([[tracks, params], route]) => {
         this.clusterMicroTracks(tracks, params);
       });
   }
 
-  @argsByValue()
   clusterMicroTracks(tracks: MicroTracks, params: ClusteringParams): void {
+    this.store.dispatch(new clusteredMicroTracksActions.New());
+    // create modifiable copy of tracks
+    const clusteredTracks = new MicroTracks();
+    clusteredTracks.families = tracks.families;
+    for (const group of tracks.groups) {
+      let newGroup = Object.assign({}, group);
+      newGroup.genes = group.genes.map(g => Object.create(g));
+      clusteredTracks.groups.push(newGroup);
+    }
+    // cluster the tracks
     let grouped  = [];
     let results  = [];
     const aggregateSupport = (fr, identified?) => {
@@ -56,7 +68,7 @@ export class ClusteringService extends AppRouteService {
     };
     let j = 0;
     do {
-      results = GCV.graph.frequentedRegions(tracks, params.alpha,
+      results = GCV.graph.frequentedRegions(clusteredTracks, params.alpha,
         params.kappa, params.minsup, params.minsize, {omit: [""]});
       let max   = null;
       let maxFR = null;
@@ -69,7 +81,7 @@ export class ClusteringService extends AppRouteService {
       if (maxFR != null) {
         const supporting = aggregateSupport(maxFR);
         const group = [];
-        const copyTracks = JSON.parse(JSON.stringify(tracks)).groups;
+        const copyTracks = JSON.parse(JSON.stringify(clusteredTracks)).groups;
         for (const s of supporting) {
           group.push(copyTracks[s]);
         }
@@ -80,22 +92,21 @@ export class ClusteringService extends AppRouteService {
         }
         // grouped = grouped.concat(GCV.alignment.msa(group));
         grouped = grouped.concat(group);
-        tracks.groups = tracks.groups.filter((t, i) => {
+        clusteredTracks.groups = clusteredTracks.groups.filter((t, i) => {
           return supporting.indexOf(i) === -1;
         });
       }
       j++;
     } while (results.length > 0);
-    const gId = "group-none.";
-    for (const g of tracks.groups) {
-      g.chromosome_name = gId.concat(g.chromosome_name);
-    }
-    tracks.groups = grouped.concat(tracks.groups);
-    // let action = {type: StoreActions.NEW_CLUSTERED_TRACKS, payload: tracks};
-    // this._store.dispatch(action);
+    // TODO: add label at draw time
+    //const gId = "group-none.";
+    //for (const g of tracks.groups) {
+    //  g.chromosome_name = gId.concat(g.chromosome_name);
+    //}
+    clusteredTracks.groups = grouped.concat(clusteredTracks.groups);
+    this.store.dispatch(new clusteredMicroTracksActions.Add(clusteredTracks));
   }
 
-  @argsByValue()
   updateParams(params: ClusteringParams): void {
     // let action = {type: StoreActions.UPDATE_CLUSTERING_PARAMS, payload: params};
     // this._store.dispatch(action);

@@ -1,24 +1,28 @@
+import { createFeatureSelector, createSelector } from "@ngrx/store";
 import * as alignmentParamActions from "../actions/alignment-params.actions";
 import { AlignmentParams } from "../models/alignment-params.model";
 
-// interface that AlignmentParams implements
 export interface State {
-  algorithm: string;
-  match: number;
-  mismatch: number;
-  gap: number;
-  score: number;
-  threshold: number;
+  alignmentParams: AlignmentParams;
 }
 
+export const initialState: State = {alignmentParams: new AlignmentParams()};
+
 export function reducer(
-  state = new AlignmentParams(),
+  state = initialState,
   action: alignmentParamActions.Actions,
 ): State {
   switch (action.type) {
     case alignmentParamActions.NEW:
-      return action.payload;
+      return {alignmentParams: action.payload};
     default:
       return state;
   }
 }
+
+export const getAlignmentParamsState = createFeatureSelector<State>("alignmentParams");
+
+export const getAlignmentParams = createSelector(
+  getAlignmentParamsState,
+  (state) => state.alignmentParams,
+);

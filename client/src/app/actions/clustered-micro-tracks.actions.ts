@@ -7,7 +7,7 @@ export const ADD = "[CLUSTERED_MICRO_TRACKS] ADD";
 // send a new set of clustered micro tracks
 export class New implements Action {
   readonly type = NEW;
-  constructor(public payload: MicroTracks) { }
+  constructor() { }
 }
 
 // add to the clustered micro tracks already in the store

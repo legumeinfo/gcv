@@ -1,22 +1,29 @@
+import { createFeatureSelector, createSelector } from "@ngrx/store";
 import * as clusteringParamActions from "../actions/clustering-params.actions";
 import { ClusteringParams } from "../models/clustering-params.model";
 
 // interface that ClusteringParams implements
 export interface State {
-  alpha: number;
-  kappa: number;
-  minsup: number;
-  minsize: number;
+  clusteringParams: ClusteringParams;
 }
 
+export const initialState: State = {clusteringParams: new ClusteringParams()};
+
 export function reducer(
-  state = new ClusteringParams(),
+  state = initialState,
   action: clusteringParamActions.Actions,
 ): State {
   switch (action.type) {
     case clusteringParamActions.NEW:
-      return action.payload;
+      return {clusteringParams: action.payload};
     default:
       return state;
   }
 }
+
+export const getClusteringParamsState = createFeatureSelector<State>("clusteringParams");
+
+export const getClusteringParams = createSelector(
+  getClusteringParamsState,
+  (state) => state.clusteringParams,
+);

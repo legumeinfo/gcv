@@ -1,25 +1,42 @@
+import { createFeatureSelector, createSelector } from "@ngrx/store";
 import * as clusteredMicroTrackActions from "../actions/clustered-micro-tracks.actions";
-import { Family } from "../models/family.model";
-import { Group } from "../models/group.model";
 import { MicroTracks } from "../models/micro-tracks.model";
 
-// interface that MicroTracks implements
 export interface State {
-  families: Family[];
-  groups: Group[];
+  clusteredMicroTracks: MicroTracks;
 }
 
+export const initialState: State = {clusteredMicroTracks: new MicroTracks()};
+
 export function reducer(
-  state = new MicroTracks(),
+  state = initialState,
   action: clusteredMicroTrackActions.Actions,
 ): State {
   switch (action.type) {
     case clusteredMicroTrackActions.NEW:
-      return action.payload;
+      return initialState;
     case clusteredMicroTrackActions.ADD:
-      // TODO: clone state and add merge with payload
-      return action.payload;
+      // merge new micro tracks with existing micro tracks non-destructively
+      const microTracks = state.clusteredMicroTracks;
+      const updatedMicroTracks = new MicroTracks();
+      const familyIDs = new Set(microTracks.families.map((f) => f.id));
+      const newFamilies = [];
+      for (const f of action.payload.families) {
+        if (!familyIDs.has(f.id)) {
+          newFamilies.push(f);
+        }
+      }
+      updatedMicroTracks.families = microTracks.families.concat(newFamilies);
+      updatedMicroTracks.groups = microTracks.groups.concat(action.payload.groups);
+      return {clusteredMicroTracks: updatedMicroTracks};
     default:
       return state;
   }
 }
+
+export const getClusteredMicroTracksState = createFeatureSelector<State>("clusteredMicroTracks");
+
+export const getClusteredMicroTracks = createSelector(
+  getClusteredMicroTracksState,
+  (state) => state.clusteredMicroTracks,
+);

@@ -41,15 +41,18 @@ export class MicroTracksService {
     this.queryParams = this.store.select(fromQueryParams.getQueryParams);
     this.searchQueryTrack = this.store.select(fromSearchQueryTrack.getSearchQueryTrack)
       .filter((queryTrack) => queryTrack !== undefined);
+    const routeParams = this.store.select(fromRouter.getParams);
     const multiRoute = this.store.select(fromRouter.getMultiRoute);
     const queryParamsNeighbors = this.store.select(fromQueryParams.getQueryParamsNeighbors);
     const searchRoute = this.store.select(fromRouter.getSearchRoute);
 
     // subscribe to observables that trigger query track retrievals
     Observable
-      .combineLatest(searchRoute, queryParamsNeighbors)
-      .subscribe(([route, neighbors]) => {
-        this.geneSearch(route, neighbors);
+      //.combineLatest(searchRoute, queryParamsNeighbors)
+      .combineLatest(routeParams, queryParamsNeighbors)
+      .filter(([routeParams, neighbors]) => routeParams.gene !== undefined)
+      .subscribe(([routeParams, neighbors]) => {
+        this.geneSearch(routeParams, neighbors);
       });
 
     // subscribe to observables that trigger new searches
@@ -61,14 +64,15 @@ export class MicroTracksService {
 
     // subscribe to observables that trigger multi track retrievals
     Observable
-      .combineLatest(multiRoute, this.queryParams)
-      .subscribe(([route, params]) => {
-        this.multiQuery(route, params);
+      .combineLatest(routeParams, this.queryParams)
+      .filter(([routeParams, neighbors]) => routeParams.genes !== undefined)
+      .subscribe(([routeParams, params]) => {
+        this.multiQuery(routeParams, params);
       });
   }
 
   // fetches multi tracks for the given genes
-  multiQuery(query: {genes: string[]}, params: QueryParams): void {
+  multiQuery(query: any, params: QueryParams): void {
     console.log(query);
     console.log(params);
     this.store.dispatch(new microTracksActions.New());
@@ -104,7 +108,7 @@ export class MicroTracksService {
   }
 
   // fetches a query track for the given gene
-  geneSearch(query: {source: string, gene: string}, neighbors: number): void {
+  geneSearch(query: any, neighbors: number): void {
     const idx: number = this.serverIDs.indexOf(query.source);
     if (idx > -1) {
       const s: Server = AppConfig.SERVERS[idx];
