@@ -25,6 +25,7 @@ import { GET, POST, Request, Server } from "../models/server.model";
 export class MicroTracksService {
   microTracks: Observable<MicroTracks>;
   queryParams: Observable<QueryParams>;
+  routeParams: Observable<any>;
   searchQueryTrack: Observable<Group>;
 
   private serverIDs = AppConfig.SERVERS.map((s) => s.id);
@@ -37,15 +38,13 @@ export class MicroTracksService {
     this.queryParams = this.store.select(fromQueryParams.getQueryParams);
     this.searchQueryTrack = this.store.select(fromSearchQueryTrack.getSearchQueryTrack)
       .filter((queryTrack) => queryTrack !== undefined);
-    const routeParams = this.store.select(fromRouter.getParams);
-    const multiRoute = this.store.select(fromRouter.getMultiRoute);
+    this.routeParams = this.store.select(fromRouter.getParams);
     const queryParamsNeighbors = this.store.select(fromQueryParams.getQueryParamsNeighbors);
     const searchQueryCorrelationID = this.store.select(fromSearchQueryTrack.getCorrelationID);
-    const searchRoute = this.store.select(fromRouter.getSearchRoute);
 
     // subscribe to observables that trigger query track retrievals
     Observable
-      .combineLatest(routeParams, queryParamsNeighbors)
+      .combineLatest(this.routeParams, queryParamsNeighbors)
       .filter(([route, neighbors]) => route.gene !== undefined)
       .subscribe(([route, neighbors]) => {
         const correlationID = Date.now();
@@ -61,7 +60,7 @@ export class MicroTracksService {
 
     this.queryParams
       .pairwise()
-      .withLatestFrom(routeParams, this.searchQueryTrack, searchQueryCorrelationID)
+      .withLatestFrom(this.routeParams, this.searchQueryTrack, searchQueryCorrelationID)
       .filter(([[previous, next], route, query, correlationID]) => {
         return route.gene !== undefined && previous.neighbors === next.neighbors;
       })
@@ -71,7 +70,7 @@ export class MicroTracksService {
 
     // subscribe to observables that trigger multi track retrievals
     Observable
-      .combineLatest(routeParams, this.queryParams)
+      .combineLatest(this.routeParams, this.queryParams)
       .filter(([route, params]) => route.genes !== undefined)
       .subscribe(([route, params]) => {
         const correlationID = Date.now();
