@@ -21,16 +21,18 @@ function insertion(i, insertionCount, queryCount, alignment, track) {
 
 /**
  * Converts alignments into micro-synteny viewer tracks.
- * @param {object} data - The original viewer tracks.
- * @param {Array} alignments - The alignments to be trackified.
- * @return {object} - A copy of data where the tracks are aligned.
+ * @param {object} query - The reference tracck that all others were aligned to.
+ * @param {object} tracks - The original viewer tracks.
+ * @param {Array} alignments - The alignments of the tracks to be trackified.
+ * @return {object} - A new set of MicroTracks derived from the alignments.
  */
-export default function trackify(data, alignments) {
+export default function trackify(query, tracks, alignments) {
   // make a copy of the data (tracks) and only save the first group (query)
-  const aligned = JSON.parse(JSON.stringify(data));
-  const query = aligned.groups[0];
+  //const aligned = JSON.parse(JSON.stringify(data));
+  const aligned = {families: tracks.families, groups: []};
+  //const query = aligned.groups[0];
   if (query !== undefined) {
-    aligned.groups = [query];
+    //aligned.groups = [query];
     // initialize letiables
     const length = query.genes.length;
     // update the context data with the alignment

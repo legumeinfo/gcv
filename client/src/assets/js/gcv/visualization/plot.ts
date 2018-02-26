@@ -47,8 +47,8 @@ export class Plot extends Visualizer {
     this.bottom = this.PAD;
     this.right  = this.PAD + this.RADIUS;
     // create the scales used to plot genes
-    this.xScale = d3.scale.linear();
-    this.yScale = d3.scale.linear();
+    this.xScale = d3.scaleLinear();
+    this.yScale = d3.scaleLinear();
     // parse optional parameters
     this.options = Object.assign({}, options);
     this.options.selectiveColoring = this.options.selectiveColoring;

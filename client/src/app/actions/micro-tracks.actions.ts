@@ -1,4 +1,5 @@
 import { Action } from "@ngrx/store";
+import { Group } from "../models/group.model";
 import { MicroTracks } from "../models/micro-tracks.model";
 
 export const NEW = "[MICRO_TRACKS] NEW";

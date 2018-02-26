@@ -30,10 +30,6 @@ export class UrlService {
               private location: Location,
               private router: Router,
               private store: Store<fromRoot.State>) {
-    console.log('url service');
-    this.store.select(fromRouter.getRouterState).subscribe((state) => {
-      console.log(state);
-    });
     // initialize observables
     // this.multiQueryGenes = this._store.select("multiQueryGenes");
     // this.searchQueryGene = this._store.select("searchQueryGene");

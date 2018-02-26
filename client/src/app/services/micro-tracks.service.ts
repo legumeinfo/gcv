@@ -16,7 +16,6 @@ import * as fromSearchQueryTrack from "../reducers/search-query-track.store";
 
 // app
 import { AppConfig } from "../app.config";
-import { argsByValue } from "../decorators/args-by-value.decorator";
 import { Family } from "../models/family.model";
 import { Gene } from "../models/gene.model";
 import { Group } from "../models/group.model";
@@ -73,8 +72,6 @@ export class MicroTracksService {
 
   // fetches multi tracks for the given genes
   multiQuery(query: any, params: QueryParams): void {
-    console.log(query);
-    console.log(params);
     this.store.dispatch(new microTracksActions.New());
     const body = {
       genes: query.genes,
@@ -92,9 +89,8 @@ export class MicroTracksService {
         this._makeRequest<MicroTracks>(s.microMulti, body)
           .subscribe(
             (microTracks) => {
-              console.log(microTracks);
               this._mergeOverlappingTracks(microTracks);
-              this._addSourceToTracks(s.id, microTracks);
+              this._parseTracks(s.id, microTracks);
               this.store.dispatch(new microTracksActions.Add(microTracks));
             },
             (error) => {
@@ -120,7 +116,7 @@ export class MicroTracksService {
         this._makeRequest<Group>(s.microQuery, body)
           .subscribe(
             (queryTrack) => {
-              this._addSourceToTrack(query.source, queryTrack);
+              this._parseTrack(query.source, queryTrack);
               this.store.dispatch(new searchQueryTrackActions.New(queryTrack));
             },
             (error) => {
@@ -136,7 +132,6 @@ export class MicroTracksService {
   }
 
   trackSearch(query: Group, queryParams: QueryParams): void {
-    this.store.dispatch(new microTracksActions.New());
     const body = {
       intermediate: String(queryParams.intermediate),
       matched: String(queryParams.matched),
@@ -156,9 +151,8 @@ export class MicroTracksService {
         this._makeRequest<MicroTracks>(s.microSearch, body)
           .subscribe(
             (microTracks) => {
-              console.log(microTracks);
               this._mergeOverlappingTracks(microTracks);
-              this._addSourceToTracks(s.id, microTracks);
+              this._parseTracks(s.id, microTracks);
               this.store.dispatch(new microTracksActions.Add(microTracks));
             },
             (error) => {
@@ -171,7 +165,6 @@ export class MicroTracksService {
     }
   }
 
-  @argsByValue()
   updateParams(params: QueryParams): void {
     // let action = {type: StoreActions.UPDATE_QUERY_PARAMS, payload: params};
     // this._store.dispatch(action);
@@ -189,17 +182,19 @@ export class MicroTracksService {
   }
 
   // adds the server id the track came from to the track and its genes
-  private _addSourceToTrack(source: string, track: Group): void {
+  private _parseTrack(source: string, track: Group): void {
     track.source = source;
     for (const gene of track.genes) {
       gene.source = source;
+      delete gene.x;
+      delete gene.y;
     }
   }
 
-  // calls _addSourceToTrack on each track in the given microtracks
-  private _addSourceToTracks(source: string, tracks: MicroTracks): void {
+  // calls _parseTrack on each track in the given microtracks
+  private _parseTracks(source: string, tracks: MicroTracks): void {
     for (const group of tracks.groups) {
-      this._addSourceToTrack(source, group);
+      this._parseTrack(source, group);
     }
   }
 

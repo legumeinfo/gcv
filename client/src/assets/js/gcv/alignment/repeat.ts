@@ -1,4 +1,4 @@
-import { clone } from "../common";
+//import { clone } from "../common";
 import { computeScore, matrix } from "./alignment";
 
 /** The Repeat algorithm by Durbin et al. */
@@ -71,12 +71,12 @@ export default function repeat(sequence, reference, options) {
           index++;
           // pad seq with the genes not traversed by the alignment
           for (let k = seq.length - 1; k >= j; k--) {
-            alignments[index].sequence.unshift(clone(seq[k]));
+            alignments[index].sequence.unshift(seq[k]);
             alignments[index].reference.unshift(null);
           }
           // add the starting match
-          alignments[index].sequence.unshift(clone(seq[j - 1]));
-          alignments[index].reference.unshift(clone(ref[i - 1]));
+          alignments[index].sequence.unshift(seq[j - 1]);
+          alignments[index].reference.unshift(ref[i - 1]);
           if (options.suffixScores) {
             alignments[index].reference[0].suffixScore = a[i][j];
           }
@@ -95,7 +95,7 @@ export default function repeat(sequence, reference, options) {
           // add any missing genes to seq
           if (saving) {
             for (let k = j - 1; k > 0; k--) {
-              alignments[index].sequence.unshift(clone(seq[k - 1]));
+              alignments[index].sequence.unshift(seq[k - 1]);
               alignments[index].reference.unshift(null);
             }
           }
@@ -110,8 +110,8 @@ export default function repeat(sequence, reference, options) {
               i--;
               // no alignments happen in the first row or column
               if (saving && j > 0 && i > 0) {
-                alignments[index].sequence.unshift(clone(seq[j - 1]));
-                alignments[index].reference.unshift(clone(ref[i - 1]));
+                alignments[index].sequence.unshift(seq[j - 1]);
+                alignments[index].reference.unshift((ref[i - 1]));
                 if (options.suffixScores) {
                   alignments[index].reference[0].suffixScore = a[i][j];
                 }
@@ -122,7 +122,7 @@ export default function repeat(sequence, reference, options) {
             case 1:
               j--;
               if (saving && j > 0) {
-                alignments[index].sequence.unshift(clone(seq[j - 1]));
+                alignments[index].sequence.unshift(seq[j - 1]);
                 alignments[index].reference.unshift(null);
               }
               break;
@@ -131,7 +131,7 @@ export default function repeat(sequence, reference, options) {
               i--;
               if (saving && i > 0) {
                 alignments[index].sequence.unshift(null);
-                alignments[index].reference.unshift(clone(ref[i - 1]));
+                alignments[index].reference.unshift(ref[i - 1]);
                 if (options.suffixScores) {
                   alignments[index].reference[0].suffixScore = a[i][j];
                 }

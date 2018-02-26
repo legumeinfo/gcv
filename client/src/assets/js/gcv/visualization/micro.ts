@@ -92,10 +92,10 @@ export class Micro extends Visualizer {
       this.distances.push(distances);
     }
     // initialize the x, y, and line thickness scales
-    this.x = d3.scale.linear().domain([minX, maxX]);
-    this.y = d3.scale.linear().domain([0, numLevels - 1])
+    this.x = d3.scaleLinear().domain([minX, maxX]);
+    this.y = d3.scaleLinear().domain([0, numLevels - 1])
                .range([top, bottom]);
-    this.thickness = d3.scale.linear()
+    this.thickness = d3.scaleLinear()
       .domain([minDistance, maxDistance])
       .range([.1, 5]);
     // parse optional parameters
@@ -262,7 +262,7 @@ export class Micro extends Visualizer {
       .on("click", (g) => obj.options.geneClick(g, t));
     // add genes to the gene groups
     const genes = geneGroups.append("path")
-      .attr("d", d3.svg.symbol().type("triangle-up").size(200))
+      .attr("d", d3.symbol().type(d3.symbolTriangle).size(200))
       .attr("class", (g) => {
         if (obj.options.highlight.indexOf(g.name) !== -1) {
           return "point focus";
@@ -275,8 +275,11 @@ export class Micro extends Visualizer {
         return "point";
       })
       .attr("transform", (g) => {
-        const orientation = (g.strand === 1) ? "90" : "-90";
-        return "rotate(" + orientation + ")";
+        let sign = "";
+        if ((g.strand === -1 && !g.reversed) || (g.strand === 1 && g.reversed)) {
+          sign = "-";
+        }
+        return "rotate(" + sign + "90)";
       })
       .style("fill", (g) => {
         if (g.family === "" ||
@@ -313,14 +316,17 @@ export class Micro extends Visualizer {
         return "translate(" + obj.x(left) + ", " + obj.y(top) + ")";
       });
       lines.attr("x2", (n) => Math.abs(obj.x(n.a.x) - obj.x(n.b.x)));
-      lineTips.attr("transform", function(n) {
-        const x = Math.abs(obj.x(n.a.x) - obj.x(n.b.x)) / 2;
-        const y = Math.abs(obj.y(n.a.y) - obj.y(n.b.y)) / 2;
-        // awkward syntax FTW
-        const transform = d3.transform(d3.select(this).attr("transform"));
-        transform.translate = [x, y];
-        return transform;
-      });
+      //lineTips.attr("transform", function(n) {
+      //  const x = Math.abs(obj.x(n.a.x) - obj.x(n.b.x)) / 2;
+      //  const y = Math.abs(obj.y(n.a.y) - obj.y(n.b.y)) / 2;
+      //  //// awkward syntax FTW
+      //  //const transform = d3.transform(d3.select(this).attr("transform"));
+      //  //transform.translate = [x, y];
+      //  //return transform;
+      //  const t1 = "translate(0, 0)";
+      //  const t2 = "translate(" + x + ", " + y + ")";
+      //  return d3.interpolateTransformSvg(t1, t2);
+      //});
       if (track.highlight !== undefined) {
         track.highlight.attr("width", this.viewer.attr("width"));
       }
@@ -330,7 +336,7 @@ export class Micro extends Visualizer {
     track.adjustTips = function(tips, resize) {
       const vRect = obj.viewer.node().getBoundingClientRect();
       tips.classed("synteny-tip", false)
-        .attr("transform", (t) => {
+        .attr("transform", function(t) {
           const tRect = this.getBoundingClientRect();
           const h = Math.sqrt(Math.pow(tRect.width, 2) / 2);  // rotated height
           const o = (tRect.bottom + h > vRect.bottom) ? h : 0;
@@ -348,8 +354,8 @@ export class Micro extends Visualizer {
    */
   private drawYAxis() {
     // construct the y-axes
-    const axis = d3.svg.axis().scale(this.y)
-      .orient("left")
+    const axis = d3.axisLeft(this.y)
+      //.orient("left")
       .tickValues(this.ticks)
       .tickFormat((y, i) => this.names[i]);
     // draw the axes of the graph
@@ -399,8 +405,8 @@ export class Micro extends Visualizer {
    */
   private drawPlotAxis() {
     // construct the plot y-axes
-    const axis = d3.svg.axis().scale(this.y)
-      .orient("right")
+    const axis = d3.axisRight(this.y)
+      //.orient("right")
       .tickValues(this.ticks)
       .tickFormat("plot");
     // draw the axes of the graph

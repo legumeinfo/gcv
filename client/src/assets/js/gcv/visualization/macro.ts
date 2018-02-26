@@ -52,7 +52,7 @@ export class Macro extends Visualizer {
     this.left = 0;
     this.right = this.PAD;
     // create the scale used to map block coordinates to pixels
-    this.scale = d3.scale.linear()
+    this.scale = d3.scaleLinear()
       .domain([0, data.length]);
     super.initResize();
     // parse optional parameters
@@ -440,7 +440,7 @@ export class Macro extends Visualizer {
   private drawYAxis(ticks, t, b) {
     // construct the y-axes
     const axis = d3.svg.axis()
-      .scale(d3.scale.linear().domain([t, b]).range([t, b]))
+      .scale(d3.scaleLinear().domain([t, b]).range([t, b]))
       .orient("left")
       .tickValues(ticks)
       .tickFormat((y, i) => {

@@ -132,30 +132,35 @@ export class SearchComponent implements AfterViewInit, OnInit {
         this.hideLeftSlider();
       });
 
+  this.alignmentService.alignedMicroTracks
+      .subscribe((tracks) => {
+        this._onAlignedMicroTracks(tracks);
+      })
+
     // subscribe to aligned micro tracks
-    const microTracks = Observable
-      .combineLatest(
-        this.alignmentService.alignedMicroTracks,
-        this.filterService.regexp,
-        this.filterService.order)
-      .let(microTracksSelector({skipFirst: true}));
-    microTracks
-      .subscribe((tracks) => this._onAlignedMicroTracks(tracks));
+    //const microTracks = Observable
+    //  .combineLatest(
+    //    this.alignmentService.alignedMicroTracks,
+    //    this.filterService.regexp,
+    //    this.filterService.order)
+    //  .let(microTracksSelector({skipFirst: true}));
+    //microTracks
+    //  .subscribe((tracks) => this._onAlignedMicroTracks(tracks));
 
     // subscribe to micro-plots changes
-    Observable
-      .combineLatest(this.plotsService.localPlots, microTracks)
-      .let(plotsSelector())
-      .subscribe((plots) => this.microPlots = plots);
-    this.plotsService.selectedPlot
-      .subscribe(this._onPlotSelection.bind(this));
+    //Observable
+    //  .combineLatest(this.plotsService.localPlots, microTracks)
+    //  .let(plotsSelector())
+    //  .subscribe((plots) => this.microPlots = plots);
+    //this.plotsService.selectedPlot
+    //  .subscribe(this._onPlotSelection.bind(this));
 
     // subscribe to macro-track changes
-    this.macroTracksService.macroTracks
-      .subscribe((tracks) => this.macroTracks = tracks);
-    this.macroTrackObservable = Observable
-      .combineLatest(this.macroTracksService.macroTracks, microTracks);
-    this._subscribeToMacro();
+    //this.macroTracksService.macroTracks
+    //  .subscribe((tracks) => this.macroTracks = tracks);
+    //this.macroTrackObservable = Observable
+    //  .combineLatest(this.macroTracksService.macroTracks, microTracks);
+    //this._subscribeToMacro();
   }
 
   // public

@@ -10,11 +10,13 @@ import * as fromAlignmentParams from "../reducers/alignment-params.store";
 import * as fromClusteredMicroTracks from "../reducers/clustered-micro-tracks.store";
 import * as fromMicroTracks from "../reducers/micro-tracks.store";
 import * as fromRouter from "../reducers/router.store";
+import * as fromSearchQueryTrack from "../reducers/search-query-track.store";
 // app
 import { GCV } from "../../assets/js/gcv";
 import { ALIGNMENT_ALGORITHMS } from "../constants/alignment-algorithms";
 import { AppRoutes } from "../constants/app-routes";
 import { AlignmentParams } from "../models/alignment-params.model";
+import { Group } from "../models/group.model";
 import { MicroTracks } from "../models/micro-tracks.model";
 
 @Injectable()
@@ -32,23 +34,31 @@ export class AlignmentService {
     const clusteredMicroTracks = this.store.select(fromClusteredMicroTracks.getClusteredMicroTracks);
     const microTracks = this.store.select(fromMicroTracks.getMicroTracks);
     const newMicroTracks = this.store.select(fromMicroTracks.getNewMicroTracks);
+    const searchQueryTrack = this.store.select(fromSearchQueryTrack.getSearchQueryTrack)
+      .filter((queryTrack) => queryTrack !== undefined);
     const routeParams = this.store.select(fromRouter.getParams);
 
     // subscribe to changes that trigger new pairwise alignments
+    searchQueryTrack
+      .subscribe((queryTrack) => {
+        this._newPairwiseAlignment(queryTrack);
+      });
+
     this.alignmentParams
-      .withLatestFrom(microTracks)
-      .subscribe(([params, microTracks]) => {
-        this._pairwiseAlignment(microTracks, params);
+      .withLatestFrom(searchQueryTrack, microTracks)
+      .subscribe(([params, queryTrack, microTracks]) => {
+        this._newPairwiseAlignment(queryTrack);
+        this._pairwiseAlignment(queryTrack, microTracks, params);
       });
 
     // align new micro tracks as they come into the store
     newMicroTracks
-      .withLatestFrom(this.alignmentParams, routeParams)
-      .filter(([microTracks, params, route]) => {
+      .withLatestFrom(searchQueryTrack, this.alignmentParams, routeParams)
+      .filter(([microTracks, queryTrack, params, route]) => {
         return route.gene !== undefined;
       })
-      .subscribe(([microTracks, params]) => {
-        this._pairwiseAlignment(microTracks, params);
+      .subscribe(([microTracks, queryTrack, params]) => {
+        this._pairwiseAlignment(queryTrack, microTracks, params);
       });
 
     // subscribe to changes that trigger new multi alignments
@@ -63,9 +73,26 @@ export class AlignmentService {
     // this._store.dispatch(action);
   }
 
+  private _newPairwiseAlignment(queryTrack: Group): void {
+    // create modifiable copy of the query track
+    const reference = Object.assign({}, queryTrack);
+    reference.genes = [];
+    for (let i = 0; i < queryTrack.genes.length; i++) {
+      const g = Object.create(queryTrack.genes[i]);
+      g.x = i;
+      g.y = 0;
+      reference.genes.push(g);
+    }
+    // push the "aligned" query track to the store;
+    this.store.dispatch(new alignedMicroTracksActions.New(reference));
+  }
+
   // TODO: pass query track as parameter instead of assuming first track is query
-  private _pairwiseAlignment(tracks: MicroTracks, params: AlignmentParams): void {
-    console.log('piarwise alignment');
+  private _pairwiseAlignment(
+    query: Group,
+    tracks: MicroTracks,
+    params: AlignmentParams
+  ): void {
     // create modifiable copy of tracks
     let alignedTracks = new MicroTracks();
     alignedTracks.families = tracks.families;
@@ -77,14 +104,22 @@ export class AlignmentService {
     // get the alignment algorithm
     const algorithmID = this.algorithmIDs.indexOf(params.algorithm);
     const algorithm   = this.algorithms[algorithmID].algorithm;
-    // get the query and the algorithm options
-    const query = alignedTracks.groups[0];
+    // get the algorithm options
     const options = Object.assign({}, {
-      accessor: (g) => (g.strand === -1 ? "-" : "+") + g.family,
+      accessor: (g) => {
+        if (g.reversed) {
+          return (g.strand === -1 ? "+" : "-") + g.family;
+        }
+        return (g.strand === -1 ? "-" : "+") + g.family;
+      },
       reverse: (s) => {
-        const r = JSON.parse(JSON.stringify(s));
+        const r = [];
+        for (const g of s) {
+          const g2 = Object.create(Object.getPrototypeOf(g));
+          g2.reversed = true;
+          r.push(g2);
+        }
         r.reverse();
-        r.forEach((g) => g.strand *= -1);
         return r;
       },
       scores: Object.assign({}, params),
@@ -92,10 +127,9 @@ export class AlignmentService {
     });
     // perform the alginments
     const alignments = [];
-    for (let i = 1; i < alignedTracks.groups.length; ++i) {
+    for (let i = 0; i < alignedTracks.groups.length; ++i) {
       const result = alignedTracks.groups[i];
       const al = algorithm(query.genes, result.genes, options);
-      const id = result.id;
       // save tracks that meet the threshold
       for (const a of al) {
         if (a.score >= options.scores.threshold) {
@@ -105,8 +139,8 @@ export class AlignmentService {
       }
     }
     // convert the alignments into tracks
-    alignedTracks = GCV.alignment.trackify(alignedTracks, alignments);
-    // merge tracks from same alignment set remove residual suffix scores
+    alignedTracks = GCV.alignment.trackify(query, alignedTracks, alignments);
+    // merge tracks from same alignment set and remove residual suffix scores
     alignedTracks = GCV.alignment.merge(alignedTracks);
     for (let i = 1; i < alignedTracks.groups.length; ++i) {
       const genes = alignedTracks.groups[i].genes;
@@ -123,7 +157,6 @@ export class AlignmentService {
   }
 
   private _multipleAlignment(tracks: MicroTracks): void {
-    console.log("multiple alignment");
     // create modifiable copy of tracks
     let alignedTracks = new MicroTracks();
     alignedTracks.families = tracks.families;

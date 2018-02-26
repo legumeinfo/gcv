@@ -1,7 +1,7 @@
 const d3 = require("d3");
 
 // 100 maximally distinct colors
-const colors = d3.scale.ordinal().range([
+const colors = d3.scaleOrdinal().range([
     "#7A2719", "#5CE33C", "#E146E9", "#64C6DE", "#E8B031", "#322755", "#436521",
     "#DE8EBA", "#5C77E3", "#CEE197", "#E32C76", "#E54229", "#2F2418", "#E1A782",
     "#788483", "#68E8B2", "#9E2B85", "#E4E42A", "#D5D9D5", "#76404F", "#589BDB",

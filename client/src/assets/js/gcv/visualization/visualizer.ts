@@ -150,7 +150,7 @@ export abstract class Visualizer {
     if (data === undefined) {
       throw new Error("'data' is undefined");
     }
-    this.data = JSON.parse(JSON.stringify(data));
+    this.data = data;
     // create the viewer
     this.viewer = d3.select(this.container)
       .append("svg")
