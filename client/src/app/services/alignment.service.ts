@@ -74,7 +74,7 @@ export class AlignmentService {
   }
 
   private _newPairwiseAlignment(queryTrack: Group): void {
-    // create modifiable copy of the query track
+    // create modifiable extension of the query track
     const reference = Object.assign({}, queryTrack);
     reference.genes = [];
     for (let i = 0; i < queryTrack.genes.length; i++) {
@@ -93,7 +93,7 @@ export class AlignmentService {
     tracks: MicroTracks,
     params: AlignmentParams
   ): void {
-    // create modifiable copy of tracks
+    // create modifiable extension of tracks
     let alignedTracks = new MicroTracks();
     alignedTracks.families = tracks.families;
     for (const group of tracks.groups) {
@@ -157,12 +157,15 @@ export class AlignmentService {
   }
 
   private _multipleAlignment(tracks: MicroTracks): void {
-    // create modifiable copy of tracks
+    // create modifiable extension of tracks
     let alignedTracks = new MicroTracks();
     alignedTracks.families = tracks.families;
+    // TODO: figure out how to Object.assign an object and its prototype chain
     for (const group of tracks.groups) {
-      let newGroup = Object.assign({}, group);
-      newGroup.genes = group.genes.map(g => Object.create(g));
+      const cluster = group.cluster;
+      const newGroup = Object.assign({}, Object.getPrototypeOf(group));
+      //newGroup.genes = group.genes.map(g => Object.create(g));
+      newGroup.cluster = cluster;
       alignedTracks.groups.push(newGroup);
     }
     // bin tracks by their clusters
@@ -177,11 +180,28 @@ export class AlignmentService {
     // perform a multiple alignment on each of the clusters
     let alignedGroups = [];
     Object.keys(clusters).forEach((cluster, index) => {
+      const groups = clusters[cluster];
       if (cluster === "undefined") {
-        alignedGroups = alignedGroups.concat(clusters[cluster]);
+        for (const group of groups) {
+          const alignedGenes = [];
+          for (let i = 0; i < group.genes.length; i++) {
+            const alignedGene = Object.create(group.genes[i]);
+            alignedGene.x = i;
+            alignedGene.y = 0;
+            alignedGenes.push(alignedGene);
+          }
+          group.genes = alignedGenes;
+        }
+        alignedGroups = alignedGroups.concat(groups);
       } else {
-        const alignedCluster = GCV.alignment.msa(clusters[cluster]);
-        alignedGroups = alignedGroups.concat(alignedCluster);
+        const geneTracks = groups.map((group) => group.genes);
+        const counts = GCV.common.getFamilySizeMap(groups);
+        //const alignedCluster = GCV.alignment.msa(clusters[cluster]);
+        const alignedGenes = GCV.alignment.msa(geneTracks, counts);
+        alignedGenes.forEach((genes, i) => {
+          groups[i].genes = genes;
+        })
+        alignedGroups = alignedGroups.concat(groups);
       }
     });
     alignedTracks.groups = alignedGroups;

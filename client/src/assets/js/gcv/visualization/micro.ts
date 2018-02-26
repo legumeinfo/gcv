@@ -39,6 +39,27 @@ export class Micro extends Visualizer {
   protected init(el, colors, data, options) {
     super.init(el, colors, data);
     this.GLYPH_SIZE = 30;
+    // parse optional parameters
+    this.options = Object.assign({}, options);
+    this.options.boldFirst = this.options.boldFirst || false;
+    this.options.highlight = this.options.highlight || [];
+    this.options.selectiveColoring = this.options.selectiveColoring;
+    this.options.nameClick = this.options.nameClick || ((y, i) => { /* noop */ });
+    this.options.geneClick = this.options.geneClick || ((b) => { /* noop */ });
+    this.options.plotClick = this.options.plotClick;
+    this.options.autoResize = this.options.autoResize || false;
+    this.options.hoverDelay = this.options.hoverDelay || 500;
+    this.options.prefix = this.options.prefix || ((t) => "");
+    if (this.options.contextmenu) {
+      this.viewer.on("contextmenu", () => {
+        this.options.contextmenu(d3.event);
+      });
+    }
+    if (this.options.click) {
+      this.viewer.on("click", () => {
+        this.options.click(d3.event);
+      });
+    }
     // create the viewer
     const levels = data.groups.map((group) => {
       return Math.max.apply(null, group.genes.map((gene) => gene.y)) + 1;
@@ -88,7 +109,7 @@ export class Micro extends Visualizer {
           maxDistance = Math.max(maxDistance, dist);
         }
       }
-      this.names.push(group.chromosome_name + ":" + fminI + "-" + fmaxI);
+      this.names.push(this.options.prefix(group) + group.chromosome_name + ":" + fminI + "-" + fmaxI);
       this.distances.push(distances);
     }
     // initialize the x, y, and line thickness scales
@@ -98,26 +119,6 @@ export class Micro extends Visualizer {
     this.thickness = d3.scaleLinear()
       .domain([minDistance, maxDistance])
       .range([.1, 5]);
-    // parse optional parameters
-    this.options = Object.assign({}, options);
-    this.options.boldFirst = this.options.boldFirst || false;
-    this.options.highlight = this.options.highlight || [];
-    this.options.selectiveColoring = this.options.selectiveColoring;
-    this.options.nameClick = this.options.nameClick || ((y, i) => { /* noop */ });
-    this.options.geneClick = this.options.geneClick || ((b) => { /* noop */ });
-    this.options.plotClick = this.options.plotClick;
-    this.options.autoResize = this.options.autoResize || false;
-    this.options.hoverDelay = this.options.hoverDelay || 500;
-    if (this.options.contextmenu) {
-      this.viewer.on("contextmenu", () => {
-        this.options.contextmenu(d3.event);
-      });
-    }
-    if (this.options.click) {
-      this.viewer.on("click", () => {
-        this.options.click(d3.event);
-      });
-    }
     this.right = this.PAD;
     super.initResize();
   }

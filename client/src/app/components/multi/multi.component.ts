@@ -77,13 +77,17 @@ export class MultiComponent implements AfterViewInit {
         direction: "vertical",
       });
     // don"t subscribe to data until view loaded so drawing doesn"t fail
-    Observable
-      .combineLatest(
-        this.alignmentService.alignedMicroTracks,
-        this.filterService.regexp,
-        this.filterService.order,
-      )
-      .let(microTracksSelector())
+    //Observable
+    //  .combineLatest(
+    //    this.alignmentService.alignedMicroTracks,
+    //    this.filterService.regexp,
+    //    this.filterService.order,
+    //  )
+    //  .let(microTracksSelector())
+    //  .subscribe((tracks) => {
+    //    this._onMicroTracks(tracks);
+    //  });
+    this.alignmentService.alignedMicroTracks
       .subscribe((tracks) => {
         this._onMicroTracks(tracks);
       });
@@ -130,7 +134,7 @@ export class MultiComponent implements AfterViewInit {
     if (tracks.groups.length > 0 && tracks.groups[0].genes.length > 0) {
       // compute how many genes each family has
       const familySizes = (tracks.groups.length > 1)
-                        ? GCV.common.getFamilySizeMap(tracks)
+                        ? GCV.common.getFamilySizeMap(tracks.groups)
                         : undefined;
 
       // micro viewer arguments
@@ -144,12 +148,13 @@ export class MultiComponent implements AfterViewInit {
           this.selectTrack(t);
         }.bind(this),
         selectiveColoring: familySizes,
+        prefix: (t) => "group " + t.cluster + " - ",
       };
 
       // micro legend arguments
       const highlight = tracks.groups.reduce((l, group) => {
         const families = group.genes
-          .filter((g) => this.queryGenes.indexOf(g.name) !== -1)
+          .filter((g) => true) //this.queryGenes.indexOf(g.name) !== -1)
           .map((g) => g.family);
         return l.concat(families);
       }, []);

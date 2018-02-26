@@ -1,4 +1,4 @@
-import { getFamilySizeMap } from "../common";
+//import { getFamilySizeMap } from "../common";
 import { MSAHMM } from "../graph/msa-hmm";
 import { viterbi } from "./viterbi";
 
@@ -230,14 +230,18 @@ const alignToPath = (genes, path) => {
       if (insertionSize > 0) {
         const step = 1 / (insertionSize + 1);
         for (let k = insertionSize; k > 0; k--) {
-          genes[j++].x = x - (k * step);
+          genes[j].x = x - (k * step);
+          genes[j].y = 0;
+          j += 1;
         }
         insertionSize = 0;
       }
       if (n.startsWith("m")) {
-        genes[j++].x = x;
+      genes[j].x = x;
+        genes[j].y = 0;
+        j += 1;
       }
-      x++;
+      x += 1;
     } else {
       insertionSize++;
     }
@@ -331,23 +335,31 @@ const orientatedGenes = (genes1, genes2, oseq) => {
 
 /**
  * An HMM based MSA algorithm.
- * @param {Array} tracks - groups attribute of GCV track data.
+ * @param {Array} tracks - An array of gene arrays to be multi aligned.
  * @return {int} - The computed score.
  */
-export function msa(tracks) {
-  const groups = JSON.parse(JSON.stringify(tracks));
-  const counts = getFamilySizeMap({groups});
-  for (const group of groups) {
-    group.genes = group.genes.filter((g) => {
+export function msa(tracks, counts) {
+  //const groups = JSON.parse(JSON.stringify(tracks));
+  //const counts = getFamilySizeMap({groups});
+  const filteredTracks = tracks.map((genes) => {
+    return genes.filter((g) => {
       return g.family !== "" && counts[g.family] > 1;
     });
-  }
-  const rawGroups = JSON.parse(JSON.stringify(tracks));
+  });
+  //for (const group of groups) {
+  //  group.genes = group.genes.filter((g) => {
+  //    return g.family !== "" && counts[g.family] > 1;
+  //  });
+  //}
+  //const rawGroups = JSON.parse(JSON.stringify(tracks));
   // 1) construct a HMM with a column for each gene in the first track
-  const l = groups[0].genes.length;
+  //const l = groups[0].genes.length;
+  const l = tracks[0].length;
   const families = new Set();
-  for (const group of groups) {
-    for (const gene of group.genes) {
+  //for (const group of groups) {
+  for (const genes of filteredTracks) {
+    //for (const gene of group.genes) {
+    for (const gene of genes) {
       const f = gene.family;
       families.add("+" + f);
       families.add("-" + f);
@@ -355,13 +367,16 @@ export function msa(tracks) {
   }
   const hmm = new MSAHMM(l, families);
   // 2) iteratively train the HMM on the filtered tracks
-  for (let i = 0; i < groups.length; i++) {
+  //for (let i = 0; i < groups.length; i++) {
+  for (let i = 0; i < filteredTracks.length; i++) {
     // a) align to HMM
-    const seq1  = groups[i].genes.map((g) => {
+    //const seq1  = groups[i].genes.map((g) => {
+    const seq1  = filteredTracks[i].map((g) => {
           return (g.strand === -1 ? "-" : "+") + g.family;
         });
     const path1 = viterbi(hmm, seq1);
-    const seq2  = groups[i].genes.slice().reverse().map((g) => {
+    //const seq2  = groups[i].genes.slice().reverse().map((g) => {
+  const seq2  = filteredTracks[i].slice().reverse().map((g) => {
           return (g.strand === -1 ? "+" : "-") + g.family;
         });
     const path2 = viterbi(hmm, seq2);
@@ -374,30 +389,39 @@ export function msa(tracks) {
     // c) if necessary, perform surgery on the graph
     performSurgery(hmm);
   }
-  // align the unfiltered tracks to the trained HMM
-  for (const group of rawGroups) {
-    const genes1 = JSON.parse(JSON.stringify(group.genes));
-    const seq1   = genes1.map((g) => {
+  // 3) align the unfiltered tracks to the trained HMM
+  //const alignedTracks = tracks.map((genes) => genes.map((gene) => {
+  //  return Object.create(gene);
+  //}));
+  const alignedTracks = [];
+  //for (const group of rawGroups) {
+  for (const genes of tracks) {
+    //const genes1 = JSON.parse(JSON.stringify(group.genes));
+    const genes1 = genes.map((gene) => Object.create(gene));
+    const seq1 = genes1.map((g) => {
           return (g.strand === -1 ? "-" : "+") + g.family;
         });
-    const path1  = viterbi(hmm, seq1);
-    const eseq1  = sequenceEmissions(hmm, /*counts,*/ seq1, path1);
+    const path1 = viterbi(hmm, seq1);
+    const eseq1 = sequenceEmissions(hmm, /*counts,*/ seq1, path1);
     alignToPath(genes1, path1);
-    const genes2 = JSON.parse(JSON.stringify(genes1)).reverse();
-    const seq2   = genes2.map((g) => {
+    const genes2 = genes.map((gene) => Object.create(gene)).reverse();
+    const seq2 = genes2.map((g) => {
           return (g.strand === -1 ? "+" : "-") + g.family;
         });
-    const path2  = viterbi(hmm, seq2);
-    const eseq2  = sequenceEmissions(hmm, /*counts,*/ seq2, path2);
-    genes2.forEach((g) => { g.strand *= -1; });
+    const path2 = viterbi(hmm, seq2);
+    const eseq2 = sequenceEmissions(hmm, /*counts,*/ seq2, path2);
+    //genes2.forEach((g) => { g.strand *= -1; });
+    genes2.forEach((g) => { g.reversed = true; });
     alignToPath(genes2, path2);
     if (path1.probability >= path2.probability) {
       const oseq = orientationSequence(eseq1, eseq2);
-      group.genes = orientatedGenes(genes1, genes2, oseq);
+      //group.genes = orientatedGenes(genes1, genes2, oseq);
+      alignedTracks.push(orientatedGenes(genes1, genes2, oseq));
     } else {
       const oseq = orientationSequence(eseq2, eseq1);
-      group.genes = orientatedGenes(genes2, genes1, oseq);
+      //group.genes = orientatedGenes(genes2, genes1, oseq);
+      alignedTracks.push(orientatedGenes(genes2, genes1, oseq));
     }
   }
-  return rawGroups;
+  return alignedTracks;
 }

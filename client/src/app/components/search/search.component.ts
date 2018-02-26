@@ -259,7 +259,7 @@ export class SearchComponent implements AfterViewInit, OnInit {
     if (tracks.groups.length > 0 && tracks.groups[0].genes.length > 0) {
       // compute how many genes each family has
       const familySizes = (tracks.groups.length > 1)
-                      ? GCV.common.getFamilySizeMap(tracks)
+                      ? GCV.common.getFamilySizeMap(tracks.groups)
                       : undefined;
 
       // macro viewer arguments

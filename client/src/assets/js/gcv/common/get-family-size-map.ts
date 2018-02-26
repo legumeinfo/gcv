@@ -1,8 +1,8 @@
 // return a family size map
-export function getFamilySizeMap(data) {
+export function getFamilySizeMap(groups) {
   // make a family size map
   const familySizes = {};
-  for (const group of data.groups) {
+  for (const group of groups) {
     for (const gene of group.genes) {
       const family = gene.family;
       if (family in familySizes) {

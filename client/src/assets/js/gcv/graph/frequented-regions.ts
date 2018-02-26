@@ -173,7 +173,7 @@ export function frequentedRegions(tracks, alpha, kappa, minsup, minsize, options
     g.nodes[id].attr.computeSupport(alpha, 1);
   }
   // add edges with FRs resulting from contraction as attributes
-  for (const group of tracks) {
+  for (const group of tracks.groups) {
     let prevId = null;
     let prevN = null;
     for (const gene of group.genes) {

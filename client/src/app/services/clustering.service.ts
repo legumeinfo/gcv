@@ -31,7 +31,7 @@ export class ClusteringService {
       .combineLatest(microTracks, this.clusteringParams)
       .withLatestFrom(routeParams)
       .filter(([[tracks, params], route]) => {
-          return route.genes !== undefined;
+        return route.genes !== undefined;
       })
       .subscribe(([[tracks, params], route]) => {
         this.clusterMicroTracks(tracks, params);
@@ -40,14 +40,15 @@ export class ClusteringService {
 
   clusterMicroTracks(tracks: MicroTracks, params: ClusteringParams): void {
     this.store.dispatch(new clusteredMicroTracksActions.New());
-    // create modifiable copy of tracks
+    // create modifiable extension of tracks
     const clusteredTracks = new MicroTracks();
     clusteredTracks.families = tracks.families;
-    for (const group of tracks.groups) {
-      let newGroup = Object.assign({}, group);
-      newGroup.genes = group.genes.map(g => Object.create(g));
-      clusteredTracks.groups.push(newGroup);
-    }
+    clusteredTracks.groups = tracks.groups.map((g) => Object.create(g));
+    //for (const group of tracks.groups) {
+    //  let newGroup = Object.assign({}, group);
+    //  newGroup.genes = group.genes.map(g => Object.create(g));
+    //  clusteredTracks.groups.push(newGroup);
+    //}
     // cluster the tracks
     let grouped  = [];
     let results  = [];
@@ -70,7 +71,7 @@ export class ClusteringService {
     do {
       results = GCV.graph.frequentedRegions(clusteredTracks, params.alpha,
         params.kappa, params.minsup, params.minsize, {omit: [""]});
-      let max   = null;
+      let max = null;
       let maxFR = null;
       for (const r of results) {
         if (max == null || r.nodes.length > max) {
@@ -81,15 +82,17 @@ export class ClusteringService {
       if (maxFR != null) {
         const supporting = aggregateSupport(maxFR);
         const group = [];
-        const copyTracks = JSON.parse(JSON.stringify(clusteredTracks)).groups;
+        //const copyTracks = JSON.parse(JSON.stringify(clusteredTracks)).groups;
         for (const s of supporting) {
-          group.push(copyTracks[s]);
-        }
-        for (const g of group) {
-          const gId = "group-" + j + ".";
-          g.chromosome_name = gId.concat(g.chromosome_name);
+          const g = clusteredTracks.groups[s];
           g.cluster = j;
+          group.push(g);
         }
+        //for (const g of group) {
+        //  //const gId = "group-" + j + ".";
+        //  //g.chromosome_name = gId.concat(g.chromosome_name);
+        //  g.cluster = j;
+        //}
         // grouped = grouped.concat(GCV.alignment.msa(group));
         grouped = grouped.concat(group);
         clusteredTracks.groups = clusteredTracks.groups.filter((t, i) => {
