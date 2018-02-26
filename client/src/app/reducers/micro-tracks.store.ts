@@ -4,11 +4,13 @@ import { MicroTracks } from "../models/micro-tracks.model";
 
 // interface that MicroTracks implements
 export interface State {
+  correlationID: number;
   microTracks: MicroTracks;
   newMicroTracks: MicroTracks;
 }
 
 export const initialState: State = {
+  correlationID: 0,
   microTracks: new MicroTracks(),
   newMicroTracks: new MicroTracks(),
 };
@@ -19,8 +21,15 @@ export function reducer(
 ): State {
   switch (action.type) {
     case microTrackActions.NEW:
-      return initialState;
+      return {
+        correlationID: action.payload,
+        microTracks: initialState.microTracks,
+        newMicroTracks: initialState.newMicroTracks,
+      };
     case microTrackActions.ADD:
+      if (state.correlationID !== action.correlationID) {
+        return state;
+      }
       // merge new micro tracks with existing micro tracks non-destructively
       const microTracks = state.microTracks;
       const newMicroTracks = action.payload;
@@ -34,7 +43,11 @@ export function reducer(
       }
       updatedMicroTracks.families = microTracks.families.concat(newFamilies);
       updatedMicroTracks.groups = microTracks.groups.concat(newMicroTracks.groups);
-      return {microTracks: updatedMicroTracks, newMicroTracks};
+      return {
+        correlationID: state.correlationID,
+        microTracks: updatedMicroTracks,
+        newMicroTracks
+      };
     default:
       return state;
   }

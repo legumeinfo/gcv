@@ -4,6 +4,7 @@ import { Observable } from "rxjs/Observable";
 // store
 import { Store } from "@ngrx/store";
 import * as alignedMicroTracksActions from "../actions/aligned-micro-tracks.actions";
+import * as alignmentParamActions from "../actions/alignment-params.actions";
 import * as fromRoot from "../reducers";
 import * as fromAlignedMicroTracks from "../reducers/aligned-micro-tracks.store";
 import * as fromAlignmentParams from "../reducers/alignment-params.store";
@@ -64,13 +65,13 @@ export class AlignmentService {
     // subscribe to changes that trigger new multi alignments
     clusteredMicroTracks
       .subscribe((microTracks) => {
+        this._newAlignment();
         this._multipleAlignment(microTracks);
       });
   }
 
   updateParams(params: AlignmentParams): void {
-    // let action = {type: StoreActions.UPDATE_ALIGNMENT_PARAMS, payload: params};
-    // this._store.dispatch(action);
+    this.store.dispatch(new alignmentParamActions.New(params));
   }
 
   private _newPairwiseAlignment(queryTrack: Group): void {
@@ -84,10 +85,13 @@ export class AlignmentService {
       reference.genes.push(g);
     }
     // push the "aligned" query track to the store;
-    this.store.dispatch(new alignedMicroTracksActions.New(reference));
+    this._newAlignment(reference);
   }
 
-  // TODO: pass query track as parameter instead of assuming first track is query
+  private _newAlignment(queryTrack?: Group) {
+    this.store.dispatch(new alignedMicroTracksActions.New(queryTrack));
+  }
+
   private _pairwiseAlignment(
     query: Group,
     tracks: MicroTracks,

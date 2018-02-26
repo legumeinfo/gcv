@@ -4,6 +4,7 @@ import { Observable } from "rxjs/Observable";
 // store
 import { Store } from "@ngrx/store";
 import * as clusteredMicroTracksActions from "../actions/clustered-micro-tracks.actions";
+import * as clusteringParamActions from "../actions/clustering-params.actions";
 import * as fromRoot from "../reducers";
 import * as fromClusteredMicroTracks from "../reducers/clustered-micro-tracks.store";
 import * as fromClusteringParams from "../reducers/clustering-params.store";
@@ -44,11 +45,6 @@ export class ClusteringService {
     const clusteredTracks = new MicroTracks();
     clusteredTracks.families = tracks.families;
     clusteredTracks.groups = tracks.groups.map((g) => Object.create(g));
-    //for (const group of tracks.groups) {
-    //  let newGroup = Object.assign({}, group);
-    //  newGroup.genes = group.genes.map(g => Object.create(g));
-    //  clusteredTracks.groups.push(newGroup);
-    //}
     // cluster the tracks
     let grouped  = [];
     let results  = [];
@@ -82,18 +78,11 @@ export class ClusteringService {
       if (maxFR != null) {
         const supporting = aggregateSupport(maxFR);
         const group = [];
-        //const copyTracks = JSON.parse(JSON.stringify(clusteredTracks)).groups;
         for (const s of supporting) {
           const g = clusteredTracks.groups[s];
           g.cluster = j;
           group.push(g);
         }
-        //for (const g of group) {
-        //  //const gId = "group-" + j + ".";
-        //  //g.chromosome_name = gId.concat(g.chromosome_name);
-        //  g.cluster = j;
-        //}
-        // grouped = grouped.concat(GCV.alignment.msa(group));
         grouped = grouped.concat(group);
         clusteredTracks.groups = clusteredTracks.groups.filter((t, i) => {
           return supporting.indexOf(i) === -1;
@@ -101,17 +90,13 @@ export class ClusteringService {
       }
       j++;
     } while (results.length > 0);
-    // TODO: add label at draw time
-    //const gId = "group-none.";
-    //for (const g of tracks.groups) {
-    //  g.chromosome_name = gId.concat(g.chromosome_name);
-    //}
+    // push results to store
+    // TODO: push results incrementally rather than all at the end
     clusteredTracks.groups = grouped.concat(clusteredTracks.groups);
     this.store.dispatch(new clusteredMicroTracksActions.Add(clusteredTracks));
   }
 
   updateParams(params: ClusteringParams): void {
-    // let action = {type: StoreActions.UPDATE_CLUSTERING_PARAMS, payload: params};
-    // this._store.dispatch(action);
+    this.store.dispatch(new clusteringParamActions.New(params));
   }
 }

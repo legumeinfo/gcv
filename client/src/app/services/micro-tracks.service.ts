@@ -1,19 +1,17 @@
 // Angular
-//import { Location } from "@angular/common";
 import { HttpClient, HttpHeaders, HttpParams } from "@angular/common/http";
 import { Injectable } from "@angular/core";
 import { Observable } from "rxjs/Observable";
-
 // store
 import { Store } from "@ngrx/store";
 import * as microTracksActions from "../actions/micro-tracks.actions";
 import * as searchQueryTrackActions from "../actions/search-query-track.actions";
+import * as queryParamActions from "../actions/query-params.actions";
 import * as fromRoot from "../reducers";
 import * as fromMicroTracks from "../reducers/micro-tracks.store";
 import * as fromQueryParams from "../reducers/query-params.store";
 import * as fromRouter from "../reducers/router.store";
 import * as fromSearchQueryTrack from "../reducers/search-query-track.store";
-
 // app
 import { AppConfig } from "../app.config";
 import { Family } from "../models/family.model";
@@ -32,7 +30,6 @@ export class MicroTracksService {
   private serverIDs = AppConfig.SERVERS.map((s) => s.id);
 
   constructor(private http: HttpClient,
-              //private location: Location,
               private store: Store<fromRoot.State>) {
 
     // initialize observables
@@ -43,36 +40,48 @@ export class MicroTracksService {
     const routeParams = this.store.select(fromRouter.getParams);
     const multiRoute = this.store.select(fromRouter.getMultiRoute);
     const queryParamsNeighbors = this.store.select(fromQueryParams.getQueryParamsNeighbors);
+    const searchQueryCorrelationID = this.store.select(fromSearchQueryTrack.getCorrelationID);
     const searchRoute = this.store.select(fromRouter.getSearchRoute);
 
     // subscribe to observables that trigger query track retrievals
     Observable
-      //.combineLatest(searchRoute, queryParamsNeighbors)
       .combineLatest(routeParams, queryParamsNeighbors)
-      .filter(([routeParams, neighbors]) => routeParams.gene !== undefined)
-      .subscribe(([routeParams, neighbors]) => {
-        this.geneSearch(routeParams, neighbors);
+      .filter(([route, neighbors]) => route.gene !== undefined)
+      .subscribe(([route, neighbors]) => {
+        const correlationID = Date.now();
+        this.geneSearch(route, neighbors, correlationID);
       });
 
     // subscribe to observables that trigger new searches
-    Observable
-      .combineLatest(this.searchQueryTrack, this.queryParams)
-      .subscribe(([query, params]) => {
-        this.trackSearch(query, params);
+    this.searchQueryTrack
+      .withLatestFrom(this.queryParams, searchQueryCorrelationID)
+      .subscribe(([query, params, correlationID]) => {
+        this.trackSearch(query, params, correlationID);
       });
+
+    this.queryParams
+      .pairwise()
+      .withLatestFrom(routeParams, this.searchQueryTrack, searchQueryCorrelationID)
+      .filter(([[previous, next], route, query, correlationID]) => {
+        return route.gene !== undefined && previous.neighbors === next.neighbors;
+      })
+      .subscribe(([[previous, next], route, query, correlationID]) => {
+        this.trackSearch(query, next, correlationID);
+      })
 
     // subscribe to observables that trigger multi track retrievals
     Observable
       .combineLatest(routeParams, this.queryParams)
-      .filter(([routeParams, neighbors]) => routeParams.genes !== undefined)
-      .subscribe(([routeParams, params]) => {
-        this.multiQuery(routeParams, params);
+      .filter(([route, params]) => route.genes !== undefined)
+      .subscribe(([route, params]) => {
+        const correlationID = Date.now();
+        this.multiQuery(route, params, correlationID);
       });
   }
 
   // fetches multi tracks for the given genes
-  multiQuery(query: any, params: QueryParams): void {
-    this.store.dispatch(new microTracksActions.New());
+  multiQuery(query: any, params: QueryParams, correlationID: number): void {
+    this.store.dispatch(new microTracksActions.New(correlationID));
     const body = {
       genes: query.genes,
       neighbors: params.neighbors,
@@ -91,7 +100,7 @@ export class MicroTracksService {
             (microTracks) => {
               this._mergeOverlappingTracks(microTracks);
               this._parseTracks(s.id, microTracks);
-              this.store.dispatch(new microTracksActions.Add(microTracks));
+              this.store.dispatch(new microTracksActions.Add(correlationID, microTracks));
             },
             (error) => {
               console.log(error);
@@ -104,7 +113,8 @@ export class MicroTracksService {
   }
 
   // fetches a query track for the given gene
-  geneSearch(query: any, neighbors: number): void {
+  geneSearch(query: any, neighbors: number, correlationID: number): void {
+    this.store.dispatch(new microTracksActions.New(correlationID));
     const idx: number = this.serverIDs.indexOf(query.source);
     if (idx > -1) {
       const s: Server = AppConfig.SERVERS[idx];
@@ -117,7 +127,7 @@ export class MicroTracksService {
           .subscribe(
             (queryTrack) => {
               this._parseTrack(query.source, queryTrack);
-              this.store.dispatch(new searchQueryTrackActions.New(queryTrack));
+              this.store.dispatch(new searchQueryTrackActions.New(correlationID, queryTrack));
             },
             (error) => {
               console.log(error);
@@ -131,7 +141,7 @@ export class MicroTracksService {
     }
   }
 
-  trackSearch(query: Group, queryParams: QueryParams): void {
+  trackSearch(query: Group, queryParams: QueryParams, correlationID: number): void {
     const body = {
       intermediate: String(queryParams.intermediate),
       matched: String(queryParams.matched),
@@ -153,7 +163,7 @@ export class MicroTracksService {
             (microTracks) => {
               this._mergeOverlappingTracks(microTracks);
               this._parseTracks(s.id, microTracks);
-              this.store.dispatch(new microTracksActions.Add(microTracks));
+              this.store.dispatch(new microTracksActions.Add(correlationID, microTracks));
             },
             (error) => {
               console.log(error);
@@ -166,8 +176,7 @@ export class MicroTracksService {
   }
 
   updateParams(params: QueryParams): void {
-    // let action = {type: StoreActions.UPDATE_QUERY_PARAMS, payload: params};
-    // this._store.dispatch(action);
+    this.store.dispatch(new queryParamActions.New(params));
   }
 
   // encapsulates HTTP request boilerplate
@@ -264,10 +273,4 @@ export class MicroTracksService {
     }
     tracks.groups = groups;
   }
-
-  //private _idTracks(tracks: MicroTracks): void {
-  //  for (let i = 0; i < tracks.groups.length; ++i) {
-  //    tracks.groups[i].id = i;
-  //  }
-  //}
 }

@@ -5,7 +5,7 @@ export const NEW = "[SEARCH_QUERYY_TRACK] NEW";
 
 export class New implements Action {
   readonly type = NEW;
-  constructor(public payload: Group) { }
+  constructor(public correlationID: number, public payload: Group) { }
 }
 
 export type Actions = New;
