@@ -5,6 +5,7 @@ export function orderFilter(compare, tracks: MicroTracks, options: any): MicroTr
   // parse optional parameters
   options = options || {};
   options.skipFirst = options.skipFirst || false;
+  options.prefix = options.prefix || ((t) => "");
   // make a sortable "copy" of the tracks
   const orderedTracks = new MicroTracks();
   orderedTracks.families = tracks.families;
@@ -15,7 +16,7 @@ export function orderFilter(compare, tracks: MicroTracks, options: any): MicroTr
     first = orderedTracks.groups.shift();
   }
   // sort tracks
-  orderedTracks.groups.sort(compare);
+  orderedTracks.groups.sort(compare.bind(this, options.prefix));
   // add back first track if necessary
   if (first !== undefined) {
     orderedTracks.groups.unshift(first);

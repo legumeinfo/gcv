@@ -9,6 +9,7 @@ export function regexpFilter(
   // parse optional parameters
   options = options || {};
   options.skipFirst = options.skipFirst || false;
+  options.prefix = options.prefix || ((t) => "");
   // create filterable "copy" of tracks
   const filter = new RegExp(regexp);
   const filteredTracks = new MicroTracks();
@@ -18,7 +19,8 @@ export function regexpFilter(
     if (options.skipFirst && i == 0) {
       return true;
     }
-    return filter.test(track.chromosome_name);
+    const name = options.prefix(track) + track.chromosome_name;
+    return filter.test(name);
   });
   // return filtered tracks
   return filteredTracks;

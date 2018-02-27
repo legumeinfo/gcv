@@ -19,7 +19,6 @@ import { FilterService } from "../../services/filter.service";
 //import { MacroTracksService } from "../../services/macro-tracks.service";
 import { MicroTracksService } from "../../services/micro-tracks.service";
 //import { PlotsService } from "../../services/plots.service";
-//import { UrlService } from "../../services/url.service";
 import { PlotViewerComponent } from "../viewers/plot.component";
 
 declare let RegExp: any;  // TypeScript doesn't support regexp arguments
@@ -85,13 +84,9 @@ export class SearchComponent implements AfterViewInit, OnInit {
   macroLegendArgs: any;
   macroTracks: MacroTracks;
 
-  // data
-
   // TODO: update observable subscriptions so this and subscribeToMacro aren't needed
   private macroTrackObservable: Observable<[MacroTracks, any]>;  // Observable<[MacroTracks, MicroTracks]>;
   private macroSub: any;
-
-  // constructor
 
   constructor(private alignmentService: AlignmentService,
               private config: AppConfig,
@@ -99,14 +94,9 @@ export class SearchComponent implements AfterViewInit, OnInit {
               //private macroTracksService: MacroTracksService,
               private microTracksService: MicroTracksService,
               //private plotsService: PlotsService,
-              //private urlService: UrlService
             ) { }
 
   // Angular hooks
-
-  ngOnInit(): void {
-    this._initUI();
-  }
 
   ngAfterViewInit(): void {
     // split the view
@@ -135,14 +125,6 @@ export class SearchComponent implements AfterViewInit, OnInit {
 
     // subscribe to macro track data
 
-    // subscribe to search query gene
-    //this.urlService.searchQueryGene
-    //  .filter((searchQuery) => searchQuery !== undefined)
-    //  .subscribe((searchQuery) => {
-    //    this.queryGene   = searchQuery.gene;
-    //    this.hideLeftSlider();
-    //  });
-
     // subscribe to aligned micro tracks
     //const microTracks = Observable
     //  .combineLatest(
@@ -167,6 +149,10 @@ export class SearchComponent implements AfterViewInit, OnInit {
     //this.macroTrackObservable = Observable
     //  .combineLatest(this.macroTracksService.macroTracks, microTracks);
     //this._subscribeToMacro();
+  }
+
+  ngOnInit(): void {
+    this._initUI();
   }
 
   // public
@@ -234,8 +220,9 @@ export class SearchComponent implements AfterViewInit, OnInit {
     this.selectedDetail = null;
   }
 
-  selectParams(): void {
-    this.selectedDetail = {};
+  selectFamily(family: Family): void {
+    const f = Object.assign(Object.create(Family.prototype), family);
+    this.selectedDetail = f;
   }
 
   selectGene(gene: Gene): void {
@@ -243,9 +230,8 @@ export class SearchComponent implements AfterViewInit, OnInit {
     this.selectedDetail = g;
   }
 
-  selectFamily(family: Family): void {
-    const f = Object.assign(Object.create(Family.prototype), family);
-    this.selectedDetail = f;
+  selectParams(): void {
+    this.selectedDetail = {};
   }
 
   selectTrack(track: Group): void {
@@ -254,12 +240,6 @@ export class SearchComponent implements AfterViewInit, OnInit {
   }
 
   // private
-
-  private _initUI(): void {
-    this.showViewers();
-    this.showLocalPlot();
-    this.hideLocalGlobalPlots();
-  }
 
   private _getMacroArgs(colors: any, highlight: string[], viewport: any): any {
     return {
@@ -299,10 +279,10 @@ export class SearchComponent implements AfterViewInit, OnInit {
     };
   }
 
-  private _getMicroLegendArgs(blank: any, highlight: string[], familySizes: any): any {
+  private _getMicroLegendArgs(singletonIds: string, highlight: string[], familySizes: any): any {
     return {
       autoResize: true,
-      blank,
+      blank: {name: "Singletons", id: singletonIds},
       blankDashed: {name: "Orphans", id: ""},
       highlight,
       keyClick: function(f) {
@@ -326,6 +306,12 @@ export class SearchComponent implements AfterViewInit, OnInit {
       }.bind(this),
       selectiveColoring: familySizes,
     };
+  }
+
+  private _initUI(): void {
+    this.showViewers();
+    this.showLocalPlot();
+    this.hideLocalGlobalPlots();
   }
 
   private _onAlignedMicroTracks(tracks: MicroTracks, route): void {
@@ -391,11 +377,8 @@ export class SearchComponent implements AfterViewInit, OnInit {
       }).map((f) => f.id)).join(",");
 
       // micro legend arguments
-      this.microLegendArgs = this._getMicroLegendArgs(
-        {name: "Singletons", id: singletonIds},
-        [focus !== undefined ? focus.family : undefined],
-        familySizes,
-      );
+      const highlight = [focus !== undefined ? focus.family : undefined];
+      this.microLegendArgs = this._getMicroLegendArgs(singletonIds, highlight, familySizes);
 
       // generate micro legend data
       const presentFamilies = tracks.groups.reduce((l, group) => {
@@ -407,15 +390,6 @@ export class SearchComponent implements AfterViewInit, OnInit {
 
       // update micro track data
       this.microTracks = tracks;
-    }
-  }
-
-  private _onPlotSelection(plot): void {
-    this.selectedLocal = this.selectedGlobal = undefined;
-    if (this.selectedPlot === this.plotTypes.GLOBAL) {
-      this.showGlobalPlot();
-    } else {
-      this.showLocalPlot();
     }
   }
 
@@ -431,6 +405,15 @@ export class SearchComponent implements AfterViewInit, OnInit {
         }
         return l;
       }, []);
+    }
+  }
+
+  private _onPlotSelection(plot): void {
+    this.selectedLocal = this.selectedGlobal = undefined;
+    if (this.selectedPlot === this.plotTypes.GLOBAL) {
+      this.showGlobalPlot();
+    } else {
+      this.showLocalPlot();
     }
   }
 

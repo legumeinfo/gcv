@@ -3,8 +3,7 @@ import { AfterViewInit, Component, ElementRef, ViewChild,
   ViewEncapsulation } from "@angular/core";
 import { Observable } from "rxjs/Observable";
 import { GCV } from "../../../assets/js/gcv";
-
-// App
+// app
 import * as Split from "split.js";
 import { Family } from "../../models/family.model";
 import { Gene } from "../../models/gene.model";
@@ -13,7 +12,7 @@ import { MicroTracks } from "../../models/micro-tracks.model";
 import { microTracksSelector } from "../../selectors/micro-tracks.selector";
 import { AlignmentService } from "../../services/alignment.service";
 import { FilterService } from "../../services/filter.service";
-import { UrlService } from "../../services/url.service";
+import { MicroTracksService } from "../../services/micro-tracks.service";
 
 @Component({
   encapsulation: ViewEncapsulation.None,
@@ -32,37 +31,24 @@ export class MultiComponent implements AfterViewInit {
   @ViewChild("topRight") topRight: ElementRef;
   @ViewChild("bottomRight") bottomRight: ElementRef;
 
-  // UI
-
   // what to show in left slider
   selectedDetail = null;
 
-  // micro viewer accordion
+  // micro synteny accordion
   readonly accordionTypes = {REGEXP: 0, ORDER: 1};
   accordion = null;
 
-  // data
-  queryGenes: string[];
-  microTracks: MicroTracks;
-  microLegend: any;
-
-  // viewers
-  microColors = GCV.common.colors;
+  // micro viewers
   microArgs: any;
+  microColors = GCV.common.colors;
+  microLegend: any;
   microLegendArgs: any;
-
-  // constructor
+  microTracks: MicroTracks;
+  //queryGenes: string[];
 
   constructor(private alignmentService: AlignmentService,
               private filterService: FilterService,
-              private urlService: UrlService) {
-    // subscribe to multi query genes
-    this.urlService.multiQueryGenes
-      .subscribe((genes) => {
-        this.queryGenes = genes;
-        this.hideLeftSlider();
-      });
-  }
+              private microTracksService: MicroTracksService) { }
 
   // Angular hooks
 
@@ -76,20 +62,19 @@ export class MultiComponent implements AfterViewInit {
     Split([this.topRight.nativeElement, this.bottomRight.nativeElement], {
         direction: "vertical",
       });
-    // don"t subscribe to data until view loaded so drawing doesn"t fail
-    //Observable
-    //  .combineLatest(
-    //    this.alignmentService.alignedMicroTracks,
-    //    this.filterService.regexp,
-    //    this.filterService.order,
-    //  )
-    //  .let(microTracksSelector())
-    //  .subscribe((tracks) => {
-    //    this._onMicroTracks(tracks);
-    //  });
-    this.alignmentService.alignedMicroTracks
-      .subscribe((tracks) => {
-        this._onMicroTracks(tracks);
+
+    // subscribe to micro track data
+    Observable
+      .combineLatest(
+        this.alignmentService.alignedMicroTracks,
+        this.filterService.regexpAlgorithm,
+        this.filterService.orderAlgorithm,
+      )
+      .let(microTracksSelector({prefix: (t) => "group " + t.cluster + " - "}))
+      .withLatestFrom(this.microTracksService.routeParams)
+      .filter(([tracks, route]) => route.genes !== undefined)
+      .subscribe(([tracks, route]) => {
+        this._onAlignedMicroTracks(tracks as MicroTracks, route);
       });
   }
 
@@ -109,8 +94,9 @@ export class MultiComponent implements AfterViewInit {
     this.selectedDetail = null;
   }
 
-  selectParams(): void {
-    this.selectedDetail = {};
+  selectFamily(family: Family): void {
+    const f = Object.assign(Object.create(Family.prototype), family);
+    this.selectedDetail = f;
   }
 
   selectGene(gene: Gene): void {
@@ -118,9 +104,8 @@ export class MultiComponent implements AfterViewInit {
     this.selectedDetail = g;
   }
 
-  selectFamily(family: Family): void {
-    const f = Object.assign(Object.create(Family.prototype), family);
-    this.selectedDetail = f;
+  selectParams(): void {
+    this.selectedDetail = {};
   }
 
   selectTrack(track: Group): void {
@@ -130,7 +115,7 @@ export class MultiComponent implements AfterViewInit {
 
   // private
 
-  private _onMicroTracks(tracks): void {
+  private _onAlignedMicroTracks(tracks: MicroTracks, route): void {
     if (tracks.groups.length > 0 && tracks.groups[0].genes.length > 0) {
       // compute how many genes each family has
       const familySizes = (tracks.groups.length > 1)
@@ -138,26 +123,10 @@ export class MultiComponent implements AfterViewInit {
                         : undefined;
 
       // micro viewer arguments
-      this.microArgs = {
-        autoResize: true,
-        geneClick: function(g, track) {
-          this.selectGene(g);
-        }.bind(this),
-        highlight: this.queryGenes,
-        nameClick: function(t) {
-          this.selectTrack(t);
-        }.bind(this),
-        selectiveColoring: familySizes,
-        prefix: (t) => "group " + t.cluster + " - ",
-      };
+      this.microArgs = this._getMicroArgs(route.genes, familySizes);
 
-      // micro legend arguments
-      const highlight = tracks.groups.reduce((l, group) => {
-        const families = group.genes
-          .filter((g) => true) //this.queryGenes.indexOf(g.name) !== -1)
-          .map((g) => g.family);
-        return l.concat(families);
-      }, []);
+      // make sure families are unique and ordered by appearance in tracks
+      // TODO: move uniqueness to reducer and ordering to selector
       const orderedUniqueFamilyIds = new Set();
       tracks.groups.forEach((group) => {
         group.genes.forEach((gene) => {
@@ -174,22 +143,18 @@ export class MultiComponent implements AfterViewInit {
           uniqueFamilies.push(familyMap[id]);
         }
       });
-      const d = ",";
       const singletonIds = ["singleton"].concat(uniqueFamilies.filter((f) => {
         return familySizes === undefined || familySizes[f.id] === 1;
-      }).map((f) => f.id)).join(d);
-      this.microLegendArgs = {
-        autoResize: true,
-        blank: {name: "Singletons", id: singletonIds},
-        blankDashed: {name: "Orphans", id: ""},
-        highlight,
-        keyClick: function(f) {
-          this.selectFamily(f);
-        }.bind(this),
-        multiDelimiter: d,
-        selectiveColoring: familySizes,
-        selector: "family",
-      };
+      }).map((f) => f.id)).join(",");
+
+      // micro legend arguments
+      const highlight = tracks.groups.reduce((l, group) => {
+        const families = group.genes
+          .filter((g) => route.genes.indexOf(g.name) !== -1)
+          .map((g) => g.family);
+        return l.concat(families);
+      }, []);
+      this.microLegendArgs = this._getMicroLegendArgs(singletonIds, highlight, familySizes);
 
       // micro legend data
       const presentFamilies = tracks.groups.reduce((l, group) => {
@@ -199,8 +164,38 @@ export class MultiComponent implements AfterViewInit {
         return presentFamilies.indexOf(f.id) !== -1 && f.name !== "";
       });
 
-      // micro track data
+      // update micro track data
       this.microTracks = tracks;
     }
+  }
+
+  private _getMicroArgs(focusNames: string[], familySizes: any): any {
+    return {
+      autoResize: true,
+      geneClick: function(g, track) {
+        this.selectGene(g);
+      }.bind(this),
+      highlight: focusNames,
+      nameClick: function(t) {
+        this.selectTrack(t);
+      }.bind(this),
+      selectiveColoring: familySizes,
+      prefix: (t) => "group " + t.cluster + " - ",
+    };
+  }
+
+  private _getMicroLegendArgs(singletonIds: any, highlight: string[], familySizes: any): any {
+    return {
+      autoResize: true,
+      blank: {name: "Singletons", id: singletonIds},
+      blankDashed: {name: "Orphans", id: ""},
+      highlight,
+      keyClick: function(f) {
+        this.selectFamily(f);
+      }.bind(this),
+      multiDelimiter: ",",
+      selectiveColoring: familySizes,
+      selector: "family",
+    };
   }
 }

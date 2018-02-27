@@ -7,12 +7,16 @@ export const ORDER_ALGORITHMS: Algorithm[] = [
   orderAlgorithmFactory(
     "chromosome",
     "Chromosome name",
-    (a: Group, b: Group) => a.chromosome_name.localeCompare(b.chromosome_name),
+    (prefix: any, a: Group, b: Group) => {
+      const aName = prefix(a) + a.chromosome_name;
+      const bName = prefix(b) + b.chromosome_name;
+      return aName.localeCompare(bName);
+    },
   ),
   orderAlgorithmFactory(
     "distance",
     "Edit distance",
-    (a: Group, b: Group) => {
+    (prefix, a: Group, b: Group) => {
       const diff = b.score - a.score;
       if (diff === 0) {
         if (a.chromosome_name === b.chromosome_name) {
@@ -21,7 +25,9 @@ export const ORDER_ALGORITHMS: Algorithm[] = [
           }
           return a.id - b.id;
         }
-        return (a.chromosome_name > b.chromosome_name) ? 1 : -1;
+        const aName = prefix(a) + a.chromosome_name;
+        const bName = prefix(b) + b.chromosome_name;
+        return aName.localeCompare(bName);
       }
       return diff;
     },
