@@ -16,7 +16,7 @@ import { microTracksSelector } from "../../selectors/micro-tracks.selector";
 import { plotsSelector } from "../../selectors/plots.selector";
 import { AlignmentService } from "../../services/alignment.service";
 import { FilterService } from "../../services/filter.service";
-//import { MacroTracksService } from "../../services/macro-tracks.service";
+import { MacroTracksService } from "../../services/macro-tracks.service";
 import { MicroTracksService } from "../../services/micro-tracks.service";
 //import { PlotsService } from "../../services/plots.service";
 import { PlotViewerComponent } from "../viewers/plot.component";
@@ -91,7 +91,7 @@ export class SearchComponent implements AfterViewInit, OnInit {
   constructor(private alignmentService: AlignmentService,
               private config: AppConfig,
               private filterService: FilterService,
-              //private macroTracksService: MacroTracksService,
+              private macroTracksService: MacroTracksService,
               private microTracksService: MicroTracksService,
               //private plotsService: PlotsService,
             ) { }
@@ -125,16 +125,9 @@ export class SearchComponent implements AfterViewInit, OnInit {
     });
 
     // subscribe to macro track data
-
-    // subscribe to aligned micro tracks
-    //const microTracks = Observable
-    //  .combineLatest(
-    //    this.alignmentService.alignedMicroTracks,
-    //    this.filterService.regexp,
-    //    this.filterService.order)
-    //  .let(microTracksSelector({skipFirst: true}));
-    //microTracks
-    //  .subscribe((tracks) => this._onAlignedMicroTracks(tracks));
+    this.macroTracksService.macroTracks
+      .filter((tracks) => tracks !== undefined)
+      .subscribe((tracks) => this._onMacroTracks(tracks));
 
     // subscribe to micro-plots changes
     //Observable
@@ -145,8 +138,6 @@ export class SearchComponent implements AfterViewInit, OnInit {
     //  .subscribe(this._onPlotSelection.bind(this));
 
     // subscribe to macro-track changes
-    //this.macroTracksService.macroTracks
-    //  .subscribe((tracks) => this.macroTracks = tracks);
     //this.macroTrackObservable = Observable
     //  .combineLatest(this.macroTracksService.macroTracks, microTracks);
     //this._subscribeToMacro();
@@ -395,7 +386,6 @@ export class SearchComponent implements AfterViewInit, OnInit {
   }
 
   private _onMacroTracks(tracks): void {
-    this.macroTracks = tracks;
     if (tracks !== undefined) {
       const seen = {};
       this.macroLegend = tracks.tracks.reduce((l, t) => {
@@ -406,6 +396,7 @@ export class SearchComponent implements AfterViewInit, OnInit {
         }
         return l;
       }, []);
+      this.macroTracks = tracks;
     }
   }
 

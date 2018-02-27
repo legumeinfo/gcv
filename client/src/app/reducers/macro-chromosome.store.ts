@@ -1,19 +1,40 @@
+import { createFeatureSelector, createSelector } from "@ngrx/store";
 import * as macroChromosomeActions from "../actions/macro-chromosome.actions";
-import { GeneLoc } from "../models/gene-loc.model";
+import { MacroChromosome } from "../models/macro-chromosome.model";
 
-// interface that MacroChromosome implements
 export interface State {
-  genes: string[];
-  locations: GeneLoc[];
-  families: string[];
-  length: number;
+  correlationID: number;
+  macroChromosome: MacroChromosome;
 }
 
-export function reducer(state, action: macroChromosomeActions.Actions): State {
+export const initialState: State = {
+  correlationID: 0,
+  macroChromosome: undefined,
+};
+
+export function reducer(
+  state = initialState,
+  action: macroChromosomeActions.Actions
+): State {
   switch (action.type) {
     case macroChromosomeActions.NEW:
-      return action.payload;
+      return {
+        correlationID: action.correlationID,
+        macroChromosome: action.payload,
+      };
     default:
       return state;
   }
 }
+
+export const getMacroChromosomeState = createFeatureSelector<State>("macroChromosome");
+
+export const getMacroChromosome = createSelector(
+  getMacroChromosomeState,
+  (state) => state.macroChromosome,
+);
+
+export const getCorrelationID = createSelector(
+  getMacroChromosomeState,
+  (state) => state.correlationID,
+);

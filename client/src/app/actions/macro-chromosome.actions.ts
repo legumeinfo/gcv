@@ -5,7 +5,7 @@ export const NEW = "[MACRO_CHROMOSOME] NEW";
 
 export class New implements Action {
   readonly type = NEW;
-  constructor(public payload: MacroChromosome) { }
+  constructor(public correlationID: number, public payload: MacroChromosome) { }
 }
 
 export type Actions = New;

@@ -32,3 +32,14 @@ export const getSearchQueryTrack = createSelector(
   getSearchQueryTrackState,
   (state) => state.searchQueryTrack,
 );
+
+export const getSearchQueryChromosome = createSelector(
+  getSearchQueryTrackState,
+  (state) => {
+    const track = state.searchQueryTrack;
+    if (track === undefined) {
+      return undefined;
+    }
+    return track.chromosome_name;
+  },
+);

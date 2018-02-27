@@ -10,6 +10,7 @@ export class QueryParams {
 
   constructor(
     public neighbors: number = 10,
+    // TODO: update to be first source from config
     public sources: string[] = ["lis"],  // Server IDs
     public matched: number = 4,
     public intermediate: number = 5,

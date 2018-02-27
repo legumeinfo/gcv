@@ -1,3 +1,4 @@
 export class GeneLoc {
-  constructor(fmin: number, fmax: number) { }
+  fmax: number;
+  fmin: number;
 }

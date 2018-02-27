@@ -18,6 +18,11 @@ export const getSearchRoute = createSelector(
   },
 );
 
+export const getSearchRouteSource = createSelector(
+  getRouterState,
+  (route) => route.state.params.source,
+);
+
 export const getMultiRoute = createSelector(
   getRouterState,
   (route) => {

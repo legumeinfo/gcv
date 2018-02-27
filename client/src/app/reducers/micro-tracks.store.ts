@@ -2,7 +2,6 @@ import { createFeatureSelector, createSelector } from "@ngrx/store";
 import * as microTrackActions from "../actions/micro-tracks.actions";
 import { MicroTracks } from "../models/micro-tracks.model";
 
-// interface that MicroTracks implements
 export interface State {
   correlationID: number;
   microTracks: MicroTracks;
@@ -22,7 +21,7 @@ export function reducer(
   switch (action.type) {
     case microTrackActions.NEW:
       return {
-        correlationID: action.payload,
+        correlationID: action.correlationID,
         microTracks: initialState.microTracks,
         newMicroTracks: initialState.newMicroTracks,
       };

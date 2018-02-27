@@ -172,7 +172,7 @@ export class Macro extends Visualizer {
         }
       });
     if (this.options.viewportDrag) {
-      viewport.call(d3.behavior.drag()
+      viewport.call(d3.drag()
         .on("drag", () => {
           const r = this.scale.range();
           const w = parseFloat(viewport.attr("width"));
@@ -183,7 +183,7 @@ export class Macro extends Visualizer {
           }
           viewport.attr("x", newX);
         })
-        .on("dragend", () => {
+        .on("end", () => {
           const x1 = parseFloat(viewport.attr("x"));
           const x2 = x1 + parseFloat(viewport.attr("width"));
           const d1 = this.scale.invert(x1);
@@ -224,33 +224,32 @@ export class Macro extends Visualizer {
     // draw the axis
     const xAxis = this.viewer.append("g").attr("class", "axis");
     // add the label
-    const label = xAxis.append("text")
+    const label = this.viewer.append("text")
       .attr("class", "query")
       .text(this.data.chromosome);
     // how the axis is resized
     xAxis.resize = function() {
       // update the axis
-      const axis = d3.svg.axis()
+      const axis = d3.axisTop()
         .scale(this.scale)
-        .orient("top")
         .tickValues(this.scale.domain())
         .tickFormat((x, i) => x);
       xAxis.call(axis)
         .selectAll("text")
         .style("text-anchor", (t, i) => {
-          if (i === 1) {
+          if (i === 0) {
             return "start";
           }
           return "end";
         });
       const padding = this.PAD + (2 * axis.tickPadding());
       const lBox = label.node().getBBox();
+      const xBox = xAxis.node().getBBox();
       xAxis.labelWidth = padding + lBox.width;
-      label.style("text-anchor", "end").attr("transform", (b) => {
-        const x = this.left - padding;
-        const y = -(lBox.height / 2);
-        return "translate(" + x + ", " + y + ")";
-      });
+      label
+        .style("text-anchor", "end")
+        .attr("x", this.left - padding)
+        .attr("y", xBox.height);
     }.bind(this);
     // resize once to position everything
     xAxis.resize();
@@ -298,7 +297,8 @@ export class Macro extends Visualizer {
     const name = datum.genus + " " + datum.species;
     const c = this.options.colors(name);
     // create the track"s rows of blocks
-    this.blocksToRows(datum.blocks);
+    const blockData = datum.blocks.map((b) => Object.create(b));
+    this.blocksToRows(blockData);
     // create the track
     const selector = "macro-" + i.toString();
     const track = this.viewer.append("g")
@@ -308,7 +308,7 @@ export class Macro extends Visualizer {
     track.offset = 0;
     // create the track"s blocks
     const blocks = track.selectAll("block")
-      .data(datum.blocks)
+      .data(blockData)
       .enter()
       .append("g")
       .style("cursor", "pointer")
@@ -439,9 +439,8 @@ export class Macro extends Visualizer {
    */
   private drawYAxis(ticks, t, b) {
     // construct the y-axes
-    const axis = d3.svg.axis()
+    const axis = d3.axisLeft()
       .scale(d3.scaleLinear().domain([t, b]).range([t, b]))
-      .orient("left")
       .tickValues(ticks)
       .tickFormat((y, i) => {
         return this.data.tracks[i].chromosome;

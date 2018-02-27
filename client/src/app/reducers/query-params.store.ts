@@ -31,3 +31,8 @@ export const getQueryParamsNeighbors = createSelector(
   getQueryParams,
   (queryParams) => queryParams.neighbors,
 );
+
+export const getQueryParamsSources = createSelector(
+  getQueryParams,
+  (queryParams) => queryParams.sources,
+);
