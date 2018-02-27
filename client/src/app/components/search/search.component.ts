@@ -119,6 +119,7 @@ export class SearchComponent implements AfterViewInit, OnInit {
       )
       .let(microTracksSelector({skipFirst: true}))
       .withLatestFrom(this.microTracksService.routeParams)
+      .filter(([tracks, route]) => route.gene !== undefined)
       .subscribe(([tracks, route]) => {
         this._onAlignedMicroTracks(tracks as MicroTracks, route);
     });
