@@ -8,7 +8,6 @@ import { Observable } from "rxjs/Observable";
 // App
 import { AppConfig } from "../app.config";
 import { AppRoutes } from "../constants/app-routes";
-import { StoreActions } from "../constants/store-actions";
 import { AppStore } from "../models/app-store.model";
 import { BlockParams } from "../models/block-params.model";
 import { Group } from "../models/group.model";

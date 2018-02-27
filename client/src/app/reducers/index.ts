@@ -17,9 +17,7 @@ import * as fromClusteringParams from "./clustering-params.store";
 import * as fromMacroChromosome from "./macro-chromosome.store";
 import * as fromMacroTracks from "./macro-tracks.store";
 import * as fromMicroTracks from "./micro-tracks.store";
-import * as fromMultiQueryGenes from "./multi-query-genes.store";
 import * as fromQueryParams from "./query-params.store";
-import * as fromSearchQueryGene from "./search-query-gene.store";
 import * as fromSearchQueryTrack from "./search-query-track.store";
 
 export interface State {
@@ -31,10 +29,8 @@ export interface State {
   macroChromosome: fromMacroChromosome.State;
   macroTracks: fromMacroTracks.State;
   microTracks: fromMicroTracks.State;
-  multiQueryGenes: fromMultiQueryGenes.State;
   queryParams: fromQueryParams.State;
   router: fromRouter.RouterReducerState<RouterStateUrl>;
-  searchQueryGene: fromSearchQueryGene.State;
   searchQueryTrack: fromSearchQueryTrack.State;
 }
 
@@ -47,10 +43,8 @@ export const reducers: ActionReducerMap<State> = {
   macroChromosome: fromMacroChromosome.reducer,
   macroTracks: fromMacroTracks.reducer,
   microTracks: fromMicroTracks.reducer,
-  multiQueryGenes: fromMultiQueryGenes.reducer,
   queryParams: fromQueryParams.reducer,
   router: fromRouter.routerReducer,
-  searchQueryGene: fromSearchQueryGene.reducer,
   searchQueryTrack: fromSearchQueryTrack.reducer,
 };
 

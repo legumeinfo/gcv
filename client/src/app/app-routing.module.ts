@@ -1,9 +1,7 @@
 // Angular
 import { NgModule } from "@angular/core";
 import { RouterModule, Routes } from "@angular/router";
-
-// App
-// import { DefaultQueryParams } from "./constants/default-parameters";
+// app
 import { InstructionsComponent } from "./components/instructions/instructions.component";
 import { MultiComponent } from "./components/multi/multi.component";
 import { SearchComponent } from "./components/search/search.component";
@@ -31,6 +29,7 @@ const routes: Routes = [
   {
     path: AppRoutes.SEARCH + "/:gene",
     pathMatch: "full",
+    // TODO: update to use first source from config
     // redirectTo: AppRoutes.SEARCH + "/" + DefaultQueryParams.DEFAULT_SOURCE + "/:gene",
     redirectTo: "/instructions",
   },

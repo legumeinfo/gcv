@@ -7,8 +7,6 @@ import { Observable } from "rxjs/Observable";
 // App
 import { AppConfig } from "../app.config";
 import { AppRoutes } from "../constants/app-routes";
-import { StoreActions } from "../constants/store-actions";
-import { argsByValue } from "../decorators/args-by-value.decorator";
 import { AppStore } from "../models/app-store.model";
 import { Gene } from "../models/gene.model";
 import { Group } from "../models/group.model";
@@ -169,7 +167,6 @@ export class PlotsService extends AppRouteService {
     return plotGenes;
   }
 
-  @argsByValue()
   private _plotTracks(tracks): Group[] {
     const plots = tracks.groups;
     if (plots.length > 0) {

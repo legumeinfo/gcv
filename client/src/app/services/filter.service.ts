@@ -1,30 +1,22 @@
 // Angular
 import { Injectable } from "@angular/core";
 import { Observable } from "rxjs/Observable";
-// import { Store }           from "@ngrx/store";
-
-// App
-import { StoreActions } from "../constants/store-actions";
+// app
+import { Store } from "@ngrx/store";
 import { Algorithm } from "../models/algorithm.model";
-import { AppStore } from "../models/app-store.model";
+import * as fromRoot from "../reducers";
 
 @Injectable()
 export class FilterService {
-  alignment: Observable<Algorithm>;
   order: Observable<Algorithm>;
   regexp: Observable<Algorithm>;
 
-  constructor(/*private _store: Store<AppStore>*/) {
+  constructor(private store: Store<fromRoot.State>) {
     // this.alignment = this._store.select("alignmentFilter");
     // this.order = this._store.select("orderFilter");
     // this.regexp = this._store.select("regexpFilter");
-    this.alignment = Observable.empty<Algorithm>();
     this.order = Observable.empty<Algorithm>();
     this.regexp = Observable.empty<Algorithm>();
-  }
-
-  setAlignment(alignment: Algorithm): void {
-    // this._store.dispatch({type: StoreActions.SET_ALIGNMENT, payload: alignment});
   }
 
   setOrder(order: string): void {
