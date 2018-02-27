@@ -1,12 +1,10 @@
 // Angular
 import { isDevMode } from "@angular/core";
 import { Params, RouterStateSnapshot } from "@angular/router";
-
 // store
 import * as fromRouter from "@ngrx/router-store";
 import { ActionReducerMap, createFeatureSelector, MetaReducer } from "@ngrx/store";
 import { storeFreeze } from "ngrx-store-freeze";
-
 // reducers
 import { RouterStateUrl } from "../utils/custom-router-state-serializer.util";
 import * as fromAlignedMicroTracks from "./aligned-micro-tracks.store";
@@ -17,7 +15,9 @@ import * as fromClusteringParams from "./clustering-params.store";
 import * as fromMacroChromosome from "./macro-chromosome.store";
 import * as fromMacroTracks from "./macro-tracks.store";
 import * as fromMicroTracks from "./micro-tracks.store";
+import * as fromOrderFilter from "./order.store";
 import * as fromQueryParams from "./query-params.store";
+import * as fromRegexpFilter from "./regexp.store";
 import * as fromSearchQueryTrack from "./search-query-track.store";
 
 export interface State {
@@ -29,7 +29,9 @@ export interface State {
   macroChromosome: fromMacroChromosome.State;
   macroTracks: fromMacroTracks.State;
   microTracks: fromMicroTracks.State;
+  orderFilter: fromOrderFilter.State;
   queryParams: fromQueryParams.State;
+  regexpFilter: fromRegexpFilter.State;
   router: fromRouter.RouterReducerState<RouterStateUrl>;
   searchQueryTrack: fromSearchQueryTrack.State;
 }
@@ -43,7 +45,9 @@ export const reducers: ActionReducerMap<State> = {
   macroChromosome: fromMacroChromosome.reducer,
   macroTracks: fromMacroTracks.reducer,
   microTracks: fromMicroTracks.reducer,
+  orderFilter: fromOrderFilter.reducer,
   queryParams: fromQueryParams.reducer,
+  regexpFilter: fromRegexpFilter.reducer,
   router: fromRouter.routerReducer,
   searchQueryTrack: fromSearchQueryTrack.reducer,
 };

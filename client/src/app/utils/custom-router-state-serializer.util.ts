@@ -7,7 +7,7 @@ export interface RouterStateUrl {
   queryParams: Params;
 }
 
-// Only returns an object including the URL, params and query params instead of
+// Only returns an object including the URL, params, and query params instead of
 // the cumbersome RouterStateSnapshot
 export class CustomRouterStateSerializer
 implements RouterStateSerializer<RouterStateUrl> {

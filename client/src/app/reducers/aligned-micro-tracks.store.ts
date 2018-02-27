@@ -14,13 +14,13 @@ export function reducer(
 ): State {
   switch (action.type) {
     case alignedMicroTrackActions.NEW:
-      if (action.payload !== undefined) {
-        const queryTrack = action.payload;
-        const alignedMicroTracks = new MicroTracks();
-        alignedMicroTracks.groups.push(queryTrack);
-        return {alignedMicroTracks};
+      if (action.payload === undefined) {
+        return initialState;
       }
-      return initialState;
+      const queryTrack = action.payload;
+      const alignedMicroTracks = new MicroTracks();
+      alignedMicroTracks.groups.push(queryTrack);
+      return {alignedMicroTracks};
     case alignedMicroTrackActions.ADD:
       // merge new micro tracks with existing micro tracks non-destructively
       const microTracks = state.alignedMicroTracks;

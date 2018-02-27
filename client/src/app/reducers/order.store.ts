@@ -1,15 +1,29 @@
-import { Algorithm }        from '../models/algorithm.model';
-import { ORDER_ALGORITHMS } from '../constants/order-algorithms';
-import { StoreActions }     from '../constants/store-actions';
+import { createFeatureSelector, createSelector } from "@ngrx/store";
+import * as orderFilterActions from "../actions/order-filter.actions";
+import { ORDER_ALGORITHMS } from "../constants/order-algorithms";
+import { Algorithm } from "../models/algorithm.model";
 
-export const orderFilter = (state: Algorithm = ORDER_ALGORITHMS[0], {type, payload}) => {
-  let ids = ORDER_ALGORITHMS.map(a => a.id);
-  switch (type) {
-    case StoreActions.SET_ORDER:
-      let idx = ids.indexOf(payload);
-      if (idx != -1) return ORDER_ALGORITHMS[idx];
-      return state;
+export interface State {
+  orderAlgorithm: Algorithm;
+}
+
+export const initialState: State = {orderAlgorithm: ORDER_ALGORITHMS[0]};
+
+export function reducer(
+  state = initialState,
+  action: orderFilterActions.Actions
+): State {
+  switch (action.type) {
+    case orderFilterActions.NEW:
+      return {orderAlgorithm: action.payload};
     default:
       return state;
   }
 };
+
+export const getOrderFilterState = createFeatureSelector<State>("orderFilter");
+
+export const getOrderFilterAlgorithm = createSelector(
+  getOrderFilterState,
+  (state) => state.orderAlgorithm,
+);

@@ -15,7 +15,7 @@ import { macroTracksSelector } from "../../selectors/macro-tracks.selector";
 import { microTracksSelector } from "../../selectors/micro-tracks.selector";
 import { plotsSelector } from "../../selectors/plots.selector";
 import { AlignmentService } from "../../services/alignment.service";
-//import { FilterService } from "../../services/filter.service";
+import { FilterService } from "../../services/filter.service";
 //import { MacroTracksService } from "../../services/macro-tracks.service";
 import { MicroTracksService } from "../../services/micro-tracks.service";
 //import { PlotsService } from "../../services/plots.service";
@@ -95,7 +95,7 @@ export class SearchComponent implements AfterViewInit, OnInit {
 
   constructor(private alignmentService: AlignmentService,
               private config: AppConfig,
-              //private filterService: FilterService,
+              private filterService: FilterService,
               //private macroTracksService: MacroTracksService,
               private microTracksService: MicroTracksService,
               //private plotsService: PlotsService,
@@ -121,16 +121,16 @@ export class SearchComponent implements AfterViewInit, OnInit {
       });
 
     // subscribe to micro track data
-    //Object
-    //  .combineLatest(
-    //    this.alignmentService.alignedMicroTracks,
-    //    this.filterService.regexp,
-    //    this.filterService.order)
-    //  .let(microTracksSelector({skipFirst: true}));
-    this.alignmentService.alignedMicroTracks
+    Observable
+      .combineLatest(
+        this.alignmentService.alignedMicroTracks,
+        this.filterService.regexpAlgorithm,
+        this.filterService.orderAlgorithm,
+      )
+      .let(microTracksSelector({skipFirst: true}))
       .withLatestFrom(this.microTracksService.routeParams)
       .subscribe(([tracks, route]) => {
-        this._onAlignedMicroTracks(tracks, route);
+        this._onAlignedMicroTracks(tracks as MicroTracks, route);
     });
 
     // subscribe to macro track data
