@@ -1,8 +1,11 @@
 import { GeneLoc } from "./gene-loc.model";
 
 export class MacroChromosome {
-  genes: string[];
-  locations: GeneLoc[];
   families:  string[];
+  genes: string[];
   length: number;
-} 
+  locations: GeneLoc[];
+  genus?: string;
+  name?: string;
+  species?: string;
+}
