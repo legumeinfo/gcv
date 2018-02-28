@@ -46,6 +46,7 @@
     "@types/d3": "^5.0.0",
     "@types/jquery": "^3.2.12",
     "bootstrap": "~3.3.7",
+    "circos": "^2.1.0",
     "core-js": "^2.5.0",
     "d3": "^4.13.0",
     "html-loader": "^0.5.1",

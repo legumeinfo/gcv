@@ -35,6 +35,7 @@ import { ToggleButtonComponent } from "./components/shared/toggle-button.compone
 import { TrackDetailComponent } from "./components/shared/track-detail.component";
 import { LegendViewerComponent } from "./components/viewers/legend.component";
 import { MacroViewerComponent } from "./components/viewers/macro.component";
+import { MultiMacroViewerComponent } from "./components/viewers/multi-macro.component";
 import { MicroViewerComponent } from "./components/viewers/micro.component";
 import { PlotViewerComponent } from "./components/viewers/plot.component";
 
@@ -71,6 +72,7 @@ import { CustomRouterStateSerializer } from "./utils/custom-router-state-seriali
     LeftSliderComponent,
     LegendViewerComponent,
     MacroViewerComponent,
+    MultiMacroViewerComponent,
     MainComponent,
     MainContentComponent,
     MicroViewerComponent,

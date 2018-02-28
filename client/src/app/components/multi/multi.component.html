@@ -10,7 +10,10 @@
     <div #left id="left" class="split split-horizontal">
 
       <div #topLeft id="top-left" class="split content">
-        <p>top left</p>
+        <viewer-multi-macro
+          [data]="macroTracks"
+          [arguments]="macroArgs" >
+        </viewer-multi-macro>
       </div>
 
       <div #bottomLeft id="bottom-left" class="split content">
@@ -42,7 +45,13 @@
 
     <div #right id="right" class="split split-horizontal">
       <div #topRight id="top-right" class="split content">
-        <p>top right</p>
+        <div class="legend">
+          <viewer-legend
+            [data]="macroLegend"
+            [colors]="macroColors"
+            [arguments]="macroLegendArgs" >
+          </viewer-legend>
+        </div>
       </div>
       <div #bottomRight id="bottom-right" class="split content">
       <viewer-legend
