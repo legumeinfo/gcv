@@ -98,38 +98,47 @@ export class MacroTracksService {
   federatedSearch(
     chromosome: MacroChromosome,
     blockParams: BlockParams,
-    querySources: string[],
+    serverIDs: string[],
     correlationID: number,
   ): void {
-    const sources = querySources.reduce((l, s) => {
-      const i = this.serverIDs.indexOf(s);
-      if (i !== -1) {
-        l.push(AppConfig.SERVERS[i]);
-      }
-      return l;
-    }, []);
+    // send a request for each server servers
+    for (const serverID of serverIDs) {
+      this.getMacroTracks(chromosome, blockParams, serverID)
+        .subscribe(
+          (macroTracks) => {
+            this._parseTracks(chromosome, macroTracks);
+            this.store.dispatch(new macroTracksActions.Add(correlationID, macroTracks));
+          },
+          (error) => {
+            console.log(error);
+            // TODO: throw error
+          }
+        );
+    }
+  }
+
+  getMacroTracks(
+    chromosome: MacroChromosome,
+    blockParams: BlockParams,
+    serverID: string,
+  ): Observable<MacroTrack[]> {
+    let source: Server;
+    const i = this.serverIDs.indexOf(serverID);
+    if (i > -1) {
+      source = AppConfig.SERVERS[i];
+    } else {
+      return Observable.throw("\"" + serverID + "\" is not a valid server ID");
+    }
+    if (!source.hasOwnProperty("macro")) {
+      return Observable.throw("\"" + serverID + "\" does not support macro-tracl queries");
+    }
     const body = {
       families: chromosome.families,
       intermediate: blockParams.bintermediate,
       mask: blockParams.bmask,
       matched: blockParams.bmatched,
     };
-    // send requests to the selected servers
-    for (const s of sources) {
-      if (s.hasOwnProperty("macro")) {
-        this._makeRequest<MacroTrack[]>(s.macro, body)
-          .subscribe(
-            (macroTracks) => {
-              this._parseTracks(chromosome, macroTracks);
-              this.store.dispatch(new macroTracksActions.Add(correlationID, macroTracks));
-            },
-            (error) => {
-              console.log(error);
-              // TODO: throw error
-            }
-          );
-      }
-    }
+    return this._makeRequest<MacroTrack[]>(source.macro, body);
   }
 
   // finds the nearest gene on the query chromosome and pushes it to the store
