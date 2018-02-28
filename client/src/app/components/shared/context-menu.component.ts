@@ -45,7 +45,7 @@ export class ContextMenuComponent implements AfterViewInit {
 
   private _hasContent(children: any): any {
     for (const c of children) {
-      if (c.className === undefined || c.className !== "native") {
+      if (c.className !== "native" && c.className !== "divider") {
         return true;
       }
     }
