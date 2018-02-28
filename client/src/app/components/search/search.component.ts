@@ -1,6 +1,7 @@
 // Angular
 import { AfterViewInit, Component, ElementRef, OnInit, QueryList, ViewChild,
   ViewChildren, ViewEncapsulation } from "@angular/core";
+import { BehaviorSubject } from "rxjs/BehaviorSubject";
 import { Observable } from "rxjs/Observable";
 // app
 import * as Split from "split.js";
@@ -62,6 +63,7 @@ export class SearchComponent implements AfterViewInit, OnInit {
     filter: false,
     order: true,
   };
+  macroConfigObservable = new BehaviorSubject(this.macroConfig);;
 
   // dot plots
   microPlots: any;  // MicroTracks;
@@ -111,23 +113,32 @@ export class SearchComponent implements AfterViewInit, OnInit {
       });
 
     // subscribe to micro track data
-    Observable
+    const filteredMicroTracks = Observable
       .combineLatest(
         this.alignmentService.alignedMicroTracks,
         this.filterService.regexpAlgorithm,
         this.filterService.orderAlgorithm,
       )
-      .let(microTracksSelector({skipFirst: true}))
+      .let(microTracksSelector({skipFirst: true}));
+
+    filteredMicroTracks
       .withLatestFrom(this.microTracksService.routeParams)
       .filter(([tracks, route]) => route.gene !== undefined)
       .subscribe(([tracks, route]) => {
         this._onAlignedMicroTracks(tracks as MicroTracks, route);
-    });
+      });
 
     // subscribe to macro track data
-    this.macroTracksService.macroTracks
-      .filter((tracks) => tracks !== undefined)
-      .subscribe((tracks) => this._onMacroTracks(tracks));
+    Observable
+      .combineLatest(
+        this.macroTracksService.macroTracks,
+        filteredMicroTracks,
+        this.macroConfigObservable,
+      )
+      .let(macroTracksSelector())
+      .withLatestFrom(this.microTracksService.routeParams)
+      .filter(([tracks, route]) => route.gene !== undefined)
+      .subscribe(([tracks, route]) => this._onMacroTracks(tracks));
 
     // subscribe to micro-plots changes
     //Observable
@@ -136,11 +147,6 @@ export class SearchComponent implements AfterViewInit, OnInit {
     //  .subscribe((plots) => this.microPlots = plots);
     //this.plotsService.selectedPlot
     //  .subscribe(this._onPlotSelection.bind(this));
-
-    // subscribe to macro-track changes
-    //this.macroTrackObservable = Observable
-    //  .combineLatest(this.macroTracksService.macroTracks, microTracks);
-    //this._subscribeToMacro();
   }
 
   ngOnInit(): void {
@@ -167,12 +173,12 @@ export class SearchComponent implements AfterViewInit, OnInit {
 
   toggleMacroOrder(): void {
     this.macroConfig.order = !this.macroConfig.order;
-    this._subscribeToMacro();
+    this.macroConfigObservable.next(this.macroConfig);
   }
 
   toggleMacroFilter(): void {
     this.macroConfig.filter = !this.macroConfig.filter;
-    this._subscribeToMacro();
+    this.macroConfigObservable.next(this.macroConfig);
   }
 
   showPlots(): void {
@@ -407,15 +413,6 @@ export class SearchComponent implements AfterViewInit, OnInit {
     } else {
       this.showLocalPlot();
     }
-  }
-
-  private _subscribeToMacro(): void {
-    if (this.macroSub !== undefined) {
-      this.macroSub.unsubscribe();
-    }
-    this.macroSub = this.macroTrackObservable
-      .let(macroTracksSelector(this.macroConfig.filter, this.macroConfig.order))
-      .subscribe(this._onMacroTracks.bind(this));
   }
 
   private _viewportDrag(d1, d2): void {
