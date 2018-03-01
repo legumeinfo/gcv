@@ -66,7 +66,17 @@ export class MacroTracksService {
         return chromosome !== undefined && route.gene !== undefined;
       })
       .subscribe(([[chromosome, blockParams, sources], route, correlationID]) => {
-        this.federatedSearch(chromosome, blockParams, sources, correlationID);
+        this.federatedSearch(chromosome, blockParams, sources, correlationID)
+          .subscribe(
+            (macroTracks) => {
+              this._parseTracks(chromosome, macroTracks);
+              this.store.dispatch(new macroTracksActions.Add(correlationID, macroTracks));
+            },
+            (error) => {
+              console.log(error);
+              // TODO: throw error
+            }
+          );
       });
   }
 
@@ -100,21 +110,12 @@ export class MacroTracksService {
     blockParams: BlockParams,
     serverIDs: string[],
     correlationID: number,
-  ): void {
-    // send a request for each server servers
-    for (const serverID of serverIDs) {
-      this.getMacroTracks(chromosome, blockParams, serverID)
-        .subscribe(
-          (macroTracks) => {
-            this._parseTracks(chromosome, macroTracks);
-            this.store.dispatch(new macroTracksActions.Add(correlationID, macroTracks));
-          },
-          (error) => {
-            console.log(error);
-            // TODO: throw error
-          }
-        );
-    }
+  ): Observable<MacroTrack[]> {
+    // send a request for each server
+    return Observable.merge(...serverIDs.map((serverID) => {
+      return this.getMacroTracks(chromosome, blockParams, serverID);
+    }));
+
   }
 
   getMacroTracks(
