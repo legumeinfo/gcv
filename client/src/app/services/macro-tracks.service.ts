@@ -55,7 +55,21 @@ export class MacroTracksService {
       .withLatestFrom(searchRouteSource)
       .subscribe(([chromosome, source]) => {
         const correlationID = Date.now();
-        this.getChromosome(chromosome, source, correlationID);
+        this.getChromosome(chromosome, source)
+          .subscribe(
+            (macroChromosome) => {
+              const macroTracks = new MacroTracks();
+              macroTracks.chromosome = chromosome;
+              macroTracks.length = macroChromosome.length;
+              macroTracks.tracks = [];
+              this.store.dispatch(new macroTracksActions.New(correlationID, macroTracks));
+              this.store.dispatch(new macroChromosomeActions.New(correlationID, macroChromosome));
+            },
+            (error) => {
+              console.log(error);
+              // TODO: throw error
+            }
+          );
       });
 
     // subscribe to changes that initialize macro searches
@@ -80,29 +94,19 @@ export class MacroTracksService {
       });
   }
 
-  getChromosome(chromosome: string, source: string, correlationID: number): void {
-    const i: number = this.serverIDs.indexOf(source);
-    if (i !== -1) {
-      const s: Server = AppConfig.SERVERS[i];
-      if (s.hasOwnProperty("chromosome")) {
-        const body = {chromosome};
-        this._makeRequest<MacroChromosome>(s.chromosome, body)
-          .subscribe(
-            (macroChromosome) => {
-              const macroTracks = new MacroTracks();
-              macroTracks.chromosome = chromosome;
-              macroTracks.length = macroChromosome.length;
-              macroTracks.tracks = [];
-              this.store.dispatch(new macroTracksActions.New(correlationID, macroTracks));
-              this.store.dispatch(new macroChromosomeActions.New(correlationID, macroChromosome));
-            },
-            (error) => {
-              console.log(error);
-              // TODO: throw error
-            }
-          )
-      }
+  getChromosome(chromosome: string, serverID: string): Observable<MacroChromosome> {
+    let source: Server;
+    const i = this.serverIDs.indexOf(serverID);
+    if (i > -1) {
+      source = AppConfig.SERVERS[i];
+    } else {
+      return Observable.throw("\"" + serverID + "\" is not a valid server ID");
     }
+    if (!source.hasOwnProperty("chromosome")) {
+      return Observable.throw("\"" + serverID + "\" does not support chromosome queries");
+    }
+    const body = {chromosome};
+    return this._makeRequest<MacroChromosome>(source.chromosome, body);
   }
 
   federatedSearch(
@@ -131,7 +135,7 @@ export class MacroTracksService {
       return Observable.throw("\"" + serverID + "\" is not a valid server ID");
     }
     if (!source.hasOwnProperty("macro")) {
-      return Observable.throw("\"" + serverID + "\" does not support macro-tracl queries");
+      return Observable.throw("\"" + serverID + "\" does not support macro-track queries");
     }
     const body = {
       families: chromosome.families,
