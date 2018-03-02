@@ -103,12 +103,15 @@ export class SearchComponent implements AfterViewInit, OnInit {
   ngAfterViewInit(): void {
     Split([this.left.nativeElement, this.right.nativeElement], {
         direction: "horizontal",
+        minSize: 0,
       });
     Split([this.topLeft.nativeElement, this.bottomLeft.nativeElement], {
         direction: "vertical",
+        minSize: 0,
       });
     Split([this.topRight.nativeElement, this.bottomRight.nativeElement], {
         direction: "vertical",
+        minSize: 0,
       });
   }
 
