@@ -31,7 +31,7 @@ export class LegendViewerComponent extends Viewer {
   }
 
   draw(): void {
-    if (this.el !== undefined && this.data !== undefined) {
+    if (this.el !== undefined && this.data !== undefined && this.colors !== undefined) {
       if (this.viewer !== undefined) {
         this.viewer.destroy();
         this.viewer = undefined;
