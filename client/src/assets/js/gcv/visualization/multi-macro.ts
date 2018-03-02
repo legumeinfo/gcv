@@ -141,10 +141,7 @@ export class MultiMacro {
         color: function (d) {
           return colors[d.source_id];
         },
-        showAxesTooltip: false,
-        tooltipContent: function (d) {
-          return d.start + ' - ' + d.end;
-        },
+        tooltipContent: null,
         events: {
           'mouseover': function (d, i, nodes, event) {
             stackMouseover(d, i);
@@ -155,13 +152,15 @@ export class MultiMacro {
         }
       })
       .chords('l1', chords, {
-        logScale: false
+        logScale: false,
+        tooltipContent: null,
       })
       .highlight('cytobands', highlight, {
         innerRadius: chordInnerRadius,
         outerRadius: chordOuterRadius,
         opacity: 0.5,
-        color: '#000000'
+        color: '#000000',
+        tooltipContent: null,
       })
       .render()
 
