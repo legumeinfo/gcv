@@ -3,17 +3,21 @@ import * as Circos from "circos";
 
 export class MultiMacro {
 
+  private container: any;
   private options: any;
 
   constructor(el, multiMacroTracks, options) {
+    this.container = el;
     this.parseOptions(options);
-    this.drawCircos(el, multiMacroTracks, options);
+    this.drawCircos(el, multiMacroTracks);
   }
 
   private parseOptions(options): void {
     this.options = options || {};
-    this.options.colors = this.options.colors || ((s) => "#000000");
     this.options.highlight = this.options.highlight || [];
+    if (this.options.colors === undefined) {
+      this.options.colors = ((s) => "#cfcfcf");
+    }
   }
 
   /*
@@ -24,7 +28,7 @@ export class MultiMacro {
   *   highlight?: {chromosome: string, start: number, stop: number}[],
   * }
   */
-  private drawCircos(container, multiMacroTracks, options): void {
+  private drawCircos(container, multiMacroTracks): void {
 
     // create the diagram
     const width = 960;
@@ -32,9 +36,10 @@ export class MultiMacro {
       container: container,
       width: width,
       height: width
-    })
+    });
 
     // parse the tracks into Circos compatible data
+    const chromosomeIDs = multiMacroTracks.map((t) => t.chromosome);
     const colors = {};
     const chromosomes = [];
     const blocks = [];
@@ -44,12 +49,12 @@ export class MultiMacro {
       const macroTracks = multiMacroTracks[i];
       const name = macroTracks.genus + " " + macroTracks.species;
       const target_id = macroTracks.chromosome;
-      colors[target_id] = macroTracks.color;
+      colors[target_id] = this.options.colors(name);
       // parse the chromosome
       chromosomes.push({
         id: target_id,
         label: target_id,
-        color: colors[target_id],
+        color: this.options.colors(name),
         len: macroTracks.length,
       });
       // parse each track's blocks
@@ -57,25 +62,28 @@ export class MultiMacro {
         const macroTrack = macroTracks.tracks[j];
         const source_id = macroTrack.chromosome;
         for (let k = 0; k < macroTrack.blocks.length; k++) {
+          if (chromosomeIDs.indexOf(source_id) === -1) {
+            continue;
+          }
           // parse blocks
           const block = macroTrack.blocks[k];
           blocks.push({
             block_id: target_id,
             source_id: source_id,
-            start: block.start,
-            end: block.stop
+            start: block.query_start,
+            end: block.query_stop
           });
           // parse chords
           chords.push({
             source: {
               id: source_id,
-              start: parseInt(block.query_stop),
-              end: parseInt(block.query_start)
+              start: block.start,
+              end: block.stop,
             },
             target: {
               id: target_id,
-              start: parseInt(block.start),
-              end: parseInt(block.stop)
+              start: block.query_start,
+              end: block.query_stop,
             }
           });
         }
@@ -83,13 +91,15 @@ export class MultiMacro {
     }
 
     // compute which parts of each chromosome should be highlighted
-    const highlight = options.highlight.map(function(d) {
-      return {
-        block_id: d.chromosome,
-        start: parseInt(d.start),
-        end: parseInt(d.stop)
-      };
-    });
+    const highlight = this.options.highlight
+      .filter((d) => chromosomeIDs.indexOf(d.chromosome) > -1)
+      .map(function(d) {
+        return {
+          block_id: d.chromosome,
+          start: d.start,
+          end: d.stop
+        };
+      });
 
     // draw the diagram
     const chordInnerRadius = width / 2 - 100;
@@ -161,5 +171,14 @@ export class MultiMacro {
       chordSelection.classed('fade', false);
       tileSelection.classed('fade', false);
     }
+  }
+
+  destroy() {
+    // TODO: remove onyl elements added by Circos
+    while (this.container.firstChild) {
+      this.container.removeChild(this.container.firstChild);
+    }
+    //this.circos.conf.container.removeChild(this.circos.svg.node());
+    //this.circos = undefined;
   }
 }

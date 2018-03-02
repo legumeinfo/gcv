@@ -87,3 +87,11 @@ iframe.GCV-resizer {
   fill: #CCCCCC;
   fill-opacity: 0.4;
 }
+/* CircosJS */
+path.chord {
+  fill: #000;
+  fill-opacity: .05;
+}
+.fade {
+  display: none;
+}

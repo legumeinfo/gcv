@@ -1,6 +1,6 @@
 import { MacroBlock } from "./macro-block.model";
 
-export interface MacroTrack {
+export class MacroTrack {
   blocks: MacroBlock[];
   chromosome: string;
   genums?: string;

@@ -57,7 +57,6 @@ export class MicroTracksService {
       .subscribe(([query, params, correlationID]) => {
         this.trackSearch(query, params, correlationID);
       });
-
     this.queryParams
       .pairwise()
       .withLatestFrom(this.routeParams, this.searchQueryTrack, searchQueryCorrelationID)

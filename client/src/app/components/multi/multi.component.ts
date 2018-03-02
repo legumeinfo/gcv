@@ -5,13 +5,16 @@ import { Observable } from "rxjs/Observable";
 import { GCV } from "../../../assets/js/gcv";
 // app
 import * as Split from "split.js";
+import { AppConfig } from "../../app.config";
 import { Family } from "../../models/family.model";
 import { Gene } from "../../models/gene.model";
 import { Group } from "../../models/group.model";
+import { MacroTracks } from "../../models/macro-tracks.model";
 import { MicroTracks } from "../../models/micro-tracks.model";
 import { microTracksSelector } from "../../selectors/micro-tracks.selector";
 import { AlignmentService } from "../../services/alignment.service";
 import { FilterService } from "../../services/filter.service";
+import { MacroTracksService } from "../../services/macro-tracks.service";
 import { MicroTracksService } from "../../services/micro-tracks.service";
 
 @Component({
@@ -46,8 +49,15 @@ export class MultiComponent implements AfterViewInit {
   microTracks: MicroTracks;
   //queryGenes: string[];
 
+  // marco viewers
+  macroArgs: any;
+  macroColors: any;
+  macroTracks: MacroTracks[];
+
   constructor(private alignmentService: AlignmentService,
+              private config: AppConfig,
               private filterService: FilterService,
+              private macroTracksService: MacroTracksService,
               private microTracksService: MicroTracksService) { }
 
   // Angular hooks
@@ -75,6 +85,13 @@ export class MultiComponent implements AfterViewInit {
       .filter(([tracks, route]) => route.genes !== undefined)
       .subscribe(([tracks, route]) => {
         this._onAlignedMicroTracks(tracks as MicroTracks, route);
+      });
+
+    // subscribe to macro track data
+    this.macroTracksService.multiMacroTracks
+      .filter((tracks) => tracks !== undefined)
+      .subscribe((tracks) => {
+        this.macroTracks = tracks;
       });
   }
 
@@ -125,6 +142,25 @@ export class MultiComponent implements AfterViewInit {
       // micro viewer arguments
       this.microArgs = this._getMicroArgs(route.genes, familySizes);
 
+      // macro viewer
+      // TODO: provide a color function for each source - federation!
+      const s: any = this.config.getServer(tracks.groups[0].source);
+      if (s !== undefined && s.macroColors !== undefined) {
+        this.macroColors = s.macroColors.function;
+      } else {
+        this.macroColors = undefined;
+      }
+      this.macroArgs = this._getMacroArgs(
+        this.macroColors,
+        tracks.groups.map((t) => {
+          return {
+            chromosome: t.chromosome_name,
+            start: Math.min(...t.genes.map((g) => g.fmin)),
+            stop: Math.max(...t.genes.map((g) => g.fmax)),
+          };
+        }),
+      );
+
       // make sure families are unique and ordered by appearance in tracks
       // TODO: move uniqueness to reducer and ordering to selector
       const orderedUniqueFamilyIds = new Set();
@@ -167,6 +203,16 @@ export class MultiComponent implements AfterViewInit {
       // update micro track data
       this.microTracks = tracks;
     }
+  }
+
+  private _getMacroArgs(
+    colors: any,
+    highlight: {chromosome: string, start: number, stop: number}[]
+  ): any {
+    return {
+      colors,
+      highlight,
+    };
   }
 
   private _getMicroArgs(focusNames: string[], familySizes: any): any {

@@ -7,5 +7,6 @@ export class MacroChromosome {
   locations: GeneLoc[];
   genus?: string;
   name?: string;
+  source?: string;
   species?: string;
 }

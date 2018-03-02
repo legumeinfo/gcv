@@ -15,6 +15,8 @@ import * as fromClusteringParams from "./clustering-params.store";
 import * as fromMacroChromosome from "./macro-chromosome.store";
 import * as fromMacroTracks from "./macro-tracks.store";
 import * as fromMicroTracks from "./micro-tracks.store";
+import * as fromMultiMacroChromosome from "./multi-macro-chromosome.store";
+import * as fromMultiMacroTracks from "./multi-macro-tracks.store";
 import * as fromOrderFilter from "./order.store";
 import * as fromQueryParams from "./query-params.store";
 import * as fromRegexpFilter from "./regexp.store";
@@ -29,6 +31,8 @@ export interface State {
   macroChromosome: fromMacroChromosome.State;
   macroTracks: fromMacroTracks.State;
   microTracks: fromMicroTracks.State;
+  multiMacroChromosome: fromMultiMacroChromosome.State;
+  multiMacroTracks: fromMultiMacroTracks.State;
   orderFilter: fromOrderFilter.State;
   queryParams: fromQueryParams.State;
   regexpFilter: fromRegexpFilter.State;
@@ -45,6 +49,8 @@ export const reducers: ActionReducerMap<State> = {
   macroChromosome: fromMacroChromosome.reducer,
   macroTracks: fromMacroTracks.reducer,
   microTracks: fromMicroTracks.reducer,
+  multiMacroChromosome: fromMultiMacroChromosome.reducer,
+  multiMacroTracks: fromMultiMacroTracks.reducer,
   orderFilter: fromOrderFilter.reducer,
   queryParams: fromQueryParams.reducer,
   regexpFilter: fromRegexpFilter.reducer,
