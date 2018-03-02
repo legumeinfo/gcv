@@ -251,13 +251,10 @@ def v1_micro_synteny_basic(request):
             if len(family_id) > 0:
                 focus_family_id = family_id
                 if family_id not in families:
-                    families[family_id] = ('{"name":"' + family_id +
-                        '", "id":"' + family_id + '"}')
-            group = ('{"chromosome_name":"' + srcfeature.name +
-                '", "chromosome_id":' + str(srcfeature.feature_id) +
-                ', "genus":"' + organism.genus +
-                '", "species":"' + organism.species +
-                '", "species_id":' + str(gene.organism_id)+', "genes":[')
+                  families[family_id] = {
+                    "name": family_id,
+                    "id": family_id
+                  }
             order = order_map[gene.pk]
             track_genes = track_gene_map[order.pk]
             track_locs = track_loc_map[order.pk]
@@ -269,20 +266,33 @@ def v1_micro_synteny_basic(request):
                                else gene_family_map[l.feature_id]
                 if family_id != '':
                     if family_id not in families:
-                            families[family_id] = ('{"name":"' + family_id +
-                                '", "id":"' + family_id + '"}')
-                genes.append('{"name":"' + feature_name_map[l.feature_id] +
-                             '", "id":' + str(l.feature_id) + ',' +
-                             '"fmin":' + str(l.fmin) + ',' +
-                             '"fmax":' + str(l.fmax) + ',' +
-                             '"strand":' + str(l.strand) + ',' +
-                             '"family":"' + family_id + '"}')
-            group += ','.join(genes) + ']}'
+                      families[family_id] = {
+                        "name": family_id,
+                        "id": family_id
+                      }
+                genes.append({
+                  "name": feature_name_map[l.feature_id],
+                  "id": l.feature_id,
+                  "fmin": l.fmin,
+                  "fmax": l.fmax,
+                  "strand": l.strand,
+                  "family": family_id
+                })
+            group = {
+              "chromosome_name": srcfeature.name,
+              "chromosome_id": srcfeature.feature_id,
+              "genus": organism.genus,
+              "species": organism.species,
+              "species_id": gene.organism_id,
+              "genes": genes
+            }
             groups.append(group)
 
         # write the contents of the file
-        view_json = ('{"families":[' + ','.join(families.values()) + '], "groups":[' +
-            ','.join(groups) + ']}')
+        view_json = {
+          "families": families.values(),
+          "groups": groups
+        }
 
         return HttpResponse(
             json.dumps(view_json),
@@ -377,15 +387,25 @@ def v1_gene_to_query_track(request):
             g = neighbor_ids[i]
             family = str(neighbor_family_map[g] ) if g in neighbor_family_map else ''
             floc = neighbor_floc_map[g]
-            genes.append('{"name":"' + neighbor_name_map[g] + '", "id":' +
-                str(g) + ', "family":"' + family + '", "fmin":' +
-                str(floc.fmin) + ', "fmax":' + str(floc.fmax) + ', "strand":' +
-                str(floc.strand) + ', "x":' + str(i) + ', "y":0}')
+            genes.append({
+              "name": neighbor_name_map[g],
+              "id": g,
+              "family": family,
+              "fmin": floc.fmin,
+              "fmax": floc.fmax,
+              "strand": floc.strand,
+              "x": i,
+              "y": 0
+            })
             query_align.append((g, family))
-        query_group = ('{"genus":"' + organism.genus + '", "species":"' +
-            organism.species + '", "species_id":' + str(organism.pk) +
-            ', "chromosome_name":"' + chromosome.name + '", "chromosome_id":' +
-            str(chromosome.pk) + ', "genes":[' + ','.join(genes) + ']}')
+        query_group = {
+          "genus": organism.genus,
+          "species": organism.species,
+          "species_id": organism.pk,
+          "chromosome_name": chromosome.name,
+          "chromosome_id": chromosome.pk,
+          "genes": genes
+        }
 
         return HttpResponse(
             json.dumps(query_group),
@@ -568,19 +588,23 @@ def v1_micro_synteny_search(request):
             gene_json = []
             for g in tracks[key]:
                 family = track_family_map[g] if g in track_family_map else ''
-                gene_json.append('{"name":"' + gene_name_map[g] + '", "id":' +
-                    str(g) + ', "family":"' +family + '", "fmin":' +
-                    str(gene_loc_map[g].fmin) + ', "fmax":' +
-                    str(gene_loc_map[g].fmax) + ', "strand":' +
-                    str(gene_loc_map[g].strand)+'}')
+                gene_json.append({
+                  "name": gene_name_map[g],
+                  "id": g,
+                  "family": family,
+                  "fmin": gene_loc_map[g].fmin,
+                  "fmax": gene_loc_map[g].fmax,
+                  "strand": gene_loc_map[g].strand
+                })
             o = id_organism_map[id_chromosome_map[chromosome_id].organism_id]
-            group = ('{"genus":"' + o.genus +
-                '", "species":"' + o.species +
-                '", "species_id":' +
-                str(id_chromosome_map[chromosome_id].organism_id) +
-                ', "chromosome_name":"' + id_chromosome_map[chromosome_id].name +
-                '", "chromosome_id":' + str(chromosome_id) + ', "genes":[' +
-                ','.join(gene_json)+']}')
+            group = {
+              "genus": o.genus,
+              "species": o.species,
+              "species_id": id_chromosome_map[chromosome_id].organism_id,
+              "chromosome_name": id_chromosome_map[chromosome_id].name,
+              "chromosome_id": chromosome_id,
+              "genes": gene_json
+            }
             groups.append(group)
             # prepare for the next track
             y += 1
@@ -592,11 +616,14 @@ def v1_micro_synteny_search(request):
         # make the family json
         family_json = []
         for f in family_ids :
-            family_json.append('{"name":"'+f+'", "id":"'+f+'"}')
-        view_json = '{"families":['+','.join(family_json)+'], "groups":['
-
-        # make the final json
-        view_json += ','.join(groups)+']}'
+            family_json.append({
+              "name": f,
+              "id": f
+            })
+        view_json = {
+          "families": family_json,
+          "groups": groups
+        }
 
         return HttpResponse(
             json.dumps(view_json),
@@ -1053,6 +1080,7 @@ def v1_1_macro_synteny(request):
         maxinsert = POST['matched'] + 1
         minsize   = POST['intermediate'] + 1
         familymask = POST['mask']
+        targets = POST.get('targets', [])
 
         # make a dictionary that maps families to query gene numbers
         family_num_map = defaultdict(list)
@@ -1092,12 +1120,16 @@ def v1_1_macro_synteny(request):
 
         # mine synteny from each chromosome
         args = []
+        target_chromosomes = []
         for c_id in CHROMOSOMES_AS_FAMILIES:
+          if targets and CHROMOSOME_MAP[c_id].name not in targets:
+            continue
+          target_chromosomes.append((c_id, CHROMOSOMES_AS_FAMILIES[c_id]))
           genes = CHROMOSOMES_AS_GENES[c_id]
           counts = CHROMOSOME_FAMILY_COUNTS[c_id]
           c_args = (family_num_map, trivial_blocks, maxinsert, minsize, familymask, genes, counts)
           args.append(c_args)
-        data = zip(CHROMOSOMES_AS_FAMILIES.iteritems(), args)
+        data = zip(target_chromosomes, args)
         results = pool.map(macro_synteny_paths, data)
         paths     = {}
         end_genes = []
