@@ -319,12 +319,13 @@ export class SearchComponent implements AfterViewInit, OnInit {
                       : undefined;
 
       // find the focus gene
-      const i = tracks.groups[0].genes.map((g) => g.name).indexOf(route.gene);
-      const focus = tracks.groups[0].genes[i];
+      const query = tracks.groups[0];
+      const i = query.genes.map((g) => g.name).indexOf(route.gene);
+      const focus = query.genes[i];
 
       // macro viewer arguments
       this.macroLegendArgs = this._getMacroLegendArgs(
-        [focus !== undefined ? focus.family : undefined]
+        [focus !== undefined ? query.genus + " " + query.species : undefined]
       );
 
       // dot plot arguments
@@ -334,7 +335,7 @@ export class SearchComponent implements AfterViewInit, OnInit {
       this.microArgs = this._getMicroArgs(route.gene, familySizes);
 
       // macro viewer arguments
-      const queryGenes = tracks.groups[0].genes;
+      const queryGenes = query.genes;
       // TODO: update for federated coloring - each source has its own coloring
       const s: any = this.config.getServer(tracks.groups[0].source);
       if (s !== undefined && s.macroColors !== undefined) {

@@ -165,7 +165,10 @@ export class MultiMacro {
       })
       .render()
 
+    // TODO: add GCV data
+
     // mouse events
+    // TODO: make selections specific to this visualization
     const chordSelection = d3.selectAll('.chord');
     const tileSelection = d3.selectAll('.stack > .block > .tile');
 

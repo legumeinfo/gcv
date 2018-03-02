@@ -31,7 +31,7 @@ export class MultiComponent implements AfterViewInit, OnInit {
   @ViewChild("topLeft") topLeft: ElementRef;
   @ViewChild("bottomLeft") bottomLeft: ElementRef;
   @ViewChild("right") right: ElementRef;
-  //@ViewChild("topRight") topRight: ElementRef;
+  @ViewChild("topRight") topRight: ElementRef;
   @ViewChild("bottomRight") bottomRight: ElementRef;
 
   // what to show in left slider
@@ -51,6 +51,9 @@ export class MultiComponent implements AfterViewInit, OnInit {
 
   // marco viewers
   macroArgs: any;
+  macroColors: any;
+  macroLegend: any;
+  macroLegendArgs = {autoResize: true, selector: "genus-species"};
   macroTracks: MacroTracks[];
 
   constructor(private alignmentService: AlignmentService,
@@ -68,9 +71,9 @@ export class MultiComponent implements AfterViewInit, OnInit {
     Split([this.topLeft.nativeElement, this.bottomLeft.nativeElement], {
         direction: "vertical",
       });
-    //Split([this.topRight.nativeElement, this.bottomRight.nativeElement], {
-    //    direction: "vertical",
-    //  });
+    Split([this.topRight.nativeElement, this.bottomRight.nativeElement], {
+        direction: "vertical",
+      });
   }
 
   ngOnInit(): void {
@@ -92,7 +95,7 @@ export class MultiComponent implements AfterViewInit, OnInit {
     this.macroTracksService.multiMacroTracks
       .filter((tracks) => tracks !== undefined)
       .subscribe((tracks) => {
-        this.macroTracks = tracks;
+        this._onMacroTracks(tracks);
       });
   }
 
@@ -146,12 +149,13 @@ export class MultiComponent implements AfterViewInit, OnInit {
       // macro viewer
       // TODO: provide a color function for each source - federation!
       const s: any = this.config.getServer(tracks.groups[0].source);
-      let macroColors: any;
       if (s !== undefined && s.macroColors !== undefined) {
-        macroColors = s.macroColors.function;
+        this.macroColors = s.macroColors.function;
+      } else {
+        this.macroColors = undefined;
       }
       this.macroArgs = this._getMacroArgs(
-        macroColors,
+        this.macroColors,
         tracks.groups.map((t) => {
           return {
             chromosome: t.chromosome_name,
@@ -202,6 +206,21 @@ export class MultiComponent implements AfterViewInit, OnInit {
 
       // update micro track data
       this.microTracks = tracks;
+    }
+  }
+
+  private _onMacroTracks(tracks: MacroTracks[]): void {
+    if (tracks !== undefined) {
+      const seen = {};
+      this.macroLegend = tracks.reduce((l, t) => {
+        const name = t.genus + " " + t.species;
+        if (!seen[name]) {
+          seen[name] = true;
+          l.push({name, id: name});
+        }
+        return l;
+      }, []);
+      this.macroTracks = tracks;
     }
   }
 
