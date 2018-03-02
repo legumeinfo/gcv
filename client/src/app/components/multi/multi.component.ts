@@ -31,7 +31,7 @@ export class MultiComponent implements AfterViewInit {
   @ViewChild("topLeft") topLeft: ElementRef;
   @ViewChild("bottomLeft") bottomLeft: ElementRef;
   @ViewChild("right") right: ElementRef;
-  @ViewChild("topRight") topRight: ElementRef;
+  //@ViewChild("topRight") topRight: ElementRef;
   @ViewChild("bottomRight") bottomRight: ElementRef;
 
   // what to show in left slider
@@ -51,7 +51,6 @@ export class MultiComponent implements AfterViewInit {
 
   // marco viewers
   macroArgs: any;
-  macroColors: any;
   macroTracks: MacroTracks[];
 
   constructor(private alignmentService: AlignmentService,
@@ -69,9 +68,9 @@ export class MultiComponent implements AfterViewInit {
     Split([this.topLeft.nativeElement, this.bottomLeft.nativeElement], {
         direction: "vertical",
       });
-    Split([this.topRight.nativeElement, this.bottomRight.nativeElement], {
-        direction: "vertical",
-      });
+    //Split([this.topRight.nativeElement, this.bottomRight.nativeElement], {
+    //    direction: "vertical",
+    //  });
 
     // subscribe to micro track data
     Observable
@@ -145,13 +144,12 @@ export class MultiComponent implements AfterViewInit {
       // macro viewer
       // TODO: provide a color function for each source - federation!
       const s: any = this.config.getServer(tracks.groups[0].source);
+      let macroColors: any;
       if (s !== undefined && s.macroColors !== undefined) {
-        this.macroColors = s.macroColors.function;
-      } else {
-        this.macroColors = undefined;
+        macroColors = s.macroColors.function;
       }
       this.macroArgs = this._getMacroArgs(
-        this.macroColors,
+        macroColors,
         tracks.groups.map((t) => {
           return {
             chromosome: t.chromosome_name,
