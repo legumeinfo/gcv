@@ -101,7 +101,6 @@ export class SearchComponent implements AfterViewInit, OnInit {
   // Angular hooks
 
   ngAfterViewInit(): void {
-    // split the view
     Split([this.left.nativeElement, this.right.nativeElement], {
         direction: "horizontal",
       });
@@ -111,6 +110,10 @@ export class SearchComponent implements AfterViewInit, OnInit {
     Split([this.topRight.nativeElement, this.bottomRight.nativeElement], {
         direction: "vertical",
       });
+  }
+
+  ngOnInit(): void {
+    this._initUIState();
 
     // subscribe to micro track data
     const filteredMicroTracks = Observable
@@ -147,10 +150,6 @@ export class SearchComponent implements AfterViewInit, OnInit {
     //  .subscribe((plots) => this.microPlots = plots);
     //this.plotsService.selectedPlot
     //  .subscribe(this._onPlotSelection.bind(this));
-  }
-
-  ngOnInit(): void {
-    this._initUI();
   }
 
   // public
@@ -306,7 +305,7 @@ export class SearchComponent implements AfterViewInit, OnInit {
     };
   }
 
-  private _initUI(): void {
+  private _initUIState(): void {
     this.showViewers();
     this.showLocalPlot();
     this.hideLocalGlobalPlots();

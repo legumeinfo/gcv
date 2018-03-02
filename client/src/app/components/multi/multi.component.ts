@@ -1,5 +1,5 @@
 // Angular + dependencies
-import { AfterViewInit, Component, ElementRef, ViewChild,
+import { AfterViewInit, Component, ElementRef, OnInit, ViewChild,
   ViewEncapsulation } from "@angular/core";
 import { Observable } from "rxjs/Observable";
 import { GCV } from "../../../assets/js/gcv";
@@ -25,7 +25,7 @@ import { MicroTracksService } from "../../services/micro-tracks.service";
             require("../../../assets/css/split.scss") ],
   template: require("./multi.component.html"),
 })
-export class MultiComponent implements AfterViewInit {
+export class MultiComponent implements AfterViewInit, OnInit {
   // view children
   @ViewChild("left") left: ElementRef;
   @ViewChild("topLeft") topLeft: ElementRef;
@@ -71,7 +71,9 @@ export class MultiComponent implements AfterViewInit {
     //Split([this.topRight.nativeElement, this.bottomRight.nativeElement], {
     //    direction: "vertical",
     //  });
+  }
 
+  ngOnInit(): void {
     // subscribe to micro track data
     Observable
       .combineLatest(
