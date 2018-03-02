@@ -62,6 +62,7 @@ export class MultiMacro {
         const macroTrack = macroTracks.tracks[j];
         const source_id = macroTrack.chromosome;
         for (let k = 0; k < macroTrack.blocks.length; k++) {
+          // don't draw blocks/chords for chromosomes that haven't been loaded
           if (chromosomeIDs.indexOf(source_id) === -1) {
             continue;
           }
@@ -71,7 +72,9 @@ export class MultiMacro {
             block_id: target_id,
             source_id: source_id,
             start: block.query_start,
-            end: block.query_stop
+            end: block.query_stop,
+            source_start: block.start,
+            source_end: block.stop,
           });
           // parse chords
           chords.push({
@@ -121,7 +124,7 @@ export class MultiMacro {
         },
         events: {
           'mouseover': function (d, i, nodes, event) {
-            mouseover(d, i);
+            layoutMouseover(d, i);
           },
           'mouseout': function (d, i, nodes, event) {
             mouseout(d, i);
@@ -141,6 +144,14 @@ export class MultiMacro {
         showAxesTooltip: false,
         tooltipContent: function (d) {
           return d.start + ' - ' + d.end;
+        },
+        events: {
+          'mouseover': function (d, i, nodes, event) {
+            stackMouseover(d, i);
+          },
+          'mouseout': function (d, i, nodes, event) {
+            mouseout(d, i);
+          }
         }
       })
       .chords('l1', chords, {
@@ -158,12 +169,23 @@ export class MultiMacro {
     const chordSelection = d3.selectAll('.chord');
     const tileSelection = d3.selectAll('.stack > .block > .tile');
 
-    function mouseover(d, i) {
+    function layoutMouseover(d, i) {
       chordSelection.classed('fade', function(c) {
-        return d.id != c.source.id;
+        return d.id !== c.source.id;
       });
       tileSelection.classed('fade', function(b) {
-        return d.id != b.source_id;
+        return d.id !== b.source_id && d.id !== b.block_id;
+      });
+    }
+
+    function stackMouseover(d, i) {
+      chordSelection.classed('fade', function(c) {
+        return !(d.source_id === c.source.id && d.block_id === c.target.id &&
+                 d.start === c.target.start && d.end === c.target.end);
+      });
+      tileSelection.classed('fade', function(b) {
+        return !(d === b || (d.source_id === b.block_id && d.block_id === b.source_id &&
+                 d.source_start === b.start && d.source_end === b.end));
       });
     }
 
