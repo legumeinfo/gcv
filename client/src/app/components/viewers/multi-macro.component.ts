@@ -14,8 +14,7 @@ import { Viewer } from "./viewer.component";
       right: 0;
       bottom: 0;
       left: 0;
-      overflow-x: hidden;
-      overflow-y: auto;
+      overflow: hidden;
     }
   `],
   template: require("./viewer.component.html"),

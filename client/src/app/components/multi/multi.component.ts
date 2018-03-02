@@ -232,6 +232,7 @@ export class MultiComponent implements AfterViewInit, OnInit {
     highlight: {chromosome: string, start: number, stop: number}[]
   ): any {
     return {
+      autoResize: true,
       colors,
       highlight,
     };

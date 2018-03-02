@@ -1,57 +1,62 @@
 import { d3 } from "./d3";
 import * as Circos from "circos";
+import ResizeObserver from 'resize-observer-polyfill';
 
 export class MultiMacro {
 
   private container: any;
   private options: any;
+  private data: any;
+  private circos: any;
+  private resizeTimer: any;
 
   constructor(el, multiMacroTracks, options) {
     this.container = el;
     this.parseOptions(options);
-    this.drawCircos(el, multiMacroTracks);
+    this.parseData(multiMacroTracks);
+    this.drawCircos();
+    if (this.options.autoResize) {
+      this.autoResize();
+    }
   }
 
   private parseOptions(options): void {
     this.options = options || {};
+    this.options.autoResize = this.options.autoResize || false;
+    this.options.resizeDelay = this.options.resizeDelay || 250;
     this.options.highlight = this.options.highlight || [];
     if (this.options.colors === undefined) {
       this.options.colors = ((s) => "#cfcfcf");
     }
   }
 
-  /*
-  * container - where to draw the viewer
-  * multiMacroTracks - MacroTracks[]
-  * options - {
-  *   colors?: (name: string) => string,
-  *   highlight?: {chromosome: string, start: number, stop: number}[],
-  * }
-  */
-  private drawCircos(container, multiMacroTracks): void {
-
-    // create the diagram
-    const width = 960;
-    const circos = new Circos({
-      container: container,
-      width: width,
-      height: width
-    });
-
+  private parseData(multiMacroTracks) {
     // parse the tracks into Circos compatible data
     const chromosomeIDs = multiMacroTracks.map((t) => t.chromosome);
-    const colors = {};
-    const chromosomes = [];
-    const blocks = [];
-    const chords = [];
+    this.data = {
+      colors: {},
+      chromosomes: [],
+      blocks: [],
+      chords: [],
+      // compute which parts of each chromosome should be highlighted
+      highlight: this.options.highlight
+        .filter((d) => chromosomeIDs.indexOf(d.chromosome) > -1)
+        .map(function(d) {
+          return {
+            block_id: d.chromosome,
+            start: d.start,
+            end: d.stop
+          };
+        }),
+    };
     // convert each chromosome's MacroTracks into a slice of the circle
     for (let i = 0; i < multiMacroTracks.length; i++) {
       const macroTracks = multiMacroTracks[i];
       const name = macroTracks.genus + " " + macroTracks.species;
       const target_id = macroTracks.chromosome;
-      colors[target_id] = this.options.colors(name);
+      this.data.colors[target_id] = this.options.colors(name);
       // parse the chromosome
-      chromosomes.push({
+      this.data.chromosomes.push({
         id: target_id,
         label: target_id,
         color: this.options.colors(name),
@@ -68,7 +73,7 @@ export class MultiMacro {
           }
           // parse blocks
           const block = macroTrack.blocks[k];
-          blocks.push({
+          this.data.blocks.push({
             block_id: target_id,
             source_id: source_id,
             start: block.query_start,
@@ -77,7 +82,7 @@ export class MultiMacro {
             source_end: block.stop,
           });
           // parse chords
-          chords.push({
+          this.data.chords.push({
             source: {
               id: source_id,
               start: block.start,
@@ -92,26 +97,24 @@ export class MultiMacro {
         }
       }
     }
+  }
 
-    // compute which parts of each chromosome should be highlighted
-    const highlight = this.options.highlight
-      .filter((d) => chromosomeIDs.indexOf(d.chromosome) > -1)
-      .map(function(d) {
-        return {
-          block_id: d.chromosome,
-          start: d.start,
-          end: d.stop
-        };
-      });
+  // draw the diagram
+  private drawCircos() {
+    const width = Math.min(this.container.clientWidth, this.container.clientHeight);
+    this.circos = new Circos({
+      container: this.container,
+      width: width,
+      height: width
+    });
 
-    // draw the diagram
     const chordInnerRadius = width / 2 - 100;
     const chordOuterRadius = width / 2 - 80;
     const stackInnerRadius = chordOuterRadius + 5;
     const stackOuterRadius = width / 2;
 
-    circos
-      .layout(chromosomes, {
+    this.circos
+      .layout(this.data.chromosomes, {
         innerRadius: chordInnerRadius,
         outerRadius: chordOuterRadius,
         labels: {
@@ -131,15 +134,15 @@ export class MultiMacro {
           }
         }
       })
-      .stack('stack', blocks, {
+      .stack('stack', this.data.blocks, {
         innerRadius: stackInnerRadius,
         outerRadius: stackOuterRadius,
         thickness: 4,
         margin: 0.01 * length,
         direction: 'out',
         strokeWidth: 0,
-        color: function (d) {
-          return colors[d.source_id];
+        color: (d) => {
+          return this.data.colors[d.source_id];
         },
         tooltipContent: null,
         events: {
@@ -151,11 +154,11 @@ export class MultiMacro {
           }
         }
       })
-      .chords('l1', chords, {
+      .chords('l1', this.data.chords, {
         logScale: false,
         tooltipContent: null,
       })
-      .highlight('cytobands', highlight, {
+      .highlight('cytobands', this.data.highlight, {
         innerRadius: chordInnerRadius,
         outerRadius: chordOuterRadius,
         opacity: 0.5,
@@ -164,7 +167,7 @@ export class MultiMacro {
       })
       .render()
 
-    // TODO: add GCV data
+    // TODO: add GCV data attributes
 
     // mouse events
     // TODO: make selections specific to this visualization
@@ -197,12 +200,29 @@ export class MultiMacro {
     }
   }
 
+  // TODO: clearTimeout doesn't appear to be working due to a scoping issue
+  // NOTE: is there a more efficient way to resize other than redrawing?
+  private autoResize() {
+    const scope = this;
+    const ro = new ResizeObserver((entries) => {
+      clearTimeout(this.resizeTimer);
+      const id = this.resizeTimer = setTimeout(() => {
+        const width = Math.min(this.container.clientWidth, this.container.clientHeight);
+        // NOTE: shouldn't have to check if circos is undefined if scope is correct...
+        if (this.circos !== undefined && this.circos.conf.width !== width) {
+          this.destroy();
+          this.drawCircos();
+        }
+      }, this.options.resizeDelay);
+    });
+    ro.observe(this.container);
+  }
+
   destroy() {
-    // TODO: remove onyl elements added by Circos
+    // TODO: remove only elements added by Circos
     while (this.container.firstChild) {
       this.container.removeChild(this.container.firstChild);
     }
-    //this.circos.conf.container.removeChild(this.circos.svg.node());
-    //this.circos = undefined;
+    this.circos = undefined;
   }
 }
