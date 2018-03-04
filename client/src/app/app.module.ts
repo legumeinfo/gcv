@@ -52,8 +52,10 @@ import { UrlService } from "./services/url.service";
 
 // ngrx store
 import { RouterStateSerializer, StoreRouterConnectingModule } from "@ngrx/router-store";
+import { EffectsModule } from "@ngrx/effects";
 import { StoreModule } from "@ngrx/store";
 import { metaReducers, reducers } from "./reducers";
+import { effects } from "./effects";
 import { CustomRouterStateSerializer } from "./utils/custom-router-state-serializer.util";
 
 @NgModule({
@@ -97,6 +99,7 @@ import { CustomRouterStateSerializer } from "./utils/custom-router-state-seriali
     ReactiveFormsModule,
     StoreModule.forRoot(reducers, {metaReducers}),
     StoreRouterConnectingModule.forRoot({stateKey: "router"}),
+    EffectsModule.forRoot(effects),
   ],
   providers: [
     AppConfig,
