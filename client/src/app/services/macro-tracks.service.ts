@@ -1,7 +1,6 @@
 // Angular
 import { Injectable } from "@angular/core";
 import { HttpClient, HttpParams } from "@angular/common/http";
-import { Router } from "@angular/router";
 import { Observable } from "rxjs/Observable";
 // store
 import { Store } from "@ngrx/store";
@@ -10,6 +9,7 @@ import * as macroTracksActions from "../actions/macro-tracks.actions";
 import * as macroChromosomeActions from "../actions/macro-chromosome.actions";
 import * as multiMacroTracksActions from "../actions/multi-macro-tracks.actions";
 import * as multiMacroChromosomeActions from "../actions/multi-macro-chromosome.actions";
+import * as routerActions from "../actions/router.actions";
 import * as fromRoot from "../reducers";
 import * as fromBlockParams from "../reducers/block-params.store";
 import * as fromMacroChromosome from "../reducers/macro-chromosome.store";
@@ -41,9 +41,7 @@ export class MacroTracksService {
   private searchRoute: Observable<any>;
   private serverIDs = AppConfig.SERVERS.map((s) => s.id);
 
-  constructor(private http: HttpClient,
-              private router: Router,
-              private store: Store<fromRoot.State>) {
+  constructor(private http: HttpClient, private store: Store<fromRoot.State>) {
 
     // initialize observables
     this.blockParams = this.store.select(fromBlockParams.getBlockParams);
@@ -320,7 +318,7 @@ export class MacroTracksService {
                     "/" + route.source +
                     "/" + genes[mid];
         // TODO: update this to use ngrx-router (requires @ngrx/effects)
-        this.router.navigateByUrl(url);
+        this.store.dispatch(new routerActions.Go({path: [url]}));
       })
       // TODO: replace with .last() before subscribe
       .unsubscribe();

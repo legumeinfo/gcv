@@ -420,6 +420,6 @@ export class SearchComponent implements AfterViewInit, OnInit {
 
   private _viewportDrag(d1, d2): void {
     const position = parseInt((d1 + d2) / 2, 10);
-    //this.macroTracksService.nearestGene(position);
+    this.macroTracksService.nearestGene(position);
   }
 }
