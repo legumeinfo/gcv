@@ -12,7 +12,7 @@ export const initialState: State = {
   correlationID: 0,
   microTracks: new MicroTracks(),
   newMicroTracks: new MicroTracks(),
-};
+}
 
 export function reducer(
   state = initialState,

@@ -4,20 +4,17 @@ import { HttpClient, HttpParams } from "@angular/common/http";
 import { Observable } from "rxjs/Observable";
 // store
 import { Store } from "@ngrx/store";
-import * as blockParamActions from "../actions/block-params.actions";
 import * as macroTracksActions from "../actions/macro-tracks.actions";
 import * as macroChromosomeActions from "../actions/macro-chromosome.actions";
 import * as multiMacroTracksActions from "../actions/multi-macro-tracks.actions";
 import * as multiMacroChromosomeActions from "../actions/multi-macro-chromosome.actions";
 import * as routerActions from "../actions/router.actions";
 import * as fromRoot from "../reducers";
-import * as fromBlockParams from "../reducers/block-params.store";
 import * as fromMacroChromosome from "../reducers/macro-chromosome.store";
 import * as fromMacroTracks from "../reducers/macro-tracks.store";
 import * as fromMicroTracks from "../reducers/micro-tracks.store";
 import * as fromMultiMacroChromosome from "../reducers/multi-macro-chromosome.store";
 import * as fromMultiMacroTracks from "../reducers/multi-macro-tracks.store";
-import * as fromQueryParams from "../reducers/query-params.store";
 import * as fromRouter from "../reducers/router.store";
 import * as fromSearchQueryTrack from "../reducers/search-query-track.store";
 // app
@@ -44,7 +41,7 @@ export class MacroTracksService {
   constructor(private http: HttpClient, private store: Store<fromRoot.State>) {
 
     // initialize observables
-    this.blockParams = this.store.select(fromBlockParams.getBlockParams);
+    this.blockParams = this.store.select(fromRouter.getMacroBlockParams);
     this.macroChromosome = this.store.select(fromMacroChromosome.getMacroChromosome);
     this.macroTracks = this.store.select(fromMacroTracks.getMacroTracks);
     this.multiMacroTracks = this.store.select(fromMultiMacroTracks.getMultiMacroTracks);
@@ -58,7 +55,7 @@ export class MacroTracksService {
     const newMicroTracks = this.store.select(fromMicroTracks.getNewMicroTracks);
     const newMultiMacroChromosome =
       this.store.select(fromMultiMacroChromosome.getNewMultiMacroChromosome);
-    const querySources = this.store.select(fromQueryParams.getQueryParamsSources);
+    const querySources = this.store.select(fromRouter.getMicroQueryParamSources);
     const routeParams = this.store.select(fromRouter.getParams);
     const searchQueryChromosome = this.store.select(fromSearchQueryTrack.getSearchQueryChromosome)
       .filter((chromosome) => chromosome !== undefined);
@@ -317,15 +314,16 @@ export class MacroTracksService {
         const url = "/" + AppRoutes.SEARCH +
                     "/" + route.source +
                     "/" + genes[mid];
-        // TODO: update this to use ngrx-router (requires @ngrx/effects)
-        this.store.dispatch(new routerActions.Go({path: [url]}));
+        this.store.dispatch(new routerActions.Go({path: [url, { routeParam: 1 }]}));
       })
       // TODO: replace with .last() before subscribe
       .unsubscribe();
   }
 
   updateParams(params: BlockParams): void {
-    this.store.dispatch(new blockParamActions.New(params));
+    const path = [];
+    const query = Object.assign({}, params);
+    this.store.dispatch(new routerActions.Go({path, query}));
   }
 
   // encapsulates HTTP request boilerplate

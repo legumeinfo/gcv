@@ -6,10 +6,9 @@ import { Observable } from "rxjs/Observable";
 import { Store } from "@ngrx/store";
 import * as microTracksActions from "../actions/micro-tracks.actions";
 import * as searchQueryTrackActions from "../actions/search-query-track.actions";
-import * as queryParamActions from "../actions/query-params.actions";
+import * as routerActions from "../actions/router.actions";
 import * as fromRoot from "../reducers";
 import * as fromMicroTracks from "../reducers/micro-tracks.store";
-import * as fromQueryParams from "../reducers/query-params.store";
 import * as fromRouter from "../reducers/router.store";
 import * as fromSearchQueryTrack from "../reducers/search-query-track.store";
 // app
@@ -35,11 +34,11 @@ export class MicroTracksService {
 
     // initialize observables
     this.microTracks = this.store.select(fromMicroTracks.getMicroTracks);
-    this.queryParams = this.store.select(fromQueryParams.getQueryParams);
+    this.queryParams = this.store.select(fromRouter.getMicroQueryParams);
     this.searchQueryTrack = this.store.select(fromSearchQueryTrack.getSearchQueryTrack)
       .filter((queryTrack) => queryTrack !== undefined);
     this.routeParams = this.store.select(fromRouter.getParams);
-    const queryParamsNeighbors = this.store.select(fromQueryParams.getQueryParamsNeighbors);
+    const queryParamsNeighbors = this.store.select(fromRouter.getMicroQueryParamNeighbors);
     const searchQueryCorrelationID = this.store.select(fromSearchQueryTrack.getCorrelationID);
 
     // subscribe to observables that trigger query track retrievals
@@ -174,7 +173,9 @@ export class MicroTracksService {
   }
 
   updateParams(params: QueryParams): void {
-    this.store.dispatch(new queryParamActions.New(params));
+    const path = [];
+    const query = Object.assign({}, params, {sources: params.sources.join(",")});
+    this.store.dispatch(new routerActions.Go({path, query}));
   }
 
   // encapsulates HTTP request boilerplate

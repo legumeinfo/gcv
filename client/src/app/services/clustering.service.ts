@@ -4,10 +4,9 @@ import { Observable } from "rxjs/Observable";
 // store
 import { Store } from "@ngrx/store";
 import * as clusteredMicroTracksActions from "../actions/clustered-micro-tracks.actions";
-import * as clusteringParamActions from "../actions/clustering-params.actions";
+import * as routerActions from "../actions/router.actions";
 import * as fromRoot from "../reducers";
 import * as fromClusteredMicroTracks from "../reducers/clustered-micro-tracks.store";
-import * as fromClusteringParams from "../reducers/clustering-params.store";
 import * as fromMicroTracks from "../reducers/micro-tracks.store";// App
 import * as fromRouter from "../reducers/router.store";
 // app
@@ -23,7 +22,7 @@ export class ClusteringService {
   constructor(private store: Store<fromRoot.State>) {
     // initialize observables
     this.clusteredMicroTracks = this.store.select(fromClusteredMicroTracks.getClusteredMicroTracks);
-    this.clusteringParams = this.store.select(fromClusteringParams.getClusteringParams);
+    this.clusteringParams = this.store.select(fromRouter.getMicroClusteringParams);
     const microTracks = this.store.select(fromMicroTracks.getMicroTracks);
     const routeParams = this.store.select(fromRouter.getParams);
 
@@ -97,6 +96,8 @@ export class ClusteringService {
   }
 
   updateParams(params: ClusteringParams): void {
-    this.store.dispatch(new clusteringParamActions.New(params));
+    const path = [];
+    const query = Object.assign({}, params);
+    this.store.dispatch(new routerActions.Go({path, query}));
   }
 }

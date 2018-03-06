@@ -4,10 +4,9 @@ import { Observable } from "rxjs/Observable";
 // store
 import { Store } from "@ngrx/store";
 import * as alignedMicroTracksActions from "../actions/aligned-micro-tracks.actions";
-import * as alignmentParamActions from "../actions/alignment-params.actions";
+import * as routerActions from "../actions/router.actions";
 import * as fromRoot from "../reducers";
 import * as fromAlignedMicroTracks from "../reducers/aligned-micro-tracks.store";
-import * as fromAlignmentParams from "../reducers/alignment-params.store";
 import * as fromClusteredMicroTracks from "../reducers/clustered-micro-tracks.store";
 import * as fromMicroTracks from "../reducers/micro-tracks.store";
 import * as fromRouter from "../reducers/router.store";
@@ -31,7 +30,7 @@ export class AlignmentService {
   constructor(private store: Store<fromRoot.State>) {
     // initialize observables
     this.alignedMicroTracks = this.store.select(fromAlignedMicroTracks.getAlignedMicroTracks);
-    this.alignmentParams = this.store.select(fromAlignmentParams.getAlignmentParams);
+    this.alignmentParams = this.store.select(fromRouter.getMicroAlignmentParams);
     const clusteredMicroTracks = this.store.select(fromClusteredMicroTracks.getClusteredMicroTracks);
     const microTracks = this.store.select(fromMicroTracks.getMicroTracks);
     const newMicroTracks = this.store.select(fromMicroTracks.getNewMicroTracks);
@@ -71,7 +70,9 @@ export class AlignmentService {
   }
 
   updateParams(params: AlignmentParams): void {
-    this.store.dispatch(new alignmentParamActions.New(params));
+    const path = [];
+    const query = Object.assign({}, params);
+    this.store.dispatch(new routerActions.Go({path, query}));
   }
 
   private _newPairwiseAlignment(queryTrack: Group): void {
