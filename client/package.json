@@ -11,7 +11,7 @@
   },
   "devDependencies": {
     "@types/core-js": "^0.9.43",
-    "@types/node": "^9.4.4",
+    "@types/node": "^9.4.6",
     "awesome-typescript-loader": "^3.2.3",
     "css-loader": "^0.28.5",
     "extract-text-webpack-plugin": "^3.0.2",
