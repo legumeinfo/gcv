@@ -15,6 +15,8 @@ export class MicroTracksEffects {
   constructor(private actions$: Actions,
               private microTracksService: MicroTracksService) { }
 
+  // search
+
   @Effect()
   getQueryTrack$ = this.actions$.pipe(
     ofType(searchQueryTrackActions.GET),
@@ -35,6 +37,20 @@ export class MicroTracksEffects {
       return this.microTracksService.getFederatedSearchTracks(query, params, sources).pipe(
         map(([source, tracks]) => new microTracksActions.GetSearchSuccess({tracks, source})),
         catchError(([source, error]) => of(new microTracksActions.GetSearchFailure({error, source})))
+      )
+    })
+  );
+
+  // multi
+
+  @Effect()
+  getMultiTracks$ = this.actions$.pipe(
+    ofType(microTracksActions.GET_MULTI),
+    map((action: microTracksActions.GetMulti) => action.payload),
+    switchMap(({query, neighbors, sources}) => {
+      return this.microTracksService.getFederatedMultiTracks(query, neighbors, sources).pipe(
+        map(([source, tracks]) => new microTracksActions.GetMultiSuccess({tracks, source})),
+        catchError(([source, error]) => of(new microTracksActions.GetMultiFailure({error, source})))
       )
     })
   );

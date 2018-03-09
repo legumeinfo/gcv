@@ -22,24 +22,25 @@ import { SearchComponent } from "../components/search/search.component";
 @Injectable()
 export class SearchGuard implements CanActivate, CanDeactivate<SearchComponent> {
 
-  private deactivator: Subject<any>;
+  private deactivate: Subject<boolean>;
 
   constructor(private store: Store<fromRoot.State>) { }
 
   canActivate(): boolean {
-    this.deactivator = new Subject();
-    this.microTrackSubscriptions();
+    this.deactivate = new Subject();
+    this.microSubscriptions();
     this.alignmentSubscriptions();
     this.macroSubscriptions();
     return true;
   }
 
   canDeactivate(): boolean {
-    this.deactivator.complete();
+    this.deactivate.next(true);
+    this.deactivate.complete();
     return true;
   }
 
-  private microTrackSubscriptions() {
+  private microSubscriptions() {
     // load a new query track when the search route or neighbors param changes
     const searchRoute = this.store.select(fromRouter.getSearchRoute)
       .filter((route) => route.source !== undefined && route.gene !== undefined)
@@ -47,7 +48,7 @@ export class SearchGuard implements CanActivate, CanDeactivate<SearchComponent> 
     const neighborsParam = this.store.select(fromRouter.getMicroQueryParamNeighbors);
     Observable
       .combineLatest(searchRoute, neighborsParam)
-      .takeUntil(this.deactivator)
+      .takeUntil(this.deactivate)
       .subscribe(([query, neighbors]) => {
         this.store.dispatch(new searchQueryTrackActions.Get({query, neighbors}));
       });
@@ -63,7 +64,7 @@ export class SearchGuard implements CanActivate, CanDeactivate<SearchComponent> 
       });
     queryTrack
       .withLatestFrom(queryParams)
-      .takeUntil(this.deactivator)
+      .takeUntil(this.deactivate)
       .subscribe(([query, params]) => {
         this.store.dispatch(new microTracksActions.GetSearch({
           query,
@@ -77,7 +78,7 @@ export class SearchGuard implements CanActivate, CanDeactivate<SearchComponent> 
       .filter(([prevParams, nextParams]) => prevParams.neighbors === nextParams.neighbors)
       .map(([prevParams, nextParams]) => nextParams)
       .withLatestFrom(queryTrack)
-      .takeUntil(this.deactivator)
+      .takeUntil(this.deactivate)
       .subscribe(([params, query]) => {
         this.store.dispatch(new microTracksActions.GetSearch({
           query,
@@ -97,13 +98,14 @@ export class SearchGuard implements CanActivate, CanDeactivate<SearchComponent> 
                a.gap === b.gap &&
                a.score === b.score &&
                a.threshold === b.threshold;
-      });;
-    const microReference = this.store.select(fromAlignedMicroTracks.getAlignmentReference);
+      });
+    const microReference = this.store.select(fromAlignedMicroTracks.getAlignmentReference)
+      .filter((reference) => reference !== undefined);
     const microTracks = this.store.select(fromMicroTracks.getMicroTracks);
     // TODO: prevent alignments when query params change too
     alignmentParams
       .withLatestFrom(microReference, microTracks)
-      .takeUntil(this.deactivator)
+      .takeUntil(this.deactivate)
       .subscribe(([params, reference, tracks]) => {
         this.store.dispatch(new alignedMicroTracksActions.Init({reference}));
         this.store.dispatch(new alignedMicroTracksActions.GetPairwise({tracks, params}));
@@ -116,7 +118,7 @@ export class SearchGuard implements CanActivate, CanDeactivate<SearchComponent> 
     const searchRouteSource = this.store.select(fromRouter.getSearchRouteSource);
     searchQueryChromosome
       .withLatestFrom(searchRouteSource)
-      .takeUntil(this.deactivator)
+      .takeUntil(this.deactivate)
       .subscribe(([chromosome, source]) => {
         this.store.dispatch(new macroChromosomeActions.Get({chromosome, source}));
       });
@@ -129,17 +131,17 @@ export class SearchGuard implements CanActivate, CanDeactivate<SearchComponent> 
                a.bintermediate === b.bintermediate &&
                a.bmask === b.bmask;
       });
-    const querySources = this.store.select(fromRouter.getMicroQueryParamSources)
+    const querySources = this.store.select(fromRouter.getMicroQueryParamSources);
     macroChromosome
       .withLatestFrom(blockParams, querySources)
-      .takeUntil(this.deactivator)
+      .takeUntil(this.deactivate)
       .subscribe(([query, params, sources]) => {
         this.store.dispatch(new macroTracksActions.Get({query, params, sources}));
       });
     // load new macro tracks when the block params change
     blockParams
       .withLatestFrom(macroChromosome, querySources)
-      .takeUntil(this.deactivator)
+      .takeUntil(this.deactivate)
       .subscribe(([params, query, sources]) => {
         this.store.dispatch(new macroTracksActions.Get({query, params, sources}));
       });

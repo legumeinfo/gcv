@@ -21,7 +21,7 @@ export class GetPairwise implements Action {
 
 export class GetMulti implements Action {
   readonly type = GET_MULTI;
-  constructor(public payload: {tracks: MicroTracks, params: AlignmentParams}) { }
+  constructor(public payload: {tracks: MicroTracks}) { }
 }
 
 export class GetPairwiseSuccess implements Action {

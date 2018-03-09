@@ -17,7 +17,7 @@ export class GetSearch implements Action {
 
 export class GetMulti implements Action {
   readonly type = GET_MULTI;
-  constructor(public payload: {query: string[], params: QueryParams, sources: string[]}) { }
+  constructor(public payload: {query: string[], neighbors: number, sources: string[]}) { }
 }
 
 export class GetSearchSuccess implements Action {

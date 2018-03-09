@@ -1,19 +1,18 @@
 import { Action } from "@ngrx/store";
+import { ClusteringParams } from "../models/clustering-params.model";
 import { MicroTracks } from "../models/micro-tracks.model";
 
-export const NEW = "[CLUSTERED_MICRO_TRACKS] NEW";
-export const ADD = "[CLUSTERED_MICRO_TRACKS] ADD";
+export const GET = "[CLUSTERED_MICRO_TRACKS] GET";
+export const GET_SUCCESS = "[CLUSTERED_MICRO_TRACKS] GET_SUCCESS";
 
-// send a new set of clustered micro tracks
-export class New implements Action {
-  readonly type = NEW;
-  constructor() { }
+export class Get implements Action {
+  readonly type = GET;
+  constructor(public payload: {tracks: MicroTracks, params: ClusteringParams}) { }
 }
 
-// add to the clustered micro tracks already in the store
-export class Add implements Action {
-  readonly type = ADD;
-  constructor(public payload: MicroTracks) { }
+export class GetSuccess implements Action {
+  readonly type = GET_SUCCESS;
+  constructor(public payload: {tracks: MicroTracks}) { }
 }
 
-export type Actions = New | Add;
+export type Actions = Get | GetSuccess;

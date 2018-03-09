@@ -48,7 +48,7 @@ export class MultiParamsComponent implements OnInit {
     const defaultClustering = new ClusteringParams();
     this.clusteringGroup  = this.fb.group(defaultClustering.formControls());
     this.clusteringService.clusteringParams
-      .subscribe((params) => this._updateGroup(this.queryGroup, params));
+      .subscribe((params) => this._updateGroup(this.clusteringGroup, params));
 
     // submit the updated form
     this.queryGroup.markAsDirty();

@@ -25,10 +25,17 @@ export function reducer(
 ): State {
   switch (action.type) {
     case alignedMicroTracksActions.INIT:
-      return {
-        ...initialState,
-        reference: action.payload.reference,
-      };
+      if (action.payload !== undefined) {
+        return {
+          ...initialState,
+          reference: action.payload.reference,
+          tracks: {
+            ...initialState.tracks,
+            groups: [action.payload.reference],
+          },
+        };
+      }
+      return initialState;
     case alignedMicroTracksActions.GET_PAIRWISE:
     case alignedMicroTracksActions.GET_MULTI:
       return {

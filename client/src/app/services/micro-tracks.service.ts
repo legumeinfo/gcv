@@ -33,52 +33,33 @@ export class MicroTracksService {
     this.searchQueryTrack = store.select(fromSearchQueryTrack.getSearchQueryTrack)
       .filter((queryTrack) => queryTrack !== undefined);
     this.routeParams = store.select(fromRouter.getParams);
-
-    /*
-
-    // subscribe to observables that trigger multi track retrievals
-    Observable
-      .combineLatest(this.routeParams, this.queryParams)
-      .filter(([route, params]) => route.genes !== undefined)
-      .subscribe(([route, params]) => {
-        const correlationID = Date.now();
-        this.multiQuery(route, params, correlationID);
-      });
-    */
   }
 
-  // fetches multi tracks for the given genes
-  //multiQuery(query: any, params: QueryParams, correlationID: number): void {
-  //  this.store.dispatch(new microTracksActions.New(correlationID));
-  //  const body = {
-  //    genes: query.genes,
-  //    neighbors: params.neighbors,
-  //  };
-  //  const sources = params.sources.reduce((l, s) => {
-  //    const i = this.serverIDs.indexOf(s);
-  //    if (i > -1) {
-  //      l.push(AppConfig.SERVERS[i]);
-  //    }
-  //    return l;
-  //  }, []);
-  //  for (const s of sources) {
-  //    if (s.hasOwnProperty("microMulti")) {
-  //      //this._makeRequest<MicroTracks>(s.microMulti, body)
-  //      //  .subscribe(
-  //      //    (microTracks) => {
-  //      //      this._mergeOverlappingTracks(microTracks);
-  //      //      this._parseTracks(s.id, microTracks);
-  //      //      this.store.dispatch(new microTracksActions.Add(correlationID, microTracks));
-  //      //    },
-  //      //    (error) => {
-  //      //      console.log(error);
-  //      //      // TODO: throw error
-  //      //      // this.location.back();
-  //      //    },
-  //      //  );
-  //    }
-  //  }
-  //}
+  // fetches multi tracks for the given genes from the given source
+  getMultiTracks(genes: string[], neighbors: number, serverID: string): Observable<MicroTracks> {
+    const body = {genes, neighbors};
+    return this._makeRequest<MicroTracks>(serverID, "microMulti", body)
+      .map((tracks) => {
+        this._mergeOverlappingTracks(tracks);
+        this._parseTracks(serverID, tracks);
+        return tracks;
+      });
+  }
+
+  // gets a macro tracks for each server provided
+  getFederatedMultiTracks(
+    query: string[],
+    neighbors: number,
+    serverIDs: string[],
+  ): Observable<[string, MicroTracks]> {
+    return Observable.merge(...serverIDs.map((serverID) => {
+      return this.getMultiTracks(query, neighbors, serverID)
+        .map(
+          (tracks): [string, MicroTracks] => [serverID, tracks],
+          (error): [string, any] => [serverID, error],
+        );
+    }));
+  }
 
   // fetches a query track for the given gene from the given source
   getQueryTrack(gene: string, neighbors: number, serverID: string): Observable<Group> {

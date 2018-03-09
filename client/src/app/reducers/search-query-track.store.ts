@@ -21,7 +21,7 @@ export function reducer(
   switch (action.type) {
     case searchQueryTrackActions.GET:
       return {
-        ...state,
+        ...initialState,
         loading: true,
       };
     case searchQueryTrackActions.GET_SUCCESS:

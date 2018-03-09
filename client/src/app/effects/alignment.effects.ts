@@ -22,6 +22,8 @@ export class AlignmentEffects {
               private alignmentService: AlignmentService,
               private store: Store<fromRoot.State>) { }
 
+  // pairwise
+
   @Effect()
   getSearchTracks$ = this.actions$.pipe(
     ofType(microTracksActions.GET_SEARCH),
@@ -47,10 +49,26 @@ export class AlignmentEffects {
   getPairwiseAlignment$ = this.actions$.pipe(
     ofType(alignedMicroTracksActions.GET_PAIRWISE),
     map((action: alignedMicroTracksActions.GetPairwise) => action.payload),
-    withLatestFrom(this.store.select(fromAlignedMicroTracks.getAlignmentReference)),
+    withLatestFrom(
+      this.store.select(fromAlignedMicroTracks.getAlignmentReference)
+      .filter((reference) => reference !== undefined)
+    ),
     switchMap(([{tracks, params}, reference]) => {
       return this.alignmentService.getPairwiseAlignment(reference, tracks, params).pipe(
         map(tracks => new alignedMicroTracksActions.GetPairwiseSuccess({tracks})),
+      );
+    })
+  )
+
+  // multi
+
+  @Effect()
+  getMultipleAlignment$ = this.actions$.pipe(
+    ofType(alignedMicroTracksActions.GET_MULTI),
+    map((action: alignedMicroTracksActions.GetMulti) => action.payload),
+    switchMap(({tracks}) => {
+      return this.alignmentService.getMultipleAlignment(tracks).pipe(
+        map(tracks => new alignedMicroTracksActions.GetMultiSuccess({tracks})),
       );
     })
   )
