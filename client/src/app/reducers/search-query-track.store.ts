@@ -3,19 +3,39 @@ import * as searchQueryTrackActions from "../actions/search-query-track.actions"
 import { Group } from "../models/group.model";
 
 export interface State {
-  correlationID: number;
-  searchQueryTrack: Group;
+  track: Group;
+  loaded: boolean;
+  loading: boolean;
 }
 
-export const initialState: State = {correlationID: 0, searchQueryTrack: undefined};
+export const initialState: State = {
+  track: undefined,
+  loaded: true,
+  loading: false,
+};
 
 export function reducer(
   state = initialState,
   action: searchQueryTrackActions.Actions,
 ): State {
   switch (action.type) {
-    case searchQueryTrackActions.NEW:
-      return {correlationID: action.correlationID, searchQueryTrack: action.payload};
+    case searchQueryTrackActions.GET:
+      return {
+        ...state,
+        loading: true,
+      };
+    case searchQueryTrackActions.GET_SUCCESS:
+      return {
+        ...action.payload,
+        loading: false,
+        loaded: true,
+      };
+    case searchQueryTrackActions.GET_FAILURE:
+      return {
+        ...state,
+        loading: false,
+        loaded: false,
+      };
     default:
       return state;
   }
@@ -23,20 +43,15 @@ export function reducer(
 
 export const getSearchQueryTrackState = createFeatureSelector<State>("searchQueryTrack");
 
-export const getCorrelationID = createSelector(
-  getSearchQueryTrackState,
-  (state) => state.correlationID,
-)
-
 export const getSearchQueryTrack = createSelector(
   getSearchQueryTrackState,
-  (state) => state.searchQueryTrack,
+  (state) => state.track,
 );
 
 export const getSearchQueryChromosome = createSelector(
   getSearchQueryTrackState,
   (state) => {
-    const track = state.searchQueryTrack;
+    const track = state.track;
     if (track === undefined) {
       return undefined;
     }

@@ -1,20 +1,25 @@
 import { Action } from "@ngrx/store";
+import { BlockParams } from "../models/block-params.model";
+import { MacroChromosome } from "../models/macro-chromosome.model";
 import { MacroTrack } from "../models/macro-track.model";
-import { MacroTracks } from "../models/macro-tracks.model";
 
-export const NEW = "[MACRO_TRACKS] NEW";
-export const ADD = "[MACRO_TRACKS] ADD";
+export const GET = "[MACRO_TRACKS] GET";
+export const GET_SUCCESS = "[MACRO_TRACKS] GET_SUCCESS";
+export const GET_FAILURE = "[MACRO_TRACKS] GET_FAILURE";
 
-// send a new set of macro tracks
-export class New implements Action {
-  readonly type = NEW;
-  constructor(public correlationID: number, public payload: MacroTracks) { }
+export class Get implements Action {
+  readonly type = GET;
+  constructor(public payload: {query: MacroChromosome, params: BlockParams, sources: string[]}) { }
 }
 
-// add to the macro tracks already in the store
-export class Add implements Action {
-  readonly type = ADD;
-  constructor(public correlationID: number, public payload: MacroTrack[]) { }
+export class GetSuccess implements Action {
+  readonly type = GET_SUCCESS;
+  constructor(public payload: {tracks: MacroTrack[], source: string}) { }
 }
 
-export type Actions = New | Add;
+export class GetFailure implements Action {
+  readonly type = GET_FAILURE;
+  constructor(public payload: {error: any, source: string}) { }
+}
+
+export type Actions = Get | GetSuccess | GetFailure;

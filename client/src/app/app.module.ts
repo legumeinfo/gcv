@@ -50,6 +50,10 @@ import { MicroTracksService } from "./services/micro-tracks.service";
 import { PlotsService } from "./services/plots.service";
 import { UrlService } from "./services/url.service";
 
+// route guards
+import { MultiGuard } from "./guards/multi.guard";
+import { SearchGuard } from "./guards/search.guard";
+
 // ngrx store
 import { RouterStateSerializer, StoreRouterConnectingModule } from "@ngrx/router-store";
 import { EffectsModule } from "@ngrx/effects";
@@ -123,6 +127,8 @@ import { CustomRouterStateSerializer } from "./utils/custom-router-state-seriali
     MicroTracksService,
     PlotsService,
     UrlService,
+    MultiGuard,
+    SearchGuard,
   ],
 })
 export class AppModule { }

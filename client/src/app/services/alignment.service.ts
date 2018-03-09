@@ -10,11 +10,9 @@ import * as fromAlignedMicroTracks from "../reducers/aligned-micro-tracks.store"
 import * as fromClusteredMicroTracks from "../reducers/clustered-micro-tracks.store";
 import * as fromMicroTracks from "../reducers/micro-tracks.store";
 import * as fromRouter from "../reducers/router.store";
-import * as fromSearchQueryTrack from "../reducers/search-query-track.store";
 // app
 import { GCV } from "../../assets/js/gcv";
 import { ALIGNMENT_ALGORITHMS } from "../constants/alignment-algorithms";
-import { AppRoutes } from "../constants/app-routes";
 import { AlignmentParams } from "../models/alignment-params.model";
 import { Group } from "../models/group.model";
 import { MicroTracks } from "../models/micro-tracks.model";
@@ -31,42 +29,16 @@ export class AlignmentService {
     // initialize observables
     this.alignedMicroTracks = this.store.select(fromAlignedMicroTracks.getAlignedMicroTracks);
     this.alignmentParams = this.store.select(fromRouter.getMicroAlignmentParams);
-    const clusteredMicroTracks = this.store.select(fromClusteredMicroTracks.getClusteredMicroTracks);
-    const microTracks = this.store.select(fromMicroTracks.getMicroTracks);
-    const newMicroTracks = this.store.select(fromMicroTracks.getNewMicroTracks);
-    const searchQueryTrack = this.store.select(fromSearchQueryTrack.getSearchQueryTrack)
-      .filter((queryTrack) => queryTrack !== undefined);
-    const routeParams = this.store.select(fromRouter.getParams);
+    //const clusteredMicroTracks = this.store.select(fromClusteredMicroTracks.getClusteredMicroTracks);
+    //const microTracks = this.store.select(fromMicroTracks.getMicroTracks);
 
-    // subscribe to changes that trigger new pairwise alignments
-    searchQueryTrack
-      .subscribe((queryTrack) => {
-        this._newPairwiseAlignment(queryTrack);
-      });
-
-    this.alignmentParams
-      .withLatestFrom(searchQueryTrack, microTracks)
-      .subscribe(([params, queryTrack, microTracks]) => {
-        this._newPairwiseAlignment(queryTrack);
-        this._pairwiseAlignment(queryTrack, microTracks, params);
-      });
-
-    // align new micro tracks as they come into the store
-    newMicroTracks
-      .withLatestFrom(searchQueryTrack, this.alignmentParams, routeParams)
-      .filter(([microTracks, queryTrack, params, route]) => {
-        return route.gene !== undefined;
-      })
-      .subscribe(([microTracks, queryTrack, params]) => {
-        this._pairwiseAlignment(queryTrack, microTracks, params);
-      });
-
+    /*
     // subscribe to changes that trigger new multi alignments
     clusteredMicroTracks
       .subscribe((microTracks) => {
-        this._newAlignment();
         this._multipleAlignment(microTracks);
       });
+    */
   }
 
   updateParams(params: AlignmentParams): void {
@@ -75,142 +47,147 @@ export class AlignmentService {
     this.store.dispatch(new routerActions.Go({path, query}));
   }
 
-  private _newPairwiseAlignment(queryTrack: Group): void {
-    // create modifiable extension of the query track
-    const reference = Object.assign({}, queryTrack);
-    reference.genes = [];
-    for (let i = 0; i < queryTrack.genes.length; i++) {
-      const g = Object.create(queryTrack.genes[i]);
-      g.x = i;
-      g.y = 0;
-      reference.genes.push(g);
-    }
-    // push the "aligned" query track to the store;
-    this._newAlignment(reference);
+  //private _newPairwiseAlignment(queryTrack: Group): void {
+  getPairwiseReference(track: Group): Observable<Group> {
+    return Observable.create((observer) => {
+      // create modifiable extension of the query track
+      const reference = Object.assign({}, track);
+      reference.genes = [];
+      for (let i = 0; i < track.genes.length; i++) {
+        const g = Object.create(track.genes[i]);
+        g.x = i;
+        g.y = 0;
+        reference.genes.push(g);
+      }
+      // push the "aligned" query track to the store;
+      observer.next(reference);
+      observer.complete();
+    });
   }
 
-  private _newAlignment(queryTrack?: Group) {
-    this.store.dispatch(new alignedMicroTracksActions.New(queryTrack));
-  }
-
-  private _pairwiseAlignment(
+  getPairwiseAlignment(
     query: Group,
     tracks: MicroTracks,
     params: AlignmentParams
-  ): void {
-    // create modifiable extension of tracks
-    let alignedTracks = new MicroTracks();
-    alignedTracks.families = tracks.families;
-    for (const group of tracks.groups) {
-      let newGroup = Object.assign({}, group);
-      newGroup.genes = group.genes.map(g => Object.create(g));
-      alignedTracks.groups.push(newGroup);
-    }
-    // get the alignment algorithm
-    const algorithmID = this.algorithmIDs.indexOf(params.algorithm);
-    const algorithm   = this.algorithms[algorithmID].algorithm;
-    // get the algorithm options
-    const options = Object.assign({}, {
-      accessor: (g) => {
-        if (g.reversed) {
-          return (g.strand === -1 ? "+" : "-") + g.family;
-        }
-        return (g.strand === -1 ? "-" : "+") + g.family;
-      },
-      reverse: (s) => {
-        const r = [];
-        for (const g of s) {
-          const g2 = Object.create(Object.getPrototypeOf(g));
-          g2.reversed = true;
-          r.push(g2);
-        }
-        r.reverse();
-        return r;
-      },
-      scores: Object.assign({}, params),
-      suffixScores: true,
-    });
-    // perform the alginments
-    const alignments = [];
-    for (let i = 0; i < alignedTracks.groups.length; ++i) {
-      const result = alignedTracks.groups[i];
-      const al = algorithm(query.genes, result.genes, options);
-      // save tracks that meet the threshold
-      for (const a of al) {
-        if (a.score >= options.scores.threshold) {
-          a.track = Object.assign({}, result);
-          alignments.push(a);
+  ): Observable<MicroTracks> {
+    return Observable.create((observer) => {
+      // create modifiable extension of tracks
+      let alignedTracks = new MicroTracks();
+      alignedTracks.families = tracks.families;
+      for (const group of tracks.groups) {
+        alignedTracks.groups.push({
+          ...group,
+          genes: group.genes.map(g => Object.create(g)),
+        });
+      }
+      // get the alignment algorithm
+      const algorithmID = this.algorithmIDs.indexOf(params.algorithm);
+      const algorithm = this.algorithms[algorithmID].algorithm;
+      // get the algorithm options
+      const options = Object.assign({}, {
+        accessor: (g) => {
+          if (g.reversed) {
+            return (g.strand === -1 ? "+" : "-") + g.family;
+          }
+          return (g.strand === -1 ? "-" : "+") + g.family;
+        },
+        reverse: (s) => {
+          const r = [];
+          for (const g of s) {
+            const g2 = Object.create(Object.getPrototypeOf(g));
+            g2.reversed = true;
+            r.push(g2);
+          }
+          r.reverse();
+          return r;
+        },
+        scores: Object.assign({}, params),
+        suffixScores: true,
+      });
+      // perform the alginments
+      const alignments = [];
+      for (let i = 0; i < alignedTracks.groups.length; ++i) {
+        const result = alignedTracks.groups[i];
+        const al = algorithm(query.genes, result.genes, options);
+        // save tracks that meet the threshold
+        for (const a of al) {
+          if (a.score >= options.scores.threshold) {
+            a.track = Object.assign({}, result);
+            alignments.push(a);
+          }
         }
       }
-    }
-    // convert the alignments into tracks
-    alignedTracks = GCV.alignment.trackify(query, alignedTracks, alignments);
-    // merge tracks from same alignment set and remove residual suffix scores
-    alignedTracks = GCV.alignment.merge(alignedTracks);
-    for (let i = 1; i < alignedTracks.groups.length; ++i) {
-      const genes = alignedTracks.groups[i].genes;
-      for (const g of genes) {
-        delete g.suffixScore;
+      // convert the alignments into tracks
+      alignedTracks = GCV.alignment.trackify(query, alignedTracks, alignments);
+      // merge tracks from same alignment set and remove residual suffix scores
+      alignedTracks = GCV.alignment.merge(alignedTracks);
+      for (let i = 1; i < alignedTracks.groups.length; ++i) {
+        const genes = alignedTracks.groups[i].genes;
+        for (const g of genes) {
+          delete g.suffixScore;
+        }
       }
-    }
-    // TODO: move to standalone filter
-    alignedTracks.groups = alignedTracks.groups.filter((g, i) => {
-      return i === 0 || g.score >= params.score;
+      // TODO: move to standalone filter
+      alignedTracks.groups = alignedTracks.groups.filter((g, i) => {
+        return i === 0 || g.score >= params.score;
+      });
+      // push the aligned tracks to the store;
+      observer.next(alignedTracks);
+      // complete the observable
+      observer.complete();
     });
-    // push the aligned tracks to the store;
-    this.store.dispatch(new alignedMicroTracksActions.Add(alignedTracks));
   }
 
-  private _multipleAlignment(tracks: MicroTracks): void {
-    // create modifiable extension of tracks
-    let alignedTracks = new MicroTracks();
-    alignedTracks.families = tracks.families;
-    // TODO: figure out how to Object.assign an object and its prototype chain
-    for (const group of tracks.groups) {
-      const cluster = group.cluster;
-      const newGroup = Object.assign({}, Object.getPrototypeOf(group));
-      //newGroup.genes = group.genes.map(g => Object.create(g));
-      newGroup.cluster = cluster;
-      alignedTracks.groups.push(newGroup);
-    }
-    // bin tracks by their clusters
-    const clusters = {};
-    for (const group of alignedTracks.groups) {
-      const cluster = group.cluster;
-      if (!clusters.hasOwnProperty(cluster)) {
-        clusters[cluster] = [];
-      }
-      clusters[cluster].push(group);
-    }
-    // perform a multiple alignment on each of the clusters
-    let alignedGroups = [];
-    Object.keys(clusters).forEach((cluster, index) => {
-      const groups = clusters[cluster];
-      if (cluster === "undefined") {
-        for (const group of groups) {
-          const alignedGenes = [];
-          for (let i = 0; i < group.genes.length; i++) {
-            const alignedGene = Object.create(group.genes[i]);
-            alignedGene.x = i;
-            alignedGene.y = 0;
-            alignedGenes.push(alignedGene);
-          }
-          group.genes = alignedGenes;
-        }
-        alignedGroups = alignedGroups.concat(groups);
-      } else {
-        const geneTracks = groups.map((group) => group.genes);
-        const counts = GCV.common.getFamilySizeMap(groups);
-        //const alignedCluster = GCV.alignment.msa(clusters[cluster]);
-        const alignedGenes = GCV.alignment.msa(geneTracks, counts);
-        alignedGenes.forEach((genes, i) => {
-          groups[i].genes = genes;
-        })
-        alignedGroups = alignedGroups.concat(groups);
-      }
-    });
-    alignedTracks.groups = alignedGroups;
-    // push the aligned tracks to the store
-    this.store.dispatch(new alignedMicroTracksActions.Add(alignedTracks));
-  }
+  //private _multipleAlignment(tracks: MicroTracks): void {
+  //  // create modifiable extension of tracks
+  //  let alignedTracks = new MicroTracks();
+  //  alignedTracks.families = tracks.families;
+  //  // TODO: figure out how to Object.assign an object and its prototype chain
+  //  for (const group of tracks.groups) {
+  //    const cluster = group.cluster;
+  //    const newGroup = Object.assign({}, Object.getPrototypeOf(group));
+  //    //newGroup.genes = group.genes.map(g => Object.create(g));
+  //    newGroup.cluster = cluster;
+  //    alignedTracks.groups.push(newGroup);
+  //  }
+  //  // bin tracks by their clusters
+  //  const clusters = {};
+  //  for (const group of alignedTracks.groups) {
+  //    const cluster = group.cluster;
+  //    if (!clusters.hasOwnProperty(cluster)) {
+  //      clusters[cluster] = [];
+  //    }
+  //    clusters[cluster].push(group);
+  //  }
+  //  // perform a multiple alignment on each of the clusters
+  //  let alignedGroups = [];
+  //  Object.keys(clusters).forEach((cluster, index) => {
+  //    const groups = clusters[cluster];
+  //    if (cluster === "undefined") {
+  //      for (const group of groups) {
+  //        const alignedGenes = [];
+  //        for (let i = 0; i < group.genes.length; i++) {
+  //          const alignedGene = Object.create(group.genes[i]);
+  //          alignedGene.x = i;
+  //          alignedGene.y = 0;
+  //          alignedGenes.push(alignedGene);
+  //        }
+  //        group.genes = alignedGenes;
+  //      }
+  //      alignedGroups = alignedGroups.concat(groups);
+  //    } else {
+  //      const geneTracks = groups.map((group) => group.genes);
+  //      const counts = GCV.common.getFamilySizeMap(groups);
+  //      //const alignedCluster = GCV.alignment.msa(clusters[cluster]);
+  //      const alignedGenes = GCV.alignment.msa(geneTracks, counts);
+  //      alignedGenes.forEach((genes, i) => {
+  //        groups[i].genes = genes;
+  //      })
+  //      alignedGroups = alignedGroups.concat(groups);
+  //    }
+  //  });
+  //  alignedTracks.groups = alignedGroups;
+  //  // push the aligned tracks to the store
+  //  this.store.dispatch(new alignedMicroTracksActions.Add(alignedTracks));
+  //}
 }

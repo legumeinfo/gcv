@@ -46,21 +46,22 @@ export class MacroTracksService {
     this.macroTracks = this.store.select(fromMacroTracks.getMacroTracks);
     this.multiMacroTracks = this.store.select(fromMultiMacroTracks.getMultiMacroTracks);
     this.searchRoute = this.store.select(fromRouter.getSearchRoute);
-    const macroChromosomeCorrelationId = this.store.select(fromMacroChromosome.getCorrelationID);
-    const microTracks = this.store.select(fromMicroTracks.getMicroTracks);
-    const multiMacroChromosome = this.store.select(fromMultiMacroChromosome.getMultiMacroChromosome);
-    const multiMacroChromosomeCorrelationId =
-      this.store.select(fromMultiMacroChromosome.getCorrelationID);
-    const multiRoute = this.store.select(fromRouter.getMultiRoute);
-    const newMicroTracks = this.store.select(fromMicroTracks.getNewMicroTracks);
-    const newMultiMacroChromosome =
-      this.store.select(fromMultiMacroChromosome.getNewMultiMacroChromosome);
-    const querySources = this.store.select(fromRouter.getMicroQueryParamSources);
-    const routeParams = this.store.select(fromRouter.getParams);
-    const searchQueryChromosome = this.store.select(fromSearchQueryTrack.getSearchQueryChromosome)
-      .filter((chromosome) => chromosome !== undefined);
-    const searchRouteSource = this.store.select(fromRouter.getSearchRouteSource);
+    //const macroChromosomeCorrelationId = this.store.select(fromMacroChromosome.getCorrelationID);
+    //const microTracks = this.store.select(fromMicroTracks.getMicroTracks);
+    //const multiMacroChromosome = this.store.select(fromMultiMacroChromosome.getMultiMacroChromosome);
+    //const multiMacroChromosomeCorrelationId =
+    //  this.store.select(fromMultiMacroChromosome.getCorrelationID);
+    //const multiRoute = this.store.select(fromRouter.getMultiRoute);
+    //const newMicroTracks = this.store.select(fromMicroTracks.getNewMicroTracks);
+    //const newMultiMacroChromosome =
+    //  this.store.select(fromMultiMacroChromosome.getNewMultiMacroChromosome);
+    //const querySources = this.store.select(fromRouter.getMicroQueryParamSources);
+    //const routeParams = this.store.select(fromRouter.getParams);
+    //const searchQueryChromosome = this.store.select(fromSearchQueryTrack.getSearchQueryChromosome)
+    //  .filter((chromosome) => chromosome !== undefined);
+    //const searchRouteSource = this.store.select(fromRouter.getSearchRouteSource);
 
+    /*
     // subscribe to changes that initialize macro chromosome searches
     searchQueryChromosome
       .withLatestFrom(searchRouteSource)
@@ -198,21 +199,16 @@ export class MacroTracksService {
     //    this.blockParams,
     //    querySources,
     //  )
+    */
   }
 
   getChromosome(chromosome: string, serverID: string): Observable<MacroChromosome> {
-    let source: Server;
-    const i = this.serverIDs.indexOf(serverID);
-    if (i > -1) {
-      source = AppConfig.SERVERS[i];
-    } else {
-      return Observable.throw("\"" + serverID + "\" is not a valid server ID");
-    }
-    if (!source.hasOwnProperty("chromosome")) {
-      return Observable.throw("\"" + serverID + "\" does not support chromosome queries");
-    }
     const body = {chromosome};
-    return this._makeRequest<MacroChromosome>(source.chromosome, body);
+    return this._makeRequest<MacroChromosome>(serverID, "chromosome", body)
+      .map((macroChromosome) => {
+        macroChromosome.name = chromosome;
+        return macroChromosome;
+      });
   }
 
   microTracksToChromosomes(tracks: MicroTracks):
@@ -230,16 +226,6 @@ export class MacroTracksService {
     serverID: string,
     targets: string[] = [],
   ): Observable<MacroTrack[]> {
-    let source: Server;
-    const i = this.serverIDs.indexOf(serverID);
-    if (i > -1) {
-      source = AppConfig.SERVERS[i];
-    } else {
-      return Observable.throw("\"" + serverID + "\" is not a valid server ID");
-    }
-    if (!source.hasOwnProperty("macro")) {
-      return Observable.throw("\"" + serverID + "\" does not support macro-track queries");
-    }
     const body = {
       families: chromosome.families,
       intermediate: blockParams.bintermediate,
@@ -247,7 +233,7 @@ export class MacroTracksService {
       matched: blockParams.bmatched,
       targets,
     };
-    return this._makeRequest<MacroTrack[]>(source.macro, body)
+    return this._makeRequest<MacroTrack[]>(serverID, "macro", body)
       .map((macroTracks) => {
         this._parseTracks(chromosome, macroTracks);
         return macroTracks;
@@ -258,33 +244,34 @@ export class MacroTracksService {
     chromosome: MacroChromosome,
     blockParams: BlockParams,
     serverIDs: string[],
-    correlationID: number,
     targets: string[] = [],
-  ): Observable<MacroTrack[]> {
+  ): Observable<[string, MacroTrack[]]> {
     // send a request for each server
     return Observable.merge(...serverIDs.map((serverID) => {
-      return this.getMacroTracks(chromosome, blockParams, serverID, targets);
+      return this.getMacroTracks(chromosome, blockParams, serverID, targets)
+        .map(
+          (tracks): [string, MacroTrack[]] => [serverID, tracks],
+          (error): [string, any] => [serverID, error],
+        );
     }));
   }
 
-  chromosomesToFederatedMacroTracks(
-    chromosomes: MacroChromosome[],
-    blockParams: BlockParams,
-    serverIDs: string[],
-    correlationID: number,
-    targets: string[] = [],
-  ): Observable<[MacroChromosome, MacroTrack[]]> {
-    // send a request for each server
-    return Observable.merge(...chromosomes.map((chromosome) => {
-      return this.getFederatedMacroTracks(
-        chromosome,
-        blockParams,
-        serverIDs,
-        correlationID,
-        targets
-      ).map((tracks): [MacroChromosome, MacroTrack[]] => [chromosome, tracks]);
-    }));
-  }
+  //chromosomesToFederatedMacroTracks(
+  //  chromosomes: MacroChromosome[],
+  //  blockParams: BlockParams,
+  //  serverIDs: string[],
+  //  targets: string[] = [],
+  //): Observable<[MacroChromosome, MacroTrack[]]> {
+  //  // send a request for each server
+  //  return Observable.merge(...chromosomes.map((chromosome) => {
+  //    return this.getFederatedMacroTracks(
+  //      chromosome,
+  //      blockParams,
+  //      serverIDs,
+  //      targets
+  //    ).map((tracks): [MacroChromosome, MacroTrack[]] => [chromosome, tracks]);
+  //  }));
+  //}
 
   // finds the nearest gene on the query chromosome and pushes it to the store
   // TODO: add source to macroChromosome so route isns't needed
@@ -327,14 +314,25 @@ export class MacroTracksService {
   }
 
   // encapsulates HTTP request boilerplate
-  private _makeRequest<T>(request: Request, body: any): Observable<T> {
+  private _makeRequest<T>(serverID: string, requestType: string, body: any): Observable<T> {
+    let source: Server;
+    const i = AppConfig.SERVERS.map((s) => s.id).indexOf(serverID);
+    if (i > -1) {
+      source = AppConfig.SERVERS[i];
+    } else {
+      return Observable.throw("\"" + serverID + "\" is not a valid server ID");
+    }
+    if (!source.hasOwnProperty(requestType)) {
+      return Observable.throw("\"" + serverID + "\" does not support requests of type \"" + requestType + "\"");
+    }
+    const request = source[requestType];
     const params = new HttpParams({fromObject: body});
     if (request.type === GET) {
       return this.http.get<T>(request.url, {params});
     } else if (request.type === POST) {
       return this.http.post<T>(request.url, body);
     }
-    return Observable.throw("Request type is not GET or POST");
+    return Observable.throw("\"" + serverID + "\" requests of type \"" + requestType + "\" does not support HTTP GET or POST methods");
   }
 
   // adds the server id the track came from to the track and its genes

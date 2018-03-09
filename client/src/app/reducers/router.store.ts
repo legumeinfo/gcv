@@ -74,14 +74,14 @@ export const getMicroQueryParamSources = createSelector(
 
 export const getMicroAlignmentParams = createSelector(
   getQueryParams,
-  (params) => instantiateAndPopulate(AlignmentParams, params),
+  (params) => instantiateAndPopulate(AlignmentParams, params || {}),
 )
 
 export const getMacroBlockParams = createSelector(
   getQueryParams,
-  (params) => instantiateAndPopulate(BlockParams, params),
+  (params) => instantiateAndPopulate(BlockParams, params || {}),
 )
 export const getMicroClusteringParams = createSelector(
   getQueryParams,
-  (params) => instantiateAndPopulate(ClusteringParams, params),
+  (params) => instantiateAndPopulate(ClusteringParams, params || {}),
 )

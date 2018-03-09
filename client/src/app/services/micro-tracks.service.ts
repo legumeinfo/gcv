@@ -5,7 +5,6 @@ import { Observable } from "rxjs/Observable";
 // store
 import { Store } from "@ngrx/store";
 import * as microTracksActions from "../actions/micro-tracks.actions";
-import * as searchQueryTrackActions from "../actions/search-query-track.actions";
 import * as routerActions from "../actions/router.actions";
 import * as fromRoot from "../reducers";
 import * as fromMicroTracks from "../reducers/micro-tracks.store";
@@ -13,12 +12,10 @@ import * as fromRouter from "../reducers/router.store";
 import * as fromSearchQueryTrack from "../reducers/search-query-track.store";
 // app
 import { AppConfig } from "../app.config";
-import { Family } from "../models/family.model";
-import { Gene } from "../models/gene.model";
 import { Group } from "../models/group.model";
 import { MicroTracks } from "../models/micro-tracks.model";
 import { QueryParams } from "../models/query-params.model";
-import { GET, POST, Request, Server } from "../models/server.model";
+import { GET, POST, Server } from "../models/server.model";
 
 @Injectable()
 export class MicroTracksService {
@@ -27,44 +24,17 @@ export class MicroTracksService {
   routeParams: Observable<any>;
   searchQueryTrack: Observable<Group>;
 
-  private serverIDs = AppConfig.SERVERS.map((s) => s.id);
-
   constructor(private http: HttpClient,
               private store: Store<fromRoot.State>) {
 
     // initialize observables
-    this.microTracks = this.store.select(fromMicroTracks.getMicroTracks);
-    this.queryParams = this.store.select(fromRouter.getMicroQueryParams);
-    this.searchQueryTrack = this.store.select(fromSearchQueryTrack.getSearchQueryTrack)
+    this.microTracks = store.select(fromMicroTracks.getMicroTracks);
+    this.queryParams = store.select(fromRouter.getMicroQueryParams);
+    this.searchQueryTrack = store.select(fromSearchQueryTrack.getSearchQueryTrack)
       .filter((queryTrack) => queryTrack !== undefined);
-    this.routeParams = this.store.select(fromRouter.getParams);
-    const queryParamsNeighbors = this.store.select(fromRouter.getMicroQueryParamNeighbors);
-    const searchQueryCorrelationID = this.store.select(fromSearchQueryTrack.getCorrelationID);
+    this.routeParams = store.select(fromRouter.getParams);
 
-    // subscribe to observables that trigger query track retrievals
-    Observable
-      .combineLatest(this.routeParams, queryParamsNeighbors)
-      .filter(([route, neighbors]) => route.gene !== undefined)
-      .subscribe(([route, neighbors]) => {
-        const correlationID = Date.now();
-        this.geneSearch(route, neighbors, correlationID);
-      });
-
-    // subscribe to observables that trigger new searches
-    this.searchQueryTrack
-      .withLatestFrom(this.queryParams, searchQueryCorrelationID)
-      .subscribe(([query, params, correlationID]) => {
-        this.trackSearch(query, params, correlationID);
-      });
-    this.queryParams
-      .pairwise()
-      .withLatestFrom(this.routeParams, this.searchQueryTrack, searchQueryCorrelationID)
-      .filter(([[previous, next], route, query, correlationID]) => {
-        return route.gene !== undefined && previous.neighbors === next.neighbors;
-      })
-      .subscribe(([[previous, next], route, query, correlationID]) => {
-        this.trackSearch(query, next, correlationID);
-      })
+    /*
 
     // subscribe to observables that trigger multi track retrievals
     Observable
@@ -74,102 +44,80 @@ export class MicroTracksService {
         const correlationID = Date.now();
         this.multiQuery(route, params, correlationID);
       });
+    */
   }
 
   // fetches multi tracks for the given genes
-  multiQuery(query: any, params: QueryParams, correlationID: number): void {
-    this.store.dispatch(new microTracksActions.New(correlationID));
-    const body = {
-      genes: query.genes,
-      neighbors: params.neighbors,
-    };
-    const sources = params.sources.reduce((l, s) => {
-      const i = this.serverIDs.indexOf(s);
-      if (i > -1) {
-        l.push(AppConfig.SERVERS[i]);
-      }
-      return l;
-    }, []);
-    for (const s of sources) {
-      if (s.hasOwnProperty("microMulti")) {
-        this._makeRequest<MicroTracks>(s.microMulti, body)
-          .subscribe(
-            (microTracks) => {
-              this._mergeOverlappingTracks(microTracks);
-              this._parseTracks(s.id, microTracks);
-              this.store.dispatch(new microTracksActions.Add(correlationID, microTracks));
-            },
-            (error) => {
-              console.log(error);
-              // TODO: throw error
-              // this.location.back();
-            },
-          );
-      }
-    }
+  //multiQuery(query: any, params: QueryParams, correlationID: number): void {
+  //  this.store.dispatch(new microTracksActions.New(correlationID));
+  //  const body = {
+  //    genes: query.genes,
+  //    neighbors: params.neighbors,
+  //  };
+  //  const sources = params.sources.reduce((l, s) => {
+  //    const i = this.serverIDs.indexOf(s);
+  //    if (i > -1) {
+  //      l.push(AppConfig.SERVERS[i]);
+  //    }
+  //    return l;
+  //  }, []);
+  //  for (const s of sources) {
+  //    if (s.hasOwnProperty("microMulti")) {
+  //      //this._makeRequest<MicroTracks>(s.microMulti, body)
+  //      //  .subscribe(
+  //      //    (microTracks) => {
+  //      //      this._mergeOverlappingTracks(microTracks);
+  //      //      this._parseTracks(s.id, microTracks);
+  //      //      this.store.dispatch(new microTracksActions.Add(correlationID, microTracks));
+  //      //    },
+  //      //    (error) => {
+  //      //      console.log(error);
+  //      //      // TODO: throw error
+  //      //      // this.location.back();
+  //      //    },
+  //      //  );
+  //    }
+  //  }
+  //}
+
+  // fetches a query track for the given gene from the given source
+  getQueryTrack(gene: string, neighbors: number, serverID: string): Observable<Group> {
+    const body = {gene, neighbors: String(neighbors)};
+    return this._makeRequest<Group>(serverID, "microQuery", body)
+      .map((track) => {
+        this._parseTrack(serverID, track);
+        return track;
+      });
   }
 
-  // fetches a query track for the given gene
-  geneSearch(query: any, neighbors: number, correlationID: number): void {
-    this.store.dispatch(new microTracksActions.New(correlationID));
-    const idx: number = this.serverIDs.indexOf(query.source);
-    if (idx > -1) {
-      const s: Server = AppConfig.SERVERS[idx];
-      if (s.hasOwnProperty("microQuery")) {
-        const body = {
-          gene: query.gene,
-          neighbors: String(neighbors),
-        };
-        this._makeRequest<Group>(s.microQuery, body)
-          .subscribe(
-            (queryTrack) => {
-              this._parseTrack(query.source, queryTrack);
-              this.store.dispatch(new searchQueryTrackActions.New(correlationID, queryTrack));
-            },
-            (error) => {
-              console.log(error);
-              // TODO: throw error
-              // this.location.back();
-            },
-          );
-      }
-    } else {
-      // TODO: throw error
-    }
-  }
-
-  trackSearch(query: Group, queryParams: QueryParams, correlationID: number): void {
+  // performs a micro track search for the given query track and params
+  getSearchTracks(query: Group, params: QueryParams, serverID: string): Observable<MicroTracks> {
     const body = {
-      intermediate: String(queryParams.intermediate),
-      matched: String(queryParams.matched),
+      intermediate: String(params.intermediate),
+      matched: String(params.matched),
       query: query.genes.map((g) => g.family),
     };
-    const params = new HttpParams({fromObject: body});
-    const requests: Array<Observable<Response>> = [];
-    const sources = queryParams.sources.reduce((l, s) => {
-      const i = this.serverIDs.indexOf(s);
-      if (i !== -1) {
-        l.push(AppConfig.SERVERS[i]);
-      }
-      return l;
-    }, []);
-    for (const s of sources) {
-      if (s.hasOwnProperty("microSearch")) {
-        this._makeRequest<MicroTracks>(s.microSearch, body)
-          .subscribe(
-            (microTracks) => {
-              this._mergeOverlappingTracks(microTracks);
-              this._parseTracks(s.id, microTracks);
-              this.store.dispatch(new microTracksActions.Add(correlationID, microTracks));
-            },
-            (error) => {
-              console.log(error);
-              // TODO: throw error
-              // this.location.back();
-            },
-          );
-      }
-    }
+    return this._makeRequest<MicroTracks>(serverID, "microSearch", body)
+      .map((tracks) => {
+        this._mergeOverlappingTracks(tracks);
+        this._parseTracks(serverID, tracks);
+        return tracks;
+      });
+  }
+
+  // performs a micro track search for each server provided
+  getFederatedSearchTracks(
+    query: Group,
+    params: QueryParams,
+    serverIDs: string[]
+  ): Observable<[string, MicroTracks]> {
+    return Observable.merge(...serverIDs.map((serverID) => {
+      return this.getSearchTracks(query, params, serverID)
+        .map(
+          (tracks): [string, MicroTracks] => [serverID, tracks],
+          (error): [string, any] => [serverID, error],
+        );
+    }));
   }
 
   updateParams(params: QueryParams): void {
@@ -179,14 +127,25 @@ export class MicroTracksService {
   }
 
   // encapsulates HTTP request boilerplate
-  private _makeRequest<T>(request: Request, body: any): Observable<T> {
+  private _makeRequest<T>(serverID: string, requestType: string, body: any): Observable<T> {
+    let source: Server;
+    const i = AppConfig.SERVERS.map((s) => s.id).indexOf(serverID);
+    if (i > -1) {
+      source = AppConfig.SERVERS[i];
+    } else {
+      return Observable.throw("\"" + serverID + "\" is not a valid server ID");
+    }
+    if (!source.hasOwnProperty(requestType)) {
+      return Observable.throw("\"" + serverID + "\" does not support requests of type \"" + requestType + "\"");
+    }
+    const request = source[requestType];
     const params = new HttpParams({fromObject: body});
     if (request.type === GET) {
       return this.http.get<T>(request.url, {params});
     } else if (request.type === POST) {
       return this.http.post<T>(request.url, body);
     }
-    return Observable.throw("Request type is not GET or POST");
+    return Observable.throw("\"" + serverID + "\" requests of type \"" + requestType + "\" does not support HTTP GET or POST methods");
   }
 
   // adds the server id the track came from to the track and its genes

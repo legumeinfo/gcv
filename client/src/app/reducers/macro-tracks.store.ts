@@ -3,13 +3,15 @@ import * as macroTrackActions from "../actions/macro-tracks.actions";
 import { MacroTracks } from "../models/macro-tracks.model";
 
 export interface State {
-  correlationID: number;
-  macroTracks: MacroTracks;
+  tracks: MacroTracks;
+  loaded: string[];
+  loading: string[];
 }
 
 export const initialState: State = {
-  correlationID: 0,
-  macroTracks: undefined,
+  tracks: undefined,
+  loaded: [],
+  loading: [],
 };
 
 export function reducer(
@@ -17,25 +19,43 @@ export function reducer(
   action: macroTrackActions.Actions
 ): State {
   switch (action.type) {
-    case macroTrackActions.NEW:
+    case macroTrackActions.GET:
       return {
-        correlationID: action.correlationID,
-        macroTracks: action.payload,
+        tracks: {
+          chromosome: action.payload.query.name,
+          length: action.payload.query.length,
+          tracks: [],
+        },
+        loaded: [],
+        loading: action.payload.sources,
       };
-    case macroTrackActions.ADD:
-      if (state.correlationID !== action.correlationID) {
+    case macroTrackActions.GET_SUCCESS:
+    {
+      const source = action.payload.source;
+      const loading = state.loading.filter((s) => s !== source);
+      if (state.loading.length === loading.length) {
         return state;
       }
-      // merge new macro tracks with existing macro track non-destructively
-      const macroTracks = state.macroTracks;
-      const newMacroTracks = new MacroTracks();
-      newMacroTracks.chromosome = macroTracks.chromosome;
-      newMacroTracks.length = macroTracks.length;
-      newMacroTracks.tracks = macroTracks.tracks.concat(action.payload);
+      // merge new macro tracks with existing macro tracks non-destructively
+      const tracks = action.payload.tracks;
       return {
-        correlationID: state.correlationID,
-        macroTracks: newMacroTracks,
+        tracks: {
+          ...state.tracks,
+          tracks: state.tracks.tracks.concat(action.payload.tracks),
+        },
+        loaded: state.loaded.concat(source),
+        loading,
       };
+    }
+    case macroTrackActions.GET_FAILURE:
+    {
+      const source = action.payload.source;
+      const loading = state.loading.filter((s) => s !== source);
+      if (state.loading.length === loading.length) {
+        return state;
+      }
+      return {...state, loading};
+    }
     default:
       return state;
   }
@@ -45,5 +65,5 @@ export const getMacroTracksState = createFeatureSelector<State>("macroTracks");
 
 export const getMacroTracks = createSelector(
   getMacroTracksState,
-  (state) => state.macroTracks,
+  (state) => state.tracks,
 );
