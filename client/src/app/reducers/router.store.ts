@@ -15,7 +15,7 @@ export interface RouterStateUrl {
 
 export const initialState: {state: RouterStateUrl, navigationId: number} = {
   state: {
-    url: window.location.pathname,
+    url: window.location.pathname + window.location.search,
     params: {},
     queryParams: {}
   },
@@ -53,7 +53,7 @@ export const getMultiRoute = createSelector(
 
 export const getQueryParams = createSelector(
   getRouterState,
-  (route) => route && route.state.queryParams,
+  (route) => (route !== undefined) ? route.state.queryParams : {},
 );
 
 // app parameters encoded in route query params

@@ -9,7 +9,11 @@ export const GET_FAILURE = "[MACRO_TRACKS] GET_FAILURE";
 
 export class Get implements Action {
   readonly type = GET;
-  constructor(public payload: {query: MacroChromosome, params: BlockParams, sources: string[]}) { }
+  constructor(public payload: {
+    query: MacroChromosome,
+    params: BlockParams,
+    sources: string[],
+  }) { }
 }
 
 export class GetSuccess implements Action {

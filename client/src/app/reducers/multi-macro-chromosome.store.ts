@@ -3,15 +3,15 @@ import * as multiMacroChromosomeActions from "../actions/multi-macro-chromosome.
 import { MacroChromosome } from "../models/macro-chromosome.model";
 
 export interface State {
-  correlationID: number;
-  multiMacroChromosome: MacroChromosome[];
-  newMultiMacroChromosome: MacroChromosome;
+  chromosomes: MacroChromosome[];
+  loadCount: number;
+  loading: boolean;
 }
 
 export const initialState: State = {
-  correlationID: 0,
-  multiMacroChromosome: undefined,
-  newMultiMacroChromosome: undefined,
+  chromosomes: [],
+  loadCount: 0,
+  loading: false,
 };
 
 export function reducer(
@@ -19,24 +19,19 @@ export function reducer(
   action: multiMacroChromosomeActions.Actions
 ): State {
   switch (action.type) {
-    case multiMacroChromosomeActions.NEW:
+    case multiMacroChromosomeActions.INIT:
+      return initialState;
+    case multiMacroChromosomeActions.GET:
       return {
-        correlationID: action.correlationID,
-        multiMacroChromosome: [],
-        newMultiMacroChromosome: undefined,
+        ...state,
+        loadCount: state.loadCount + 1,
+        loading: true,
       };
-    case multiMacroChromosomeActions.ADD:
-      if (state.correlationID !== action.correlationID) {
-        return state;
-      }
-      const chromosomes = state.multiMacroChromosome.map((c) => c.name);
-      if (chromosomes.indexOf(action.payload.name) !== -1) {
-        return state;
-      }
+    case multiMacroChromosomeActions.GET_SUCCESS:
       return {
-        correlationID: state.correlationID,
-        multiMacroChromosome: state.multiMacroChromosome.concat([action.payload]),
-        newMultiMacroChromosome: action.payload,
+        chromosomes: state.chromosomes.concat([action.payload.chromosome]),
+        loadCount: state.loadCount - 1,
+        loading: state.loadCount > 1,
       };
     default:
       return state;
@@ -45,17 +40,7 @@ export function reducer(
 
 export const getMultiMacroChromosomeState = createFeatureSelector<State>("multiMacroChromosome");
 
-export const getMultiMacroChromosome = createSelector(
+export const getMultiMacroChromosomes = createSelector(
   getMultiMacroChromosomeState,
-  (state) => state.multiMacroChromosome,
-);
-
-export const getNewMultiMacroChromosome = createSelector(
-  getMultiMacroChromosomeState,
-  (state) => state.newMultiMacroChromosome,
-);
-
-export const getCorrelationID = createSelector(
-  getMultiMacroChromosomeState,
-  (state) => state.correlationID,
+  (state) => state.chromosomes,
 );

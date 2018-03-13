@@ -92,6 +92,7 @@ export class MultiGuard implements CanActivate, CanDeactivate<MultiComponent> {
   }
 
   private macroSubscriptions() {
-
+    // no-op
+    // these are all handled in the macro effects
   }
 }

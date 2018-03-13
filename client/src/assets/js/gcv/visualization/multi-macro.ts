@@ -25,6 +25,7 @@ export class MultiMacro {
     this.options.autoResize = this.options.autoResize || false;
     this.options.resizeDelay = this.options.resizeDelay || 250;
     this.options.highlight = this.options.highlight || [];
+    this.options.replicateBlocks = this.options.replicateBlocks || false;
     if (this.options.colors === undefined) {
       this.options.colors = ((s) => "#cfcfcf");
     }
@@ -81,6 +82,17 @@ export class MultiMacro {
             source_start: block.start,
             source_end: block.stop,
           });
+          // replicate the block for the source
+          if (this.options.replicateBlocks) {
+            this.data.blocks.push({
+              block_id: source_id,
+              source_id: target_id,
+              start: block.start,
+              end: block.stop,
+              source_start: block.query_start,
+              source_end: block.query_stop,
+            });
+          }
           // parse chords
           this.data.chords.push({
             source: {
@@ -94,6 +106,21 @@ export class MultiMacro {
               end: block.query_stop,
             }
           });
+          // replicate chords for replicated blocks
+          if (this.options.replicateBlocks) {
+            this.data.chords.push({
+              source: {
+                id: target_id,
+                start: block.query_start,
+                end: block.query_stop,
+              },
+              target: {
+                id: source_id,
+                start: block.start,
+                end: block.stop,
+              }
+            });
+          }
         }
       }
     }

@@ -235,6 +235,7 @@ export class MultiComponent implements AfterViewInit, OnInit {
       autoResize: true,
       colors,
       highlight,
+      replicateBlocks: true,
     };
   }
 
