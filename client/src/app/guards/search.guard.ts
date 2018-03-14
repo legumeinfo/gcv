@@ -115,6 +115,7 @@ export class SearchGuard implements CanActivate, CanDeactivate<SearchComponent> 
   private macroSubscriptions() {
     // subscribe to changes that initialize macro chromosome searches
     const searchQueryChromosome = this.store.select(fromSearchQueryTrack.getSearchQueryChromosome)
+      .filter((chromosome) => chromosome !== undefined);
     const searchRouteSource = this.store.select(fromRouter.getSearchRouteSource);
     searchQueryChromosome
       .withLatestFrom(searchRouteSource)
