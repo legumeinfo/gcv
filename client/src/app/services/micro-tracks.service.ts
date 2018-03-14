@@ -82,6 +82,7 @@ export class MicroTracksService {
     };
     return this._makeRequest<MicroTracks>(serverID, "microSearch", body).pipe(
       map((tracks) => {
+        this._removeQuery(query, tracks);
         this._mergeOverlappingTracks(tracks);
         this._parseTracks(serverID, tracks);
         return tracks;
@@ -163,6 +164,14 @@ export class MicroTracksService {
       }
     }
     return merged;
+  }
+
+  // removes the query from given MicroTracks if present
+  private _removeQuery(query: Group, tracks: MicroTracks): void {
+    const genes = new Set(query.genes.map((g) => g.id));
+    tracks.groups = tracks.groups.filter((group) => {
+      return !group.genes.some((g) => genes.has(g.id));
+    });
   }
 
   // updates the given MicroTracks set of tracks by combining overlapping tracks
