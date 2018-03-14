@@ -3,15 +3,12 @@ import { Injectable } from "@angular/core";
 // store
 import { Effect, Actions, ofType } from "@ngrx/effects";
 import { Store } from "@ngrx/store";
-import { of } from "rxjs/observable/of";
-import { catchError, map, scan, switchMap, withLatestFrom } from "rxjs/operators";
+import { map, mergeMap, switchMap, takeUntil, withLatestFrom } from "rxjs/operators";
 import * as alignedMicroTracksActions from "../actions/aligned-micro-tracks.actions";
 import * as microTracksActions from "../actions/micro-tracks.actions";
-import * as searchQueryTrackActions from "../actions/search-query-track.actions";
 import * as fromRoot from "../reducers";
 import * as fromAlignedMicroTracks from "../reducers/aligned-micro-tracks.store";
 import * as fromRouter from "../reducers/router.store";
-import * as fromSearchQueryTrack from "../reducers/search-query-track.store";
 // services
 import { AlignmentService } from "../services/alignment.service";
 
@@ -53,8 +50,10 @@ export class AlignmentEffects {
       this.store.select(fromAlignedMicroTracks.getAlignmentReference)
       .filter((reference) => reference !== undefined)
     ),
-    switchMap(([{tracks, params}, reference]) => {
+    mergeMap(([{tracks, params}, reference]) => {
+      const stop = this.actions$.pipe(ofType(microTracksActions.GET_SEARCH));
       return this.alignmentService.getPairwiseAlignment(reference, tracks, params).pipe(
+        takeUntil(stop),
         map(tracks => new alignedMicroTracksActions.GetPairwiseSuccess({tracks})),
       );
     })
