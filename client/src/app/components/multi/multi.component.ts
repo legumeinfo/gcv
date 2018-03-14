@@ -1,7 +1,8 @@
 // Angular + dependencies
-import { AfterViewInit, Component, ElementRef, OnInit, ViewChild,
+import { AfterViewInit, Component, ElementRef, OnDestroy, OnInit, ViewChild,
   ViewEncapsulation } from "@angular/core";
 import { Observable } from "rxjs/Observable";
+import { Subject } from "rxjs/Subject";
 import { GCV } from "../../../assets/js/gcv";
 // app
 import * as Split from "split.js";
@@ -25,7 +26,7 @@ import { MicroTracksService } from "../../services/micro-tracks.service";
             require("../../../assets/css/split.scss") ],
   template: require("./multi.component.html"),
 })
-export class MultiComponent implements AfterViewInit, OnInit {
+export class MultiComponent implements AfterViewInit, OnDestroy, OnInit {
   // view children
   @ViewChild("left") left: ElementRef;
   @ViewChild("topLeft") topLeft: ElementRef;
@@ -56,11 +57,16 @@ export class MultiComponent implements AfterViewInit, OnInit {
   macroLegendArgs = {autoResize: true, selector: "genus-species"};
   macroTracks: MacroTracks[];
 
+  // emits when the component is destroyed
+  private destroy: Subject<boolean>;
+
   constructor(private alignmentService: AlignmentService,
               private config: AppConfig,
               private filterService: FilterService,
               private macroTracksService: MacroTracksService,
-              private microTracksService: MicroTracksService) { }
+              private microTracksService: MicroTracksService) {
+    this.destroy = new Subject();
+  }
 
   // Angular hooks
 
@@ -79,6 +85,11 @@ export class MultiComponent implements AfterViewInit, OnInit {
       });
   }
 
+  ngOnDestroy(): void {
+    this.destroy.next(true);
+    this.destroy.complete();
+  }
+
   ngOnInit(): void {
     // subscribe to micro track data
     Observable
@@ -90,6 +101,7 @@ export class MultiComponent implements AfterViewInit, OnInit {
       .let(microTracksSelector({prefix: (t) => "group " + t.cluster + " - "}))
       .withLatestFrom(this.microTracksService.routeParams)
       .filter(([tracks, route]) => route.genes !== undefined)
+      .takeUntil(this.destroy)
       .subscribe(([tracks, route]) => {
         this._onAlignedMicroTracks(tracks as MicroTracks, route);
       });
@@ -97,6 +109,7 @@ export class MultiComponent implements AfterViewInit, OnInit {
     // subscribe to macro track data
     this.macroTracksService.multiMacroTracks
       .filter((tracks) => tracks !== undefined)
+      .takeUntil(this.destroy)
       .subscribe((tracks) => {
         this._onMacroTracks(tracks);
       });

@@ -1,8 +1,9 @@
 // Angular
-import { AfterViewInit, Component, ElementRef, OnInit, QueryList, ViewChild,
+import { AfterViewInit, Component, ElementRef, OnDestroy, OnInit, QueryList, ViewChild,
   ViewChildren, ViewEncapsulation } from "@angular/core";
 import { BehaviorSubject } from "rxjs/BehaviorSubject";
 import { Observable } from "rxjs/Observable";
+import { Subject } from "rxjs/Subject";
 // app
 import * as Split from "split.js";
 import { GCV } from "../../../assets/js/gcv";
@@ -33,7 +34,7 @@ declare let parseInt: any;  // TypeScript doesn't recognize number inputs
             require("../../../assets/css/split.scss") ],
   template: require("./search.component.html"),
 })
-export class SearchComponent implements AfterViewInit, OnInit {
+export class SearchComponent implements AfterViewInit, OnDestroy, OnInit {
   // view children
   @ViewChild("left") left: ElementRef;
   @ViewChild("topLeft") topLeft: ElementRef;
@@ -86,6 +87,9 @@ export class SearchComponent implements AfterViewInit, OnInit {
   macroLegendArgs: any;
   macroTracks: MacroTracks;
 
+  // emits when the component is destroyed
+  private destroy: Subject<boolean>;
+
   // TODO: update observable subscriptions so this and subscribeToMacro aren't needed
   private macroTrackObservable: Observable<[MacroTracks, any]>;  // Observable<[MacroTracks, MicroTracks]>;
   private macroSub: any;
@@ -96,7 +100,9 @@ export class SearchComponent implements AfterViewInit, OnInit {
               private macroTracksService: MacroTracksService,
               private microTracksService: MicroTracksService,
               //private plotsService: PlotsService,
-            ) { }
+            ) {
+    this.destroy = new Subject();
+  }
 
   // Angular hooks
 
@@ -115,6 +121,11 @@ export class SearchComponent implements AfterViewInit, OnInit {
       });
   }
 
+  ngOnDestroy(): void {
+    this.destroy.next(true);
+    this.destroy.complete();
+  }
+
   ngOnInit(): void {
     this._initUIState();
 
@@ -130,6 +141,7 @@ export class SearchComponent implements AfterViewInit, OnInit {
     filteredMicroTracks
       .withLatestFrom(this.microTracksService.routeParams)
       .filter(([tracks, route]) => route.gene !== undefined)
+      .takeUntil(this.destroy)
       .subscribe(([tracks, route]) => {
         this._onAlignedMicroTracks(tracks as MicroTracks, route);
       });
@@ -144,6 +156,7 @@ export class SearchComponent implements AfterViewInit, OnInit {
       .let(macroTracksSelector())
       .withLatestFrom(this.microTracksService.routeParams)
       .filter(([tracks, route]) => route.gene !== undefined)
+      .takeUntil(this.destroy)
       .subscribe(([tracks, route]) => this._onMacroTracks(tracks));
 
     // subscribe to micro-plots changes
