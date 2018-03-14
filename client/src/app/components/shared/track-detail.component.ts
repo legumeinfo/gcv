@@ -10,7 +10,7 @@ import { Group } from "../../models/group.model";
   styles: [ "" ],
   template: `
     <h4>{{track.genus[0]}}.{{track.species}} - {{track.chromosome_name}}</h4>
-    <p><a [routerLink]="['/search', track.source, focus]" preserveQueryParams>Search for similar contexts</a></p>
+    <p><a [routerLink]="['/search', track.source, focus]" queryParamsHandling="merge">Search for similar contexts</a></p>
     <p>Genes:</p>
     <ul>
       <li *ngFor="let gene of track.genes">
