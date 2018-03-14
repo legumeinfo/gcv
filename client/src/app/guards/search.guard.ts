@@ -1,7 +1,9 @@
 // Angular
 import { Injectable } from '@angular/core';
-import { CanActivate, CanDeactivate } from '@angular/router';
+import { ActivatedRouteSnapshot, CanActivate, CanDeactivate, PRIMARY_OUTLET, Router,
+  RouterStateSnapshot , UrlSegment} from '@angular/router';
 import { Observable } from "rxjs/Observable";
+import { BehaviorSubject } from "rxjs/BehaviorSubject";
 import { Subject } from "rxjs/Subject";
 // store
 import { Store } from "@ngrx/store";
@@ -22,25 +24,44 @@ import { SearchComponent } from "../components/search/search.component";
 @Injectable()
 export class SearchGuard implements CanActivate, CanDeactivate<SearchComponent> {
 
-  private deactivate: Subject<boolean>;
+  private activated: BehaviorSubject<boolean>;
 
-  constructor(private store: Store<fromRoot.State>) { }
+  constructor(private router: Router, private store: Store<fromRoot.State>) {
+    this.activated = new BehaviorSubject(false);
+  }
 
-  canActivate(): boolean {
-    this.deactivate = new Subject();
-    this.microSubscriptions();
-    this.alignmentSubscriptions();
-    this.macroSubscriptions();
+  canActivate(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): boolean {
+    if (!this.activated.getValue()) {
+      this.activated.next(true);
+      this._microSubscriptions();
+      this._alignmentSubscriptions();
+      this._macroSubscriptions();
+    }
     return true;
   }
 
-  canDeactivate(): boolean {
-    this.deactivate.next(true);
-    this.deactivate.complete();
+  canDeactivate(
+    component: SearchComponent,
+    currentRoute: ActivatedRouteSnapshot,
+    currentState: RouterStateSnapshot,
+    nextState: RouterStateSnapshot
+  ): boolean {
+    const currentSegments = this._getUrlSegments(currentState.url);
+    const nextSegments = this._getUrlSegments(nextState.url);
+    if (currentSegments[0].path !== nextSegments[0].path) {
+      this.activated.next(false);
+    }
     return true;
   }
 
-  private microSubscriptions() {
+  private _getUrlSegments(url: string): UrlSegment[] {
+    const tree = this.router.parseUrl(url);
+    const g = tree.root.children[PRIMARY_OUTLET];
+    return g.segments;
+  }
+
+  private _microSubscriptions() {
+    const stop = this.activated.filter((isActive) => !isActive);
     // load a new query track when the search route or neighbors param changes
     const searchRoute = this.store.select(fromRouter.getSearchRoute)
       .filter((route) => route.source !== undefined && route.gene !== undefined)
@@ -48,7 +69,7 @@ export class SearchGuard implements CanActivate, CanDeactivate<SearchComponent> 
     const neighborsParam = this.store.select(fromRouter.getMicroQueryParamNeighbors);
     Observable
       .combineLatest(searchRoute, neighborsParam)
-      .takeUntil(this.deactivate)
+      .takeUntil(stop)
       .subscribe(([query, neighbors]) => {
         this.store.dispatch(new searchQueryTrackActions.Get({query, neighbors}));
       });
@@ -64,7 +85,7 @@ export class SearchGuard implements CanActivate, CanDeactivate<SearchComponent> 
       });
     queryTrack
       .withLatestFrom(queryParams)
-      .takeUntil(this.deactivate)
+      .takeUntil(stop)
       .subscribe(([query, params]) => {
         this.store.dispatch(new microTracksActions.GetSearch({
           query,
@@ -78,7 +99,7 @@ export class SearchGuard implements CanActivate, CanDeactivate<SearchComponent> 
       .filter(([prevParams, nextParams]) => prevParams.neighbors === nextParams.neighbors)
       .map(([prevParams, nextParams]) => nextParams)
       .withLatestFrom(queryTrack)
-      .takeUntil(this.deactivate)
+      .takeUntil(stop)
       .subscribe(([params, query]) => {
         this.store.dispatch(new microTracksActions.GetSearch({
           query,
@@ -88,7 +109,8 @@ export class SearchGuard implements CanActivate, CanDeactivate<SearchComponent> 
       });
   }
 
-  private alignmentSubscriptions() {
+  private _alignmentSubscriptions() {
+    const stop = this.activated.filter((isActive) => !isActive);
     // subscribe to changes that trigger new pairwise alignments
     const alignmentParams = this.store.select(fromRouter.getMicroAlignmentParams)
       .distinctUntilChanged((a, b) => {
@@ -105,21 +127,22 @@ export class SearchGuard implements CanActivate, CanDeactivate<SearchComponent> 
     // TODO: prevent alignments when query params change too
     alignmentParams
       .withLatestFrom(microReference, microTracks)
-      .takeUntil(this.deactivate)
+      .takeUntil(stop)
       .subscribe(([params, reference, tracks]) => {
         this.store.dispatch(new alignedMicroTracksActions.Init({reference}));
         this.store.dispatch(new alignedMicroTracksActions.GetPairwise({tracks, params}));
       });
   }
 
-  private macroSubscriptions() {
+  private _macroSubscriptions() {
+    const stop = this.activated.filter((isActive) => !isActive);
     // subscribe to changes that initialize macro chromosome searches
     const searchQueryChromosome = this.store.select(fromSearchQueryTrack.getSearchQueryChromosome)
       .filter((chromosome) => chromosome !== undefined);
     const searchRouteSource = this.store.select(fromRouter.getSearchRouteSource);
     searchQueryChromosome
       .withLatestFrom(searchRouteSource)
-      .takeUntil(this.deactivate)
+      .takeUntil(stop)
       .subscribe(([chromosome, source]) => {
         this.store.dispatch(new macroChromosomeActions.Get({chromosome, source}));
       });
@@ -135,14 +158,14 @@ export class SearchGuard implements CanActivate, CanDeactivate<SearchComponent> 
     const querySources = this.store.select(fromRouter.getMicroQueryParamSources);
     macroChromosome
       .withLatestFrom(blockParams, querySources)
-      .takeUntil(this.deactivate)
+      .takeUntil(stop)
       .subscribe(([query, params, sources]) => {
         this.store.dispatch(new macroTracksActions.Get({query, params, sources}));
       });
     // load new macro tracks when the block params change
     blockParams
       .withLatestFrom(macroChromosome, querySources)
-      .takeUntil(this.deactivate)
+      .takeUntil(stop)
       .subscribe(([params, query, sources]) => {
         this.store.dispatch(new macroTracksActions.Get({query, params, sources}));
       });
