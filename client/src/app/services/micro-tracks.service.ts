@@ -2,9 +2,10 @@
 import { HttpClient, HttpParams } from "@angular/common/http";
 import { Injectable } from "@angular/core";
 import { Observable } from "rxjs/Observable";
+import { _throw } from "rxjs/observable/throw";
+import { catchError, map } from "rxjs/operators";
 // store
 import { Store } from "@ngrx/store";
-import * as microTracksActions from "../actions/micro-tracks.actions";
 import * as routerActions from "../actions/router.actions";
 import * as fromRoot from "../reducers";
 import * as fromMicroTracks from "../reducers/micro-tracks.store";
@@ -24,9 +25,7 @@ export class MicroTracksService {
   routeParams: Observable<any>;
   searchQueryTrack: Observable<Group>;
 
-  constructor(private http: HttpClient,
-              private store: Store<fromRoot.State>) {
-
+  constructor(private http: HttpClient, private store: Store<fromRoot.State>) {
     // initialize observables
     this.microTracks = store.select(fromMicroTracks.getMicroTracks);
     this.queryParams = store.select(fromRouter.getMicroQueryParams);
@@ -38,12 +37,14 @@ export class MicroTracksService {
   // fetches multi tracks for the given genes from the given source
   getMultiTracks(genes: string[], neighbors: number, serverID: string): Observable<MicroTracks> {
     const body = {genes, neighbors};
-    return this._makeRequest<MicroTracks>(serverID, "microMulti", body)
-      .map((tracks) => {
+    return this._makeRequest<MicroTracks>(serverID, "microMulti", body).pipe(
+      map((tracks) => {
         this._mergeOverlappingTracks(tracks);
         this._parseTracks(serverID, tracks);
         return tracks;
-      });
+      }),
+      catchError((error) => _throw(error)),
+    )
   }
 
   // gets a macro tracks for each server provided
@@ -53,22 +54,23 @@ export class MicroTracksService {
     serverIDs: string[],
   ): Observable<[string, MicroTracks]> {
     return Observable.merge(...serverIDs.map((serverID) => {
-      return this.getMultiTracks(query, neighbors, serverID)
-        .map(
-          (tracks): [string, MicroTracks] => [serverID, tracks],
-          (error): [string, any] => [serverID, error],
-        );
+      return this.getMultiTracks(query, neighbors, serverID).pipe(
+        map((tracks) => [serverID, tracks]),
+        catchError((error) => _throw([serverID, error])),
+      );
     }));
   }
 
   // fetches a query track for the given gene from the given source
   getQueryTrack(gene: string, neighbors: number, serverID: string): Observable<Group> {
     const body = {gene, neighbors: String(neighbors)};
-    return this._makeRequest<Group>(serverID, "microQuery", body)
-      .map((track) => {
+    return this._makeRequest<Group>(serverID, "microQuery", body).pipe(
+      map((track) => {
         this._parseTrack(serverID, track);
         return track;
-      });
+      }),
+      catchError((error) => _throw(error)),
+    );
   }
 
   // performs a micro track search for the given query track and params
@@ -78,12 +80,14 @@ export class MicroTracksService {
       matched: String(params.matched),
       query: query.genes.map((g) => g.family),
     };
-    return this._makeRequest<MicroTracks>(serverID, "microSearch", body)
-      .map((tracks) => {
+    return this._makeRequest<MicroTracks>(serverID, "microSearch", body).pipe(
+      map((tracks) => {
         this._mergeOverlappingTracks(tracks);
         this._parseTracks(serverID, tracks);
         return tracks;
-      });
+      }),
+      catchError((error) => _throw(error)),
+    );
   }
 
   // performs a micro track search for each server provided
@@ -93,11 +97,10 @@ export class MicroTracksService {
     serverIDs: string[]
   ): Observable<[string, MicroTracks]> {
     return Observable.merge(...serverIDs.map((serverID) => {
-      return this.getSearchTracks(query, params, serverID)
-        .map(
-          (tracks): [string, MicroTracks] => [serverID, tracks],
-          (error): [string, any] => [serverID, error],
-        );
+      return this.getSearchTracks(query, params, serverID).pipe(
+        map((tracks) => [serverID, tracks]),
+        catchError((error) => _throw([serverID, error])),
+      );
     }));
   }
 

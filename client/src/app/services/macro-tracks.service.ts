@@ -2,13 +2,14 @@
 import { Injectable } from "@angular/core";
 import { HttpClient, HttpParams } from "@angular/common/http";
 import { Observable } from "rxjs/Observable";
+import { _throw } from "rxjs/observable/throw";
+import { catchError, map } from "rxjs/operators";
 // store
 import { Store } from "@ngrx/store";
 import * as routerActions from "../actions/router.actions";
 import * as fromRoot from "../reducers";
 import * as fromMacroChromosome from "../reducers/macro-chromosome.store";
 import * as fromMacroTracks from "../reducers/macro-tracks.store";
-import * as fromMultiMacroChromosome from "../reducers/multi-macro-chromosome.store";
 import * as fromMultiMacroTracks from "../reducers/multi-macro-tracks.store";
 import * as fromRouter from "../reducers/router.store";
 // app
@@ -41,11 +42,13 @@ export class MacroTracksService {
 
   getChromosome(chromosome: string, serverID: string): Observable<MacroChromosome> {
     const body = {chromosome};
-    return this._makeRequest<MacroChromosome>(serverID, "chromosome", body)
-      .map((macroChromosome) => {
+    return this._makeRequest<MacroChromosome>(serverID, "chromosome", body).pipe(
+      map((macroChromosome) => {
         macroChromosome.name = chromosome;
         return macroChromosome;
-      });
+      }),
+      catchError((error) => _throw(error)),
+    );
   }
 
   getChromosomes(
@@ -53,10 +56,12 @@ export class MacroTracksService {
     serverID: string
   ): Observable<[{name: string, genus: string, species: string}, MacroChromosome]> {
     return Observable.merge(...chromosomes.map((chromosome) => {
-      return this.getChromosome(chromosome.name, serverID)
-        .map((result): [{name: string, genus: string, species: string}, MacroChromosome] => {
+      return this.getChromosome(chromosome.name, serverID).pipe(
+        map((result): [{name: string, genus: string, species: string}, MacroChromosome] => {
           return [chromosome, result];
-        });
+        }),
+        catchError((error) => _throw(error)),
+      );
     }));
   }
 
@@ -73,11 +78,13 @@ export class MacroTracksService {
       matched: blockParams.bmatched,
       targets,
     };
-    return this._makeRequest<MacroTrack[]>(serverID, "macro", body)
-      .map((macroTracks) => {
+    return this._makeRequest<MacroTrack[]>(serverID, "macro", body).pipe(
+      map((macroTracks) => {
         this._parseTracks(chromosome, macroTracks);
         return macroTracks;
-      });
+      }),
+      catchError((error) => _throw(error)),
+    );
   }
 
   getFederatedMacroTracks(
@@ -88,11 +95,10 @@ export class MacroTracksService {
   ): Observable<[string, MacroTrack[]]> {
     // send a request for each server
     return Observable.merge(...serverIDs.map((serverID) => {
-      return this.getMacroTracks(chromosome, blockParams, serverID, targets)
-        .map(
-          (tracks): [string, MacroTrack[]] => [serverID, tracks],
-          (error): [string, any] => [serverID, error],
-        );
+      return this.getMacroTracks(chromosome, blockParams, serverID, targets).pipe(
+        map((tracks) => [serverID, tracks]),
+        catchError((error) => _throw([serverID, error])),
+      );
     }));
   }
 
