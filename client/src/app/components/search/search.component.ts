@@ -8,6 +8,7 @@ import { Subject } from "rxjs/Subject";
 import * as Split from "split.js";
 import { GCV } from "../../../assets/js/gcv";
 import { AppConfig } from "../../app.config";
+import { Alert } from "../../models/alert.model";
 import { Family } from "../../models/family.model";
 import { Gene } from "../../models/gene.model";
 import { Group } from "../../models/group.model";
@@ -43,6 +44,8 @@ export class SearchComponent implements AfterViewInit, OnDestroy, OnInit {
   @ViewChild("topRight") topRight: ElementRef;
   @ViewChild("bottomRight") bottomRight: ElementRef;
   @ViewChildren(PlotViewerComponent) plotComponents: QueryList<PlotViewerComponent>;
+
+  headerAlert = new Alert("info", "Loading...");
 
   // show viewers or dot plots
   readonly contentTypes = {PLOTS: 0, VIEWERS: 1};
@@ -139,11 +142,14 @@ export class SearchComponent implements AfterViewInit, OnDestroy, OnInit {
       .let(microTracksSelector({skipFirst: true}));
 
     filteredMicroTracks
-      .withLatestFrom(this.microTracksService.routeParams)
-      .filter(([tracks, route]) => route.gene !== undefined)
+      .withLatestFrom(
+        this.microTracksService.routeParams,
+        this.microTracksService.microTracks
+          .map((tracks) => tracks.groups.length),
+      )
       .takeUntil(this.destroy)
-      .subscribe(([tracks, route]) => {
-        this._onAlignedMicroTracks(tracks as MicroTracks, route);
+      .subscribe(([tracks, route, numReturned]) => {
+        this._onAlignedMicroTracks(tracks as MicroTracks, route, numReturned);
       });
 
     // subscribe to macro track data
@@ -254,6 +260,23 @@ export class SearchComponent implements AfterViewInit, OnDestroy, OnInit {
 
   // private
 
+  private _getHeaderAlert(tracks: MicroTracks, numTracks: number): Alert {
+    let message = numTracks + " track" + ((numTracks !== 1) ? "s" : "") + " returned; ";
+    const numAligned = tracks.groups.length - 1;
+    message += numAligned + " track" + ((numAligned !== 1) ? "s" : "") + " aligned";
+    let type: string;
+    if (numTracks === 0) {
+      type = "danger";
+    } else if (numTracks === numAligned) {
+      type = "success";
+    } else if (numAligned === 0) {
+      type = "warning";
+    } else {
+      type = "info";
+    }
+    return new Alert(type, message);
+  }
+
   private _getMacroArgs(colors: any, highlight: string[], viewport: any): any {
     return {
       autoResize: true,
@@ -327,8 +350,11 @@ export class SearchComponent implements AfterViewInit, OnDestroy, OnInit {
     this.hideLocalGlobalPlots();
   }
 
-  private _onAlignedMicroTracks(tracks: MicroTracks, route): void {
+  private _onAlignedMicroTracks(tracks: MicroTracks, route, numReturned): void {
     if (tracks.groups.length > 0 && tracks.groups[0].genes.length > 0) {
+      // update alert
+      this.headerAlert = this._getHeaderAlert(tracks, numReturned);
+
       // compute how many genes each family has
       const familySizes = (tracks.groups.length > 1)
                       ? GCV.common.getFamilySizeMap(tracks.groups)

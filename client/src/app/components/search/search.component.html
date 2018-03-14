@@ -11,6 +11,7 @@
         <a (click)="showPlots()">Dot Plots</a>
       </li>
     </ul>
+    <alert [data]="headerAlert" center></alert>
   </header>
 
   <main-content [hidden]="selectedContent!==contentTypes.VIEWERS">

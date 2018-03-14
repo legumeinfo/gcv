@@ -7,6 +7,7 @@ import { GCV } from "../../../assets/js/gcv";
 // app
 import * as Split from "split.js";
 import { AppConfig } from "../../app.config";
+import { Alert } from "../../models/alert.model";
 import { Family } from "../../models/family.model";
 import { Gene } from "../../models/gene.model";
 import { Group } from "../../models/group.model";
@@ -34,6 +35,8 @@ export class MultiComponent implements AfterViewInit, OnDestroy, OnInit {
   @ViewChild("right") right: ElementRef;
   @ViewChild("topRight") topRight: ElementRef;
   @ViewChild("bottomRight") bottomRight: ElementRef;
+
+  headerAlert = new Alert("info", "Loading...");
 
   // what to show in left slider
   selectedDetail = null;
@@ -154,6 +157,9 @@ export class MultiComponent implements AfterViewInit, OnDestroy, OnInit {
 
   private _onAlignedMicroTracks(tracks: MicroTracks, route): void {
     if (tracks.groups.length > 0 && tracks.groups[0].genes.length > 0) {
+      // update alert
+      this.headerAlert = this._getHeaderAlert(tracks);
+
       // compute how many genes each family has
       const familySizes = (tracks.groups.length > 1)
                         ? GCV.common.getFamilySizeMap(tracks.groups)
@@ -238,6 +244,33 @@ export class MultiComponent implements AfterViewInit, OnDestroy, OnInit {
       }, []);
       this.macroTracks = tracks;
     }
+  }
+
+  private _getHeaderAlert(tracks: MicroTracks): Alert {
+    let message = "";
+    const numTracks = tracks.groups.length;
+    message += numTracks + " track" + ((numTracks !== 1) ? "s" : "") + " returned; ";
+    const clustered = tracks.groups.reduce((clustered, group) => {
+      if (group.cluster !== undefined) {
+        clustered.push(group.cluster);
+      };
+      return clustered;
+    }, []);
+    const numClustered = clustered.length;
+    message += numClustered + " tracks clustered into ";
+    const numClusters = (new Set(clustered)).size;
+    message += numClusters + " group" + ((numClusters !== 1) ? "s" : "");
+    let type: string;
+    if (numTracks === 0) {
+      type = "danger";
+    } else if (numTracks === numClustered) {
+      type = "success";
+    } else if (numClustered === 0) {
+      type = "warning";
+    } else {
+      type = "info";
+    }
+    return new Alert(type, message);
   }
 
   private _getMacroArgs(

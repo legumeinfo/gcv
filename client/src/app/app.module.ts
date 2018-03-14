@@ -19,6 +19,7 @@ import { GeneSearchComponent } from "./components/search/gene-search.component";
 import { ScrollComponent } from "./components/search/scroll.component";
 import { SearchParamsComponent } from "./components/search/search-params.component";
 import { SearchComponent } from "./components/search/search.component";
+import { AlertComponent } from "./components/shared/alert.component";
 import { ContextMenuComponent } from "./components/shared/context-menu.component";
 import { FamilyDetailComponent } from "./components/shared/family-detail.component";
 import { GeneDetailComponent } from "./components/shared/gene-detail.component";
@@ -65,6 +66,7 @@ import { CustomRouterStateSerializer } from "./utils/custom-router-state-seriali
 @NgModule({
   bootstrap:    [ AppComponent ],
   declarations: [
+    AlertComponent,
     AppComponent,
     MultiComponent,
     MultiParamsComponent,
