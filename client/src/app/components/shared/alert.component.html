@@ -1,3 +1,3 @@
-<div role="alert" [className]="'alert alert-' + data.type">
+<div role="alert" [className]="((float) ? 'float' : '') + ' alert alert-' + data.type">
   {{data.message}}
 </div>

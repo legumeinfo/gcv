@@ -12,4 +12,5 @@ import { Alert } from "../../models/alert.model";
 })
 export class AlertComponent {
   @Input() data: Alert;
+  @Input() float?: boolean = false;
 }
