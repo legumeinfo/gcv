@@ -103,7 +103,7 @@
             <div class="outer-ratio">
               <div class="inner-ratio" [ngSwitch]="selectedPlot">
                 <viewer-plot *ngSwitchCase="plotTypes.LOCAL"
-                  [data]="selectedLocal"
+                  [data]="selectedLocalPlot"
                   [colors]="microColors"
                   [arguments]="plotArgs" >
                   <ul class="nav navbar-nav tabs" navbar>
@@ -119,7 +119,7 @@
                   </li>
                 </viewer-plot>
                 <viewer-plot *ngSwitchCase="plotTypes.GLOBAL"
-                  [data]="selectedGlobal"
+                  [data]="selectedGlobalPlot"
                   [colors]="microColors"
                   [arguments]="plotArgs" >
                   <ul class="nav navbar-nav tabs" navbar>

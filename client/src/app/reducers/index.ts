@@ -8,6 +8,7 @@ import { storeFreeze } from "ngrx-store-freeze";
 // reducers
 import * as fromAlignedMicroTracks from "./aligned-micro-tracks.store";
 import * as fromClusteredMicroTracks from "./clustered-micro-tracks.store";
+import * as fromLocalPlots from "./local-plots.store";
 import * as fromMacroChromosome from "./macro-chromosome.store";
 import * as fromMacroTracks from "./macro-tracks.store";
 import * as fromMicroTracks from "./micro-tracks.store";
@@ -21,6 +22,7 @@ import * as fromSearchQueryTrack from "./search-query-track.store";
 export interface State {
   alignedMicroTracks: fromAlignedMicroTracks.State;
   clusteredMicroTracks: fromClusteredMicroTracks.State;
+  localPlots: fromLocalPlots.State;
   macroChromosome: fromMacroChromosome.State;
   macroTracks: fromMacroTracks.State;
   microTracks: fromMicroTracks.State;
@@ -35,6 +37,7 @@ export interface State {
 export const reducers: ActionReducerMap<State> = {
   alignedMicroTracks: fromAlignedMicroTracks.reducer,
   clusteredMicroTracks: fromClusteredMicroTracks.reducer,
+  localPlots: fromLocalPlots.reducer,
   macroChromosome: fromMacroChromosome.reducer,
   macroTracks: fromMacroTracks.reducer,
   microTracks: fromMicroTracks.reducer,

@@ -136,6 +136,7 @@ export class MicroTracksService {
   // adds the server id the track came from to the track and its genes
   private _parseTrack(source: string, track: Group): void {
     track.source = source;
+    track.id = source + Date.now();
     for (const gene of track.genes) {
       gene.source = source;
       delete gene.x;

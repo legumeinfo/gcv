@@ -21,7 +21,7 @@ import { AlignmentService } from "../../services/alignment.service";
 import { FilterService } from "../../services/filter.service";
 import { MacroTracksService } from "../../services/macro-tracks.service";
 import { MicroTracksService } from "../../services/micro-tracks.service";
-//import { PlotsService } from "../../services/plots.service";
+import { PlotsService } from "../../services/plots.service";
 import { PlotViewerComponent } from "../viewers/plot.component";
 
 declare let RegExp: any;  // TypeScript doesn't support regexp arguments
@@ -72,7 +72,7 @@ export class SearchComponent implements AfterViewInit, OnDestroy, OnInit {
   // dot plots
   microPlots: any;  // MicroTracks;
   plotArgs: any;
-  selectedLocal: Group;
+  selectedLocalPlot: Group;
   selectedGlobal: Group;
 
   // micro viewers
@@ -102,7 +102,7 @@ export class SearchComponent implements AfterViewInit, OnDestroy, OnInit {
               private filterService: FilterService,
               private macroTracksService: MacroTracksService,
               private microTracksService: MicroTracksService,
-              //private plotsService: PlotsService,
+              private plotsService: PlotsService,
             ) {
     this.destroy = new Subject();
   }
@@ -170,8 +170,11 @@ export class SearchComponent implements AfterViewInit, OnDestroy, OnInit {
     //  .combineLatest(this.plotsService.localPlots, microTracks)
     //  .let(plotsSelector())
     //  .subscribe((plots) => this.microPlots = plots);
-    //this.plotsService.selectedPlot
-    //  .subscribe(this._onPlotSelection.bind(this));
+    this.plotsService.selectedLocalPlot
+      .subscribe((plot) => {
+        this.selectedLocalPlot = plot;
+        //this._onPlotSelection.bind(this));
+      });
   }
 
   // public
@@ -218,6 +221,12 @@ export class SearchComponent implements AfterViewInit, OnDestroy, OnInit {
 
   selectPlot(plot: Group): void {
     this.showLocalGlobalPlots = true;
+    if (this.selectedPlot === this.plotTypes.LOCAL) {
+      this.plotsService.selectLocal(plot);
+    } else if (this.selectedPlot === this.plotTypes.GLOBAL) {
+      this.plotsService.selectGlobal(plot);
+    }
+    //this.plotService.selectLocal(plot);
     //this.plotsService.selectPlot(plot);
   }
 
@@ -227,7 +236,7 @@ export class SearchComponent implements AfterViewInit, OnDestroy, OnInit {
   }
 
   showLocalPlot(): void {
-    this.selectedPlot  = this.plotTypes.LOCAL;
+    this.selectedPlot = this.plotTypes.LOCAL;
     //this.selectedLocal = this.plotsService.getSelectedLocal();
   }
 
@@ -448,14 +457,14 @@ export class SearchComponent implements AfterViewInit, OnDestroy, OnInit {
     }
   }
 
-  private _onPlotSelection(plot): void {
-    this.selectedLocal = this.selectedGlobal = undefined;
-    if (this.selectedPlot === this.plotTypes.GLOBAL) {
-      this.showGlobalPlot();
-    } else {
-      this.showLocalPlot();
-    }
-  }
+  //private _onPlotSelection(plot): void {
+  //  this.selectedLocal = this.selectedGlobal = undefined;
+  //  if (this.selectedPlot === this.plotTypes.GLOBAL) {
+  //    this.showGlobalPlot();
+  //  } else {
+  //    this.showLocalPlot();
+  //  }
+  //}
 
   private _viewportDrag(d1, d2): void {
     const position = parseInt((d1 + d2) / 2, 10);
