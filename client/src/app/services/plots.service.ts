@@ -116,7 +116,7 @@ export class PlotsService {
         } else {
           const point = Object.create(gene);
           point.x = x;
-          point.y = -1;
+          point.y = null;
           points.push(point);
         }
         return points;

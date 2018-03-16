@@ -241,22 +241,24 @@ export class Micro extends Visualizer {
       })
       .style("cursor", "pointer")
       .on("mouseover", (g) => {
-        const gene = ".GCV [data-gene='" + g.id + "']";
+        const id = g.id.toString();
+        const gene = ".GCV [data-gene='" + id + "']";
         const family = ".GCV [data-family='" + g.family + "']";
         const selection = d3.selectAll(gene + ", " + family)
           .filter(function() {
             const d = this.getAttribute("data-gene");
-            return d === null || d === g.id;
+            return d === null || d === id;
           });
         obj.beginHover(selection);
       })
       .on("mouseout", (g) => {
-        const gene = ".GCV [data-gene='" + g.id + "']";
+        const id = g.id.toString();
+        const gene = ".GCV [data-gene='" + id + "']";
         const family = ".GCV [data-family='" + g.family + "']";
         const selection = d3.selectAll(gene + ", " + family)
           .filter(function() {
             const d = this.getAttribute("data-gene");
-            return d === null || d === g.id;
+            return d === null || d === id;
           });
         obj.endHover(selection);
       })
