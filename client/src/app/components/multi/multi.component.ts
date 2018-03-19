@@ -140,7 +140,10 @@ export class MultiComponent implements AfterViewInit, OnDestroy, OnInit {
   }
 
   selectGene(gene: Gene): void {
-    const g = Object.assign(Object.create(Gene.prototype), gene);
+    // TODO: this uses specific knowledge about the origins of gene objects, instead,
+    // create a util function that returns all objects in prototype chain and spead
+    // into assign
+    const g = Object.assign(Object.create(Gene.prototype), Object.getPrototypeOf(gene));
     this.selectedDetail = g;
   }
 
