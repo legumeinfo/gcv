@@ -3,6 +3,8 @@ import { createFeatureSelector, createSelector } from "@ngrx/store";
 import * as localPlotsActions from "../actions/local-plots.actions";
 import { Group } from "../models/group.model";
 
+declare var Object: any;  // because TypeScript doesn't support Object.values
+
 const adapter = createEntityAdapter<Group>();
 
 export interface State extends EntityState<Group> {
@@ -44,6 +46,11 @@ export function reducer(
 //} = adapter.getSelectors();
 
 export const getLocalPlotsState = createFeatureSelector<State>('localPlots');
+
+export const getAllPlots = createSelector(
+  getLocalPlotsState,
+  (state) => Object.values(state.entities),
+)
 
 export const getSelectedPlotID = createSelector(
   getLocalPlotsState,

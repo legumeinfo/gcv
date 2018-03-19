@@ -32,12 +32,11 @@ export class PlotsService {
 
   constructor(private http: HttpClient, private store: Store<fromRoot.State>) {
     // initialize observables
-    // this.localPlots   = this._store.select("localPlots");
+    this.localPlots = this.store.select(fromLocalPlots.getAllPlots);
     this.selectedLocalPlotID = this.store.select(fromLocalPlots.getSelectedPlotID);
     this.selectedGlobalPlotID = this.store.select(fromGlobalPlots.getSelectedPlotID);
-    this.selectedLocalPlot =  this.store.select(fromLocalPlots.getSelectedPlot),
-    this.selectedGlobalPlot =  this.store.select(fromGlobalPlots.getSelectedPlot),
-    this.localPlots = Observable.empty<Group[]>();
+    this.selectedLocalPlot = this.store.select(fromLocalPlots.getSelectedPlot);
+    this.selectedGlobalPlot = this.store.select(fromGlobalPlots.getSelectedPlot);
   }
 
   getPlot(reference: Group, track: Group): Observable<Group> {

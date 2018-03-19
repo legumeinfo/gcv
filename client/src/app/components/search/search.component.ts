@@ -166,17 +166,20 @@ export class SearchComponent implements AfterViewInit, OnDestroy, OnInit {
       .subscribe(([tracks, route]) => this._onMacroTracks(tracks));
 
     // subscribe to micro-plots changes
-    //Observable
-    //  .combineLatest(this.plotsService.localPlots, microTracks)
-    //  .let(plotsSelector())
-    //  .subscribe((plots) => this.microPlots = plots);
+    Observable
+      .combineLatest(this.plotsService.localPlots, filteredMicroTracks)
+      .takeUntil(this.destroy)
+      .let(plotsSelector())
+      .subscribe((plots) => this.microPlots = plots);
     this.plotsService.selectedLocalPlot
       .filter((plot) => plot !== null)
+      .takeUntil(this.destroy)
       .subscribe((plot) => {
         this.selectedLocalPlot = plot;
       });
     this.plotsService.selectedGlobalPlot
       .filter((plot) => plot !== null)
+      .takeUntil(this.destroy)
       .subscribe((plot) => {
         this.selectedGlobalPlot = plot;
       });
