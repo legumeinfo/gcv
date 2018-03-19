@@ -73,7 +73,7 @@ export class SearchComponent implements AfterViewInit, OnDestroy, OnInit {
   microPlots: any;  // MicroTracks;
   plotArgs: any;
   selectedLocalPlot: Group;
-  selectedGlobal: Group;
+  selectedGlobalPlot: Group;
 
   // micro viewers
   microArgs: any;
@@ -171,9 +171,14 @@ export class SearchComponent implements AfterViewInit, OnDestroy, OnInit {
     //  .let(plotsSelector())
     //  .subscribe((plots) => this.microPlots = plots);
     this.plotsService.selectedLocalPlot
+      .filter((plot) => plot !== null)
       .subscribe((plot) => {
         this.selectedLocalPlot = plot;
-        //this._onPlotSelection.bind(this));
+      });
+    this.plotsService.selectedGlobalPlot
+      .filter((plot) => plot !== null)
+      .subscribe((plot) => {
+        this.selectedGlobalPlot = plot;
       });
   }
 
@@ -219,25 +224,28 @@ export class SearchComponent implements AfterViewInit, OnDestroy, OnInit {
     this.showLocalGlobalPlots = false;
   }
 
-  selectPlot(plot: Group): void {
+  selectPlot(track: Group): void {
     this.showLocalGlobalPlots = true;
+    const id = track.id;
     if (this.selectedPlot === this.plotTypes.LOCAL) {
-      this.plotsService.selectLocal(plot);
+      this.plotsService.selectLocal(id);
     } else if (this.selectedPlot === this.plotTypes.GLOBAL) {
-      this.plotsService.selectGlobal(plot);
+      this.plotsService.selectGlobal(id);
     }
-    //this.plotService.selectLocal(plot);
-    //this.plotsService.selectPlot(plot);
   }
 
   showGlobalPlot(): void {
+    this.plotsService.selectedLocalPlotID.take(1).subscribe((id) => {
+      this.plotsService.selectGlobal(id);
+    });
     this.selectedPlot = this.plotTypes.GLOBAL;
-    //this.plotsService.getSelectedGlobal((plot) => this.selectedGlobal = plot);
   }
 
   showLocalPlot(): void {
+    this.plotsService.selectedGlobalPlotID.take(1).subscribe((id) => {
+      this.plotsService.selectLocal(id);
+    });
     this.selectedPlot = this.plotTypes.LOCAL;
-    //this.selectedLocal = this.plotsService.getSelectedLocal();
   }
 
   // left slider
@@ -355,11 +363,13 @@ export class SearchComponent implements AfterViewInit, OnDestroy, OnInit {
 
   private _initUIState(): void {
     this.showViewers();
-    this.showLocalPlot();
+    //this.showLocalPlot();
+    this.selectedPlot = this.plotTypes.LOCAL;
     this.hideLocalGlobalPlots();
   }
 
   private _onAlignedMicroTracks(tracks: MicroTracks, route, numReturned): void {
+    this.hideLocalGlobalPlots();
     if (tracks.groups.length > 0 && tracks.groups[0].genes.length > 0) {
       // update alert
       this.headerAlert = this._getHeaderAlert(tracks, numReturned);
@@ -456,15 +466,6 @@ export class SearchComponent implements AfterViewInit, OnDestroy, OnInit {
       this.macroTracks = tracks;
     }
   }
-
-  //private _onPlotSelection(plot): void {
-  //  this.selectedLocal = this.selectedGlobal = undefined;
-  //  if (this.selectedPlot === this.plotTypes.GLOBAL) {
-  //    this.showGlobalPlot();
-  //  } else {
-  //    this.showLocalPlot();
-  //  }
-  //}
 
   private _viewportDrag(d1, d2): void {
     const position = parseInt((d1 + d2) / 2, 10);

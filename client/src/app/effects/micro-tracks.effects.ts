@@ -23,8 +23,8 @@ export class MicroTracksEffects {
     map((action: searchQueryTrackActions.Get) => action.payload),
     switchMap(({query, neighbors}) => {
       return this.microTracksService.getQueryTrack(query.gene, neighbors, query.source).pipe(
-        map(track => new searchQueryTrackActions.GetSuccess({track})),
-        catchError(error => of(new searchQueryTrackActions.GetFailure(error)))
+        map((track) => new searchQueryTrackActions.GetSuccess({track})),
+        catchError((error) => of(new searchQueryTrackActions.GetFailure(error)))
       );
     })
   );

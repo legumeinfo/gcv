@@ -19,7 +19,7 @@ export function reducer(
 ): State {
   switch (action.type) {
     case localPlotsActions.INIT:
-      return adapter.removeAll({...state, selectedPlotId: null});
+      return initialState;
     case localPlotsActions.GET_SUCCESS:
       return adapter.addMany(action.payload.plots, state);
     case localPlotsActions.SELECT:
@@ -49,6 +49,17 @@ export const getSelectedPlotID = createSelector(
   getLocalPlotsState,
   (state: State) => state.selectedPlotID,
 )
+
+export const getPlotByID = (id) => createSelector(
+  getLocalPlotsState,
+  (state: State) => {
+    const entities = state.entities;
+    if (id in entities) {
+      return entities[id];
+    }
+    return null;
+  },
+);
 
 export const getSelectedPlot = createSelector(
   getLocalPlotsState,

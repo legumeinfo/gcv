@@ -2,8 +2,8 @@ import { Action } from "@ngrx/store";
 import { Group } from "../models/group.model";
 
 export const INIT = "[LOCAL_PLOTS] INIT";
-export const GET = "[LOCAL_PLOTS] GET_SUCCESS";
-export const GET_SUCCESS = "[LOCAL_PLOTS] ADD_MANY";
+export const GET = "[LOCAL_PLOTS] GET";
+export const GET_SUCCESS = "[LOCAL_PLOTS] GET_SUCCESS";
 export const SELECT = "[LOCAL_PLOTS] SELECT";
 
 export class Init implements Action {

@@ -8,12 +8,15 @@ import { Subject } from "rxjs/Subject";
 // store
 import { Store } from "@ngrx/store";
 import * as alignedMicroTracksActions from "../actions/aligned-micro-tracks.actions";
+import * as globalPlotsActions from "../actions/global-plots.actions";
 import * as macroChromosomeActions from "../actions/macro-chromosome.actions";
 import * as macroTracksActions from "../actions/macro-tracks.actions";
 import * as microTracksActions from "../actions/micro-tracks.actions";
 import * as searchQueryTrackActions from "../actions/search-query-track.actions";
 import * as fromRoot from "../reducers";
 import * as fromAlignedMicroTracks from "../reducers/aligned-micro-tracks.store";
+import * as fromGlobalPlots from "../reducers/global-plots.store";
+import * as fromLocalPlots from "../reducers/local-plots.store";
 import * as fromMacroChromosome from "../reducers/macro-chromosome.store";
 import * as fromMicroTracks from "../reducers/micro-tracks.store";
 import * as fromRouter from "../reducers/router.store";
@@ -36,6 +39,7 @@ export class SearchGuard implements CanActivate, CanDeactivate<SearchComponent> 
       this._microSubscriptions();
       this._alignmentSubscriptions();
       this._macroSubscriptions();
+      this._plotSubscriptions();
     }
     return true;
   }
@@ -169,5 +173,10 @@ export class SearchGuard implements CanActivate, CanDeactivate<SearchComponent> 
       .subscribe(([params, query, sources]) => {
         this.store.dispatch(new macroTracksActions.Get({query, params, sources}));
       });
+  }
+
+  private _plotSubscriptions() {
+    // no-op
+    // these are all handled in the plots effects
   }
 }
