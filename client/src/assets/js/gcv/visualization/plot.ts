@@ -281,4 +281,43 @@ export class Plot {
   destroy() {
     this.container.removeChild(this.viewer.node());
   }
+
+  /** Generates the raw SVG xml. */
+  xml() {
+    try {
+      const isFileSaverSupported = !!new Blob();
+    } catch (e) {
+      alert("Your broswer does not support saving");
+    }
+    // create a clone of the viewer with all GCV styles inlined
+    const clone = this.inlineCopy();
+    // generate the data
+    const xml = (new XMLSerializer()).serializeToString(clone.node());
+    return xml;
+  }
+
+  /** Makes a copy of the SVG and inlines external GCV styles. */
+  protected inlineCopy(mod = (clone) => {/* noop */}) {
+    // clone the current view node
+    const clone = d3.select(this.viewer.node().cloneNode(true));
+    mod(clone);
+    // load the external styles
+    const sheets: any = document.styleSheets;
+    // inline GCV styles
+    for (const sheet of sheets) {
+      const rules = sheet.rules || sheet.cssRules;
+      for (const r of Object.keys(rules)) {
+        const rule = rules[r];
+        const selector = rule.selectorText;
+        if (selector !== undefined && selector.startsWith(".GCV")) {
+          const style = rule.style;
+          const selection = clone.selectAll(selector);
+          for (const prop of style) {
+            selection.style(prop, style[prop]);
+          }
+        }
+      }
+    }
+    return clone;
+  }
 }

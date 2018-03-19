@@ -135,6 +135,8 @@ export class MultiMacro {
       height: width
     });
 
+    this.circos.svg.attr("class", "GCV");
+
     const chordInnerRadius = width / 2 - 100;
     const chordOuterRadius = width / 2 - 80;
     const stackInnerRadius = chordOuterRadius + 5;
@@ -188,8 +190,6 @@ export class MultiMacro {
       .highlight('cytobands', this.data.highlight, {
         innerRadius: chordInnerRadius,
         outerRadius: chordOuterRadius,
-        opacity: 0.5,
-        color: '#000000',
         tooltipContent: null,
       })
       .render()
@@ -251,5 +251,44 @@ export class MultiMacro {
       this.container.removeChild(this.container.firstChild);
     }
     this.circos = undefined;
+  }
+
+  /** Generates the raw SVG xml. */
+  xml() {
+    try {
+      const isFileSaverSupported = !!new Blob();
+    } catch (e) {
+      alert("Your broswer does not support saving");
+    }
+    // create a clone of the viewer with all GCV styles inlined
+    const clone = this.inlineCopy();
+    // generate the data
+    const xml = (new XMLSerializer()).serializeToString(clone.node());
+    return xml;
+  }
+
+  /** Makes a copy of the SVG and inlines external GCV styles. */
+  protected inlineCopy(mod = (clone) => {/* noop */}) {
+    // clone the current view node
+    const clone = d3.select(this.circos.svg.node().cloneNode(true));
+    mod(clone);
+    // load the external styles
+    const sheets: any = document.styleSheets;
+    // inline GCV styles
+    for (const sheet of sheets) {
+      const rules = sheet.rules || sheet.cssRules;
+      for (const r of Object.keys(rules)) {
+        const rule = rules[r];
+        const selector = rule.selectorText;
+        if (selector !== undefined && selector.startsWith(".GCV")) {
+          const style = rule.style;
+          const selection = clone.selectAll(selector);
+          for (const prop of style) {
+            selection.style(prop, style[prop]);
+          }
+        }
+      }
+    }
+    return clone;
   }
 }
