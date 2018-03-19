@@ -28,9 +28,11 @@ export class PlotsEffects {
   getSearchTracks$ = this.actions$.pipe(
     ofType(microTracksActions.GET_SEARCH),
     map((action: microTracksActions.GetSearch) => action.payload),
-    switchMap(({query, params, sources}) => {
+    withLatestFrom(this.store.select(fromSearchQueryTrack.getSearchQueryTrack)),
+    switchMap(([{query, params, sources}, reference]) => {
       return [
         new localPlotsActions.Init(),
+        new localPlotsActions.Get({reference, tracks: [reference]}),
         new globalPlotsActions.Init(),
       ];
     }),
