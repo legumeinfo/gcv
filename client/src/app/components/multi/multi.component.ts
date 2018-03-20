@@ -14,6 +14,7 @@ import { Group } from "../../models/group.model";
 import { MacroTracks } from "../../models/macro-tracks.model";
 import { MicroTracks } from "../../models/micro-tracks.model";
 import { microTracksSelector } from "../../selectors/micro-tracks.selector";
+import { multiMacroTracksSelector } from "../../selectors/multi-macro-tracks.selector";
 import { AlignmentService } from "../../services/alignment.service";
 import { FilterService } from "../../services/filter.service";
 import { MacroTracksService } from "../../services/macro-tracks.service";
@@ -95,13 +96,15 @@ export class MultiComponent implements AfterViewInit, OnDestroy, OnInit {
 
   ngOnInit(): void {
     // subscribe to micro track data
-    Observable
+    const filteredMicroTracks = Observable
       .combineLatest(
         this.alignmentService.alignedMicroTracks,
         this.filterService.regexpAlgorithm,
         this.filterService.orderAlgorithm,
       )
-      .let(microTracksSelector({prefix: (t) => "group " + t.cluster + " - "}))
+      .let(microTracksSelector({prefix: (t) => "group " + t.cluster + " - "}));
+
+    filteredMicroTracks
       .withLatestFrom(this.microTracksService.routeParams)
       .filter(([tracks, route]) => route.genes !== undefined)
       .takeUntil(this.destroy)
@@ -110,8 +113,13 @@ export class MultiComponent implements AfterViewInit, OnDestroy, OnInit {
       });
 
     // subscribe to macro track data
-    this.macroTracksService.multiMacroTracks
-      .filter((tracks) => tracks !== undefined)
+    Observable
+      .combineLatest(
+        this.macroTracksService.multiMacroTracks
+          .filter((tracks) => tracks !== undefined),
+        filteredMicroTracks,
+      )
+      .let(multiMacroTracksSelector())
       .takeUntil(this.destroy)
       .subscribe((tracks) => {
         this._onMacroTracks(tracks);
