@@ -8,6 +8,7 @@ import { catchError, map } from "rxjs/operators";
 import { Store } from "@ngrx/store";
 import * as routerActions from "../actions/router.actions";
 import * as fromRoot from "../reducers";
+import * as fromMacroChromosome from "../reducers/macro-chromosome.store";
 import * as fromMicroTracks from "../reducers/micro-tracks.store";
 import * as fromRouter from "../reducers/router.store";
 import * as fromSearchQueryTrack from "../reducers/search-query-track.store";
@@ -109,6 +110,32 @@ export class MicroTracksService {
     const path = [];
     const query = Object.assign({}, params, {sources: params.sources.join(",")});
     this.store.dispatch(new routerActions.Go({path, query}));
+  }
+
+  scroll(step: number): Observable<any> {
+    return Observable.create((observer) => {
+    Observable
+      .combineLatest(
+        this.routeParams,
+        this.store.select(fromMacroChromosome.getMacroChromosome),
+      )
+      .take(1)
+      .subscribe(([route, chromosome]) => {
+        if (route.gene !== undefined) {
+          const i = chromosome.genes.indexOf(route.gene);
+          if (i > -1 && i + step >= 0 && i + step < chromosome.genes.length) {
+            const gene = chromosome.genes[i + step];
+            const path = ["search", route.source, gene];
+            this.store.dispatch(new routerActions.Go({path}));
+          } else {
+            observer.error(new Error("Cannot compute target focus gene"));
+          }
+        } else {
+          observer.error(new Error("Cannot scroll at this time"));
+        }
+        observer.complete();
+      });
+    });
   }
 
   // encapsulates HTTP request boilerplate
