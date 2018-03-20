@@ -47,6 +47,5 @@ export class ScrollComponent {
         (error) => {
           this.onError.emit(error);
         });
-
   }
 }

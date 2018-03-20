@@ -85,7 +85,10 @@ export class MacroTracksEffects {
     ofType(multiMacroChromosomeActions.GET),
     map((action: multiMacroChromosomeActions.Get) => action.payload),
     mergeMap(({chromosomes, source}) => {
-      const stop = this.actions$.pipe(ofType(microTracksActions.GET_MULTI));
+      const stop = Observable.combineLatest(
+        this.actions$.pipe(ofType(microTracksActions.GET_MULTI)),
+        this.actions$.pipe(ofType(multiMacroTracksActions.INIT)),
+      );
       return this.macroTracksService.getChromosomes(chromosomes, source).pipe(
         takeUntil(stop),
         map(([query, chromosome]) => {

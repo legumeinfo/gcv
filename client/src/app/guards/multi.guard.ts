@@ -9,9 +9,11 @@ import { Store } from "@ngrx/store";
 import * as alignedMicroTracksActions from "../actions/aligned-micro-tracks.actions";
 import * as clusteredMicroTracksActions from "../actions/clustered-micro-tracks.actions";
 import * as microTracksActions from "../actions/micro-tracks.actions";
+import * as multiMacroTracksActions from "../actions/multi-macro-tracks.actions";
 import * as fromRoot from "../reducers";
 import * as fromClusteredMicroTracks from "../reducers/clustered-micro-tracks.store";
 import * as fromMicroTracks from "../reducers/micro-tracks.store";
+import * as fromMultiMacroChromosome from "../reducers/multi-macro-chromosome.store";
 import * as fromRouter from "../reducers/router.store";
 // app
 import { MultiComponent } from "../components/multi/multi.component";
@@ -114,7 +116,26 @@ export class MultiGuard implements CanActivate, CanDeactivate<MultiComponent> {
   }
 
   private _macroSubscriptions() {
-    // no-op
-    // these are all handled in the macro effects
+    const stop = this.activated.filter((isActive) => !isActive);
+    // load new macro tracks when the block params change
+    const blockParams = this.store.select(fromRouter.getMacroBlockParams)
+    const macroChromosomes = this.store.select(fromMultiMacroChromosome.getMultiMacroChromosomes);
+    const querySources = this.store.select(fromRouter.getMicroQueryParamSources);
+    blockParams
+      .withLatestFrom(macroChromosomes, querySources)
+      .takeUntil(stop)
+      .subscribe(([params, chromosomes, sources]) => {
+        this.store.dispatch(new multiMacroTracksActions.Init());
+        let targets = chromosomes.map((c) => c.name);
+        for (const query of chromosomes) {
+          this.store.dispatch(new multiMacroTracksActions.Get({
+            query,
+            params,
+            targets,
+            sources
+          }));
+          targets = targets.filter((name) => name !== query.name);
+        }
+      });
   }
 }

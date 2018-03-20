@@ -75,8 +75,7 @@ export class SearchParamsComponent implements OnInit {
   // public
 
   submit(): void {
-    if (this.blockGroup.valid && this.queryGroup.valid &&
-    this.alignmentGroup.valid) {
+    if (this.blockGroup.valid && this.queryGroup.valid && this.alignmentGroup.valid) {
       this.valid.emit();
       // submit block params
       this._submitGroup(this.blockGroup, (params) => {
