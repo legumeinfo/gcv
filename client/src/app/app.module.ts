@@ -49,7 +49,6 @@ import { FilterService } from "./services/filter.service";
 import { MacroTracksService } from "./services/macro-tracks.service";
 import { MicroTracksService } from "./services/micro-tracks.service";
 import { PlotsService } from "./services/plots.service";
-import { UrlService } from "./services/url.service";
 
 // route guards
 import { MultiGuard } from "./guards/multi.guard";
@@ -128,7 +127,6 @@ import { CustomRouterStateSerializer } from "./utils/custom-router-state-seriali
     MacroTracksService,
     MicroTracksService,
     PlotsService,
-    UrlService,
     MultiGuard,
     SearchGuard,
   ],
