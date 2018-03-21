@@ -1,6 +1,5 @@
 // Angular
 import { Inject, Injectable } from "@angular/core";
-import { Http } from "@angular/http";
 import { Observable } from "rxjs/Rx";
 
 // App
@@ -14,8 +13,6 @@ export class AppConfig {
   public static SERVERS: any[] = [];  // later frozen to be "const"
 
   private config: object = {};
-
-  constructor(private http: Http) { }
 
   public getConfig(key: any): any {
     return this.config[key];
