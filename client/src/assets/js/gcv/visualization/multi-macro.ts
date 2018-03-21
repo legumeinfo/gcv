@@ -35,10 +35,18 @@ export class MultiMacro {
     // parse the tracks into Circos compatible data
     const chromosomeIDs = multiMacroTracks.map((t) => t.chromosome);
     this.data = {
-      colors: {},
-      chromosomes: [],
       blocks: [],
+      blockSources: chromosomeIDs.reduce((sources, id) => {
+        sources[id] = new Set();
+        return sources;
+      }, {}),
       chords: [],
+      chromosomes: [],
+      colors: {},
+      genusSpecies: multiMacroTracks.reduce((genusSpecies, track) => {
+        genusSpecies[track.chromosome] = track.genus + " " + track.species;
+        return genusSpecies;
+      }, {}),
       // compute which parts of each chromosome should be highlighted
       highlight: this.options.highlight
         .filter((d) => chromosomeIDs.indexOf(d.chromosome) > -1)
@@ -67,6 +75,8 @@ export class MultiMacro {
       for (let j = 0; j < macroTracks.tracks.length; j++) {
         const macroTrack = macroTracks.tracks[j];
         const source_id = macroTrack.chromosome;
+        this.data.blockSources[target_id].add(source_id);
+        this.data.blockSources[source_id].add(target_id);
         for (let k = 0; k < macroTrack.blocks.length; k++) {
           // don't draw blocks/chords for chromosomes that haven't been loaded
           if (chromosomeIDs.indexOf(source_id) === -1) {
@@ -155,76 +165,93 @@ export class MultiMacro {
           spacing: 1000000
         },
         events: {
-          'mouseover': function (d, i, nodes, event) {
-            layoutMouseover(d, i);
+          "mouseover": (d, i, nodes, event) => {
+            this.layoutMouseover(d, i);
           },
-          'mouseout': function (d, i, nodes, event) {
-            mouseout(d, i);
+          "mouseout": (d, i, nodes, event) => {
+            this.layoutMouseout(d, i);
           }
         }
       })
-      .stack('stack', this.data.blocks, {
+      .stack("stack", this.data.blocks, {
         innerRadius: stackInnerRadius,
         outerRadius: stackOuterRadius,
         thickness: 4,
         margin: 0.01 * length,
-        direction: 'out',
+        direction: "out",
         strokeWidth: 0,
         color: (d) => {
           return this.data.colors[d.source_id];
         },
         tooltipContent: null,
         events: {
-          'mouseover': function (d, i, nodes, event) {
+          "mouseover": function (d, i, nodes, event) {
             stackMouseover(d, i);
           },
-          'mouseout': function (d, i, nodes, event) {
-            mouseout(d, i);
+          "mouseout": function (d, i, nodes, event) {
+            stackMouseout(d, i);
           }
         }
       })
-      .chords('l1', this.data.chords, {
+      .chords("l1", this.data.chords, {
         logScale: false,
         tooltipContent: null,
       })
-      .highlight('cytobands', this.data.highlight, {
+      .highlight("cytobands", this.data.highlight, {
         innerRadius: chordInnerRadius,
         outerRadius: chordOuterRadius,
         tooltipContent: null,
       })
       .render()
 
-    // TODO: add GCV data attributes
-
-    // mouse events
-    // TODO: make selections specific to this visualization
-    const chordSelection = d3.selectAll('.chord');
-    const tileSelection = d3.selectAll('.stack > .block > .tile');
-
-    function layoutMouseover(d, i) {
-      chordSelection.classed('fade', function(c) {
-        return d.id !== c.source.id;
-      });
-      tileSelection.classed('fade', function(b) {
-        return d.id !== b.source_id && d.id !== b.block_id;
-      });
-    }
+    // add GCV data attributes for interactivity with other viewers
+    const layoutSelection = d3.selectAll(".GCV .cs-layout > g")
+      .attr("data-chromosome", (d) => d && [d.id, ...this.data.blockSources[d.id]].join(" "))
+      .attr("data-genus-species", (d) => d && this.data.genusSpecies[d.id]);
+    const chordSelection = d3.selectAll(".GCV .chord")
+      .attr("data-chromosome", (d) => d.source.id);
+    const tileSelection = d3.selectAll(".stack > .block > .tile")
+      .attr("data-chromosome", (d) => d.block_id + " " + d.source_id);
 
     function stackMouseover(d, i) {
-      chordSelection.classed('fade', function(c) {
+      chordSelection.classed("fade", function(c) {
         return !(d.source_id === c.source.id && d.block_id === c.target.id &&
                  d.start === c.target.start && d.end === c.target.end);
       });
-      tileSelection.classed('fade', function(b) {
+      tileSelection.classed("fade", function(b) {
         return !(d === b || (d.source_id === b.block_id && d.block_id === b.source_id &&
                  d.source_start === b.start && d.source_end === b.end));
       });
     }
 
-    function mouseout(d, i) {
-      chordSelection.classed('fade', false);
-      tileSelection.classed('fade', false);
+      function stackMouseout(d, i) {
+      chordSelection.classed("fade", false);
+      tileSelection.classed("fade", false);
     }
+  }
+
+  private layoutMouseover(d, i) {
+    const chromosome = ".GCV [data-chromosome~='" + d.id + "']";
+    const genusSpecies = ".GCV [data-genus-species='" + this.data.genusSpecies[d.id] + "']";
+    const selection = d3.selectAll(chromosome + ", " + genusSpecies);
+    this.beginHover(selection);
+  }
+
+  private layoutMouseout(d, i) {
+    const chromosome = ".GCV [data-chromosome~='" + d.id + "']";
+    const genusSpecies = ".GCV [data-genus-species='" + this.data.genusSpecies[d.id] + "']";
+    const selection = d3.selectAll(chromosome + ", " + genusSpecies);
+    this.endHover(selection);
+  }
+
+  private beginHover(selection): void {
+    d3.selectAll(".GCV").classed("hovering", true);
+    selection.classed("active", true);
+  }
+
+  private endHover(selection): void {
+    selection.classed("active", false);
+    d3.selectAll(".GCV").classed("hovering", false);
   }
 
   // TODO: clearTimeout doesn't appear to be working due to a scoping issue

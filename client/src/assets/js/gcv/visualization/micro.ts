@@ -376,7 +376,7 @@ export class Micro extends Visualizer {
         const iStr = i.toString();
         const micro = ".GCV [data-micro-track='" + iStr + "']";
         const name = this.data.groups[i].chromosome_name;
-        const chromosome = ".GCV [data-chromosome='" + name + "']";
+        const chromosome = ".GCV [data-chromosome~='" + name + "']";
         const selection = d3.selectAll(micro + ", " + chromosome)
           .filter(function() {
             const t = this.getAttribute("data-micro-track");
@@ -388,7 +388,7 @@ export class Micro extends Visualizer {
         const iStr = i.toString();
         const micro = ".GCV [data-micro-track='" + iStr + "']";
         const name = this.data.groups[i].chromosome_name;
-        const chromosome = ".GCV [data-chromosome='" + name + "']";
+        const chromosome = ".GCV [data-chromosome~='" + name + "']";
         const selection = d3.selectAll(micro + ", " + chromosome)
           .filter(function() {
             const t = this.getAttribute("data-micro-track");
