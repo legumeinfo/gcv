@@ -1,12 +1,14 @@
 // Angular
 import { Component,
-         Input, 
+         Input,
          OnChanges,
          SimpleChanges } from '@angular/core';
 
 // App
+import { AppConfig }      from '../../app.config';
 import { DetailsService } from '../../services/details.service';
 import { Gene }           from '../../models/gene.model';
+import { Server }         from '../../models/server.model';
 
 @Component({
   moduleId: module.id.toString(),
@@ -14,7 +16,7 @@ import { Gene }           from '../../models/gene.model';
   template: `
     <spinner [data]="links"></spinner>
     <h4>{{gene.name}}</h4>
-    <p>Family: <a href="http://legumeinfo.org/chado_gene_phylotree_v2?family={{gene.family}}&gene_name={{gene.name}}">{{gene.family}}</a></p>
+    <p>Family: <a href="{{familyTreeLink}}">{{gene.family}}</a></p>
     <p><a href="#/search/{{gene.source}}/{{gene.name}}">Search for similar contexts</a></p>
     <ul>
       <li *ngFor="let link of links">
@@ -26,9 +28,13 @@ import { Gene }           from '../../models/gene.model';
 })
 
 export class GeneDetailComponent implements OnChanges {
+
+  private _serverIDs = AppConfig.SERVERS.map(s => s.id);
+
   @Input() gene: Gene;
 
   links: any[];
+  familyTreeLink: string;
 
   constructor(private _detailsService: DetailsService) { }
 
@@ -36,6 +42,16 @@ export class GeneDetailComponent implements OnChanges {
     this.links = undefined;
     if (this.gene !== undefined) {
       this.links = undefined;
+
+      let idx = this._serverIDs.indexOf(this.gene.source);
+      this.familyTreeLink = "http://legumeinfo.org/chado_gene_phylotree_v2?family=" + this.gene.family + "&gene_name=" + this.gene.name;
+      if (idx != -1) {
+        let s: Server = AppConfig.SERVERS[idx];
+        if (s.hasOwnProperty('familyTreeLink')) {
+         this.familyTreeLink = s.familyTreeLink.url + this.gene.family;
+        }
+       }
+
       this._detailsService.getGeneDetails(this.gene, links => {
         this.links = links;
       });

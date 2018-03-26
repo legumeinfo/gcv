@@ -14,6 +14,7 @@ export class Server {
   microQuery: Request;
   macro: Request;
   geneLinks: Request;
+  familyTreeLink: Request;
   plotGlobal: Request;
   nearestGene: Request;
   chromosome: Request;
