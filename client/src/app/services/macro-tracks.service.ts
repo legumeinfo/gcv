@@ -4,7 +4,7 @@ import { HttpClient, HttpParams } from "@angular/common/http";
 import { Observable } from "rxjs/Observable";
 import { _throw } from "rxjs/observable/throw";
 import { catchError, map } from "rxjs/operators";
-import { Subject } from "rxjs/Subject";
+import { BehaviorSubject } from "rxjs/BehaviorSubject";
 // store
 import { Store } from "@ngrx/store";
 import * as routerActions from "../actions/router.actions";
@@ -32,13 +32,14 @@ export class MacroTracksService {
   macroTracksLoadState: Observable<any>;
 
   requests: Observable<[any, Observable<any>]>;
-  private requestsSubject = new Subject<[any, Observable<any>]>();
+  private requestsSubject = new BehaviorSubject<[any, Observable<any>]>(undefined);
 
   private searchRoute: Observable<any>;
   private serverIDs = AppConfig.SERVERS.map((s) => s.id);
 
   constructor(private http: HttpClient, private store: Store<fromRoot.State>) {
-    this.requests = this.requestsSubject.asObservable();
+    this.requests = this.requestsSubject.asObservable()
+      .filter((request) => request !== undefined);
     // initialize observables
     this.blockParams = store.select(fromRouter.getMacroBlockParams);
     this.macroChromosome = store.select(fromMacroChromosome.getMacroChromosome);

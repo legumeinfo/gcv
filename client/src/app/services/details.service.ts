@@ -2,7 +2,7 @@
 import { HttpClient, HttpParams } from "@angular/common/http";
 import { Injectable } from "@angular/core";
 import { Observable } from "rxjs/Observable";
-import { Subject } from "rxjs/Subject";
+import { BehaviorSubject } from "rxjs/BehaviorSubject";
 // app
 import { AppConfig } from "../app.config";
 import { Gene } from "../models/gene.model";
@@ -11,12 +11,13 @@ import { GET, POST, Server } from "../models/server.model";
 @Injectable()
 export class DetailsService {
   requests: Observable<[any, Observable<any>]>;
-  private requestsSubject = new Subject<[any, Observable<any>]>();
+  private requestsSubject = new BehaviorSubject<[any, Observable<any>]>(undefined);
 
   private serverIDs = AppConfig.SERVERS.map((s) => s.id);
 
   constructor(private http: HttpClient) {
-    this.requests = this.requestsSubject.asObservable();
+    this.requests = this.requestsSubject.asObservable()
+      .filter((request) => request !== undefined);
   }
 
   getGeneDetails(gene: Gene, success: (e) => void): void {
@@ -46,11 +47,11 @@ export class DetailsService {
     const url = request.url + gene.name + "/json";
     const params = new HttpParams({fromObject: body});
     if (request.type === GET) {
-      const requestObservable = this.http.get<T>(request.url, {params});
+      const requestObservable = this.http.get<T>(url, {params});
       this.requestsSubject.next([args, requestObservable]);
       return requestObservable;
     } else if (request.type === POST) {
-      const requestObservable = this.http.post<T>(request.url, body);
+      const requestObservable = this.http.post<T>(url, body);
       this.requestsSubject.next([args, requestObservable]);
       return requestObservable;
     }

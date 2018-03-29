@@ -3,7 +3,7 @@ import { HttpClient, HttpParams } from "@angular/common/http";
 import { Injectable } from "@angular/core";
 // store
 import { Observable } from "rxjs/Observable";
-import { Subject } from "rxjs/Subject";
+import { BehaviorSubject } from "rxjs/BehaviorSubject";
 import { _throw } from "rxjs/observable/throw";
 import { catchError, map } from "rxjs/operators";
 import { Store } from "@ngrx/store";
@@ -30,12 +30,13 @@ export class PlotsService {
   selectedGlobalPlotID: Observable<string>;
 
   requests: Observable<[any, Observable<any>]>;
-  private requestsSubject = new Subject<[any, Observable<any>]>();
+  private requestsSubject = new BehaviorSubject<[any, Observable<any>]>(undefined);
 
   private serverIDs = AppConfig.SERVERS.map((s) => s.id);
 
   constructor(private http: HttpClient, private store: Store<fromRoot.State>) {
-    this.requests = this.requestsSubject.asObservable();
+    this.requests = this.requestsSubject.asObservable()
+      .filter((request) => request !== undefined);
     // initialize observables
     this.localPlots = store.select(fromLocalPlots.getAllPlots);
     this.selectedLocalPlotID = store.select(fromLocalPlots.getSelectedPlotID);

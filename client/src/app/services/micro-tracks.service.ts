@@ -4,7 +4,7 @@ import { Injectable } from "@angular/core";
 import { Observable } from "rxjs/Observable";
 import { _throw } from "rxjs/observable/throw";
 import { catchError, map } from "rxjs/operators";
-import { Subject } from "rxjs/Subject";
+import { BehaviorSubject } from "rxjs/BehaviorSubject";
 // store
 import { Store } from "@ngrx/store";
 import * as routerActions from "../actions/router.actions";
@@ -28,10 +28,11 @@ export class MicroTracksService {
   searchQueryTrack: Observable<Group>;
 
   requests: Observable<[any, Observable<any>]>;
-  private requestsSubject = new Subject<[any, Observable<any>]>();
+  private requestsSubject = new BehaviorSubject<[any, Observable<any>]>(undefined);
 
   constructor(private http: HttpClient, private store: Store<fromRoot.State>) {
-    this.requests = this.requestsSubject.asObservable();
+    this.requests = this.requestsSubject.asObservable()
+      .filter((request) => request !== undefined);
     // initialize observables
     this.microTracks = store.select(fromMicroTracks.getMicroTracks);
     this.queryParams = store.select(fromRouter.getMicroQueryParams);
