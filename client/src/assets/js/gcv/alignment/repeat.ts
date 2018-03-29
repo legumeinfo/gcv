@@ -1,4 +1,3 @@
-//import { clone } from "../common";
 import { computeScore, matrix } from "./alignment";
 
 /** The Repeat algorithm by Durbin et al. */
