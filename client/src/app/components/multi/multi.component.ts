@@ -1,5 +1,6 @@
 // Angular + dependencies
-import { AfterViewInit, Component, ElementRef, OnDestroy, OnInit, ViewChild,
+import { AfterViewInit, Component, ComponentFactory, ComponentFactoryResolver,
+  ComponentRef, ElementRef, OnDestroy, OnInit, ViewChild, ViewContainerRef,
   ViewEncapsulation } from "@angular/core";
 import { Observable } from "rxjs/Observable";
 import { Subject } from "rxjs/Subject";
@@ -19,6 +20,7 @@ import { AlignmentService } from "../../services/alignment.service";
 import { FilterService } from "../../services/filter.service";
 import { MacroTracksService } from "../../services/macro-tracks.service";
 import { MicroTracksService } from "../../services/micro-tracks.service";
+import { AlertComponent } from "../shared/alert.component";
 
 @Component({
   encapsulation: ViewEncapsulation.None,
@@ -36,6 +38,8 @@ export class MultiComponent implements AfterViewInit, OnDestroy, OnInit {
   @ViewChild("right") right: ElementRef;
   @ViewChild("topRight") topRight: ElementRef;
   @ViewChild("bottomRight") bottomRight: ElementRef;
+  @ViewChild("macroAlerts", {read: ViewContainerRef}) macroAlerts: ViewContainerRef;
+  @ViewChild("microAlerts", {read: ViewContainerRef}) microAlerts: ViewContainerRef;
 
   headerAlert = new Alert("info", "Loading...");
 
@@ -66,6 +70,7 @@ export class MultiComponent implements AfterViewInit, OnDestroy, OnInit {
 
   constructor(private alignmentService: AlignmentService,
               private config: AppConfig,
+              private resolver: ComponentFactoryResolver,
               private filterService: FilterService,
               private macroTracksService: MacroTracksService,
               private microTracksService: MicroTracksService) {
@@ -95,6 +100,27 @@ export class MultiComponent implements AfterViewInit, OnDestroy, OnInit {
   }
 
   ngOnInit(): void {
+    // subscribe to HTTP requests
+    this.macroTracksService.requests
+      .takeUntil(this.destroy)
+      .subscribe(([args, request]) => {
+        if (args.requestType === "chromosome") {
+          const what = "\"" + args.body.chromosome + "\"";
+          this._requestToAlertComponent(args.serverID, request, what, this.macroAlerts);
+        } else if (args.requestType === "macro") {
+          const targets = args.body.targets;
+          const what = "tracks for \"" + targets[targets.length - 1] + "\"";
+          this._requestToAlertComponent(args.serverID, request, what, this.macroAlerts);
+        }
+      });
+    this.microTracksService.requests
+      .takeUntil(this.destroy)
+      .subscribe(([args, request]) => {
+        if (args.requestType === "microMulti") {
+          this._requestToAlertComponent(args.serverID, request, "tracks", this.microAlerts);
+        }
+      });
+
     // subscribe to micro track data
     const filteredMicroTracks = Observable
       .combineLatest(
@@ -282,6 +308,45 @@ export class MultiComponent implements AfterViewInit, OnDestroy, OnInit {
       type = "info";
     }
     return new Alert(type, message);
+  }
+
+  private _requestToAlertComponent(serverID, request, what, container) {
+    const source = this.config.getServer(serverID).name;
+    const factory: ComponentFactory<AlertComponent> = this.resolver.resolveComponentFactory(AlertComponent);
+    const componentRef: ComponentRef<AlertComponent> = container.createComponent(factory);
+    // EVIL: Angular doesn't have a defined method for hooking dynamic components into
+    // the Angular lifecycle so we must explicitly call ngOnChanges whenever a change
+    // occurs. Even worse, there is no hook for the Output directive, so we must
+    // shoehorn the desired functionality in!
+    componentRef.instance.close = function(componentRef) {
+      componentRef.destroy();
+    }.bind(this, componentRef);
+    componentRef.instance.float = true;
+    componentRef.instance.alert = new Alert(
+      "info",
+      "Loading " + what + " from \"" + source + "\"",
+      {spinner: true},
+    );
+    componentRef.instance.ngOnChanges({});
+    request
+      .takeUntil(componentRef.instance.onClose)
+      .subscribe(
+        (response) => {
+          componentRef.instance.alert = new Alert(
+            "success",
+            "Successfully loaded " + what + " from \"" + source + "\"",
+            {closable: true, autoClose: 3},
+          );
+          componentRef.instance.ngOnChanges({});
+        },
+        (error) => {
+          componentRef.instance.alert = new Alert(
+            "danger",
+            "Failed to load " + what + " from \"" + source + "\"",
+            {closable: true},
+          );
+          componentRef.instance.ngOnChanges({});
+        });
   }
 
   private _getMacroArgs(

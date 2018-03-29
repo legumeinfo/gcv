@@ -4,7 +4,7 @@
     <ul class="nav navbar-nav tabs" left>
       <li><toggle-button (toggleFn)="selectParams()">Parameters</toggle-button></li>
     </ul>
-    <alert [data]="headerAlert" center></alert>
+    <alert [alert]="headerAlert" center></alert>
   </header>
 
   <main-content>
@@ -15,32 +15,34 @@
           [data]="macroTracks"
           [arguments]="macroArgs" >
         </viewer-multi-macro>
+        <ng-container #macroAlerts></ng-container>
       </div>
 
       <div #bottomLeft id="bottom-left" class="split content">
-      <viewer-micro
-        [data]="microTracks"
-        [colors]="microColors"
-        [arguments]="microArgs" >
-      	<ul navbar class="nav navbar-nav accordion">
-      	  <li [ngClass]="{'active': accordion==accordionTypes.REGEXP}">
-            <a (click)="setAccordion($event, accordionTypes.REGEXP)">
-            &nbsp;<span class="glyphicon glyphicon-filter" aria-hidden="true"></span>&nbsp;
-            </a>
-          </li>
-          <li class="target" [ngClass]="{'active': accordion==accordionTypes.REGEXP}">
-            <app-regexp></app-regexp>
-          </li>
-          <li [ngClass]="{'active': accordion==accordionTypes.ORDER}">
-            <a (click)="setAccordion($event, accordionTypes.ORDER)">
-            &nbsp;<span class="glyphicon glyphicon-triangle-bottom"></span><span class="glyphicon glyphicon-triangle-top"></span>&nbsp;
-            </a>
-          </li>
-          <li class="target" [ngClass]="{'active': accordion==accordionTypes.ORDER}">
-            <app-ordering></app-ordering>
-          </li>
-        </ul>
-      </viewer-micro>
+        <viewer-micro
+          [data]="microTracks"
+          [colors]="microColors"
+          [arguments]="microArgs" >
+      	  <ul navbar class="nav navbar-nav accordion">
+      	    <li [ngClass]="{'active': accordion==accordionTypes.REGEXP}">
+              <a (click)="setAccordion($event, accordionTypes.REGEXP)">
+                &nbsp;<span class="glyphicon glyphicon-filter" aria-hidden="true"></span>&nbsp;
+              </a>
+            </li>
+            <li class="target" [ngClass]="{'active': accordion==accordionTypes.REGEXP}">
+              <app-regexp></app-regexp>
+            </li>
+            <li [ngClass]="{'active': accordion==accordionTypes.ORDER}">
+              <a (click)="setAccordion($event, accordionTypes.ORDER)">
+                &nbsp;<span class="glyphicon glyphicon-triangle-bottom"></span><span class="glyphicon glyphicon-triangle-top"></span>&nbsp;
+              </a>
+            </li>
+            <li class="target" [ngClass]="{'active': accordion==accordionTypes.ORDER}">
+              <app-ordering></app-ordering>
+            </li>
+          </ul>
+        </viewer-micro>
+        <ng-container #microAlerts></ng-container>
       </div>
     </div>
 

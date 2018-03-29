@@ -4,12 +4,14 @@ import { MacroTracks } from "../models/macro-tracks.model";
 
 export interface State {
   tracks: MacroTracks;
+  failed: string[];
   loaded: string[];
   loading: string[];
 }
 
 export const initialState: State = {
   tracks: undefined,
+  failed: [],
   loaded: [],
   loading: [],
 };
@@ -21,12 +23,12 @@ export function reducer(
   switch (action.type) {
     case macroTrackActions.GET:
       return {
+        ...initialState,
         tracks: {
           chromosome: action.payload.query.name,
           length: action.payload.query.length,
           tracks: [],
         },
-        loaded: [],
         loading: action.payload.sources,
       };
     case macroTrackActions.GET_SUCCESS:
@@ -39,6 +41,7 @@ export function reducer(
       // merge new macro tracks with existing macro tracks non-destructively
       const tracks = action.payload.tracks;
       return {
+        ...state,
         tracks: {
           ...state.tracks,
           tracks: state.tracks.tracks.concat(action.payload.tracks),
@@ -54,7 +57,11 @@ export function reducer(
       if (state.loading.length === loading.length) {
         return state;
       }
-      return {...state, loading};
+      return {
+        ...state,
+        failed: state.failed.concat(source),
+        loading,
+      };
     }
     default:
       return state;
@@ -67,3 +74,14 @@ export const getMacroTracks = createSelector(
   getMacroTracksState,
   (state) => state.tracks,
 );
+
+export const getMacroTracksLoadState = createSelector(
+  getMacroTracksState,
+  (state) => {
+    return {
+      failed: state.failed,
+      loading: state.loading,
+      loaded: state.loaded,
+    };
+  }
+)

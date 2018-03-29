@@ -9,6 +9,7 @@ import { AppConfig } from "./app.config";
 import { AppRoutingModule } from "./app-routing.module";
 // components
 import * as fromComponents from "./components";
+import { AlertComponent } from "./components";
 // services
 import * as fromServices from "./services";
 // route guards
@@ -24,6 +25,7 @@ import { CustomRouterStateSerializer } from "./utils/custom-router-state-seriali
 @NgModule({
   bootstrap: [ fromComponents.AppComponent ],
   declarations: [ ...fromComponents.components ],
+  entryComponents: [ AlertComponent ],
   imports: [
     AppRoutingModule,
     BrowserAnimationsModule,

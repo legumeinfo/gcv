@@ -7,12 +7,14 @@ const adapter = createEntityAdapter<Group>();
 
 export interface State extends EntityState<Group> {
   selectedPlotID: string | null;
+  failed: string[];
   loaded: string[];
   loading: string[];
 }
 
 const initialState: State = adapter.getInitialState({
   selectedPlotID: null,
+  failed: [],
   loaded: [],
   loading: [],
 });
@@ -30,20 +32,26 @@ export function reducer(
         loading: state.loading.concat([action.payload.local.source]),
       };
     case globalPlotsActions.GET_SUCCESS:
+    {
       const source = action.payload.plot.source;
       return adapter.addOne(
         action.payload.plot,
         {
           ...state,
-          loaded: state.loaded.concat([source]),
+          loaded: state.loaded.concat(source),
           loading: state.loading.filter((s) => s !== source),
         },
       );
+    }
     case globalPlotsActions.GET_FAILURE:
+    {
+      const source = action.payload.source;
       return {
         ...state,
-        loading: state.loading.filter((s) => s !== action.payload.source),
-      }
+        failed: state.failed.concat(source),
+        loading: state.loading.filter((s) => s !== source),
+      };
+    }
     case globalPlotsActions.SELECT:
       return {
         ...state,
@@ -102,3 +110,14 @@ export const getSelectedPlot = createSelector(
     return undefined;
   },
 );
+
+export const getGlobalPlotsLoadState = createSelector(
+  getGlobalPlotsState,
+  (state) => {
+    return {
+      failed: state.failed,
+      loading: state.loading,
+      loaded: state.loaded,
+    };
+  }
+)

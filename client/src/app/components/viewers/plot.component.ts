@@ -9,7 +9,17 @@ import { Viewer } from "./viewer.component";
 @Component({
   moduleId: module.id.toString(),
   selector: "viewer-plot",
-  styles: [ "div { position: relative; }" ],
+  styles: [`
+    div {
+      position: relative;
+    }
+    #overlay {
+      position:absolute;
+      left:0;
+      right:0;
+      z-index:1;
+    }
+  `],
   template: require("./viewer.component.html"),
 })
 

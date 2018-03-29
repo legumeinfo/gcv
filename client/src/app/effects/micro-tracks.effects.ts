@@ -22,7 +22,8 @@ export class MicroTracksEffects {
     ofType(searchQueryTrackActions.GET),
     map((action: searchQueryTrackActions.Get) => action.payload),
     switchMap(({query, neighbors}) => {
-      return this.microTracksService.getQueryTrack(query.gene, neighbors, query.source).pipe(
+      const source = query.source;
+      return this.microTracksService.getQueryTrack(query.gene, neighbors, source).pipe(
         map((track) => new searchQueryTrackActions.GetSuccess({track})),
         catchError((error) => of(new searchQueryTrackActions.GetFailure(error)))
       );

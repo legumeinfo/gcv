@@ -6,12 +6,14 @@ declare var Object: any;  // because TypeScript doesn't support Object.values
 
 export interface State {
   tracks: MicroTracks;
+  failed: string[];
   loaded: string[];
   loading: string[];
 }
 
 export const initialState: State = {
   tracks: new MicroTracks(),
+  failed: [],
   loaded: [],
   loading: [],
 }
@@ -24,8 +26,7 @@ export function reducer(
     case microTrackActions.GET_SEARCH:
     case microTrackActions.GET_MULTI:
       return {
-        tracks: initialState.tracks,
-        loaded: [],
+        ...initialState,
         loading: action.payload.sources,
       };
     case microTrackActions.GET_SEARCH_SUCCESS:
@@ -39,6 +40,7 @@ export function reducer(
       // merge new micro tracks with existing micro tracks non-destructively
       const tracks = action.payload.tracks;
       return {
+        ...state,
         tracks: {
           // ensure that list of families is unique
           families: Object.values(state.tracks.families.concat(tracks.families)
@@ -61,7 +63,11 @@ export function reducer(
       if (state.loading.length === loading.length) {
         return state;
       }
-      return {...state, loading};
+      return {
+        ...state,
+        failed: state.failed.concat(source),
+        loading
+      };
     }
     default:
       return state;
@@ -74,3 +80,14 @@ export const getMicroTracks = createSelector(
   getMicroTracksState,
   (state) => state.tracks,
 );
+
+export const getMicroTracksLoadState = createSelector(
+  getMicroTracksState,
+  (state) => {
+    return {
+      failed: state.failed,
+      loading: state.loading,
+      loaded: state.loaded,
+    };
+  }
+)

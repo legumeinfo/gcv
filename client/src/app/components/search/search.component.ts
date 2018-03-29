@@ -1,6 +1,7 @@
 // Angular
-import { AfterViewInit, Component, ElementRef, OnDestroy, OnInit, QueryList, ViewChild,
-  ViewChildren, ViewEncapsulation } from "@angular/core";
+import { AfterViewInit, Component, ComponentFactory, ComponentFactoryResolver,
+  ComponentRef, ElementRef, OnDestroy, OnInit, QueryList, ViewContainerRef,
+  ViewChild, ViewChildren, ViewEncapsulation } from "@angular/core";
 import { BehaviorSubject } from "rxjs/BehaviorSubject";
 import { Observable } from "rxjs/Observable";
 import { Subject } from "rxjs/Subject";
@@ -22,6 +23,7 @@ import { FilterService } from "../../services/filter.service";
 import { MacroTracksService } from "../../services/macro-tracks.service";
 import { MicroTracksService } from "../../services/micro-tracks.service";
 import { PlotsService } from "../../services/plots.service";
+import { AlertComponent } from "../shared/alert.component";
 import { PlotViewerComponent } from "../viewers/plot.component";
 
 declare let RegExp: any;  // TypeScript doesn't support regexp arguments
@@ -43,6 +45,9 @@ export class SearchComponent implements AfterViewInit, OnDestroy, OnInit {
   @ViewChild("right") right: ElementRef;
   @ViewChild("topRight") topRight: ElementRef;
   @ViewChild("bottomRight") bottomRight: ElementRef;
+  @ViewChild("macroAlerts", {read: ViewContainerRef}) macroAlerts: ViewContainerRef;
+  @ViewChild("microAlerts", {read: ViewContainerRef}) microAlerts: ViewContainerRef;
+  @ViewChild("plotAlerts", {read: ViewContainerRef}) plotAlerts: ViewContainerRef;
   @ViewChildren(PlotViewerComponent) plotComponents: QueryList<PlotViewerComponent>;
 
   headerAlert = new Alert("info", "Loading...");
@@ -99,6 +104,7 @@ export class SearchComponent implements AfterViewInit, OnDestroy, OnInit {
 
   constructor(private alignmentService: AlignmentService,
               private config: AppConfig,
+              private resolver: ComponentFactoryResolver,
               private filterService: FilterService,
               private macroTracksService: MacroTracksService,
               private microTracksService: MicroTracksService,
@@ -131,6 +137,31 @@ export class SearchComponent implements AfterViewInit, OnDestroy, OnInit {
 
   ngOnInit(): void {
     this._initUIState();
+
+    // subscribe to HTTP requests
+    this.macroTracksService.requests
+      .takeUntil(this.destroy)
+      .subscribe(([args, request]) => {
+        if (args.requestType === "chromosome") {
+          this._requestToAlertComponent(args.serverID, request, "chromosome", this.macroAlerts);
+        } else if (args.requestType === "macro") {
+          this._requestToAlertComponent(args.serverID, request, "tracks", this.macroAlerts);
+        }
+      });
+    this.microTracksService.requests
+      .takeUntil(this.destroy)
+      .subscribe(([args, request]) => {
+        if (args.requestType === "microQuery") {
+          this._requestToAlertComponent(args.serverID, request, "query track", this.microAlerts);
+        } else if (args.requestType === "microSearch") {
+          this._requestToAlertComponent(args.serverID, request, "tracks", this.microAlerts);
+        }
+      });
+    this.plotsService.requests
+      .takeUntil(this.destroy)
+      .subscribe(([args, request]) => {
+        this._requestToAlertComponent(args.serverID, request, "plot", this.plotAlerts);
+      });
 
     // subscribe to micro track data
     const filteredMicroTracks = Observable
@@ -298,6 +329,45 @@ export class SearchComponent implements AfterViewInit, OnDestroy, OnInit {
       type = "info";
     }
     return new Alert(type, message);
+  }
+
+  private _requestToAlertComponent(serverID, request, what, container) {
+    const source = this.config.getServer(serverID).name;
+    const factory: ComponentFactory<AlertComponent> = this.resolver.resolveComponentFactory(AlertComponent);
+    const componentRef: ComponentRef<AlertComponent> = container.createComponent(factory);
+    // EVIL: Angular doesn't have a defined method for hooking dynamic components into
+    // the Angular lifecycle so we must explicitly call ngOnChanges whenever a change
+    // occurs. Even worse, there is no hook for the Output directive, so we must
+    // shoehorn the desired functionality in!
+    componentRef.instance.close = function(componentRef) {
+      componentRef.destroy();
+    }.bind(this, componentRef);
+    componentRef.instance.float = true;
+    componentRef.instance.alert = new Alert(
+      "info",
+      "Loading " + what + " from \"" + source + "\"",
+      {spinner: true},
+    );
+    componentRef.instance.ngOnChanges({});
+    request
+      .takeUntil(componentRef.instance.onClose)
+      .subscribe(
+        (response) => {
+          componentRef.instance.alert = new Alert(
+            "success",
+            "Successfully loaded " + what + " from \"" + source + "\"",
+            {closable: true, autoClose: 3},
+          );
+          componentRef.instance.ngOnChanges({});
+        },
+        (error) => {
+          componentRef.instance.alert = new Alert(
+            "danger",
+            "Failed to load " + what + " from \"" + source + "\"",
+            {closable: true},
+          );
+          componentRef.instance.ngOnChanges({});
+        });
   }
 
   private _getMacroArgs(colors: any, highlight: string[], viewport: any): any {

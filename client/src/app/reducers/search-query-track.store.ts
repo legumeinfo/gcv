@@ -4,14 +4,16 @@ import { Group } from "../models/group.model";
 
 export interface State {
   track: Group;
+  failed: boolean;
   loaded: boolean;
-  loading: boolean;
+  loading: string;
 }
 
 export const initialState: State = {
   track: undefined,
-  loaded: true,
-  loading: false,
+  failed: false,
+  loaded: false,
+  loading: "",
 };
 
 export function reducer(
@@ -22,19 +24,18 @@ export function reducer(
     case searchQueryTrackActions.GET:
       return {
         ...initialState,
-        loading: true,
+        loading: action.payload.query.source,
       };
     case searchQueryTrackActions.GET_SUCCESS:
       return {
+        ...state,
         ...action.payload,
-        loading: false,
         loaded: true,
       };
     case searchQueryTrackActions.GET_FAILURE:
       return {
         ...state,
-        loading: false,
-        loaded: false,
+        failed: true,
       };
     default:
       return state;
@@ -58,3 +59,14 @@ export const getSearchQueryChromosome = createSelector(
     return track.chromosome_name;
   },
 );
+
+export const getSearchQueryTrackLoadState = createSelector(
+  getSearchQueryTrackState,
+  (state) => {
+    return {
+      failed: state.failed,
+      loading: state.loading,
+      loaded: state.loaded,
+    };
+  }
+)

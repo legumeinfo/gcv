@@ -4,6 +4,7 @@ import { Injectable } from "@angular/core";
 import { Observable } from "rxjs/Observable";
 import { _throw } from "rxjs/observable/throw";
 import { catchError, map } from "rxjs/operators";
+import { Subject } from "rxjs/Subject";
 // store
 import { Store } from "@ngrx/store";
 import * as routerActions from "../actions/router.actions";
@@ -26,7 +27,11 @@ export class MicroTracksService {
   routeParams: Observable<any>;
   searchQueryTrack: Observable<Group>;
 
+  requests: Observable<[any, Observable<any>]>;
+  private requestsSubject = new Subject<[any, Observable<any>]>();
+
   constructor(private http: HttpClient, private store: Store<fromRoot.State>) {
+    this.requests = this.requestsSubject.asObservable();
     // initialize observables
     this.microTracks = store.select(fromMicroTracks.getMicroTracks);
     this.queryParams = store.select(fromRouter.getMicroQueryParams);
@@ -140,6 +145,7 @@ export class MicroTracksService {
 
   // encapsulates HTTP request boilerplate
   private _makeRequest<T>(serverID: string, requestType: string, body: any): Observable<T> {
+    const args = {serverID, requestType, body};
     let source: Server;
     const i = AppConfig.SERVERS.map((s) => s.id).indexOf(serverID);
     if (i > -1) {
@@ -153,9 +159,13 @@ export class MicroTracksService {
     const request = source[requestType];
     const params = new HttpParams({fromObject: body});
     if (request.type === GET) {
-      return this.http.get<T>(request.url, {params});
+      const requestObservable = this.http.get<T>(request.url, {params});
+      this.requestsSubject.next([args, requestObservable]);
+      return requestObservable;
     } else if (request.type === POST) {
-      return this.http.post<T>(request.url, body);
+      const requestObservable = this.http.post<T>(request.url, body);
+      this.requestsSubject.next([args, requestObservable]);
+      return requestObservable;
     }
     return Observable.throw("\"" + serverID + "\" requests of type \"" + requestType + "\" does not support HTTP GET or POST methods");
   }

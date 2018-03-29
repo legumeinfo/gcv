@@ -3,6 +3,7 @@ import { HttpClient, HttpParams } from "@angular/common/http";
 import { Injectable } from "@angular/core";
 // store
 import { Observable } from "rxjs/Observable";
+import { Subject } from "rxjs/Subject";
 import { _throw } from "rxjs/observable/throw";
 import { catchError, map } from "rxjs/operators";
 import { Store } from "@ngrx/store";
@@ -28,15 +29,19 @@ export class PlotsService {
   selectedLocalPlotID: Observable<string>;
   selectedGlobalPlotID: Observable<string>;
 
+  requests: Observable<[any, Observable<any>]>;
+  private requestsSubject = new Subject<[any, Observable<any>]>();
+
   private serverIDs = AppConfig.SERVERS.map((s) => s.id);
 
   constructor(private http: HttpClient, private store: Store<fromRoot.State>) {
+    this.requests = this.requestsSubject.asObservable();
     // initialize observables
-    this.localPlots = this.store.select(fromLocalPlots.getAllPlots);
-    this.selectedLocalPlotID = this.store.select(fromLocalPlots.getSelectedPlotID);
-    this.selectedGlobalPlotID = this.store.select(fromGlobalPlots.getSelectedPlotID);
-    this.selectedLocalPlot = this.store.select(fromLocalPlots.getSelectedPlot);
-    this.selectedGlobalPlot = this.store.select(fromGlobalPlots.getSelectedPlot);
+    this.localPlots = store.select(fromLocalPlots.getAllPlots);
+    this.selectedLocalPlotID = store.select(fromLocalPlots.getSelectedPlotID);
+    this.selectedGlobalPlotID = store.select(fromGlobalPlots.getSelectedPlotID);
+    this.selectedLocalPlot = store.select(fromLocalPlots.getSelectedPlot);
+    this.selectedGlobalPlot = store.select(fromGlobalPlots.getSelectedPlot);
   }
 
   getPlot(reference: Group, track: Group): Observable<Group> {
@@ -84,6 +89,7 @@ export class PlotsService {
 
   // encapsulates HTTP request boilerplate
   private _makeRequest<T>(serverID: string, requestType: string, body: any): Observable<T> {
+    const args = {serverID, requestType, body};
     let source: Server;
     const i = AppConfig.SERVERS.map((s) => s.id).indexOf(serverID);
     if (i > -1) {
@@ -97,9 +103,13 @@ export class PlotsService {
     const request = source[requestType];
     const params = new HttpParams({fromObject: body});
     if (request.type === GET) {
-      return this.http.get<T>(request.url, {params});
+      const requestObservable = this.http.get<T>(request.url, {params});
+      this.requestsSubject.next([args, requestObservable]);
+      return requestObservable;
     } else if (request.type === POST) {
-      return this.http.post<T>(request.url, body);
+      const requestObservable = this.http.post<T>(request.url, body);
+      this.requestsSubject.next([args, requestObservable]);
+      return requestObservable;
     }
     return Observable.throw("\"" + serverID + "\" requests of type \"" + requestType + "\" does not support HTTP GET or POST methods");
   }

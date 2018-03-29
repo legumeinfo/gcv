@@ -15,3 +15,8 @@ export const components: any[] = [
 ];
 
 export * from "./app.component";
+export * from "./instructions";
+export * from "./multi";
+export * from "./search";
+export * from "./shared";
+export * from "./viewers";
