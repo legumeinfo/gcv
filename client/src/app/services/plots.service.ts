@@ -79,6 +79,7 @@ export class PlotsService {
     return this._makeRequest<Gene[]>(local.source, "plotGlobal", body).pipe(
       map((genes) => {
         const familyCoordinates = this._genesToFamilyCoordinates(reference.genes);
+        genes.forEach((gene) => gene.source = local.source);
         return {
           ...local,
           genes: this._getPlotPoints(familyCoordinates, genes),
