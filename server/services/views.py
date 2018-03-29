@@ -649,9 +649,13 @@ def v1_global_plot(request):
             raise Http404
         gene_family_type = gene_family_type[0]
 
+        #find chromosome id for name
+        chromosome=Feature.objects.only('pk').filter(
+            name=POST['chromosome']
+        );
         # find all genes with the same families
         chromosome_gene_orders = GeneOrder.objects.filter(
-            chromosome=POST["chromosome"]
+            chromosome=chromosome[0].feature_id
         )
         chromosome_gene_ids = chromosome_gene_orders.values_list(
             "gene", flat=True
