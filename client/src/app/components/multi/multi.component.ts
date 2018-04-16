@@ -1,21 +1,26 @@
 // Angular + dependencies
-import { AfterViewInit, Component, ElementRef, OnInit, ViewChild,
+import { AfterViewInit, Component, ComponentFactory, ComponentFactoryResolver,
+  ComponentRef, ElementRef, OnDestroy, OnInit, ViewChild, ViewContainerRef,
   ViewEncapsulation } from "@angular/core";
 import { Observable } from "rxjs/Observable";
+import { Subject } from "rxjs/Subject";
 import { GCV } from "../../../assets/js/gcv";
 // app
 import * as Split from "split.js";
 import { AppConfig } from "../../app.config";
+import { Alert } from "../../models/alert.model";
 import { Family } from "../../models/family.model";
 import { Gene } from "../../models/gene.model";
 import { Group } from "../../models/group.model";
 import { MacroTracks } from "../../models/macro-tracks.model";
 import { MicroTracks } from "../../models/micro-tracks.model";
 import { microTracksSelector } from "../../selectors/micro-tracks.selector";
+import { multiMacroTracksSelector } from "../../selectors/multi-macro-tracks.selector";
 import { AlignmentService } from "../../services/alignment.service";
 import { FilterService } from "../../services/filter.service";
 import { MacroTracksService } from "../../services/macro-tracks.service";
 import { MicroTracksService } from "../../services/micro-tracks.service";
+import { AlertComponent } from "../shared/alert.component";
 
 @Component({
   encapsulation: ViewEncapsulation.None,
@@ -25,7 +30,7 @@ import { MicroTracksService } from "../../services/micro-tracks.service";
             require("../../../assets/css/split.scss") ],
   template: require("./multi.component.html"),
 })
-export class MultiComponent implements AfterViewInit, OnInit {
+export class MultiComponent implements AfterViewInit, OnDestroy, OnInit {
   // view children
   @ViewChild("left") left: ElementRef;
   @ViewChild("topLeft") topLeft: ElementRef;
@@ -33,6 +38,10 @@ export class MultiComponent implements AfterViewInit, OnInit {
   @ViewChild("right") right: ElementRef;
   @ViewChild("topRight") topRight: ElementRef;
   @ViewChild("bottomRight") bottomRight: ElementRef;
+  @ViewChild("macroAlerts", {read: ViewContainerRef}) macroAlerts: ViewContainerRef;
+  @ViewChild("microAlerts", {read: ViewContainerRef}) microAlerts: ViewContainerRef;
+
+  headerAlert = new Alert("info", "Loading...");
 
   // what to show in left slider
   selectedDetail = null;
@@ -56,44 +65,88 @@ export class MultiComponent implements AfterViewInit, OnInit {
   macroLegendArgs = {autoResize: true, selector: "genus-species"};
   macroTracks: MacroTracks[];
 
+  // emits when the component is destroyed
+  private destroy: Subject<boolean>;
+
   constructor(private alignmentService: AlignmentService,
               private config: AppConfig,
+              private resolver: ComponentFactoryResolver,
               private filterService: FilterService,
               private macroTracksService: MacroTracksService,
-              private microTracksService: MicroTracksService) { }
+              private microTracksService: MicroTracksService) {
+    this.destroy = new Subject();
+  }
 
   // Angular hooks
 
   ngAfterViewInit(): void {
     Split([this.left.nativeElement, this.right.nativeElement], {
         direction: "horizontal",
+        minSize: 0,
       });
     Split([this.topLeft.nativeElement, this.bottomLeft.nativeElement], {
         direction: "vertical",
+        minSize: 0,
       });
     Split([this.topRight.nativeElement, this.bottomRight.nativeElement], {
         direction: "vertical",
+        minSize: 0,
       });
   }
 
+  ngOnDestroy(): void {
+    this.destroy.next(true);
+    this.destroy.complete();
+  }
+
   ngOnInit(): void {
+    // subscribe to HTTP requests
+    this.macroTracksService.requests
+      .takeUntil(this.destroy)
+      .subscribe(([args, request]) => {
+        if (args.requestType === "chromosome") {
+          const what = "\"" + args.body.chromosome + "\"";
+          this._requestToAlertComponent(args.serverID, request, what, this.macroAlerts);
+        } else if (args.requestType === "macro") {
+          const targets = args.body.targets;
+          const what = "tracks for \"" + targets[targets.length - 1] + "\"";
+          this._requestToAlertComponent(args.serverID, request, what, this.macroAlerts);
+        }
+      });
+    this.microTracksService.requests
+      .takeUntil(this.destroy)
+      .subscribe(([args, request]) => {
+        if (args.requestType === "microMulti") {
+          this._requestToAlertComponent(args.serverID, request, "tracks", this.microAlerts);
+        }
+      });
+
     // subscribe to micro track data
-    Observable
+    const filteredMicroTracks = Observable
       .combineLatest(
         this.alignmentService.alignedMicroTracks,
         this.filterService.regexpAlgorithm,
         this.filterService.orderAlgorithm,
       )
-      .let(microTracksSelector({prefix: (t) => "group " + t.cluster + " - "}))
+      .let(microTracksSelector({prefix: (t) => "group " + t.cluster + " - "}));
+
+    filteredMicroTracks
       .withLatestFrom(this.microTracksService.routeParams)
       .filter(([tracks, route]) => route.genes !== undefined)
+      .takeUntil(this.destroy)
       .subscribe(([tracks, route]) => {
         this._onAlignedMicroTracks(tracks as MicroTracks, route);
       });
 
     // subscribe to macro track data
-    this.macroTracksService.multiMacroTracks
-      .filter((tracks) => tracks !== undefined)
+    Observable
+      .combineLatest(
+        this.macroTracksService.multiMacroTracks
+          .filter((tracks) => tracks !== undefined),
+        filteredMicroTracks,
+      )
+      .let(multiMacroTracksSelector())
+      .takeUntil(this.destroy)
       .subscribe((tracks) => {
         this._onMacroTracks(tracks);
       });
@@ -121,7 +174,10 @@ export class MultiComponent implements AfterViewInit, OnInit {
   }
 
   selectGene(gene: Gene): void {
-    const g = Object.assign(Object.create(Gene.prototype), gene);
+    // TODO: this uses specific knowledge about the origins of gene objects, instead,
+    // create a util function that returns all objects in prototype chain and spead
+    // into assign
+    const g = Object.assign(Object.create(Gene.prototype), Object.getPrototypeOf(gene));
     this.selectedDetail = g;
   }
 
@@ -138,6 +194,9 @@ export class MultiComponent implements AfterViewInit, OnInit {
 
   private _onAlignedMicroTracks(tracks: MicroTracks, route): void {
     if (tracks.groups.length > 0 && tracks.groups[0].genes.length > 0) {
+      // update alert
+      this.headerAlert = this._getHeaderAlert(tracks);
+
       // compute how many genes each family has
       const familySizes = (tracks.groups.length > 1)
                         ? GCV.common.getFamilySizeMap(tracks.groups)
@@ -224,13 +283,81 @@ export class MultiComponent implements AfterViewInit, OnInit {
     }
   }
 
+  private _getHeaderAlert(tracks: MicroTracks): Alert {
+    let message = "";
+    const numTracks = tracks.groups.length;
+    message += numTracks + " track" + ((numTracks !== 1) ? "s" : "") + " returned; ";
+    const clustered = tracks.groups.reduce((clustered, group) => {
+      if (group.cluster !== undefined) {
+        clustered.push(group.cluster);
+      };
+      return clustered;
+    }, []);
+    const numClustered = clustered.length;
+    message += numClustered + " tracks clustered into ";
+    const numClusters = (new Set(clustered)).size;
+    message += numClusters + " group" + ((numClusters !== 1) ? "s" : "");
+    let type: string;
+    if (numTracks === 0) {
+      type = "danger";
+    } else if (numTracks === numClustered) {
+      type = "success";
+    } else if (numClustered === 0) {
+      type = "warning";
+    } else {
+      type = "info";
+    }
+    return new Alert(type, message);
+  }
+
+  private _requestToAlertComponent(serverID, request, what, container) {
+    const source = this.config.getServer(serverID).name;
+    const factory: ComponentFactory<AlertComponent> = this.resolver.resolveComponentFactory(AlertComponent);
+    const componentRef: ComponentRef<AlertComponent> = container.createComponent(factory);
+    // EVIL: Angular doesn't have a defined method for hooking dynamic components into
+    // the Angular lifecycle so we must explicitly call ngOnChanges whenever a change
+    // occurs. Even worse, there is no hook for the Output directive, so we must
+    // shoehorn the desired functionality in!
+    componentRef.instance.close = function(componentRef) {
+      componentRef.destroy();
+    }.bind(this, componentRef);
+    componentRef.instance.float = true;
+    componentRef.instance.alert = new Alert(
+      "info",
+      "Loading " + what + " from \"" + source + "\"",
+      {spinner: true},
+    );
+    componentRef.instance.ngOnChanges({});
+    request
+      .takeUntil(componentRef.instance.onClose)
+      .subscribe(
+        (response) => {
+          componentRef.instance.alert = new Alert(
+            "success",
+            "Successfully loaded " + what + " from \"" + source + "\"",
+            {closable: true, autoClose: 3},
+          );
+          componentRef.instance.ngOnChanges({});
+        },
+        (error) => {
+          componentRef.instance.alert = new Alert(
+            "danger",
+            "Failed to load " + what + " from \"" + source + "\"",
+            {closable: true},
+          );
+          componentRef.instance.ngOnChanges({});
+        });
+  }
+
   private _getMacroArgs(
     colors: any,
     highlight: {chromosome: string, start: number, stop: number}[]
   ): any {
     return {
+      autoResize: true,
       colors,
       highlight,
+      replicateBlocks: true,
     };
   }
 

@@ -11,6 +11,7 @@
         <a (click)="showPlots()">Dot Plots</a>
       </li>
     </ul>
+    <alert [alert]="headerAlert" center></alert>
   </header>
 
   <main-content [hidden]="selectedContent!==contentTypes.VIEWERS">
@@ -33,6 +34,7 @@
             </div>
           </form></li>
         </viewer-macro>
+        <ng-container #macroAlerts></ng-container>
       </div>
 
       <div #bottomLeft id="bottom-left" class="split content">
@@ -72,10 +74,11 @@
               </a>
             </li>
             <li class="target" [ngClass]="{'active': accordion==accordionTypes.SCROLL}">
-              <scroll [gene]="routeGene" [query]="queryGenes" ></scroll>
+              <scroll></scroll>
             </li>
           </ul>
         </viewer-micro>
+        <ng-container #microAlerts></ng-container>
       </div>
     </div>
 
@@ -100,9 +103,9 @@
           </div>
           <div class="local-global-plots" [hidden]="!showLocalGlobalPlots">
             <div class="outer-ratio">
-              <div class="inner-ratio" [ngSwitch]="selectedPlot">
-                <viewer-plot *ngSwitchCase="plotTypes.LOCAL"
-                  [data]="selectedLocal"
+              <div class="inner-ratio">
+                <viewer-plot [hidden]="selectedPlot!==plotTypes.LOCAL"
+                  [data]="selectedLocalPlot"
                   [colors]="microColors"
                   [arguments]="plotArgs" >
                   <ul class="nav navbar-nav tabs" navbar>
@@ -117,8 +120,8 @@
                     <a><span class="glyphicon glyphicon-remove" aria-hidden="true" (click)="hideLocalGlobalPlots()"></span></a>
                   </li>
                 </viewer-plot>
-                <viewer-plot *ngSwitchCase="plotTypes.GLOBAL"
-                  [data]="selectedGlobal"
+                <viewer-plot [hidden]="selectedPlot!==plotTypes.GLOBAL"
+                  [data]="selectedGlobalPlot"
                   [colors]="microColors"
                   [arguments]="plotArgs" >
                   <ul class="nav navbar-nav tabs" navbar>
@@ -132,6 +135,7 @@
                   <li navright>
                     <a><span class="glyphicon glyphicon-remove" aria-hidden="true" (click)="hideLocalGlobalPlots()"></span></a>
                   </li>
+                  <ng-container #plotAlerts overlay></ng-container>
                 </viewer-plot>
               </div>
             </div>

@@ -4,9 +4,11 @@ import { FormBuilder, FormGroup } from "@angular/forms";
 
 // App
 import { AppConfig } from "../../app.config";
+import { BlockParams } from "../../models/block-params.model";
 import { ClusteringParams } from "../../models/clustering-params.model";
 import { QueryParams } from "../../models/query-params.model";
 import { ClusteringService } from "../../services/clustering.service";
+import { MacroTracksService } from "../../services/macro-tracks.service";
 import { MicroTracksService } from "../../services/micro-tracks.service";
 
 @Component({
@@ -24,6 +26,7 @@ export class MultiParamsComponent implements OnInit {
   help = false;
 
   // form groups
+  blockGroup: FormGroup;
   queryGroup: FormGroup;
   clusteringGroup: FormGroup;
 
@@ -33,11 +36,18 @@ export class MultiParamsComponent implements OnInit {
   // constructor
   constructor(private clusteringService: ClusteringService,
               private fb: FormBuilder,
+              private macroTracksService: MacroTracksService,
               private microTracksService: MicroTracksService) { }
 
   // Angular hooks
 
   ngOnInit(): void {
+    // initialize block group and subscribe to store updates
+    const defaultBlock = new BlockParams();
+    this.blockGroup  = this.fb.group(defaultBlock.formControls());
+    this.macroTracksService.blockParams
+      .subscribe((params) => this._updateGroup(this.blockGroup, params));
+
     // initialize query group and subscribe to store updates
     const defaultQuery = new QueryParams();
     this.queryGroup  = this.fb.group(defaultQuery.formControls());
@@ -48,9 +58,10 @@ export class MultiParamsComponent implements OnInit {
     const defaultClustering = new ClusteringParams();
     this.clusteringGroup  = this.fb.group(defaultClustering.formControls());
     this.clusteringService.clusteringParams
-      .subscribe((params) => this._updateGroup(this.queryGroup, params));
+      .subscribe((params) => this._updateGroup(this.clusteringGroup, params));
 
     // submit the updated form
+    this.blockGroup.markAsDirty();
     this.queryGroup.markAsDirty();
     this.clusteringGroup.markAsDirty();
     this.submit();
@@ -59,8 +70,12 @@ export class MultiParamsComponent implements OnInit {
   // public
 
   submit(): void {
-    if (this.queryGroup.valid && this.clusteringGroup.valid) {
+    if (this.blockGroup.valid && this.queryGroup.valid && this.clusteringGroup.valid) {
       this.valid.emit();
+      // submit block params
+      this._submitGroup(this.blockGroup, (params) => {
+        this.macroTracksService.updateParams(params);
+      });
       // submit query params
       this._submitGroup(this.queryGroup, (params) => {
         this.microTracksService.updateParams(params);

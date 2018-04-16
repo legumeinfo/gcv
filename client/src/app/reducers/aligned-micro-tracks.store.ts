@@ -1,40 +1,67 @@
 import { createFeatureSelector, createSelector } from "@ngrx/store";
-import * as alignedMicroTrackActions from "../actions/aligned-micro-tracks.actions";
+import * as alignedMicroTracksActions from "../actions/aligned-micro-tracks.actions";
+import { Group } from "../models/group.model";
 import { MicroTracks } from "../models/micro-tracks.model";
 
+declare var Object: any;  // because TypeScript doesn't support Object.values
+
 export interface State {
-  alignedMicroTracks: MicroTracks;
+  reference: Group;
+  tracks: MicroTracks;
+  loadCount: number;
+  loading: boolean;
 }
 
-export const initialState: State = {alignedMicroTracks: new MicroTracks()};
+export const initialState: State = {
+  reference: undefined,
+  tracks: new MicroTracks(),
+  loadCount: 0,
+  loading: false,
+};
 
 export function reducer(
   state = initialState,
-  action: alignedMicroTrackActions.Actions,
+  action: alignedMicroTracksActions.Actions,
 ): State {
   switch (action.type) {
-    case alignedMicroTrackActions.NEW:
-      if (action.payload === undefined) {
-        return initialState;
+    case alignedMicroTracksActions.INIT:
+      if (action.payload !== undefined) {
+        return {
+          ...initialState,
+          reference: action.payload.reference,
+          tracks: {
+            ...initialState.tracks,
+            groups: [action.payload.reference],
+          },
+        };
       }
-      const queryTrack = action.payload;
-      const alignedMicroTracks = new MicroTracks();
-      alignedMicroTracks.groups.push(queryTrack);
-      return {alignedMicroTracks};
-    case alignedMicroTrackActions.ADD:
+      return initialState;
+    case alignedMicroTracksActions.GET_PAIRWISE:
+    case alignedMicroTracksActions.GET_MULTI:
+      return {
+        ...state,
+        loadCount: state.loadCount + 1,
+        loading: true,
+      };
+    case alignedMicroTracksActions.GET_PAIRWISE_SUCCESS:
+    case alignedMicroTracksActions.GET_MULTI_SUCCESS:
       // merge new micro tracks with existing micro tracks non-destructively
-      const microTracks = state.alignedMicroTracks;
-      const updatedMicroTracks = new MicroTracks();
-      const familyIDs = new Set(microTracks.families.map((f) => f.id));
-      const newFamilies = [];
-      for (const f of action.payload.families) {
-        if (!familyIDs.has(f.id)) {
-          newFamilies.push(f);
-        }
-      }
-      updatedMicroTracks.families = microTracks.families.concat(newFamilies);
-      updatedMicroTracks.groups = microTracks.groups.concat(action.payload.groups);
-      return {alignedMicroTracks: updatedMicroTracks};
+      const tracks = action.payload.tracks;
+      return {
+        ...state,
+        tracks: {
+          // ensure that list of families is unique
+          families: Object.values(state.tracks.families.concat(tracks.families)
+            .reduce((familyMap, family) => {
+              familyMap[family.id] = family;
+              return familyMap;
+            }, {})
+          ),
+          groups: state.tracks.groups.concat(tracks.groups),
+        },
+        loadCount: state.loadCount - 1,
+        loading: state.loadCount > 1,
+      };
     default:
       return state;
   }
@@ -42,7 +69,12 @@ export function reducer(
 
 export const getAlignedMicroTracksState = createFeatureSelector<State>("alignedMicroTracks");
 
+export const getAlignmentReference = createSelector(
+  getAlignedMicroTracksState,
+  (state) => state.reference,
+);
+
 export const getAlignedMicroTracks = createSelector(
   getAlignedMicroTracksState,
-  (state) => state.alignedMicroTracks,
+  (state) => state.tracks,
 );

@@ -1,11 +1,23 @@
 import { Action } from "@ngrx/store";
 import { Group } from "../models/group.model";
 
-export const NEW = "[SEARCH_QUERYY_TRACK] NEW";
+export const GET = "[SEARCH_QUERY_TRACK] GET";
+export const GET_SUCCESS = "[SEARCH_QUERY_TRACK] GET_SUCCESS";
+export const GET_FAILURE = "[SEARCH_QUERY_TRACK] GET_FAILURE";
 
-export class New implements Action {
-  readonly type = NEW;
-  constructor(public correlationID: number, public payload: Group) { }
+export class Get implements Action {
+  readonly type = GET;
+  constructor(public payload: {query: {source: string, gene: string}, neighbors: number}) { }
 }
 
-export type Actions = New;
+export class GetSuccess implements Action {
+  readonly type = GET_SUCCESS;
+  constructor(public payload: {track: Group}) { }
+}
+
+export class GetFailure implements Action {
+  readonly type = GET_FAILURE;
+  constructor(public payload: any) { }
+}
+
+export type Actions = Get | GetSuccess | GetFailure;

@@ -6,6 +6,8 @@ import { InstructionsComponent } from "./components/instructions/instructions.co
 import { MultiComponent } from "./components/multi/multi.component";
 import { SearchComponent } from "./components/search/search.component";
 import { AppRoutes } from "./constants/app-routes";
+import { MultiGuard } from "./guards/multi.guard";
+import { SearchGuard } from "./guards/search.guard";
 
 const routes: Routes = [
   {
@@ -14,6 +16,8 @@ const routes: Routes = [
     redirectTo: "/instructions",
   },
   {
+    canActivate: [MultiGuard],
+    canDeactivate: [MultiGuard],
     component: MultiComponent,
     path: AppRoutes.MULTI + "/:genes",
   },
@@ -34,6 +38,8 @@ const routes: Routes = [
     redirectTo: "/instructions",
   },
   {
+    canActivate: [SearchGuard],
+    canDeactivate: [SearchGuard],
     component: SearchComponent,
     path: AppRoutes.SEARCH + "/:source/:gene",
   },

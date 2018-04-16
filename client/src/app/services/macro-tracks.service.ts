@@ -1,35 +1,26 @@
 // Angular
 import { Injectable } from "@angular/core";
 import { HttpClient, HttpParams } from "@angular/common/http";
-import { Router } from "@angular/router";
 import { Observable } from "rxjs/Observable";
+import { _throw } from "rxjs/observable/throw";
+import { catchError, map } from "rxjs/operators";
+import { BehaviorSubject } from "rxjs/BehaviorSubject";
 // store
 import { Store } from "@ngrx/store";
-import * as blockParamActions from "../actions/block-params.actions";
-import * as macroTracksActions from "../actions/macro-tracks.actions";
-import * as macroChromosomeActions from "../actions/macro-chromosome.actions";
-import * as multiMacroTracksActions from "../actions/multi-macro-tracks.actions";
-import * as multiMacroChromosomeActions from "../actions/multi-macro-chromosome.actions";
+import * as routerActions from "../actions/router.actions";
 import * as fromRoot from "../reducers";
-import * as fromBlockParams from "../reducers/block-params.store";
 import * as fromMacroChromosome from "../reducers/macro-chromosome.store";
 import * as fromMacroTracks from "../reducers/macro-tracks.store";
-import * as fromMicroTracks from "../reducers/micro-tracks.store";
-import * as fromMultiMacroChromosome from "../reducers/multi-macro-chromosome.store";
 import * as fromMultiMacroTracks from "../reducers/multi-macro-tracks.store";
-import * as fromQueryParams from "../reducers/query-params.store";
 import * as fromRouter from "../reducers/router.store";
-import * as fromSearchQueryTrack from "../reducers/search-query-track.store";
 // app
 import { AppConfig } from "../app.config";
 import { AppRoutes } from "../constants/app-routes";
 import { BlockParams } from "../models/block-params.model";
-import { Group } from "../models/group.model";
 import { MacroChromosome } from "../models/macro-chromosome.model";
 import { MacroTrack } from "../models/macro-track.model";
 import { MacroTracks } from "../models/macro-tracks.model";
-import { MicroTracks } from "../models/micro-tracks.model";
-import { GET, POST, Request, Server } from "../models/server.model";
+import { GET, POST, Server } from "../models/server.model";
 
 @Injectable()
 export class MacroTracksService {
@@ -37,195 +28,50 @@ export class MacroTracksService {
   macroChromosome: Observable<any>;
   macroTracks: Observable<MacroTracks>;
   multiMacroTracks: Observable<MacroTracks[]>;
+  macroChromosomeLoadState: Observable<any>;
+  macroTracksLoadState: Observable<any>;
+
+  requests: Observable<[any, Observable<any>]>;
+  private requestsSubject = new BehaviorSubject<[any, Observable<any>]>(undefined);
 
   private searchRoute: Observable<any>;
   private serverIDs = AppConfig.SERVERS.map((s) => s.id);
 
-  constructor(private http: HttpClient,
-              private router: Router,
-              private store: Store<fromRoot.State>) {
-
+  constructor(private http: HttpClient, private store: Store<fromRoot.State>) {
+    this.requests = this.requestsSubject.asObservable()
+      .filter((request) => request !== undefined);
     // initialize observables
-    this.blockParams = this.store.select(fromBlockParams.getBlockParams);
-    this.macroChromosome = this.store.select(fromMacroChromosome.getMacroChromosome);
-    this.macroTracks = this.store.select(fromMacroTracks.getMacroTracks);
-    this.multiMacroTracks = this.store.select(fromMultiMacroTracks.getMultiMacroTracks);
-    this.searchRoute = this.store.select(fromRouter.getSearchRoute);
-    const macroChromosomeCorrelationId = this.store.select(fromMacroChromosome.getCorrelationID);
-    const microTracks = this.store.select(fromMicroTracks.getMicroTracks);
-    const multiMacroChromosome = this.store.select(fromMultiMacroChromosome.getMultiMacroChromosome);
-    const multiMacroChromosomeCorrelationId =
-      this.store.select(fromMultiMacroChromosome.getCorrelationID);
-    const multiRoute = this.store.select(fromRouter.getMultiRoute);
-    const newMicroTracks = this.store.select(fromMicroTracks.getNewMicroTracks);
-    const newMultiMacroChromosome =
-      this.store.select(fromMultiMacroChromosome.getNewMultiMacroChromosome);
-    const querySources = this.store.select(fromQueryParams.getQueryParamsSources);
-    const routeParams = this.store.select(fromRouter.getParams);
-    const searchQueryChromosome = this.store.select(fromSearchQueryTrack.getSearchQueryChromosome)
-      .filter((chromosome) => chromosome !== undefined);
-    const searchRouteSource = this.store.select(fromRouter.getSearchRouteSource);
-
-    // subscribe to changes that initialize macro chromosome searches
-    searchQueryChromosome
-      .withLatestFrom(searchRouteSource)
-      .subscribe(([chromosome, source]) => {
-        const correlationID = Date.now();
-        this.getChromosome(chromosome, source)
-          .subscribe(
-            (macroChromosome) => {
-              const macroTracks = new MacroTracks();
-              macroTracks.chromosome = chromosome;
-              macroTracks.length = macroChromosome.length;
-              macroTracks.tracks = [];
-              this.store.dispatch(new macroTracksActions.New(correlationID, macroTracks));
-              this.store.dispatch(new macroChromosomeActions.New(correlationID, macroChromosome));
-            },
-            (error) => {
-              console.log(error);
-              // TODO: throw error
-            }
-          );
-      });
-
-    // subscribe to changes that initialize macro searches
-    Observable
-      .combineLatest(this.macroChromosome, this.blockParams, querySources)
-      .withLatestFrom(routeParams, macroChromosomeCorrelationId)
-      .filter(([[chromosome, blockParams, sources], route, correlationID]) => {
-        return chromosome !== undefined && route.gene !== undefined;
-      })
-      .subscribe(([[chromosome, blockParams, sources], route, correlationID]) => {
-        this.getFederatedMacroTracks(chromosome, blockParams, sources, correlationID)
-          .subscribe(
-            (macroTracks) => {
-              this.store.dispatch(new macroTracksActions.Add(correlationID, macroTracks));
-            },
-            (error) => {
-              console.log(error);
-              // TODO: throw error
-            }
-          );
-      });
-
-    // subscribe to changes that clear the multi maco chromosome stores
-    multiRoute
-      .subscribe((route) => {
-        const correlationID = Date.now();
-        this.store.dispatch(new multiMacroChromosomeActions.New(correlationID));
-        this.store.dispatch(new multiMacroTracksActions.New(correlationID));
-      });
-
-    // subscribe to changes that initialize multi maco chromosome searches
-    newMicroTracks
-      .withLatestFrom(routeParams, multiMacroChromosomeCorrelationId)
-      .filter(([tracks, route, correlationID]) => route.genes !== undefined)
-      .subscribe(([tracks, route, correlationID]) => {
-        this.microTracksToChromosomes(tracks)
-          .subscribe(
-            ([microTrack, macroChromosome]) => {
-              macroChromosome.source = microTrack.source;
-              macroChromosome.name = microTrack.chromosome_name;
-              macroChromosome.genus = microTrack.genus;
-              macroChromosome.species = microTrack.species;
-              this.store.dispatch(new multiMacroChromosomeActions.Add(correlationID, macroChromosome));
-            },
-            (error) => {
-              console.log(error);
-              // TODO: throw error
-            }
-          );
-      });
-
-    // subscribe to changes that initialize multi macro searches
-    newMultiMacroChromosome
-      .withLatestFrom(
-        microTracks,
-        this.blockParams,
-        querySources,
-        multiMacroChromosomeCorrelationId
-      )
-      .filter(([chromosome, tracks, params, sources, correlationID]) => {
-        return chromosome !== undefined && tracks !== undefined;
-      })
-      .subscribe(([chromosome, tracks, params, sources, correlationID]) => {
-        const macroTracks = new MacroTracks();
-        macroTracks.chromosome = chromosome.name;
-        macroTracks.length = chromosome.length;
-        macroTracks.source = chromosome.source;
-        macroTracks.genus = chromosome.genus;
-        macroTracks.species = chromosome.species;
-        macroTracks.tracks = [];
-        this.store.dispatch(new multiMacroTracksActions.AddChromosome(correlationID, macroTracks));
-        const targets = tracks.groups.map((g) => g.chromosome_name);
-        this.getFederatedMacroTracks(
-          chromosome,
-          params,
-          sources,
-          correlationID,
-          targets,
-        )
-          .subscribe(
-            (chromosomeTracks) => {
-              this.store.dispatch(new multiMacroTracksActions.AddTracks(correlationID, {
-                chromosome: chromosome.name,
-                tracks: chromosomeTracks,
-              }));
-            },
-            (error) => {
-              console.log(error);
-              // TODO: throw error
-            }
-          );
-      });
-    newMicroTracks
-      .withLatestFrom(
-        multiMacroChromosome,
-        this.blockParams,
-        querySources,
-        multiMacroChromosomeCorrelationId,
-        routeParams
-      )
-      .filter(([tracks, chromosomes, params, sources, correlationID, route]) => {
-        return route.genes !== undefined;
-      })
-      .subscribe(([tracks, chromosomes, params, sources, correlationID, route]) => {
-        const targets = tracks.groups.map((g) => g.chromosome_name);
-        this.chromosomesToFederatedMacroTracks(
-          chromosomes,
-          params,
-          sources,
-          correlationID,
-        );
-      })
-    //Observable
-    //  .combineLatest(
-    //    this.blockParams,
-    //    querySources,
-    //  )
+    this.blockParams = store.select(fromRouter.getMacroBlockParams);
+    this.macroChromosome = store.select(fromMacroChromosome.getMacroChromosome);
+    this.macroTracks = store.select(fromMacroTracks.getMacroTracks);
+    this.multiMacroTracks = store.select(fromMultiMacroTracks.getMultiMacroTracks);
+    this.searchRoute = store.select(fromRouter.getSearchRoute);
+    this.macroChromosomeLoadState = store.select(fromMacroChromosome.getMacroChromosomeLoadState);
+    this.macroTracksLoadState = store.select(fromMacroTracks.getMacroTracksLoadState);
   }
 
   getChromosome(chromosome: string, serverID: string): Observable<MacroChromosome> {
-    let source: Server;
-    const i = this.serverIDs.indexOf(serverID);
-    if (i > -1) {
-      source = AppConfig.SERVERS[i];
-    } else {
-      return Observable.throw("\"" + serverID + "\" is not a valid server ID");
-    }
-    if (!source.hasOwnProperty("chromosome")) {
-      return Observable.throw("\"" + serverID + "\" does not support chromosome queries");
-    }
     const body = {chromosome};
-    return this._makeRequest<MacroChromosome>(source.chromosome, body);
+    return this._makeRequest<MacroChromosome>(serverID, "chromosome", body).pipe(
+      map((macroChromosome) => {
+        macroChromosome.name = chromosome;
+        return macroChromosome;
+      }),
+      catchError((error) => _throw(error)),
+    );
   }
 
-  microTracksToChromosomes(tracks: MicroTracks):
-  Observable<[Group, MacroChromosome]> {
-    // TODO: remove same chromosome from same source
-    return Observable.merge(...tracks.groups.map((track) => {
-      return this.getChromosome(track.chromosome_name, track.source)
-        .map((chromosome): [Group, MacroChromosome] => [track, chromosome]);
+  getChromosomes(
+    chromosomes: {name: string, genus: string, species: string}[],
+    serverID: string
+  ): Observable<[{name: string, genus: string, species: string}, MacroChromosome]> {
+    return Observable.merge(...chromosomes.map((chromosome) => {
+      return this.getChromosome(chromosome.name, serverID).pipe(
+        map((result): [{name: string, genus: string, species: string}, MacroChromosome] => {
+          return [chromosome, result];
+        }),
+        catchError((error) => _throw(error)),
+      );
     }));
   }
 
@@ -235,16 +81,6 @@ export class MacroTracksService {
     serverID: string,
     targets: string[] = [],
   ): Observable<MacroTrack[]> {
-    let source: Server;
-    const i = this.serverIDs.indexOf(serverID);
-    if (i > -1) {
-      source = AppConfig.SERVERS[i];
-    } else {
-      return Observable.throw("\"" + serverID + "\" is not a valid server ID");
-    }
-    if (!source.hasOwnProperty("macro")) {
-      return Observable.throw("\"" + serverID + "\" does not support macro-track queries");
-    }
     const body = {
       families: chromosome.families,
       intermediate: blockParams.bintermediate,
@@ -252,42 +88,27 @@ export class MacroTracksService {
       matched: blockParams.bmatched,
       targets,
     };
-    return this._makeRequest<MacroTrack[]>(source.macro, body)
-      .map((macroTracks) => {
+    return this._makeRequest<MacroTrack[]>(serverID, "macro", body).pipe(
+      map((macroTracks) => {
         this._parseTracks(chromosome, macroTracks);
         return macroTracks;
-      });
+      }),
+      catchError((error) => _throw(error)),
+    );
   }
 
   getFederatedMacroTracks(
     chromosome: MacroChromosome,
     blockParams: BlockParams,
     serverIDs: string[],
-    correlationID: number,
     targets: string[] = [],
-  ): Observable<MacroTrack[]> {
+  ): Observable<[string, MacroTrack[]]> {
     // send a request for each server
     return Observable.merge(...serverIDs.map((serverID) => {
-      return this.getMacroTracks(chromosome, blockParams, serverID, targets);
-    }));
-  }
-
-  chromosomesToFederatedMacroTracks(
-    chromosomes: MacroChromosome[],
-    blockParams: BlockParams,
-    serverIDs: string[],
-    correlationID: number,
-    targets: string[] = [],
-  ): Observable<[MacroChromosome, MacroTrack[]]> {
-    // send a request for each server
-    return Observable.merge(...chromosomes.map((chromosome) => {
-      return this.getFederatedMacroTracks(
-        chromosome,
-        blockParams,
-        serverIDs,
-        correlationID,
-        targets
-      ).map((tracks): [MacroChromosome, MacroTrack[]] => [chromosome, tracks]);
+      return this.getMacroTracks(chromosome, blockParams, serverID, targets).pipe(
+        map((tracks) => [serverID, tracks]),
+        catchError((error) => _throw([serverID, error])),
+      );
     }));
   }
 
@@ -319,26 +140,43 @@ export class MacroTracksService {
         const url = "/" + AppRoutes.SEARCH +
                     "/" + route.source +
                     "/" + genes[mid];
-        // TODO: update this to use ngrx-router (requires @ngrx/effects)
-        this.router.navigateByUrl(url);
+        this.store.dispatch(new routerActions.Go({path: [url, { routeParam: 1 }]}));
       })
       // TODO: replace with .last() before subscribe
       .unsubscribe();
   }
 
   updateParams(params: BlockParams): void {
-    this.store.dispatch(new blockParamActions.New(params));
+    const path = [];
+    const query = Object.assign({}, params);
+    this.store.dispatch(new routerActions.Go({path, query}));
   }
 
   // encapsulates HTTP request boilerplate
-  private _makeRequest<T>(request: Request, body: any): Observable<T> {
+  private _makeRequest<T>(serverID: string, requestType: string, body: any): Observable<T> {
+    const args = {serverID, requestType, body};
+    let source: Server;
+    const i = AppConfig.SERVERS.map((s) => s.id).indexOf(serverID);
+    if (i > -1) {
+      source = AppConfig.SERVERS[i];
+    } else {
+      return Observable.throw("\"" + serverID + "\" is not a valid server ID");
+    }
+    if (!source.hasOwnProperty(requestType)) {
+      return Observable.throw("\"" + serverID + "\" does not support requests of type \"" + requestType + "\"");
+    }
+    const request = source[requestType];
     const params = new HttpParams({fromObject: body});
     if (request.type === GET) {
-      return this.http.get<T>(request.url, {params});
+      const requestObservable = this.http.get<T>(request.url, {params});
+      this.requestsSubject.next([args, requestObservable]);
+      return requestObservable;
     } else if (request.type === POST) {
-      return this.http.post<T>(request.url, body);
+      const requestObservable = this.http.post<T>(request.url, body);
+      this.requestsSubject.next([args, requestObservable]);
+      return requestObservable;
     }
-    return Observable.throw("Request type is not GET or POST");
+    return Observable.throw("\"" + serverID + "\" requests of type \"" + requestType + "\" does not support HTTP GET or POST methods");
   }
 
   // adds the server id the track came from to the track and its genes

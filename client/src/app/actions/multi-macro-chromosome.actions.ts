@@ -1,17 +1,28 @@
 import { Action } from "@ngrx/store";
 import { MacroChromosome } from "../models/macro-chromosome.model";
 
-export const NEW = "MULTI_[MACRO_CHROMOSOME] NEW";
-export const ADD = "MULTI_[MACRO_CHROMOSOME] ADD";
+export const INIT = "[MULTI_MACRO_CHROMOSOME] INIT";
+export const GET = "[MULTI_MACRO_CHROMOSOME] GET";
+export const GET_SUCCESS = "[MULTI_MACRO_CHROMOSOME] GET_SUCCESS";
+export const GET_FAILURE = "[MULTI_MACRO_CHROMOSOME] GET_FAILURE";
 
-export class New implements Action {
-  readonly type = NEW;
-  constructor(public correlationID: number) { }
+export class Init implements Action {
+  readonly type = INIT;
 }
 
-export class Add implements Action {
-  readonly type = ADD;
-  constructor(public correlationID: number, public payload: MacroChromosome) { }
+export class Get implements Action {
+  readonly type = GET;
+  constructor(public payload: {chromosomes: {name: string, genus: string, species: string}[], source: string}) { }
 }
 
-export type Actions = New | Add;
+export class GetSuccess implements Action {
+  readonly type = GET_SUCCESS;
+  constructor(public payload: {chromosome: MacroChromosome}) { }
+}
+
+export class GetFailure implements Action {
+  readonly type = GET_FAILURE;
+  constructor(public payload: {error: any, source: string}) { }
+}
+
+export type Actions = Init | Get | GetSuccess | GetFailure;

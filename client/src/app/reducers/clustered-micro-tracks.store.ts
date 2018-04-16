@@ -3,32 +3,33 @@ import * as clusteredMicroTrackActions from "../actions/clustered-micro-tracks.a
 import { MicroTracks } from "../models/micro-tracks.model";
 
 export interface State {
-  clusteredMicroTracks: MicroTracks;
+  tracks: MicroTracks;
+  loaded: boolean;
+  loading: boolean;
 }
 
-export const initialState: State = {clusteredMicroTracks: new MicroTracks()};
+export const initialState: State = {
+  tracks: new MicroTracks(),
+  loaded: false,
+  loading: false,
+};
 
 export function reducer(
   state = initialState,
   action: clusteredMicroTrackActions.Actions,
 ): State {
   switch (action.type) {
-    case clusteredMicroTrackActions.NEW:
-      return initialState;
-    case clusteredMicroTrackActions.ADD:
-      // merge new micro tracks with existing micro tracks non-destructively
-      const microTracks = state.clusteredMicroTracks;
-      const updatedMicroTracks = new MicroTracks();
-      const familyIDs = new Set(microTracks.families.map((f) => f.id));
-      const newFamilies = [];
-      for (const f of action.payload.families) {
-        if (!familyIDs.has(f.id)) {
-          newFamilies.push(f);
-        }
-      }
-      updatedMicroTracks.families = microTracks.families.concat(newFamilies);
-      updatedMicroTracks.groups = microTracks.groups.concat(action.payload.groups);
-      return {clusteredMicroTracks: updatedMicroTracks};
+    case clusteredMicroTrackActions.GET:
+      return {
+        ...initialState,
+        loading: true,
+      };
+    case clusteredMicroTrackActions.GET_SUCCESS:
+      return {
+        ...action.payload,
+        loading: false,
+        loaded: true,
+      };
     default:
       return state;
   }
@@ -38,5 +39,5 @@ export const getClusteredMicroTracksState = createFeatureSelector<State>("cluste
 
 export const getClusteredMicroTracks = createSelector(
   getClusteredMicroTracksState,
-  (state) => state.clusteredMicroTracks,
+  (state) => state.tracks,
 );

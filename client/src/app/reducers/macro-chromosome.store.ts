@@ -3,13 +3,17 @@ import * as macroChromosomeActions from "../actions/macro-chromosome.actions";
 import { MacroChromosome } from "../models/macro-chromosome.model";
 
 export interface State {
-  correlationID: number;
-  macroChromosome: MacroChromosome;
+  chromosome: MacroChromosome;
+  failed: boolean;
+  loaded: boolean;
+  loading: string;
 }
 
 export const initialState: State = {
-  correlationID: 0,
-  macroChromosome: undefined,
+  chromosome: undefined,
+  failed: false,
+  loaded: false,
+  loading: "",
 };
 
 export function reducer(
@@ -17,10 +21,21 @@ export function reducer(
   action: macroChromosomeActions.Actions
 ): State {
   switch (action.type) {
-    case macroChromosomeActions.NEW:
+    case macroChromosomeActions.GET:
       return {
-        correlationID: action.correlationID,
-        macroChromosome: action.payload,
+        ...initialState,
+        loading: action.payload.source,
+      };
+    case macroChromosomeActions.GET_SUCCESS:
+      return {
+        ...state,
+        ...action.payload,
+        loaded: true,
+      };
+    case macroChromosomeActions.GET_FAILURE:
+      return {
+        ...state,
+        failed: true,
       };
     default:
       return state;
@@ -31,10 +46,16 @@ export const getMacroChromosomeState = createFeatureSelector<State>("macroChromo
 
 export const getMacroChromosome = createSelector(
   getMacroChromosomeState,
-  (state) => state.macroChromosome,
+  (state) => state.chromosome,
 );
 
-export const getCorrelationID = createSelector(
+export const getMacroChromosomeLoadState = createSelector(
   getMacroChromosomeState,
-  (state) => state.correlationID,
-);
+  (state) => {
+    return {
+      failed: state.failed,
+      loading: state.loading,
+      loaded: state.loaded,
+    };
+  }
+)

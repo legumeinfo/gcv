@@ -1,25 +1,35 @@
 import { Action } from "@ngrx/store";
+import { BlockParams } from "../models/block-params.model";
+import { MacroChromosome } from "../models/macro-chromosome.model";
 import { MacroTrack } from "../models/macro-track.model";
-import { MacroTracks } from "../models/macro-tracks.model";
 
-export const NEW = "[MULTI_MACRO_TRACKS] NEW";
-export const ADD_CHROMOSOME = "[MULTI_MACRO_TRACKS] ADD_CHROMOSOME";
-export const ADD_TRACKS = "[MULTI_MACRO_TRACKS] ADD_TRACKS";
+export const INIT = "[MULTI_MACRO_TRACKS] INIT";
+export const GET = "[MULTI_MACRO_TRACKS] GET";
+export const GET_SUCCESS = "[MULTI_MACRO_TRACKS] GET_SUCCESS";
+export const GET_FAILURE = "[MULTI_MACRO_TRACKS] GET_FAILURE";
 
-export class New implements Action {
-  readonly type = NEW;
-  constructor(public correlationID: number) { }
+export class Init implements Action {
+  readonly type = INIT;
 }
 
-export class AddChromosome implements Action {
-  readonly type = ADD_CHROMOSOME;
-  constructor(public correlationID: number, public payload: MacroTracks) { }
+export class Get implements Action {
+  readonly type = GET;
+  constructor(public payload: {
+    query: MacroChromosome,
+    params: BlockParams,
+    targets: string[],
+    sources: string[],
+  }) { }
 }
 
-export class AddTracks implements Action {
-  readonly type = ADD_TRACKS;
-  constructor(public correlationID: number,
-              public payload: {chromosome: string, tracks: MacroTrack[]}) { }
+export class GetSuccess implements Action {
+  readonly type = GET_SUCCESS;
+  constructor(public payload: {chromosome: string, tracks: MacroTrack[]}) { }
 }
 
-export type Actions = New | AddChromosome | AddTracks;
+export class GetFailure implements Action {
+  readonly type = GET_FAILURE;
+  constructor(public payload: {error: any, source: string}) { }
+}
+
+export type Actions = Init | Get | GetSuccess | GetFailure;

@@ -18,10 +18,8 @@
         <div class="navbar-right">
           <ng-content select="[right]"></ng-content>
         </div>
-        <div class="alerts" *ngIf="alerts">
-          <div role="alert" [className]="'alert ' + alert.type">
-            {{alert.message}}
-          </div>
+        <div class="center">
+          <ng-content select="[center]"></ng-content>
         </div>
       </div>
     </div>

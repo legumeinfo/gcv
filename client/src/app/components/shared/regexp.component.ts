@@ -1,10 +1,8 @@
 // Angular
-import { Component, ElementRef, OnDestroy, OnInit,
-  ViewChild } from "@angular/core";
+import { Component, ElementRef, OnInit, ViewChild } from "@angular/core";
 
 // App
 import { FilterService } from "../../services/filter.service";
-import { UrlService } from "../../services/url.service";
 
 @Component({
   moduleId: module.id.toString(),
@@ -24,30 +22,17 @@ import { UrlService } from "../../services/url.service";
     </form>
   `,
 })
-export class RegexpComponent implements OnDestroy, OnInit {
+export class RegexpComponent implements OnInit {
 
   model: any = {regexp: ""};
 
-  private sub: any;
-
-  constructor(private url: UrlService,
-              private filterService: FilterService) { }
-
-  ngOnDestroy(): void {
-    this.sub.unsubscribe();
-  }
+  constructor(private filterService: FilterService) { }
 
   ngOnInit(): void {
-    this.sub = this.url.urlQueryParams.subscribe((params) => {
-      if (params.regexp) {
-        this.model.regexp = params.regexp;
-      }
-    });
     this.submit();
   }
 
   submit(): void {
     this.filterService.setRegexp(this.model.regexp);
-    // this.url.updateParams(this.model);
   }
 }

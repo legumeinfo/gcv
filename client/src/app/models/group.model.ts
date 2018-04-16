@@ -9,7 +9,7 @@ export class Group {
   genes: Gene[];
   // TODO: introduce options as mixins
   source?: string;  // Server ID
-  id?: number;  // unique
+  id?: string;  // unique
   score?: number;
   cluster?: number;
 }

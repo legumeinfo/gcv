@@ -3,19 +3,40 @@ import * as searchQueryTrackActions from "../actions/search-query-track.actions"
 import { Group } from "../models/group.model";
 
 export interface State {
-  correlationID: number;
-  searchQueryTrack: Group;
+  track: Group;
+  failed: boolean;
+  loaded: boolean;
+  loading: string;
 }
 
-export const initialState: State = {correlationID: 0, searchQueryTrack: undefined};
+export const initialState: State = {
+  track: undefined,
+  failed: false,
+  loaded: false,
+  loading: "",
+};
 
 export function reducer(
   state = initialState,
   action: searchQueryTrackActions.Actions,
 ): State {
   switch (action.type) {
-    case searchQueryTrackActions.NEW:
-      return {correlationID: action.correlationID, searchQueryTrack: action.payload};
+    case searchQueryTrackActions.GET:
+      return {
+        ...initialState,
+        loading: action.payload.query.source,
+      };
+    case searchQueryTrackActions.GET_SUCCESS:
+      return {
+        ...state,
+        ...action.payload,
+        loaded: true,
+      };
+    case searchQueryTrackActions.GET_FAILURE:
+      return {
+        ...state,
+        failed: true,
+      };
     default:
       return state;
   }
@@ -23,23 +44,29 @@ export function reducer(
 
 export const getSearchQueryTrackState = createFeatureSelector<State>("searchQueryTrack");
 
-export const getCorrelationID = createSelector(
-  getSearchQueryTrackState,
-  (state) => state.correlationID,
-)
-
 export const getSearchQueryTrack = createSelector(
   getSearchQueryTrackState,
-  (state) => state.searchQueryTrack,
+  (state) => state.track,
 );
 
 export const getSearchQueryChromosome = createSelector(
   getSearchQueryTrackState,
   (state) => {
-    const track = state.searchQueryTrack;
+    const track = state.track;
     if (track === undefined) {
       return undefined;
     }
     return track.chromosome_name;
   },
 );
+
+export const getSearchQueryTrackLoadState = createSelector(
+  getSearchQueryTrackState,
+  (state) => {
+    return {
+      failed: state.failed,
+      loading: state.loading,
+      loaded: state.loaded,
+    };
+  }
+)

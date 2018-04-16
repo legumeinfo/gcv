@@ -1,9 +1,8 @@
 // Angular
 import { Inject, Injectable } from "@angular/core";
-import { Http } from "@angular/http";
 import { Observable } from "rxjs/Rx";
-
-// App
+// app
+import { Server } from "./models/server.model";
 const configFile = require("../config.json");
 
 declare var document: any;
@@ -15,13 +14,11 @@ export class AppConfig {
 
   private config: object = {};
 
-  constructor(private http: Http) { }
-
   public getConfig(key: any): any {
     return this.config[key];
   }
 
-  public getServer(id: string): object {
+  public getServer(id: string): Server {
     let server;
     AppConfig.SERVERS.forEach((s) => {
       if (s.id === id) {

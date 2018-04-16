@@ -1,12 +1,15 @@
 // Angular
-import { AfterViewInit, Component, ElementRef, OnInit, QueryList, ViewChild,
-  ViewChildren, ViewEncapsulation } from "@angular/core";
+import { AfterViewInit, Component, ComponentFactory, ComponentFactoryResolver,
+  ComponentRef, ElementRef, OnDestroy, OnInit, QueryList, ViewContainerRef,
+  ViewChild, ViewChildren, ViewEncapsulation } from "@angular/core";
 import { BehaviorSubject } from "rxjs/BehaviorSubject";
 import { Observable } from "rxjs/Observable";
+import { Subject } from "rxjs/Subject";
 // app
 import * as Split from "split.js";
 import { GCV } from "../../../assets/js/gcv";
 import { AppConfig } from "../../app.config";
+import { Alert } from "../../models/alert.model";
 import { Family } from "../../models/family.model";
 import { Gene } from "../../models/gene.model";
 import { Group } from "../../models/group.model";
@@ -19,7 +22,8 @@ import { AlignmentService } from "../../services/alignment.service";
 import { FilterService } from "../../services/filter.service";
 import { MacroTracksService } from "../../services/macro-tracks.service";
 import { MicroTracksService } from "../../services/micro-tracks.service";
-//import { PlotsService } from "../../services/plots.service";
+import { PlotsService } from "../../services/plots.service";
+import { AlertComponent } from "../shared/alert.component";
 import { PlotViewerComponent } from "../viewers/plot.component";
 
 declare let RegExp: any;  // TypeScript doesn't support regexp arguments
@@ -33,7 +37,7 @@ declare let parseInt: any;  // TypeScript doesn't recognize number inputs
             require("../../../assets/css/split.scss") ],
   template: require("./search.component.html"),
 })
-export class SearchComponent implements AfterViewInit, OnInit {
+export class SearchComponent implements AfterViewInit, OnDestroy, OnInit {
   // view children
   @ViewChild("left") left: ElementRef;
   @ViewChild("topLeft") topLeft: ElementRef;
@@ -41,7 +45,12 @@ export class SearchComponent implements AfterViewInit, OnInit {
   @ViewChild("right") right: ElementRef;
   @ViewChild("topRight") topRight: ElementRef;
   @ViewChild("bottomRight") bottomRight: ElementRef;
+  @ViewChild("macroAlerts", {read: ViewContainerRef}) macroAlerts: ViewContainerRef;
+  @ViewChild("microAlerts", {read: ViewContainerRef}) microAlerts: ViewContainerRef;
+  @ViewChild("plotAlerts", {read: ViewContainerRef}) plotAlerts: ViewContainerRef;
   @ViewChildren(PlotViewerComponent) plotComponents: QueryList<PlotViewerComponent>;
+
+  headerAlert = new Alert("info", "Loading...");
 
   // show viewers or dot plots
   readonly contentTypes = {PLOTS: 0, VIEWERS: 1};
@@ -68,8 +77,8 @@ export class SearchComponent implements AfterViewInit, OnInit {
   // dot plots
   microPlots: any;  // MicroTracks;
   plotArgs: any;
-  selectedLocal: Group;
-  selectedGlobal: Group;
+  selectedLocalPlot: Group;
+  selectedGlobalPlot: Group;
 
   // micro viewers
   microArgs: any;
@@ -86,34 +95,73 @@ export class SearchComponent implements AfterViewInit, OnInit {
   macroLegendArgs: any;
   macroTracks: MacroTracks;
 
+  // emits when the component is destroyed
+  private destroy: Subject<boolean>;
+
   // TODO: update observable subscriptions so this and subscribeToMacro aren't needed
   private macroTrackObservable: Observable<[MacroTracks, any]>;  // Observable<[MacroTracks, MicroTracks]>;
   private macroSub: any;
 
   constructor(private alignmentService: AlignmentService,
               private config: AppConfig,
+              private resolver: ComponentFactoryResolver,
               private filterService: FilterService,
               private macroTracksService: MacroTracksService,
               private microTracksService: MicroTracksService,
-              //private plotsService: PlotsService,
-            ) { }
+              private plotsService: PlotsService,
+            ) {
+    this.destroy = new Subject();
+  }
 
   // Angular hooks
 
   ngAfterViewInit(): void {
     Split([this.left.nativeElement, this.right.nativeElement], {
         direction: "horizontal",
+        minSize: 0,
       });
     Split([this.topLeft.nativeElement, this.bottomLeft.nativeElement], {
         direction: "vertical",
+        minSize: 0,
       });
     Split([this.topRight.nativeElement, this.bottomRight.nativeElement], {
         direction: "vertical",
+        minSize: 0,
       });
+  }
+
+  ngOnDestroy(): void {
+    this.destroy.next(true);
+    this.destroy.complete();
   }
 
   ngOnInit(): void {
     this._initUIState();
+
+    // subscribe to HTTP requests
+    this.macroTracksService.requests
+      .takeUntil(this.destroy)
+      .subscribe(([args, request]) => {
+        if (args.requestType === "chromosome") {
+          this._requestToAlertComponent(args.serverID, request, "chromosome", this.macroAlerts);
+        } else if (args.requestType === "macro") {
+          this._requestToAlertComponent(args.serverID, request, "tracks", this.macroAlerts);
+        }
+      });
+    this.microTracksService.requests
+      .takeUntil(this.destroy)
+      .subscribe(([args, request]) => {
+        if (args.requestType === "microQuery") {
+          this._requestToAlertComponent(args.serverID, request, "query track", this.microAlerts);
+        } else if (args.requestType === "microSearch") {
+          this._requestToAlertComponent(args.serverID, request, "tracks", this.microAlerts);
+        }
+      });
+    this.plotsService.requests
+      .takeUntil(this.destroy)
+      .subscribe(([args, request]) => {
+        this._requestToAlertComponent(args.serverID, request, "plot", this.plotAlerts);
+      });
 
     // subscribe to micro track data
     const filteredMicroTracks = Observable
@@ -125,10 +173,14 @@ export class SearchComponent implements AfterViewInit, OnInit {
       .let(microTracksSelector({skipFirst: true}));
 
     filteredMicroTracks
-      .withLatestFrom(this.microTracksService.routeParams)
-      .filter(([tracks, route]) => route.gene !== undefined)
-      .subscribe(([tracks, route]) => {
-        this._onAlignedMicroTracks(tracks as MicroTracks, route);
+      .withLatestFrom(
+        this.microTracksService.routeParams,
+        this.microTracksService.microTracks
+          .map((tracks) => tracks.groups.length),
+      )
+      .takeUntil(this.destroy)
+      .subscribe(([tracks, route, numReturned]) => {
+        this._onAlignedMicroTracks(tracks as MicroTracks, route, numReturned);
       });
 
     // subscribe to macro track data
@@ -141,15 +193,27 @@ export class SearchComponent implements AfterViewInit, OnInit {
       .let(macroTracksSelector())
       .withLatestFrom(this.microTracksService.routeParams)
       .filter(([tracks, route]) => route.gene !== undefined)
+      .takeUntil(this.destroy)
       .subscribe(([tracks, route]) => this._onMacroTracks(tracks));
 
     // subscribe to micro-plots changes
-    //Observable
-    //  .combineLatest(this.plotsService.localPlots, microTracks)
-    //  .let(plotsSelector())
-    //  .subscribe((plots) => this.microPlots = plots);
-    //this.plotsService.selectedPlot
-    //  .subscribe(this._onPlotSelection.bind(this));
+    Observable
+      .combineLatest(this.plotsService.localPlots, filteredMicroTracks)
+      .takeUntil(this.destroy)
+      .let(plotsSelector())
+      .subscribe((plots) => this.microPlots = plots);
+    this.plotsService.selectedLocalPlot
+      .filter((plot) => plot !== null)
+      .takeUntil(this.destroy)
+      .subscribe((plot) => {
+        this.selectedLocalPlot = plot;
+      });
+    this.plotsService.selectedGlobalPlot
+      .filter((plot) => plot !== null)
+      .takeUntil(this.destroy)
+      .subscribe((plot) => {
+        this.selectedGlobalPlot = plot;
+      });
   }
 
   // public
@@ -194,19 +258,28 @@ export class SearchComponent implements AfterViewInit, OnInit {
     this.showLocalGlobalPlots = false;
   }
 
-  selectPlot(plot: Group): void {
+  selectPlot(track: Group): void {
     this.showLocalGlobalPlots = true;
-    //this.plotsService.selectPlot(plot);
+    const id = track.id;
+    if (this.selectedPlot === this.plotTypes.LOCAL) {
+      this.plotsService.selectLocal(id);
+    } else if (this.selectedPlot === this.plotTypes.GLOBAL) {
+      this.plotsService.selectGlobal(id);
+    }
   }
 
   showGlobalPlot(): void {
+    this.plotsService.selectedLocalPlotID.take(1).subscribe((id) => {
+      this.plotsService.selectGlobal(id);
+    });
     this.selectedPlot = this.plotTypes.GLOBAL;
-    //this.plotsService.getSelectedGlobal((plot) => this.selectedGlobal = plot);
   }
 
   showLocalPlot(): void {
-    this.selectedPlot  = this.plotTypes.LOCAL;
-    //this.selectedLocal = this.plotsService.getSelectedLocal();
+    this.plotsService.selectedGlobalPlotID.take(1).subscribe((id) => {
+      this.plotsService.selectLocal(id);
+    });
+    this.selectedPlot = this.plotTypes.LOCAL;
   }
 
   // left slider
@@ -223,7 +296,10 @@ export class SearchComponent implements AfterViewInit, OnInit {
   }
 
   selectGene(gene: Gene): void {
-    const g = Object.assign(Object.create(Gene.prototype), gene);
+    // TODO: this uses specific knowledge about the origins of gene objects, instead,
+    // create a util function that returns all objects in prototype chain and spead
+    // into assign
+    const g = Object.assign(Object.create(Gene.prototype), Object.getPrototypeOf(gene));
     this.selectedDetail = g;
   }
 
@@ -237,6 +313,62 @@ export class SearchComponent implements AfterViewInit, OnInit {
   }
 
   // private
+
+  private _getHeaderAlert(tracks: MicroTracks, numTracks: number): Alert {
+    let message = numTracks + " track" + ((numTracks !== 1) ? "s" : "") + " returned; ";
+    const numAligned = tracks.groups.length - 1;
+    message += numAligned + " track" + ((numAligned !== 1) ? "s" : "") + " aligned";
+    let type: string;
+    if (numTracks === 0) {
+      type = "danger";
+    } else if (numTracks === numAligned) {
+      type = "success";
+    } else if (numAligned === 0) {
+      type = "warning";
+    } else {
+      type = "info";
+    }
+    return new Alert(type, message);
+  }
+
+  private _requestToAlertComponent(serverID, request, what, container) {
+    const source = this.config.getServer(serverID).name;
+    const factory: ComponentFactory<AlertComponent> = this.resolver.resolveComponentFactory(AlertComponent);
+    const componentRef: ComponentRef<AlertComponent> = container.createComponent(factory);
+    // EVIL: Angular doesn't have a defined method for hooking dynamic components into
+    // the Angular lifecycle so we must explicitly call ngOnChanges whenever a change
+    // occurs. Even worse, there is no hook for the Output directive, so we must
+    // shoehorn the desired functionality in!
+    componentRef.instance.close = function(componentRef) {
+      componentRef.destroy();
+    }.bind(this, componentRef);
+    componentRef.instance.float = true;
+    componentRef.instance.alert = new Alert(
+      "info",
+      "Loading " + what + " from \"" + source + "\"",
+      {spinner: true},
+    );
+    componentRef.instance.ngOnChanges({});
+    request
+      .takeUntil(componentRef.instance.onClose)
+      .subscribe(
+        (response) => {
+          componentRef.instance.alert = new Alert(
+            "success",
+            "Successfully loaded " + what + " from \"" + source + "\"",
+            {closable: true, autoClose: 3},
+          );
+          componentRef.instance.ngOnChanges({});
+        },
+        (error) => {
+          componentRef.instance.alert = new Alert(
+            "danger",
+            "Failed to load " + what + " from \"" + source + "\"",
+            {closable: true},
+          );
+          componentRef.instance.ngOnChanges({});
+        });
+  }
 
   private _getMacroArgs(colors: any, highlight: string[], viewport: any): any {
     return {
@@ -307,12 +439,17 @@ export class SearchComponent implements AfterViewInit, OnInit {
 
   private _initUIState(): void {
     this.showViewers();
-    this.showLocalPlot();
+    //this.showLocalPlot();
+    this.selectedPlot = this.plotTypes.LOCAL;
     this.hideLocalGlobalPlots();
   }
 
-  private _onAlignedMicroTracks(tracks: MicroTracks, route): void {
+  private _onAlignedMicroTracks(tracks: MicroTracks, route, numReturned): void {
+    this.hideLocalGlobalPlots();
     if (tracks.groups.length > 0 && tracks.groups[0].genes.length > 0) {
+      // update alert
+      this.headerAlert = this._getHeaderAlert(tracks, numReturned);
+
       // compute how many genes each family has
       const familySizes = (tracks.groups.length > 1)
                       ? GCV.common.getFamilySizeMap(tracks.groups)
@@ -406,17 +543,8 @@ export class SearchComponent implements AfterViewInit, OnInit {
     }
   }
 
-  private _onPlotSelection(plot): void {
-    this.selectedLocal = this.selectedGlobal = undefined;
-    if (this.selectedPlot === this.plotTypes.GLOBAL) {
-      this.showGlobalPlot();
-    } else {
-      this.showLocalPlot();
-    }
-  }
-
   private _viewportDrag(d1, d2): void {
     const position = parseInt((d1 + d2) / 2, 10);
-    //this.macroTracksService.nearestGene(position);
+    this.macroTracksService.nearestGene(position);
   }
 }

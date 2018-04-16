@@ -3,13 +3,15 @@ import * as multiMacroTrackActions from "../actions/multi-macro-tracks.actions";
 import { MacroTracks } from "../models/macro-tracks.model";
 
 export interface State {
-  correlationID: number;
-  multiMacroTracks: MacroTracks[];
+  tracks: MacroTracks[];
+  loadCount: number;
+  loading: boolean;
 }
 
 export const initialState: State = {
-  correlationID: 0,
-  multiMacroTracks: undefined,
+  tracks: [],
+  loadCount: 0,
+  loading: false,
 };
 
 export function reducer(
@@ -17,66 +19,45 @@ export function reducer(
   action: multiMacroTrackActions.Actions
 ): State {
   switch (action.type) {
-    case multiMacroTrackActions.NEW:
-      return {
-        correlationID: action.correlationID,
-        multiMacroTracks: [],
+    case multiMacroTrackActions.INIT:
+      return initialState;
+    case multiMacroTrackActions.GET:
+      // Assumes the chromosome doesn't already exist
+      // TODO: should use chromosome name and source to determine if the chromosome
+      // already exists
+      const chromosome = action.payload.query;
+      const macroTracks = {
+        chromosome: chromosome.name,
+        length: chromosome.length,
+        genus: chromosome.genus,
+        species: chromosome.species,
+        source: chromosome.source,
+        tracks: [],
       };
-    case multiMacroTrackActions.ADD_CHROMOSOME:
-    {
-      // request is outdated
-      if (state.correlationID !== action.correlationID) {
-        return state;
-      }
-      // TODO: should add source to tracks so we don't merge same chromosome
-      // from different sources
-      const multiMacroTracks = state.multiMacroTracks;
-      const newMacroTracks = action.payload;
-      const chromosomes = multiMacroTracks.map((c) => c.chromosome);
-      const i = chromosomes.indexOf(newMacroTracks.chromosome);
-      // a track already exists for the chromosome
-      if (i !== -1) {
-        return state;
-      }
-      // merge track with existing track
       return {
-        correlationID: state.correlationID,
-        multiMacroTracks: multiMacroTracks.concat([newMacroTracks]),
+        tracks: state.tracks.concat([macroTracks]),
+        loadCount: state.loadCount + 1,
+        loading: true,
       };
-    }
-    case multiMacroTrackActions.ADD_TRACKS:
-    {
-      // request is outdated
-      if (state.correlationID !== action.correlationID) {
-        return state;
-      }
-      // TODO: should add source to tracks so we don't merge same chromosome
-      // from different sources
-      const multiMacroTracks = state.multiMacroTracks;
+    case multiMacroTrackActions.GET_SUCCESS:
+      const tracks = state.tracks;
       const target = action.payload.chromosome;
-      const chromosomes = multiMacroTracks.map((c) => c.chromosome);
+      const chromosomes = tracks.map((c) => c.chromosome);
       const i = chromosomes.indexOf(target);
       // a track doesn't exist for the target chromosome
       if (i === -1) {
         return state;
       }
       // merge track with existing track
-      const macroTracks = multiMacroTracks[i];
-      const updatedTracks = new MacroTracks();
-      updatedTracks.source = macroTracks.source;
-      updatedTracks.genus = macroTracks.genus;
-      updatedTracks.species = macroTracks.species;
-      updatedTracks.chromosome = macroTracks.chromosome;
-      updatedTracks.length = macroTracks.length;
-      updatedTracks.tracks = macroTracks.tracks.concat(action.payload.tracks);
-      return {
-        correlationID: state.correlationID,
-        multiMacroTracks: multiMacroTracks.slice(0, i).concat(
-          [updatedTracks],
-          multiMacroTracks.slice(i + 1)
-        ),
+      const updatedMacroTracks = {
+        ...tracks[i],
+        tracks: tracks[i].tracks.concat(action.payload.tracks),
       };
-    }
+      return {
+        tracks: tracks.map((t, j) => (j === i) ? updatedMacroTracks : t),
+        loadCount: state.loadCount - 1,
+        loading: state.loadCount > 1,
+      };
     default:
       return state;
   }
@@ -86,5 +67,5 @@ export const getMultiMacroTracksState = createFeatureSelector<State>("multiMacro
 
 export const getMultiMacroTracks = createSelector(
   getMultiMacroTracksState,
-  (state) => state.multiMacroTracks,
+  (state) => state.tracks,
 );

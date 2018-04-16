@@ -265,7 +265,7 @@ export class Macro extends Visualizer {
     // create a copy so there are no side effects when sorting
     const orderedBlocks = data.slice();
     // reverse sort by stop location so we can remove elements during iteration
-    orderedBlocks.sort((a, b) => b.stop - a.stop);
+    orderedBlocks.sort((a, b) => b.query_stop - a.query_stop);
     // create track rows
     const rows = [];
     while (orderedBlocks.length > 0) {
@@ -276,7 +276,7 @@ export class Macro extends Visualizer {
       row[0].y = y;
       // iteratively add blocks whose starts don"t overlap with the last stop
       for (let i = orderedBlocks.length - 1; i >= 0; i--) {
-        if (orderedBlocks[i].start > row[k].stop) {
+        if (orderedBlocks[i].query_start > row[k].query_stop) {
           orderedBlocks[i].y = y;
           row.push.apply(row, orderedBlocks.splice(i, 1));
           k++;
@@ -323,8 +323,8 @@ export class Macro extends Visualizer {
       .on("click", () => { this.options.blockClick(); });
     // help for generating points
     const genPoints = (b, yTop, yBottom, yMiddle) => {
-      const x1 = obj.scale(b.start);
-      const x2 = obj.scale(b.stop);
+      const x1 = obj.scale(b.query_start);
+      const x2 = obj.scale(b.query_stop);
       // draw a block if it"s large enough
       if (x2 - x1 > obj.PTR_LEN) {
         const p = [  // x, y coordinates of block
@@ -383,8 +383,8 @@ export class Macro extends Visualizer {
       .attr("text-anchor", "end")
       .text((b) => b.start + " - " + b.stop)
       .attr("data-x", (b) => {
-        const x1 = b.start;
-        const x2 = b.stop;
+        const x1 = b.query_start;
+        const x2 = b.query_stop;
         return x1 + ((x2 - x1) / 2);
       })
       .attr("data-y", (b) => (obj.BLOCK_HEIGHT + obj.PAD) * (b.y + 1))

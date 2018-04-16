@@ -23,7 +23,7 @@ export const ORDER_ALGORITHMS: Algorithm[] = [
           if (a.id === b.id) {
             return a.genes[0].x - b.genes[0].x;
           }
-          return a.id - b.id;
+          return a.id.localeCompare(b.id);
         }
         const aName = prefix(a) + a.chromosome_name;
         const bName = prefix(b) + b.chromosome_name;

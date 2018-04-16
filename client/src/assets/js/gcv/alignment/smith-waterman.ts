@@ -1,4 +1,3 @@
-import { clone } from "../common";
 import { computeScore, matrix } from "./alignment";
 
 /**
@@ -64,17 +63,17 @@ export default function smithWaterman(sequence, reference, options) {
       if (score === diag + computeScore(
         ref[i - 1], seq[j - 1], options.accessor, options.scores,
       )) {
-        outRef.unshift(clone(ref[i - 1]));
-        outSeq.unshift(clone(seq[j - 1]));
+        outRef.unshift(ref[i - 1]);
+        outSeq.unshift(seq[j - 1]);
         i -= 1;
         j -= 1;
       } else if (score === left + options.scores.gap) {
-          outRef.unshift(clone(ref[i - 1]));
+          outRef.unshift(ref[i - 1]);
           outSeq.unshift(null);
           i -= 1;
       } else if (score === up + options.scores.gap) {
         outRef.unshift(null);
-        outSeq.unshift(clone(seq[j - 1]));
+        outSeq.unshift(seq[j - 1]);
         j -= 1;
       } else {
         break;
@@ -82,7 +81,7 @@ export default function smithWaterman(sequence, reference, options) {
     }
     while (j > 0) {
       outRef.unshift(null);
-      outSeq.unshift(clone(seq[j - 1]));
+      outSeq.unshift(seq[j - 1]);
       j -= 1;
     }
     return {sequence: outSeq, reference: outRef, score: max};
