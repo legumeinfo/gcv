@@ -376,8 +376,11 @@ export class Micro extends Visualizer {
         const iStr = i.toString();
         const micro = ".GCV [data-micro-track='" + iStr + "']";
         const name = this.data.groups[i].chromosome_name;
-        const chromosome = ".GCV [data-chromosome~='" + name + "']";
-        const selection = d3.selectAll(micro + ", " + chromosome)
+        const chromosome = ".GCV [data-chromosome='" + name + "'], " +
+                           ".GCV .cs-layout [class~='" + name + "']";  // Circos.js
+        const organism = this.data.groups[i].genus + " " + this.data.groups[i].species;
+        const genusSpecies = ".GCV .legend[data-genus-species='" + organism + "']";
+        const selection = d3.selectAll(micro + ", " + chromosome + ", " + genusSpecies)
           .filter(function() {
             const t = this.getAttribute("data-micro-track");
             return t === null || t === iStr;
@@ -388,8 +391,11 @@ export class Micro extends Visualizer {
         const iStr = i.toString();
         const micro = ".GCV [data-micro-track='" + iStr + "']";
         const name = this.data.groups[i].chromosome_name;
-        const chromosome = ".GCV [data-chromosome~='" + name + "']";
-        const selection = d3.selectAll(micro + ", " + chromosome)
+        const chromosome = ".GCV [data-chromosome='" + name + "'], " +
+                           ".GCV .cs-layout [class~='" + name + "']";  // Circos.js
+        const organism = this.data.groups[i].genus + " " + this.data.groups[i].species;
+        const genusSpecies = ".GCV .legend[data-genus-species='" + organism + "']";
+        const selection = d3.selectAll(micro + ", " + chromosome + ", " + genusSpecies)
           .filter(function() {
             const t = this.getAttribute("data-micro-track");
             return t === null || t === iStr;
