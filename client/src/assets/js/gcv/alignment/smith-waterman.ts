@@ -31,7 +31,7 @@ export default function smithWaterman(sequence, reference, options) {
       for (j = 1; j < cols; j++) {
         choice[0] = 0;
         choice[1] = a[i - 1][j - 1] + computeScore(
-          ref[i - 1], seq[j - 1], options.accessor, options.scores,
+          ref[i - 1], seq[j - 1], options.accessor, options.scores, options.ignore,
         );
         choice[2] = a[i - 1][j] + options.scores.gap;
         choice[3] = a[i][j - 1] + options.scores.gap;
@@ -61,7 +61,7 @@ export default function smithWaterman(sequence, reference, options) {
       up = a[i][j - 1];
       left = a[i - 1][j];
       if (score === diag + computeScore(
-        ref[i - 1], seq[j - 1], options.accessor, options.scores,
+        ref[i - 1], seq[j - 1], options.accessor, options.scores, options.ignore,
       )) {
         outRef.unshift(ref[i - 1]);
         outSeq.unshift(seq[j - 1]);
@@ -94,6 +94,7 @@ export default function smithWaterman(sequence, reference, options) {
   options.scores.match = options.scores.match || 5;
   options.scores.mismatch = options.scores.mismatch || 0;
   options.scores.gap = options.scores.gap || -1;
+  options.ignore = options.ignore || [];
   options.reverse = options.reverse || ((s) => {
       const r = s.slice();
       r.reverse();

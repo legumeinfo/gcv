@@ -25,7 +25,7 @@ export default function repeat(sequence, reference, options) {
       for (let j = 1; j < rows; j++) {
         choice[0] = a[i][0];
         choice[1] = a[i - 1][j - 1] + computeScore(
-          ref[i - 1], seq[j - 1], options.accessor, options.scores,
+          ref[i - 1], seq[j - 1], options.accessor, options.scores, options.ignore,
         );
         // adding because passed value should be negative
         choice[2] = a[i - 1][j] + options.scores.gap;
@@ -57,12 +57,13 @@ export default function repeat(sequence, reference, options) {
         saving = false;
         const max = Math.max.apply(null, a[i]);
         const jMax = a[i].lastIndexOf(max);
-        // start a new alignment only if j is a match and the alignment"s
+        // start a new alignment only if j is a match and the alignment's
         // score meets the threshold
         // TODO: why is the matrix not being used?
-        if (jMax > 0 && i > 0 &&
-        options.accessor(ref[i - 1]) === options.accessor(seq[jMax - 1]) &&
-        max >= options.scores.threshold) {
+        const ref_f = options.accessor(ref[i - 1]);
+        const seq_f = options.accessor(seq[jMax - 1]);
+        if (jMax > 0 && i > 0 && ref_f === seq_f &&
+        options.ignore.indexOf(ref_f) === -1 && max >= options.scores.threshold) {
           length = 1;
           saving = true;
           j = jMax;
@@ -157,6 +158,7 @@ export default function repeat(sequence, reference, options) {
   options.scores.gap = options.scores.gap || -1;
   options.scores.threshold = options.scores.threshold || 10;
   options.suffixScores = options.suffixScores || false;
+  options.ignore = options.ignore || [];
   options.reverse = options.reverse || ((s) => {
       const r = s.slice();
       r.reverse();

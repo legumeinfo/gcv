@@ -6,10 +6,10 @@
  * @param {object} scores - The contains the match and mismatch scores.
  * @return {int} - The computed score.
  */
-export function computeScore(a, b, accessor, scores) {
+export function computeScore(a, b, accessor, scores, ignore) {
   a = accessor(a);
   b = accessor(b);
-  if (a === b && a !== "") {
+  if (a === b && ignore.indexOf(a) === -1) {
     return scores.match;
   }
   return scores.mismatch;

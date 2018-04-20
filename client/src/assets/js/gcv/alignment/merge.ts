@@ -4,7 +4,6 @@
  */
 export function merge(tracks) {
 // make a copy of the data (tracks)
-  //const tracks = JSON.parse(JSON.stringify(data));
   const mergedTracks = {families: tracks.families, groups: []};
   // groups tracks by group id
   const groups = {};

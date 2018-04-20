@@ -89,6 +89,7 @@ export class AlignmentService {
         },
         scores: Object.assign({}, params),
         suffixScores: true,
+        ignore: ["+", "-"],
       });
       // perform the alginments
       const alignments = [];
