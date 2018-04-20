@@ -649,13 +649,9 @@ def v1_global_plot(request):
             raise Http404
         gene_family_type = gene_family_type[0]
 
-        #find chromosome id for name
-        chromosome=Feature.objects.only('pk').filter(
-            name=POST['chromosome']
-        );
-        # find all genes with the same families
+        chromosome = get_object_or_404(Feature, name=POST['chromosome'])
         chromosome_gene_orders = GeneOrder.objects.filter(
-            chromosome=chromosome[0].feature_id
+            chromosome=chromosome
         )
         chromosome_gene_ids = chromosome_gene_orders.values_list(
             "gene", flat=True
@@ -1081,8 +1077,8 @@ def v1_1_macro_synteny(request):
         T0 = t0 = time.time()
         # parse the parameters
         query = POST['families']
-        maxinsert = POST['matched'] + 1
-        minsize   = POST['intermediate'] + 1
+        maxinsert = POST['intermediate'] + 1
+        minsize   = POST['matched'] + 1
         familymask = POST['mask']
         targets = POST.get('targets', [])
 
