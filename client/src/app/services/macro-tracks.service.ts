@@ -1,10 +1,9 @@
 // Angular
 import { Injectable } from "@angular/core";
-import { HttpClient, HttpParams } from "@angular/common/http";
+import { HttpClient } from "@angular/common/http";
 import { Observable } from "rxjs/Observable";
 import { _throw } from "rxjs/observable/throw";
 import { catchError, map } from "rxjs/operators";
-import { BehaviorSubject } from "rxjs/BehaviorSubject";
 // store
 import { Store } from "@ngrx/store";
 import * as routerActions from "../actions/router.actions";
@@ -14,16 +13,15 @@ import * as fromMacroTracks from "../reducers/macro-tracks.store";
 import * as fromMultiMacroTracks from "../reducers/multi-macro-tracks.store";
 import * as fromRouter from "../reducers/router.store";
 // app
-import { AppConfig } from "../app.config";
 import { AppRoutes } from "../constants/app-routes";
 import { BlockParams } from "../models/block-params.model";
 import { MacroChromosome } from "../models/macro-chromosome.model";
 import { MacroTrack } from "../models/macro-track.model";
 import { MacroTracks } from "../models/macro-tracks.model";
-import { GET, POST, Server } from "../models/server.model";
+import { HttpService } from "./http.service";
 
 @Injectable()
-export class MacroTracksService {
+export class MacroTracksService extends HttpService {
   blockParams: Observable<BlockParams>;
   macroChromosome: Observable<any>;
   macroTracks: Observable<MacroTracks>;
@@ -31,15 +29,10 @@ export class MacroTracksService {
   macroChromosomeLoadState: Observable<any>;
   macroTracksLoadState: Observable<any>;
 
-  requests: Observable<[any, Observable<any>]>;
-  private requestsSubject = new BehaviorSubject<[any, Observable<any>]>(undefined);
-
   private searchRoute: Observable<any>;
-  private serverIDs = AppConfig.SERVERS.map((s) => s.id);
 
-  constructor(private http: HttpClient, private store: Store<fromRoot.State>) {
-    this.requests = this.requestsSubject.asObservable()
-      .filter((request) => request !== undefined);
+  constructor(private _http: HttpClient, private store: Store<fromRoot.State>) {
+    super(_http);
     // initialize observables
     this.blockParams = store.select(fromRouter.getMacroBlockParams);
     this.macroChromosome = store.select(fromMacroChromosome.getMacroChromosome);
@@ -150,33 +143,6 @@ export class MacroTracksService {
     const path = [];
     const query = Object.assign({}, params);
     this.store.dispatch(new routerActions.Go({path, query}));
-  }
-
-  // encapsulates HTTP request boilerplate
-  private _makeRequest<T>(serverID: string, requestType: string, body: any): Observable<T> {
-    const args = {serverID, requestType, body};
-    let source: Server;
-    const i = AppConfig.SERVERS.map((s) => s.id).indexOf(serverID);
-    if (i > -1) {
-      source = AppConfig.SERVERS[i];
-    } else {
-      return Observable.throw("\"" + serverID + "\" is not a valid server ID");
-    }
-    if (!source.hasOwnProperty(requestType)) {
-      return Observable.throw("\"" + serverID + "\" does not support requests of type \"" + requestType + "\"");
-    }
-    const request = source[requestType];
-    const params = new HttpParams({fromObject: body});
-    if (request.type === GET) {
-      const requestObservable = this.http.get<T>(request.url, {params});
-      this.requestsSubject.next([args, requestObservable]);
-      return requestObservable;
-    } else if (request.type === POST) {
-      const requestObservable = this.http.post<T>(request.url, body);
-      this.requestsSubject.next([args, requestObservable]);
-      return requestObservable;
-    }
-    return Observable.throw("\"" + serverID + "\" requests of type \"" + requestType + "\" does not support HTTP GET or POST methods");
   }
 
   // adds the server id the track came from to the track and its genes

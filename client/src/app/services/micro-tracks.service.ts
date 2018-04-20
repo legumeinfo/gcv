@@ -1,10 +1,9 @@
 // Angular
-import { HttpClient, HttpParams } from "@angular/common/http";
+import { HttpClient } from "@angular/common/http";
 import { Injectable } from "@angular/core";
 import { Observable } from "rxjs/Observable";
 import { _throw } from "rxjs/observable/throw";
 import { catchError, map } from "rxjs/operators";
-import { BehaviorSubject } from "rxjs/BehaviorSubject";
 // store
 import { Store } from "@ngrx/store";
 import * as routerActions from "../actions/router.actions";
@@ -14,25 +13,20 @@ import * as fromMicroTracks from "../reducers/micro-tracks.store";
 import * as fromRouter from "../reducers/router.store";
 import * as fromSearchQueryTrack from "../reducers/search-query-track.store";
 // app
-import { AppConfig } from "../app.config";
 import { Group } from "../models/group.model";
 import { MicroTracks } from "../models/micro-tracks.model";
 import { QueryParams } from "../models/query-params.model";
-import { GET, POST, Server } from "../models/server.model";
+import { HttpService } from "./http.service";
 
 @Injectable()
-export class MicroTracksService {
+export class MicroTracksService extends HttpService {
   microTracks: Observable<MicroTracks>;
   queryParams: Observable<QueryParams>;
   routeParams: Observable<any>;
   searchQueryTrack: Observable<Group>;
 
-  requests: Observable<[any, Observable<any>]>;
-  private requestsSubject = new BehaviorSubject<[any, Observable<any>]>(undefined);
-
-  constructor(private http: HttpClient, private store: Store<fromRoot.State>) {
-    this.requests = this.requestsSubject.asObservable()
-      .filter((request) => request !== undefined);
+  constructor(private _http: HttpClient, private store: Store<fromRoot.State>) {
+    super(_http);
     // initialize observables
     this.microTracks = store.select(fromMicroTracks.getMicroTracks);
     this.queryParams = store.select(fromRouter.getMicroQueryParams);
@@ -70,6 +64,7 @@ export class MicroTracksService {
 
   // fetches a query track for the given gene from the given source
   getQueryTrack(gene: string, neighbors: number, serverID: string): Observable<Group> {
+    console.log("get query service");
     const body = {gene, neighbors: String(neighbors)};
     return this._makeRequest<Group>(serverID, "microQuery", body).pipe(
       map((track) => {
@@ -142,33 +137,6 @@ export class MicroTracksService {
         observer.complete();
       });
     });
-  }
-
-  // encapsulates HTTP request boilerplate
-  private _makeRequest<T>(serverID: string, requestType: string, body: any): Observable<T> {
-    const args = {serverID, requestType, body};
-    let source: Server;
-    const i = AppConfig.SERVERS.map((s) => s.id).indexOf(serverID);
-    if (i > -1) {
-      source = AppConfig.SERVERS[i];
-    } else {
-      return Observable.throw("\"" + serverID + "\" is not a valid server ID");
-    }
-    if (!source.hasOwnProperty(requestType)) {
-      return Observable.throw("\"" + serverID + "\" does not support requests of type \"" + requestType + "\"");
-    }
-    const request = source[requestType];
-    const params = new HttpParams({fromObject: body});
-    if (request.type === GET) {
-      const requestObservable = this.http.get<T>(request.url, {params});
-      this.requestsSubject.next([args, requestObservable]);
-      return requestObservable;
-    } else if (request.type === POST) {
-      const requestObservable = this.http.post<T>(request.url, body);
-      this.requestsSubject.next([args, requestObservable]);
-      return requestObservable;
-    }
-    return Observable.throw("\"" + serverID + "\" requests of type \"" + requestType + "\" does not support HTTP GET or POST methods");
   }
 
   // adds the server id the track came from to the track and its genes
