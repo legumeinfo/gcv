@@ -12,6 +12,7 @@ import * as microTracksActions from "../actions/micro-tracks.actions";
 import * as multiMacroChromosomeActions from "../actions/multi-macro-chromosome.actions";
 import * as multiMacroTracksActions from "../actions/multi-macro-tracks.actions";
 import * as fromRoot from "../reducers";
+import * as fromMicroTracks from "../reducers/micro-tracks.store";
 import * as fromMultiMacroChromosome from "../reducers/multi-macro-chromosome.store";
 import * as fromRouter from "../reducers/router.store";
 // services
@@ -68,14 +69,24 @@ export class MacroTracksEffects {
   getMultiTracksSuccess$ = this.actions$.pipe(
     ofType(microTracksActions.GET_MULTI_SUCCESS),
     map((action: microTracksActions.GetMultiSuccess) => action.payload),
-    map(({tracks, source}) => {
-      const chromosomes = tracks.groups.map((group) => {
-        return {
-          name: group.chromosome_name,
-          genus: group.genus,
-          species: group.species,
-        };
-      });
+    withLatestFrom(this.store.select(fromMicroTracks.getMicroTracks)),
+    map(([{tracks, source}, existingTracks]) => {
+      // assumes the tracks are appended to the end of existingTracks
+      const uniqueLoadedChromosomes = new Set(
+        existingTracks.groups
+          .slice(0, existingTracks.groups.length - tracks.groups.length)
+          .map((g) => g.chromosome_name)
+      );
+      // only fetch chromosomes for tracks whose chromosome hasn't been loaded yet
+      const chromosomes = tracks.groups
+        .filter((g) => !uniqueLoadedChromosomes.has(g.chromosome_name))
+        .map((group) => {
+          return {
+            name: group.chromosome_name,
+            genus: group.genus,
+            species: group.species,
+          };
+        });
       return new multiMacroChromosomeActions.Get({chromosomes, source});
     })
   );
@@ -96,7 +107,7 @@ export class MacroTracksEffects {
           chromosome.name = query.name;
           chromosome.genus = query.genus;
           chromosome.species = query.species;
-          return new multiMacroChromosomeActions.GetSuccess({chromosome});
+          return new multiMacroChromosomeActions.GetSuccess({chromosome, source});
         }),
         catchError(([source, error]) => of(new multiMacroChromosomeActions.GetFailure({error, source})))
       )
@@ -131,11 +142,16 @@ export class MacroTracksEffects {
         this.actions$.pipe(ofType(microTracksActions.GET_MULTI)),
         this.store.select(fromRouter.getMacroBlockParams),
       );
-      return this.macroTracksService.getFederatedMacroTracks(query, params, sources, targets).pipe(
+      return this.macroTracksService.getFederatedMacroTracks(
+        query,
+        params,
+        sources,
+        targets
+      ).pipe(
         takeUntil(stop),
         map(([source, tracks]) => {
           const chromosome = query.name;
-          return new multiMacroTracksActions.GetSuccess({chromosome, tracks});
+          return new multiMacroTracksActions.GetSuccess({chromosome, tracks, source});
         }),
         catchError(([source, error]) => of(new multiMacroTracksActions.GetFailure({error, source})))
       )

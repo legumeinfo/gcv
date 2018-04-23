@@ -17,7 +17,7 @@ export class Get implements Action {
 
 export class GetSuccess implements Action {
   readonly type = GET_SUCCESS;
-  constructor(public payload: {chromosome: MacroChromosome}) { }
+  constructor(public payload: {chromosome: MacroChromosome, source: string}) { }
 }
 
 export class GetFailure implements Action {

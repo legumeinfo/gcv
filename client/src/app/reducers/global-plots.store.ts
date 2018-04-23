@@ -3,7 +3,9 @@ import { createFeatureSelector, createSelector } from "@ngrx/store";
 import * as globalPlotsActions from "../actions/global-plots.actions";
 import { Group } from "../models/group.model";
 
-const adapter = createEntityAdapter<Group>();
+const adapter = createEntityAdapter<Group>({
+  selectId: (e) => e.chromosome_id,
+});
 
 export interface State extends EntityState<Group> {
   selectedPlotID: string | null;
