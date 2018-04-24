@@ -71,7 +71,7 @@ export class MacroTracksEffects {
     map((action: microTracksActions.GetMultiSuccess) => action.payload),
     withLatestFrom(this.store.select(fromMicroTracks.getMicroTracks)),
     map(([{tracks, source}, existingTracks]) => {
-      // assumes the tracks are appended to the end of existingTracks
+      // assumes tracks is appended to the end of existingTracks
       const uniqueLoadedChromosomes = new Set(
         existingTracks.groups
           .slice(0, existingTracks.groups.length - tracks.groups.length)
@@ -79,7 +79,13 @@ export class MacroTracksEffects {
       );
       // only fetch chromosomes for tracks whose chromosome hasn't been loaded yet
       const chromosomes = tracks.groups
-        .filter((g) => !uniqueLoadedChromosomes.has(g.chromosome_name))
+        .filter((g) => {
+          if (uniqueLoadedChromosomes.has(g.chromosome_name)) {
+            return false;
+          }
+          uniqueLoadedChromosomes.add(g.chromosome_name);
+          return true;
+        })
         .map((group) => {
           return {
             name: group.chromosome_name,
