@@ -28,9 +28,9 @@ export class AppConfig {
     return server;
   }
 
-  public load() {
+  public load(): Promise<any> {
     this.config = configFile;
-    this._loadServers(this.getConfig("servers") || AppConfig.SERVERS);
+    return this._loadServers(this.getConfig("servers") || AppConfig.SERVERS);
   }
 
   // general support for namespace function strings
@@ -67,25 +67,37 @@ export class AppConfig {
     });
   }
 
-  private _loadServers(servers: any[]): void {
-    servers.forEach((s) => {
-      if (s.macroColors !== undefined
-      &&  s.macroColors.scriptUrl !== undefined
-      &&  s.macroColors.functionName !== undefined) {
-        this._loadScript(s.macroColors.scriptUrl || "").then(
-          () => {
-            s.macroColors.function = (args) => {
-              return this._executeFunctionByName(s.macroColors.functionName, window, args);
-            };
-          }, (error) => {
-            delete s.macroColors;
-          },
-        );
-      } else {
-        delete s.macroColors;
-      }
-    });
+  private _setAndFreezeServers(servers: any[]): void {
     AppConfig.SERVERS = servers;
     Object.freeze(AppConfig.SERVERS);
+  }
+
+  private _loadServers(servers: any[]): Promise<any> {
+    return Promise.all(
+      servers
+        .filter((s) => {
+          return s.macroColors !== undefined &&
+                 s.macroColors.scriptUrl !== undefined &&
+                 s.macroColors.functionName !== undefined;
+        })
+        .map((s) => {
+          return this._loadScript(s.macroColors.scriptUrl || "").then(
+            () => {
+              s.macroColors.function = (args) => {
+                return this._executeFunctionByName(s.macroColors.functionName, window, args);
+              };
+            }, (error) => {
+              delete s.macroColors;
+              console.log("Failed to load macro-synteny colors");
+            },
+          );
+        })
+      )
+      .then(() => {
+        this._setAndFreezeServers(servers);
+      })
+      .catch((error) => {
+        this._setAndFreezeServers(servers);
+      });
   }
 }
