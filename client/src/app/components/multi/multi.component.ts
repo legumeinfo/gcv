@@ -122,6 +122,13 @@ export class MultiComponent implements AfterViewInit, OnDestroy, OnInit {
       });
 
     // subscribe to micro track data
+    this.alignmentService.alignedMicroTracks
+      .withLatestFrom(this.microTracksService.routeParams)
+      .takeUntil(this.destroy)
+      .subscribe(([tracks, route]) => {
+        this._onAlignedMicroTracks(tracks as MicroTracks, route);
+      });
+
     const filteredMicroTracks = Observable
       .combineLatest(
         this.alignmentService.alignedMicroTracks,
@@ -131,11 +138,9 @@ export class MultiComponent implements AfterViewInit, OnDestroy, OnInit {
       .let(microTracksSelector({prefix: (t) => "group " + t.cluster + " - "}));
 
     filteredMicroTracks
-      .withLatestFrom(this.microTracksService.routeParams)
-      .filter(([tracks, route]) => route.genes !== undefined)
       .takeUntil(this.destroy)
-      .subscribe(([tracks, route]) => {
-        this._onAlignedMicroTracks(tracks as MicroTracks, route);
+      .subscribe((tracks) => {
+        this.microTracks = tracks as MicroTracks;
       });
 
     // subscribe to macro track data
@@ -262,9 +267,6 @@ export class MultiComponent implements AfterViewInit, OnDestroy, OnInit {
       this.microLegend = uniqueFamilies.filter((f) => {
         return presentFamilies.indexOf(f.id) !== -1 && f.name !== "";
       });
-
-      // update micro track data
-      this.microTracks = tracks;
     }
   }
 

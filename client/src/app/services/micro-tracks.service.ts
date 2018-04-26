@@ -64,7 +64,6 @@ export class MicroTracksService extends HttpService {
 
   // fetches a query track for the given gene from the given source
   getQueryTrack(gene: string, neighbors: number, serverID: string): Observable<Group> {
-    console.log("get query service");
     const body = {gene, neighbors: String(neighbors)};
     return this._makeRequest<Group>(serverID, "microQuery", body).pipe(
       map((track) => {

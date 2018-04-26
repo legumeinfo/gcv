@@ -164,6 +164,17 @@ export class SearchComponent implements AfterViewInit, OnDestroy, OnInit {
       });
 
     // subscribe to micro track data
+    this.alignmentService.alignedMicroTracks
+      .withLatestFrom(
+        this.microTracksService.routeParams,
+        this.microTracksService.microTracks
+          .map((tracks) => tracks.groups.length),
+      )
+      .takeUntil(this.destroy)
+      .subscribe(([tracks, route, numReturned]) => {
+        this._onAlignedMicroTracks(tracks as MicroTracks, route, numReturned);
+      });
+
     const filteredMicroTracks = Observable
       .combineLatest(
         this.alignmentService.alignedMicroTracks,
@@ -173,14 +184,9 @@ export class SearchComponent implements AfterViewInit, OnDestroy, OnInit {
       .let(microTracksSelector({skipFirst: true}));
 
     filteredMicroTracks
-      .withLatestFrom(
-        this.microTracksService.routeParams,
-        this.microTracksService.microTracks
-          .map((tracks) => tracks.groups.length),
-      )
       .takeUntil(this.destroy)
-      .subscribe(([tracks, route, numReturned]) => {
-        this._onAlignedMicroTracks(tracks as MicroTracks, route, numReturned);
+      .subscribe((tracks) => {
+        this.microTracks = tracks as MicroTracks;
       });
 
     // subscribe to macro track data
@@ -522,9 +528,6 @@ export class SearchComponent implements AfterViewInit, OnDestroy, OnInit {
       this.microLegend = uniqueFamilies.filter((f) => {
         return presentFamilies.indexOf(f.id) !== -1 && f.name !== "";
       });
-
-      // update micro track data
-      this.microTracks = tracks;
     }
   }
 
