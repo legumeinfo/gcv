@@ -155,7 +155,7 @@ export class SearchGuard implements CanActivate, CanDeactivate<SearchComponent> 
       .filter((chromosome) => chromosome !== undefined);
     const blockParams = this.store.select(fromRouter.getMacroBlockParams)
       .distinctUntilChanged((a, b) => {
-        return a.bmatched  === b.bmatched &&
+        return a.bmatched === b.bmatched &&
                a.bintermediate === b.bintermediate &&
                a.bmask === b.bmask;
       });

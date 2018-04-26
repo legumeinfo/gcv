@@ -119,6 +119,11 @@ export class MultiGuard implements CanActivate, CanDeactivate<MultiComponent> {
     const stop = this.activated.filter((isActive) => !isActive);
     // load new macro tracks when the block params change
     const blockParams = this.store.select(fromRouter.getMacroBlockParams)
+      .distinctUntilChanged((a, b) => {
+        return a.bmatched === b.bmatched &&
+               a.bintermediate === b.bintermediate &&
+               a.bmask === b.bmask;
+      });
     const macroChromosomes = this.store.select(fromMultiMacroChromosome.getMultiMacroChromosomes);
     const querySources = this.store.select(fromRouter.getMicroQueryParamSources);
     blockParams
