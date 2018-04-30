@@ -169,16 +169,26 @@ my $gene_family_id = $conn->selectrow_array("SELECT cvterm_id FROM cvterm WHERE 
 if ( !$gene_family_id ) {
     $query_string = "INSERT INTO cvterm (cv_id, name, definition, dbxref_id) VALUES ($cv_id, 'gene family', 'a group of genes presumed to be related by common ancestry', $dbxref_id);";
     if ( !$conn->do($query_string) ) {
-        Retreat("Failed to add feature to database\n");
+        Retreat("Failed to add cvterm to database\n");
     }
     $gene_family_id = $conn->selectrow_array("SELECT cvterm_id FROM cvterm WHERE name='gene family' LIMIT 1;");
+}
+# check to see if there's a cvterm for family representatives in the database
+my $family_representative_id = $conn->selectrow_array("SELECT cvterm_id FROM cvterm WHERE name='family representative' LIMIT 1;");
+# does it exist?
+if ( !$family_representative_id ) {
+    $query_string = "INSERT INTO cvterm (cv_id, name, definition, dbxref_id) VALUES ($cv_id, 'family representative', 'indicates which of the derived entities (choice of isoform or polypeptide) represents the gene in the context of the tree', $dbxref_id);";
+    if ( !$conn->do($query_string) ) {
+        Retreat("Failed to add cvterm to database\n");
+    }
+    $family_representative_id = $conn->selectrow_array("SELECT cvterm_id FROM cvterm WHERE name='family representative' LIMIT 1;");
 }
 
 
 # nuke the old featureprop entries... if we're supposed to
 if( $nuke ) {
     print "Deleting old entries\n";
-    $query_string = "DELETE FROM featureprop WHERE type_id=$gene_family_id;";
+    $query_string = "DELETE FROM featureprop WHERE type_id in ($gene_family_id, $family_representative_id)";
     $query = $conn->prepare($query_string);
     $query->execute();
     $query_string = "TRUNCATE TABLE gene_family_assignment;";
@@ -186,6 +196,7 @@ if( $nuke ) {
     $query->execute();
 }
 my %gene2families;
+my %id2family_representative;
 # get all the phylotree from the database
 $query_string = "SELECT phylotree_id, name FROM phylotree WHERE name!='NCBI taxonomy tree'";
 if (defined $family_name) {
@@ -198,7 +209,7 @@ while( my @tree = $query->fetchrow_array() ) {
     my ($tree_id, $tree_name) = @tree;
     print "Adding entries for tree $tree_id\n";
     # get the peptide ids
-    $query_string = "SELECT DISTINCT feature_id FROM phylonode WHERE phylotree_id=$tree_id;";
+    $query_string = "SELECT DISTINCT feature_id, label FROM phylonode WHERE phylotree_id=$tree_id;";
     my $peptide_query = $conn->prepare($query_string);
     $peptide_query->execute();
     print "    num peptides: " . $peptide_query->rows() . "\n";
@@ -206,10 +217,13 @@ while( my @tree = $query->fetchrow_array() ) {
         next;
     }
     # get the mrna ids
-    $query_string = "SELECT DISTINCT object_id FROM feature_relationship WHERE subject_id IN (";
+    $query_string = "SELECT DISTINCT object_id, subject_id FROM feature_relationship WHERE subject_id IN (";
     while( my @peptide = $peptide_query->fetchrow_array() ) {
-        my ($peptide_id) = @peptide;
-        $query_string .= $peptide_id . "," if( $peptide_id);
+        my ($peptide_id, $label) = @peptide;
+        if ($peptide_id) {
+            $id2family_representative{$peptide_id} = $label;
+            $query_string .= $peptide_id . ",";
+        }
     }
     $query_string = substr($query_string, 0, -1) . ");";
     my $mrna_query = $conn->prepare($query_string);
@@ -218,9 +232,10 @@ while( my @tree = $query->fetchrow_array() ) {
         next;
     }
     # get the gene ids
-    $query_string = "SELECT DISTINCT object_id FROM feature_relationship WHERE subject_id IN (";
+    $query_string = "SELECT DISTINCT object_id, subject_id FROM feature_relationship WHERE subject_id IN (";
     while( my @mrna = $mrna_query->fetchrow_array() ) {
-        my ($mrna_id) = @mrna;
+        my ($mrna_id, $peptide_id) = @mrna;
+        $id2family_representative{$mrna_id} = $id2family_representative{$peptide_id};
         $query_string .= $mrna_id . ",";
     }
     $query_string = substr($query_string, 0, -1) . ");";
@@ -230,30 +245,45 @@ while( my @tree = $query->fetchrow_array() ) {
         next;
     }
     while( my @gene = $gene_query->fetchrow_array() ) {
-        my ($gene_id) = @gene;
-	$gene2families{$gene_id}->{$tree_name} = 1;
+        my ($gene_id, $mrna_id) = @gene;
+        $id2family_representative{$gene_id} = $id2family_representative{$mrna_id};
+	    $gene2families{$gene_id}->{$tree_name} = 1;
     }
 }
-my $insert_featureprop = $conn->prepare("INSERT INTO featureprop (feature_id, type_id, value, rank) VALUES(?, $gene_family_id, ?, ?);");
+my $insert_featureprop_gf = $conn->prepare("INSERT INTO featureprop (feature_id, type_id, value, rank) VALUES(?, $gene_family_id, ?, ?);");
+my $insert_featureprop_fr = $conn->prepare("INSERT INTO featureprop (feature_id, type_id, value, rank) VALUES(?, $family_representative_id, ?, ?);");
 my $insert_gene_family_assignment = $conn->prepare("INSERT INTO gene_family_assignment (gene_id, family_label) VALUES(?, ?);");
 foreach my $gene_id (keys %gene2families) {
     my $families = join(" ", sort keys %{$gene2families{$gene_id}});
+    my $family_representative = $id2family_representative{$gene_id};
     # add an entry to the featureprop table for each gene
     if ($nuke) {
-        $insert_featureprop->execute($gene_id, $families, 0);
+        $insert_featureprop_gf->execute($gene_id, $families, 0);
+        $insert_featureprop_fr->execute($gene_id, $family_representative, 0);
         foreach my $family (keys %{$gene2families{$gene_id}}) {
             $insert_gene_family_assignment->execute($gene_id, $family);
         }
     }
     else {
-            my $featureprop_id = $conn->selectrow_array("SELECT featureprop_id FROM featureprop WHERE feature_id=$gene_id AND value='$families' AND type_id=$gene_family_id LIMIT 1;");
+            my $gf_featureprop_id = $conn->selectrow_array("SELECT featureprop_id FROM featureprop WHERE feature_id=$gene_id AND value='$families' AND type_id=$gene_family_id LIMIT 1;");
             # does it exist?
-            if ( !$featureprop_id ) {
+            if ( !$gf_featureprop_id ) {
                 my $max_rank = $conn->selectrow_array("SELECT max(rank) FROM featureprop WHERE feature_id=$gene_id AND type_id=$gene_family_id;");
                 if( !( defined $max_rank ) ) {
-                        $insert_featureprop->execute($gene_id, $families, 0);
+                        $insert_featureprop_gf->execute($gene_id, $families, 0);
                 } else {
-                        $insert_featureprop->execute($gene_id, $families, $max_rank+1);
+                        $insert_featureprop_gf->execute($gene_id, $families, $max_rank+1);
+                }
+            }
+
+            my $fr_featureprop_id = $conn->selectrow_array("SELECT featureprop_id FROM featureprop WHERE feature_id=$gene_id AND value='$families' AND type_id=$family_representative_id LIMIT 1;");
+            # does it exist?
+            if ( !$fr_featureprop_id ) {
+                my $max_rank = $conn->selectrow_array("SELECT max(rank) FROM featureprop WHERE feature_id=$gene_id AND type_id=$family_representative_id;");
+                if( !( defined $max_rank ) ) {
+                        $insert_featureprop_fr->execute($gene_id, $families, 0);
+                } else {
+                        $insert_featureprop_fr->execute($gene_id, $families, $max_rank+1);
                 }
             }
             foreach my $family (keys %{$gene2families{$gene_id}}) {
