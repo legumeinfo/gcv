@@ -1,13 +1,20 @@
 // Angular
-import { Component } from '@angular/core';
-import { Router }    from '@angular/router';
+import { Component } from "@angular/core";
+import { Router } from "@angular/router";
 
 // App
-import { AppConfig } from '../../app.config';
+import { AppConfig } from "../../app.config";
 
 @Component({
   moduleId: module.id.toString(),
-  selector: 'app-gene-search',
+  selector: "app-gene-search",
+  styles: [`
+    .select {
+      width: auto;
+      display: inline-block;
+    }
+    form button { margin-right: 0; }
+  `],
   template: `
     <form (ngSubmit)="submit()" #gneSearchForm="ngForm">
       <div class="input-group">
@@ -26,24 +33,16 @@ import { AppConfig } from '../../app.config';
       </div>
     </form>
   `,
-  styles: [`
-    .select {
-      width: auto;
-      display: inline-block;
-    }
-    form button { margin-right: 0; }
-  `]
 })
-
 export class GeneSearchComponent {
 
-  public servers: Array<any> = AppConfig.SERVERS;
-  public model: any = {source: this.servers[0], gene: ''};
+  public servers: any[] = AppConfig.SERVERS;
+  public model: any = {source: this.servers[0], gene: ""};
 
-  constructor(private _router: Router) { }
+  constructor(private router: Router) { }
 
   submit(): void {
-    let url = '/search/' + this.model.source.id + '/' + this.model.gene;
-    this._router.navigateByUrl(url);
+    const url = "/search/" + this.model.source.id + "/" + this.model.gene;
+    this.router.navigateByUrl(url);
   }
 }

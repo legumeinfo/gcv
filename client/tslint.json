@@ -1,0 +1,13 @@
+{
+  "defaultSeverity": "error",
+  "extends": [
+    "tslint:recommended"
+  ],
+  "jsRules": {},
+  "rules": {
+    "member-access": false,
+    "eofline": false,
+    "no-shadowed-variable": true
+  },
+  "rulesDirectory": []
+}

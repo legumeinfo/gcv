@@ -1,14 +1,13 @@
 // Angular + dependencies
-import { Component } from '@angular/core';
-import { GCV }       from '../../../assets/js/gcv';
+import { Component } from "@angular/core";
+import { GCV } from "../../../assets/js/gcv";
 
 // App
-import { Viewer }      from './viewer.component';
+import { Viewer } from "./viewer.component";
 
 @Component({
   moduleId: module.id.toString(),
-  selector: 'viewer-micro',
-  templateUrl: 'viewer.component.html',
+  selector: "viewer-micro",
   styles: [`
     .viewer {
       position: absolute;
@@ -19,19 +18,19 @@ import { Viewer }      from './viewer.component';
       overflow-x: hidden;
       overflow-y: auto;
     }
-  `]
+  `],
+  template: require("./viewer.component.html"),
 })
-
 export class MicroViewerComponent extends Viewer {
 
   constructor() {
-    super('Micro-Synteny');
+    super("Micro-Synteny");
   }
 
   draw(): void {
     if (this.el !== undefined && this.data !== undefined) {
       this.destroy();
-      var colorDomainStr = localStorage.getItem("viewer-micro-color-domain");
+      const colorDomainStr = localStorage.getItem("viewer-micro-color-domain");
       if (colorDomainStr != null) {
         this.colors.domain(colorDomainStr.split(","));
       }
@@ -39,7 +38,7 @@ export class MicroViewerComponent extends Viewer {
         this.el.nativeElement,
         this.colors,
         this.data,
-        this.args
+        this.args,
       );
       localStorage.setItem("viewer-micro-color-domain", this.colors.domain());
     }

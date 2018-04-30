@@ -1,4 +1,4 @@
-import { Gene } from './gene.model';
+import { Gene } from "./gene.model";
 
 export class Group {
   species_id: number;
@@ -7,6 +7,9 @@ export class Group {
   chromosome_id: number;
   chromosome_name: string;
   genes: Gene[];
+  // TODO: introduce options as mixins
   source?: string;  // Server ID
-  id: number;  // unique
+  id?: string;  // unique
+  score?: number;
+  cluster?: number;
 }

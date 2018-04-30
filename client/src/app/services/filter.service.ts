@@ -1,34 +1,39 @@
 // Angular
-import { Injectable }      from '@angular/core';
-import { Observable }      from 'rxjs/Observable';
-import { Store }           from '@ngrx/store';
-
-// App
-import { Algorithm }    from '../models/algorithm.model';
-import { AppStore }     from '../models/app-store.model';
-import { StoreActions } from '../constants/store-actions';
+import { Injectable } from "@angular/core";
+import { Observable } from "rxjs/Observable";
+// store
+import { Store } from "@ngrx/store";
+import * as orderFilterActions from "../actions/order-filter.actions";
+import * as regexpFilterActions from "../actions/regexp-filter.actions";
+import * as fromRoot from "../reducers";
+import * as fromOrderFilter from "../reducers/order.store";
+import * as fromRegexpFilter from "../reducers/regexp.store";
+// app
+import { ORDER_ALGORITHMS } from '../constants/order-algorithms';
+import { Algorithm } from "../models/algorithm.model";
+import { regexpAlgorithmFactory } from "../utils/regexp-algorithm-factory.util";
 
 @Injectable()
 export class FilterService {
-  alignment: Observable<Algorithm>;
-  order: Observable<Algorithm>;
-  regexp: Observable<Algorithm>;
+  orderAlgorithm: Observable<Algorithm>;
+  regexpAlgorithm: Observable<Algorithm>;
 
-  constructor(private _store: Store<AppStore>) {
-    this.alignment = this._store.select('alignmentFilter');
-    this.order = this._store.select('orderFilter');
-    this.regexp = this._store.select('regexpFilter');
-  }
+  private orderIDs = ORDER_ALGORITHMS.map(a => a.id);
 
-  setAlignment(alignment: Algorithm): void {
-    this._store.dispatch({type: StoreActions.SET_ALIGNMENT, payload: alignment});
+  constructor(private store: Store<fromRoot.State>) {
+    this.orderAlgorithm = this.store.select(fromOrderFilter.getOrderFilterAlgorithm);
+    this.regexpAlgorithm = this.store.select(fromRegexpFilter.getRegexpFilterAlgorithm);
   }
 
   setOrder(order: string): void {
-    this._store.dispatch({type: StoreActions.SET_ORDER, payload: order});
+    const i = this.orderIDs.indexOf(order);
+    if (i > -1) {
+      this.store.dispatch(new orderFilterActions.New(ORDER_ALGORITHMS[i]));
+    }
   }
 
   setRegexp(regexp: string): void {
-    this._store.dispatch({type: StoreActions.SET_REGEXP, payload: regexp});
+    const algorithm = regexpAlgorithmFactory(regexp);
+    this.store.dispatch(new regexpFilterActions.New(algorithm));
   }
 }

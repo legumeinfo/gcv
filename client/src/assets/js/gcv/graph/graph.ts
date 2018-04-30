@@ -1,21 +1,7 @@
 /**
-  * An effectively abstract class describing what it means to be a graph.
-  */
+ * An effectively abstract class describing what it means to be a graph.
+ */
 export abstract class Graph {
-  ed: String;
-  nodes: Object;
-  edges: Object;
-  Child: any;
-  constructor(edgeDelimiter=":") {
-    if (new.target === Graph) {
-      throw new TypeError("Cannot construct Graph instances directly");
-    }
-    this.Child = new.target;
-    this.checkStaticOverride("Node");
-    this.ed    = edgeDelimiter;
-    this.nodes = {};
-    this.edges = {};
-  }
   static Node = class {
     attr: any;
     constructor(attr) {
@@ -24,6 +10,20 @@ export abstract class Graph {
       }
       this.attr = attr;
     }
+  };
+  ed: string;
+  nodes: object;
+  edges: object;
+  Child: any;
+  constructor(edgeDelimiter = ":") {
+    if (new.target === Graph) {
+      throw new TypeError("Cannot construct Graph instances directly");
+    }
+    this.Child = new.target;
+    this.checkStaticOverride("Node");
+    this.ed    = edgeDelimiter;
+    this.nodes = {};
+    this.edges = {};
   }
   // primitive operations
   checkStaticOverride(attr) {
@@ -39,7 +39,8 @@ export abstract class Graph {
   addNode(id, attr) {
     if (!this.nodes.hasOwnProperty(id)) {
       this.nodes[id] = new this.Child.Node(attr);
-    } return this.getNode(id);
+    }
+    return this.getNode(id);
   }
   updateNode(id, attr) {
     if (this.nodes.hasOwnProperty(id)) {
@@ -55,7 +56,8 @@ export abstract class Graph {
   getNode(id) {
     if (this.nodes.hasOwnProperty(id)) {
       return this.nodes[id];
-    } return null;
+    }
+    return null;
   }
   // abstract methods
   abstract removeNodeEdges(id): void;

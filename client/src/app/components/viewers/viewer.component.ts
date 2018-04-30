@@ -1,15 +1,22 @@
 // Angular
 import { AfterViewInit, Component, ElementRef, Input, OnChanges, OnDestroy,
-  SimpleChanges, ViewChild } from '@angular/core';
+  SimpleChanges, ViewChild } from "@angular/core";
 
 @Component({
   moduleId: module.id.toString(),
-  selector: 'viewer',
-  template: '',
-  styles: [ '' ]
+  selector: "viewer",
+  styles: [ "" ],
+  template: "",
 })
-
 export abstract class Viewer implements AfterViewInit, OnChanges, OnDestroy {
+
+  // view children
+
+  @ViewChild("viewerContainer") el: ElementRef;
+
+  // variables
+  title: string;
+  viewer: any;
 
   // inputs
 
@@ -17,21 +24,13 @@ export abstract class Viewer implements AfterViewInit, OnChanges, OnDestroy {
   @Input() colors: any;
   protected args;
   @Input()
-  set arguments(args: Object) {
+  set arguments(args: object) {
     this.args = Object.assign({}, args);
   }
 
-  // view children
-
-  @ViewChild('viewerContainer') el: ElementRef;
-
-  // variables
-  title: String;
-  viewer: any;
-
   // constructor
 
-  constructor(private instanceTitle: String) {
+  constructor(private instanceTitle: string) {
     this.title = instanceTitle;
   }
 
@@ -49,6 +48,20 @@ export abstract class Viewer implements AfterViewInit, OnChanges, OnDestroy {
     this.destroy();
   }
 
+  // public
+
+  saveAsJSON(data): void {
+    this.saveFile(JSON.stringify(data), "application/json", "json");
+  }
+
+  saveXMLasSVG(xml): void {
+    this.saveFile(xml, "image/svg+xml", "svg");
+  }
+
+  // abstract
+
+  abstract draw(): void;
+
   // private
 
   protected destroy(): void {
@@ -59,32 +72,18 @@ export abstract class Viewer implements AfterViewInit, OnChanges, OnDestroy {
   }
 
   protected saveFile(data, type, ext): void {
-    let blob = new Blob([data], {type: type});
+    const blob = new Blob([data], {type});
     // save the data
-    let url = window.URL.createObjectURL(blob);
-    let a: any = document.createElement('a');
-    a.style = 'display: none';
+    const url = window.URL.createObjectURL(blob);
+    const a: any = document.createElement("a");
+    a.style = "display: none";
     a.href = url;
-    let date = new Date();
-    let prefix = (this.title !== undefined) ? this.title + '-' : '';
-    a.download = prefix + date.toISOString() + '.' + ext;
+    const date = new Date();
+    const prefix = (this.title !== undefined) ? this.title + "-" : "";
+    a.download = prefix + date.toISOString() + "." + ext;
     document.body.appendChild(a);
     a.click();
     window.URL.revokeObjectURL(url);
     document.body.removeChild(a);
   }
-
-  // public
-
-  saveAsJSON(data): void {
-    this.saveFile(JSON.stringify(data), 'application/json', 'json');
-  }
-
-  saveXMLasSVG(xml): void {
-    this.saveFile(xml, 'image/svg+xml', 'svg');
-  }
-
-  // abstract
-
-  abstract draw(): void;
 }

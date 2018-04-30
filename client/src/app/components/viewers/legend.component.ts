@@ -1,14 +1,13 @@
 // Angular + dependencies
-import { Component } from '@angular/core';
-import { GCV }       from '../../../assets/js/gcv';
+import { Component } from "@angular/core";
+import { GCV } from "../../../assets/js/gcv";
 
 // App
-import { Viewer } from './viewer.component';
+import { Viewer } from "./viewer.component";
 
 @Component({
   moduleId: module.id.toString(),
-  selector: 'viewer-legend',
-  templateUrl: 'viewer.component.html',
+  selector: "viewer-legend",
   styles: [`
     .viewer {
       position: absolute;
@@ -22,17 +21,17 @@ import { Viewer } from './viewer.component';
     .viewer /deep/ .GCV {
       float: right;
     }
-  `]
+  `],
+  template: require("./viewer.component.html"),
 })
-
 export class LegendViewerComponent extends Viewer {
 
   constructor() {
-    super('Legend');
+    super("Legend");
   }
 
   draw(): void {
-    if (this.el !== undefined && this.data !== undefined) {
+    if (this.el !== undefined && this.data !== undefined && this.colors !== undefined) {
       if (this.viewer !== undefined) {
         this.viewer.destroy();
         this.viewer = undefined;
@@ -41,7 +40,7 @@ export class LegendViewerComponent extends Viewer {
         this.el.nativeElement,
         this.colors,
         this.data,
-        this.args
+        this.args,
       );
     }
   }

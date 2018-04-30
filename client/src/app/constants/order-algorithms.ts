@@ -1,50 +1,35 @@
-import { Algorithm } from '../models/algorithm.model';
+import { Algorithm } from "../models/algorithm.model";
+import { Group } from "../models/group.model";
+import { MicroTracks } from "../models/micro-tracks.model";
+import { orderAlgorithmFactory } from "../utils/order-algorithm-factory.util";
 
 export const ORDER_ALGORITHMS: Algorithm[] = [
-  {
-    id: 'chromosome',
-    name: 'Chromosome name',
-    algorithm: (tracks, options) => {
-      let orderedTracks = JSON.parse(JSON.stringify(tracks));
-      if (orderedTracks !== undefined) {
-        options = options || {};
-        options.skipFirst = options.skipFirst || false;
-        let first = undefined;
-        if (options.skipFirst) first = orderedTracks.groups.shift();
-        orderedTracks.groups.sort((a, b) => {
-          return a.chromosome_name.localeCompare(b.chromosome_name);
-        });
-        if (first !== undefined) orderedTracks.groups.unshift(first);
-      }
-      return orderedTracks;
-    }
-  },
-  {
-    id: 'distance',
-    name: 'Edit distance',
-    algorithm: (tracks, options) => {
-      let orderedTracks = JSON.parse(JSON.stringify(tracks));
-      if (orderedTracks !== undefined) {
-        options = options || {};
-        options.skipFirst = options.skipFirst || false;
-        let first = undefined;
-        if (options.skipFirst) first = orderedTracks.groups.shift();
-        orderedTracks.groups.sort((a, b) => {
-          let diff = b.score - a.score
-          if (diff == 0) {
-            if (a.chromosome_name == b.chromosome_name) {
-              if (a.id == b.id) {
-                return a.genes[0].x - b.genes[0].x;
-              }
-              return a.id - b.id;
-            }
-            return (a.chromosome_name > b.chromosome_name) ? 1 : -1;
+  orderAlgorithmFactory(
+    "chromosome",
+    "Chromosome name",
+    (prefix: any, a: Group, b: Group) => {
+      const aName = prefix(a) + a.chromosome_name;
+      const bName = prefix(b) + b.chromosome_name;
+      return aName.localeCompare(bName);
+    },
+  ),
+  orderAlgorithmFactory(
+    "distance",
+    "Edit distance",
+    (prefix, a: Group, b: Group) => {
+      const diff = b.score - a.score;
+      if (diff === 0) {
+        if (a.chromosome_name === b.chromosome_name) {
+          if (a.id === b.id) {
+            return a.genes[0].x - b.genes[0].x;
           }
-          return diff;
-        });
-        if (first !== undefined) orderedTracks.groups.unshift(first);
+          return a.id.localeCompare(b.id);
+        }
+        const aName = prefix(a) + a.chromosome_name;
+        const bName = prefix(b) + b.chromosome_name;
+        return aName.localeCompare(bName);
       }
-      return orderedTracks;
-    }
-  }
-]
+      return diff;
+    },
+  ),
+];

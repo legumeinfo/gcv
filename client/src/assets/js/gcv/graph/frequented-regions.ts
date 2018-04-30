@@ -1,69 +1,69 @@
-import { Undirected } from './undirected';
-
+import { Undirected } from "./undirected";
 
 /**
-  * A class that represents a Frequented Region.
-  */
+ * A class that represents a Frequented Region.
+ */
 export class FR {
-  nodes: Array<any>;
-  descendants: Array<any>;
-  paths: Object;
-  intervals: Object;
-  supporting: Array<any>;
+  nodes: any[];
+  descendants: any[];
+  paths: object;
+  intervals: object;
+  supporting: any[];
   avgAlpha: number;
-  constructor(nodes=[]) {
-    this.nodes       = nodes;
+  constructor(nodes = []) {
+    this.nodes = nodes;
     this.descendants = [];
-    this.paths       = {};
-    this.intervals   = {};
-    this.supporting  = [];
-    this.avgAlpha    = 0;
+    this.paths = {};
+    this.intervals = {};
+    this.supporting = [];
+    this.avgAlpha = 0;
   }
   addToPath(pId, n, kappa) {
     if (!this.paths.hasOwnProperty(pId)) {
       this.paths[pId] = [];
     }
-    this.paths[pId].push(n)
+    this.paths[pId].push(n);
     if (!this.intervals.hasOwnProperty(pId)) {
       this.intervals[pId] = [];
     }
-    var halfKappa = kappa / 2;
+    const halfKappa = kappa / 2;
     // (begin, end, nodes spanned)
-    this.intervals[pId].push([n - halfKappa, n + halfKappa, 1])
+    this.intervals[pId].push([n - halfKappa, n + halfKappa, 1]);
   }
   mergeIntervals(hardSpan) {
-    var comparePoints = function(a, b) {
-      var [ap, ac, as] = a,
-          [bp, bc, bs] = b;
-      if (ap < bp || (ap == bp && ac > bc)) {
+    const comparePoints = (a, b) => {
+      const [ap, ac, as] = a;
+      const [bp, bc, bs] = b;
+      if (ap < bp || (ap === bp && ac > bc)) {
         return -1;
-      } else if (bp < ap || (bp == ap && bc > ac)) {
+      } else if (bp < ap || (bp === ap && bc > ac)) {
         return 1;
-      } return 0;
-    }
-    for (var pId in this.intervals) {
+      }
+      return 0;
+    };
+    for (const pId in this.intervals) {
       if (this.intervals.hasOwnProperty(pId)) {
-        var points = [];
-        for (var i = 0; i < this.intervals[pId].length; i++) {
-          let [begin, end, span] = this.intervals[pId][i];
-          points.push([begin, 1, span])
-          points.push([end, -1, 0])
+        const points = [];
+        for (const interval of this.intervals[pId]) {
+          const [begin, end, span] = interval;
+          points.push([begin, 1, span]);
+          points.push([end, -1, 0]);
         }
-        points.sort(comparePoints)
-        var combinedIntervals = [];
-        let counter           = 0,
-            begin             = 0,
-            span              = 0;
-        for (var i = 0; i < points.length; i++) {
-          var [p, c, s] = points[i];
-          if (counter == 0) {
-            begin = p
-            span = 0
+        points.sort(comparePoints);
+        const combinedIntervals = [];
+        let counter = 0;
+        let begin = 0;
+        let span = 0;
+        for (const point of points) {
+          const [p, c, s] = point;
+          if (counter === 0) {
+            begin = p;
+            span = 0;
           }
-          counter += c
-          span += s
-          if (counter == 0) {
-            combinedIntervals.push([begin, p, hardSpan || span])
+          counter += c;
+          span += s;
+          if (counter === 0) {
+            combinedIntervals.push([begin, p, hardSpan || span]);
           }
         }
         this.intervals[pId] = combinedIntervals;
@@ -74,11 +74,11 @@ export class FR {
     this.mergeIntervals(hardSpan);
     this.supporting = [];
     this.avgAlpha = 0;
-    for (var pId in this.intervals) {
+    for (const pId in this.intervals) {
       if (this.intervals.hasOwnProperty(pId)) {
-        var maxAlpha = 0;
-        for (var i = 0; i < this.intervals[pId].length; i++) {
-          var iAlpha = this.intervals[pId][i][2] / this.nodes.length;
+        let maxAlpha = 0;
+        for (const interval of this.intervals[pId]) {
+          const iAlpha = interval[2] / this.nodes.length;
           if (iAlpha >= alpha) {
             this.supporting.push(pId);
             if (iAlpha > maxAlpha) {
@@ -91,19 +91,19 @@ export class FR {
     }
   }
   merge(other) {
-    var fr = new FR()
-    fr.nodes       = this.nodes.concat(other.nodes);
-    fr.descendants = [this, other]
-    fr.paths       = Object.assign({}, this.paths);
-    fr.intervals   = Object.assign({}, this.intervals);
-    for (var id in other.paths) {
+    const fr = new FR();
+    fr.nodes = this.nodes.concat(other.nodes);
+    fr.descendants = [this, other];
+    fr.paths = Object.assign({}, this.paths);
+    fr.intervals = Object.assign({}, this.intervals);
+    for (const id in other.paths) {
       if (fr.paths.hasOwnProperty(id)) {
         fr.paths[id] = fr.paths[id].concat(other.paths[id]);
       } else {
         fr.paths[id] = other.paths[id].slice();
       }
     }
-    for (var id in other.intervals) {
+    for (const id in other.intervals) {
       if (fr.intervals.hasOwnProperty(id)) {
         fr.intervals[id] = fr.intervals[id].concat(other.intervals[id]);
       } else {
@@ -114,34 +114,32 @@ export class FR {
   }
 }
 
-
 /**
-  * The Frequented Regions Algorithm  (Cleary, et al, ACM-BCB 2017).
-  * @param {object} tracks - GCV track data.
-  * @param {number} alpha - Fraction of region nodes a supporting path must
-  * traverse.
-  * @param {number} kappa - Maximum insertion size.
-  * @param {number} minsup - Minimum number of paths that must support of region
-  * for it to be considered frequent.
-  * @param {number} minsize - Minimum size (number of nodes) of a region to be
-  * considered frequent.
-  * @param {object} options - Optional parameters.
-  * @return {Array<FRs>} - An array of FR hierarchies.
-  */
-export function frequentedRegions
-(tracks, alpha, kappa, minsup, minsize, options) {
-  var omit = options.omit || [];
-  var contractF = function(uFR, vFR, eFR) {
+ * The Frequented Regions Algorithm  (Cleary, et al, ACM-BCB 2017).
+ * @param {object} tracks - GCV track data.
+ * @param {number} alpha - Fraction of region nodes a supporting path must
+ * traverse.
+ * @param {number} kappa - Maximum insertion size.
+ * @param {number} minsup - Minimum number of paths that must support of region
+ * for it to be considered frequent.
+ * @param {number} minsize - Minimum size (number of nodes) of a region to be
+ * considered frequent.
+ * @param {object} options - Optional parameters.
+ * @return {FRs[]} - An array of FR hierarchies.
+ */
+export function frequentedRegions(tracks, alpha, kappa, minsup, minsize, options) {
+  const omit = options.omit || [];
+  const contractF = (uFR, vFR, eFR) => {
     return eFR;
-  }
-  var updateF = function(uFR, vFR, eFR?) {
-    var fr = uFR.merge(vFR);
+  };
+  const updateF = (uFR, vFR, eFR?) => {
+    const fr = uFR.merge(vFR);
     fr.computeSupport(alpha);
     return fr;
-  }
-  var findFRs = function(root, minsup, minsize, prevsup) {
-    var frs = [];
-    var sup = prevsup;
+  };
+  const findFRs = (root, minsup, minsize, prevsup) => {
+    const frs = [];
+    let sup = prevsup;
     if (root.nodes.length >= minsize && root.supporting.length >= minsup &&
     root.supporting.length > prevsup) {
       frs.push(root);
@@ -153,60 +151,61 @@ export function frequentedRegions
     }
     if (frs.length > 0) {
       return frs;
-    } return root.descendants;
-  }
+    }
+    return root.descendants;
+  };
   // build a gene family FR graph
-  var g = new Undirected()
+  const g = new Undirected();
   // add nodes with FRs as attributes
-  for (var i = 0; i < tracks["groups"].length; i++) {
-    for (var j = 0; j < tracks["groups"][i]["genes"].length; j++) {
-      var id = tracks["groups"][i]["genes"][j]["family"];
-      if (omit.indexOf(id) == -1) {
-        var n = g.getNode(id);
+  for (let i = 0; i < tracks.groups.length; i++) {
+    for (let j = 0; j < tracks.groups[i].genes.length; j++) {
+      const id = tracks.groups[i].genes[j].family;
+      if (omit.indexOf(id) === -1) {
+        let n = g.getNode(id);
         if (n == null) {
           n = g.addNode(id, new FR([id]));
         }
-        n.attr.addToPath(i, j, kappa)
+        n.attr.addToPath(i, j, kappa);
       }
     }
   }
-  for (let id in g.nodes) {
+  for (const id of Object.keys(g.nodes)) {
     g.nodes[id].attr.computeSupport(alpha, 1);
   }
   // add edges with FRs resulting from contraction as attributes
-  for (var i = 0; i < tracks["groups"].length; i++) {
-    var prevId = null,
-        prevN  = null;
-    for (var j = 0; j < tracks["groups"][i]["genes"].length; j++) {
-      var id  = tracks["groups"][i]["genes"][j]["family"],
-          n   = g.getNode(id);
-      if (prevN != null && n != null &&
-      g.getEdge(prevId, id) == null && prevId != id) {
+  for (const group of tracks.groups) {
+    let prevId = null;
+    let prevN = null;
+    for (const gene of group.genes) {
+      const id = gene.family;
+      const n = g.getNode(id);
+      if (prevN !== null && n !== null &&
+      g.getEdge(prevId, id) === null && prevId !== id) {
         g.addEdge(prevId, id, updateF(prevN.attr, n.attr));
       }
-      if (n != null && prevId != id) {
+      if (n !== null && prevId !== id) {
         prevId = id;
-        prevN  = n;
+        prevN = n;
       }
     }
   }
   // iteratively contract edges in most support first order
-  var fr = null;
+  let fr = null;
   while (Object.keys(g.edges).length > 0) {
     // find max edge weight
-    var maxFR = null,
-        maxE  = null;
-    for (var e in g.edges) {
-      if (g.edges.hasOwnProperty(e) && (maxFR == null ||
+    let maxFR = null;
+    let maxE = null;
+    for (const e in g.edges) {
+      if (g.edges.hasOwnProperty(e) && (maxFR === null ||
       maxFR.avgAlpha < g.edges[e].avgAlpha)) {
         maxFR = g.edges[e];
-        maxE  = e;
+        maxE = e;
       }
     }
     if (fr == null || fr.nodes.length < maxFR.nodes.length) {
       fr = maxFR;
     }
-    var [u, v] = maxE.split(g.ed);
+    const [u, v] = maxE.split(g.ed);
     // contract edge
     g.contractEdge(u, v, contractF, updateF);
   }

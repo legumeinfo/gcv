@@ -5,7 +5,9 @@ export class Gene {
   fmin: number;
   fmax: number;
   strand: number;
+  // TODO: introduce options as mixims
   source?: string;  // Server ID
   x?: number;
   y?: number;
+  suffixScore?: number;
 }

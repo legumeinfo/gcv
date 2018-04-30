@@ -1,17 +1,17 @@
-import { Algorithm } from '../models/algorithm.model';
-import { Gene }      from '../models/gene.model';
+import { Algorithm } from "../models/algorithm.model";
+import { Gene } from "../models/gene.model";
 
-import { GCV } from '../../assets/js/gcv';
+import { GCV } from "../../assets/js/gcv";
 
 export const ALIGNMENT_ALGORITHMS: Algorithm[] = [
   {
-    id: 'smith-waterman',
-    name: 'Smith-Waterman',
-    algorithm: GCV.alignment.smithWaterman
+    algorithm: GCV.alignment.smithWaterman,
+    id: "smith-waterman",
+    name: "Smith-Waterman",
   },
   {
-    id: 'repeat',
-    name: 'Repeat',
-    algorithm: GCV.alignment.repeat
-  }
-]
+    algorithm: GCV.alignment.repeat,
+    id: "repeat",
+    name: "Repeat",
+  },
+];
