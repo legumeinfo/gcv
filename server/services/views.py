@@ -980,7 +980,7 @@ def macro_synteny_traceback(path_ends, pointers, scores, minsize):
       begin = end
       while begin in pointers:
         begin = pointers.pop(begin)
-      length = scores[end] - scores[begin]
+      length = scores[end] - scores[begin] + 1
       if length >= minsize:
         yield (begin, end)
 
@@ -1020,11 +1020,11 @@ minsize, familymask, chromosome_as_genes, family_counts))):
         # are the nodes close enough to be in the same path?
         if d1 <= maxinsert and d2 <= maxinsert:
           s = f_scores[p2] + 1
-          if s > f_scores[p1]:
+          if s > f_scores[p1] or (s == f_scores[p1] and p2[0] == p2[1]):  # in case trivial block ends on gene family with multiple successive copies
             f_scores[p1]   = s
             f_pointers[p1] = p2
       # reverse blocks
-      if m2 > n2:
+      elif m2 > n2:
         d2 = m2 - n2
         # are the nodes close enough to be in the same path?
         if d1 <= maxinsert and d2 <= maxinsert:
@@ -1102,14 +1102,17 @@ def v1_1_macro_synteny(request):
         trivial_blocks = set()
         begin, _ = self_matches.popitem(last=False)
         end = begin
+        length = 1
         for i in self_matches:
           if i - end > maxinsert:
-            if end - begin >= minsize:
+            if length >= minsize:
               block = ((begin, begin), (end, end))
               trivial_blocks.add(block)
             begin = i
+            length = 0
           end = i
-        if end - begin >= minsize:
+          length += 1
+        if length >= minsize:
           block = ((begin, begin), (end, end))
           trivial_blocks.add(block)
 
