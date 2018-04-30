@@ -3,9 +3,7 @@ import { createFeatureSelector, createSelector } from "@ngrx/store";
 import * as globalPlotsActions from "../actions/global-plots.actions";
 import { Group } from "../models/group.model";
 
-const adapter = createEntityAdapter<Group>({
-  selectId: (e) => e.chromosome_id,
-});
+const adapter = createEntityAdapter<Group>();
 
 export interface State extends EntityState<Group> {
   selectedPlotID: string | null;
@@ -109,7 +107,7 @@ export const getSelectedPlot = createSelector(
     if (id in entities) {
       return entities[id];
     }
-    return undefined;
+    return null;
   },
 );
 
