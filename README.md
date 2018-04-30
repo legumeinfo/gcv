@@ -26,11 +26,11 @@ The example server is implemented in Python 2.7 with [Django 1.11.12](https://ww
 The easiest way to run the server locally is to create a [Python Virtual Environment](http://docs.python-guide.org/en/latest/dev/virtualenvs/).
 Once Python virtual environments is installed, you can create a virtual environment as follows
 
-    virtualenv -p /usr/bin/python2.7 venv
+    $ virtualenv -p /usr/bin/python2.7 venv
 
 You can then activate the environment
 
-    . ./venv/bin/activate
+    $ . ./venv/bin/activate
 
 All the server's dependencies are listed in the `requirements.txt` file, which can be used to bootstrap the virtual environment as follows
 
