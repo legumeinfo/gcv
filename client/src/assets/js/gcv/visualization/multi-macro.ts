@@ -306,7 +306,12 @@ export class MultiMacro {
     const sheets: any = document.styleSheets;
     // inline GCV styles
     for (const sheet of sheets) {
-      const rules = sheet.rules || sheet.cssRules;
+      let rules: any;
+      try {
+        rules = sheet.rules || sheet.cssRules;
+      } catch {
+        continue;
+      }
       for (const r of Object.keys(rules)) {
         const rule = rules[r];
         const selector = rule.selectorText;
