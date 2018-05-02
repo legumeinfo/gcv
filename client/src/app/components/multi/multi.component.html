@@ -1,59 +1,78 @@
-<!-- main content area -->
 <main>
 
-  <!-- header -->
   <header>
-		<ul class="nav navbar-nav tabs" left>
+    <ul class="nav navbar-nav tabs" left>
       <li><toggle-button (toggleFn)="selectParams()">Parameters</toggle-button></li>
-      <!--<li><toggle-button (toggleFn)="help()">Help</toggle-button></li>-->
     </ul>
-	</header>
+    <alert [alert]="headerAlert" center></alert>
+  </header>
 
-  <!-- main content -->
   <main-content>
-    <div #left id="left" class="split split-horizontal content">
-      <viewer-micro
-        [data]="microTracks"
-        [colors]="microColors"
-        [arguments]="microArgs" >
-      	<ul navbar class="nav navbar-nav accordion">
-      	  <li [ngClass]="{'active': accordion==accordionTypes.REGEXP}">
-            <a (click)="setAccordion($event, accordionTypes.REGEXP)">
-            &nbsp;<span class="glyphicon glyphicon-filter" aria-hidden="true"></span>&nbsp;
-            </a>
-          </li>
-					<li class="target" [ngClass]="{'active': accordion==accordionTypes.REGEXP}">
-            <app-regexp></app-regexp>
-          </li>
-      		<li [ngClass]="{'active': accordion==accordionTypes.ORDER}">
-            <a (click)="setAccordion($event, accordionTypes.ORDER)">
-            &nbsp;<span class="glyphicon glyphicon-triangle-bottom"></span><span class="glyphicon glyphicon-triangle-top"></span>&nbsp;
-            </a>
-          </li>
-					<li class="target" [ngClass]="{'active': accordion==accordionTypes.ORDER}">
-            <app-ordering></app-ordering>
-          </li>
-				</ul>
-      </viewer-micro>
+    <div #left id="left" class="split split-horizontal">
+
+      <div #topLeft id="top-left" class="split content">
+        <viewer-multi-macro
+          [data]="macroTracks"
+          [arguments]="macroArgs" >
+        </viewer-multi-macro>
+        <ng-container #macroAlerts></ng-container>
+      </div>
+
+      <div #bottomLeft id="bottom-left" class="split content">
+        <viewer-micro
+          [data]="microTracks"
+          [colors]="microColors"
+          [arguments]="microArgs" >
+      	  <ul navbar class="nav navbar-nav accordion">
+      	    <li [ngClass]="{'active': accordion==accordionTypes.REGEXP}">
+              <a (click)="setAccordion($event, accordionTypes.REGEXP)">
+                &nbsp;<span class="glyphicon glyphicon-filter" aria-hidden="true"></span>&nbsp;
+              </a>
+            </li>
+            <li class="target" [ngClass]="{'active': accordion==accordionTypes.REGEXP}">
+              <app-regexp></app-regexp>
+            </li>
+            <li [ngClass]="{'active': accordion==accordionTypes.ORDER}">
+              <a (click)="setAccordion($event, accordionTypes.ORDER)">
+                &nbsp;<span class="glyphicon glyphicon-triangle-bottom"></span><span class="glyphicon glyphicon-triangle-top"></span>&nbsp;
+              </a>
+            </li>
+            <li class="target" [ngClass]="{'active': accordion==accordionTypes.ORDER}">
+              <app-ordering></app-ordering>
+            </li>
+          </ul>
+        </viewer-micro>
+        <ng-container #microAlerts></ng-container>
+      </div>
     </div>
-    <div #right id="right" class="split split-horizontal content">
-      <!-- legend -->
+
+    <div #right id="right" class="split split-horizontal">
+      <div #topRight id="top-right" class="split content">
+        <div class="legend">
+          <viewer-legend
+            [data]="macroLegend"
+            [colors]="macroColors"
+            [arguments]="macroLegendArgs" >
+          </viewer-legend>
+        </div>
+      </div>
+      <div #bottomRight id="bottom-right" class="split content">
       <viewer-legend
         [data]="microLegend"
         [colors]="microColors"
         [arguments]="microLegendArgs" >
       </viewer-legend>
+      </div>
     </div>
+
   </main-content>
 
 </main>
 
 
-<!-- left slider -->
 <left-slider [selected]="selectedDetail" [tracks]="microTracks">
   <multi-params
-    [queryGenes]="queryGenes"
     (invalid)="selectParams()"
-    (submitted)="invalidate()" >
+    (valid)="hideLeftSlider()" >
   </multi-params>
 </left-slider>

@@ -1,4 +1,22 @@
 <form (ngSubmit)="submit()">
+  <fieldset [formGroup]="blockGroup">
+    <legend>Block Parameters<a id="block-params-help" class="pull-right" (click)="blockHelp=!blockHelp"><span class="glyphicon glyphicon-question-sign"></span></a></legend>
+    <div class="form-group" [ngClass]="{'has-error': !blockGroup.controls.bmatched.valid}">
+      <label for="bmatched">Min Matched families (min 1)</label>
+      <input type="number" class="form-control" formControlName="bmatched" >
+      <p class="help-block" *ngIf="blockHelp">The minimum number of gene families that must match between the query and a result chromosome in each block.</p>
+    </div>
+    <div class="form-group" [ngClass]="{'has-error': !blockGroup.controls.bintermediate.valid}">
+      <label for="bintermediate">Max Insertion Size (min 0)</label>
+      <input type="number" class="form-control" formControlName="bintermediate" >
+      <p class="help-block" *ngIf="blockHelp">The maximum number of non-matching genes between successive matching genes in a block.</p>
+    </div>
+    <div class="form-group" [ngClass]="{'has-error': !blockGroup.controls.bmask.valid}">
+      <label for="bmask">Max Family Size (min 1)</label>
+      <input type="number" class="form-control" formControlName="bmask" >
+      <p class="help-block" *ngIf="blockHelp">The maximum number of instances of a family that can occur on a chromosome before it's omitted from block computations.</p>
+    </div>
+  </fieldset>
   <fieldset [formGroup]="queryGroup">
     <legend>Query Parameters<a class="pull-right"><span class="glyphicon glyphicon-question-sign" (click)="help=!help"></span></a></legend>
     <div class="form-group" [ngClass]="{'has-error': !queryGroup.controls.neighbors.valid}">

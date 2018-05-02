@@ -1,5 +1,7 @@
 export interface MacroBlock {
+  orientation: number;
   start: number;
   stop: number;
-  orientation: number;
+  query_start?: number;
+  query_stop?: number;
 }

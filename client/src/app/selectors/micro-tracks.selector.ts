@@ -1,16 +1,13 @@
-import { MicroTracks } from '../models/micro-tracks.model';
-
-declare var Graph: any;
+import { MicroTracks } from "../models/micro-tracks.model";
 
 export const microTracksSelector = (options?: any) => {
-  return state => state.map(([tracks, ...filters]) => {
-    let filteredTracks = Object.assign({}, tracks);
+  return (state) => state.map(([tracks, ...filters]) => {
+    let filteredTracks = tracks;
     if (filteredTracks !== undefined) {
-      for (let i = 0; i < filters.length; ++i) {
-        let f = filters[i];
+      for (const f of filters) {
         filteredTracks = f.algorithm(filteredTracks, options);
       }
     }
     return filteredTracks;
-  })
+  });
 };

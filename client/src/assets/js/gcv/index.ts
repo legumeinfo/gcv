@@ -1,16 +1,16 @@
 // import libs
-import * as alignment     from './alignment';
-import * as common        from './common';
-import * as graph         from './graph';
-import * as visualization from './visualization';
+import * as alignment from "./alignment";
+import * as common from "./common";
+import * as graph from "./graph";
+import * as visualization from "./visualization";
 
 // create the GCV module
-var GCV = {
+const GCV = {
   alignment,
   common,
   graph,
-  visualization
-}
+  visualization,
+};
 
 // export to global namespace
 export { GCV };

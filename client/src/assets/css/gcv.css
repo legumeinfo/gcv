@@ -68,6 +68,13 @@
   stroke-opacity: 0.2;
   fill-opacity: 0.2;
 }
+.GCV.hovering path.chord {
+  display: none;
+}
+.GCV.hovering path.chord.active {
+  fill-opacity: .05;
+  display: block;
+}
 .GCV.hovering .active {
   stroke-opacity: 1.0;
   fill-opacity: 1.0;
@@ -86,4 +93,12 @@ iframe.GCV-resizer {
   stroke: #000000;
   fill: #CCCCCC;
   fill-opacity: 0.4;
+}
+/* CircosJS */
+.GCV path.chord {
+  fill: #000;
+  fill-opacity: .05;
+}
+.fade {
+  display: none;
 }

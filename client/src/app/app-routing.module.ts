@@ -1,46 +1,52 @@
 // Angular
-import { NgModule }                     from '@angular/core';
-import { RouterModule, Router, Routes } from '@angular/router';
-import { Store }                        from '@ngrx/store';
-
+import { NgModule } from "@angular/core";
+import { RouterModule, Routes } from "@angular/router";
 // app
-import { AppStore }              from './models/app-store.model';
-import { MultiComponent }        from './components/multi/multi.component';
-import { DefaultQueryParams }    from './constants/default-parameters';
-import { InstructionsComponent } from './components/instructions/instructions.component';
-import { SearchComponent }       from './components/search/search.component';
-import { StoreActions }          from './constants/store-actions';
+import { InstructionsComponent } from "./components/instructions/instructions.component";
+import { MultiComponent } from "./components/multi/multi.component";
+import { SearchComponent } from "./components/search/search.component";
+import { AppRoutes } from "./constants/app-routes";
+import { MultiGuard } from "./guards/multi.guard";
+import { SearchGuard } from "./guards/search.guard";
 
 const routes: Routes = [
-  {path: '', redirectTo: '/instructions', pathMatch: 'full'},
-  {path: 'multi/:genes', component: MultiComponent},
   {
-    path: 'basic/:genes', 
-    redirectTo: 'multi/:genes',
-    pathMatch: 'full'
+    path: "",
+    pathMatch: "full",
+    redirectTo: "/instructions",
   },
-  {path: 'instructions', component: InstructionsComponent},
   {
-    path: 'search/:gene',
-    redirectTo: '/search/' + DefaultQueryParams.DEFAULT_SOURCE + '/:gene',
-    pathMatch: 'full'
+    canActivate: [MultiGuard],
+    canDeactivate: [MultiGuard],
+    component: MultiComponent,
+    path: AppRoutes.MULTI + "/:genes",
   },
-  {path: 'search/:source/:gene', component: SearchComponent}
+  {
+    path: "basic/:genes",
+    pathMatch: "full",
+    redirectTo: AppRoutes.MULTI + "/:genes",
+  },
+  {
+    component: InstructionsComponent,
+    path: "instructions",
+  },
+  {
+    path: AppRoutes.SEARCH + "/:gene",
+    pathMatch: "full",
+    // TODO: update to use first source from config
+    // redirectTo: AppRoutes.SEARCH + "/" + DefaultQueryParams.DEFAULT_SOURCE + "/:gene",
+    redirectTo: "/instructions",
+  },
+  {
+    canActivate: [SearchGuard],
+    canDeactivate: [SearchGuard],
+    component: SearchComponent,
+    path: AppRoutes.SEARCH + "/:source/:gene",
+  },
 ];
 
 @NgModule({
+  exports: [ RouterModule ],
   imports: [ RouterModule.forRoot(routes, {useHash: true}) ],
-  exports: [ RouterModule ]
 })
-
-export class AppRoutingModule {
-  constructor(private router: Router, private store: Store<AppStore>) {
-    router.events.subscribe((navState) => {
-      let currentPath = router.url.split('/')[1],
-          nextPath    = navState.url.split('/')[1];
-      if (currentPath != nextPath) {
-        this.store.dispatch({type: StoreActions.RESET});
-      }
-    });
-  }
-}
+export class AppRoutingModule { }

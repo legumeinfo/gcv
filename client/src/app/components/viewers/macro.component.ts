@@ -1,14 +1,13 @@
 // Angular + dependencies
-import { Component } from '@angular/core';
-import { GCV }       from '../../../assets/js/gcv';
+import { Component } from "@angular/core";
+import { GCV } from "../../../assets/js/gcv";
 
 // App
-import { Viewer }      from './viewer.component';
+import { Viewer } from "./viewer.component";
 
 @Component({
   moduleId: module.id.toString(),
-  selector: 'viewer-macro',
-  templateUrl: 'viewer.component.html',
+  selector: "viewer-macro",
   styles: [`
     .viewer {
       position: absolute;
@@ -19,13 +18,13 @@ import { Viewer }      from './viewer.component';
       overflow-x: hidden;
       overflow-y: auto;
     }
-  `]
+  `],
+  template: require("./viewer.component.html"),
 })
-
 export class MacroViewerComponent extends Viewer {
 
   constructor() {
-    super('Macro-Synteny');
+    super("Macro-Synteny");
   }
 
   draw(): void {
@@ -34,7 +33,7 @@ export class MacroViewerComponent extends Viewer {
       this.viewer = new GCV.visualization.Macro(
         this.el.nativeElement,
         this.data,
-        this.args
+        this.args,
       );
     }
   }

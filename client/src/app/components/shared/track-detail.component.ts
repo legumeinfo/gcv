@@ -1,21 +1,18 @@
 // Angular
-import { Component,
-         Input,
-         OnChanges,
-         SimpleChanges } from '@angular/core';
-
+import { Component, Input, OnChanges, SimpleChanges } from "@angular/core";
 // App
-import { AppConfig }      from '../../app.config';
-import { Group }          from '../../models/group.model';
-import { Gene }           from '../../models/gene.model';
-import { Server }         from '../../models/server.model';
+import { AppConfig } from "../../app.config";
+import { Gene } from "../../models/gene.model";
+import { Group } from "../../models/group.model";
+import { Server } from "../../models/server.model";
 
 @Component({
   moduleId: module.id.toString(),
-  selector: 'track-detail',
+  selector: "track-detail",
+  styles: [ "" ],
   template: `
     <h4>{{track.genus[0]}}.{{track.species}} - {{track.chromosome_name}}</h4>
-    <p><a href="#/search/{{track.source}}/{{focus}}">Search for similar contexts</a></p>
+    <p><a [routerLink]="['/search', track.source, focus]" queryParamsHandling="merge">Search for similar contexts</a></p>
     <p>Genes:</p>
     <ul>
       <li *ngFor="let gene of track.genes">
@@ -28,9 +25,7 @@ import { Server }         from '../../models/server.model';
       </li>
     </ul>
   `,
-  styles: [ '' ]
 })
-
 export class TrackDetailComponent implements OnChanges {
 
   private _serverIDs = AppConfig.SERVERS.map(s => s.id);
@@ -42,7 +37,7 @@ export class TrackDetailComponent implements OnChanges {
 
   ngOnChanges(changes: SimpleChanges): void {
     if (this.track !== undefined) {
-      let idx = Math.floor(this.track.genes.length / 2);
+      const idx = Math.floor(this.track.genes.length / 2);
       this.focus = this.track.genes[idx].name;
     }
 

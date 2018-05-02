@@ -1,14 +1,16 @@
-import { Component,
-         Input,
-         OnDestroy,
-         OnInit }     from '@angular/core';
-import { Observable } from 'rxjs/Observable';
+import { Component, Input, OnDestroy, OnInit } from "@angular/core";
+import { Observable } from "rxjs/Observable";
 
-const SELECTOR = 'gcv-help';
+const SELECTOR = "gcv-help";
 
 @Component({
   moduleId: module.id.toString(),
   selector: SELECTOR,
+  styles: [`
+    .alert-dismissible button.close {
+      margin-left:10px;
+    }
+  `],
   template: `
     <div class="alert alert-info alert-dismissible" role="alert" [hidden]="!show">
       <button type="button" class="close" data-dismiss="alert" aria-label="Close"
@@ -29,38 +31,29 @@ const SELECTOR = 'gcv-help';
       </p>
     </div>
   `,
-  styles: [`
-    .alert-dismissible button.close {
-      margin-left:10px;
-    }
-  `]
 })
-
 export class HelpComponent implements OnDestroy, OnInit {
   @Input() name: string;
   @Input() showing: Observable<boolean>;
 
-  private _sub: any;
   show: boolean;
-  private _helpID: string;
+  private sub: any;
+  private helpID: string;
 
   ngOnDestroy(): void {
-    this._sub.unsubscribe();
+    this.sub.unsubscribe();
   }
 
   ngOnInit(): void {
-    this._sub = this.showing.subscribe(showing => {
+    this.sub = this.showing.subscribe((showing) => {
       this.show = showing;
       this._save();
     });
-    this._helpID = SELECTOR + '-' + this.name;
-    let prev = localStorage.getItem(this._helpID);
-    if (prev !== null)
-      this.show = (prev === 'true');
-  }
-
-  private _save(): void {
-    localStorage.setItem(this._helpID, this.show.toString());
+    this.helpID = SELECTOR + "-" + this.name;
+    const prev = localStorage.getItem(this.helpID);
+    if (prev !== null) {
+      this.show = (prev === "true");
+    }
   }
 
   close(): void {
@@ -70,5 +63,9 @@ export class HelpComponent implements OnDestroy, OnInit {
   closeSave(): void {
     this.close();
     this._save();
+  }
+
+  private _save(): void {
+    localStorage.setItem(this.helpID, this.show.toString());
   }
 }

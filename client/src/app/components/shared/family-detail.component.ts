@@ -1,23 +1,21 @@
 // Angular
-import { Component,
-         Input,
-         OnChanges,
-         SimpleChanges } from '@angular/core';
+import { Component, Input, OnChanges, SimpleChanges } from "@angular/core";
 
 // App
-import { AppConfig }      from '../../app.config';
-import { DetailsService } from '../../services/details.service';
-import { Family }         from '../../models/family.model';
-import { Gene }           from '../../models/gene.model';
-import { MicroTracks }    from '../../models/micro-tracks.model';
-import { Server }         from '../../models/server.model';
+import { AppConfig } from "../../app.config";
+import { DetailsService } from "../../services/details.service";
+import { Family } from "../../models/family.model";
+import { Gene } from "../../models/gene.model";
+import { MicroTracks } from "../../models/micro-tracks.model";
+import { Server } from "../../models/server.model";
 
 @Component({
   moduleId: module.id.toString(),
-  selector: 'family-detail',
+  selector: "family-detail",
+  styles: [ "" ],
   template: `
     <h4>{{family.name}}</h4>
-    <p><a href="#/multi/{{geneList}}">View genes in multi-alignment view</a></p>
+    <p><a [routerLink]="['/multi', geneList]" queryParamsHandling="merge">View genes in multi-alignment view</a></p>
     <p *ngIf="linkablePhylo"><a href="{{familyTreeLink}}">View genes in phylogram</a></p>
     <p>Genes:</p>
     <ul>
@@ -26,9 +24,7 @@ import { Server }         from '../../models/server.model';
       </li>
     </ul>
   `,
-  styles: [ '' ]
 })
-
 export class FamilyDetailComponent implements OnChanges {
 
   private _serverIDs = AppConfig.SERVERS.map(s => s.id);
@@ -41,31 +37,31 @@ export class FamilyDetailComponent implements OnChanges {
   linkablePhylo: boolean;
   familyTreeLink: string;
 
-  constructor(private _detailsService: DetailsService) { }
+  constructor(private detailsService: DetailsService) { }
 
   ngOnChanges(changes: SimpleChanges): void {
     if (this.family !== undefined && this.tracks !== undefined) {
       this.genes = this.tracks.groups.reduce((l, group) => {
-        let genes = group.genes.filter(g => {
+        const genes = group.genes.filter((g) => {
           return (g.family.length > 0 && this.family.id.includes(g.family)) ||
-            g.family == this.family.id;
+            g.family === this.family.id;
         });
         l.push.apply(l, genes);
         return l;
       }, []);
-      this.linkablePhylo = this.family.id != "" && new Set(this.genes.map(g => {
+      this.linkablePhylo = this.family.id !== "" && new Set(this.genes.map((g) => {
         return g.family;
-      })).size == 1;
+      })).size === 1;
 
-      this.geneList = this.genes.map(x => x.name).join(',');
+      this.geneList = this.genes.map((x) => x.name).join(",");
 
       let idx = this._serverIDs.indexOf(this.genes[0].source);
-     this.familyTreeLink = "http://legumeinfo.org/chado_gene_phylotree_v2?family=" + this.family.name + "&gene_name=" + this.geneList;
-     if (idx != -1) {
-       let s: Server = AppConfig.SERVERS[idx];
-       if (s.hasOwnProperty('familyTreeLink')) {
-        this.familyTreeLink = s.familyTreeLink.url + this.family.name;
-       }
+      this.familyTreeLink = "http://legumeinfo.org/chado_gene_phylotree_v2?family=" + this.family.name + "&gene_name=" + this.geneList;
+      if (idx != -1) {
+        let s: Server = AppConfig.SERVERS[idx];
+        if (s.hasOwnProperty("familyTreeLink")) {
+          this.familyTreeLink = s.familyTreeLink.url + this.family.name;
+        }
       }
     }
   }

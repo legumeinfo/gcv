@@ -1,8 +1,10 @@
-import { MacroTrack } from './macro-track.model';
-import { MacroBlock } from './macro-block.model';
+import { MacroTrack } from "./macro-track.model";
 
-export interface MacroTracks {
+export class MacroTracks {
   chromosome: string;
   length: number;
   tracks: MacroTrack[];
+  genus?: string;
+  species?: string;
+  source?: string;
 }

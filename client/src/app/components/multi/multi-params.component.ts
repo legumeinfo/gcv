@@ -1,136 +1,105 @@
 // Angular
-import { Component,
-         EventEmitter,
-         Input,
-         OnChanges,
-         OnDestroy,
-         OnInit,
-         Output,
-         SimpleChanges }          from '@angular/core';
-import { FormBuilder, FormGroup } from '@angular/forms';
-import { Observable }             from 'rxjs/Observable';
+import { Component, EventEmitter, OnInit, Output } from "@angular/core";
+import { FormBuilder, FormGroup } from "@angular/forms";
 
 // App
-import { Alert }                  from '../../models/alert.model';
-import { Alerts }                 from '../../constants/alerts';
-import { AlertsService }          from '../../services/alerts.service';
-import { AppConfig }              from '../../app.config';
-import { ClusteringParams }       from '../../models/clustering-params.model';
-import { ClusteringService }      from '../../services/clustering.service';
-import { DefaultClusteringParams,
-         DefaultQueryParams }     from '../../constants/default-parameters';
-import { MicroTracksService }     from '../../services/micro-tracks.service';
-import { QueryParams }            from '../../models/query-params.model';
-import { UrlQueryParamsService }  from '../../services/url-query-params.service';
+import { AppConfig } from "../../app.config";
+import { BlockParams } from "../../models/block-params.model";
+import { ClusteringParams } from "../../models/clustering-params.model";
+import { QueryParams } from "../../models/query-params.model";
+import { ClusteringService } from "../../services/clustering.service";
+import { MacroTracksService } from "../../services/macro-tracks.service";
+import { MicroTracksService } from "../../services/micro-tracks.service";
 
 @Component({
   moduleId: module.id.toString(),
-  selector: 'multi-params',
-  templateUrl: 'multi-params.component.html',
-  styleUrls: [ 'multi-params.component.css' ]
+  selector: "multi-params",
+  styles: [ require("./multi-params.component.scss") ],
+  template: require("./multi-params.component.html"),
 })
-
-export class MultiParamsComponent implements OnChanges, OnDestroy, OnInit {
+export class MultiParamsComponent implements OnInit {
   // IO
-  @Input() queryGenes: string[];
   @Output() invalid = new EventEmitter();
-  @Output() submitted = new EventEmitter();
+  @Output() valid   = new EventEmitter();
 
   // UI
-
   help = false;
 
-  // data
-
+  // form groups
+  blockGroup: FormGroup;
   queryGroup: FormGroup;
   clusteringGroup: FormGroup;
 
-  sources = AppConfig.SERVERS.filter(s => s.hasOwnProperty('microMulti'));
-
-  private _sub: any;
+  // form data
+  sources = AppConfig.SERVERS.filter((s) => s.hasOwnProperty("microMulti"));
 
   // constructor
-
-  constructor(private _alerts: AlertsService,
-              private _clusteringService: ClusteringService,
-              private _fb: FormBuilder,
-              private _tracksService: MicroTracksService,
-              private _url: UrlQueryParamsService) { }
+  constructor(private clusteringService: ClusteringService,
+              private fb: FormBuilder,
+              private macroTracksService: MacroTracksService,
+              private microTracksService: MicroTracksService) { }
 
   // Angular hooks
 
-  ngOnChanges(changes: SimpleChanges): void {
-    if (this.queryGroup !== undefined)
-      this._multiQuery();
-  }
-
-  ngOnDestroy(): void {
-    this._sub.unsubscribe();
-  }
-
   ngOnInit(): void {
-    // initialize forms
-    let defaultQuery = new QueryParams(
-      DefaultQueryParams.DEFAULT_NEIGHBORS,
-      [DefaultQueryParams.DEFAULT_SOURCE] as string[]);
-    this.queryGroup = this._fb.group(defaultQuery.formControls());
-    let defaultClustering = new ClusteringParams(
-      DefaultClusteringParams.DEFAULT_ALPHA,
-      DefaultClusteringParams.DEFAULT_KAPPA,
-      DefaultClusteringParams.DEFAULT_MINSUP,
-      DefaultClusteringParams.DEFAULT_MINSIZE);
-    this.clusteringGroup = this._fb.group(defaultClustering.formControls());
-    // subscribe to url query param updates
-    this._sub = this._url.params.subscribe(params => {
-      let oldQuery = this.queryGroup.getRawValue();
-      this.queryGroup.patchValue(params);
-      let newQuery = this.queryGroup.getRawValue();
-      if (JSON.stringify(oldQuery) !== JSON.stringify(newQuery))
-        this.queryGroup.markAsDirty();
-      let oldClustering = this.clusteringGroup.getRawValue();
-      this.clusteringGroup.patchValue(params);
-      let newClustering = this.clusteringGroup.getRawValue();
-      if (JSON.stringify(oldClustering) !== JSON.stringify(newClustering))
-        this.clusteringGroup.markAsDirty();
-      if (this.queryGroup.dirty || this.clusteringGroup.dirty)
-        this.submit();
-    });
+    // initialize block group and subscribe to store updates
+    const defaultBlock = new BlockParams();
+    this.blockGroup  = this.fb.group(defaultBlock.formControls());
+    this.macroTracksService.blockParams
+      .subscribe((params) => this._updateGroup(this.blockGroup, params));
+
+    // initialize query group and subscribe to store updates
+    const defaultQuery = new QueryParams();
+    this.queryGroup  = this.fb.group(defaultQuery.formControls());
+    this.microTracksService.queryParams
+      .subscribe((params) => this._updateGroup(this.queryGroup, params));
+
+    // initialize clustering group and subscribe to store updates
+    const defaultClustering = new ClusteringParams();
+    this.clusteringGroup  = this.fb.group(defaultClustering.formControls());
+    this.clusteringService.clusteringParams
+      .subscribe((params) => this._updateGroup(this.clusteringGroup, params));
+
     // submit the updated form
+    this.blockGroup.markAsDirty();
     this.queryGroup.markAsDirty();
     this.clusteringGroup.markAsDirty();
     this.submit();
   }
 
-  // private
-
-  private _multiQuery(): void {
-    this._tracksService.multiQuery(
-      this.queryGenes,
-      this.queryGroup.getRawValue(),
-      e => this._alerts.pushAlert(new Alert(Alerts.ALERT_DANGER, e))
-    );
-  }
-
   // public
 
   submit(): void {
-    if (this.queryGroup.valid && this.clusteringGroup.valid) {
-      if (this.queryGroup.dirty) {
-        this.submitted.emit();
-        let params = this.queryGroup.getRawValue();
-        this._multiQuery();
-        this.queryGroup.reset(params);
-        this._url.updateParams(Object.assign({}, params));
-      }
-      if (this.clusteringGroup.dirty) {
-        this.submitted.emit();
-        let params = this.clusteringGroup.getRawValue();
-        this._clusteringService.updateParams(params);
-        this.clusteringGroup.reset(params);
-        this._url.updateParams(Object.assign({}, params));
-      }
+    if (this.blockGroup.valid && this.queryGroup.valid && this.clusteringGroup.valid) {
+      this.valid.emit();
+      // submit block params
+      this._submitGroup(this.blockGroup, (params) => {
+        this.macroTracksService.updateParams(params);
+      });
+      // submit query params
+      this._submitGroup(this.queryGroup, (params) => {
+        this.microTracksService.updateParams(params);
+      });
+      // submit clustering params
+      this._submitGroup(this.clusteringGroup, (params) => {
+        this.clusteringService.updateParams(params);
+      });
     } else {
       this.invalid.emit();
+    }
+  }
+
+  // private
+
+  private _updateGroup(group, params) {
+    group.patchValue(params);
+  }
+
+  private _submitGroup(group, callback): void {
+    if (group.dirty) {
+      const params = group.getRawValue();
+      callback(params);
+      group.reset(params);
     }
   }
 }
