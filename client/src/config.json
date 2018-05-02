@@ -26,6 +26,10 @@
       "type": "GET",
       "url": "https://legumeinfo.org/gene_links/"
     },
+    "familyTreeLink": {
+      "type": "GET",
+      "url": "http://legumeinfo.org/chado_gene_phylotree_v2?family="
+    },
     "plotGlobal": {
       "type": "POST",
       "url": "http://localhost:8000/services/v1/global-plots/"

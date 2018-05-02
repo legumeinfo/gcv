@@ -1,8 +1,10 @@
 // Angular
 import { Component, Input, OnChanges, SimpleChanges } from "@angular/core";
-
 // App
+import { AppConfig } from "../../app.config";
+import { Gene } from "../../models/gene.model";
 import { Group } from "../../models/group.model";
+import { Server } from "../../models/server.model";
 
 @Component({
   moduleId: module.id.toString(),
@@ -17,7 +19,7 @@ import { Group } from "../../models/group.model";
         {{gene.name}}: {{gene.fmin}} - {{gene.fmax}}
         <ul *ngIf="gene.family != ''">
           <li>
-            Family: <a href="http://legumeinfo.org/chado_gene_phylotree_v2?family={{gene.family}}&gene_name={{gene.name}}">{{gene.family}}</a>
+            Family: <a href="{{familyTreeLink}}{{gene.family}}">{{gene.family}}</a>
           </li>
         </ul>
       </li>
@@ -25,14 +27,27 @@ import { Group } from "../../models/group.model";
   `,
 })
 export class TrackDetailComponent implements OnChanges {
+
+  private _serverIDs = AppConfig.SERVERS.map(s => s.id);
+
   @Input() track: Group;
 
   focus: string;
+  familyTreeLink: string;
 
   ngOnChanges(changes: SimpleChanges): void {
     if (this.track !== undefined) {
       const idx = Math.floor(this.track.genes.length / 2);
       this.focus = this.track.genes[idx].name;
     }
+
+    let idx = this._serverIDs.indexOf(this.track.genes[0].source);
+    this.familyTreeLink = "http://legumeinfo.org/chado_gene_phylotree_v2?family="
+    if (idx != -1) {
+      let s: Server = AppConfig.SERVERS[idx];
+      if (s.hasOwnProperty('familyTreeLink')) {
+       this.familyTreeLink = s.familyTreeLink.url;
+      }
+     }
   }
 }

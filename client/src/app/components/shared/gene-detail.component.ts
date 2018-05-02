@@ -2,11 +2,12 @@
 import { Component, ComponentFactory, ComponentFactoryResolver, ComponentRef,
   Input, OnChanges, OnDestroy, OnInit, SimpleChanges, ViewContainerRef, ViewChild } from "@angular/core";
 import { Subject } from "rxjs/Subject";
-// app
+// App
 import { AlertComponent } from "./alert.component";
 import { AppConfig } from "../../app.config";
 import { Alert } from "../../models/alert.model";
 import { Gene } from "../../models/gene.model";
+import { Server } from "../../models/server.model";
 import { DetailsService } from "../../services/details.service";
 
 @Component({
@@ -24,7 +25,7 @@ import { DetailsService } from "../../services/details.service";
       <ng-container #alerts></ng-container>
     </div>
     <h4>{{gene.name}}</h4>
-    <p>Family: <a href="http://legumeinfo.org/chado_gene_phylotree_v2?family={{gene.family}}&gene_name={{gene.name}}">{{gene.family}}</a></p>
+    <p>Family: <a href="{{familyTreeLink}}">{{gene.family}}</a></p>
     <p><a [routerLink]="['/search', gene.source, gene.name]" queryParamsHandling="merge">Search for similar contexts</a></p>
     <ul>
       <li *ngFor="let link of links">
@@ -33,12 +34,16 @@ import { DetailsService } from "../../services/details.service";
     </ul>
   `,
 })
+
 export class GeneDetailComponent implements OnChanges, OnDestroy, OnInit {
   @Input() gene: Gene;
 
   @ViewChild("alerts", {read: ViewContainerRef}) alerts: ViewContainerRef;
 
   links: any[];
+  familyTreeLink: string;
+
+  private _serverIDs = AppConfig.SERVERS.map(s => s.id);
 
   // emits when the component is destroyed
   private destroy: Subject<boolean>;
@@ -55,6 +60,15 @@ export class GeneDetailComponent implements OnChanges, OnDestroy, OnInit {
     this.links = undefined;
     if (this.gene !== undefined) {
       this.links = undefined;
+
+      let idx = this._serverIDs.indexOf(this.gene.source);
+      if (idx != -1) {
+        let s: Server = AppConfig.SERVERS[idx];
+        if (s.hasOwnProperty('familyTreeLink')) {
+         this.familyTreeLink = s.familyTreeLink.url + this.gene.family;
+        }
+       }
+
       this.detailsService.getGeneDetails(this.gene, (links) => {
         this.links = links;
       });
