@@ -17,7 +17,7 @@ import { Server } from "../../models/server.model";
     <ul>
       <li *ngFor="let gene of track.genes">
         {{gene.name}}: {{gene.fmin}} - {{gene.fmax}}
-        <ul *ngIf="gene.family != ''">
+        <ul *ngIf="familyTreeLink !== undefined && gene.family != ''">
           <li>
             Family: <a href="{{familyTreeLink}}{{gene.family}}">{{gene.family}}</a>
           </li>
@@ -41,13 +41,13 @@ export class TrackDetailComponent implements OnChanges {
       this.focus = this.track.genes[idx].name;
     }
 
-    let idx = this._serverIDs.indexOf(this.track.genes[0].source);
-    this.familyTreeLink = "http://legumeinfo.org/chado_gene_phylotree_v2?family="
+    this.familyTreeLink = undefined;
+    const idx = this._serverIDs.indexOf(this.track.genes[0].source);
     if (idx != -1) {
-      let s: Server = AppConfig.SERVERS[idx];
-      if (s.hasOwnProperty('familyTreeLink')) {
-       this.familyTreeLink = s.familyTreeLink.url;
+      const s: Server = AppConfig.SERVERS[idx];
+      if (s.hasOwnProperty("familyTreeLink")) {
+        this.familyTreeLink = s.familyTreeLink.url;
       }
-     }
+    }
   }
 }

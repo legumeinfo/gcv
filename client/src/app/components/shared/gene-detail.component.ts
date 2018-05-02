@@ -25,7 +25,7 @@ import { DetailsService } from "../../services/details.service";
       <ng-container #alerts></ng-container>
     </div>
     <h4>{{gene.name}}</h4>
-    <p>Family: <a href="{{familyTreeLink}}">{{gene.family}}</a></p>
+    <p *ngIf="familyTreeLink !== undefined">Family: <a href="{{familyTreeLink}}">{{gene.family}}</a></p>
     <p><a [routerLink]="['/search', gene.source, gene.name]" queryParamsHandling="merge">Search for similar contexts</a></p>
     <ul>
       <li *ngFor="let link of links">
@@ -61,13 +61,14 @@ export class GeneDetailComponent implements OnChanges, OnDestroy, OnInit {
     if (this.gene !== undefined) {
       this.links = undefined;
 
-      let idx = this._serverIDs.indexOf(this.gene.source);
-      if (idx != -1) {
-        let s: Server = AppConfig.SERVERS[idx];
-        if (s.hasOwnProperty('familyTreeLink')) {
-         this.familyTreeLink = s.familyTreeLink.url + this.gene.family;
+      this.familyTreeLink = undefined;
+      const idx = this._serverIDs.indexOf(this.gene.source);
+      if (idx !== -1) {
+        const s: Server = AppConfig.SERVERS[idx];
+        if (s.hasOwnProperty("familyTreeLink")) {
+          this.familyTreeLink = s.familyTreeLink.url + this.gene.family;
         }
-       }
+      }
 
       this.detailsService.getGeneDetails(this.gene, (links) => {
         this.links = links;

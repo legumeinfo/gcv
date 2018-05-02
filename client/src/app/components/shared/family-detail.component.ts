@@ -1,6 +1,5 @@
 // Angular
 import { Component, Input, OnChanges, SimpleChanges } from "@angular/core";
-
 // App
 import { AppConfig } from "../../app.config";
 import { DetailsService } from "../../services/details.service";
@@ -16,7 +15,12 @@ import { Server } from "../../models/server.model";
   template: `
     <h4>{{family.name}}</h4>
     <p><a [routerLink]="['/multi', geneList]" queryParamsHandling="merge">View genes in multi-alignment view</a></p>
-    <p *ngIf="linkablePhylo"><a href="{{familyTreeLink}}">View genes in phylogram</a></p>
+    <p>Phylograms: <span *ngIf="familyTreeLinks.length === 0">none</span></p>
+    <ul *ngIf="familyTreeLinks.length > 0">
+      <li *ngFor="let link of familyTreeLinks">
+        <a href="{{link.url}}">{{link.text}}</a>
+      </li>
+    </ul>
     <p>Genes:</p>
     <ul>
       <li *ngFor="let gene of genes">
@@ -34,8 +38,7 @@ export class FamilyDetailComponent implements OnChanges {
 
   genes: Gene[];
   geneList: string;
-  linkablePhylo: boolean;
-  familyTreeLink: string;
+  familyTreeLinks: any[];
 
   constructor(private detailsService: DetailsService) { }
 
@@ -49,18 +52,26 @@ export class FamilyDetailComponent implements OnChanges {
         l.push.apply(l, genes);
         return l;
       }, []);
-      this.linkablePhylo = this.family.id !== "" && new Set(this.genes.map((g) => {
+      const linkablePhylo = this.family.id !== "" && new Set(this.genes.map((g) => {
         return g.family;
       })).size === 1;
-
       this.geneList = this.genes.map((x) => x.name).join(",");
+      this.familyTreeLinks = [];
 
-      let idx = this._serverIDs.indexOf(this.genes[0].source);
-      this.familyTreeLink = "http://legumeinfo.org/chado_gene_phylotree_v2?family=" + this.family.name + "&gene_name=" + this.geneList;
-      if (idx != -1) {
-        let s: Server = AppConfig.SERVERS[idx];
-        if (s.hasOwnProperty("familyTreeLink")) {
-          this.familyTreeLink = s.familyTreeLink.url + this.family.name;
+      if (linkablePhylo) {
+        const sources = new Set(this.genes.map((g) => g.source));
+        for (const source of sources) {
+          const idx = this._serverIDs.indexOf(source);
+          if (idx !== -1) {
+            const s: Server = AppConfig.SERVERS[idx];
+            if (s.hasOwnProperty("familyTreeLink")) {
+              const familyTreeLink = {
+                url: s.familyTreeLink.url + this.family.name + "&gene_name=" + this.geneList,
+                text: s.name,
+              };
+              this.familyTreeLinks.push(familyTreeLink);
+            }
+          }
         }
       }
     }
