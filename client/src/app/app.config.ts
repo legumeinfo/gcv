@@ -10,7 +10,9 @@ declare var document: any;
 @Injectable()
 export class AppConfig {
 
-  public static SERVERS: any[] = [];  // later frozen to be "const"
+  // later frozen to be "const"
+  public static SERVERS: any[] = [];
+  public static BRAND: any;
 
   private config: object = {};
 
@@ -30,6 +32,7 @@ export class AppConfig {
 
   public load(): Promise<any> {
     this.config = configFile;
+    this._loadBrand(this.getConfig("brand") || AppConfig.BRAND);
     return this._loadServers(this.getConfig("servers") || AppConfig.SERVERS);
   }
 
@@ -70,6 +73,11 @@ export class AppConfig {
   private _setAndFreezeServers(servers: any[]): void {
     AppConfig.SERVERS = servers;
     Object.freeze(AppConfig.SERVERS);
+  }
+
+  private _loadBrand(brand: any): void {
+    AppConfig.BRAND = brand;
+    Object.freeze(AppConfig.BRAND);
   }
 
   private _loadServers(servers: any[]): Promise<any> {
