@@ -7,7 +7,6 @@ import { HelpComponent } from "./help.component";
 import { LeftSliderComponent } from "./left-slider.component";
 import { MainContentComponent } from "./main-content.component";
 import { MainComponent } from "./main.component";
-import { NavComponent } from "./nav.component";
 import { OrderingComponent } from "./ordering.component";
 import { RegexpComponent } from "./regexp.component";
 import { SpinnerComponent } from "./spinner.component";
@@ -24,7 +23,6 @@ export const components: any[] = [
   LeftSliderComponent,
   MainContentComponent,
   MainComponent,
-  NavComponent,
   OrderingComponent,
   RegexpComponent,
   SpinnerComponent,
@@ -41,7 +39,6 @@ export * from "./help.component";
 export * from "./left-slider.component";
 export * from "./main-content.component";
 export * from "./main.component";
-export * from "./nav.component";
 export * from "./ordering.component";
 export * from "./regexp.component";
 export * from "./spinner.component";

@@ -8,7 +8,7 @@ import { FilterService } from "../../services/filter.service";
 @Component({
   moduleId: module.id.toString(),
   selector: "app-ordering",
-  styles: [ ".input-group { display: inline; }" ],
+  styles: [ "" ],
   template: `
     <form #orderForm="ngForm">
       <div class="input-group">

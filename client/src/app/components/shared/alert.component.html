@@ -1,8 +1,8 @@
 <div role="alert" [className]="className">
-  <button type="button" class="close" aria-label="Close" *ngIf="alert.options.closable" (click)="close()">
-    <span aria-hidden="true">&times;</span>
-  </button>
-  <span *ngIf="alert.options.autoClose > 0" class="pull-right">{{closeCountDown | async}}</span>
+  <a class="float-right" *ngIf="alert.options.closable" (click)="close()">
+    <span class="fa fa-remove" aria-hidden="true"></span>
+  </a>
+  <span *ngIf="alert.options.autoClose > 0" class="float-right">{{closeCountDown | async}}</span>
   {{alert.message}}
   <img *ngIf="alert.options.spinner" src="../../../assets/img/spinner.gif">
 </div>

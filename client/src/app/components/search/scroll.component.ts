@@ -13,13 +13,13 @@ import { MicroTracksService } from "../../services/micro-tracks.service";
       <div class="input-group">
         <span class="input-group-btn">
           <button class="btn btn-default" type="button" (click)="scrollLeft(step.value)">
-            &nbsp;<span class="glyphicon glyphicon-chevron-left" aria-hidden="true"></span>&nbsp;
+            &nbsp;<span class="fa fa-chevron-left" aria-hidden="true"></span>&nbsp;
           </button>
         </span>
         <input type="number" min="1" class="form-control" placeholder="e.g. 10" #step>
         <span class="input-group-btn">
           <button class="btn btn-default" type="button" (click)="scrollRight(step.value)">
-            &nbsp;<span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span>&nbsp;
+            &nbsp;<span class="fa fa-chevron-right" aria-hidden="true"></span>&nbsp;
           </button>
         </span>
       </div>

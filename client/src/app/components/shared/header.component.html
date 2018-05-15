@@ -1,27 +1,17 @@
-<div class="navbar navbar-default navbar-static-top">
-  <div class="container-fluid">
-    <div class="navbar-header">
-      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
-        <span class="sr-only">Toggle navigation</span>
-        <span class="icon-bar"></span>
-        <span class="icon-bar"></span>
-        <span class="icon-bar"></span>
-      </button>
-      <a *ngIf="brand !== undefined" class="navbar-brand" href="{{brand.url}}" target="_blank">
-        <img alt="Brand" src="{{brand.img}}" (mouseenter)="toggleBrand()" (mouseleave)="toggleBrand()">
-        <span>{{brand.name}} <small>{{brand.slogan}}</small></span>
-      </a>
-    </div>
-    <div class="collapse navbar-collapse">
-      <ng-content select="[left]"></ng-content>
-      <div>
-        <div class="navbar-right">
-          <ng-content select="[right]"></ng-content>
-        </div>
-        <div class="center">
-          <ng-content select="[center]"></ng-content>
-        </div>
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
+  <a *ngIf="brand !== undefined" class="navbar-brand" href="{{brand.url}}" target="_blank">
+    <img src="{{brand.img}}" alt="" (mouseenter)="toggleBrand()" (mouseleave)="toggleBrand()">
+    <span>{{brand.name}} <small>{{brand.slogan}}</small></span>
+  </a>
+  <div class="collapse navbar-collapse">
+    <ng-content select="[left]"></ng-content>
+    <div class="flex-grow-1 flex-fill">
+      <div class="navbar-right">
+        <ng-content select="[right]"></ng-content>
+      </div>
+      <div class="flex-grow-1 flex-fill">
+        <ng-content select="[center]"></ng-content>
       </div>
     </div>
   </div>
-</div>
+</nav>

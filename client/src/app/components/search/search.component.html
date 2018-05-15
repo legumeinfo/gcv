@@ -2,16 +2,18 @@
 <main>
 
   <header>
-    <ul class="nav navbar-nav tabs" left>
-      <li><toggle-button (toggleFn)="selectParams()">Parameters</toggle-button></li>
-      <li [ngClass]="{'active': selectedContent==contentTypes.VIEWERS}">
-        <a (click)="showViewers()">Viewers</a>
+    <alert [alert]="headerAlert" center></alert>
+    <ul class="navbar-nav mr-2" left>
+      <li class="nav-item active">
+        <toggle-button (toggleFn)="selectParams()">Parameters</toggle-button>
       </li>
-      <li [ngClass]="{'active': selectedContent==contentTypes.PLOTS}">
-        <a (click)="showPlots()">Dot Plots</a>
+      <li class="nav-item" [ngClass]="{'active': selectedContent==contentTypes.VIEWERS}">
+        <a class="nav-link" (click)="showViewers()">Viewers</a>
+      </li>
+      <li class="nav-item" [ngClass]="{'active': selectedContent==contentTypes.PLOTS}">
+        <a class="nav-link" (click)="showPlots()">Dot Plots</a>
       </li>
     </ul>
-    <alert [alert]="headerAlert" center></alert>
   </header>
 
   <main-content [hidden]="selectedContent!==contentTypes.VIEWERS">
@@ -45,7 +47,7 @@
           <ul navbar class="nav navbar-nav accordion">
             <li [ngClass]="{'active': accordion==accordionTypes.SEARCH}">
               <a (click)="setAccordion($event, accordionTypes.SEARCH)">
-              &nbsp;<span class="glyphicon glyphicon-search" aria-hidden="true"></span>&nbsp;
+              &nbsp;<span class="fa fa-search" aria-hidden="true"></span>&nbsp;
               </a>
             </li>
             <li class="target" [ngClass]="{'active': accordion==accordionTypes.SEARCH}">
@@ -53,7 +55,7 @@
             </li>
             <li [ngClass]="{'active': accordion==accordionTypes.REGEXP}">
               <a (click)="setAccordion($event, accordionTypes.REGEXP)">
-              &nbsp;<span class="glyphicon glyphicon-filter" aria-hidden="true"></span>&nbsp;
+              &nbsp;<span class="fa fa-filter" aria-hidden="true"></span>&nbsp;
               </a>
             </li>
             <li class="target" [ngClass]="{'active': accordion==accordionTypes.REGEXP}">
@@ -61,7 +63,7 @@
             </li>
             <li [ngClass]="{'active': accordion==accordionTypes.ORDER}">
               <a (click)="setAccordion($event, accordionTypes.ORDER)">
-              &nbsp;<span class="glyphicon glyphicon-triangle-bottom"></span><span class="glyphicon glyphicon-triangle-top"></span>&nbsp;
+              &nbsp;<span class="fa fa-sort"></span>&nbsp;
               </a>
             </li>
             <li class="target" [ngClass]="{'active': accordion==accordionTypes.ORDER}">
@@ -69,8 +71,8 @@
             </li>
             <li [ngClass]="{'active': accordion==accordionTypes.SCROLL}">
               <a (click)="setAccordion($event, accordionTypes.SCROLL)">
-              &nbsp;<span class="glyphicon glyphicon-chevron-left" aria-hidden="true"></span>
-              <span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span>&nbsp;
+              &nbsp;<span class="fa fa-chevron-left" aria-hidden="true"></span>
+              <span class="fa fa-chevron-right" aria-hidden="true"></span>&nbsp;
               </a>
             </li>
             <li class="target" [ngClass]="{'active': accordion==accordionTypes.SCROLL}">
@@ -108,32 +110,36 @@
                   [data]="selectedLocalPlot"
                   [colors]="microColors"
                   [arguments]="plotArgs" >
-                  <ul class="nav navbar-nav tabs" navbar>
-                    <li [ngClass]="{'active': selectedPlot==plotTypes.LOCAL}">
-                      <a (click)="showLocalPlot()">Local</a>
+                  <ul class="navbar-nav" navbar>
+                    <li class="nav-item active">
+                      <a class="nav-link" (click)="showLocalPlot()">Local</a>
                     </li>
-                    <li [ngClass]="{'active': selectedPlot==plotTypes.GLOBAL}">
-                      <a (click)="showGlobalPlot()">Global</a>
+                    <li class="nav-item">
+                      <a class="nav-link" (click)="showGlobalPlot()">Global</a>
                     </li>
                   </ul>
-                  <li navright>
-                    <a><span class="glyphicon glyphicon-remove" aria-hidden="true" (click)="hideLocalGlobalPlots()"></span></a>
+                  <li class="nav-item" navright>
+                    <a class="nav-link">
+                      <span class="fa fa-remove" aria-hidden="true" (click)="hideLocalGlobalPlots()"></span>
+                    </a>
                   </li>
                 </viewer-plot>
                 <viewer-plot [hidden]="selectedPlot!==plotTypes.GLOBAL"
                   [data]="selectedGlobalPlot"
                   [colors]="microColors"
                   [arguments]="plotArgs" >
-                  <ul class="nav navbar-nav tabs" navbar>
-                    <li [ngClass]="{'active': selectedPlot==plotTypes.LOCAL}">
-                      <a (click)="showLocalPlot()">Local</a>
+                  <ul class="navbar-nav" navbar>
+                    <li class="nav-item">
+                      <a class="nav-link" (click)="showLocalPlot()">Local</a>
                     </li>
-                    <li [ngClass]="{'active': selectedPlot==plotTypes.GLOBAL}">
-                      <a (click)="showGlobalPlot()">Global</a>
+                    <li class="nav-item active">
+                      <a class="nav-link" (click)="showGlobalPlot()">Global</a>
                     </li>
                   </ul>
-                  <li navright>
-                    <a><span class="glyphicon glyphicon-remove" aria-hidden="true" (click)="hideLocalGlobalPlots()"></span></a>
+                  <li class="nav-item" navright>
+                    <a class="nav-link">
+                      <span class="fa fa-remove" aria-hidden="true" (click)="hideLocalGlobalPlots()"></span>
+                    </a>
                   </li>
                   <ng-container #plotAlerts overlay></ng-container>
                 </viewer-plot>
@@ -146,7 +152,7 @@
   </main-content>
 
   <main-content [hidden]="selectedContent!==contentTypes.PLOTS">
-    <div class="plots" (scroll)="drawPlots()">
+    <div class="row plots" (scroll)="drawPlots()">
       <div class="plot col-sm-6 col-md-4" *ngFor="let p of microPlots">
         <viewer-plot
           [data]="p"

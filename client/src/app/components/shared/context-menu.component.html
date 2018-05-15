@@ -1,31 +1,19 @@
-<div class="navbar navbar-default navbar-static-top">
-  <div class="container-fluid">
-    <!-- Brand and toggle get grouped for better mobile display -->
-    <div class="navbar-header">
-      <span class="navbar-brand" href="#">{{title}}</span>
-    </div>
-    <div class="collapse navbar-collapse">
-      <div>
-        <ul class="nav navbar-nav navbar-right">
-          <li class="dropdown" [hidden]="!showDropdown()">
-            <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"><span class="glyphicon glyphicon-chevron-down" aria-hidden="true"></span></a>
-            <ul class="dropdown-menu" #dropdown>
-              <li class="native" [hidden]="!saveImage.observers.length">
-                <a (click)="imageClick()"><span class="glyphicon glyphicon-camera pull-right" aria-hidden="true"></span>Screenshot</a>
-              </li>
-              <li class="native" [hidden]="!saveData.observers.length">
-                <a (click)="dataClick()"><span class="glyphicon glyphicon-arrow-down pull-right" aria-hidden="true"></span>Download data</a>
-              </li>
-              <li role="separator" class="divider" [hidden]="!showSeparator()"></li>
-              <ng-content select="[dropdown]"></ng-content>
-            </ul>
-          </li>
-          <ng-content select="[navright]"></ng-content>
-        </ul>
-        <div class="navbar-content">
-          <ng-content select="[navbar]"></ng-content>
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
+  <a class="navbar-brand" href="#">{{title}}</a>  <div class="collapse navbar-collapse" id="navbarSupportedContent">
+    <ul class="navbar-nav mr-auto">
+      <ng-content select="[navbar]"></ng-content>
+    </ul>
+    <ul class="navbar-nav ml-auto">      <li class="nav-item dropdown" [hidden]="!showDropdown()">
+        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+        </a>
+        <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdown" #dropdown>
+          <a class="dropdown-item native" (click)="imageClick()"><span class="fa fa-camera float-right" aria-hidden="true"></span>Screenshot</a>
+          <a class="dropdown-item native" (click)="dataClick()"><span class="fa fa-arrow-down float-right" aria-hidden="true"></span>Download data</a>
+          <div class="dropdown-divider" [hidden]="!showSeparator()"></div>
+          <ng-content select="[dropdown]"></ng-content>
         </div>
-      </div>
-    </div>
+      </li>
+      <ng-content select="[navright]"></ng-content>
+    </ul>
   </div>
-</div>
+</nav>

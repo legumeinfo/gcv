@@ -1,6 +1,6 @@
 <form (ngSubmit)="submit()">
   <fieldset [formGroup]="blockGroup">
-    <legend>Block Parameters<a id="block-params-help" class="pull-right" (click)="blockHelp=!blockHelp"><span class="glyphicon glyphicon-question-sign"></span></a></legend>
+    <legend>Block Parameters<a id="block-params-help" class="float-right" (click)="blockHelp=!blockHelp"><span class="fa fa-question-circle"></span></a></legend>
     <div class="form-group" [ngClass]="{'has-error': !blockGroup.controls.bmatched.valid}">
       <label for="bmatched">Min Matched families (min 1)</label>
       <input type="number" class="form-control" formControlName="bmatched" >
@@ -18,7 +18,7 @@
     </div>
   </fieldset>
   <fieldset [formGroup]="queryGroup">
-    <legend>Query Parameters<a class="pull-right"><span class="glyphicon glyphicon-question-sign" (click)="help=!help"></span></a></legend>
+    <legend>Query Parameters<a class="float-right"><span class="fa fa-question-circle" (click)="help=!help"></span></a></legend>
     <div class="form-group" [ngClass]="{'has-error': !queryGroup.controls.neighbors.valid}">
       <label for="neighbors">Neighbors (min 1)</label>
       <input type="number" class="form-control" formControlName="neighbors" >
@@ -33,7 +33,7 @@
     </div>
   </fieldset>
   <fieldset [formGroup]="clusteringGroup">
-    <legend>Clustering Parameters<a id="align-params-help" class="pull-right" (click)="clusteringHelp=!clusteringHelp"><span class="glyphicon glyphicon-question-sign"></span></a></legend>
+    <legend>Clustering Parameters<a id="align-params-help" class="float-right" (click)="clusteringHelp=!clusteringHelp"><span class="fa fa-question-circle"></span></a></legend>
     <div class="form-group" [ngClass]="{'has-error': !clusteringGroup.controls.alpha.valid}">
       <label for="alpha">Identity (in (0,1])</label>
       <input type="number" step="0.01" class="form-control" formControlName="alpha" >
