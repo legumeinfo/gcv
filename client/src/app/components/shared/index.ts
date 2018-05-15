@@ -3,7 +3,6 @@ import { ContextMenuComponent } from "./context-menu.component";
 import { FamilyDetailComponent } from "./family-detail.component";
 import { GeneDetailComponent } from "./gene-detail.component";
 import { HeaderComponent } from "./header.component";
-import { HelpComponent } from "./help.component";
 import { LeftSliderComponent } from "./left-slider.component";
 import { MainContentComponent } from "./main-content.component";
 import { MainComponent } from "./main.component";
@@ -19,7 +18,6 @@ export const components: any[] = [
   FamilyDetailComponent,
   GeneDetailComponent,
   HeaderComponent,
-  HelpComponent,
   LeftSliderComponent,
   MainContentComponent,
   MainComponent,
@@ -35,7 +33,6 @@ export * from "./context-menu.component";
 export * from "./family-detail.component";
 export * from "./gene-detail.component";
 export * from "./header.component";
-export * from "./help.component";
 export * from "./left-slider.component";
 export * from "./main-content.component";
 export * from "./main.component";
