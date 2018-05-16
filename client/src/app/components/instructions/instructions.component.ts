@@ -1,6 +1,7 @@
 // Angular
-import { AfterViewInit, Component, ElementRef, ViewChild } from "@angular/core";
+import { AfterViewInit, Component, ElementRef, OnDestroy, ViewChild } from "@angular/core";
 // App
+import { AppConfig } from "../../app.config";
 import { elementIsVisible } from "../../utils/element-is-visible.util";
 
 declare var $: any;
@@ -11,19 +12,28 @@ declare var $: any;
   styles: [ require("./instructions.component.scss") ],
   template: require("./instructions.component.html"),
 })
-export class InstructionsComponent implements AfterViewInit {
+export class InstructionsComponent implements AfterViewInit, OnDestroy {
 
   @ViewChild("searchScreenshot") searchScreenshotEl: ElementRef;
   @ViewChild("multiScreenshot") multiScreenshotEl: ElementRef;
 
+  brand = AppConfig.BRAND;
+  dashboard = AppConfig.DASHBOARD;
   copyrightYear = (new Date()).getFullYear();
 
   private searchPopover = false;
   private multiPopover = false;
 
   ngAfterViewInit() {
-    $(this.searchScreenshotEl.nativeElement).popover();
-    $(this.multiScreenshotEl.nativeElement).popover({placement: "left"});
+    $(this.searchScreenshotEl.nativeElement).popover({
+      content: this.dashboard.search.caption,
+      html: true,
+    });
+    $(this.multiScreenshotEl.nativeElement).popover({
+      content: this.dashboard.multi.caption,
+      html: true,
+      placement: "left",
+    });
     $(document).on('scroll', () => {
       if (elementIsVisible(this.searchScreenshotEl.nativeElement, true) && !this.searchPopover) {
         this.searchPopover = true;
@@ -34,5 +44,10 @@ export class InstructionsComponent implements AfterViewInit {
         $(this.multiScreenshotEl.nativeElement).trigger("click");
       }
     });
+  }
+
+  ngOnDestroy() {
+    $(this.searchScreenshotEl.nativeElement).popover("dispose");
+    $(this.multiScreenshotEl.nativeElement).popover("dispose");
   }
 }

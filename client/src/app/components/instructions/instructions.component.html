@@ -44,7 +44,7 @@
         <p>This is some additional text that may be used if desired. Not sure if it should be user configurable or not...</p>
       </div>
       <div class="col-md-7 flex-shrink-1">
-        <img #searchScreenshot class="featurette-image img-fluid mx-auto" src="../../../assets/img/search.png" alt="Search view screenshot" data-toggle="popover" data-content="This image and popover text will be loaded from the config file so that sites can have site-specific examples. For now, though, it's hard coded.">
+        <img #searchScreenshot class="featurette-image img-fluid mx-auto" src="{{dashboard.search.img}}" alt="Search view screenshot">
       </div>
       <div id="container"></div>
     </div>
@@ -59,16 +59,18 @@
         <p>Like the Search view feature, this is some additional text that may be used if desired. Still not sure if it should be user configurable or not...</p>
       </div>
       <div class="col-md-7 order-md-1">
-        <img #multiScreenshot class="featurette-image img-fluid mx-auto" src="../../../assets/img/multi.png" alt="Multi view screenshot" data-toggle="popover" data-content="This image and popover text will be loaded from the config file so that sites can have site-specific examples. For now, though, it's hard coded. The difference between this popover and the Search view popover is that there's more text. This is to illustrate just how much text can be crammed into one of these popovers, though it is advised that the text is no more than a brief explanation of the site-specific example image.">
+        <img #multiScreenshot class="featurette-image img-fluid mx-auto" src="{{dashboard.multi.img}}" alt="Multi view screenshot">
       </div>
     </div>
 
     <hr class="featurette-divider">
 
-    <div class="row featurette">
+    <div class="row featurette" *ngIf="dashboard.examples.length > 0">
       <div class="col-md-12">
-        <h2 class="featurette-heading">&lt;sitename&gt; Examples<!-- <span class="text-muted">Checkmate.</span>--></h2>
-        <p class="lead">This is where examples will be loaded from the config file.</p>
+        <h2 class="featurette-heading">{{brand.name}} Examples<!-- <span class="text-muted">Checkmate.</span>--></h2>
+        <ul>
+          <li *ngFor="let example of dashboard.examples" [innerHTML]="example"></li>
+        </ul>
       </div>
     </div>
 

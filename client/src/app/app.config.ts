@@ -13,6 +13,7 @@ export class AppConfig {
   // later frozen to be "const"
   public static SERVERS: any[] = [];
   public static BRAND: any;
+  public static DASHBOARD: any;
 
   private config: object = {};
 
@@ -33,6 +34,7 @@ export class AppConfig {
   public load(): Promise<any> {
     this.config = configFile;
     this._loadBrand(this.getConfig("brand") || AppConfig.BRAND);
+    this._loadDashboard(this.getConfig("dashboard") || AppConfig.DASHBOARD);
     return this._loadServers(this.getConfig("servers") || AppConfig.SERVERS);
   }
 
@@ -78,6 +80,17 @@ export class AppConfig {
   private _loadBrand(brand: any): void {
     AppConfig.BRAND = brand;
     Object.freeze(AppConfig.BRAND);
+  }
+
+  private _loadDashboard(dashboard: any): void {
+    if (dashboard.search.img === undefined) {
+      dashboard.search.img = require("../assets/img/search.png");
+    }
+    if (dashboard.multi.img === undefined) {
+      dashboard.multi.img = require("../assets/img/multi.png");
+    }
+    AppConfig.DASHBOARD = dashboard;
+    Object.freeze(AppConfig.DASHBOARD);
   }
 
   private _loadServers(servers: any[]): Promise<any> {

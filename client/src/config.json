@@ -5,6 +5,19 @@
     "name": "LIS - Legume Information System",
     "slogan": "Information about legume traits for crop improvement"
   },
+  "dashboard": {
+    "search": {
+      "caption": "This description and the Search screenshot were both loaded from the config file."
+    },
+    "multi": {
+      "caption": "This description and the Multi screenshot were both loaded from the config file."
+    },
+    "examples": [
+      "Common bean gene <a href='/#/search/lis/phavu.Phvul.002G085200?neighbors=10&matched=4&intermediate=5&algorithm=repeat&match=10&mismatch=-1&gap=-1&score=30&threshold=25&regexp=&order=distance&sources=lis'>phavu.Phvul.002G085200</a> highly conserved across syntenic contexts among legumes (with inversion in soybean)",
+      "\"Search\" (<b>reference-aligned</b>) view of <a href='/#/search/lis/medtr.Medtr3g110360?neighbors=8&sources=lis&regexp=&matched=4&intermediate=5&algorithm=repeat&match=10&mismatch=-1&gap=-1&score=30&threshold=25&order=distance'>Medicago truncatula gene medtr.Medtr3g110360</a> (try the Dotplots tab on this too)",
+      "\"Multi\" (<b>within-cluster multiple alignment</b>) view of <a href='/#/multi/lotja.Lj0g3v0166889,cicar.Ca_05015_gene,glyma.Glyma.06G088000,glyma.Glyma.04G086500,araip.Araip.Z4RG3,vigra.Vradi05g08580,araip.Araip.0T13B,medtr.Medtr3g110360,cajca.C.cajan_36467_gene,phavu.Phvul.009G111700,aradu.Aradu.M206V?neighbors=8&sources=lis&regexp='>a set of genes from the tryptophan-tRNA ligase family</a>."
+    ]
+  },
   "servers": [
     {
       "id": "lis",
