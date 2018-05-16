@@ -63,7 +63,7 @@
       </div>
     </div>
 
-    <hr class="featurette-divider">
+    <hr class="featurette-divider" *ngIf="dashboard.examples.length > 0">
 
     <div class="row featurette" *ngIf="dashboard.examples.length > 0">
       <div class="col-md-12">
@@ -71,6 +71,16 @@
         <ul>
           <li *ngFor="let example of dashboard.examples" [innerHTML]="example"></li>
         </ul>
+      </div>
+    </div>
+
+    <hr class="featurette-divider">
+
+    <div class="row featurette" *ngIf="dashboard.examples.length > 0">
+      <div class="col-md-12">
+        <h2 class="featurette-heading"><span class="fa fa-search"></span> Search Now!<!-- <span class="text-muted">Checkmate.</span>--></h2>
+        <p>To get started, enter the name of a gene and select the server that provides it. A genomic context will be made from the gene and the genes that flank it, then similar contexts will be searched for.</p>
+        <app-gene-search></app-gene-search>
       </div>
     </div>
 
