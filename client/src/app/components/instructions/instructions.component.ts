@@ -50,4 +50,11 @@ export class InstructionsComponent implements AfterViewInit, OnDestroy {
     $(this.searchScreenshotEl.nativeElement).popover("dispose");
     $(this.multiScreenshotEl.nativeElement).popover("dispose");
   }
+
+  scrollTo(event, targetSelector): void {
+      event.preventDefault();
+      $("html, body").animate({
+        scrollTop: $(targetSelector).offset().top
+      }, 500);
+  }
 }

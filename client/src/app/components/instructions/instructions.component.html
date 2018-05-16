@@ -1,4 +1,4 @@
-<main>
+<main id="top">
   <header></header>
 
   <section class="jumbotron text-center">
@@ -6,7 +6,7 @@
       <h1 class="jumbotron-heading">Genome Context Viewer</h1>
       <p class="lead text-muted">A web-app that visualizes genomic context data provided by third party services in a single, federated interface by using gene-family assignment as a unit of search and comparison.</p>
       <p>
-        <a href="#" target="_blank" class="btn btn-primary my-2">Get started</a>
+        <a href="#" class="btn btn-primary my-2" (click)="scrollTo($event, '#start')">Get started</a>
         <a href="https://academic.oup.com/bioinformatics/article/34/9/1562/4673199" target="_blank" class="btn btn-outline-primary my-2">Read the paper</a>
         <a href="https://github.com/legumeinfo/lis_context_viewer" target="_blank" class="btn btn-secondary my-2"><span class="fa fa-github"></span> GitHub</a>
       </p>
@@ -33,7 +33,7 @@
       </div>
     </div>
 
-    <hr class="featurette-divider">
+    <hr id="start" class="featurette-divider">
 
     <div class="row featurette">
       <div class="col-md-5 flex-shrink-1">
@@ -89,7 +89,7 @@
   </div>
 
   <footer class="container">
-    <p class="float-right"><a href="#">Back to top</a></p>
+    <p class="float-right"><a href="#" (click)="scrollTo($event, '#top')">Back to top</a></p>
     <p><span class="fa fa-copyright"></span> {{ copyrightYear }} <a href="https://legumeinfo.org/" target="_blank">Legume Information System</a> &middot; <span class="fa fa-osi"></span> <a href="https://github.com/legumeinfo/lis_context_viewer/blob/master/LICENSE" target="_blank">License</a></p>
   </footer>
 </main>
