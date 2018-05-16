@@ -18,6 +18,9 @@
       "\"Multi\" (<b>within-cluster multiple alignment</b>) view of <a href='/#/multi/lotja.Lj0g3v0166889,cicar.Ca_05015_gene,glyma.Glyma.06G088000,glyma.Glyma.04G086500,araip.Araip.Z4RG3,vigra.Vradi05g08580,araip.Araip.0T13B,medtr.Medtr3g110360,cajca.C.cajan_36467_gene,phavu.Phvul.009G111700,aradu.Aradu.M206V?neighbors=8&sources=lis&regexp='>a set of genes from the tryptophan-tRNA ligase family</a>."
     ]
   },
+  "miscellaneous": {
+    "geneSearchPlaceholder": "e.g. phavu.Phvul.002G100400"
+  },
   "servers": [
     {
       "id": "lis",

@@ -14,6 +14,7 @@ export class AppConfig {
   public static SERVERS: any[] = [];
   public static BRAND: any;
   public static DASHBOARD: any;
+  public static MISCELLANEOUS: any;
 
   private config: object = {};
 
@@ -35,6 +36,7 @@ export class AppConfig {
     this.config = configFile;
     this._loadBrand(this.getConfig("brand") || AppConfig.BRAND);
     this._loadDashboard(this.getConfig("dashboard") || AppConfig.DASHBOARD);
+    this._loadMiscellaneous(this.getConfig("miscellaneous") || AppConfig.MISCELLANEOUS);
     return this._loadServers(this.getConfig("servers") || AppConfig.SERVERS);
   }
 
@@ -91,6 +93,11 @@ export class AppConfig {
     }
     AppConfig.DASHBOARD = dashboard;
     Object.freeze(AppConfig.DASHBOARD);
+  }
+
+  private _loadMiscellaneous(miscellaneous: any): void {
+    AppConfig.MISCELLANEOUS = miscellaneous;
+    Object.freeze(AppConfig.MISCELLANEOUS);
   }
 
   private _loadServers(servers: any[]): Promise<any> {
