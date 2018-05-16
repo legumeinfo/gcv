@@ -2,8 +2,8 @@
 import { Component, Input, OnChanges, OnDestroy,
   SimpleChanges } from "@angular/core";
 import { GCV } from "../../../assets/js/gcv";
-
 // App
+import { elementIsVisible } from "../../utils/element-is-visible.util";
 import { Viewer } from "./viewer.component";
 
 @Component({
@@ -42,7 +42,7 @@ export class PlotViewerComponent extends Viewer {
 
   draw(): void {
     if ((this.el !== undefined && this.data !== undefined) &&
-    (!this.visibleDraw || (this.visibleDraw && this.visible())) &&
+    (!this.visibleDraw || (this.visibleDraw && elementIsVisible(this.el.nativeElement))) &&
     !this.drawnSinceChange) {
       this.destroy();
       const colorDomainStr = localStorage.getItem("viewer-micro-color-domain");
@@ -55,20 +55,5 @@ export class PlotViewerComponent extends Viewer {
       this.drawnSinceChange = true;
       localStorage.setItem("viewer-micro-color-domain", this.colors.domain());
     }
-  }
-
-  private visible(): boolean {
-    const rec = this.el.nativeElement.getBoundingClientRect();
-    const vp = {width: window.innerWidth, height: window.innerHeight};
-    const tViz = rec.top >= 0 && rec.top < vp.height;
-    const bViz = rec.bottom > 0 && rec.bottom <= vp.height;
-    const lViz = rec.left >= 0 && rec.left < vp.width;
-    const rViz = rec.right > 0 && rec.right <= vp.width;
-    const vVisible = tViz || bViz;
-    const hVisible = lViz || rViz;
-    if (vVisible && hVisible) {
-      return true;
-    }
-    return false;
   }
 }

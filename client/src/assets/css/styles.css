@@ -3,7 +3,6 @@ body, html {
   margin: 0;
   padding: 0;
   min-width: 400px;
-  overflow: hidden;
 }
 a {
   cursor: pointer;
@@ -76,4 +75,15 @@ a {
 /* override bootstrap autohide help-blocks in forms */
 .form-group .help-block {
   display: block;
+}
+
+/* should be replaced with font awesome osi icon when v5 is released */
+.fa-osi:before {
+  display: inline-block;
+  content: ' ';
+  background-image: url('../img/font-awesome-osi.svg');
+  vertical-align: bottom;
+  background-size: 1em 1em;
+  height: 1em;
+  width: 1em;
 }

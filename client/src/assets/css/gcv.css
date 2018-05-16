@@ -99,6 +99,6 @@ iframe.GCV-resizer {
   fill: #000;
   fill-opacity: .05;
 }
-.fade {
+.GCV .fade {
   display: none;
 }
