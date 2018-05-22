@@ -125,7 +125,10 @@ export class MultiGuard implements CanActivate, CanDeactivate<MultiComponent> {
                a.bmask === b.bmask;
       });
     const macroChromosomes = this.store.select(fromMultiMacroChromosome.getMultiMacroChromosomes);
-    const querySources = this.store.select(fromRouter.getMicroQueryParamSources);
+    const querySources = this.store.select(fromRouter.getMicroQueryParamSources)
+      .distinctUntilChanged((a, b) => {
+        return JSON.stringify(a.slice().sort()) === JSON.stringify(b.slice().sort());
+      });
     blockParams
       .withLatestFrom(macroChromosomes, querySources)
       .takeUntil(stop)

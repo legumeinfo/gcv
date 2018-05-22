@@ -159,7 +159,10 @@ export class SearchGuard implements CanActivate, CanDeactivate<SearchComponent> 
                a.bintermediate === b.bintermediate &&
                a.bmask === b.bmask;
       });
-    const querySources = this.store.select(fromRouter.getMicroQueryParamSources);
+    const querySources = this.store.select(fromRouter.getMicroQueryParamSources)
+      .distinctUntilChanged((a, b) => {
+        return JSON.stringify(a.slice().sort()) === JSON.stringify(b.slice().sort());
+      });
     macroChromosome
       .withLatestFrom(blockParams, querySources)
       .takeUntil(stop)
@@ -167,10 +170,11 @@ export class SearchGuard implements CanActivate, CanDeactivate<SearchComponent> 
         this.store.dispatch(new macroTracksActions.Get({query, params, sources}));
       });
     // load new macro tracks when the block params change
-    blockParams
-      .withLatestFrom(macroChromosome, querySources)
+    Observable
+      .combineLatest(blockParams, querySources)
+      .withLatestFrom(macroChromosome)
       .takeUntil(stop)
-      .subscribe(([params, query, sources]) => {
+      .subscribe(([[params, sources], query]) => {
         this.store.dispatch(new macroTracksActions.Get({query, params, sources}));
       });
   }
