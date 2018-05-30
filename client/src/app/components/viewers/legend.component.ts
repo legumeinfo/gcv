@@ -6,7 +6,6 @@ import { GCV } from "../../../assets/js/gcv";
 import { Viewer } from "./viewer.component";
 
 @Component({
-  moduleId: module.id.toString(),
   selector: "viewer-legend",
   styles: [`
     .viewer {
@@ -22,7 +21,7 @@ import { Viewer } from "./viewer.component";
       float: right;
     }
   `],
-  template: require("./viewer.component.html"),
+  templateUrl: "./viewer.component.html",
 })
 export class LegendViewerComponent extends Viewer {
 

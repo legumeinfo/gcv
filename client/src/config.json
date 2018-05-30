@@ -10,7 +10,7 @@
       "caption": "A Search view using a genomic context from Phaseolus vulgaris (common bean) Chromosome II as the query. Note, the result genomic context from Glycine max (soybean) Chromosome I contains an inversion. Also, the Global dot plot of Arachis hypogaea (peanut) reveals an inversion not present in the Micro-Synteny viewer. Lastly, the Macro-Synteny viewer reveals that some of the result genomic contexts belong to larger syntenic structures."
     },
     "multi": {
-      "caption": "A Multi view for genomic contexts derived from the same gene family representing 11 chromosomes from 9 different species, as illustrated by the Macro-Synteny Circos-style viewer. Note, the genomic context from Glycine max (soybean) Chromosome I contains an inversion. Also, the highlighted portion of the each chromosome's arc in the Macro-Synteny viewer reveals that many of the genomic contexts belong to larger syntenic structures."
+      "caption": "A Multi view for genomic contexts derived from the same gene family representing 11 chromosomes from 9 different species, as illustrated by the Macro-Synteny Circos-style viewer. Note, the genomic context from Glycine max (soybean) Chromosome I contains an inversion. Also, the highlighted portion of each chromosome's arc in the Macro-Synteny viewer reveals that many of the genomic contexts belong to larger syntenic structures."
     },
     "examples": [
       "Common bean gene <a href='/#/search/lis/phavu.Phvul.002G085200?neighbors=10&matched=4&intermediate=5&algorithm=repeat&match=10&mismatch=-1&gap=-1&score=30&threshold=25&regexp=&order=distance&sources=lis'>phavu.Phvul.002G085200</a> highly conserved across syntenic contexts among legumes (with inversion in soybean)",

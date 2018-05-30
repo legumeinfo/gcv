@@ -1,9 +1,8 @@
 // Angular
 import { HttpClient } from "@angular/common/http";
 import { Injectable } from "@angular/core";
-import { Observable } from "rxjs/Observable";
-import { _throw } from "rxjs/observable/throw";
-import { catchError, map } from "rxjs/operators";
+import { Observable, combineLatest, merge, throwError } from "rxjs";
+import { catchError, filter, map, take } from "rxjs/operators";
 // store
 import { Store } from "@ngrx/store";
 import * as routerActions from "../actions/router.actions";
@@ -31,7 +30,7 @@ export class MicroTracksService extends HttpService {
     this.microTracks = store.select(fromMicroTracks.getMicroTracks);
     this.queryParams = store.select(fromRouter.getMicroQueryParams);
     this.searchQueryTrack = store.select(fromSearchQueryTrack.getSearchQueryTrack)
-      .filter((queryTrack) => queryTrack !== undefined);
+      .pipe(filter((queryTrack) => queryTrack !== undefined));
     this.routeParams = store.select(fromRouter.getParams);
   }
 
@@ -44,7 +43,7 @@ export class MicroTracksService extends HttpService {
         this._parseTracks(serverID, tracks);
         return tracks;
       }),
-      catchError((error) => _throw(error)),
+      catchError((error) => throwError(error)),
     )
   }
 
@@ -54,10 +53,10 @@ export class MicroTracksService extends HttpService {
     neighbors: number,
     serverIDs: string[],
   ): Observable<[string, MicroTracks]> {
-    return Observable.merge(...serverIDs.map((serverID) => {
+    return merge(...serverIDs.map((serverID) => {
       return this.getMultiTracks(query, neighbors, serverID).pipe(
-        map((tracks) => [serverID, tracks]),
-        catchError((error) => _throw([serverID, error])),
+        map((tracks): [string, MicroTracks] => [serverID, tracks]),
+        catchError((error) => throwError([serverID, error])),
       );
     }));
   }
@@ -70,7 +69,7 @@ export class MicroTracksService extends HttpService {
         this._parseTrack(serverID, track);
         return track;
       }),
-      catchError((error) => _throw(error)),
+      catchError((error) => throwError(error)),
     );
   }
 
@@ -88,7 +87,7 @@ export class MicroTracksService extends HttpService {
         this._parseTracks(serverID, tracks);
         return tracks;
       }),
-      catchError((error) => _throw(error)),
+      catchError((error) => throwError(error)),
     );
   }
 
@@ -98,10 +97,10 @@ export class MicroTracksService extends HttpService {
     params: QueryParams,
     serverIDs: string[]
   ): Observable<[string, MicroTracks]> {
-    return Observable.merge(...serverIDs.map((serverID) => {
+    return merge(...serverIDs.map((serverID) => {
       return this.getSearchTracks(query, params, serverID).pipe(
-        map((tracks) => [serverID, tracks]),
-        catchError((error) => _throw([serverID, error])),
+        map((tracks): [string, MicroTracks] => [serverID, tracks]),
+        catchError((error) => throwError([serverID, error])),
       );
     }));
   }
@@ -114,12 +113,10 @@ export class MicroTracksService extends HttpService {
 
   scroll(step: number): Observable<any> {
     return Observable.create((observer) => {
-    Observable
-      .combineLatest(
+      combineLatest(
         this.routeParams,
-        this.store.select(fromMacroChromosome.getMacroChromosome),
-      )
-      .take(1)
+        this.store.select(fromMacroChromosome.getMacroChromosome))
+      .pipe(take(1))
       .subscribe(([route, chromosome]) => {
         if (route.gene !== undefined) {
           const i = chromosome.genes.indexOf(route.gene);

@@ -14,8 +14,8 @@ import { MicroTracksService } from "../../services/micro-tracks.service";
 @Component({
   moduleId: module.id.toString(),
   selector: "multi-params",
-  styles: [ require("./multi-params.component.scss") ],
-  template: require("./multi-params.component.html"),
+  styleUrls: [ "./multi-params.component.scss" ],
+  templateUrl: "./multi-params.component.html",
 })
 export class MultiParamsComponent implements OnInit {
   // IO
@@ -23,7 +23,9 @@ export class MultiParamsComponent implements OnInit {
   @Output() valid   = new EventEmitter();
 
   // UI
-  help = false;
+  blockHelp = false;
+  queryHelp = false;
+  clusteringHelp = false;
 
   // form groups
   blockGroup: FormGroup;

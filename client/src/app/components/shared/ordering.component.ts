@@ -6,7 +6,6 @@ import { ORDER_ALGORITHMS } from "../../constants/order-algorithms";
 import { FilterService } from "../../services/filter.service";
 
 @Component({
-  moduleId: module.id.toString(),
   selector: "app-ordering",
   styles: [ "" ],
   template: `

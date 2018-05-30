@@ -1,6 +1,6 @@
 // Angular
 import { Inject, Injectable } from "@angular/core";
-import { Observable } from "rxjs/Rx";
+import { Observable } from "rxjs";
 // app
 import { Server } from "./models/server.model";
 const configFile = require("../config.json");

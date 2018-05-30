@@ -1,7 +1,6 @@
 import { Component } from "@angular/core";
 
 @Component({
-  moduleId: module.id.toString(),
   selector: "main-content",
   styles: [`
     #main-content {

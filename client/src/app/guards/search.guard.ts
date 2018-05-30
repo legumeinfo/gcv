@@ -2,9 +2,8 @@
 import { Injectable } from '@angular/core';
 import { ActivatedRouteSnapshot, CanActivate, CanDeactivate, PRIMARY_OUTLET, Router,
   RouterStateSnapshot , UrlSegment} from '@angular/router';
-import { Observable } from "rxjs/Observable";
-import { BehaviorSubject } from "rxjs/BehaviorSubject";
-import { Subject } from "rxjs/Subject";
+import { BehaviorSubject, combineLatest } from "rxjs";
+import { distinctUntilChanged, filter, map, pairwise, takeUntil, withLatestFrom } from "rxjs/operators";
 // store
 import { Store } from "@ngrx/store";
 import * as alignedMicroTracksActions from "../actions/aligned-micro-tracks.actions";
@@ -65,31 +64,32 @@ export class SearchGuard implements CanActivate, CanDeactivate<SearchComponent> 
   }
 
   private _microSubscriptions() {
-    const stop = this.activated.filter((isActive) => !isActive);
+    const stop = this.activated.pipe(filter((isActive) => !isActive));
     // load a new query track when the search route or neighbors param changes
     const searchRoute = this.store.select(fromRouter.getSearchRoute)
-      .filter((route) => route.source !== undefined && route.gene !== undefined)
-      .distinctUntilChanged((a, b) => a.source === b.source && a.gene === b.gene);
+      .pipe(
+        filter((route) => route.source !== undefined && route.gene !== undefined),
+        distinctUntilChanged((a, b) => a.source === b.source && a.gene === b.gene));
     const neighborsParam = this.store.select(fromRouter.getMicroQueryParamNeighbors);
-    Observable
-      .combineLatest(searchRoute, neighborsParam)
-      .takeUntil(stop)
+    combineLatest(searchRoute, neighborsParam)
+      .pipe(takeUntil(stop))
       .subscribe(([query, neighbors]) => {
         this.store.dispatch(new searchQueryTrackActions.Get({query, neighbors}));
       });
     // load new search tracks when there's a new query track
     const queryTrack = this.store.select(fromSearchQueryTrack.getSearchQueryTrack)
-      .filter((queryTrack) => queryTrack !== undefined);
+      .pipe(filter((queryTrack) => queryTrack !== undefined));
     const queryParams = this.store.select(fromRouter.getMicroQueryParams)
-      .distinctUntilChanged((a, b) => {
+      .pipe(distinctUntilChanged((a, b) => {
         return a.neighbors === b.neighbors &&
                a.matched  === b.matched &&
                a.intermediate === b.intermediate &&
                JSON.stringify(a.sources.slice().sort()) === JSON.stringify(b.sources.slice().sort());
-      });
+      }));
     queryTrack
-      .withLatestFrom(queryParams)
-      .takeUntil(stop)
+      .pipe(
+        withLatestFrom(queryParams),
+        takeUntil(stop))
       .subscribe(([query, params]) => {
         this.store.dispatch(new microTracksActions.GetSearch({
           query,
@@ -99,11 +99,12 @@ export class SearchGuard implements CanActivate, CanDeactivate<SearchComponent> 
       });
     // load new search tracks when the search params change
     queryParams
-      .pairwise()
-      .filter(([prevParams, nextParams]) => prevParams.neighbors === nextParams.neighbors)
-      .map(([prevParams, nextParams]) => nextParams)
-      .withLatestFrom(queryTrack)
-      .takeUntil(stop)
+      .pipe(
+        pairwise(),
+        filter(([prevParams, nextParams]) => prevParams.neighbors === nextParams.neighbors),
+        map(([prevParams, nextParams]) => nextParams),
+        withLatestFrom(queryTrack),
+        takeUntil(stop))
       .subscribe(([params, query]) => {
         this.store.dispatch(new microTracksActions.GetSearch({
           query,
@@ -114,24 +115,25 @@ export class SearchGuard implements CanActivate, CanDeactivate<SearchComponent> 
   }
 
   private _alignmentSubscriptions() {
-    const stop = this.activated.filter((isActive) => !isActive);
+    const stop = this.activated.pipe(filter((isActive) => !isActive));
     // subscribe to changes that trigger new pairwise alignments
     const alignmentParams = this.store.select(fromRouter.getMicroAlignmentParams)
-      .distinctUntilChanged((a, b) => {
+      .pipe(distinctUntilChanged((a, b) => {
         return a.algorithm === b.algorithm &&
                a.match  === b.match &&
                a.mismatch === b.mismatch &&
                a.gap === b.gap &&
                a.score === b.score &&
                a.threshold === b.threshold;
-      });
+      }));
     const microReference = this.store.select(fromAlignedMicroTracks.getAlignmentReference)
-      .filter((reference) => reference !== undefined);
+      .pipe(filter((reference) => reference !== undefined));
     const microTracks = this.store.select(fromMicroTracks.getMicroTracks);
     // TODO: prevent alignments when query params change too
     alignmentParams
-      .withLatestFrom(microReference, microTracks)
-      .takeUntil(stop)
+      .pipe(
+        withLatestFrom(microReference, microTracks),
+        takeUntil(stop))
       .subscribe(([params, reference, tracks]) => {
         this.store.dispatch(new alignedMicroTracksActions.Init({reference}));
         this.store.dispatch(new alignedMicroTracksActions.GetPairwise({tracks, params}));
@@ -139,37 +141,40 @@ export class SearchGuard implements CanActivate, CanDeactivate<SearchComponent> 
   }
 
   private _macroSubscriptions() {
-    const stop = this.activated.filter((isActive) => !isActive);
+    const stop = this.activated.pipe(filter((isActive) => !isActive));
     // subscribe to changes that initialize macro chromosome searches
     const searchQueryChromosome = this.store.select(fromSearchQueryTrack.getSearchQueryChromosome)
-      .filter((chromosome) => chromosome !== undefined);
+      .pipe(filter((chromosome) => chromosome !== undefined));
     const searchRouteSource = this.store.select(fromRouter.getSearchRouteSource);
     searchQueryChromosome
-      .withLatestFrom(searchRouteSource)
-      .takeUntil(stop)
+      .pipe(
+        withLatestFrom(searchRouteSource),
+        takeUntil(stop))
       .subscribe(([chromosome, source]) => {
         this.store.dispatch(new macroChromosomeActions.Get({chromosome, source}));
       });
     // load new macro tracks when there's a new macro chromosome
     const macroChromosome = this.store.select(fromMacroChromosome.getMacroChromosome)
-      .filter((chromosome) => chromosome !== undefined);
+      .pipe(filter((chromosome) => chromosome !== undefined));
     const blockParams = this.store.select(fromRouter.getMacroBlockParams)
-      .distinctUntilChanged((a, b) => {
+      .pipe(distinctUntilChanged((a, b) => {
         return a.bmatched === b.bmatched &&
                a.bintermediate === b.bintermediate &&
                a.bmask === b.bmask;
-      });
+      }));
     const querySources = this.store.select(fromRouter.getMicroQueryParamSources);
     macroChromosome
-      .withLatestFrom(blockParams, querySources)
-      .takeUntil(stop)
+      .pipe(
+        withLatestFrom(blockParams, querySources),
+        takeUntil(stop))
       .subscribe(([query, params, sources]) => {
         this.store.dispatch(new macroTracksActions.Get({query, params, sources}));
       });
     // load new macro tracks when the block params change
     blockParams
-      .withLatestFrom(macroChromosome, querySources)
-      .takeUntil(stop)
+      .pipe(
+        withLatestFrom(macroChromosome, querySources),
+        takeUntil(stop))
       .subscribe(([params, query, sources]) => {
         this.store.dispatch(new macroTracksActions.Get({query, params, sources}));
       });

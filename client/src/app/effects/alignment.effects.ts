@@ -3,7 +3,7 @@ import { Injectable } from "@angular/core";
 // store
 import { Effect, Actions, ofType } from "@ngrx/effects";
 import { Store } from "@ngrx/store";
-import { map, mergeMap, switchMap, takeUntil, withLatestFrom } from "rxjs/operators";
+import { filter, map, mergeMap, switchMap, takeUntil, withLatestFrom } from "rxjs/operators";
 import * as alignedMicroTracksActions from "../actions/aligned-micro-tracks.actions";
 import * as microTracksActions from "../actions/micro-tracks.actions";
 import * as fromRoot from "../reducers";
@@ -48,7 +48,7 @@ export class AlignmentEffects {
     map((action: alignedMicroTracksActions.GetPairwise) => action.payload),
     withLatestFrom(
       this.store.select(fromAlignedMicroTracks.getAlignmentReference)
-      .filter((reference) => reference !== undefined)
+        .pipe(filter((reference) => reference !== undefined))
     ),
     mergeMap(([{tracks, params}, reference]) => {
       const stop = this.actions$.pipe(ofType(microTracksActions.GET_SEARCH));

@@ -1,13 +1,7 @@
 // Angular
-import { AfterViewInit, Component, ElementRef, Input, OnChanges, OnDestroy,
+import { AfterViewInit, ElementRef, Input, OnChanges, OnDestroy,
   SimpleChanges, ViewChild } from "@angular/core";
 
-@Component({
-  moduleId: module.id.toString(),
-  selector: "viewer",
-  styles: [ "" ],
-  template: "",
-})
 export abstract class Viewer implements AfterViewInit, OnChanges, OnDestroy {
 
   // view children

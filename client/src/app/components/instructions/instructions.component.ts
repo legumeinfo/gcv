@@ -7,10 +7,9 @@ import { elementIsVisible } from "../../utils/element-is-visible.util";
 declare var $: any;
 
 @Component({
-  moduleId: module.id.toString(),
   selector: "instructions",
-  styles: [ require("./instructions.component.scss") ],
-  template: require("./instructions.component.html"),
+  styleUrls: [ "./instructions.component.scss" ],
+  templateUrl: "./instructions.component.html",
 })
 export class InstructionsComponent implements AfterViewInit, OnDestroy {
 
@@ -25,6 +24,7 @@ export class InstructionsComponent implements AfterViewInit, OnDestroy {
   private multiPopover = false;
 
   ngAfterViewInit() {
+    // create popovers
     $(this.searchScreenshotEl.nativeElement).popover({
       content: this.dashboard.search.caption,
       html: true,
@@ -34,6 +34,8 @@ export class InstructionsComponent implements AfterViewInit, OnDestroy {
       html: true,
       placement: "left",
     });
+
+    // show popovers on scroll
     $(document).on('scroll', () => {
       if (elementIsVisible(this.searchScreenshotEl.nativeElement, true) && !this.searchPopover) {
         this.searchPopover = true;

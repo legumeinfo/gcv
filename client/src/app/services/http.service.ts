@@ -1,7 +1,7 @@
 // Angular
 import { HttpClient, HttpParams } from "@angular/common/http";
-import { Observable } from "rxjs/Observable";
-import { BehaviorSubject } from "rxjs/BehaviorSubject";
+import { Observable } from "rxjs";
+import { BehaviorSubject } from "rxjs";
 import { filter, share } from "rxjs/operators";
 // app
 import { AppConfig } from "../app.config";

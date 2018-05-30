@@ -1,6 +1,12 @@
+// rxjs
+import { Observable } from "rxjs";
+import { map } from "rxjs/operators";
+// App
+import { Group } from "../models/group.model";
+
 export const plotsSelector = () => {
-  return (state) => state
-    .map(([microPlots, filteredMicroTracks]) => {
+  return (state): Observable<Group> => state.pipe(
+    map(([microPlots, filteredMicroTracks]) => {
       if (filteredMicroTracks.groups.length > 0) {
         const ids = filteredMicroTracks.groups.map((g) => g.id);
         const plots = microPlots.filter((p) => {
@@ -12,5 +18,5 @@ export const plotsSelector = () => {
         return plots;
       }
       return microPlots;
-    });
+    }));
 };

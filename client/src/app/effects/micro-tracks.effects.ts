@@ -2,7 +2,7 @@
 import { Injectable } from "@angular/core";
 // store
 import { Effect, Actions, ofType } from "@ngrx/effects";
-import { of } from "rxjs/observable/of";
+import { of } from "rxjs";
 import { catchError, map, switchMap } from "rxjs/operators";
 import * as microTracksActions from "../actions/micro-tracks.actions";
 import * as searchQueryTrackActions from "../actions/search-query-track.actions";

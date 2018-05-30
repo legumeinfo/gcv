@@ -1,8 +1,12 @@
+// rxjs
+import { Observable } from "rxjs";
+import { map } from "rxjs/operators";
+// App
 import { MacroTracks } from "../models/macro-tracks.model";
 
 export const macroTracksSelector = () => {
-  return (state) => state
-    .map(([macroTracks, filteredMicroTracks, options]) => {
+  return (state): Observable<MacroTracks> => state.pipe(
+    map(([macroTracks, filteredMicroTracks, options]) => {
       if (macroTracks !== undefined && filteredMicroTracks.groups.length > 0) {
         const query = filteredMicroTracks.groups[0];
         const chrs = filteredMicroTracks.groups.reduce((l, g, i) => {
@@ -11,7 +15,6 @@ export const macroTracksSelector = () => {
           }
           return l;
         }, []);
-        //const macro = Object.assign({}, macroTracks);
         const macro = new MacroTracks();
         macro.chromosome = macroTracks.chromosome;
         macro.length = macroTracks.length;
@@ -33,5 +36,5 @@ export const macroTracksSelector = () => {
         return macro;
       }
       return macroTracks;
-    });
+    }));
 };

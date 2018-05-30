@@ -2,8 +2,7 @@
 import { HttpClient } from "@angular/common/http";
 import { Injectable } from "@angular/core";
 // store
-import { Observable } from "rxjs/Observable";
-import { _throw } from "rxjs/observable/throw";
+import { Observable, throwError } from "rxjs";
 import { catchError, map } from "rxjs/operators";
 import { Store } from "@ngrx/store";
 import * as globalPlotsActions from "../actions/global-plots.actions";
@@ -76,7 +75,7 @@ export class PlotsService extends HttpService {
           genes: this._getPlotPoints(familyCoordinates, genes),
         };
       }),
-      catchError((error) => _throw(error)),
+      catchError((error) => throwError(error)),
     );
   }
 

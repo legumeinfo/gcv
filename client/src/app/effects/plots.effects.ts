@@ -3,8 +3,8 @@ import { Injectable } from "@angular/core";
 // store
 import { Effect, Actions, ofType } from "@ngrx/effects";
 import { Store } from "@ngrx/store";
-import { of } from "rxjs/observable/of";
-import { catchError, map, mergeMap, switchMap, takeUntil, withLatestFrom } from "rxjs/operators";
+import { of } from "rxjs";
+import { catchError, map, mergeMap, switchMap, take, takeUntil, withLatestFrom } from "rxjs/operators";
 import * as globalPlotsActions from "../actions/global-plots.actions";
 import * as localPlotsActions from "../actions/local-plots.actions";
 import * as microTracksActions from "../actions/micro-tracks.actions";
@@ -69,7 +69,8 @@ export class PlotsEffects {
     ofType(globalPlotsActions.GET_OR_SELECT),
     map((action: globalPlotsActions.Select) => action.payload),
     switchMap(({id}) => {
-      return this.store.select(fromGlobalPlots.hasPlot(id)).take(1).pipe(
+      return this.store.select(fromGlobalPlots.hasPlot(id)).pipe(
+        take(1),
         withLatestFrom(
           this.store.select(fromSearchQueryTrack.getSearchQueryTrack),
           this.store.select(fromLocalPlots.getPlotByID(id)),

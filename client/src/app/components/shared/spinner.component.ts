@@ -1,7 +1,6 @@
 import { Component, Input } from "@angular/core";
 
 @Component({
-  moduleId: module.id.toString(),
   selector: "spinner",
   template: `
     <div class="grey-screen" *ngIf="!data">

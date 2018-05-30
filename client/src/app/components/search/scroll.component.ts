@@ -5,7 +5,6 @@ import { catchError } from "rxjs/operators";
 import { MicroTracksService } from "../../services/micro-tracks.service";
 
 @Component({
-  moduleId: module.id.toString(),
   selector: "scroll",
   styles: [ "form button { margin-right: 0; }" ],
   template: `

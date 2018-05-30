@@ -2,9 +2,8 @@
 import { AfterViewInit, Component, ComponentFactory, ComponentFactoryResolver,
   ComponentRef, ElementRef, OnDestroy, OnInit, QueryList, ViewContainerRef,
   ViewChild, ViewChildren, ViewEncapsulation } from "@angular/core";
-import { BehaviorSubject } from "rxjs/BehaviorSubject";
-import { Observable } from "rxjs/Observable";
-import { Subject } from "rxjs/Subject";
+import { BehaviorSubject, Observable, Subject, combineLatest } from "rxjs";
+import { filter, map, take, takeUntil, withLatestFrom } from "rxjs/operators";
 // app
 import * as Split from "split.js";
 import { GCV } from "../../../assets/js/gcv";
@@ -18,11 +17,8 @@ import { MicroTracks } from "../../models/micro-tracks.model";
 import { macroTracksSelector } from "../../selectors/macro-tracks.selector";
 import { microTracksSelector } from "../../selectors/micro-tracks.selector";
 import { plotsSelector } from "../../selectors/plots.selector";
-import { AlignmentService } from "../../services/alignment.service";
-import { FilterService } from "../../services/filter.service";
-import { MacroTracksService } from "../../services/macro-tracks.service";
-import { MicroTracksService } from "../../services/micro-tracks.service";
-import { PlotsService } from "../../services/plots.service";
+import { AlignmentService,  FilterService, MacroTracksService, MicroTracksService,
+  PlotsService } from "../../services";
 import { AlertComponent } from "../shared/alert.component";
 import { PlotViewerComponent } from "../viewers/plot.component";
 
@@ -31,11 +27,10 @@ declare let parseInt: any;  // TypeScript doesn't recognize number inputs
 
 @Component({
   encapsulation: ViewEncapsulation.None,
-  moduleId: module.id.toString(),
   selector: "search",
-  styles: [ require("./search.component.scss"),
-            require("../../../assets/css/split.scss") ],
-  template: require("./search.component.html"),
+  styleUrls: [ "./search.component.scss",
+               "../../../assets/css/split.scss" ],
+  templateUrl: "./search.component.html",
 })
 export class SearchComponent implements AfterViewInit, OnDestroy, OnInit {
   // view children
@@ -140,7 +135,7 @@ export class SearchComponent implements AfterViewInit, OnDestroy, OnInit {
 
     // subscribe to HTTP requests
     this.macroTracksService.requests
-      .takeUntil(this.destroy)
+      .pipe(takeUntil(this.destroy))
       .subscribe(([args, request]) => {
         if (args.requestType === "chromosome") {
           this._requestToAlertComponent(args.serverID, request, "chromosome", this.macroAlerts);
@@ -149,7 +144,7 @@ export class SearchComponent implements AfterViewInit, OnDestroy, OnInit {
         }
       });
     this.microTracksService.requests
-      .takeUntil(this.destroy)
+      .pipe(takeUntil(this.destroy))
       .subscribe(([args, request]) => {
         if (args.requestType === "microQuery") {
           this._requestToAlertComponent(args.serverID, request, "query track", this.microAlerts);
@@ -158,65 +153,64 @@ export class SearchComponent implements AfterViewInit, OnDestroy, OnInit {
         }
       });
     this.plotsService.requests
-      .takeUntil(this.destroy)
+      .pipe(takeUntil(this.destroy))
       .subscribe(([args, request]) => {
         this._requestToAlertComponent(args.serverID, request, "plot", this.plotAlerts);
       });
 
     // subscribe to micro track data
     this.alignmentService.alignedMicroTracks
-      .withLatestFrom(
-        this.microTracksService.routeParams,
-        this.microTracksService.microTracks
-          .map((tracks) => tracks.groups.length),
-      )
-      .takeUntil(this.destroy)
+      .pipe(
+        withLatestFrom(
+          this.microTracksService.routeParams,
+          this.microTracksService.microTracks
+            .pipe(map((tracks) => tracks.groups.length))),
+        takeUntil(this.destroy))
       .subscribe(([tracks, route, numReturned]) => {
         this._onAlignedMicroTracks(tracks as MicroTracks, route, numReturned);
       });
 
-    const filteredMicroTracks = Observable
-      .combineLatest(
+    const filteredMicroTracks =
+      combineLatest(
         this.alignmentService.alignedMicroTracks,
         this.filterService.regexpAlgorithm,
-        this.filterService.orderAlgorithm,
-      )
-      .let(microTracksSelector({skipFirst: true}));
+        this.filterService.orderAlgorithm)
+      .pipe(microTracksSelector({skipFirst: true}));
 
     filteredMicroTracks
-      .takeUntil(this.destroy)
+      .pipe(takeUntil(this.destroy))
       .subscribe((tracks) => {
         this.microTracks = tracks as MicroTracks;
       });
 
     // subscribe to macro track data
-    Observable
-      .combineLatest(
+      combineLatest(
         this.macroTracksService.macroTracks,
         filteredMicroTracks,
-        this.macroConfigObservable,
-      )
-      .let(macroTracksSelector())
-      .withLatestFrom(this.microTracksService.routeParams)
-      .filter(([tracks, route]) => route.gene !== undefined)
-      .takeUntil(this.destroy)
+        this.macroConfigObservable)
+      .pipe(macroTracksSelector())
+      .pipe(
+        withLatestFrom(this.microTracksService.routeParams),
+        filter(([tracks, route]) => route.gene !== undefined),
+        takeUntil(this.destroy))
       .subscribe(([tracks, route]) => this._onMacroTracks(tracks));
 
     // subscribe to micro-plots changes
-    Observable
-      .combineLatest(this.plotsService.localPlots, filteredMicroTracks)
-      .takeUntil(this.destroy)
-      .let(plotsSelector())
+    combineLatest(this.plotsService.localPlots, filteredMicroTracks)
+      .pipe(takeUntil(this.destroy))
+      .pipe(plotsSelector())
       .subscribe((plots) => this.microPlots = plots);
     this.plotsService.selectedLocalPlot
-      .filter((plot) => plot !== null)
-      .takeUntil(this.destroy)
+      .pipe(
+        filter((plot) => plot !== null),
+        takeUntil(this.destroy))
       .subscribe((plot) => {
         this.selectedLocalPlot = plot;
       });
     this.plotsService.selectedGlobalPlot
-      .filter((plot) => plot !== null)
-      .takeUntil(this.destroy)
+      .pipe(
+        filter((plot) => plot !== null),
+        takeUntil(this.destroy))
       .subscribe((plot) => {
         this.selectedGlobalPlot = plot;
       });
@@ -275,16 +269,20 @@ export class SearchComponent implements AfterViewInit, OnDestroy, OnInit {
   }
 
   showGlobalPlot(): void {
-    this.plotsService.selectedLocalPlotID.take(1).subscribe((id) => {
-      this.plotsService.selectGlobal(id);
-    });
+    this.plotsService.selectedLocalPlotID
+      .pipe(take(1))
+      .subscribe((id) => {
+        this.plotsService.selectGlobal(id);
+      });
     this.selectedPlot = this.plotTypes.GLOBAL;
   }
 
   showLocalPlot(): void {
-    this.plotsService.selectedGlobalPlotID.take(1).subscribe((id) => {
-      this.plotsService.selectLocal(id);
-    });
+    this.plotsService.selectedGlobalPlotID
+      .pipe(take(1))
+      .subscribe((id) => {
+        this.plotsService.selectLocal(id);
+      });
     this.selectedPlot = this.plotTypes.LOCAL;
   }
 
@@ -356,7 +354,7 @@ export class SearchComponent implements AfterViewInit, OnDestroy, OnInit {
     );
     componentRef.instance.ngOnChanges({});
     request
-      .takeUntil(componentRef.instance.onClose)
+      .pipe(takeUntil(componentRef.instance.onClose))
       .subscribe(
         (response) => {
           componentRef.instance.alert = new Alert(

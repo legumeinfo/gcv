@@ -1,17 +1,15 @@
 // Angular + dependencies
 import { ChangeDetectionStrategy, Component, EventEmitter, Input, OnChanges,
   Output, SimpleChanges } from "@angular/core";
-import { Observable } from "rxjs/Observable";
-import { interval } from "rxjs/observable/interval";
+import { Observable, interval } from "rxjs";
 import { map, take } from "rxjs/operators";
 // App
 import { Alert } from "../../models/alert.model";
 
 @Component({
-  moduleId: module.id.toString(),
   selector: "alert",
-  styles: [ require("./alert.component.scss") ],
-  template: require("./alert.component.html"),
+  styleUrls: [ "./alert.component.scss" ],
+  templateUrl: "./alert.component.html",
 })
 export class AlertComponent implements OnChanges {
   @Input() alert: Alert;

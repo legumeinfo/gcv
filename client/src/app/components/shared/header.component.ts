@@ -5,10 +5,9 @@ import * as $ from "jquery";
 import { AppConfig } from "../../app.config";
 
 @Component({
-  moduleId: module.id.toString(),
   selector: "header",
-  styles: [ require("./header.component.scss") ],
-  template: require("./header.component.html"),
+  styleUrls: [ "./header.component.scss" ],
+  templateUrl: "./header.component.html",
 })
 export class HeaderComponent implements AfterViewInit {
 

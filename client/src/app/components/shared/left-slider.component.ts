@@ -18,10 +18,9 @@ enum DetailTypes {
 
 @Component({
   animations: [ toggleSlider ],
-  moduleId: module.id.toString(),
   selector: "left-slider",
-  styles: [ require("./left-slider.component.scss") ],
-  template: require("./left-slider.component.html"),
+  styleUrls: [ "./left-slider.component.scss" ],
+  templateUrl: "./left-slider.component.html",
 })
 export class LeftSliderComponent implements OnChanges {
   @Input() selected: Family | Gene | Group | object;

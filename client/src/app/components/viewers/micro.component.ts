@@ -6,7 +6,6 @@ import { GCV } from "../../../assets/js/gcv";
 import { Viewer } from "./viewer.component";
 
 @Component({
-  moduleId: module.id.toString(),
   selector: "viewer-micro",
   styles: [`
     .viewer {
@@ -19,7 +18,7 @@ import { Viewer } from "./viewer.component";
       overflow-y: auto;
     }
   `],
-  template: require("./viewer.component.html"),
+  templateUrl: "./viewer.component.html",
 })
 export class MicroViewerComponent extends Viewer {
 

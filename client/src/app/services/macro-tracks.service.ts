@@ -1,9 +1,8 @@
 // Angular
 import { Injectable } from "@angular/core";
 import { HttpClient } from "@angular/common/http";
-import { Observable } from "rxjs/Observable";
-import { _throw } from "rxjs/observable/throw";
-import { catchError, map } from "rxjs/operators";
+import { Observable, combineLatest, merge, throwError } from "rxjs";
+import { catchError, filter, map } from "rxjs/operators";
 // store
 import { Store } from "@ngrx/store";
 import * as routerActions from "../actions/router.actions";
@@ -50,7 +49,7 @@ export class MacroTracksService extends HttpService {
         macroChromosome.name = chromosome;
         return macroChromosome;
       }),
-      catchError((error) => _throw(error)),
+      catchError((error) => throwError(error)),
     );
   }
 
@@ -58,12 +57,12 @@ export class MacroTracksService extends HttpService {
     chromosomes: {name: string, genus: string, species: string}[],
     serverID: string
   ): Observable<[{name: string, genus: string, species: string}, MacroChromosome]> {
-    return Observable.merge(...chromosomes.map((chromosome) => {
+    return merge(...chromosomes.map((chromosome) => {
       return this.getChromosome(chromosome.name, serverID).pipe(
         map((result): [{name: string, genus: string, species: string}, MacroChromosome] => {
           return [chromosome, result];
         }),
-        catchError((error) => _throw(error)),
+        catchError((error) => throwError(error)),
       );
     }));
   }
@@ -86,7 +85,7 @@ export class MacroTracksService extends HttpService {
         this._parseTracks(chromosome, macroTracks);
         return macroTracks;
       }),
-      catchError((error) => _throw(error)),
+      catchError((error) => throwError(error)),
     );
   }
 
@@ -97,10 +96,10 @@ export class MacroTracksService extends HttpService {
     targets: string[] = [],
   ): Observable<[string, MacroTrack[]]> {
     // send a request for each server
-    return Observable.merge(...serverIDs.map((serverID) => {
+    return merge(...serverIDs.map((serverID) => {
       return this.getMacroTracks(chromosome, blockParams, serverID, targets).pipe(
-        map((tracks) => [serverID, tracks]),
-        catchError((error) => _throw([serverID, error])),
+        map((tracks): [string, MacroTrack[]] => [serverID, tracks]),
+        catchError((error) => throwError([serverID, error])),
       );
     }));
   }
@@ -109,8 +108,7 @@ export class MacroTracksService extends HttpService {
   // TODO: add source to macroChromosome so route isns't needed
   nearestGene(position: number): void {
     // get the current search query gene and macro-synteny query chromosome
-    Observable
-      .combineLatest(this.searchRoute, this.macroChromosome)
+    combineLatest(this.searchRoute, this.macroChromosome)
       .subscribe(([route, chromosome]) => {
         const locations = chromosome.locations;
         const genes = chromosome.genes;

@@ -2,8 +2,7 @@
 import { Injectable } from "@angular/core";
 // store
 import { Effect, Actions, ofType } from "@ngrx/effects";
-import { Observable } from "rxjs/Observable";
-import { of } from "rxjs/observable/of";
+import { combineLatest, of } from "rxjs";
 import { catchError, map, mergeMap, switchMap, takeUntil, withLatestFrom } from "rxjs/operators";
 import { Store } from "@ngrx/store";
 import * as macroChromosomeActions from "../actions/macro-chromosome.actions";
@@ -102,7 +101,7 @@ export class MacroTracksEffects {
     ofType(multiMacroChromosomeActions.GET),
     map((action: multiMacroChromosomeActions.Get) => action.payload),
     mergeMap(({chromosomes, source}) => {
-      const stop = Observable.combineLatest(
+      const stop = combineLatest(
         this.actions$.pipe(ofType(microTracksActions.GET_MULTI)),
         this.actions$.pipe(ofType(multiMacroTracksActions.INIT)),
       );
@@ -144,7 +143,7 @@ export class MacroTracksEffects {
     ofType(multiMacroTracksActions.GET),
     map((action: multiMacroTracksActions.Get) => action.payload),
     mergeMap(({query, params, targets, sources}) => {
-      const stop = Observable.combineLatest(
+      const stop = combineLatest(
         this.actions$.pipe(ofType(microTracksActions.GET_MULTI)),
         this.store.select(fromRouter.getMacroBlockParams),
       );

@@ -7,7 +7,6 @@ import { Group } from "../../models/group.model";
 import { Server } from "../../models/server.model";
 
 @Component({
-  moduleId: module.id.toString(),
   selector: "track-detail",
   styles: [ "" ],
   template: `

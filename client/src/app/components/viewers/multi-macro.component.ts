@@ -5,7 +5,6 @@ import { GCV } from "../../../assets/js/gcv";
 import { Viewer } from "./viewer.component";
 
 @Component({
-  moduleId: module.id.toString(),
   selector: "viewer-multi-macro",
   styles: [`
     .viewer {
@@ -17,7 +16,7 @@ import { Viewer } from "./viewer.component";
       overflow: hidden;
     }
   `],
-  template: require("./viewer.component.html"),
+  templateUrl: "./viewer.component.html",
 })
 export class MultiMacroViewerComponent extends Viewer {
 

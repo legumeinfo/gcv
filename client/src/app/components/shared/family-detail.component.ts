@@ -9,7 +9,6 @@ import { MicroTracks } from "../../models/micro-tracks.model";
 import { Server } from "../../models/server.model";
 
 @Component({
-  moduleId: module.id.toString(),
   selector: "family-detail",
   styles: [ "" ],
   template: `
@@ -60,7 +59,7 @@ export class FamilyDetailComponent implements OnChanges {
 
       if (linkablePhylo) {
         const sources = new Set(this.genes.map((g) => g.source));
-        for (const source of sources) {
+        sources.forEach((source) => {
           const idx = this._serverIDs.indexOf(source);
           if (idx !== -1) {
             const s: Server = AppConfig.SERVERS[idx];
@@ -72,7 +71,7 @@ export class FamilyDetailComponent implements OnChanges {
               this.familyTreeLinks.push(familyTreeLink);
             }
           }
-        }
+        });
       }
     }
   }

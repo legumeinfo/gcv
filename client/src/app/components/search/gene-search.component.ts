@@ -6,7 +6,6 @@ import { Router } from "@angular/router";
 import { AppConfig } from "../../app.config";
 
 @Component({
-  moduleId: module.id.toString(),
   selector: "app-gene-search",
   styles: [`
     .select {

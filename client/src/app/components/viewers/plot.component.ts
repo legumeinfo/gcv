@@ -7,7 +7,6 @@ import { elementIsVisible } from "../../utils/element-is-visible.util";
 import { Viewer } from "./viewer.component";
 
 @Component({
-  moduleId: module.id.toString(),
   selector: "viewer-plot",
   styles: [`
     div {
@@ -20,7 +19,7 @@ import { Viewer } from "./viewer.component";
       z-index:1;
     }
   `],
-  template: require("./viewer.component.html"),
+  templateUrl: "./viewer.component.html",
 })
 
 export class PlotViewerComponent extends Viewer {

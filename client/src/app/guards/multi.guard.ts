@@ -2,8 +2,8 @@
 import { Injectable } from '@angular/core';
 import { ActivatedRouteSnapshot, CanActivate, CanDeactivate, PRIMARY_OUTLET, Router,
   RouterStateSnapshot, UrlSegment } from '@angular/router';
-import { Observable } from "rxjs/Observable";
-import { BehaviorSubject } from "rxjs/BehaviorSubject";
+import { BehaviorSubject, combineLatest } from "rxjs";
+import { distinctUntilChanged, filter, takeUntil, withLatestFrom } from "rxjs/operators";
 // store
 import { Store } from "@ngrx/store";
 import * as alignedMicroTracksActions from "../actions/aligned-micro-tracks.actions";
@@ -59,21 +59,21 @@ export class MultiGuard implements CanActivate, CanDeactivate<MultiComponent> {
   }
 
   private _microSubscriptions() {
-    const stop = this.activated.filter((isActive) => !isActive);
+    const stop = this.activated.pipe(filter((isActive) => !isActive));
     // subscribe to observables that trigger multi track retrievals
     const multiRoute = this.store.select(fromRouter.getMultiRoute)
-      .filter((route) => route.genes !== undefined)
-      .distinctUntilChanged((a, b) => {
-        return JSON.stringify(a.genes.slice().sort()) === JSON.stringify(b.genes.slice().sort());
-      });
+      .pipe(
+        filter((route) => route.genes !== undefined),
+        distinctUntilChanged((a, b) => {
+          return JSON.stringify(a.genes.slice().sort()) === JSON.stringify(b.genes.slice().sort());
+        }));
     const queryParams = this.store.select(fromRouter.getMicroQueryParams)
-      .distinctUntilChanged((a, b) => {
+      .pipe(distinctUntilChanged((a, b) => {
         return a.neighbors === b.neighbors &&
                JSON.stringify(a.sources.slice().sort()) === JSON.stringify(b.sources.slice().sort());
-      });
-    Observable
-      .combineLatest(multiRoute, queryParams)
-      .takeUntil(stop)
+      }));
+      combineLatest(multiRoute, queryParams)
+      .pipe(takeUntil(stop))
       .subscribe(([route, params]) => {
         this.store.dispatch(new microTracksActions.GetMulti({
           query: route.genes,
@@ -84,31 +84,30 @@ export class MultiGuard implements CanActivate, CanDeactivate<MultiComponent> {
   }
 
   private _clusteringSubscriptions() {
-    const stop = this.activated.filter((isActive) => !isActive);
+    const stop = this.activated.pipe(filter((isActive) => !isActive));
     // subscribe to changes that initialize clustering
     const microTracks = this.store.select(fromMicroTracks.getMicroTracks);
     const clusteringParams = this.store.select(fromRouter.getMicroClusteringParams)
-      .distinctUntilChanged((a, b) => {
+      .pipe(distinctUntilChanged((a, b) => {
         return a.alpha === b.alpha &&
                a.kappa === b.kappa &&
                a.minsup === b.minsup &&
                a.minsize === b.minsize;
-      });
-    Observable
-      .combineLatest(microTracks, clusteringParams)
-      .takeUntil(stop)
+      }));
+      combineLatest(microTracks, clusteringParams)
+      .pipe(takeUntil(stop))
       .subscribe(([tracks, params]) => {
         this.store.dispatch(new clusteredMicroTracksActions.Get({tracks, params}));
       });
   }
 
   private _alignmentSubscriptions() {
-    const stop = this.activated.filter((isActive) => !isActive);
+    const stop = this.activated.pipe(filter((isActive) => !isActive));
     // subscribe to changes that trigger new multi alignments
     const clusteredMicroTracks = this.store.select(fromClusteredMicroTracks.getClusteredMicroTracks)
-      .filter((tracks) => tracks !== undefined);
+      .pipe(filter((tracks) => tracks !== undefined));
     clusteredMicroTracks
-      .takeUntil(stop)
+      .pipe(takeUntil(stop))
       .subscribe((tracks) => {
         this.store.dispatch(new alignedMicroTracksActions.Init());
         this.store.dispatch(new alignedMicroTracksActions.GetMulti({tracks}));
@@ -116,19 +115,20 @@ export class MultiGuard implements CanActivate, CanDeactivate<MultiComponent> {
   }
 
   private _macroSubscriptions() {
-    const stop = this.activated.filter((isActive) => !isActive);
+    const stop = this.activated.pipe(filter((isActive) => !isActive));
     // load new macro tracks when the block params change
     const blockParams = this.store.select(fromRouter.getMacroBlockParams)
-      .distinctUntilChanged((a, b) => {
+      .pipe(distinctUntilChanged((a, b) => {
         return a.bmatched === b.bmatched &&
                a.bintermediate === b.bintermediate &&
                a.bmask === b.bmask;
-      });
+      }));
     const macroChromosomes = this.store.select(fromMultiMacroChromosome.getMultiMacroChromosomes);
     const querySources = this.store.select(fromRouter.getMicroQueryParamSources);
     blockParams
-      .withLatestFrom(macroChromosomes, querySources)
-      .takeUntil(stop)
+      .pipe(
+        withLatestFrom(macroChromosomes, querySources),
+        takeUntil(stop))
       .subscribe(([params, chromosomes, sources]) => {
         this.store.dispatch(new multiMacroTracksActions.Init());
         let targets = chromosomes.map((c) => c.name);

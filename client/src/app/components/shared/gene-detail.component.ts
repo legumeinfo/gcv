@@ -1,7 +1,8 @@
 // Angular
 import { Component, ComponentFactory, ComponentFactoryResolver, ComponentRef,
   Input, OnChanges, OnDestroy, OnInit, SimpleChanges, ViewContainerRef, ViewChild } from "@angular/core";
-import { Subject } from "rxjs/Subject";
+import { Subject } from "rxjs";
+import { takeUntil } from "rxjs/operators";
 // App
 import { AlertComponent } from "./alert.component";
 import { AppConfig } from "../../app.config";
@@ -11,7 +12,6 @@ import { Server } from "../../models/server.model";
 import { DetailsService } from "../../services/details.service";
 
 @Component({
-  moduleId: module.id.toString(),
   selector: "gene-detail",
   styles: [`
     #alerts {
@@ -83,7 +83,7 @@ export class GeneDetailComponent implements OnChanges, OnDestroy, OnInit {
 
   ngOnInit(): void {
     this.detailsService.requests
-      .takeUntil(this.destroy)
+      .pipe(takeUntil(this.destroy))
       .subscribe(([args, request]) => {
         this._requestToAlertComponent(args.serverID, request, "links", this.alerts);
       });
@@ -108,7 +108,7 @@ export class GeneDetailComponent implements OnChanges, OnDestroy, OnInit {
     );
     componentRef.instance.ngOnChanges({});
     request
-      .takeUntil(componentRef.instance.onClose)
+      .pipe(takeUntil(componentRef.instance.onClose))
       .subscribe(
         (response) => {
           componentRef.instance.alert = new Alert(
