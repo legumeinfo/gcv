@@ -1,9 +1,10 @@
 // Angular
+import { HttpClient, HttpParams } from "@angular/common/http";
 import { Inject, Injectable } from "@angular/core";
 import { Observable } from "rxjs";
+import { concatMap, tap } from "rxjs/operators";
 // app
 import { Server } from "./models/server.model";
-const configFile = require("../config.json");
 
 declare var document: any;
 
@@ -17,6 +18,8 @@ export class AppConfig {
   public static MISCELLANEOUS: any;
 
   private config: object = {};
+
+  constructor(private http: HttpClient) {}
 
   public getConfig(key: any): any {
     return this.config[key];
@@ -33,11 +36,14 @@ export class AppConfig {
   }
 
   public load(): Promise<any> {
-    this.config = configFile;
-    this._loadBrand(this.getConfig("brand") || AppConfig.BRAND);
-    this._loadDashboard(this.getConfig("dashboard") || AppConfig.DASHBOARD);
-    this._loadMiscellaneous(this.getConfig("miscellaneous") || AppConfig.MISCELLANEOUS);
-    return this._loadServers(this.getConfig("servers") || AppConfig.SERVERS);
+    return this.http.get("/config.json")
+      .pipe(tap((config) => this.config = config))
+      .pipe(
+        tap((config) => this._loadBrand(this.getConfig("brand") || AppConfig.BRAND)),
+        tap((config) => this._loadDashboard(this.getConfig("dashboard") || AppConfig.DASHBOARD)),
+        tap((config) => this._loadMiscellaneous(this.getConfig("miscellaneous") || AppConfig.MISCELLANEOUS)),
+        concatMap((config) => this._loadServers(this.getConfig("servers") || AppConfig.SERVERS)))
+      .toPromise();
   }
 
   // general support for namespace function strings

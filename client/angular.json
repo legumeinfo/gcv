@@ -19,6 +19,7 @@
             "polyfills": "src/polyfills.ts",
             "tsConfig": "src/tsconfig.app.json",
             "assets": [
+              "src/config.json",
               "src/favicon.ico",
               "src/assets"
             ],
@@ -96,6 +97,7 @@
               "node_modules/bootstrap/js/dist/dropdown.js"
             ],
             "assets": [
+              "src/config.json",
               "src/favicon.ico",
               "src/assets"
             ]
