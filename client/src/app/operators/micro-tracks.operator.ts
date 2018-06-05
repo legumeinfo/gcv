@@ -4,7 +4,7 @@ import { map } from "rxjs/operators";
 // App
 import { MicroTracks } from "../models/micro-tracks.model";
 
-export const microTracksSelector = (options?: any) => {
+export const microTracksOperator = (options?: any) => {
   return (state): Observable<MicroTracks> => state.pipe(
     map(([tracks, ...filters]) => {
       let filteredTracks = tracks;

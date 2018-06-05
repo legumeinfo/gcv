@@ -4,7 +4,7 @@ import { map } from "rxjs/operators";
 // App
 import { MacroTracks } from "../models/macro-tracks.model";
 
-export const multiMacroTracksSelector = () => {
+export const multiMacroTracksOperator = () => {
   return (state): Observable<MacroTracks[]> => state.pipe(
     map(([multiMacroTracks, filteredMicroTracks]) => {
       if (multiMacroTracks !== undefined && filteredMicroTracks.groups.length > 0) {

@@ -4,7 +4,7 @@ import { map } from "rxjs/operators";
 // App
 import { Group } from "../models/group.model";
 
-export const plotsSelector = () => {
+export const plotsOperator = () => {
   return (state): Observable<Group> => state.pipe(
     map(([microPlots, filteredMicroTracks]) => {
       if (filteredMicroTracks.groups.length > 0) {
