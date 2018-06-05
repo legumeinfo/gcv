@@ -3,7 +3,6 @@ import { NgModule } from "@angular/core";
 import { RouterModule, Routes } from "@angular/router";
 // app
 import { InstructionsComponent, MultiComponent, SearchComponent } from "./components";
-import { AppRoutes } from "./constants/app-routes";
 import { MultiGuard } from "./guards/multi.guard";
 import { SearchGuard } from "./guards/search.guard";
 
@@ -17,29 +16,29 @@ const routes: Routes = [
     canActivate: [MultiGuard],
     canDeactivate: [MultiGuard],
     component: MultiComponent,
-    path: AppRoutes.MULTI + "/:genes",
+    path: "multi/:genes",
   },
   {
     path: "basic/:genes",
     pathMatch: "full",
-    redirectTo: AppRoutes.MULTI + "/:genes",
+    redirectTo: "multi/:genes",
   },
   {
     component: InstructionsComponent,
     path: "instructions",
   },
   {
-    path: AppRoutes.SEARCH + "/:gene",
+    path: "search/:gene",
     pathMatch: "full",
     // TODO: update to use first source from config
-    // redirectTo: AppRoutes.SEARCH + "/" + DefaultQueryParams.DEFAULT_SOURCE + "/:gene",
+    // redirectTo: "search/" + DefaultQueryParams.DEFAULT_SOURCE + "/:gene",
     redirectTo: "/instructions",
   },
   {
     canActivate: [SearchGuard],
     canDeactivate: [SearchGuard],
     component: SearchComponent,
-    path: AppRoutes.SEARCH + "/:source/:gene",
+    path: "search/:source/:gene",
   },
 ];
 

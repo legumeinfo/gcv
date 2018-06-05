@@ -12,7 +12,6 @@ import * as fromMacroTracks from "../reducers/macro-tracks.store";
 import * as fromMultiMacroTracks from "../reducers/multi-macro-tracks.store";
 import * as fromRouter from "../reducers/router.store";
 // app
-import { AppRoutes } from "../constants/app-routes";
 import { BlockParams } from "../models/block-params.model";
 import { MacroChromosome } from "../models/macro-chromosome.model";
 import { MacroTrack } from "../models/macro-track.model";
@@ -128,7 +127,7 @@ export class MacroTracksService extends HttpService {
           }
         }
         // navigate to the new gene in the url
-        const url = "/" + AppRoutes.SEARCH +
+        const url = "/search" +
                     "/" + route.source +
                     "/" + genes[mid];
         this.store.dispatch(new routerActions.Go({path: [url, { routeParam: 1 }]}));
