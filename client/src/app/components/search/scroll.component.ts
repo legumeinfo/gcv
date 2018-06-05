@@ -2,7 +2,7 @@
 import { Component, ElementRef, EventEmitter, Output } from "@angular/core";
 // App
 import { catchError } from "rxjs/operators";
-import { MicroTracksService } from "../../services/micro-tracks.service";
+import { MicroTracksService } from "../../services";
 
 @Component({
   selector: "scroll",

@@ -8,9 +8,7 @@ import { ALIGNMENT_ALGORITHMS } from "../../constants/alignment-algorithms";
 import { AlignmentParams } from "../../models/alignment-params.model";
 import { BlockParams } from "../../models/block-params.model";
 import { QueryParams } from "../../models/query-params.model";
-import { AlignmentService } from "../../services/alignment.service";
-import { MacroTracksService } from "../../services/macro-tracks.service";
-import { MicroTracksService } from "../../services/micro-tracks.service";
+import { AlignmentService, MacroTracksService, MicroTracksService } from "../../services";
 
 @Component({
   selector: "search-params",

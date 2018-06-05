@@ -7,7 +7,7 @@ import { map, switchMap } from "rxjs/operators";
 import * as fromRoot from "../reducers";
 import * as clusteredMicroTracksActions from "../actions/clustered-micro-tracks.actions";
 // services
-import { ClusteringService } from "../services/clustering.service";
+import { ClusteringService } from "../services";
 
 @Injectable()
 export class ClusteringEffects {

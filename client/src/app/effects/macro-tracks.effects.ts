@@ -15,7 +15,7 @@ import * as fromMicroTracks from "../reducers/micro-tracks.store";
 import * as fromMultiMacroChromosome from "../reducers/multi-macro-chromosome.store";
 import * as fromRouter from "../reducers/router.store";
 // services
-import { MacroTracksService } from "../services/macro-tracks.service";
+import { MacroTracksService } from "../services";
 
 @Injectable()
 export class MacroTracksEffects {

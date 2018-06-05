@@ -10,7 +10,7 @@ import * as fromRoot from "../reducers";
 import * as fromAlignedMicroTracks from "../reducers/aligned-micro-tracks.store";
 import * as fromRouter from "../reducers/router.store";
 // services
-import { AlignmentService } from "../services/alignment.service";
+import { AlignmentService } from "../services";
 
 @Injectable()
 export class AlignmentEffects {

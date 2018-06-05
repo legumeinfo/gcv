@@ -3,7 +3,7 @@ import { Component, ElementRef, OnInit, ViewChild } from "@angular/core";
 
 // App services
 import { ORDER_ALGORITHMS } from "../../constants/order-algorithms";
-import { FilterService } from "../../services/filter.service";
+import { FilterService } from "../../services";
 
 @Component({
   selector: "app-ordering",

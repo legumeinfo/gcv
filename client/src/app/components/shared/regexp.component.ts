@@ -2,7 +2,7 @@
 import { Component, ElementRef, OnInit, ViewChild } from "@angular/core";
 
 // App
-import { FilterService } from "../../services/filter.service";
+import { FilterService } from "../../services";
 
 @Component({
   selector: "app-regexp",

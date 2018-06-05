@@ -7,9 +7,7 @@ import { AppConfig } from "../../app.config";
 import { BlockParams } from "../../models/block-params.model";
 import { ClusteringParams } from "../../models/clustering-params.model";
 import { QueryParams } from "../../models/query-params.model";
-import { ClusteringService } from "../../services/clustering.service";
-import { MacroTracksService } from "../../services/macro-tracks.service";
-import { MicroTracksService } from "../../services/micro-tracks.service";
+import { ClusteringService, MacroTracksService, MicroTracksService } from "../../services";
 
 @Component({
   moduleId: module.id.toString(),

@@ -13,7 +13,7 @@ import * as fromGlobalPlots from "../reducers/global-plots.store";
 import * as fromLocalPlots from "../reducers/local-plots.store";
 import * as fromSearchQueryTrack from "../reducers/search-query-track.store";
 // services
-import { PlotsService } from "../services/plots.service";
+import { PlotsService } from "../services";
 
 @Injectable()
 export class PlotsEffects {

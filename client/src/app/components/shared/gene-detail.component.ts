@@ -9,7 +9,7 @@ import { AppConfig } from "../../app.config";
 import { Alert } from "../../models/alert.model";
 import { Gene } from "../../models/gene.model";
 import { Server } from "../../models/server.model";
-import { DetailsService } from "../../services/details.service";
+import { DetailsService } from "../../services";
 
 @Component({
   selector: "gene-detail",

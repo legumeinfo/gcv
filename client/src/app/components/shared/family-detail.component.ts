@@ -2,7 +2,7 @@
 import { Component, Input, OnChanges, SimpleChanges } from "@angular/core";
 // App
 import { AppConfig } from "../../app.config";
-import { DetailsService } from "../../services/details.service";
+import { DetailsService } from "../../services";
 import { Family } from "../../models/family.model";
 import { Gene } from "../../models/gene.model";
 import { MicroTracks } from "../../models/micro-tracks.model";

@@ -7,7 +7,7 @@ import { catchError, map, switchMap } from "rxjs/operators";
 import * as microTracksActions from "../actions/micro-tracks.actions";
 import * as searchQueryTrackActions from "../actions/search-query-track.actions";
 // services
-import { MicroTracksService } from "../services/micro-tracks.service";
+import { MicroTracksService } from "../services";
 
 @Injectable()
 export class MicroTracksEffects {
