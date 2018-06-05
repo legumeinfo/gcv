@@ -14,9 +14,7 @@ import { Gene } from "../../models/gene.model";
 import { Group } from "../../models/group.model";
 import { MacroTracks } from "../../models/macro-tracks.model";
 import { MicroTracks } from "../../models/micro-tracks.model";
-import { macroTracksSelector } from "../../selectors/macro-tracks.selector";
-import { microTracksSelector } from "../../selectors/micro-tracks.selector";
-import { plotsSelector } from "../../selectors/plots.selector";
+import { macroTracksOperator, microTracksOperator, plotsOperator } from "../../operators";
 import { AlignmentService,  FilterService, MacroTracksService, MicroTracksService,
   PlotsService } from "../../services";
 import { AlertComponent } from "../shared/alert.component";
@@ -175,7 +173,7 @@ export class SearchComponent implements AfterViewInit, OnDestroy, OnInit {
         this.alignmentService.alignedMicroTracks,
         this.filterService.regexpAlgorithm,
         this.filterService.orderAlgorithm)
-      .pipe(microTracksSelector({skipFirst: true}));
+      .pipe(microTracksOperator({skipFirst: true}));
 
     filteredMicroTracks
       .pipe(takeUntil(this.destroy))
@@ -188,7 +186,7 @@ export class SearchComponent implements AfterViewInit, OnDestroy, OnInit {
         this.macroTracksService.macroTracks,
         filteredMicroTracks,
         this.macroConfigObservable)
-      .pipe(macroTracksSelector())
+      .pipe(macroTracksOperator())
       .pipe(
         withLatestFrom(this.microTracksService.routeParams),
         filter(([tracks, route]) => route.gene !== undefined),
@@ -198,7 +196,7 @@ export class SearchComponent implements AfterViewInit, OnDestroy, OnInit {
     // subscribe to micro-plots changes
     combineLatest(this.plotsService.localPlots, filteredMicroTracks)
       .pipe(takeUntil(this.destroy))
-      .pipe(plotsSelector())
+      .pipe(plotsOperator())
       .subscribe((plots) => this.microPlots = plots);
     this.plotsService.selectedLocalPlot
       .pipe(

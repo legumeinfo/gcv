@@ -14,8 +14,7 @@ import { Gene } from "../../models/gene.model";
 import { Group } from "../../models/group.model";
 import { MacroTracks } from "../../models/macro-tracks.model";
 import { MicroTracks } from "../../models/micro-tracks.model";
-import { microTracksSelector } from "../../selectors/micro-tracks.selector";
-import { multiMacroTracksSelector } from "../../selectors/multi-macro-tracks.selector";
+import { microTracksOperator, multiMacroTracksOperator } from "../../operators";
 import { AlignmentService, FilterService, MacroTracksService, MicroTracksService } from "../../services";
 import { AlertComponent } from "../shared/alert.component";
 
@@ -131,7 +130,7 @@ export class MultiComponent implements AfterViewInit, OnDestroy, OnInit {
         this.alignmentService.alignedMicroTracks,
         this.filterService.regexpAlgorithm,
         this.filterService.orderAlgorithm)
-      .pipe(microTracksSelector({prefix: (t) => "group " + t.cluster + " - "}));
+      .pipe(microTracksOperator({prefix: (t) => "group " + t.cluster + " - "}));
 
     filteredMicroTracks
       .pipe(takeUntil(this.destroy))
@@ -144,7 +143,7 @@ export class MultiComponent implements AfterViewInit, OnDestroy, OnInit {
         this.macroTracksService.multiMacroTracks
           .pipe(filter((tracks) => tracks !== undefined)),
         filteredMicroTracks)
-      .pipe(multiMacroTracksSelector())
+      .pipe(multiMacroTracksOperator())
       .pipe(takeUntil(this.destroy))
       .subscribe((tracks) => {
         this._onMacroTracks(tracks);
