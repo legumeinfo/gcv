@@ -2,9 +2,7 @@
 import { NgModule } from "@angular/core";
 import { RouterModule, Routes } from "@angular/router";
 // app
-import { InstructionsComponent } from "./components/instructions/instructions.component";
-import { MultiComponent } from "./components/multi/multi.component";
-import { SearchComponent } from "./components/search/search.component";
+import { InstructionsComponent, MultiComponent, SearchComponent } from "./components";
 import { AppRoutes } from "./constants/app-routes";
 import { MultiGuard } from "./guards/multi.guard";
 import { SearchGuard } from "./guards/search.guard";

@@ -16,7 +16,7 @@ import * as fromMicroTracks from "../reducers/micro-tracks.store";
 import * as fromMultiMacroChromosome from "../reducers/multi-macro-chromosome.store";
 import * as fromRouter from "../reducers/router.store";
 // app
-import { MultiComponent } from "../components/multi/multi.component";
+import { MultiComponent } from "../components";
 
 @Injectable()
 export class MultiGuard implements CanActivate, CanDeactivate<MultiComponent> {

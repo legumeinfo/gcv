@@ -13,6 +13,7 @@ import { Family } from "../../models/family.model";
 import { Gene } from "../../models/gene.model";
 import { Group } from "../../models/group.model";
 import { MacroTracks } from "../../models/macro-tracks.model";
+import { MicroTracks } from "../../models/micro-tracks.model";
 import { microTracksSelector } from "../../selectors/micro-tracks.selector";
 import { multiMacroTracksSelector } from "../../selectors/multi-macro-tracks.selector";
 import { AlignmentService, FilterService, MacroTracksService, MicroTracksService } from "../../services";

@@ -21,7 +21,7 @@ import * as fromMicroTracks from "../reducers/micro-tracks.store";
 import * as fromRouter from "../reducers/router.store";
 import * as fromSearchQueryTrack from "../reducers/search-query-track.store";
 // app
-import { SearchComponent } from "../components/search/search.component";
+import { SearchComponent } from "../components";
 
 @Injectable()
 export class SearchGuard implements CanActivate, CanDeactivate<SearchComponent> {
