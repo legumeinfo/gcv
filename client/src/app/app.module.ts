@@ -18,8 +18,7 @@ import * as fromGuards from "./guards";
 import { RouterStateSerializer, StoreRouterConnectingModule } from "@ngrx/router-store";
 import { EffectsModule } from "@ngrx/effects";
 import { StoreModule } from "@ngrx/store";
-import { metaReducers, reducers } from "./reducers";
-import { effects } from "./effects";
+import { metaReducers, reducers, effects } from "./store";
 import { CustomRouterStateSerializer } from "./utils";
 
 @NgModule({

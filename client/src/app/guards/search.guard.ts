@@ -6,20 +6,20 @@ import { BehaviorSubject, combineLatest } from "rxjs";
 import { distinctUntilChanged, filter, map, pairwise, takeUntil, withLatestFrom } from "rxjs/operators";
 // store
 import { Store } from "@ngrx/store";
-import * as alignedMicroTracksActions from "../actions/aligned-micro-tracks.actions";
-import * as globalPlotsActions from "../actions/global-plots.actions";
-import * as macroChromosomeActions from "../actions/macro-chromosome.actions";
-import * as macroTracksActions from "../actions/macro-tracks.actions";
-import * as microTracksActions from "../actions/micro-tracks.actions";
-import * as searchQueryTrackActions from "../actions/search-query-track.actions";
-import * as fromRoot from "../reducers";
-import * as fromAlignedMicroTracks from "../reducers/aligned-micro-tracks.store";
-import * as fromGlobalPlots from "../reducers/global-plots.store";
-import * as fromLocalPlots from "../reducers/local-plots.store";
-import * as fromMacroChromosome from "../reducers/macro-chromosome.store";
-import * as fromMicroTracks from "../reducers/micro-tracks.store";
-import * as fromRouter from "../reducers/router.store";
-import * as fromSearchQueryTrack from "../reducers/search-query-track.store";
+import * as alignedMicroTracksActions from "../store/actions/aligned-micro-tracks.actions";
+import * as globalPlotsActions from "../store/actions/global-plots.actions";
+import * as macroChromosomeActions from "../store/actions/macro-chromosome.actions";
+import * as macroTracksActions from "../store/actions/macro-tracks.actions";
+import * as microTracksActions from "../store/actions/micro-tracks.actions";
+import * as searchQueryTrackActions from "../store/actions/search-query-track.actions";
+import * as fromRoot from "../store/reducers";
+import * as fromAlignedMicroTracks from "../store/reducers/aligned-micro-tracks.store";
+import * as fromGlobalPlots from "../store/reducers/global-plots.store";
+import * as fromLocalPlots from "../store/reducers/local-plots.store";
+import * as fromMacroChromosome from "../store/reducers/macro-chromosome.store";
+import * as fromMicroTracks from "../store/reducers/micro-tracks.store";
+import * as fromRouter from "../store/reducers/router.store";
+import * as fromSearchQueryTrack from "../store/reducers/search-query-track.store";
 // app
 import { SearchComponent } from "../components";
 

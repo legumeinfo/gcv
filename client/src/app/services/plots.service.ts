@@ -5,11 +5,11 @@ import { Injectable } from "@angular/core";
 import { Observable, throwError } from "rxjs";
 import { catchError, map } from "rxjs/operators";
 import { Store } from "@ngrx/store";
-import * as globalPlotsActions from "../actions/global-plots.actions";
-import * as localPlotsActions from "../actions/local-plots.actions";
-import * as fromRoot from "../reducers";
-import * as fromGlobalPlots from "../reducers/global-plots.store";
-import * as fromLocalPlots from "../reducers/local-plots.store";
+import * as globalPlotsActions from "../store/actions/global-plots.actions";
+import * as localPlotsActions from "../store/actions/local-plots.actions";
+import * as fromRoot from "../store/reducers";
+import * as fromGlobalPlots from "../store/reducers/global-plots.store";
+import * as fromLocalPlots from "../store/reducers/local-plots.store";
 // app
 import { Gene, Group, MicroTracks } from "../models";
 import { HttpService } from "./http.service";

@@ -5,12 +5,12 @@ import { Observable, combineLatest, merge, throwError } from "rxjs";
 import { catchError, filter, map, take } from "rxjs/operators";
 // store
 import { Store } from "@ngrx/store";
-import * as routerActions from "../actions/router.actions";
-import * as fromRoot from "../reducers";
-import * as fromMacroChromosome from "../reducers/macro-chromosome.store";
-import * as fromMicroTracks from "../reducers/micro-tracks.store";
-import * as fromRouter from "../reducers/router.store";
-import * as fromSearchQueryTrack from "../reducers/search-query-track.store";
+import * as routerActions from "../store/actions/router.actions";
+import * as fromRoot from "../store/reducers";
+import * as fromMacroChromosome from "../store/reducers/macro-chromosome.store";
+import * as fromMicroTracks from "../store/reducers/micro-tracks.store";
+import * as fromRouter from "../store/reducers/router.store";
+import * as fromSearchQueryTrack from "../store/reducers/search-query-track.store";
 // app
 import { Group, MicroTracks, QueryParams } from "../models";
 import { HttpService } from "./http.service";

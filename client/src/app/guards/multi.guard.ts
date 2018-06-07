@@ -6,15 +6,15 @@ import { BehaviorSubject, combineLatest } from "rxjs";
 import { distinctUntilChanged, filter, takeUntil, withLatestFrom } from "rxjs/operators";
 // store
 import { Store } from "@ngrx/store";
-import * as alignedMicroTracksActions from "../actions/aligned-micro-tracks.actions";
-import * as clusteredMicroTracksActions from "../actions/clustered-micro-tracks.actions";
-import * as microTracksActions from "../actions/micro-tracks.actions";
-import * as multiMacroTracksActions from "../actions/multi-macro-tracks.actions";
-import * as fromRoot from "../reducers";
-import * as fromClusteredMicroTracks from "../reducers/clustered-micro-tracks.store";
-import * as fromMicroTracks from "../reducers/micro-tracks.store";
-import * as fromMultiMacroChromosome from "../reducers/multi-macro-chromosome.store";
-import * as fromRouter from "../reducers/router.store";
+import * as alignedMicroTracksActions from "../store/actions/aligned-micro-tracks.actions";
+import * as clusteredMicroTracksActions from "../store/actions/clustered-micro-tracks.actions";
+import * as microTracksActions from "../store/actions/micro-tracks.actions";
+import * as multiMacroTracksActions from "../store/actions/multi-macro-tracks.actions";
+import * as fromRoot from "../store/reducers";
+import * as fromClusteredMicroTracks from "../store/reducers/clustered-micro-tracks.store";
+import * as fromMicroTracks from "../store/reducers/micro-tracks.store";
+import * as fromMultiMacroChromosome from "../store/reducers/multi-macro-chromosome.store";
+import * as fromRouter from "../store/reducers/router.store";
 // app
 import { MultiComponent } from "../components";
 

@@ -1,6 +1,6 @@
 import { Params, RouterStateSnapshot } from "@angular/router";
 import { RouterStateSerializer } from "@ngrx/router-store";
-import * as fromRouter from "../reducers/router.store";
+import * as fromRouter from "../store/reducers/router.store";
 
 // Returns an object including only the URL, params, and query params instead of
 // the cumbersome RouterStateSnapshot. Also converts the params and query params
