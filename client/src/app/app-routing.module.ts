@@ -3,8 +3,7 @@ import { NgModule } from "@angular/core";
 import { RouterModule, Routes } from "@angular/router";
 // app
 import { InstructionsComponent, MultiComponent, SearchComponent } from "./components";
-import { MultiGuard } from "./guards/multi.guard";
-import { SearchGuard } from "./guards/search.guard";
+import { MultiGuard, SearchGuard } from "./guards";
 
 const routes: Routes = [
   {
