@@ -1,6 +1,6 @@
 import { createFeatureSelector, createSelector } from "@ngrx/store";
 import * as macroChromosomeActions from "../actions/macro-chromosome.actions";
-import { MacroChromosome } from "../models/macro-chromosome.model";
+import { MacroChromosome } from "../models";
 
 export interface State {
   chromosome: MacroChromosome;

@@ -1,6 +1,6 @@
 import { createFeatureSelector, createSelector } from "@ngrx/store";
 import * as clusteredMicroTrackActions from "../actions/clustered-micro-tracks.actions";
-import { MicroTracks } from "../models/micro-tracks.model";
+import { MicroTracks } from "../models";
 
 export interface State {
   tracks: MicroTracks;

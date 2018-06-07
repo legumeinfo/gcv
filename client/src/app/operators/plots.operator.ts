@@ -2,7 +2,7 @@
 import { Observable } from "rxjs";
 import { map } from "rxjs/operators";
 // App
-import { Group } from "../models/group.model";
+import { Group } from "../models";
 
 export const plotsOperator = () => {
   return (state): Observable<Group> => state.pipe(

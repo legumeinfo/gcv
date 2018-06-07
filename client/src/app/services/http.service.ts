@@ -5,7 +5,7 @@ import { BehaviorSubject } from "rxjs";
 import { filter, share } from "rxjs/operators";
 // app
 import { AppConfig } from "../app.config";
-import { GET, POST, Server } from "../models/server.model";
+import { GET, POST, Server } from "../models";
 
 export abstract class HttpService {
   requests: Observable<[any, Observable<any>]>;

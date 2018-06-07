@@ -1,7 +1,7 @@
 import { createEntityAdapter, EntityState } from "@ngrx/entity";
 import { createFeatureSelector, createSelector } from "@ngrx/store";
 import * as globalPlotsActions from "../actions/global-plots.actions";
-import { Group } from "../models/group.model";
+import { Group } from "../models";
 
 const adapter = createEntityAdapter<Group>();
 

@@ -1,7 +1,7 @@
 import { createEntityAdapter, EntityState, Update } from "@ngrx/entity";
 import { createFeatureSelector, createSelector } from "@ngrx/store";
 import * as multiMacroTrackActions from "../actions/multi-macro-tracks.actions";
-import { MacroTracks } from "../models/macro-tracks.model";
+import { MacroTracks } from "../models";
 
 declare var Object: any;  // because TypeScript doesn't support Object.values
 

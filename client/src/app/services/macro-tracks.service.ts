@@ -12,10 +12,7 @@ import * as fromMacroTracks from "../reducers/macro-tracks.store";
 import * as fromMultiMacroTracks from "../reducers/multi-macro-tracks.store";
 import * as fromRouter from "../reducers/router.store";
 // app
-import { BlockParams } from "../models/block-params.model";
-import { MacroChromosome } from "../models/macro-chromosome.model";
-import { MacroTrack } from "../models/macro-track.model";
-import { MacroTracks } from "../models/macro-tracks.model";
+import { BlockParams, MacroChromosome, MacroTrack, MacroTracks } from "../models";
 import { HttpService } from "./http.service";
 
 @Injectable()

@@ -1,7 +1,5 @@
 import { Action } from "@ngrx/store";
-import { Group } from "../models/group.model";
-import { MicroTracks } from "../models/micro-tracks.model";
-import { QueryParams } from "../models/query-params.model";
+import { Group, MicroTracks, QueryParams } from "../models";
 
 export const GET_SEARCH = "[MICRO_TRACKS] GET_SEARCH";
 export const GET_MULTI = "[MICRO_TRACKS] GET_MULTI";

@@ -1,5 +1,5 @@
 import { Action } from "@ngrx/store";
-import { Group } from "../models/group.model";
+import { Group } from "../models";
 
 export const INIT = "[GLOBAL_PLOTS] INIT";
 export const GET = "[GLOBAL_PLOTS] GET";

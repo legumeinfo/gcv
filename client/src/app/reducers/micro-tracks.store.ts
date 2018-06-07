@@ -1,6 +1,6 @@
 import { createFeatureSelector, createSelector } from "@ngrx/store";
 import * as microTrackActions from "../actions/micro-tracks.actions";
-import { MicroTracks } from "../models/micro-tracks.model";
+import { MicroTracks } from "../models";
 
 declare var Object: any;  // because TypeScript doesn't support Object.values
 

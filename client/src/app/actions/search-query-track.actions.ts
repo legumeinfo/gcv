@@ -1,5 +1,5 @@
 import { Action } from "@ngrx/store";
-import { Group } from "../models/group.model";
+import { Group } from "../models";
 
 export const GET = "[SEARCH_QUERY_TRACK] GET";
 export const GET_SUCCESS = "[SEARCH_QUERY_TRACK] GET_SUCCESS";

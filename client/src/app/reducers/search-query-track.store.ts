@@ -1,6 +1,6 @@
 import { createFeatureSelector, createSelector } from "@ngrx/store";
 import * as searchQueryTrackActions from "../actions/search-query-track.actions";
-import { Group } from "../models/group.model";
+import { Group } from "../models";
 
 export interface State {
   track: Group;

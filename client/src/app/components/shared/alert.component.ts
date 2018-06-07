@@ -4,7 +4,7 @@ import { ChangeDetectionStrategy, Component, EventEmitter, Input, OnChanges,
 import { Observable, interval } from "rxjs";
 import { map, take } from "rxjs/operators";
 // App
-import { Alert } from "../../models/alert.model";
+import { Alert } from "../../models";
 
 @Component({
   selector: "alert",

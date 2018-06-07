@@ -1,7 +1,5 @@
 import { Action } from "@ngrx/store";
-import { BlockParams } from "../models/block-params.model";
-import { MacroChromosome } from "../models/macro-chromosome.model";
-import { MacroTrack } from "../models/macro-track.model";
+import { BlockParams, MacroChromosome, MacroTrack } from "../models";
 
 export const INIT = "[MULTI_MACRO_TRACKS] INIT";
 export const GET = "[MULTI_MACRO_TRACKS] GET";

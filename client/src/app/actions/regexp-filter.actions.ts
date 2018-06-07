@@ -1,5 +1,5 @@
 import { Action } from "@ngrx/store";
-import { Algorithm } from "../models/algorithm.model";
+import { Algorithm } from "../models";
 
 export const NEW = "[REGEXP_FILTER] NEW";
 

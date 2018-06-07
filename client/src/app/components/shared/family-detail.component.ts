@@ -3,10 +3,7 @@ import { Component, Input, OnChanges, SimpleChanges } from "@angular/core";
 // App
 import { AppConfig } from "../../app.config";
 import { DetailsService } from "../../services";
-import { Family } from "../../models/family.model";
-import { Gene } from "../../models/gene.model";
-import { MicroTracks } from "../../models/micro-tracks.model";
-import { Server } from "../../models/server.model";
+import { Family, Gene, MicroTracks, Server } from "../../models";
 
 @Component({
   selector: "family-detail",

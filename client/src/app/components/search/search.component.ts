@@ -8,12 +8,7 @@ import { filter, map, take, takeUntil, withLatestFrom } from "rxjs/operators";
 import * as Split from "split.js";
 import { GCV } from "../../../assets/js/gcv";
 import { AppConfig } from "../../app.config";
-import { Alert } from "../../models/alert.model";
-import { Family } from "../../models/family.model";
-import { Gene } from "../../models/gene.model";
-import { Group } from "../../models/group.model";
-import { MacroTracks } from "../../models/macro-tracks.model";
-import { MicroTracks } from "../../models/micro-tracks.model";
+import { Alert, Family, Gene, Group, MacroTracks, MicroTracks } from "../../models";
 import { macroTracksOperator, microTracksOperator, plotsOperator } from "../../operators";
 import { AlignmentService,  FilterService, MacroTracksService, MicroTracksService,
   PlotsService } from "../../services";

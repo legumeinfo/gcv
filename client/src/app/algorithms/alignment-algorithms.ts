@@ -1,6 +1,4 @@
-import { Algorithm } from "../models/algorithm.model";
-import { Gene } from "../models/gene.model";
-
+import { Algorithm, Gene } from "../models";
 import { GCV } from "../../assets/js/gcv";
 
 export const ALIGNMENT_ALGORITHMS: Algorithm[] = [

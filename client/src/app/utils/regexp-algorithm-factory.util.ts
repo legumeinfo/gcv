@@ -1,5 +1,4 @@
-import { Algorithm } from "../models/algorithm.model";
-import { MicroTracks } from "../models/micro-tracks.model";
+import { Algorithm, MicroTracks } from "../models";
 
 export function regexpFilter(
   regexp: string,

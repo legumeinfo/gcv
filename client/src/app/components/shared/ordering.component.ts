@@ -2,7 +2,7 @@
 import { Component, ElementRef, OnInit, ViewChild } from "@angular/core";
 
 // App services
-import { ORDER_ALGORITHMS } from "../../constants";
+import { ORDER_ALGORITHMS } from "../../algorithms";
 import { FilterService } from "../../services";
 
 @Component({

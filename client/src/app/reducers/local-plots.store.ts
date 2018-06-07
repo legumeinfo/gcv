@@ -1,7 +1,7 @@
 import { createEntityAdapter, EntityState } from "@ngrx/entity";
 import { createFeatureSelector, createSelector } from "@ngrx/store";
 import * as localPlotsActions from "../actions/local-plots.actions";
-import { Group } from "../models/group.model";
+import { Group } from "../models";
 
 declare var Object: any;  // because TypeScript doesn't support Object.values
 

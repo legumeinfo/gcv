@@ -9,8 +9,8 @@ import * as fromRoot from "../reducers";
 import * as fromOrderFilter from "../reducers/order.store";
 import * as fromRegexpFilter from "../reducers/regexp.store";
 // app
-import { ORDER_ALGORITHMS } from '../constants';
-import { Algorithm } from "../models/algorithm.model";
+import { ORDER_ALGORITHMS } from "../algorithms";
+import { Algorithm } from "../models";
 import { regexpAlgorithmFactory } from "../utils/regexp-algorithm-factory.util";
 
 @Injectable()

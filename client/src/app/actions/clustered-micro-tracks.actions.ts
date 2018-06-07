@@ -1,6 +1,5 @@
 import { Action } from "@ngrx/store";
-import { ClusteringParams } from "../models/clustering-params.model";
-import { MicroTracks } from "../models/micro-tracks.model";
+import { ClusteringParams, MicroTracks } from "../models";
 
 export const GET = "[CLUSTERED_MICRO_TRACKS] GET";
 export const GET_SUCCESS = "[CLUSTERED_MICRO_TRACKS] GET_SUCCESS";

@@ -1,5 +1,4 @@
-import { Algorithm } from "../models/algorithm.model";
-import { MicroTracks } from "../models/micro-tracks.model";
+import { Algorithm, MicroTracks } from "../models";
 
 export function orderFilter(compare, tracks: MicroTracks, options: any): MicroTracks {
   // parse optional parameters

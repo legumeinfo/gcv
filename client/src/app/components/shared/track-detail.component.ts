@@ -2,9 +2,7 @@
 import { Component, Input, OnChanges, SimpleChanges } from "@angular/core";
 // App
 import { AppConfig } from "../../app.config";
-import { Gene } from "../../models/gene.model";
-import { Group } from "../../models/group.model";
-import { Server } from "../../models/server.model";
+import { Gene, Group, Server } from "../../models";
 
 @Component({
   selector: "track-detail",

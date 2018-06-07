@@ -8,12 +8,7 @@ import { GCV } from "../../../assets/js/gcv";
 // app
 import * as Split from "split.js";
 import { AppConfig } from "../../app.config";
-import { Alert } from "../../models/alert.model";
-import { Family } from "../../models/family.model";
-import { Gene } from "../../models/gene.model";
-import { Group } from "../../models/group.model";
-import { MacroTracks } from "../../models/macro-tracks.model";
-import { MicroTracks } from "../../models/micro-tracks.model";
+import { Alert, Family, Gene, Group, MacroTracks, MicroTracks } from "../../models";
 import { microTracksOperator, multiMacroTracksOperator } from "../../operators";
 import { AlignmentService, FilterService, MacroTracksService, MicroTracksService } from "../../services";
 import { AlertComponent } from "../shared/alert.component";

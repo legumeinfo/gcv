@@ -1,4 +1,4 @@
-export interface MacroBlock {
+export class MacroBlock {
   orientation: number;
   start: number;
   stop: number;

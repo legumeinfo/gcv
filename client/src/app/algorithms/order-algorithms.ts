@@ -1,6 +1,4 @@
-import { Algorithm } from "../models/algorithm.model";
-import { Group } from "../models/group.model";
-import { MicroTracks } from "../models/micro-tracks.model";
+import { Algorithm, Group, MicroTracks } from "../models";
 import { orderAlgorithmFactory } from "../utils/order-algorithm-factory.util";
 
 export const ORDER_ALGORITHMS: Algorithm[] = [

@@ -1,5 +1,5 @@
 import { Action } from "@ngrx/store";
-import { MacroChromosome } from "../models/macro-chromosome.model";
+import { MacroChromosome } from "../models";
 
 export const GET = "[MACRO_CHROMOSOME_TRACK] GET";
 export const GET_SUCCESS = "[MACRO_CHROMOSOME_TRACK] GET_SUCCESS";

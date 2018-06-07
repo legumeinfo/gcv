@@ -9,8 +9,7 @@ import * as fromClusteredMicroTracks from "../reducers/clustered-micro-tracks.st
 import * as fromRouter from "../reducers/router.store";
 // app
 import { GCV } from "../../assets/js/gcv";
-import { ClusteringParams } from "../models/clustering-params.model";
-import { MicroTracks } from "../models/micro-tracks.model";
+import { ClusteringParams, MicroTracks } from "../models";
 
 @Injectable()
 export class ClusteringService {

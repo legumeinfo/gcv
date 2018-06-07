@@ -2,7 +2,7 @@
 import { Observable } from "rxjs";
 import { map } from "rxjs/operators";
 // App
-import { MacroTracks } from "../models/macro-tracks.model";
+import { MacroTracks } from "../models";
 
 export const macroTracksOperator = () => {
   return (state): Observable<MacroTracks> => state.pipe(

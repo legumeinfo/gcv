@@ -1,6 +1,6 @@
 import { createFeatureSelector, createSelector } from "@ngrx/store";
 import * as macroTrackActions from "../actions/macro-tracks.actions";
-import { MacroTracks } from "../models/macro-tracks.model";
+import { MacroTracks } from "../models";
 
 export interface State {
   tracks: MacroTracks;

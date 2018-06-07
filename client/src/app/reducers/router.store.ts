@@ -1,10 +1,7 @@
 import { Params } from "@angular/router";
 import * as fromRouterStore from "@ngrx/router-store";
 import { createFeatureSelector, createSelector } from "@ngrx/store";
-import { AlignmentParams } from "../models/alignment-params.model";
-import { BlockParams } from "../models/block-params.model";
-import { ClusteringParams } from "../models/clustering-params.model";
-import { QueryParams } from "../models/query-params.model";
+import { AlignmentParams, BlockParams, ClusteringParams, QueryParams } from "../models";
 import { instantiateAndPopulate } from "../utils/instantiate-and-populate.util";
 
 export interface RouterStateUrl {

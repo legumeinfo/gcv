@@ -4,9 +4,7 @@ import { FormBuilder, FormGroup } from "@angular/forms";
 
 // App
 import { AppConfig } from "../../app.config";
-import { BlockParams } from "../../models/block-params.model";
-import { ClusteringParams } from "../../models/clustering-params.model";
-import { QueryParams } from "../../models/query-params.model";
+import { BlockParams, ClusteringParams, QueryParams } from "../../models";
 import { ClusteringService, MacroTracksService, MicroTracksService } from "../../services";
 
 @Component({

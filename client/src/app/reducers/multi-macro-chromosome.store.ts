@@ -1,7 +1,7 @@
 import { createEntityAdapter, EntityState } from "@ngrx/entity";
 import { createFeatureSelector, createSelector } from "@ngrx/store";
 import * as multiMacroChromosomeActions from "../actions/multi-macro-chromosome.actions";
-import { MacroChromosome } from "../models/macro-chromosome.model";
+import { MacroChromosome } from "../models";
 
 declare var Object: any;  // because TypeScript doesn't support Object.values
 

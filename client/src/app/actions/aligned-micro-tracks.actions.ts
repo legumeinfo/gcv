@@ -1,7 +1,5 @@
 import { Action } from "@ngrx/store";
-import { AlignmentParams } from "../models/alignment-params.model";
-import { Group } from "../models/group.model";
-import { MicroTracks } from "../models/micro-tracks.model";
+import { AlignmentParams, Group, MicroTracks } from "../models";
 
 export const INIT = "[ALIGNED_MICRO_TRACKS] INIT";
 export const GET_PAIRWISE = "[ALIGNED_MICRO_TRACKS] GET_PAIRWISE";

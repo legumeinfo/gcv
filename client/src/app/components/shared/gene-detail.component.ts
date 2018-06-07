@@ -6,9 +6,7 @@ import { takeUntil } from "rxjs/operators";
 // App
 import { AlertComponent } from "./alert.component";
 import { AppConfig } from "../../app.config";
-import { Alert } from "../../models/alert.model";
-import { Gene } from "../../models/gene.model";
-import { Server } from "../../models/server.model";
+import { Alert, Gene, Server } from "../../models";
 import { DetailsService } from "../../services";
 
 @Component({

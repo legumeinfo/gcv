@@ -12,9 +12,7 @@ import * as fromMicroTracks from "../reducers/micro-tracks.store";
 import * as fromRouter from "../reducers/router.store";
 import * as fromSearchQueryTrack from "../reducers/search-query-track.store";
 // app
-import { Group } from "../models/group.model";
-import { MicroTracks } from "../models/micro-tracks.model";
-import { QueryParams } from "../models/query-params.model";
+import { Group, MicroTracks, QueryParams } from "../models";
 import { HttpService } from "./http.service";
 
 @Injectable()

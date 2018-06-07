@@ -4,10 +4,7 @@ import { Component, Input, OnChanges, SimpleChanges } from "@angular/core";
 // App
 import { toggleSlider } from "../../animations";
 import { SliderStates } from "../../constants";
-import { Family } from "../../models/family.model";
-import { Gene } from "../../models/gene.model";
-import { Group } from "../../models/group.model";
-import { MicroTracks } from "../../models/micro-tracks.model";
+import { Family, Gene, Group, MicroTracks } from "../../models";
 
 enum DetailTypes {
   PARAMS,

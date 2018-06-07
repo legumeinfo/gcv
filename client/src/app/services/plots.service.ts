@@ -11,9 +11,7 @@ import * as fromRoot from "../reducers";
 import * as fromGlobalPlots from "../reducers/global-plots.store";
 import * as fromLocalPlots from "../reducers/local-plots.store";
 // app
-import { Gene } from "../models/gene.model";
-import { Group } from "../models/group.model";
-import { MicroTracks } from "../models/micro-tracks.model";
+import { Gene, Group, MicroTracks } from "../models";
 import { HttpService } from "./http.service";
 
 @Injectable()

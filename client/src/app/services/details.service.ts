@@ -2,7 +2,7 @@
 import { HttpClient } from "@angular/common/http";
 import { Injectable } from "@angular/core";
 // app
-import { Gene } from "../models/gene.model";
+import { Gene } from "../models";
 import { HttpService } from "./http.service";
 
 @Injectable()

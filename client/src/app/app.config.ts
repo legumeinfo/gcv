@@ -4,7 +4,7 @@ import { Inject, Injectable } from "@angular/core";
 import { Observable } from "rxjs";
 import { concatMap, tap } from "rxjs/operators";
 // app
-import { Server } from "./models/server.model";
+import { Server } from "./models";
 
 declare var document: any;
 
