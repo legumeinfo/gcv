@@ -1,5 +1,5 @@
 import { Algorithm, Group, MicroTracks } from "../models";
-import { orderAlgorithmFactory } from "../utils/order-algorithm-factory.util";
+import { orderAlgorithmFactory } from "../utils";
 
 export const ORDER_ALGORITHMS: Algorithm[] = [
   orderAlgorithmFactory(

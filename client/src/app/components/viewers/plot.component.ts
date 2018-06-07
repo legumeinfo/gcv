@@ -3,7 +3,7 @@ import { Component, Input, OnChanges, OnDestroy,
   SimpleChanges } from "@angular/core";
 import { GCV } from "../../../assets/js/gcv";
 // App
-import { elementIsVisible } from "../../utils/element-is-visible.util";
+import { elementIsVisible } from "../../utils";
 import { Viewer } from "./viewer.component";
 
 @Component({

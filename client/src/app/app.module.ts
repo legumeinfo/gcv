@@ -20,7 +20,7 @@ import { EffectsModule } from "@ngrx/effects";
 import { StoreModule } from "@ngrx/store";
 import { metaReducers, reducers } from "./reducers";
 import { effects } from "./effects";
-import { CustomRouterStateSerializer } from "./utils/custom-router-state-serializer.util";
+import { CustomRouterStateSerializer } from "./utils";
 
 @NgModule({
   bootstrap: [ fromComponents.AppComponent ],

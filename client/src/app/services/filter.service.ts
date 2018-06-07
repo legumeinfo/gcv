@@ -11,7 +11,7 @@ import * as fromRegexpFilter from "../reducers/regexp.store";
 // app
 import { ORDER_ALGORITHMS } from "../algorithms";
 import { Algorithm } from "../models";
-import { regexpAlgorithmFactory } from "../utils/regexp-algorithm-factory.util";
+import { regexpAlgorithmFactory } from "../utils";
 
 @Injectable()
 export class FilterService {

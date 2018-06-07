@@ -1,7 +1,7 @@
 import { createFeatureSelector, createSelector } from "@ngrx/store";
 import * as regexpFilterActions from "../actions/regexp-filter.actions";
 import { Algorithm } from "../models";
-import { regexpAlgorithmFactory } from "../utils/regexp-algorithm-factory.util";
+import { regexpAlgorithmFactory } from "../utils";
 
 export interface State {
   regexpAlgorithm: Algorithm;

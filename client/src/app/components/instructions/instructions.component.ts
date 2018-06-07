@@ -2,7 +2,7 @@
 import { AfterViewInit, Component, ElementRef, OnDestroy, ViewChild } from "@angular/core";
 // App
 import { AppConfig } from "../../app.config";
-import { elementIsVisible } from "../../utils/element-is-visible.util";
+import { elementIsVisible } from "../../utils";
 
 declare var $: any;
 
