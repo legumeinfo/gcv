@@ -3,7 +3,7 @@ import { Component, Input, OnChanges, SimpleChanges } from "@angular/core";
 
 // App
 import { toggleSlider } from "../../animations/toggle-slider.animation";
-import { SliderStates } from "../../constants/slider-states";
+import { SliderStates } from "../../constants";
 import { Family } from "../../models/family.model";
 import { Gene } from "../../models/gene.model";
 import { Group } from "../../models/group.model";

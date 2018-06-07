@@ -1,8 +1,7 @@
 // Angular
 import { animate, state, style, transition, trigger } from "@angular/animations";
-
 // App
-import { SliderStates } from "../constants/slider-states";
+import { SliderStates } from "../constants";
 
 export const toggleSlider = trigger("toggleSlider", [
   state(SliderStates.SLIDER_ACTIVE,

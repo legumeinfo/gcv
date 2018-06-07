@@ -1,5 +1,5 @@
 import { AbstractControl, Validators } from "@angular/forms";
-import { Regex } from "../constants/regex";
+import { Regex } from "../constants";
 
 export class ClusteringParams {
 

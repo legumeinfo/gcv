@@ -1,6 +1,6 @@
 // Angular
 import { AbstractControl, Validators } from "@angular/forms";
-import { Regex } from "../constants/regex";
+import { Regex } from "../constants";
 
 // App
 import { AppConfig } from "../app.config";

@@ -2,7 +2,7 @@
 import { Validators } from "@angular/forms";
 
 // App
-import { Regex } from "../constants/regex";
+import { Regex } from "../constants";
 
 export class BlockParams {
 

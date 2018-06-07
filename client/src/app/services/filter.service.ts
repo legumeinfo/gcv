@@ -9,7 +9,7 @@ import * as fromRoot from "../reducers";
 import * as fromOrderFilter from "../reducers/order.store";
 import * as fromRegexpFilter from "../reducers/regexp.store";
 // app
-import { ORDER_ALGORITHMS } from '../constants/order-algorithms';
+import { ORDER_ALGORITHMS } from '../constants';
 import { Algorithm } from "../models/algorithm.model";
 import { regexpAlgorithmFactory } from "../utils/regexp-algorithm-factory.util";
 

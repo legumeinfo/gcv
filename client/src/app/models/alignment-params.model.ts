@@ -1,6 +1,5 @@
 import { Validators } from "@angular/forms";
-import { ALIGNMENT_ALGORITHMS } from "../constants/alignment-algorithms";
-import { Regex } from "../constants/regex";
+import { ALIGNMENT_ALGORITHMS, Regex } from "../constants";
 
 export class AlignmentParams {
   private algorithms: string = ALIGNMENT_ALGORITHMS.map((a) => a.id).join("|");

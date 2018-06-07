@@ -1,6 +1,6 @@
 import { createFeatureSelector, createSelector } from "@ngrx/store";
 import * as orderFilterActions from "../actions/order-filter.actions";
-import { ORDER_ALGORITHMS } from "../constants/order-algorithms";
+import { ORDER_ALGORITHMS } from "../constants";
 import { Algorithm } from "../models/algorithm.model";
 
 export interface State {

@@ -9,7 +9,7 @@ import * as fromAlignedMicroTracks from "../reducers/aligned-micro-tracks.store"
 import * as fromRouter from "../reducers/router.store";
 // app
 import { GCV } from "../../assets/js/gcv";
-import { ALIGNMENT_ALGORITHMS } from "../constants/alignment-algorithms";
+import { ALIGNMENT_ALGORITHMS } from "../constants";
 import { AlignmentParams } from "../models/alignment-params.model";
 import { Group } from "../models/group.model";
 import { MicroTracks } from "../models/micro-tracks.model";

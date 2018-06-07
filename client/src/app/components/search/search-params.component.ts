@@ -4,7 +4,7 @@ import { FormBuilder, FormGroup } from "@angular/forms";
 
 // App services
 import { AppConfig } from "../../app.config";
-import { ALIGNMENT_ALGORITHMS } from "../../constants/alignment-algorithms";
+import { ALIGNMENT_ALGORITHMS } from "../../constants";
 import { AlignmentParams } from "../../models/alignment-params.model";
 import { BlockParams } from "../../models/block-params.model";
 import { QueryParams } from "../../models/query-params.model";
