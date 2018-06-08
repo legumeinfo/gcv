@@ -3,6 +3,7 @@ import { AlignmentParams } from "./alignment-params.model";
 import { Algorithm } from "./algorithm.model";
 import { BlockParams } from "./block-params.model";
 import { ClusteringParams } from "./clustering-params.model";
+import { Config } from "./config.model";
 import { Family } from "./family.model";
 import { GeneLoc } from "./gene-loc.model";
 import { Gene } from "./gene.model";
@@ -21,6 +22,7 @@ export const models: any[] = [
   Algorithm,
   BlockParams,
   ClusteringParams,
+  Config,
   Family,
   GeneLoc,
   Gene,
@@ -42,6 +44,7 @@ export * from "./alignment-params.model";
 export * from "./algorithm.model";
 export * from "./block-params.model";
 export * from "./clustering-params.model";
+export * from "./config.model";
 export * from "./family.model";
 export * from "./gene-loc.model";
 export * from "./gene.model";

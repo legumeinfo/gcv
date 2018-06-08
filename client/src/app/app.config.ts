@@ -5,6 +5,7 @@ import { Observable } from "rxjs";
 import { concatMap, tap } from "rxjs/operators";
 // app
 import { Server } from "./models";
+import { Config } from "./models/config.model";  // avoid circular dependencies
 
 declare var document: any;
 
@@ -17,13 +18,9 @@ export class AppConfig {
   public static DASHBOARD: any;
   public static MISCELLANEOUS: any;
 
-  private config: object = {};
+  private config = new Config();
 
   constructor(private http: HttpClient) {}
-
-  public getConfig(key: any): any {
-    return this.config[key];
-  }
 
   public getServer(id: string): Server {
     let server;
@@ -36,13 +33,13 @@ export class AppConfig {
   }
 
   public load(): Promise<any> {
-    return this.http.get("/config.json")
+    return this.http.get<Config>("/config.json")
       .pipe(tap((config) => this.config = config))
       .pipe(
-        tap((config) => this._loadBrand(this.getConfig("brand") || AppConfig.BRAND)),
-        tap((config) => this._loadDashboard(this.getConfig("dashboard") || AppConfig.DASHBOARD)),
-        tap((config) => this._loadMiscellaneous(this.getConfig("miscellaneous") || AppConfig.MISCELLANEOUS)),
-        concatMap((config) => this._loadServers(this.getConfig("servers") || AppConfig.SERVERS)))
+        tap((config) => this._loadBrand(config.brand)),
+        tap((config) => this._loadDashboard(config.dashboard)),
+        tap((config) => this._loadMiscellaneous(config.miscellaneous)),
+        concatMap((config) => this._loadServers(config.servers)))
       .toPromise();
   }
 
