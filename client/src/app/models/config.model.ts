@@ -12,7 +12,7 @@ export class DashboardView {
   caption?: string;
 }
 
-export class ConfigDashboard {
+export class Dashboard {
   search?: DashboardView;
   multi?: DashboardView;
   examples?: string[];  // each string should contain HTML with a description and link to an example
@@ -24,7 +24,7 @@ export class Miscellaneous {
 
 export class Config {
   brand?: Brand;
-  dashboard?: ConfigDashboard;
+  dashboard?: Dashboard;
   miscellaneous?: Miscellaneous;
   servers: Server[];
 }

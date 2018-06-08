@@ -5,7 +5,7 @@ import { Observable } from "rxjs";
 import { concatMap, tap } from "rxjs/operators";
 // app
 import { Server } from "./models";
-import { Config } from "./models/config.model";  // avoid circular dependencies
+import { Brand, Config, Dashboard, Miscellaneous } from "./models/config.model";  // avoid circular dependencies
 
 declare var document: any;
 
@@ -13,12 +13,10 @@ declare var document: any;
 export class AppConfig {
 
   // later frozen to be "const"
-  public static SERVERS: any[] = [];
-  public static BRAND: any;
-  public static DASHBOARD: any;
-  public static MISCELLANEOUS: any;
-
-  private config = new Config();
+  public static SERVERS: Server[] = [];
+  public static BRAND: Brand;
+  public static DASHBOARD: Dashboard;
+  public static MISCELLANEOUS: Miscellaneous;
 
   constructor(private http: HttpClient) {}
 
@@ -34,7 +32,6 @@ export class AppConfig {
 
   public load(): Promise<any> {
     return this.http.get<Config>("/config.json")
-      .pipe(tap((config) => this.config = config))
       .pipe(
         tap((config) => this._loadBrand(config.brand)),
         tap((config) => this._loadDashboard(config.dashboard)),
