@@ -2,7 +2,7 @@ export const GET = "GET";
 export const POST = "POST";
 
 export class Request {
-  type: "GET" | "POST";  // GET or POST
+  type: "GET" | "POST";
   url: string;
 }
 

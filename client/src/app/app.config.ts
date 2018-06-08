@@ -4,8 +4,8 @@ import { Inject, Injectable } from "@angular/core";
 import { Observable } from "rxjs";
 import { concatMap, tap } from "rxjs/operators";
 // app
-import { Server } from "./models";
-import { Brand, Config, Dashboard, Miscellaneous } from "./models/config.model";  // avoid circular dependencies
+import { Server } from "./models/server.model";  // avoid circular dependencies
+import { Brand, Config, Dashboard, Miscellaneous } from "./models/config.model";  // ditto
 
 declare var document: any;
 
@@ -19,6 +19,13 @@ export class AppConfig {
   public static MISCELLANEOUS: Miscellaneous;
 
   constructor(private http: HttpClient) {}
+
+  public static getDefaultServer(): Server {
+    if (AppConfig.SERVERS.length > 0) {
+      return AppConfig.SERVERS[0];
+    }
+    return new Server();
+  }
 
   public static getServer(id: string): Server {
     let server;

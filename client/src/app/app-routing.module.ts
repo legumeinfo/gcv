@@ -3,7 +3,7 @@ import { NgModule } from "@angular/core";
 import { RouterModule, Routes } from "@angular/router";
 // app
 import { InstructionsComponent, MultiComponent, SearchComponent } from "./components";
-import { MultiGuard, SearchGuard } from "./guards";
+import { DefaultSearchGuard, MultiGuard, SearchGuard } from "./guards";
 
 const routes: Routes = [
   {
@@ -27,11 +27,10 @@ const routes: Routes = [
     path: "instructions",
   },
   {
+    canActivate: [DefaultSearchGuard],  // use guard to redirect to default server in AppConfig
     path: "search/:gene",
     pathMatch: "full",
-    // TODO: update to use first source from config
-    // redirectTo: "search/" + DefaultQueryParams.DEFAULT_SOURCE + "/:gene",
-    redirectTo: "/instructions",
+    component: SearchComponent,
   },
   {
     canActivate: [SearchGuard],
