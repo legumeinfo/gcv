@@ -47,7 +47,6 @@ export class GeneDetailComponent implements OnChanges, OnDestroy, OnInit {
   private destroy: Subject<boolean>;
 
   constructor(
-    private config: AppConfig,
     private resolver: ComponentFactoryResolver,
     private detailsService: DetailsService
   ) {
@@ -88,7 +87,7 @@ export class GeneDetailComponent implements OnChanges, OnDestroy, OnInit {
   }
 
   private _requestToAlertComponent(serverID, request, what, container) {
-    const source = this.config.getServer(serverID).name;
+    const source = AppConfig.getServer(serverID).name;
     const factory: ComponentFactory<AlertComponent> = this.resolver.resolveComponentFactory(AlertComponent);
     const componentRef: ComponentRef<AlertComponent> = container.createComponent(factory);
     // EVIL: Angular doesn't have a defined method for hooking dynamic components into

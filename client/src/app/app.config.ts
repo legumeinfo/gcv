@@ -20,7 +20,7 @@ export class AppConfig {
 
   constructor(private http: HttpClient) {}
 
-  public getServer(id: string): Server {
+  public static getServer(id: string): Server {
     let server;
     AppConfig.SERVERS.forEach((s) => {
       if (s.id === id) {

@@ -91,7 +91,6 @@ export class SearchComponent implements AfterViewInit, OnDestroy, OnInit {
   private macroSub: any;
 
   constructor(private alignmentService: AlignmentService,
-              private config: AppConfig,
               private resolver: ComponentFactoryResolver,
               private filterService: FilterService,
               private macroTracksService: MacroTracksService,
@@ -329,7 +328,7 @@ export class SearchComponent implements AfterViewInit, OnDestroy, OnInit {
   }
 
   private _requestToAlertComponent(serverID, request, what, container) {
-    const source = this.config.getServer(serverID).name;
+    const source = AppConfig.getServer(serverID).name;
     const factory: ComponentFactory<AlertComponent> = this.resolver.resolveComponentFactory(AlertComponent);
     const componentRef: ComponentRef<AlertComponent> = container.createComponent(factory);
     // EVIL: Angular doesn't have a defined method for hooking dynamic components into
@@ -471,7 +470,7 @@ export class SearchComponent implements AfterViewInit, OnDestroy, OnInit {
       // macro viewer arguments
       const queryGenes = query.genes;
       // TODO: update for federated coloring - each source has its own coloring
-      const s: any = this.config.getServer(tracks.groups[0].source);
+      const s: any = AppConfig.getServer(tracks.groups[0].source);
       if (s !== undefined && s.macroColors !== undefined) {
         this.macroColors = s.macroColors.function;
       } else {
