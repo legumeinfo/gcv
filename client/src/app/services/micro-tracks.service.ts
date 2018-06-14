@@ -1,7 +1,7 @@
 // Angular
 import { HttpClient } from "@angular/common/http";
 import { Injectable } from "@angular/core";
-import { Observable, combineLatest, merge, throwError } from "rxjs";
+import { Observable, combineLatest, merge, onErrorResumeNext, throwError } from "rxjs";
 import { catchError, filter, map, take } from "rxjs/operators";
 // store
 import { Store } from "@ngrx/store";
@@ -51,12 +51,12 @@ export class MicroTracksService extends HttpService {
     neighbors: number,
     serverIDs: string[],
   ): Observable<[string, MicroTracks]> {
-    return merge(...serverIDs.map((serverID) => {
+    return merge(onErrorResumeNext(...serverIDs.map((serverID) => {
       return this.getMultiTracks(query, neighbors, serverID).pipe(
         map((tracks): [string, MicroTracks] => [serverID, tracks]),
         catchError((error) => throwError([serverID, error])),
       );
-    }));
+    })));
   }
 
   // fetches a query track for the given gene from the given source
@@ -95,12 +95,12 @@ export class MicroTracksService extends HttpService {
     params: QueryParams,
     serverIDs: string[]
   ): Observable<[string, MicroTracks]> {
-    return merge(...serverIDs.map((serverID) => {
+    return merge(onErrorResumeNext(...serverIDs.map((serverID) => {
       return this.getSearchTracks(query, params, serverID).pipe(
         map((tracks): [string, MicroTracks] => [serverID, tracks]),
         catchError((error) => throwError([serverID, error])),
       );
-    }));
+    })));
   }
 
   updateParams(params: QueryParams): void {

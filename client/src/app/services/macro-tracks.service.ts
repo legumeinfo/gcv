@@ -1,7 +1,7 @@
 // Angular
 import { Injectable } from "@angular/core";
 import { HttpClient } from "@angular/common/http";
-import { Observable, combineLatest, merge, throwError } from "rxjs";
+import { Observable, combineLatest, merge, onErrorResumeNext, throwError } from "rxjs";
 import { catchError, filter, map } from "rxjs/operators";
 // store
 import { Store } from "@ngrx/store";
@@ -53,14 +53,14 @@ export class MacroTracksService extends HttpService {
     chromosomes: {name: string, genus: string, species: string}[],
     serverID: string
   ): Observable<[{name: string, genus: string, species: string}, MacroChromosome]> {
-    return merge(...chromosomes.map((chromosome) => {
+    return merge(onErrorResumeNext(...chromosomes.map((chromosome) => {
       return this.getChromosome(chromosome.name, serverID).pipe(
         map((result): [{name: string, genus: string, species: string}, MacroChromosome] => {
           return [chromosome, result];
         }),
         catchError((error) => throwError(error)),
       );
-    }));
+    })));
   }
 
   getMacroTracks(
@@ -92,12 +92,12 @@ export class MacroTracksService extends HttpService {
     targets: string[] = [],
   ): Observable<[string, MacroTrack[]]> {
     // send a request for each server
-    return merge(...serverIDs.map((serverID) => {
+    return merge(onErrorResumeNext(...serverIDs.map((serverID) => {
       return this.getMacroTracks(chromosome, blockParams, serverID, targets).pipe(
         map((tracks): [string, MacroTrack[]] => [serverID, tracks]),
         catchError((error) => throwError([serverID, error])),
       );
-    }));
+    })));
   }
 
   // finds the nearest gene on the query chromosome and pushes it to the store
