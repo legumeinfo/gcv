@@ -1,7 +1,6 @@
 // Angular
 import { HttpClient, HttpParams } from "@angular/common/http";
-import { Observable } from "rxjs";
-import { BehaviorSubject } from "rxjs";
+import { BehaviorSubject, Observable, throwError } from "rxjs";
 import { filter, share } from "rxjs/operators";
 // app
 import { AppConfig } from "../app.config";
@@ -30,10 +29,10 @@ export abstract class HttpService {
     if (i > -1) {
       source = AppConfig.SERVERS[i];
     } else {
-      return Observable.throw("\"" + serverID + "\" is not a valid server ID");
+      return throwError("\"" + serverID + "\" is not a valid server ID");
     }
     if (!source.hasOwnProperty(requestType)) {
-      return Observable.throw("\"" + serverID + "\" does not support requests of type \"" + requestType + "\"");
+      return throwError("\"" + serverID + "\" does not support requests of type \"" + requestType + "\"");
     }
     const request = source[requestType];
     const url = makeUrl(request.url);
@@ -51,6 +50,6 @@ export abstract class HttpService {
       this.requestsSubject.next([args, requestObservable]);
       return requestObservable;
     }
-    return Observable.throw("\"" + serverID + "\" requests of type \"" + requestType + "\" does not support HTTP GET or POST methods");
+    return throw("\"" + serverID + "\" requests of type \"" + requestType + "\" does not support HTTP GET or POST methods");
   }
 }
