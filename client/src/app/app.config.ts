@@ -38,7 +38,7 @@ export class AppConfig {
   }
 
   public load(): Promise<any> {
-    return this.http.get<Config>("/config.json")
+    return this.http.get<Config>("/config/config.json")
       .pipe(
         tap((config) => this._loadBrand(config.brand)),
         tap((config) => this._loadDashboard(config.dashboard)),

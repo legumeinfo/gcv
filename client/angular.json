@@ -19,7 +19,7 @@
             "polyfills": "src/polyfills.ts",
             "tsConfig": "src/tsconfig.app.json",
             "assets": [
-              "src/config.json",
+              "src/config",
               "src/favicon.ico",
               "src/assets"
             ],
@@ -104,7 +104,7 @@
               "src/config/tours/default.js"
             ],
             "assets": [
-              "src/config.json",
+              "src/config",
               "src/favicon.ico",
               "src/assets"
             ]
