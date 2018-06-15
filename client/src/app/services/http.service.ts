@@ -50,6 +50,6 @@ export abstract class HttpService {
       this.requestsSubject.next([args, requestObservable]);
       return requestObservable;
     }
-    return throw("\"" + serverID + "\" requests of type \"" + requestType + "\" does not support HTTP GET or POST methods");
+    return throwError("\"" + serverID + "\" requests of type \"" + requestType + "\" does not support HTTP GET or POST methods");
   }
 }

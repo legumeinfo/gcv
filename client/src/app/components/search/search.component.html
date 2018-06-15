@@ -4,7 +4,7 @@
     <alert [alert]="headerAlert" center></alert>
     <ul class="navbar-nav mr-2" left>
       <li class="nav-item active">
-        <toggle-button (toggleFn)="selectParams()">Parameters</toggle-button>
+        <toggle-button id="parameters-button" (toggleFn)="selectParams()">Parameters</toggle-button>
       </li>
       <li class="nav-item" [ngClass]="{'active': selectedContent==contentTypes.VIEWERS}">
         <a class="nav-link" (click)="showViewers()">Viewers</a>
@@ -18,7 +18,7 @@
   <main-content [hidden]="selectedContent!==contentTypes.VIEWERS">
     <div #left id="left" class="split split-horizontal">
 
-      <div #topLeft  id="top-left" class="split content">
+      <div #topLeft id="macro-synteny" class="split content">
         <viewer-macro
           [data]="macroTracks"
           [arguments]="macroArgs" >
@@ -38,7 +38,7 @@
         <ng-container #macroAlerts></ng-container>
       </div>
 
-      <div #bottomLeft id="bottom-left" class="split content">
+      <div #bottomLeft id="micro-synteny" class="split content">
         <viewer-micro
           [data]="microTracks"
           [colors]="microColors"
@@ -84,7 +84,7 @@
     </div>
 
     <div #right id="right" class="split split-horizontal">
-      <div #topRight id="top-right" class="split content">
+      <div #topRight id="macro-legend" class="split content">
         <div class="legend">
           <viewer-legend
             [data]="macroLegend"
@@ -93,7 +93,7 @@
           </viewer-legend>
         </div>
       </div>
-      <div #bottomRight id="bottom-right" class="split content">
+      <div #bottomRight id="micro-legend" class="split content">
         <div class="legend">
           <div class="vertical-fill">
             <viewer-legend
@@ -102,19 +102,19 @@
               [arguments]="microLegendArgs" >
             </viewer-legend>
           </div>
-          <div class="local-global-plots" [hidden]="!showLocalGlobalPlots">
+          <div id="local-global-dot-plots" class="local-global-plots" [hidden]="!showLocalGlobalPlots">
             <div class="outer-ratio">
               <div class="inner-ratio">
-                <viewer-plot [hidden]="selectedPlot!==plotTypes.LOCAL"
+                <viewer-plot id="local-dot-plot" [hidden]="selectedPlot!==plotTypes.LOCAL"
                   [data]="selectedLocalPlot"
                   [colors]="microColors"
                   [arguments]="plotArgs" >
                   <ul class="navbar-nav" navbar>
                     <li class="nav-item active">
-                      <a class="nav-link" (click)="showLocalPlot()">Local</a>
+                      <a class="nav-link local-link" (click)="showLocalPlot()">Local</a>
                     </li>
                     <li class="nav-item">
-                      <a class="nav-link" (click)="showGlobalPlot()">Global</a>
+                      <a class="nav-link global-link" (click)="showGlobalPlot()">Global</a>
                     </li>
                   </ul>
                   <li class="nav-item" navright>
@@ -123,16 +123,16 @@
                     </a>
                   </li>
                 </viewer-plot>
-                <viewer-plot [hidden]="selectedPlot!==plotTypes.GLOBAL"
+                <viewer-plot id="global-dot-plot" [hidden]="selectedPlot!==plotTypes.GLOBAL"
                   [data]="selectedGlobalPlot"
                   [colors]="microColors"
                   [arguments]="plotArgs" >
                   <ul class="navbar-nav" navbar>
                     <li class="nav-item">
-                      <a class="nav-link" (click)="showLocalPlot()">Local</a>
+                      <a class="nav-link local-link" (click)="showLocalPlot()">Local</a>
                     </li>
                     <li class="nav-item active">
-                      <a class="nav-link" (click)="showGlobalPlot()">Global</a>
+                      <a class="nav-link global-link" (click)="showGlobalPlot()">Global</a>
                     </li>
                   </ul>
                   <li class="nav-item" navright>

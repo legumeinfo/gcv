@@ -30,6 +30,7 @@
     "@types/d3": "^5.0.0",
     "@types/jquery": "^3.3.2",
     "bootstrap": "^4.1.1",
+    "bootstrap-tour": "git+https://github.com/sorich87/bootstrap-tour.git",
     "circos": "^2.1.0",
     "core-js": "^2.5.4",
     "d3": "^5.4.0",

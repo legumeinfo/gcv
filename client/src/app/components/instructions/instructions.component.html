@@ -16,10 +16,10 @@
   <div class="container">
 
     <div class="row">
-      <div class="col-lg-4">
+      <div id="tour" class="col-lg-4">
         <h2><span class="fa fa-play"></span> Take the Tour</h2>
         <p>Take an interactive tour and learn about each of the GCV views and the components that compose them.</p>
-        <p><a class="btn btn-secondary" href="#" role="button">Begin tour &raquo;</a></p>
+        <p><a class="btn btn-secondary" href="#" role="button" (click)="startTour($event)">Begin tour &raquo;</a></p>
       </div>
       <div class="col-lg-4">
         <h2><span class="fa fa-book"></span> Read the Docs</h2>

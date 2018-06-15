@@ -11,7 +11,7 @@ import { AppConfig } from "../../app.config";
 import { Alert, Family, Gene, Group, MacroTracks, MicroTracks } from "../../models";
 import { macroTracksOperator, microTracksOperator, plotsOperator } from "../../operators";
 import { AlignmentService,  FilterService, MacroTracksService, MicroTracksService,
-  PlotsService } from "../../services";
+  PlotsService, TourService } from "../../services";
 import { AlertComponent } from "../shared/alert.component";
 import { PlotViewerComponent } from "../viewers/plot.component";
 
@@ -96,6 +96,7 @@ export class SearchComponent implements AfterViewInit, OnDestroy, OnInit {
               private macroTracksService: MacroTracksService,
               private microTracksService: MicroTracksService,
               private plotsService: PlotsService,
+              private tourService: TourService,
             ) {
     this.destroy = new Subject();
   }
@@ -115,6 +116,7 @@ export class SearchComponent implements AfterViewInit, OnDestroy, OnInit {
         direction: "vertical",
         minSize: 0,
       });
+    this.tourService.resumeTour();
   }
 
   ngOnDestroy(): void {

@@ -2,6 +2,7 @@
 import { AfterViewInit, Component, ElementRef, OnDestroy, ViewChild } from "@angular/core";
 // App
 import { AppConfig } from "../../app.config";
+import { TourService } from "../../services";
 import { elementIsVisible } from "../../utils";
 
 declare var $: any;
@@ -22,6 +23,8 @@ export class InstructionsComponent implements AfterViewInit, OnDestroy {
 
   private searchPopover = false;
   private multiPopover = false;
+
+  constructor(private tourService: TourService) { }
 
   ngAfterViewInit() {
     // create popovers
@@ -46,6 +49,8 @@ export class InstructionsComponent implements AfterViewInit, OnDestroy {
         $(this.multiScreenshotEl.nativeElement).trigger("click");
       }
     });
+
+    this.tourService.resumeTour();
   }
 
   ngOnDestroy() {
@@ -53,10 +58,13 @@ export class InstructionsComponent implements AfterViewInit, OnDestroy {
     $(this.multiScreenshotEl.nativeElement).popover("dispose");
   }
 
-  scrollTo(event, targetSelector): void {
-      event.preventDefault();
-      $("html, body").animate({
-        scrollTop: $(targetSelector).offset().top
-      }, 500);
+  scrollTo(event, selector): void {
+    event.preventDefault();
+    scrollTo("html, body", selector);  // src/assets/js/utils
+  }
+
+  startTour(event): void {
+    event.preventDefault();
+    this.tourService.startTour();
   }
 }

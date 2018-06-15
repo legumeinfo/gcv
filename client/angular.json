@@ -26,6 +26,7 @@
             "styles": [
               "node_modules/bootstrap/dist/css/bootstrap.min.css",
               "node_modules/font-awesome/css/font-awesome.min.css",
+              "node_modules/bootstrap-tour/build/css/bootstrap-tour.min.css",
               "src/assets/css/gcv.css",
               "src/assets/css/styles.css"
             ],
@@ -35,7 +36,10 @@
               "node_modules/bootstrap/js/dist/tooltip.js",
               "node_modules/bootstrap/js/dist/popover.js",
               "node_modules/bootstrap/js/dist/util.js",
-              "node_modules/bootstrap/js/dist/dropdown.js"
+              "node_modules/bootstrap/js/dist/dropdown.js",
+              "node_modules/bootstrap-tour/build/js/bootstrap-tour.min.js",
+              "src/assets/js/utils.js",
+              "src/config/tours/default.js"
             ]
           },
           "configurations": {
@@ -94,7 +98,10 @@
               "node_modules/bootstrap/js/dist/tooltip.js",
               "node_modules/bootstrap/js/dist/popover.js",
               "node_modules/bootstrap/js/dist/util.js",
-              "node_modules/bootstrap/js/dist/dropdown.js"
+              "node_modules/bootstrap/js/dist/dropdown.js",
+              "node_modules/bootstrap-tour/build/js/bootstrap-tour.min.js",
+              "src/assets/js/utils.js",
+              "src/config/tours/default.js"
             ],
             "assets": [
               "src/config.json",

@@ -5,6 +5,7 @@ import { FilterService } from "./filter.service";
 import { MacroTracksService } from "./macro-tracks.service";
 import { MicroTracksService } from "./micro-tracks.service";
 import { PlotsService } from "./plots.service";
+import { TourService } from "./tour.service";
 
 export const services: any[] = [
   AlignmentService,
@@ -14,6 +15,7 @@ export const services: any[] = [
   MacroTracksService,
   MicroTracksService,
   PlotsService,
+  TourService,
 ];
 
 export * from "./alignment.service";
@@ -23,3 +25,4 @@ export * from "./filter.service";
 export * from "./macro-tracks.service";
 export * from "./micro-tracks.service";
 export * from "./plots.service";
+export * from "./tour.service";

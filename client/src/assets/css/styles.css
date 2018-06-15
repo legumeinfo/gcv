@@ -87,3 +87,8 @@ a {
   height: 1em;
   width: 1em;
 }
+
+/* ensure bootstrap popovers are on top of everything */
+.popover {
+  z-index: 100000000 !important;
+}

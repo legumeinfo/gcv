@@ -423,6 +423,7 @@ export class Micro extends Visualizer {
       .attr("class", "axis plot-axis")
       .call(axis);
     plotYAxis.selectAll("text")
+      .attr("class", "micro-plot-link")
       .style("cursor", "pointer")
       .on("click", (y, i) => {
         this.options.plotClick(this.data.groups[i]);
