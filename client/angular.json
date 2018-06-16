@@ -39,7 +39,6 @@
               "node_modules/bootstrap/js/dist/dropdown.js",
               "node_modules/bootstrap-tour/build/js/bootstrap-tour.min.js",
               "src/assets/js/utils.js",
-              "src/config/tours/default.js"
             ]
           },
           "configurations": {
@@ -101,7 +100,6 @@
               "node_modules/bootstrap/js/dist/dropdown.js",
               "node_modules/bootstrap-tour/build/js/bootstrap-tour.min.js",
               "src/assets/js/utils.js",
-              "src/config/tours/default.js"
             ],
             "assets": [
               "src/config",

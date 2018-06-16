@@ -21,6 +21,9 @@
   "miscellaneous": {
     "geneSearchPlaceholder": "e.g. phavu.Phvul.002G100400"
   },
+  "tours": [
+    {"script": "default.js", "name": "defaultTour"}
+  ],
   "servers": [
     {
       "id": "lis",

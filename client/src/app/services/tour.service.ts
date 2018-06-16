@@ -1,21 +1,35 @@
 // Angular
 import { Injectable } from "@angular/core";
-
-declare var defaultTour: any;
+// app
+import { AppConfig } from "../app.config";
 
 @Injectable()
 export class TourService {
 
+  currentTour: string;
+
   constructor() {
-    defaultTour.init();
+    for (const name of AppConfig.TOURS) {
+      window[name].init();
+      const onEnd = window[name]._options.onEnd;
+      window[name]._options.onEnd = (tour) => {
+        onEnd();
+        this.currentTour = undefined;
+      };
+    }
   }
 
-  startTour(): void {
-    defaultTour.end();
-    defaultTour.restart();
+  startTour(name: string): void {
+    if (window.hasOwnProperty(name)) {
+      window[name].end();
+      window[name].restart();
+      this.currentTour = name;
+    }
   }
 
   resumeTour(): void {
-    defaultTour.start();
+    if (this.currentTour !== undefined) {
+      window[this.currentTour].start();
+    }
   }
 }

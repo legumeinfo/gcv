@@ -22,9 +22,15 @@ export class Miscellaneous {
   geneSearchPlaceholder?: string;
 }
 
+export class Tour {
+  script: string;
+  name: string;
+}
+
 export class Config {
   brand?: Brand;
   dashboard?: Dashboard;
   miscellaneous?: Miscellaneous;
+  tours?: Tour[];
   servers: Server[];
 }

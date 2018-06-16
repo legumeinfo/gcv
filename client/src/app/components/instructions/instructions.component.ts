@@ -66,6 +66,6 @@ export class InstructionsComponent implements AfterViewInit, OnDestroy {
 
   startTour(event): void {
     event.preventDefault();
-    this.tourService.startTour();
+    this.tourService.startTour("defaultTour");
   }
 }

@@ -2,7 +2,7 @@
 import { HttpClient, HttpParams } from "@angular/common/http";
 import { Inject, Injectable } from "@angular/core";
 import { Observable } from "rxjs";
-import { concatMap, tap } from "rxjs/operators";
+import { concatMap, mergeMap, tap } from "rxjs/operators";
 // app
 import { Server } from "./models/server.model";  // avoid circular dependencies
 import { Brand, Config, Dashboard, Miscellaneous } from "./models/config.model";  // ditto
@@ -14,6 +14,7 @@ export class AppConfig {
 
   // later frozen to be "const"
   public static SERVERS: Server[] = [];
+  public static TOURS: string[] = [];
   public static BRAND: Brand;
   public static DASHBOARD: Dashboard;
   public static MISCELLANEOUS: Miscellaneous;
@@ -42,9 +43,11 @@ export class AppConfig {
       .pipe(
         tap((config) => this._loadBrand(config.brand)),
         tap((config) => this._loadDashboard(config.dashboard)),
-        tap((config) => this._loadMiscellaneous(config.miscellaneous)),
-        concatMap((config) => this._loadServers(config.servers)))
-      .toPromise();
+        tap((config) => this._loadMiscellaneous(config.miscellaneous)))
+      .toPromise()
+        .then((config) => Promise.all([
+          this._loadTours(config.tours),
+          this._loadServers(config.servers)]));
   }
 
   // general support for namespace function strings
@@ -84,6 +87,11 @@ export class AppConfig {
   private _setAndFreezeServers(servers: any[]): void {
     AppConfig.SERVERS = servers;
     Object.freeze(AppConfig.SERVERS);
+  }
+
+  private _setAndFreezeTours(tours: any[]): void {
+    AppConfig.TOURS = tours.map((t) => t.name);
+    Object.freeze(AppConfig.TOURS);
   }
 
   private _loadBrand(brand: any): void {
@@ -128,11 +136,14 @@ export class AppConfig {
           );
         })
       )
-      .then(() => {
-        this._setAndFreezeServers(servers);
-      })
-      .catch((error) => {
-        this._setAndFreezeServers(servers);
-      });
+      .then(() => this._setAndFreezeServers(servers))
+      .catch((error) => this._setAndFreezeServers(servers));
+  }
+
+  private _loadTours(tours: any[]): Promise<any> {
+    tours = tours || [];
+    return Promise.all(tours.map((t) => this._loadScript("/config/tours/" + t.script)))
+      .then(() => this._setAndFreezeTours(tours))
+      .catch((error) => this._setAndFreezeTours(tours));
   }
 }
