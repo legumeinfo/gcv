@@ -7,6 +7,7 @@ from django.http                  import Http404, HttpResponse, \
 from django.shortcuts             import get_object_or_404, render
 from django.utils.http            import http_date
 from django.views.decorators.csrf import csrf_exempt
+from django.conf                  import settings
 
 # services app
 from services.models import Cv, Cvterm, Feature, Featureloc, Featureprop, \
@@ -42,7 +43,7 @@ def db_ready_handler(sender, **kwargs):
                         .order_by('chromosome_id', 'number'))
 
     # fetch all chromosomes
-    chromosome_cvs = list(Cvterm.objects.filter(name='chromosome'))
+    chromosome_cvs = list(Cvterm.objects.filter(name__in=settings.GCV_MACROSYNTENY_TARGET_TYPES))
     chromosomes = list(Feature.objects
         .only('feature_id', 'name', 'organism_id')
         .filter(type__in=chromosome_cvs))
