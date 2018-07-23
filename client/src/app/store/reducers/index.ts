@@ -15,8 +15,6 @@ import * as fromMacroTracks from "./macro-tracks.store";
 import * as fromMicroTracks from "./micro-tracks.store";
 import * as fromMultiMacroChromosome from "./multi-macro-chromosome.store";
 import * as fromMultiMacroTracks from "./multi-macro-tracks.store";
-import * as fromOrderFilter from "./order.store";
-import * as fromRegexpFilter from "./regexp.store";
 import * as fromRouter from "./router.store";
 import * as fromSearchQueryTrack from "./search-query-track.store";
 
@@ -30,8 +28,6 @@ export interface State {
   microTracks: fromMicroTracks.State;
   multiMacroChromosome: fromMultiMacroChromosome.State;
   multiMacroTracks: fromMultiMacroTracks.State;
-  orderFilter: fromOrderFilter.State;
-  regexpFilter: fromRegexpFilter.State;
   router: fromRouterStore.RouterReducerState<fromRouter.RouterStateUrl>;
   searchQueryTrack: fromSearchQueryTrack.State;
 }
@@ -46,8 +42,6 @@ export const reducers: ActionReducerMap<State> = {
   microTracks: fromMicroTracks.reducer,
   multiMacroChromosome: fromMultiMacroChromosome.reducer,
   multiMacroTracks: fromMultiMacroTracks.reducer,
-  orderFilter: fromOrderFilter.reducer,
-  regexpFilter: fromRegexpFilter.reducer,
   router: fromRouterStore.routerReducer,
   searchQueryTrack: fromSearchQueryTrack.reducer,
 };
