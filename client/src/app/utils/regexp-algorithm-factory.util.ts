@@ -26,5 +26,5 @@ export function regexpFilter(
 };
 
 export function regexpAlgorithmFactory(regexp: string): Algorithm {
-  return new Algorithm("regexp", "Regular Expression", regexpFilter.bind(this, regexp));
+  return new Algorithm("regexp", regexp, regexpFilter.bind(this, regexp));
 }

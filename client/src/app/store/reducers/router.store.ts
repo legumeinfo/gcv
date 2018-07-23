@@ -78,7 +78,18 @@ export const getMacroBlockParams = createSelector(
   getQueryParams,
   (params) => instantiateAndPopulate(BlockParams, params || {}),
 )
+
 export const getMicroClusteringParams = createSelector(
   getQueryParams,
   (params) => instantiateAndPopulate(ClusteringParams, params || {}),
+)
+
+export const getRegexp = createSelector(
+  getQueryParams,
+  (params) => params.regexp,
+)
+
+export const getOrder = createSelector(
+  getQueryParams,
+  (params) => params.order,
 )

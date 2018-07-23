@@ -1,6 +1,5 @@
 // Angular
-import { Component, ElementRef, OnInit, ViewChild } from "@angular/core";
-
+import { Component } from "@angular/core";
 // App
 import { FilterService } from "../../services";
 
@@ -21,14 +20,13 @@ import { FilterService } from "../../services";
     </form>
   `,
 })
-export class RegexpComponent implements OnInit {
+export class RegexpComponent {
 
   model: any = {regexp: ""};
 
-  constructor(private filterService: FilterService) { }
-
-  ngOnInit(): void {
-    this.submit();
+  constructor(private filterService: FilterService) {
+    filterService.regexpAlgorithm
+      .subscribe((regexp) => this.model.regexp = regexp.name);
   }
 
   submit(): void {
