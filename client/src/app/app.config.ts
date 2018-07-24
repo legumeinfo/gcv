@@ -39,7 +39,7 @@ export class AppConfig {
   }
 
   public load(): Promise<any> {
-    return this.http.get<Config>("/config/config.json")
+    return this.http.get<Config>("config/config.json")
       .pipe(
         tap((config) => this._loadBrand(config.brand)),
         tap((config) => this._loadDashboard(config.dashboard)),
@@ -142,7 +142,7 @@ export class AppConfig {
 
   private _loadTours(tours: any[]): Promise<any> {
     tours = tours || [];
-    return Promise.all(tours.map((t) => this._loadScript("/config/tours/" + t.script)))
+    return Promise.all(tours.map((t) => this._loadScript("config/tours/" + t.script)))
       .then(() => this._setAndFreezeTours(tours))
       .catch((error) => this._setAndFreezeTours(tours));
   }

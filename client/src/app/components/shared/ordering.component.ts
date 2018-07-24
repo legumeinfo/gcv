@@ -22,11 +22,12 @@ import { FilterService } from "../../services";
 export class OrderingComponent {
 
   algorithms = ORDER_ALGORITHMS;
-  model: any = {order: this.algorithms[0].id};
+  model: any = {order: this.algorithms[0].id};  // default: chromosome name
 
   constructor(private filterService: FilterService) {
     filterService.orderAlgorithm
       .subscribe((order) => this.model.order = order.id);
+    this.update();
   }
 
   update(): void {

@@ -1,6 +1,7 @@
 // Angular
 import { Injectable } from "@angular/core";
 import { BehaviorSubject, Observable } from "rxjs";
+import { filter } from "rxjs/operators";
 // store
 import { Store } from "@ngrx/store";
 import * as routerActions from "../store/actions/router.actions";
@@ -28,12 +29,14 @@ export class FilterService {
           this.orderSubject.next(ORDER_ALGORITHMS[i]);
         }
       });
-    this.orderAlgorithm = this.orderSubject.asObservable();
+    this.orderAlgorithm = this.orderSubject.asObservable().pipe(
+      filter((order) => order !== undefined));
     this.store.select(fromRouter.getRegexp)
       .subscribe((regexp) => {
         this.regexpSubject.next(regexpAlgorithmFactory(regexp));
       });
-    this.regexpAlgorithm = this.regexpSubject.asObservable();
+    this.regexpAlgorithm = this.regexpSubject.asObservable().pipe(
+      filter((regexp) => regexp !== undefined));
   }
 
   setOrder(order: string): void {
