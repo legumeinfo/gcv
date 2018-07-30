@@ -60,7 +60,8 @@ var defaultTour = (function () {
    */
   var gcvUrlMatch = function (path, queryParams) {
     // escape all "/", ".", and "-" in the path
-    var pathRegexp = path.replace(/[-\/.]/g, "\\$&");
+    var absolutePath = basePath + path;
+    var pathRegexp = absolutePath.replace(/[-\/.]/g, "\\$&");
     // are there any required query params?
     var paramsRegexp = "";
     if (Object.keys(queryParams).length !== 0) {
@@ -83,11 +84,11 @@ var defaultTour = (function () {
 
   var basePath = "";
   var instructionsUrl = {
-    path: basePath + "/instructions",
+    path: "/instructions",
     queryParams: {}
   };
   var searchUrl = {
-    path: basePath + "/search/lis/phavu.Phvul.002G085200",
+    path: "/search/lis/phavu.Phvul.002G085200",
     queryParams: {}
   };
 
