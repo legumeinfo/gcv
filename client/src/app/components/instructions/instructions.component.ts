@@ -50,8 +50,6 @@ export class InstructionsComponent implements AfterViewInit, OnDestroy {
         $(this.multiScreenshotEl.nativeElement).trigger("click");
       }
     });
-
-    this.tourService.resumeTour();
   }
 
   ngOnDestroy() {
