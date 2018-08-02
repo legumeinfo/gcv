@@ -2,6 +2,17 @@ var defaultTour = (function () {
 
   // helpers
 
+  var continueTourPromise = function(tour) {
+    return new Promise((resolve, reject) => {
+      if (!tour._inited && !confirm("Continue tour?")) {
+        tour.end();
+        reject();
+      } else {
+        resolve();
+      }
+    });
+  }
+
   var showPlotPromise = function () {
     return new Promise((resolve) => {
         if (!isVisible()) {
@@ -36,17 +47,20 @@ var defaultTour = (function () {
    * @param {string|RegExp} path - The path of the current step.
    */
   var redirect = function (path) {
-    // assumes if path is a RegExp then the step has a "pathUrl" attribute
-    if (path instanceof RegExp) {
-      var i = this.getCurrentStep();
-      var step = this.getStep(i);
-      var queryParams = Object.entries(step.pathUrl.queryParams)
-        .map(([p, v]) => p + "=" + v)
-        .join("&");
-      var url = step.pathUrl.path + "?" + queryParams;
-      window.gcvGo(url);
-    } else {
-      window.gcvGo(path);
+    // redirects aren't allowed if the tour has ended
+    if (!this.ended()) {
+      // assumes if path is a RegExp then the step has a "pathUrl" attribute
+      if (path instanceof RegExp) {
+        var i = this.getCurrentStep();
+        var step = this.getStep(i);
+        var queryParams = Object.entries(step.pathUrl.queryParams)
+          .map(([p, v]) => p + "=" + v)
+          .join("&");
+        var url = step.pathUrl.path + "?" + queryParams;
+        window.gcvGo(url);
+      } else {
+        window.gcvGo(path);
+      }
     }
   }
 
@@ -101,13 +115,8 @@ var defaultTour = (function () {
     debug: true,
     orphan: true,
     onShow: (tour) => {
-      var i = tour.getCurrentStep();
-      var selector = document;
-      var step = tour.getStep(i);
-      if (step !== undefined && step.element !== undefined) {
-        selector = step.element;
-      }
-      return documentReadyPromise();
+      return continueTourPromise(tour)
+        .then(documentReadyPromise);
     },
     onEnd: (tour) => {
       if (document.location.pathname !== basePath + "/instructions") {
@@ -187,8 +196,9 @@ var defaultTour = (function () {
         content: "All the genes from the result track are displayed as points, with the x-coordinate determined by the physical position of the gene in the result chromosome and the y-coordinate(s) determined by the physical positions of genes belonging to the same family in the query chromosome. Genes in the result track without a corresponding gene in the query are displayed along the \"Outliers\" axis above the plot.",
         element: "#local-dot-plot .local-link",
         placement: "top",
-        onShow: () => {
-          return documentReadyPromise()
+        onShow: (tour) => {
+          return continueTourPromise(tour)
+            .then(documentReadyPromise)
             // show the dot plot if necessary
             .then(showPlotPromise)
             // show the local dot plot if necessary
@@ -214,8 +224,9 @@ var defaultTour = (function () {
         content: "Instead of focusing only on the extent of the matched syntenic segment, the global plot displays all instances of genes from the families of the query track across the chromosome from which the matched segment was taken. This gives a better sense for the frequency with which members of these families occur outside the matched context and can reveal wider structural relationships, especially in cases where the chosen search and alignment strategy fails to produce a single track collecting all collinear segments between the result chromosome and the query segment.",
         element: "#global-dot-plot .global-link",
         placement: "top",
-        onShow: () => {
-          return documentReadyPromise()
+        onShow: (tour) => {
+          return continueTourPromise(tour)
+            .then(documentReadyPromise)
             // show the dot plot if necessary
             .then(showPlotPromise)
             // show the global dot plot if necessary
@@ -249,8 +260,9 @@ var defaultTour = (function () {
         content: "Options grouped under \"Block Parameters\" determine how macrosynteny blocks against the query chromosome are determined.",
         element: "#block-parameters",
         placement: "right",
-        onShow: () => {
-          return showLeftSliderPromise()
+        onShow: (tour) => {
+          return continueTourPromise(tour)
+            .then(showLeftSliderPromise)
             .then(() => new Promise((resolve) => {
               scrollTo(".left-slider-content", "#block-parameters", {callback: resolve});
             }));
@@ -263,8 +275,9 @@ var defaultTour = (function () {
         content: "Options grouped under \"Query Parameters\" determine which remote track retrieval services will be invoked and how they should decide whether a segment of a chromosome has sufficiently similar gene family content to the query segment to be considered as a candidate for alignment by the client.",
         element: "#query-parameters",
         placement: "right",
-        onShow: () => {
-          return showLeftSliderPromise()
+        onShow: (tour) => {
+          return continueTourPromise(tour)
+            .then(showLeftSliderPromise)
             .then(() => new Promise((resolve) => {
               scrollTo(".left-slider-content", "#query-parameters", {callback: resolve});
             }));
@@ -277,8 +290,9 @@ var defaultTour = (function () {
         content: "Correspondence between the elements of the tracks is determined via sequence alignment algorithms, modified to consider the gene family assignments as the characters of a genomic alphabet. For Smith-Waterman, the orientation (forward/reverse) with the higher score is displayed (assuming it meets scoring criteria). For the Repeat algorithm, all alignments meeting threshold criteria are kept and displayed as related tracks. This has the advantage of nicely capturing inversions.",
         element: "#alignment-parameters",
         placement: "right",
-        onShow: () => {
-          return showLeftSliderPromise()
+        onShow: (tour) => {
+          return continueTourPromise(tour)
+            .then(showLeftSliderPromise)
             .then(() => new Promise((resolve) => {
               scrollTo(".left-slider-content", "#alignment-parameters", {callback: resolve});
             }));
