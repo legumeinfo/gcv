@@ -532,6 +532,10 @@ export class SearchComponent implements AfterViewInit, OnDestroy, OnInit {
         return l;
       }, []);
       this.macroTracks = tracks;
+      // BUGFIX: bootstrap tour prevents macro-synteny viewer OnChanges Angular
+      // hook from firing when the "data" input (this.macroTracks) is updated.
+      // The resize event is used to trigger the hook.
+      window.dispatchEvent(new Event("resize"));
     }
   }
 
