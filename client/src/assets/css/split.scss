@@ -13,11 +13,11 @@
 }
 .gutter.gutter-horizontal {
   cursor: col-resize;
-  background-image: url('src/assets/img/vertical.png');
+  background-image: url('../img/vertical.png');
 }
 .gutter.gutter-vertical {
   cursor: row-resize;
-  background-image: url('src/assets/img/horizontal.png');
+  background-image: url('../img/horizontal.png');
 }
 .split.split-horizontal, .gutter.gutter-horizontal {
   height: 100%;
