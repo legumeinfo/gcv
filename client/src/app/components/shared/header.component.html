@@ -1,5 +1,5 @@
 <nav class="navbar navbar-expand-lg navbar-light bg-light">
-  <a *ngIf="brand !== undefined" class="navbar-brand" href="{{brand.url}}" target="_blank">
+  <a *ngIf="brand !== undefined" class="navbar-brand" href="{{brand.url}}">
     <img src="{{brand.img}}" alt="" (mouseenter)="toggleBrand()" (mouseleave)="toggleBrand()">
     <span>{{brand.name}} <small>{{brand.slogan}}</small></span>
   </a>
