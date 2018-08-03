@@ -103,7 +103,7 @@ var defaultTour = (function () {
   };
   var searchUrl = {
     path: "/search/lis/phavu.Phvul.002G085200",
-    queryParams: {}
+    queryParams: {order: "distance"}
   };
 
   // the tour
@@ -138,62 +138,150 @@ var defaultTour = (function () {
         path: gcvUrlMatch(searchUrl.path, searchUrl.queryParams),
         pathUrl: searchUrl,
         title: "Search View",
-        content: "This is the Search view. It allows you to search across multiple data providers for genomic contexts similar to your query and align the results to the query in a manner that emphasizes structural variation.",
+        content: "This is the Search View. It allows you to search across multiple data providers for genomic contexts similar to your query and align the results to the query in a manner that emphasizes structural variation.",
         orphan: true,
       },
       {
         path: gcvUrlMatch(searchUrl.path, searchUrl.queryParams),
         pathUrl: searchUrl,
         title: "Micro-Synteny Tracks",
-        content: "The Micro-Synteny viewer displays the query context (bold) and the results.",
+        content: "These are Micro-Synteny tracks. Each track represents a genomic context - a neighborhood of genes drawn as triangles on a line. The direction of a triangle represents the orientation of the gene on the chromosome and the thickness of the line between triangles represents intergenic distance.",
         element: "#micro-synteny",
-        placement: "top",
+        placement: "right",
       },
       {
         path: gcvUrlMatch(searchUrl.path, searchUrl.queryParams),
         pathUrl: searchUrl,
-        title: "Micro-Synteny Tracks",
-        content: "Although the primary representation in a track is of gene order and orientation, intergenic distances are suggested by the differential widths of the bars connecting adjacent genes. Track labels can also be moused-over or clicked for information and options regarding the complete track content.",
-        element: "#micro-synteny .query",
-        placement: "top",
-      },
-      {
-        path: gcvUrlMatch(searchUrl.path, searchUrl.queryParams),
-        pathUrl: searchUrl,
-        title: "Macro-Synteny Blocks",
-        content: "The chromosome from which the query segment was taken has macro-synteny blocks to other chromosomes computed dynamically, using user-specifiable parameters, and without restriction as to whether they reside in the same database or come from federated service providers. The vertical bar shows the position and extent of the query segment in its chromosomal context, and the colored horizontal blocks show how far synteny extends beyond the current microsynteny view. Macrosynteny blocks may not always be in perfect agreement with the results displayed in the microsynteny tracks as they rely on somewhat different computational techniques, but adjustment of parameters for the two algorithms can be used to make them correspond more closely.",
-        element: "#macro-synteny",
-        placement: "bottom",
-      },
-      {
-        path: gcvUrlMatch(searchUrl.path, searchUrl.queryParams),
-        pathUrl: searchUrl,
-        title: "Gene Families Legend",
-        content: "The color of each gene in a Genome Context View is determined by the gene family to which it belongs, as indicated in the legend. Colors are assigned dynamically, but memorized in browser storage for consistency during browsing. Genes belonging to families with no other representatives in a view are left uncolored, while genes not belonging to families are both uncolored and have dotted outlines. Since genes in a family tend to have relatively similar sequences, we can use them to predict the functions of newly identified genes based on their relations to other known genes, especially in cases where the genes are found in similar syntenic contexts. Mouse-over of gene families in the legend will highlight all representatives of the family in the current view, while clicking on the families will display a panel listing those same genes with the option to view them in the context of the family's phylogenetic tree.",
+        title: "Micro Synteny Gene Families",
+        content: "Each gene in the Micro-Synteny tracks is colored by the gene family it belongs to, as indicated in this legend. Given the potentially massive number of gene families for a given clade, colors are assigned dynamically as needed, but are consistent within a browsing session. Genes that are the only member of their family in the Micro-Synteny tracks (singletons) are colored white with a solid border, while genes not belonging to any family (orphans) are colored white with a dotted border.",
         element: "#micro-legend",
         placement: "left",
       },
       {
         path: gcvUrlMatch(searchUrl.path, searchUrl.queryParams),
         pathUrl: searchUrl,
-        title: "Organism Legend",
-        content: "Needs text.",
-        element: "#macro-legend",
-        placement: "left",
+        title: "Search Gene",
+        content: "A search is performed by entering a gene name and selecting which data provider serves the gene.",
+        element: "app-gene-search",
+        placement: "top",
+        onShow: (tour) => {
+          return continueTourPromise(tour)
+            .then(documentReadyPromise)
+            // wait for the search widget to load
+            .then(() => new Promise((resolve) => {
+              var selector = "app-gene-search";
+              waitForElement(selector, {callback: resolve});
+            }))
+            // show the search widget if necessary
+            .then(() => new Promise((resolve) => {
+              if (!isVisible("app-gene-search form")) {
+                var selector = ".gene-search-link";
+                universalClick(selector, {timeout: Infinity, callback: resolve});
+              } else {
+                resolve();
+              }
+            }));
+        },
       },
       {
         path: gcvUrlMatch(searchUrl.path, searchUrl.queryParams),
         pathUrl: searchUrl,
-        title: "Dot Plots",
-        content: "Dot Plots are useful in visualizing correspondences between pairs of tracks without relying upon alignment. The <strong>plot</strong> link reveals the dot plot for the given result genome track against the query track. (If you cannot see the <strong>plot</strong> links, maximize your browser window)",
-        element: "#micro-synteny .micro-plot-link:gt(2):first",
+        title: "Query Track",
+        content: "A Query Track is constructed from the Search Gene (outlined in bold) and the genes that flank it. The Query Track is then used to search across data providers for Micro-Synteny tracks that have similar Gene Family content to the Query Track.",
+        element: "#micro-synteny .query",
+        placement: "top",
+        onShow: (tour) => {
+          return continueTourPromise(tour)
+            .then(documentReadyPromise)
+            // wait for the query track to be shown
+            .then(() => new Promise((resolve) => {
+              var selector = "#micro-synteny .query";
+              waitForElement(selector, {callback: resolve});
+            }));
+        },
+      },
+      {
+        path: gcvUrlMatch(searchUrl.path, searchUrl.queryParams),
+        pathUrl: searchUrl,
+        title: "Micro-Synteny Search Results",
+        content: "The similar Micro-Synteny tracks found by the search are each aligned to the Query Track based on their Gene Family content. They are then drawn in a manner that emphasies the alignment, making structural variation more apparent. In the case of an inversion, the inverted segment is also aligned to the query and drawn backwards so that the inversion is visually apparent and the level of structural conservation within the inversion can be assessed. The Query Track is always listed first with a bold label.",
+        element: "#micro-synteny",
         placement: "right",
       },
       {
         path: gcvUrlMatch(searchUrl.path, searchUrl.queryParams),
         pathUrl: searchUrl,
-        title: "Local Plot",
-        content: "All the genes from the result track are displayed as points, with the x-coordinate determined by the physical position of the gene in the result chromosome and the y-coordinate(s) determined by the physical positions of genes belonging to the same family in the query chromosome. Genes in the result track without a corresponding gene in the query are displayed along the \"Outliers\" axis above the plot.",
+        title: "Micro-Synteny Track Ordering",
+        content: "The order of the search result Micro-Synteny tracks can be changed using the Track Ordering widget.",
+        element: "app-ordering",
+        placement: "top",
+        onShow: (tour) => {
+          return continueTourPromise(tour)
+            .then(documentReadyPromise)
+            // wait for the search widget to load
+            .then(() => new Promise((resolve) => {
+              var selector = "app-ordering";
+              waitForElement(selector, {callback: resolve});
+            }))
+            // show the search widget if necessary
+            .then(() => new Promise((resolve) => {
+              if (!isVisible("app-ordering form")) {
+                var selector = ".track-order-link";
+                universalClick(selector, {timeout: Infinity, callback: resolve});
+              } else {
+                resolve();
+              }
+            }));
+        },
+      },
+      {
+        path: gcvUrlMatch(searchUrl.path, searchUrl.queryParams),
+        pathUrl: searchUrl,
+        title: "Micro-Synteny Track Filtering",
+        content: "The search result Micro-Synteny tracks can be filtered by name using the Track Filtering widget. Advanced filtering can be performed by entering a regular expression",
+        element: "app-regexp",
+        placement: "top",
+        onShow: (tour) => {
+          return continueTourPromise(tour)
+            .then(documentReadyPromise)
+            // wait for the search widget to load
+            .then(() => new Promise((resolve) => {
+              var selector = "app-regexp";
+              waitForElement(selector, {callback: resolve});
+            }))
+            // show the search widget if necessary
+            .then(() => new Promise((resolve) => {
+              if (!isVisible("app-regexp form")) {
+                var selector = ".track-regexp-link";
+                universalClick(selector, {timeout: Infinity, callback: resolve});
+              } else {
+                resolve();
+              }
+            }));
+        },
+      },
+      {
+        path: gcvUrlMatch(searchUrl.path, searchUrl.queryParams),
+        pathUrl: searchUrl,
+        title: "Dot Plots",
+        content: "Each Micro-Synteny track has a \"plot\" link that reveals a pairwise Dot Plot between its gene families and that of the Query Track. This is useful for visualizing correspondences between tracks in terms of gene loci, rather than alignment.",
+        element: "#micro-synteny .micro-plot-link:gt(2):first",
+        placement: "top",
+        onShow: (tour) => {
+          return continueTourPromise(tour)
+            .then(documentReadyPromise)
+            // wait for the dot plot button
+            .then(() => new Promise((resolve) => {
+              var selector = "#micro-synteny .micro-plot-link:gt(2):first";
+              waitForElement(selector, {callback: resolve});
+            }));
+        },
+      },
+      {
+        path: gcvUrlMatch(searchUrl.path, searchUrl.queryParams),
+        pathUrl: searchUrl,
+        title: "Local Dot Plots",
+        content: "Local Dot Plots show the correspondences between the genes in the selected track and the Query Track. Each gene in the selected track that shares a family with one or more genes in the Query Track is drawn as one or more points, as determined by the number of correspdonences. The x-coordinates correspond to the loci of the Gene Families on the selected track's chromosome and the y-coordinates correspond to the loci of the Gene Families on the Query Track's chromosome.",
         element: "#local-dot-plot .local-link",
         placement: "top",
         onShow: (tour) => {
@@ -220,8 +308,8 @@ var defaultTour = (function () {
       {
         path: gcvUrlMatch(searchUrl.path, searchUrl.queryParams),
         pathUrl: searchUrl,
-        title: "Global Plot",
-        content: "Instead of focusing only on the extent of the matched syntenic segment, the global plot displays all instances of genes from the families of the query track across the chromosome from which the matched segment was taken. This gives a better sense for the frequency with which members of these families occur outside the matched context and can reveal wider structural relationships, especially in cases where the chosen search and alignment strategy fails to produce a single track collecting all collinear segments between the result chromosome and the query segment.",
+        title: "Global Dot Plots",
+        content: "Similar to Local Dot Plots, Global Dot Plots show gene correspondences between the selected track and the Query Track, but the genes drawn on the x-axis correspond to the entire chromosome of the selected track, rather than just the extent of the track. This gives a better sense for the frequency with which members of the Query Track Gene Families occur outside the context of the selected track and can reveal wider structural relationships.",
         element: "#global-dot-plot .global-link",
         placement: "top",
         onShow: (tour) => {
@@ -248,8 +336,24 @@ var defaultTour = (function () {
       {
         path: gcvUrlMatch(searchUrl.path, searchUrl.queryParams),
         pathUrl: searchUrl,
+        title: "Macro-Synteny Blocks",
+        content: "These are chromosome-scale Macro-Synteny blocks. They are computed on-demand across data providers relative to the chromosome of the Micro-Synteny Query Track. By default, the chromosomes present in the Micro-Synteny tracks are listed first with bold labels and given the same ordering as their Micro-Synteny counterparts. The vertical, semiopaque bar shows the position and extent of the Micro-Synteny Query Track on its chromosome and highlights the Macro-Synteny blocks that are syntenic to this region. The bar can be dragged to a new position to initiate a new search that uses the Micro-Synteny track derived from the newly highlighted region as the Query Track.",
+        element: "#macro-synteny",
+        placement: "right",
+      },
+      {
+        path: gcvUrlMatch(searchUrl.path, searchUrl.queryParams),
+        pathUrl: searchUrl,
+        title: "Macro-Synteny Organisms",
+        content: "Each block in the Macro-Synteny blocks is colored by the organism it belongs to, as indicated in this legend. The colors are assigned by the data provders that the chromosomes were loaded from. The organism of the Query Gene is given a black, bold outline.",
+        element: "#macro-legend",
+        placement: "left",
+      },
+      {
+        path: gcvUrlMatch(searchUrl.path, searchUrl.queryParams),
+        pathUrl: searchUrl,
         title: "Parameters",
-        content: "These parameters allow you to fine-tune the candidate tracks retrieved and the alignments produced from them.",
+        content: "This \"Parameters\" button reveals a dashboard that allows you to fine-tune the parameters of the algorithms that drive the Search View.",
         element: "#parameters-button",
         placement: "bottom",
       },
@@ -257,7 +361,7 @@ var defaultTour = (function () {
         path: gcvUrlMatch(searchUrl.path, searchUrl.queryParams),
         pathUrl: searchUrl,
         title: "Block Parameters",
-        content: "Options grouped under \"Block Parameters\" determine how macrosynteny blocks against the query chromosome are determined.",
+        content: "Options grouped under \"Block Parameters\" determine how Macro-Synteny blocks are computed.",
         element: "#block-parameters",
         placement: "right",
         onShow: (tour) => {
@@ -272,7 +376,7 @@ var defaultTour = (function () {
         path: gcvUrlMatch(searchUrl.path, searchUrl.queryParams),
         pathUrl: searchUrl,
         title: "Query Parameters",
-        content: "Options grouped under \"Query Parameters\" determine which remote track retrieval services will be invoked and how they should decide whether a segment of a chromosome has sufficiently similar gene family content to the query segment to be considered as a candidate for alignment by the client.",
+        content: "Options grouped under \"Query Parameters\" determine how Micro-Synteny tracks similar to the Query Track are searched for. This includes which data providers will be searched.",
         element: "#query-parameters",
         placement: "right",
         onShow: (tour) => {
@@ -287,7 +391,7 @@ var defaultTour = (function () {
         path: gcvUrlMatch(searchUrl.path, searchUrl.queryParams),
         pathUrl: searchUrl,
         title: "Alignment Parameters",
-        content: "Correspondence between the elements of the tracks is determined via sequence alignment algorithms, modified to consider the gene family assignments as the characters of a genomic alphabet. For Smith-Waterman, the orientation (forward/reverse) with the higher score is displayed (assuming it meets scoring criteria). For the Repeat algorithm, all alignments meeting threshold criteria are kept and displayed as related tracks. This has the advantage of nicely capturing inversions.",
+        content: "Options grouped under \"Alignment Parameters\" determine how the Micro-Synteny tracks found by the search will be aligned to the Query Track. This includes which alignment algorithm to use, what score a track must have to be displayed, and what score threshold an inversion must meet to be explicitly drawn.",
         element: "#alignment-parameters",
         placement: "right",
         onShow: (tour) => {
@@ -302,7 +406,7 @@ var defaultTour = (function () {
         path: gcvUrlMatch(instructionsUrl.path, instructionsUrl.queryParams),
         pathUrl: instructionsUrl,
         title: "The End",
-        content: "If you want to learn more about the GCV, check out the documents as well as the white paper.",
+        content: "If you want to learn more about the GCV, check out the documentation as well as the white paper.",
         element: "#tour",
         placement: "right",
       },

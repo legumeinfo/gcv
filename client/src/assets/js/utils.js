@@ -3,7 +3,9 @@ var documentReadyPromise = function () {
 };
 
 var isVisible = function (selector) {
-  return $(selector).is(":visible") && $(selector).css("visibility") !== "hidden";
+  return $(selector).is(":visible") &&
+         $(selector).css("visibility") !== "hidden" &&
+         $(selector).width() > 0;
 };
 
 var waitForElement = function (selector, options={}) {

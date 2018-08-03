@@ -15,7 +15,7 @@ import { AppConfig } from "../../app.config";
     form button { margin-right: 0; }
   `],
   template: `
-    <form (ngSubmit)="submit()" #gneSearchForm="ngForm">
+    <form (ngSubmit)="submit()" #geneSearchForm="ngForm">
       <div class="input-group">
         <input type="text" class="form-control" id="gene-search"
           [(ngModel)]="model.gene" name="gene"

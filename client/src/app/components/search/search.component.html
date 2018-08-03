@@ -45,7 +45,7 @@
           [arguments]="microArgs" >
           <ul navbar class="nav navbar-nav accordion">
             <li [ngClass]="{'active': accordion==accordionTypes.SEARCH}">
-              <a (click)="setAccordion($event, accordionTypes.SEARCH)">
+              <a class="gene-search-link" (click)="setAccordion($event, accordionTypes.SEARCH)">
               &nbsp;<span class="fa fa-search" aria-hidden="true"></span>&nbsp;
               </a>
             </li>
@@ -53,7 +53,7 @@
               <app-gene-search></app-gene-search>
             </li>
             <li [ngClass]="{'active': accordion==accordionTypes.REGEXP}">
-              <a (click)="setAccordion($event, accordionTypes.REGEXP)">
+              <a class="track-regexp-link" (click)="setAccordion($event, accordionTypes.REGEXP)">
               &nbsp;<span class="fa fa-filter" aria-hidden="true"></span>&nbsp;
               </a>
             </li>
@@ -61,7 +61,7 @@
               <app-regexp></app-regexp>
             </li>
             <li [ngClass]="{'active': accordion==accordionTypes.ORDER}">
-              <a (click)="setAccordion($event, accordionTypes.ORDER)">
+              <a class="track-order-link" (click)="setAccordion($event, accordionTypes.ORDER)">
               &nbsp;<span class="fa fa-sort"></span>&nbsp;
               </a>
             </li>
