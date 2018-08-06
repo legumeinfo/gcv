@@ -14,8 +14,8 @@ export class TourService {
       .pipe(
         filter((event) => event instanceof NavigationEnd),
         distinctUntilChanged((a: any, b: any) => {
-          const aPath = this.urlToPath(a.url);
-          const bPath = this.urlToPath(b.url);
+          const aPath = this.urlToPath(a.urlAfterRedirects);
+          const bPath = this.urlToPath(b.urlAfterRedirects);
           return aPath === bPath;
         })
         )
@@ -42,7 +42,10 @@ export class TourService {
 
   private urlToPath(url: string) {
     const tree = this.router.parseUrl(url);
-    const path = tree.root.children[PRIMARY_OUTLET].toString();
+    let path = "";
+    if (tree.root.hasChildren()) {
+      path = tree.root.children[PRIMARY_OUTLET].toString();
+    }
     return path;
   }
 }
