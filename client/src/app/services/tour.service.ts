@@ -1,8 +1,8 @@
 // Angular
 import { Injectable } from "@angular/core";
-import { PRIMARY_OUTLET, NavigationEnd, Router } from "@angular/router";
+import { NavigationEnd, Router } from "@angular/router";
 // store
-import { distinctUntilChanged, filter } from "rxjs/operators";
+import { filter } from "rxjs/operators";
 // app
 import { AppConfig } from "../app.config";
 
@@ -11,14 +11,7 @@ export class TourService {
 
   constructor(private router: Router) {
     router.events
-      .pipe(
-        filter((event) => event instanceof NavigationEnd),
-        distinctUntilChanged((a: any, b: any) => {
-          const aPath = this.urlToPath(a.urlAfterRedirects);
-          const bPath = this.urlToPath(b.urlAfterRedirects);
-          return aPath === bPath;
-        })
-        )
+      .pipe(filter((event) => event instanceof NavigationEnd))
       .subscribe((event) => {
         // ensure the tour is initialized after every route change so the next
         // step can be shown
@@ -38,14 +31,5 @@ export class TourService {
       window[name].end();
       window[name].restart();
     }
-  }
-
-  private urlToPath(url: string) {
-    const tree = this.router.parseUrl(url);
-    let path = "";
-    if (tree.root.hasChildren()) {
-      path = tree.root.children[PRIMARY_OUTLET].toString();
-    }
-    return path;
   }
 }
