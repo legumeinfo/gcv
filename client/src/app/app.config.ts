@@ -95,6 +95,13 @@ export class AppConfig {
   }
 
   private _loadBrand(brand: any): void {
+    if (brand.favicon !== undefined) {
+      const link = document.createElement("link");
+      link.rel = "icon";
+      link.type = "image/x-icon";
+      link.href = brand.favicon;
+      document.getElementsByTagName("head")[0].appendChild(link);
+    }
     AppConfig.BRAND = brand;
     Object.freeze(AppConfig.BRAND);
   }

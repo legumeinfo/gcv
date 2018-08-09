@@ -1,5 +1,6 @@
 {
   "brand": {
+    "favicon": "https://legumeinfo.org/sites/default/files/favicon_0.ico",
     "url": "https://legumeinfo.org/",
     "img": "https://www.legumeinfo.org/sites/all/themes/legumeinfo_theme/images/legumeinfo_logo.png",
     "name": "LIS - Legume Information System",
