@@ -15,6 +15,16 @@
 
   <div class="container">
 
+    <div class="row featurette" *ngIf="dashboard.examples.length > 0">
+      <div class="col-md-12">
+        <h2 class="featurette-heading"><span class="fa fa-search"></span> Search Now!<!-- <span class="text-muted">Checkmate.</span>--></h2>
+        <p>To get started, enter the name of a gene and select the server that provides it. A genomic context will be made from the gene and the genes that flank it, then similar contexts will be searched for.</p>
+        <app-gene-search></app-gene-search>
+      </div>
+    </div>
+
+    <hr class="featurette-divider">
+
     <div class="row">
       <div id="tour" class="col-lg-4">
         <h2><span class="fa fa-play"></span> Take the Tour</h2>
@@ -74,20 +84,10 @@
 
     <hr class="featurette-divider">
 
-    <div class="row featurette" *ngIf="dashboard.examples.length > 0">
-      <div class="col-md-12">
-        <h2 class="featurette-heading"><span class="fa fa-search"></span> Search Now!<!-- <span class="text-muted">Checkmate.</span>--></h2>
-        <p>To get started, enter the name of a gene and select the server that provides it. A genomic context will be made from the gene and the genes that flank it, then similar contexts will be searched for.</p>
-        <app-gene-search></app-gene-search>
-      </div>
-    </div>
-
-    <hr class="featurette-divider">
-
   </div>
 
   <footer class="container">
     <p class="float-right"><a href="#" (click)="scrollTo($event, '#top')">Back to top</a></p>
-    <p><span class="fa fa-copyright"></span> {{ copyrightYear }} <a href="https://legumeinfo.org/" target="_blank">Legume Information System</a> &middot; <span class="fa fa-osi"></span> <a href="https://github.com/legumeinfo/lis_context_viewer/blob/master/LICENSE" target="_blank">License</a></p>
+    <p><span class="fa fa-copyright"></span> {{ copyrightYear }} <a href="https://legumeinfo.org/" target="_blank">Legume Information System</a> &middot; <span class="fa fa-osi"></span>&nbsp;<a href="https://github.com/legumeinfo/lis_context_viewer/blob/master/LICENSE" target="_blank">License</a></p>
   </footer>
 </main>
