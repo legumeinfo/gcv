@@ -134,7 +134,7 @@ export class MicroTracksService extends HttpService {
   }
 
   // adds the server id the track came from to the track and its genes
-  private _parseTrack(source: string, track: Group, i:number = 0): void {
+  private _parseTrack(source: string, track: Group, i: number = -1): void {
     track.source = source;
     track.id = source + i;
     for (const gene of track.genes) {
