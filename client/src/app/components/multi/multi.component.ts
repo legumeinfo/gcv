@@ -52,8 +52,16 @@ export class MultiComponent implements AfterViewInit, OnDestroy, OnInit {
   macroArgs: any;
   macroColors: any;
   macroLegend: any;
-  macroLegendArgs = {autoResize: true, selector: "genus-species"};
+  macroLegendArgs = {
+    autoResize: true,
+    selector: "genus-species",
+    sizeCallback: this._setSplitWidth.bind(this, 1),
+  };
   macroTracks: MacroTracks[];
+
+  // store the vertical Split for resizing
+  private verticalSplit: any;
+  private legendWidths = [0, 0];  // [micro, macro]
 
   // emits when the component is destroyed
   private destroy: Subject<boolean>;
@@ -69,7 +77,7 @@ export class MultiComponent implements AfterViewInit, OnDestroy, OnInit {
   // Angular hooks
 
   ngAfterViewInit(): void {
-    Split([this.left.nativeElement, this.right.nativeElement], {
+    this.verticalSplit = Split([this.left.nativeElement, this.right.nativeElement], {
         direction: "horizontal",
         minSize: 0,
       });
@@ -183,6 +191,18 @@ export class MultiComponent implements AfterViewInit, OnDestroy, OnInit {
   }
 
   // private
+
+  private _setSplitWidth(legend: number, size: any): void {
+    if (this.verticalSplit !== undefined) {
+      this.legendWidths[legend] = size.width;
+      const width = Math.max(...this.legendWidths);
+      const totalWidth = this.left.nativeElement.offsetWidth +
+                         this.right.nativeElement.offsetWidth;
+      const rightWidth = ((width + 50) / totalWidth) * 100;
+      const leftWidth = 100 - rightWidth;
+      this.verticalSplit.setSizes([leftWidth, rightWidth]);
+    }
+  }
 
   private _onAlignedMicroTracks(tracks: MicroTracks, route): void {
     if (tracks.groups.length > 0 && tracks.groups[0].genes.length > 0) {
@@ -377,6 +397,7 @@ export class MultiComponent implements AfterViewInit, OnDestroy, OnInit {
       multiDelimiter: ",",
       selectiveColoring: familySizes,
       selector: "family",
+      sizeCallback: this._setSplitWidth.bind(this, 0),
     };
   }
 }

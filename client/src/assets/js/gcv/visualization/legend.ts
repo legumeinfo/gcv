@@ -37,6 +37,7 @@ export class Legend extends Visualizer {
     this.options.blank = this.options.blank || undefined;
     this.options.blankDashed = this.options.blankDashed || undefined;
     this.options.multiDelimiter = this.options.multiDelimiter || undefined;
+    this.options.sizeCallback = this.options.sizeCallback || ((s) => { /* noop */ });
     if (this.options.contextmenu) {
       this.viewer.on("contextmenu", () => {
         this.options.contextmenu(d3.event);
@@ -57,6 +58,7 @@ export class Legend extends Visualizer {
     legend.attr("y", this.PAD);
     this.decorateResize(legend.resize);
     const lBox = legend.node().getBBox();
+    this.options.sizeCallback({width: lBox.width, height: lBox.height});
     this.viewer.attr("height", lBox.y + lBox.height + (2 * this.PAD));
     // create an auto resize iframe, if necessary
     if (this.options.autoResize) {
