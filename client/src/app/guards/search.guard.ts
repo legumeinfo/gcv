@@ -2,7 +2,7 @@
 import { Injectable } from '@angular/core';
 import { ActivatedRouteSnapshot, CanActivate, CanDeactivate, PRIMARY_OUTLET, Router,
   RouterStateSnapshot , UrlSegment} from '@angular/router';
-import { BehaviorSubject, combineLatest } from "rxjs";
+import { BehaviorSubject, combineLatest, Observable } from "rxjs";
 import { distinctUntilChanged, filter, map, pairwise, takeUntil, withLatestFrom } from "rxjs/operators";
 // store
 import { Store } from "@ngrx/store";
@@ -162,7 +162,10 @@ export class SearchGuard implements CanActivate, CanDeactivate<SearchComponent> 
                a.bintermediate === b.bintermediate &&
                a.bmask === b.bmask;
       }));
-    const querySources = this.store.select(fromRouter.getMicroQueryParamSources);
+    const querySources = this.store.select(fromRouter.getMicroQueryParamSources)
+      .pipe(distinctUntilChanged((a, b) => {
+        return JSON.stringify(a.slice().sort()) === JSON.stringify(b.slice().sort());
+      }));
     macroChromosome
       .pipe(
         withLatestFrom(blockParams, querySources),
@@ -171,11 +174,11 @@ export class SearchGuard implements CanActivate, CanDeactivate<SearchComponent> 
         this.store.dispatch(new macroTracksActions.Get({query, params, sources}));
       });
     // load new macro tracks when the block params change
-    blockParams
+    combineLatest(blockParams, querySources)
       .pipe(
-        withLatestFrom(macroChromosome, querySources),
+        withLatestFrom(macroChromosome),
         takeUntil(stop))
-      .subscribe(([params, query, sources]) => {
+      .subscribe(([[params, sources], query]) => {
         this.store.dispatch(new macroTracksActions.Get({query, params, sources}));
       });
   }
