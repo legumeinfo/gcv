@@ -47,7 +47,7 @@ var universalClick = function (selector, options={}) {
   }
 };
 
-var scrollTo = function (container, selector, options={}) {
+var scrollToSelector = function (container, selector, options={}) {
   options.duration = options.duration || 500;
   options.callback = options.callback || (() => {});
   $(container).animate(

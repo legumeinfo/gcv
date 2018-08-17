@@ -6,7 +6,7 @@ import { TourService } from "../../services";
 import { elementIsVisible } from "../../utils";
 
 declare var $: any;
-declare var scrollTo: any;  // src/assets/js/utils
+declare var scrollToSelector: any;  // src/assets/js/utils
 
 @Component({
   selector: "instructions",
@@ -59,7 +59,7 @@ export class InstructionsComponent implements AfterViewInit, OnDestroy {
 
   scrollTo(event, selector): void {
     event.preventDefault();
-    scrollTo("html, body", selector);
+    scrollToSelector("html, body", selector);
   }
 
   startTour(event): void {

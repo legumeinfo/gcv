@@ -368,7 +368,7 @@ var defaultTour = (function () {
           return continueTourPromise(tour)
             .then(showLeftSliderPromise)
             .then(() => new Promise((resolve) => {
-              scrollTo(".left-slider-content", "#block-parameters", {callback: resolve});
+              scrollToSelector(".left-slider-content", "#block-parameters", {callback: resolve});
             }));
         },
       },
@@ -383,7 +383,7 @@ var defaultTour = (function () {
           return continueTourPromise(tour)
             .then(showLeftSliderPromise)
             .then(() => new Promise((resolve) => {
-              scrollTo(".left-slider-content", "#query-parameters", {callback: resolve});
+              scrollToSelector(".left-slider-content", "#query-parameters", {callback: resolve});
             }));
         },
       },
@@ -398,7 +398,7 @@ var defaultTour = (function () {
           return continueTourPromise(tour)
             .then(showLeftSliderPromise)
             .then(() => new Promise((resolve) => {
-              scrollTo(".left-slider-content", "#alignment-parameters", {callback: resolve});
+              scrollToSelector(".left-slider-content", "#alignment-parameters", {callback: resolve});
             }));
         },
       },
