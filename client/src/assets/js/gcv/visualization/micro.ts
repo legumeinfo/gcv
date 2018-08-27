@@ -44,8 +44,12 @@ export class Micro extends Visualizer {
     this.options.boldFirst = this.options.boldFirst || false;
     this.options.highlight = this.options.highlight || [];
     this.options.selectiveColoring = this.options.selectiveColoring;
-    this.options.nameClick = this.options.nameClick || ((y, i) => { /* noop */ });
+    this.options.nameClick = this.options.nameClick || ((c) => { /* noop */ });
+    this.options.nameOver = this.options.nameOver || ((c) => { /* noop */ });
+    this.options.nameOut = this.options.nameOut || ((c) => { /* noop */ });
     this.options.geneClick = this.options.geneClick || ((b) => { /* noop */ });
+    this.options.geneOver = this.options.geneOver || ((b) => { /* noop */ });
+    this.options.geneOut = this.options.geneOut || ((b) => { /* noop */ });
     this.options.plotClick = this.options.plotClick;
     this.options.autoResize = this.options.autoResize || false;
     this.options.hoverDelay = this.options.hoverDelay || 500;
@@ -241,6 +245,9 @@ export class Micro extends Visualizer {
       })
       .style("cursor", "pointer")
       .on("mouseover", (g) => {
+        if (d3.event.isTrusted) {
+          obj.options.geneOver(g, t)
+        }
         const id = g.id.toString();
         const gene = ".GCV [data-gene='" + id + "']";
         const family = ".GCV [data-family='" + g.family + "']";
@@ -252,6 +259,9 @@ export class Micro extends Visualizer {
         obj.beginHover(selection);
       })
       .on("mouseout", (g) => {
+        if (d3.event.isTrusted) {
+          obj.options.geneOut(g, t)
+        }
         const id = g.id.toString();
         const gene = ".GCV [data-gene='" + id + "']";
         const family = ".GCV [data-family='" + g.family + "']";
@@ -373,6 +383,9 @@ export class Micro extends Visualizer {
       .attr("data-chromosome", (y, i) => this.data.groups[i].chromosome_name)
       .style("cursor", "pointer")
       .on("mouseover", (y, i) => {
+        if (d3.event.isTrusted) {
+          this.options.nameOver(this.data.groups[i]);
+        }
         const iStr = i.toString();
         const micro = ".GCV [data-micro-track='" + iStr + "']";
         const name = this.data.groups[i].chromosome_name;
@@ -388,6 +401,9 @@ export class Micro extends Visualizer {
         this.beginHover(selection);
       })
       .on("mouseout", (y, i) => {
+        if (d3.event.isTrusted) {
+          this.options.nameOut(this.data.groups[i]);
+        }
         const iStr = i.toString();
         const micro = ".GCV [data-micro-track='" + iStr + "']";
         const name = this.data.groups[i].chromosome_name;

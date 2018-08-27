@@ -1,9 +1,10 @@
 // Angular + dependencies
 import { Component } from "@angular/core";
 import { GCV } from "../../../assets/js/gcv";
-
 // App
 import { Viewer } from "./viewer.component";
+
+declare var universalMouseEvent: any;  // src/assets/js/utils
 
 @Component({
   selector: "viewer-micro",
@@ -22,8 +23,12 @@ import { Viewer } from "./viewer.component";
 })
 export class MicroViewerComponent extends Viewer {
 
+  private broadcastChannel: BroadcastChannel;
+
   constructor() {
     super("Micro-Synteny");
+    this.broadcastChannel = new BroadcastChannel("GCV");
+    this.broadcastChannel.onmessage = (msgEvent) => this.onMessage(msgEvent.data);
   }
 
   draw(): void {
@@ -37,9 +42,52 @@ export class MicroViewerComponent extends Viewer {
         this.el.nativeElement,
         this.colors,
         this.data,
-        this.args,
+        {
+          nameOver: (track) => {
+            this.broadcastChannel.postMessage({
+              event: "mouseover",
+              type: "chromosome",
+              target: track.chromosome_name,
+            });
+          },
+          nameOut: (track) => {
+            this.broadcastChannel.postMessage({
+              event: "mouseout",
+              type: "chromosome",
+              target: track.chromosome_name,
+            });
+          },
+          geneOver: (g) => {
+            this.broadcastChannel.postMessage({
+              event: "mouseover",
+              type: "gene",
+              target: g.id,
+            });
+          },
+          geneOut: (g) => {
+            this.broadcastChannel.postMessage({
+              event: "mouseout",
+              type: "gene",
+              target: g.id,
+            });
+          },
+          ...this.args
+        },
       );
       localStorage.setItem("viewer-micro-color-domain", this.colors.domain());
     }
+  }
+
+  private onMessage(msg) {
+    let selector = "viewer-micro .GCV ";
+    switch(msg.type) {
+      case "chromosome":
+        selector += ".tick text[data-chromosome=\"" + msg.target + "\"]";
+        break;
+      case "gene":
+        selector += ".gene[data-gene=\"" + msg.target + "\"]";
+        break;
+    }
+    universalMouseEvent(msg.event, selector);
   }
 }

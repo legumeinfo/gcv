@@ -25,16 +25,16 @@ var waitForElement = function (selector, options={}) {
   }
 };
 
-var dispatchClick = function (element) {
+var dispatchMouseEvent = function (mouseEvent, element) {
   let e = document.createEvent("UIEvents");
-  e.initUIEvent("click", true, true, window, 1);
+  e.initUIEvent(mouseEvent, true, true, window, 1);
   element.dispatchEvent(e);
 };
 
-var universalClick = function (selector, options={}) {
+var universalMouseEvent = function (mouseEvent, selector, options={}) {
   var callback = options.callback || ((element) => {});
   options.callback = (element) => {
-    dispatchClick(element);
+    dispatchMouseEvent(mouseEvent, element);
     callback();
   };
   options.timeout = options.timeout || 0;
@@ -45,6 +45,18 @@ var universalClick = function (selector, options={}) {
   } else if (options.timeout > 0) {
     waitForElement(selector, options);
   }
+};
+
+var universalMouseover = function (selector, options={}) {
+  universalMouseEvent("mouseover", selector, options);
+};
+
+var universalMouseout = function (selector, options={}) {
+  universalMouseEvent("mouseout", selector, options);
+};
+
+var universalClick = function (selector, options={}) {
+  universalMouseEvent("click", selector, options);
 };
 
 var scrollToSelector = function (container, selector, options={}) {
