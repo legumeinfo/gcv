@@ -54,10 +54,14 @@ export class MultiComponent implements AfterViewInit, OnDestroy, OnInit {
   macroLegend: any;
   macroLegendArgs = {
     autoResize: true,
-    selector: "genus-species",
+    selector: "organism",
     sizeCallback: this._setSplitWidth.bind(this, 1),
   };
   macroTracks: MacroTracks[];
+
+  // inter-app communication
+  private broadcastChannel;
+  private eventBus;
 
   // store the vertical Split for resizing
   private verticalSplit: any;
@@ -72,6 +76,17 @@ export class MultiComponent implements AfterViewInit, OnDestroy, OnInit {
               private macroTracksService: MacroTracksService,
               private microTracksService: MicroTracksService) {
     this.destroy = new Subject();
+    // hook the GCV eventbus into a Broadcast Channel
+    this.broadcastChannel = new BroadcastChannel("GCV");
+    this.broadcastChannel.onmessage = (message) => {
+      message.data.flag = true;
+      GCV.common.eventBus.publish(message.data);
+    };
+    this.eventBus = GCV.common.eventBus.subscribe((event) => {
+      if (!event.flag) {
+        this.broadcastChannel.postMessage(event);
+      }
+    });
   }
 
   // Angular hooks
@@ -92,6 +107,8 @@ export class MultiComponent implements AfterViewInit, OnDestroy, OnInit {
   }
 
   ngOnDestroy(): void {
+    this.broadcastChannel.close();
+    this.eventBus.unsubscribe();
     this.destroy.next(true);
     this.destroy.complete();
   }

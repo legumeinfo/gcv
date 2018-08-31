@@ -2,17 +2,17 @@ import { d3 } from "./d3";
 
 export abstract class Visualizer {
   // private
+  protected eventBus;
   protected colors: any;
   protected container: HTMLElement;
   protected data: any;
   protected options: any;
   protected resizer: any;
   protected viewer: any;
-  protected beginHoverTimeout;
+  protected callbackTimeout;
 
   // constants
   protected readonly PAD;
-  protected hoverTimeout: any = 0;
 
   /**
    * The constructor.
@@ -44,6 +44,9 @@ export abstract class Visualizer {
 
   /** Manually destroys the viewer. */
   destroy() {
+    if (this.eventBus !== undefined) {
+      this.eventBus.unsubscribe();
+    }
     if (this.resizer) {
       if (this.resizer.contentWindow) {
         this.resizer.contentWindow.onresize = undefined;
@@ -74,35 +77,22 @@ export abstract class Visualizer {
   }
 
   /**
-   * Fades everything in the view besides the given selection.
-   * @param {object} selection - What"s omitted from the fade.
+   * Sets the timeout attribute to a timer with the given function.
+   * @param {function} callback - The function to be executed when the timer
+   * expires.
    */
-  protected beginHover(selection) {
-    clearTimeout(this.beginHoverTimeout);
-    this.beginHoverTimeout = setTimeout(() => {
-      d3.selectAll(".GCV").classed("hovering", true);
-      selection.classed("active", true);
-    }, this.options.hoverDelay);
+  protected setTimeout(callback) {
+    clearTimeout(this.callbackTimeout);
+    this.callbackTimeout = setTimeout(callback, this.options.hoverDelay);
   }
 
   /**
-   * Unfades everything in the view and revokes the selection"s omission from
-   * being faded.
-   * @param {object} selection - What"s no longer omitted.
+   * Clears the timeout attribute and then calls the given function.
+   * @param {function} callback - The function to be called.
    */
-  protected endHover(selection) {
-    selection.classed("active", false);
-    // delay unfading for smoother mouse dragging
-    clearTimeout(this.beginHoverTimeout);
-    clearTimeout(this.hoverTimeout);
-    this.hoverTimeout = setTimeout(function() {
-      clearTimeout(this.hoverTimeout);
-      this.hoverTimeout = undefined;
-      // make sure nothing is being hovered
-      if (d3.selectAll(".GCV .active").empty()) {
-        d3.selectAll(".GCV").classed("hovering", false);
-      }
-    }, 125);
+  protected clearTimeout(callback) {
+    clearTimeout(this.callbackTimeout);
+    callback();
   }
 
   protected abstract resize(): void;

@@ -1,4 +1,5 @@
 import { d3 } from "./d3";
+import { eventBus } from "../common"
 import { Visualizer } from "./visualizer";
 
 /** The legend viewer. */
@@ -14,6 +15,37 @@ export class Legend extends Visualizer {
     this.viewer.attr("width", w);
   }
 
+  /** Handles events that come from the GCV eventBus.
+   * @param {GCVevent} event - A GCV event containing a type and targets attributes.
+   */
+  protected eventHandler(event) {
+    // select the relevant elements in the viewer
+    let selection;
+    if (event.targets.hasOwnProperty(this.options.selector)) {
+      const selectors = [];
+      event.targets[this.options.selector].split(",").forEach((f) => {
+        selectors.push("[data-" + this.options.selector + "='" + f + "']");  // orphans
+        selectors.push("[data-" + this.options.selector + "*='" + f + "']");  // singletons
+      });
+      selection = this.viewer.selectAll(selectors.join(", "));
+    }
+    // (un)fade the (un)selected elements
+    switch(event.type) {
+      case "mouseover":
+        this.viewer.classed("hovering", true);
+        if (selection !== undefined) {
+          selection.classed("active", true);
+        }
+        break;
+      case "mouseout":
+        if (selection !== undefined) {
+          selection.classed("active", false);
+        }
+        this.viewer.classed("hovering", false);
+        break;
+    }
+  }
+
   /**
    * Parses parameters and initializes letiables.
    * @param {HTMLElement|string} el - ID of or the element itself where the
@@ -24,6 +56,7 @@ export class Legend extends Visualizer {
    */
   protected init(el, colors, data, options?) {
     super.init(el, colors, data);
+    this.eventBus = eventBus.subscribe(this.eventHandler.bind(this));
     this.RECT_SIZE = 18;
     // create the scales used to plot genes
     // parse optional parameters
@@ -39,14 +72,10 @@ export class Legend extends Visualizer {
     this.options.multiDelimiter = this.options.multiDelimiter || undefined;
     this.options.sizeCallback = this.options.sizeCallback || ((s) => { /* noop */ });
     if (this.options.contextmenu) {
-      this.viewer.on("contextmenu", () => {
-        this.options.contextmenu(d3.event);
-      });
+      this.viewer.on("contextmenu", () => this.options.contextmenu(d3.event));
     }
     if (this.options.click) {
-      this.viewer.on("click", () => {
-        this.options.click(d3.event);
-      });
+      this.viewer.on("click", () => this.options.click(d3.event));
     }
     super.initResize();
   }
@@ -78,29 +107,18 @@ export class Legend extends Visualizer {
   private drawKey(legend, f) {
     const obj = this;
     // create the key group
+    const publishKeyEvent = (type) => {
+      const event = {type, targets: {}};
+      event.targets[obj.options.selector] = f.id;
+      return () => eventBus.publish(event);
+    };
     const key = legend.append("g")
       .attr("class", "legend")
       .attr("data-" + this.options.selector, f.id)
       .style("cursor", "pointer")
-      .on("mouseover", () => {
-        const selectors = [];
-        for (const s of f.id.split(obj.options.multiDelimiter)) {
-          selectors.push(".GCV [data-" + obj.options.selector + "='" + s + "']");
-        }
-        const selection = d3.selectAll(selectors.join(", "));
-        obj.beginHover(selection);
-      })
-      .on("mouseout", () => {
-        const selectors = [];
-        for (const s of f.id.split(obj.options.multiDelimiter)) {
-          selectors.push(".GCV [data-" + obj.options.selector + "='" + s + "']");
-        }
-        const selection = d3.selectAll(selectors.join(", "));
-        obj.endHover(selection);
-      })
-      .on("click", () => {
-        this.options.keyClick(f);
-      });
+      .on("mouseover", () => this.setTimeout(publishKeyEvent("mouseover")))
+      .on("mouseout", () => this.clearTimeout(publishKeyEvent("mouseout")))
+      .on("click", () => this.options.keyClick(f));
     // add the colored rectangles
     const rect = key.append("rect")
       .attr("width", this.RECT_SIZE)

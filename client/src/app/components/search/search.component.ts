@@ -83,6 +83,10 @@ export class SearchComponent implements AfterViewInit, OnDestroy, OnInit {
   macroLegendArgs: any;
   macroTracks: MacroTracks;
 
+  // inter-app communication
+  private broadcastChannel;
+  private eventBus;
+
   // store the vertical Split for resizing
   private verticalSplit: any;
   private legendWidths = [0, 0];  // [micro, macro]
@@ -101,6 +105,17 @@ export class SearchComponent implements AfterViewInit, OnDestroy, OnInit {
               private microTracksService: MicroTracksService,
               private plotsService: PlotsService) {
     this.destroy = new Subject();
+    // hook the GCV eventbus into a Broadcast Channel
+    this.broadcastChannel = new BroadcastChannel("GCV");
+    this.broadcastChannel.onmessage = (message) => {
+      message.data.flag = true;
+      GCV.common.eventBus.publish(message.data);
+    };
+    this.eventBus = GCV.common.eventBus.subscribe((event) => {
+      if (!event.flag) {
+        this.broadcastChannel.postMessage(event);
+      }
+    });
   }
 
   // Angular hooks
@@ -121,6 +136,8 @@ export class SearchComponent implements AfterViewInit, OnDestroy, OnInit {
   }
 
   ngOnDestroy(): void {
+    this.broadcastChannel.close();
+    this.eventBus.unsubscribe();
     this.destroy.next(true);
     this.destroy.complete();
   }
@@ -397,7 +414,7 @@ export class SearchComponent implements AfterViewInit, OnDestroy, OnInit {
     return {
       autoResize: true,
       highlight,
-      selector: "genus-species",
+      selector: "organism",
       sizeCallback: this._setSplitWidth.bind(this, 1),
     };
   }
