@@ -9,6 +9,7 @@ export class Micro extends Visualizer {
   private distances: any[];
   private left: number;
   private names: any[];
+  private intervals: any[];
   private right: number;
   private thickness: any;
   private ticks: any[];
@@ -47,7 +48,10 @@ export class Micro extends Visualizer {
       });
       selection = this.viewer.selectAll(selectors.join(", "));
     } else if (event.targets.hasOwnProperty("chromosome")) {
-      const selector = "[data-chromosome='" + event.targets.chromosome + "']";
+      let selector = "[data-chromosome='" + event.targets.chromosome + "']";
+      if (event.targets.hasOwnProperty("extent")) {
+        selector += "[data-extent='" + event.targets.extent.join(":") + "']";
+      }
       selection = this.viewer.selectAll(selector);
     } else if (event.targets.hasOwnProperty("organism")) {
       const selector = "[data-organism='" + event.targets.organism + "']";
@@ -114,6 +118,7 @@ export class Micro extends Visualizer {
     let minDistance = Infinity;
     let maxDistance = -Infinity;
     this.names = [];
+    this.intervals = [];
     this.ticks = [];
     let tick = 0;
     this.distances = [];
@@ -149,6 +154,7 @@ export class Micro extends Visualizer {
         }
       }
       this.names.push(this.options.prefix(group) + group.chromosome_name + ":" + fminI + "-" + fmaxI);
+      this.intervals.push([fminI, fmaxI]);
       this.distances.push(distances);
     }
     // initialize the x, y, and line thickness scales
@@ -228,9 +234,10 @@ export class Micro extends Visualizer {
     const y = this.ticks[i];
     // make svg group for the track
     const track = this.viewer.append("g")
-          .attr("data-micro-track", i.toString())
-          .attr("data-chromosome", t.chromosome_name)
-          .attr("data-organism", t.genus + " " + t.species);
+      .attr("data-micro-track", i.toString())
+      .attr("data-extent", this.intervals[i].join(":"))
+      .attr("data-chromosome", t.chromosome_name)
+      .attr("data-organism", t.genus + " " + t.species);
     const neighbors = [];
     // add the lines
     for (let j = 0; j < t.genes.length - 1; j++) {
@@ -393,25 +400,27 @@ export class Micro extends Visualizer {
     const yAxis = this.viewer.append("g")
       .attr("class", "axis")
       .call(axis);
-    const publishTrackEvent = (type, track) => {
+    const publishTrackEvent = (type, i) => {
+      const track = this.data.groups[i];
+      const interval = this.intervals[i];
       return () => eventBus.publish({
         type,
         targets: {
+          extent: interval,
           chromosome: track.chromosome_name,
           organism: track.genus + " " + track.species,
         }
       });
     };
     yAxis.selectAll("text")
-      .attr("class", (y, i) => {
-        return (i === 0 && this.options.boldFirst) ? "query " : "";
-      })
+      .attr("class", (y, i) => (i === 0 && this.options.boldFirst) ? "query " : "")
       .attr("data-micro-track", (y, i) => i.toString())
+      .attr("data-extent", (y, i) => this.intervals[i].join(":"))
       .attr("data-chromosome", (y, i) => this.data.groups[i].chromosome_name)
       .attr("data-organism", (y, i) => this.data.groups[i].genus + " " + this.data.groups[i].species)
       .style("cursor", "pointer")
-      .on("mouseover", (y, i) => this.setTimeout(publishTrackEvent("mouseover", this.data.groups[i])))
-      .on("mouseout", (y, i) => this.clearTimeout(publishTrackEvent("mouseout", this.data.groups[i])))
+      .on("mouseover", (y, i) => this.setTimeout(publishTrackEvent("mouseover", i)))
+      .on("mouseout", (y, i) => this.clearTimeout(publishTrackEvent("mouseout", i)))
       .on("click", (y, i) => this.options.nameClick(this.data.groups[i]));
     return yAxis;
   }
