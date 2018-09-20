@@ -1,6 +1,6 @@
 // Angular
-import { Component, NgZone } from "@angular/core";
-import { PRIMARY_OUTLET, Router } from "@angular/router";
+import { Component, NgZone, OnInit } from "@angular/core";
+import { NavigationStart, PRIMARY_OUTLET, Router } from "@angular/router";
 // store
 import { Store } from "@ngrx/store";
 import * as routerActions from "../store/actions/router.actions";
@@ -14,7 +14,8 @@ declare var window: any;
   selector: "app-root",
   template: "<router-outlet></router-outlet>",
 })
-export class AppComponent {
+export class AppComponent implements OnInit {
+
   constructor(private router: Router,
               private store: Store<fromRoot.State>,
               private tourService: TourService,  // resume tours from anywhere
@@ -23,6 +24,17 @@ export class AppComponent {
     // ensure that the function always executes in the AppComponent context by
     // binding this
     window.gcvGo = this.navigate.bind(this);
+  }
+
+  ngOnInit() {
+    // remove hash from URLs before the app router can redirect them
+    this.router.events.subscribe((event) => {
+      if (event instanceof NavigationStart) {
+        if (!!event.url && event.url.match(/^\/#/)) {
+          this.router.navigate([event.url.replace("/#", "")]);
+        }
+      }
+    });
   }
 
   // performs an Angular navigation while ensuring that it's executed in within
