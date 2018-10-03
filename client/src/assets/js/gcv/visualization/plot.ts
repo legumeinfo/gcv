@@ -179,8 +179,8 @@ export class Plot {
       .attr("data-gene", (g) => g.id)
       .attr("data-family", (g) => g.family)
       .style("cursor", "pointer")
-      .on("mouseover", (g) => publishGeneEvent("mouseover", g))
-      .on("mouseout", (g) => publishGeneEvent("mouseout", g))
+      .on("mouseover", (g) => publishGeneEvent("select", g))
+      .on("mouseout", (g) => publishGeneEvent("deselect", g))
       .on("click", (g) => this.options.geneClick(g, this.data));;
 
     const points = genes.append("circle")
@@ -285,13 +285,13 @@ export class Plot {
     }
     // (un)fade the (un)selected elements
     switch(event.type) {
-      case "mouseover":
+      case "select":
         this.viewer.classed("hovering", true);
         if (selection !== undefined) {
           selection.classed("active", true);
         }
         break;
-      case "mouseout":
+      case "deselect":
         if (selection !== undefined) {
           selection.classed("active", false);
         }

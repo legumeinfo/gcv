@@ -31,13 +31,13 @@ export class Legend extends Visualizer {
     }
     // (un)fade the (un)selected elements
     switch(event.type) {
-      case "mouseover":
+      case "select":
         this.viewer.classed("hovering", true);
         if (selection !== undefined) {
           selection.classed("active", true);
         }
         break;
-      case "mouseout":
+      case "deselect":
         if (selection !== undefined) {
           selection.classed("active", false);
         }
@@ -116,8 +116,8 @@ export class Legend extends Visualizer {
       .attr("class", "legend")
       .attr("data-" + this.options.selector, f.id)
       .style("cursor", "pointer")
-      .on("mouseover", () => this.setTimeout(publishKeyEvent("mouseover")))
-      .on("mouseout", () => this.clearTimeout(publishKeyEvent("mouseout")))
+      .on("mouseover", () => this.setTimeout(publishKeyEvent("select")))
+      .on("mouseout", () => this.clearTimeout(publishKeyEvent("deselect")))
       .on("click", () => this.options.keyClick(f));
     // add the colored rectangles
     const rect = key.append("rect")

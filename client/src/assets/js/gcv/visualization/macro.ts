@@ -66,13 +66,13 @@ export class Macro extends Visualizer {
     }
     // (un)fade the (un)selected elements
     switch(event.type) {
-      case "mouseover":
+      case "select":
         this.viewer.classed("hovering", true);
         if (selection !== undefined) {
           selection.classed("active", true);
         }
         break;
-      case "mouseout":
+      case "deselect":
         if (selection !== undefined) {
           selection.classed("active", false);
         }
@@ -379,11 +379,11 @@ export class Macro extends Visualizer {
       .style("cursor", "pointer")
       .on("mouseover", function (b) {
         obj.block = this;
-        obj.setTimeout(publishBlockEvent("mouseover", b));
+        obj.setTimeout(publishBlockEvent("select", b));
       })
       .on("mouseout", function (b) {
         obj.block = undefined;
-        obj.clearTimeout(publishBlockEvent("mouseout", b));
+        obj.clearTimeout(publishBlockEvent("deselect", b));
       })
       .on("click", () => this.options.blockClick());
     // help for generating points
@@ -535,8 +535,8 @@ export class Macro extends Visualizer {
       .attr("data-chromosome", (y, i) => this.data.tracks[i].chromosome)
       .attr("data-organism", (y, i) => this.data.tracks[i].genus + " " + this.data.tracks[i].species)
       .style("cursor", "pointer")
-      .on("mouseover", (y, i) => this.setTimeout(publishTrackEvent("mouseover", this.data.tracks[i])))
-      .on("mouseout", (y, i) => this.clearTimeout(publishTrackEvent("mouseout", this.data.tracks[i])))
+      .on("mouseover", (y, i) => this.setTimeout(publishTrackEvent("select", this.data.tracks[i])))
+      .on("mouseout", (y, i) => this.clearTimeout(publishTrackEvent("deselect", this.data.tracks[i])))
       .on("click", () => this.options.nameClick());
     return yAxis;
   }
