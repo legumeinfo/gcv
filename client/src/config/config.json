@@ -20,7 +20,8 @@
     ]
   },
   "miscellaneous": {
-    "geneSearchPlaceholder": "e.g. phavu.Phvul.002G100400"
+    "geneSearchPlaceholder": "e.g. phavu.Phvul.002G100400",
+    "communicationChannel": "GCV"
   },
   "tours": [
     {"script": "default.js", "name": "defaultTour"}

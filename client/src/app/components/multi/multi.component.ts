@@ -77,16 +77,18 @@ export class MultiComponent implements AfterViewInit, OnDestroy, OnInit {
               private microTracksService: MicroTracksService) {
     this.destroy = new Subject();
     // hook the GCV eventbus into a Broadcast Channel
-    this.broadcastChannel = new BroadcastChannel("GCV");
-    this.broadcastChannel.onmessage = (message) => {
-      message.data.flag = true;
-      GCV.common.eventBus.publish(message.data);
-    };
-    this.eventBus = GCV.common.eventBus.subscribe((event) => {
-      if (!event.flag) {
-        this.broadcastChannel.postMessage(event);
-      }
-    });
+    if (AppConfig.MISCELLANEOUS.communicationChannel !== undefined) {
+      this.broadcastChannel = new BroadcastChannel(AppConfig.MISCELLANEOUS.communicationChannel);
+      this.broadcastChannel.onmessage = (message) => {
+        message.data.flag = true;
+        GCV.common.eventBus.publish(message.data);
+      };
+      this.eventBus = GCV.common.eventBus.subscribe((event) => {
+        if (!event.flag) {
+          this.broadcastChannel.postMessage(event);
+        }
+      });
+    }
   }
 
   // Angular hooks
@@ -107,7 +109,9 @@ export class MultiComponent implements AfterViewInit, OnDestroy, OnInit {
   }
 
   ngOnDestroy(): void {
-    this.broadcastChannel.close();
+    if (AppConfig.MISCELLANEOUS.communicationChannel !== undefined) {
+      this.broadcastChannel.close();
+    }
     this.eventBus.unsubscribe();
     this.destroy.next(true);
     this.destroy.complete();
