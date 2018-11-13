@@ -38,8 +38,9 @@ export class Micro extends Visualizer {
     let selection;
     if (event.targets.hasOwnProperty("block")) {
       /* noop */
-    } else if (event.targets.hasOwnProperty("gene")) {
-      const selector = "[data-gene='" + event.targets.gene + "']";
+    } else if (event.targets.hasOwnProperty("genes")) {
+      const selectors = event.targets.genes.map(g => "[data-gene='" + g + "']");
+      const selector = selectors.join(",");
       selection = this.viewer.selectAll(selector);
     } else if (event.targets.hasOwnProperty("family")) {
       const selectors = [];
@@ -279,7 +280,7 @@ export class Micro extends Visualizer {
       return () => eventBus.publish({
         type,
         targets: {
-          gene: gene.id,
+          genes: [gene.id],
           family: gene.family,
         }
       });
@@ -406,6 +407,7 @@ export class Micro extends Visualizer {
       return () => eventBus.publish({
         type,
         targets: {
+          genes: track.genes.map(g => g.id),
           extent: interval,
           chromosome: track.chromosome_name,
           organism: track.genus + " " + track.species,

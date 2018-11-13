@@ -136,7 +136,7 @@ export class Plot {
       eventBus.publish({
         type,
         targets: {
-          gene: gene.id,
+          genes: [gene.id],
           family: gene.family,
         }
       });
@@ -273,8 +273,9 @@ export class Plot {
   protected eventHandler(event) {
     // select the relevant elements in the viewer
     let selection;
-    if (event.targets.hasOwnProperty("gene")) {
-      const selector = "[data-gene='" + event.targets.gene + "']";
+    if (event.targets.hasOwnProperty("genes")) {
+      const selectors = event.targets.genes.map(g => "[data-gene='" + g + "']");
+      const selector = selectors.join(",");
       selection = this.viewer.selectAll(selector);
     } else if (event.targets.hasOwnProperty("family")) {
       const selectors = [];
