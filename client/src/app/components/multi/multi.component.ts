@@ -11,6 +11,7 @@ import { AppConfig } from "../../app.config";
 import { Alert, Family, Gene, Group, MacroTracks, MicroTracks } from "../../models";
 import { microTracksOperator, multiMacroTracksOperator } from "../../operators";
 import { AlignmentService, FilterService, MacroTracksService, MicroTracksService } from "../../services";
+import { Channel } from "../../utils";
 import { AlertComponent } from "../shared/alert.component";
 
 @Component({
@@ -60,7 +61,7 @@ export class MultiComponent implements AfterViewInit, OnDestroy, OnInit {
   macroTracks: MacroTracks[];
 
   // inter-app communication
-  private broadcastChannel;
+  private channel;
   private eventBus;
 
   // store the vertical Split for resizing
@@ -77,16 +78,18 @@ export class MultiComponent implements AfterViewInit, OnDestroy, OnInit {
               private microTracksService: MicroTracksService) {
     this.destroy = new Subject();
     // hook the GCV eventbus into a Broadcast Channel
-    this.broadcastChannel = new BroadcastChannel("GCV");
-    this.broadcastChannel.onmessage = (message) => {
-      message.data.flag = true;
-      GCV.common.eventBus.publish(message.data);
-    };
-    this.eventBus = GCV.common.eventBus.subscribe((event) => {
-      if (!event.flag) {
-        this.broadcastChannel.postMessage(event);
-      }
-    });
+    if (AppConfig.MISCELLANEOUS.communicationChannel !== undefined) {
+      this.channel = new Channel(AppConfig.MISCELLANEOUS.communicationChannel);
+      this.channel.onmessage((message) => {
+        message.data.flag = true;
+        GCV.common.eventBus.publish(message.data);
+      });
+      this.eventBus = GCV.common.eventBus.subscribe((event) => {
+        if (!event.flag) {
+          this.channel.postMessage(event, this.microTracks);
+        }
+      });
+    }
   }
 
   // Angular hooks
@@ -107,7 +110,9 @@ export class MultiComponent implements AfterViewInit, OnDestroy, OnInit {
   }
 
   ngOnDestroy(): void {
-    this.broadcastChannel.close();
+    if (AppConfig.MISCELLANEOUS.communicationChannel !== undefined) {
+      this.channel.close();
+    }
     this.eventBus.unsubscribe();
     this.destroy.next(true);
     this.destroy.complete();

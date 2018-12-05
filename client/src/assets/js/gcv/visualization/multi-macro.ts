@@ -203,8 +203,8 @@ export class MultiMacro {
           spacing: 1000000
         },
         events: {
-          "mouseover": (d, i, nodes, event) => publishChromosomeEvent("mouseover", d),
-          "mouseout": (d, i, nodes, event) => publishChromosomeEvent("mouseout", d),
+          "mouseover": (d, i, nodes, event) => publishChromosomeEvent("select", d),
+          "mouseout": (d, i, nodes, event) => publishChromosomeEvent("deselect", d),
         }
       })
       .stack("stack", this.data.blocks, {
@@ -219,8 +219,8 @@ export class MultiMacro {
         },
         tooltipContent: null,
         events: {
-          "mouseover": (d, i, nodes, event) => publishBlockEvent("mouseover", d),
-          "mouseout": (d, i, nodes, event) => publishBlockEvent("mouseout", d),
+          "mouseover": (d, i, nodes, event) => publishBlockEvent("select", d),
+          "mouseout": (d, i, nodes, event) => publishBlockEvent("deselect", d),
         }
       })
       .chords("l1", this.data.chords, {
@@ -315,13 +315,13 @@ export class MultiMacro {
     }
     // (un)fade the (un)selected elements
     switch(event.type) {
-      case "mouseover":
+      case "select":
         this.circos.svg.classed("hovering", true);
         if (selection !== undefined) {
           selection.classed("active", true);
         }
         break;
-      case "mouseout":
+      case "deselect":
         if (selection !== undefined) {
           selection.classed("active", false);
         }

@@ -136,7 +136,7 @@ export class Plot {
       eventBus.publish({
         type,
         targets: {
-          gene: gene.id,
+          genes: [gene.id],
           family: gene.family,
         }
       });
@@ -179,8 +179,8 @@ export class Plot {
       .attr("data-gene", (g) => g.id)
       .attr("data-family", (g) => g.family)
       .style("cursor", "pointer")
-      .on("mouseover", (g) => publishGeneEvent("mouseover", g))
-      .on("mouseout", (g) => publishGeneEvent("mouseout", g))
+      .on("mouseover", (g) => publishGeneEvent("select", g))
+      .on("mouseout", (g) => publishGeneEvent("deselect", g))
       .on("click", (g) => this.options.geneClick(g, this.data));;
 
     const points = genes.append("circle")
@@ -273,8 +273,9 @@ export class Plot {
   protected eventHandler(event) {
     // select the relevant elements in the viewer
     let selection;
-    if (event.targets.hasOwnProperty("gene")) {
-      const selector = "[data-gene='" + event.targets.gene + "']";
+    if (event.targets.hasOwnProperty("genes")) {
+      const selectors = event.targets.genes.map(g => "[data-gene='" + g + "']");
+      const selector = selectors.join(",");
       selection = this.viewer.selectAll(selector);
     } else if (event.targets.hasOwnProperty("family")) {
       const selectors = [];
@@ -285,13 +286,13 @@ export class Plot {
     }
     // (un)fade the (un)selected elements
     switch(event.type) {
-      case "mouseover":
+      case "select":
         this.viewer.classed("hovering", true);
         if (selection !== undefined) {
           selection.classed("active", true);
         }
         break;
-      case "mouseout":
+      case "deselect":
         if (selection !== undefined) {
           selection.classed("active", false);
         }

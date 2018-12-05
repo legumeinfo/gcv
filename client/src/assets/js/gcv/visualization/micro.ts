@@ -38,15 +38,16 @@ export class Micro extends Visualizer {
     let selection;
     if (event.targets.hasOwnProperty("block")) {
       /* noop */
-    } else if (event.targets.hasOwnProperty("gene")) {
-      const selector = "[data-gene='" + event.targets.gene + "']";
-      selection = this.viewer.selectAll(selector);
     } else if (event.targets.hasOwnProperty("family")) {
       const selectors = [];
       event.targets.family.split(",").forEach((f) => {
         selectors.push("[data-family='" + f + "']");
       });
       selection = this.viewer.selectAll(selectors.join(", "));
+    } else if (event.targets.hasOwnProperty("genes")) {
+      const selectors = event.targets.genes.map(g => "[data-gene='" + g + "']");
+      const selector = selectors.join(",");
+      selection = this.viewer.selectAll(selector);
     } else if (event.targets.hasOwnProperty("chromosome")) {
       let selector = "[data-chromosome='" + event.targets.chromosome + "']";
       if (event.targets.hasOwnProperty("extent")) {
@@ -59,13 +60,13 @@ export class Micro extends Visualizer {
     }
     // (un)fade the (un)selected elements
     switch(event.type) {
-      case "mouseover":
+      case "select":
         this.viewer.classed("hovering", true);
         if (selection !== undefined) {
           selection.classed("active", true);
         }
         break;
-      case "mouseout":
+      case "deselect":
         if (selection !== undefined) {
           selection.classed("active", false);
         }
@@ -279,7 +280,7 @@ export class Micro extends Visualizer {
       return () => eventBus.publish({
         type,
         targets: {
-          gene: gene.name,
+          genes: [gene.name],
           family: gene.family,
         }
       });
@@ -295,8 +296,8 @@ export class Micro extends Visualizer {
         return "translate(" + obj.x(g.x) + ", " + obj.y(y + g.y) + ")";
       })
       .style("cursor", "pointer")
-      .on("mouseover", (g) => this.setTimeout(publishGeneEvent("mouseover", g)))
-      .on("mouseout", (g) => this.clearTimeout(publishGeneEvent("mouseout", g)))
+      .on("mouseover", (g) => this.setTimeout(publishGeneEvent("select", g)))
+      .on("mouseout", (g) => this.clearTimeout(publishGeneEvent("deselect", g)))
       .on("click", (g) => obj.options.geneClick(g, t));
     // add genes to the gene groups
     const genes = geneGroups.append("path")
@@ -406,6 +407,7 @@ export class Micro extends Visualizer {
       return () => eventBus.publish({
         type,
         targets: {
+          genes: track.genes.map(g => g.id),
           extent: interval,
           chromosome: track.chromosome_name,
           organism: track.genus + " " + track.species,
@@ -419,8 +421,8 @@ export class Micro extends Visualizer {
       .attr("data-chromosome", (y, i) => this.data.groups[i].chromosome_name)
       .attr("data-organism", (y, i) => this.data.groups[i].genus + " " + this.data.groups[i].species)
       .style("cursor", "pointer")
-      .on("mouseover", (y, i) => this.setTimeout(publishTrackEvent("mouseover", i)))
-      .on("mouseout", (y, i) => this.clearTimeout(publishTrackEvent("mouseout", i)))
+      .on("mouseover", (y, i) => this.setTimeout(publishTrackEvent("select", i)))
+      .on("mouseout", (y, i) => this.clearTimeout(publishTrackEvent("deselect", i)))
       .on("click", (y, i) => this.options.nameClick(this.data.groups[i]));
     return yAxis;
   }
