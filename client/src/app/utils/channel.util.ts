@@ -34,7 +34,7 @@ export class Channel {
           const groupGenes = group.genes
             .reduce((filteredGenes, gene) => {
               if (gene.family === message.targets.family) {
-                filteredGenes.push(gene.id);
+                filteredGenes.push(gene.name);
               }
               return filteredGenes;
             }, []);

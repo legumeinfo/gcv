@@ -136,7 +136,7 @@ export class Plot {
       eventBus.publish({
         type,
         targets: {
-          genes: [gene.id],
+          genes: [gene.name],
           family: gene.family,
         }
       });
