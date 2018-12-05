@@ -279,7 +279,7 @@ export class Micro extends Visualizer {
       return () => eventBus.publish({
         type,
         targets: {
-          gene: gene.id,
+          gene: gene.name,
           family: gene.family,
         }
       });
