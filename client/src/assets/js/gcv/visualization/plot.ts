@@ -176,7 +176,7 @@ export class Plot {
       .data(this.data.genes)
       .enter().append("g")
       .attr("class", "gene")
-      .attr("data-gene", (g) => g.id)
+      .attr("data-gene", (g) => g.name)
       .attr("data-family", (g) => g.family)
       .style("cursor", "pointer")
       .on("mouseover", (g) => publishGeneEvent("select", g))
