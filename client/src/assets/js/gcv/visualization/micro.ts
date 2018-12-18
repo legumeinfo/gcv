@@ -407,7 +407,7 @@ export class Micro extends Visualizer {
       return () => eventBus.publish({
         type,
         targets: {
-          genes: track.genes.map(g => g.id),
+          genes: track.genes.map(g => g.name),
           extent: interval,
           chromosome: track.chromosome_name,
           organism: track.genus + " " + track.species,
