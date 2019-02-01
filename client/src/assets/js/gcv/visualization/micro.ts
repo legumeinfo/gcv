@@ -38,16 +38,16 @@ export class Micro extends Visualizer {
     let selection;
     if (event.targets.hasOwnProperty("block")) {
       /* noop */
+    } else if (event.targets.hasOwnProperty("genes")) {
+      const selectors = event.targets.genes.map(g => "[data-gene='" + g + "']");
+      const selector = selectors.join(",");
+      selection = this.viewer.selectAll(selector);
     } else if (event.targets.hasOwnProperty("family")) {
       const selectors = [];
       event.targets.family.split(",").forEach((f) => {
         selectors.push("[data-family='" + f + "']");
       });
       selection = this.viewer.selectAll(selectors.join(", "));
-    } else if (event.targets.hasOwnProperty("genes")) {
-      const selectors = event.targets.genes.map(g => "[data-gene='" + g + "']");
-      const selector = selectors.join(",");
-      selection = this.viewer.selectAll(selector);
     } else if (event.targets.hasOwnProperty("chromosome")) {
       let selector = "[data-chromosome='" + event.targets.chromosome + "']";
       if (event.targets.hasOwnProperty("extent")) {
