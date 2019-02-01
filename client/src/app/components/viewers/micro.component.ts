@@ -1,7 +1,6 @@
 // Angular + dependencies
 import { Component } from "@angular/core";
 import { GCV } from "../../../assets/js/gcv";
-
 // App
 import { Viewer } from "./viewer.component";
 

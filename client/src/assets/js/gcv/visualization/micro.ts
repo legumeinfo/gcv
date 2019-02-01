@@ -1,4 +1,5 @@
 import { d3 } from "./d3";
+import { eventBus } from "../common"
 import { Visualizer } from "./visualizer";
 
 /** The micro-synteny viewer. */
@@ -8,6 +9,7 @@ export class Micro extends Visualizer {
   private distances: any[];
   private left: number;
   private names: any[];
+  private intervals: any[];
   private right: number;
   private thickness: any;
   private ticks: any[];
@@ -28,6 +30,51 @@ export class Micro extends Visualizer {
     this.x.range([r1, r2]);
   }
 
+  /** Handles events that come from the GCV eventBus.
+   * @param {GCVevent} event - A GCV event containing a type and targets attributes.
+   */
+  protected eventHandler(event) {
+    // select the relevant elements in the viewer
+    let selection;
+    if (event.targets.hasOwnProperty("block")) {
+      /* noop */
+    } else if (event.targets.hasOwnProperty("family")) {
+      const selectors = [];
+      event.targets.family.split(",").forEach((f) => {
+        selectors.push("[data-family='" + f + "']");
+      });
+      selection = this.viewer.selectAll(selectors.join(", "));
+    } else if (event.targets.hasOwnProperty("genes")) {
+      const selectors = event.targets.genes.map(g => "[data-gene='" + g + "']");
+      const selector = selectors.join(",");
+      selection = this.viewer.selectAll(selector);
+    } else if (event.targets.hasOwnProperty("chromosome")) {
+      let selector = "[data-chromosome='" + event.targets.chromosome + "']";
+      if (event.targets.hasOwnProperty("extent")) {
+        selector += "[data-extent='" + event.targets.extent.join(":") + "']";
+      }
+      selection = this.viewer.selectAll(selector);
+    } else if (event.targets.hasOwnProperty("organism")) {
+      const selector = "[data-organism='" + event.targets.organism + "']";
+      selection = this.viewer.selectAll(selector);
+    }
+    // (un)fade the (un)selected elements
+    switch(event.type) {
+      case "select":
+        this.viewer.classed("hovering", true);
+        if (selection !== undefined) {
+          selection.classed("active", true);
+        }
+        break;
+      case "deselect":
+        if (selection !== undefined) {
+          selection.classed("active", false);
+        }
+        this.viewer.classed("hovering", false);
+        break;
+    }
+  }
+
   /**
    * Parses parameters and initializes letiables.
    * @param {HTMLElement|string} el - ID of or the element itself where the
@@ -38,27 +85,24 @@ export class Micro extends Visualizer {
    */
   protected init(el, colors, data, options) {
     super.init(el, colors, data);
+    this.eventBus = eventBus.subscribe(this.eventHandler.bind(this));
     this.GLYPH_SIZE = 30;
     // parse optional parameters
     this.options = Object.assign({}, options);
     this.options.boldFirst = this.options.boldFirst || false;
     this.options.highlight = this.options.highlight || [];
     this.options.selectiveColoring = this.options.selectiveColoring;
-    this.options.nameClick = this.options.nameClick || ((y, i) => { /* noop */ });
+    this.options.nameClick = this.options.nameClick || ((c) => { /* noop */ });
     this.options.geneClick = this.options.geneClick || ((b) => { /* noop */ });
     this.options.plotClick = this.options.plotClick;
     this.options.autoResize = this.options.autoResize || false;
     this.options.hoverDelay = this.options.hoverDelay || 500;
     this.options.prefix = this.options.prefix || ((t) => "");
     if (this.options.contextmenu) {
-      this.viewer.on("contextmenu", () => {
-        this.options.contextmenu(d3.event);
-      });
+      this.viewer.on("contextmenu", () => this.options.contextmenu(d3.event));
     }
     if (this.options.click) {
-      this.viewer.on("click", () => {
-        this.options.click(d3.event);
-      });
+      this.viewer.on("click", () => this.options.click(d3.event));
     }
     // create the viewer
     const levels = data.groups.map((group) => {
@@ -75,6 +119,7 @@ export class Micro extends Visualizer {
     let minDistance = Infinity;
     let maxDistance = -Infinity;
     this.names = [];
+    this.intervals = [];
     this.ticks = [];
     let tick = 0;
     this.distances = [];
@@ -110,6 +155,7 @@ export class Micro extends Visualizer {
         }
       }
       this.names.push(this.options.prefix(group) + group.chromosome_name + ":" + fminI + "-" + fmaxI);
+      this.intervals.push([fminI, fmaxI]);
       this.distances.push(distances);
     }
     // initialize the x, y, and line thickness scales
@@ -189,9 +235,10 @@ export class Micro extends Visualizer {
     const y = this.ticks[i];
     // make svg group for the track
     const track = this.viewer.append("g")
-          .attr("data-micro-track", i.toString())
-          .attr("data-chromosome", t.chromosome_name)
-          .attr("data-genus-species", t.genus + " " + t.species);
+      .attr("data-micro-track", i.toString())
+      .attr("data-extent", this.intervals[i].join(":"))
+      .attr("data-chromosome", t.chromosome_name)
+      .attr("data-organism", t.genus + " " + t.species);
     const neighbors = [];
     // add the lines
     for (let j = 0; j < t.genes.length - 1; j++) {
@@ -229,39 +276,28 @@ export class Micro extends Visualizer {
       .attr("text-anchor", "end")
       .text((n, j) => obj.distances[i][j]);
     // make the gene groups
+    const publishGeneEvent = (type, gene) => {
+      return () => eventBus.publish({
+        type,
+        targets: {
+          genes: [gene.name],
+          family: gene.family,
+        }
+      });
+    };
     const geneGroups = track.selectAll("gene")
       .data(t.genes)
       .enter()
       .append("g")
       .attr("class", "gene")
-      .attr("data-gene", (g) => g.id)
+      .attr("data-gene", (g) => g.name)
       .attr("data-family", (g) => g.family)
       .attr("transform", (g) => {
         return "translate(" + obj.x(g.x) + ", " + obj.y(y + g.y) + ")";
       })
       .style("cursor", "pointer")
-      .on("mouseover", (g) => {
-        const id = g.id.toString();
-        const gene = ".GCV [data-gene='" + id + "']";
-        const family = ".GCV [data-family='" + g.family + "']";
-        const selection = d3.selectAll(gene + ", " + family)
-          .filter(function() {
-            const d = this.getAttribute("data-gene");
-            return d === null || d === id;
-          });
-        obj.beginHover(selection);
-      })
-      .on("mouseout", (g) => {
-        const id = g.id.toString();
-        const gene = ".GCV [data-gene='" + id + "']";
-        const family = ".GCV [data-family='" + g.family + "']";
-        const selection = d3.selectAll(gene + ", " + family)
-          .filter(function() {
-            const d = this.getAttribute("data-gene");
-            return d === null || d === id;
-          });
-        obj.endHover(selection);
-      })
+      .on("mouseover", (g) => this.setTimeout(publishGeneEvent("select", g)))
+      .on("mouseout", (g) => this.clearTimeout(publishGeneEvent("deselect", g)))
       .on("click", (g) => obj.options.geneClick(g, t));
     // add genes to the gene groups
     const genes = geneGroups.append("path")
@@ -365,46 +401,29 @@ export class Micro extends Visualizer {
     const yAxis = this.viewer.append("g")
       .attr("class", "axis")
       .call(axis);
-    yAxis.selectAll("text")
-      .attr("class", (y, i) => {
-        return (i === 0 && this.options.boldFirst) ? "query " : "";
-      })
-      .attr("data-micro-track", (y, i) => i.toString())
-      .attr("data-chromosome", (y, i) => this.data.groups[i].chromosome_name)
-      .style("cursor", "pointer")
-      .on("mouseover", (y, i) => {
-        const iStr = i.toString();
-        const micro = ".GCV [data-micro-track='" + iStr + "']";
-        const name = this.data.groups[i].chromosome_name;
-        const chromosome = ".GCV [data-chromosome='" + name + "'], " +
-                           ".GCV .cs-layout [class~='" + name + "']";  // Circos.js
-        const organism = this.data.groups[i].genus + " " + this.data.groups[i].species;
-        const genusSpecies = ".GCV .legend[data-genus-species='" + organism + "']";
-        const selection = d3.selectAll(micro + ", " + chromosome + ", " + genusSpecies)
-          .filter(function() {
-            const t = this.getAttribute("data-micro-track");
-            return t === null || t === iStr;
-          });
-        this.beginHover(selection);
-      })
-      .on("mouseout", (y, i) => {
-        const iStr = i.toString();
-        const micro = ".GCV [data-micro-track='" + iStr + "']";
-        const name = this.data.groups[i].chromosome_name;
-        const chromosome = ".GCV [data-chromosome='" + name + "'], " +
-                           ".GCV .cs-layout [class~='" + name + "']";  // Circos.js
-        const organism = this.data.groups[i].genus + " " + this.data.groups[i].species;
-        const genusSpecies = ".GCV .legend[data-genus-species='" + organism + "']";
-        const selection = d3.selectAll(micro + ", " + chromosome + ", " + genusSpecies)
-          .filter(function() {
-            const t = this.getAttribute("data-micro-track");
-            return t === null || t === iStr;
-          });
-        this.endHover(selection);
-      })
-      .on("click", (y, i) => {
-        this.options.nameClick(this.data.groups[i]);
+    const publishTrackEvent = (type, i) => {
+      const track = this.data.groups[i];
+      const interval = this.intervals[i];
+      return () => eventBus.publish({
+        type,
+        targets: {
+          genes: track.genes.map(g => g.name),
+          extent: interval,
+          chromosome: track.chromosome_name,
+          organism: track.genus + " " + track.species,
+        }
       });
+    };
+    yAxis.selectAll("text")
+      .attr("class", (y, i) => (i === 0 && this.options.boldFirst) ? "query " : "")
+      .attr("data-micro-track", (y, i) => i.toString())
+      .attr("data-extent", (y, i) => this.intervals[i].join(":"))
+      .attr("data-chromosome", (y, i) => this.data.groups[i].chromosome_name)
+      .attr("data-organism", (y, i) => this.data.groups[i].genus + " " + this.data.groups[i].species)
+      .style("cursor", "pointer")
+      .on("mouseover", (y, i) => this.setTimeout(publishTrackEvent("select", i)))
+      .on("mouseout", (y, i) => this.clearTimeout(publishTrackEvent("deselect", i)))
+      .on("click", (y, i) => this.options.nameClick(this.data.groups[i]));
     return yAxis;
   }
 
@@ -425,9 +444,7 @@ export class Micro extends Visualizer {
     plotYAxis.selectAll("text")
       .attr("class", "micro-plot-link")
       .style("cursor", "pointer")
-      .on("click", (y, i) => {
-        this.options.plotClick(this.data.groups[i]);
-      });
+      .on("click", (y, i) => this.options.plotClick(this.data.groups[i]));
     return plotYAxis;
   }
 }

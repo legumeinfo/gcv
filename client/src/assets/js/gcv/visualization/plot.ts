@@ -1,9 +1,11 @@
 import { d3 } from "./d3";
+import { eventBus } from "../common"
 import ResizeObserver from "resize-observer-polyfill";
 
 /** The dot plot viewer. */
 export class Plot {
 
+  private eventBus;
   private container: any;
   private colors: any;
   private options: any;
@@ -69,6 +71,7 @@ export class Plot {
   }
 
   private draw() {
+    this.eventBus = eventBus.subscribe(this.eventHandler.bind(this));
 
     const margin = { top: 20, right: 20, bottom: 30, left: 30 };
     const dim = Math.max(this.container.clientWidth, this.container.clientHeight);
@@ -129,28 +132,14 @@ export class Plot {
         .attr("cy", (d) => this.scale.y(d.y));
     }
 
-    const mouseover = (g) => {
-      const id = g.id.toString();
-      const gene = ".GCV [data-gene='" + id + "']";
-      const family = ".GCV [data-family='" + g.family + "']";
-      const selection = d3.selectAll(gene + ", " + family)
-        .filter(function() {
-          const d = this.getAttribute("data-gene");
-          return d === null || d === id;
-        });
-      this.beginHover(selection);
-    };
-
-    const mouseout = (g) => {
-      const id = g.id.toString();
-      const gene = ".GCV [data-gene='" + id + "']";
-      const family = ".GCV [data-family='" + g.family + "']";
-      const selection = d3.selectAll(gene + ", " + family)
-        .filter(function() {
-          const d = this.getAttribute("data-gene");
-          return d === null || d === id;
-        });
-      this.endHover(selection);
+    const publishGeneEvent = (type, gene) => {
+      eventBus.publish({
+        type,
+        targets: {
+          genes: [gene.name],
+          family: gene.family,
+        }
+      });
     };
 
     // draw the plot
@@ -187,11 +176,11 @@ export class Plot {
       .data(this.data.genes)
       .enter().append("g")
       .attr("class", "gene")
-      .attr("data-gene", (g) => g.id)
+      .attr("data-gene", (g) => g.name)
       .attr("data-family", (g) => g.family)
       .style("cursor", "pointer")
-      .on("mouseover", mouseover)
-      .on("mouseout", mouseout)
+      .on("mouseover", (g) => publishGeneEvent("select", g))
+      .on("mouseout", (g) => publishGeneEvent("deselect", g))
       .on("click", (g) => this.options.geneClick(g, this.data));;
 
     const points = genes.append("circle")
@@ -278,7 +267,44 @@ export class Plot {
     ro.observe(this.container);
   }
 
+  /** Handles events that come from the GCV eventBus.
+   * @param {GCVevent} event - A GCV event containing a type and targets attributes.
+   */
+  protected eventHandler(event) {
+    // select the relevant elements in the viewer
+    let selection;
+    if (event.targets.hasOwnProperty("genes")) {
+      const selectors = event.targets.genes.map(g => "[data-gene='" + g + "']");
+      const selector = selectors.join(",");
+      selection = this.viewer.selectAll(selector);
+    } else if (event.targets.hasOwnProperty("family")) {
+      const selectors = [];
+      event.targets.family.split(",").forEach((f) => {
+        selectors.push("[data-family='" + f + "']");
+      });
+      selection = this.viewer.selectAll(selectors.join(", "));
+    }
+    // (un)fade the (un)selected elements
+    switch(event.type) {
+      case "select":
+        this.viewer.classed("hovering", true);
+        if (selection !== undefined) {
+          selection.classed("active", true);
+        }
+        break;
+      case "deselect":
+        if (selection !== undefined) {
+          selection.classed("active", false);
+        }
+        this.viewer.classed("hovering", false);
+        break;
+    }
+  }
+
   destroy() {
+    if (this.eventBus !== undefined) {
+      this.eventBus.unsubscribe();
+    }
     this.container.removeChild(this.viewer.node());
   }
 

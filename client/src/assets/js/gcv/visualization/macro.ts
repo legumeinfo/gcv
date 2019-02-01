@@ -1,4 +1,5 @@
 import { d3 } from "./d3";
+import { eventBus } from "../common"
 import { Visualizer } from "./visualizer";
 
 /** The macro-synteny viewer. */
@@ -35,6 +36,51 @@ export class Macro extends Visualizer {
     this.scale.range([r1, r2]);
   }
 
+  /** Handles events that come from the GCV eventBus.
+   * @param {GCVevent} event - A GCV event containing a type and targets attributes.
+   */
+  protected eventHandler(event) {
+    // select the relevant elements in the viewer
+    let selection;
+    if (event.targets.hasOwnProperty("block")) {
+      const block = event.targets.block;
+      if (block.reference.chromosome === this.data.chromosome) {
+        const selector = "[data-chromosome='" + block.source.chromosome + "'] " +
+                         "[data-locus='" + block.source.locus.join(":") + "']" +
+                         "[data-reference-locus='" + block.reference.locus.join(":") + "']" +
+                         "[data-orientation='" + block.orientation + "']";
+        selection = this.viewer.selectAll(selector);
+      } else if (block.source.chromosome === this.data.chromosome) {
+        const selector = "[data-chromosome='" + block.reference.chromosome + "'] " +
+                         "[data-locus='" + block.reference.locus.join(":") + "']" +
+                         "[data-reference-locus='" + block.source.locus.join(":") + "']" +
+                         "[data-orientation='" + block.orientation + "']";
+        selection = this.viewer.selectAll(selector);
+      }
+    } else if (event.targets.hasOwnProperty("chromosome")) {
+      const selector = "[data-chromosome='" + event.targets.chromosome + "']";
+      selection = this.viewer.selectAll(selector);
+    } else if (event.targets.hasOwnProperty("organism")) {
+      const selector = "[data-organism='" + event.targets.organism + "']";
+      selection = this.viewer.selectAll(selector);
+    }
+    // (un)fade the (un)selected elements
+    switch(event.type) {
+      case "select":
+        this.viewer.classed("hovering", true);
+        if (selection !== undefined) {
+          selection.classed("active", true);
+        }
+        break;
+      case "deselect":
+        if (selection !== undefined) {
+          selection.classed("active", false);
+        }
+        this.viewer.classed("hovering", false);
+        break;
+    }
+  }
+
   /**
    * Parses parameters and initializes letiables.
    * @param {HTMLElement|string} el - ID of or the element itself where the
@@ -44,6 +90,7 @@ export class Macro extends Visualizer {
    */
   protected init(el, data, colors, options) {
     super.init(el, colors, data);
+    this.eventBus = eventBus.subscribe(this.eventHandler.bind(this));
     this.viewer.attr("height", this.PAD);
     this.BLOCK_HEIGHT = 11;
     this.PTR_LEN      = 5;
@@ -65,14 +112,10 @@ export class Macro extends Visualizer {
     this.options.hoverDelay = this.options.hoverDelay || 500;
     this.options.highlight = this.options.highlight || [];
     if (this.options.contextmenu) {
-      this.viewer.on("contextmenu", () => {
-        this.options.contextmenu(d3.event);
-      });
+      this.viewer.on("contextmenu", () => this.options.contextmenu(d3.event));
     }
     if (this.options.click) {
-      this.viewer.on("click", () => {
-        this.options.click(d3.event);
-      });
+      this.viewer.on("click", () => this.options.click(d3.event));
     }
   }
 
@@ -304,23 +347,45 @@ export class Macro extends Visualizer {
     const track = this.viewer.append("g")
       .attr("data-macro-track", i.toString())
       .attr("data-chromosome", datum.chromosome)
-      .attr("data-genus-species", datum.genus + " " + datum.species);
+      .attr("data-organism", datum.genus + " " + datum.species);
     track.offset = 0;
     // create the track"s blocks
+    const publishBlockEvent = (type, block) => {
+      return () => eventBus.publish({
+        type,
+        targets: {
+          organism: name,
+          block: {
+            source: {
+              chromosome: datum.chromosome,
+              locus: [block.start, block.stop],
+            },
+            reference: {
+              chromosome: obj.data.chromosome,
+              locus: [block.query_start, block.query_stop],
+            },
+            orientation: block.orientation,
+          }
+        }
+      });
+    };
     const blocks = track.selectAll("block")
       .data(blockData)
       .enter()
       .append("g")
+      .attr("data-locus", (b) => b.start + ":" + b.stop)
+      .attr("data-reference-locus", (b) => b.query_start + ":" + b.query_stop)
+      .attr("data-orientation", (b) => b.orientation)
       .style("cursor", "pointer")
-      .on("mouseover", function(b) {
+      .on("mouseover", function (b) {
         obj.block = this;
-        obj.beginHover(d3.select(this));
+        obj.setTimeout(publishBlockEvent("select", b));
       })
-      .on("mouseout", function(b) {
+      .on("mouseout", function (b) {
         obj.block = undefined;
-        obj.endHover(d3.select(this));
+        obj.clearTimeout(publishBlockEvent("deselect", b));
       })
-      .on("click", () => { this.options.blockClick(); });
+      .on("click", () => this.options.blockClick());
     // help for generating points
     const genPoints = (b, yTop, yBottom, yMiddle) => {
       const x1 = obj.scale(b.query_start);
@@ -449,6 +514,15 @@ export class Macro extends Visualizer {
     const yAxis = this.viewer.append("g")
       .attr("class", "axis")
       .call(axis);
+    const publishTrackEvent = (type, track) => {
+      return () => eventBus.publish({
+        type,
+        targets: {
+          chromosome: track.chromosome,
+          organism: track.genus + " " + track.species,
+        }
+      });
+    };
     yAxis.selectAll("text")
       .attr("class", (y, i) => {
         let cls = "macro-" + i.toString();
@@ -457,32 +531,13 @@ export class Macro extends Visualizer {
         }
         return cls;
       })
+      .attr("data-macro-track", (y, i) => i.toString())
+      .attr("data-chromosome", (y, i) => this.data.tracks[i].chromosome)
+      .attr("data-organism", (y, i) => this.data.tracks[i].genus + " " + this.data.tracks[i].species)
       .style("cursor", "pointer")
-      .on("mouseover", (y, i) => {
-        const iStr = i.toString();
-        const track = ".GCV [data-macro-track='" + iStr + "']";
-        const name = this.data.tracks[i].chromosome;
-        const chromosome = ".GCV [data-chromosome='" + name + "']";
-        const selection = d3.selectAll(track + ", " + chromosome)
-          .filter(function() {
-            const t = this.getAttribute("data-macro-track");
-            return t === null || t === iStr;
-          });
-        this.beginHover(selection);
-      })
-      .on("mouseout", (y, i) => {
-        const iStr = i.toString();
-        const track = ".GCV [data-macro-track='" + iStr + "']";
-        const name = this.data.tracks[i].chromosome;
-        const chromosome = ".GCV [data-chromosome='" + name + "']";
-        const selection = d3.selectAll(track + ", " + chromosome)
-          .filter(function() {
-            const t = this.getAttribute("data-macro-track");
-            return t === null || t === iStr;
-          });
-        this.endHover(selection);
-      })
-      .on("click", () => { this.options.nameClick(); });
+      .on("mouseover", (y, i) => this.setTimeout(publishTrackEvent("select", this.data.tracks[i])))
+      .on("mouseout", (y, i) => this.clearTimeout(publishTrackEvent("deselect", this.data.tracks[i])))
+      .on("click", () => this.options.nameClick());
     return yAxis;
   }
 
