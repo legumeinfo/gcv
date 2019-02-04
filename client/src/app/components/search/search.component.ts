@@ -5,7 +5,7 @@ import { AfterViewInit, Component, ComponentFactory, ComponentFactoryResolver,
 import { BehaviorSubject, Observable, Subject, combineLatest } from "rxjs";
 import { filter, map, take, takeUntil, withLatestFrom } from "rxjs/operators";
 // app
-import * as Split from "split.js";
+import Split from "split.js";
 import { GCV } from "../../../assets/js/gcv";
 import { AppConfig } from "../../app.config";
 import { Alert, Family, Gene, Group, MacroTracks, MicroTracks } from "../../models";

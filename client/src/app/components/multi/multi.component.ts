@@ -6,7 +6,7 @@ import { Subject, combineLatest } from "rxjs";
 import { filter, takeUntil, withLatestFrom } from "rxjs/operators";
 import { GCV } from "../../../assets/js/gcv";
 // app
-import * as Split from "split.js";
+import Split from "split.js";
 import { AppConfig } from "../../app.config";
 import { Alert, Family, Gene, Group, MacroTracks, MicroTracks } from "../../models";
 import { microTracksOperator, multiMacroTracksOperator } from "../../operators";

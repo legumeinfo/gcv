@@ -31,11 +31,7 @@
             ],
             "scripts": [
               "node_modules/jquery/dist/jquery.min.js",
-              "node_modules/popper.js/dist/umd/popper.min.js",
-              "node_modules/bootstrap/js/dist/tooltip.js",
-              "node_modules/bootstrap/js/dist/popover.js",
-              "node_modules/bootstrap/js/dist/util.js",
-              "node_modules/bootstrap/js/dist/dropdown.js",
+              "node_modules/bootstrap/dist/js/bootstrap.bundle.min.js",
               "node_modules/bootstrap-tour/build/js/bootstrap-tour.min.js",
               "src/assets/js/utils.js",
             ]
@@ -92,11 +88,7 @@
             ],
             "scripts": [
               "node_modules/jquery/dist/jquery.min.js",
-              "node_modules/popper.js/dist/umd/popper.min.js",
-              "node_modules/bootstrap/js/dist/tooltip.js",
-              "node_modules/bootstrap/js/dist/popover.js",
-              "node_modules/bootstrap/js/dist/util.js",
-              "node_modules/bootstrap/js/dist/dropdown.js",
+              "node_modules/bootstrap/dist/js/bootstrap.bundle.min.js",
               "node_modules/bootstrap-tour/build/js/bootstrap-tour.min.js",
               "src/assets/js/utils.js",
             ],
