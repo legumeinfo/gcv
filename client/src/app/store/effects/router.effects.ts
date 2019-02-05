@@ -16,7 +16,7 @@ export class RouterEffects {
     private router: Router,
   ) { }
 
-  @Effect({ dispatch: false })
+  @Effect({dispatch: false})
   navigate$ = this.actions$.pipe(
     ofType(routerActions.GO),
     map((action: routerActions.Go) => action.payload),
@@ -33,13 +33,13 @@ export class RouterEffects {
     })
   )
 
-  @Effect({ dispatch: false })
+  @Effect({dispatch: false})
   navigateBack$ = this.actions$.pipe(
     ofType(routerActions.BACK),
     tap(() => this.location.back())
   );
 
-  @Effect({ dispatch: false })
+  @Effect({dispatch: false})
   navigateForward$ = this.actions$.pipe(
     ofType(routerActions.FORWARD),
     tap(() => this.location.forward())

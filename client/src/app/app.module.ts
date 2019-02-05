@@ -33,7 +33,7 @@ import { CustomRouterStateSerializer } from "./utils";
     HttpClientModule,
     ReactiveFormsModule,
     StoreModule.forRoot(reducers, {metaReducers}),
-    StoreRouterConnectingModule.forRoot({stateKey: "router"}),
+    StoreRouterConnectingModule.forRoot({serializer: CustomRouterStateSerializer}),
     EffectsModule.forRoot(effects),
   ],
   providers: [
@@ -43,10 +43,6 @@ import { CustomRouterStateSerializer } from "./utils";
       multi: true,
       provide: APP_INITIALIZER,
       useFactory: (config: AppConfig) => () => config.load(),
-    },
-    {
-      provide: RouterStateSerializer,
-      useClass: CustomRouterStateSerializer,
     },
     ...fromServices.services,
     ...fromGuards.guards

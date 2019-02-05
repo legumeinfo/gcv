@@ -25,7 +25,7 @@ implements RouterStateSerializer<fromRouter.RouterStateUrl> {
 
     // convert route query params into expected types
     queryParams = Object.assign({}, queryParams);
-    Object.keys(queryParams).forEach(function(key, index) {
+    Object.keys(queryParams).forEach((key, index) => {
       switch(key) {
         // macro query params
         case 'bmatched':

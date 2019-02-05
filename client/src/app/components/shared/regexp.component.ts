@@ -1,5 +1,7 @@
 // Angular
-import { Component } from "@angular/core";
+import { Component, OnDestroy, OnInit } from "@angular/core";
+import { Subject } from "rxjs";
+import { takeUntil } from "rxjs/operators";
 // App
 import { FilterService } from "../../services";
 
@@ -20,14 +22,30 @@ import { FilterService } from "../../services";
     </form>
   `,
 })
-export class RegexpComponent {
+export class RegexpComponent implements OnDestroy, OnInit {
 
   model: any = {regexp: ""};
 
+  // emits when the component is destroyed
+  private destroy: Subject<boolean>;
+
   constructor(private filterService: FilterService) {
-    filterService.regexpAlgorithm
+    this.destroy = new Subject();
+  }
+
+  // Angular hooks
+
+  ngOnInit(): void {
+    this.filterService.regexpAlgorithm
+      .pipe(takeUntil(this.destroy))
       .subscribe((regexp) => this.model.regexp = regexp.name);
   }
+
+  ngOnDestroy(): void {
+    this.destroy.next(true);
+  }
+
+  // public methods
 
   submit(): void {
     this.filterService.setRegexp(this.model.regexp);

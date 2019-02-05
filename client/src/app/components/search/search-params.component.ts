@@ -1,7 +1,8 @@
 // Angular
-import { Component, EventEmitter, OnInit, Output } from "@angular/core";
+import { Component, EventEmitter, OnDestroy, OnInit, Output } from "@angular/core";
 import { FormBuilder, FormGroup } from "@angular/forms";
-
+import { Subject } from "rxjs";
+import { takeUntil } from "rxjs/operators";
 // App services
 import { AppConfig } from "../../app.config";
 import { ALIGNMENT_ALGORITHMS } from "../../algorithms";
@@ -13,7 +14,7 @@ import { AlignmentService, MacroTracksService, MicroTracksService } from "../../
   styleUrls: [ "./search-params.component.scss" ],
   templateUrl: "./search-params.component.html",
 })
-export class SearchParamsComponent implements OnInit {
+export class SearchParamsComponent implements OnDestroy, OnInit {
 
   // component IO
   @Output() invalid = new EventEmitter();
@@ -33,11 +34,16 @@ export class SearchParamsComponent implements OnInit {
   sources = AppConfig.SERVERS.filter((s) => s.hasOwnProperty("microSearch"));
   algorithms = ALIGNMENT_ALGORITHMS;
 
+  // emits when the component is destroyed
+  private destroy: Subject<boolean>;
+
   // constructor
   constructor(private alignmentService: AlignmentService,
               private fb: FormBuilder,
               private macroTracksService: MacroTracksService,
-              private microTracksService: MicroTracksService) { }
+              private microTracksService: MicroTracksService) {
+    this.destroy = new Subject();
+  }
 
   // Angular hooks
 
@@ -46,18 +52,21 @@ export class SearchParamsComponent implements OnInit {
     const defaultBlock = new BlockParams();
     this.blockGroup  = this.fb.group(defaultBlock.formControls());
     this.macroTracksService.blockParams
+      .pipe(takeUntil(this.destroy))
       .subscribe((params) => this._updateGroup(this.blockGroup, params));
 
     // initialize query group and subscribe to store updates
     const defaultQuery = new QueryParams();
     this.queryGroup  = this.fb.group(defaultQuery.formControls());
     this.microTracksService.queryParams
+      .pipe(takeUntil(this.destroy))
       .subscribe((params) => this._updateGroup(this.queryGroup, params));
 
     // initialize alignment group and subscribe to store updates
     const defaultAlignment = new AlignmentParams();
     this.alignmentGroup  = this.fb.group(defaultAlignment.formControls());
     this.alignmentService.alignmentParams
+      .pipe(takeUntil(this.destroy))
       .subscribe((params) => this._updateGroup(this.alignmentGroup, params));
 
     // submit the updated form
@@ -65,6 +74,10 @@ export class SearchParamsComponent implements OnInit {
     this.queryGroup.markAsDirty();
     this.alignmentGroup.markAsDirty();
     this.submit();
+  }
+
+  ngOnDestroy(): void {
+    this.destroy.next(true);
   }
 
   // public
