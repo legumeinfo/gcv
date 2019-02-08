@@ -3,7 +3,7 @@ import { AfterViewInit, Component, ComponentFactory, ComponentFactoryResolver,
   ComponentRef, ElementRef, OnDestroy, OnInit, QueryList, ViewContainerRef,
   ViewChild, ViewChildren, ViewEncapsulation } from "@angular/core";
 import { BehaviorSubject, Observable, Subject, combineLatest } from "rxjs";
-import { filter, map, take, takeUntil, withLatestFrom } from "rxjs/operators";
+import { filter, map, scan, take, takeUntil, withLatestFrom } from "rxjs/operators";
 // app
 import Split from "split.js";
 import { GCV } from "../../../assets/js/gcv";
@@ -75,7 +75,7 @@ export class SearchComponent implements AfterViewInit, OnDestroy, OnInit {
   microLegend: any;
   microLegendArgs: any;
   microTracks: MicroTracks;
-  //queryGenes: Gene[];
+  familyGlyphs: Observable<{[key: string]: string}>;
 
   // macro viewers
   macroArgs: any;
@@ -94,6 +94,9 @@ export class SearchComponent implements AfterViewInit, OnDestroy, OnInit {
 
   // emits when the component is destroyed
   private destroy: Subject<boolean>;
+
+  // track which families have been checked
+  private familyGlyphsSubject = new BehaviorSubject<{[key: string]: string}>({});
 
   // TODO: update observable subscriptions so this and subscribeToMacro aren't needed
   private macroTrackObservable: Observable<[MacroTracks, any]>;  // Observable<[MacroTracks, MicroTracks]>;
@@ -176,7 +179,59 @@ export class SearchComponent implements AfterViewInit, OnDestroy, OnInit {
       });
 
     // subscribe to micro track data
-    this.alignmentService.alignedMicroTracks
+
+    this.familyGlyphs = this.familyGlyphsSubject.asObservable()
+      .pipe(
+        scan((glyphs, {family, glyph}) => {
+          if (family === null && glyph === null) {
+            return {};
+          } else if (glyph === null) {
+            delete glyphs[family];
+          } else {
+            glyphs[family] = glyph;
+          }
+          return glyphs;
+        }),
+        takeUntil(this.destroy));
+
+    const glyphedAlignedTracks = combineLatest(
+        this.alignmentService.alignedMicroTracks,
+        this.familyGlyphs)
+      .pipe(
+        map(([tracks, glyphs]) => {
+          return {
+            // ensure the orphan family is present
+            families: [...tracks.families, {id: "", name: ""}].map((f) => {
+              if (glyphs.hasOwnProperty(f.id)) {
+                const family = Object.create(f);
+                family.glyph = glyphs[f.id];
+                return family;
+              }
+              return f;
+            }),
+            groups: tracks.groups.map((t) => {
+              const track = Object.create(t);
+              track.genes = t.genes.map((g) => {
+                if (glyphs.hasOwnProperty(g.family)) {
+                  const gene = Object.create(g);
+                  gene.glyph = glyphs[g.family];
+                  return gene;
+                }
+                return g;
+              });
+              return track;
+            }),
+          };
+        }));
+
+    this.microTracksService.microTracks
+      .pipe(takeUntil(this.destroy))
+      .subscribe((tracks) => {
+        this.hideLeftSlider();
+        this._setFamilyGlyph(null, null);
+      });
+
+    glyphedAlignedTracks
       .pipe(
         withLatestFrom(
           this.microTracksService.routeParams,
@@ -189,7 +244,7 @@ export class SearchComponent implements AfterViewInit, OnDestroy, OnInit {
 
     const filteredMicroTracks =
       combineLatest(
-        this.alignmentService.alignedMicroTracks,
+        glyphedAlignedTracks,
         this.filterService.regexpAlgorithm,
         this.filterService.orderAlgorithm)
       .pipe(microTracksOperator({skipFirst: true}));
@@ -320,7 +375,8 @@ export class SearchComponent implements AfterViewInit, OnDestroy, OnInit {
     // TODO: this uses specific knowledge about the origins of gene objects, instead,
     // create a util function that returns all objects in prototype chain and spead
     // into assign
-    const g = Object.assign(Object.create(Gene.prototype), Object.getPrototypeOf(gene));
+    const instance = (gene.hasOwnProperty("glyph") ? Object.getPrototypeOf(Object.getPrototypeOf(gene)) : Object.getPrototypeOf(gene));
+    const g = Object.assign(Object.create(Gene.prototype), instance);
     this.selectedDetail = g;
   }
 
@@ -329,11 +385,16 @@ export class SearchComponent implements AfterViewInit, OnDestroy, OnInit {
   }
 
   selectTrack(track: Group): void {
-    const t = Object.assign(Object.create(Group.prototype), track);
+    // TODO: Ditto note from selectGene
+    const t = Object.assign(Object.create(Group.prototype), Object.getPrototypeOf(track));
     this.selectedDetail = t;
   }
 
   // private
+
+  private _setFamilyGlyph(family: string, glyph: string): void {
+    this.familyGlyphsSubject.next({family, glyph});
+  }
 
   private _setSplitWidth(legend: number, size: any): void {
     if (this.verticalSplit !== undefined) {
@@ -442,11 +503,16 @@ export class SearchComponent implements AfterViewInit, OnDestroy, OnInit {
     };
   }
 
-  private _getMicroLegendArgs(singletonIds: string, highlight: string[], familySizes: any): any {
+  private _getMicroLegendArgs(singleton: Family, orphan: Family, highlight: string[], familySizes: any): any {
     return {
       autoResize: true,
-      blank: {name: "Singletons", id: singletonIds},
-      blankDashed: {name: "Orphans", id: ""},
+      blank: singleton,
+      blankDashed: orphan,
+      checkboxes: [""],
+      checkboxCallback: function(f, checked) {
+        const glyph = (checked ?  null : "circle");
+        this._setFamilyGlyph(f, glyph);
+      }.bind(this),
       highlight,
       keyClick: function(f) {
         this.selectFamily(f);
@@ -545,10 +611,7 @@ export class SearchComponent implements AfterViewInit, OnDestroy, OnInit {
       const singletonIds = ["singleton"].concat(uniqueFamilies.filter((f) => {
         return familySizes === undefined || familySizes[f.id] === 1;
       }).map((f) => f.id)).join(",");
-
-      // micro legend arguments
-      const highlight = [focus !== undefined ? focus.family : undefined];
-      this.microLegendArgs = this._getMicroLegendArgs(singletonIds, highlight, familySizes);
+      const singleton: Family = {name: "Singletons", id: singletonIds};
 
       // generate micro legend data
       const presentFamilies = tracks.groups.reduce((l, group) => {
@@ -557,6 +620,15 @@ export class SearchComponent implements AfterViewInit, OnDestroy, OnInit {
       this.microLegend = uniqueFamilies.filter((f) => {
         return presentFamilies.indexOf(f.id) !== -1 && f.name !== "";
       });
+      const orphan: Family = {name: "Orphans", id: ""};
+      if (familyMap.hasOwnProperty("") && familyMap[""].glyph !== undefined) {
+        orphan.glyph = familyMap[""].glyph;
+        orphan.checked = false;
+      }
+
+      // micro legend arguments
+      const highlight = [focus !== undefined ? focus.family : undefined];
+      this.microLegendArgs = this._getMicroLegendArgs(singleton, orphan, highlight, familySizes);
     }
   }
 

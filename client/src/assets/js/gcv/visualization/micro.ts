@@ -98,12 +98,6 @@ export class Micro extends Visualizer {
     this.options.autoResize = this.options.autoResize || false;
     this.options.hoverDelay = this.options.hoverDelay || 500;
     this.options.prefix = this.options.prefix || ((t) => "");
-    if (this.options.contextmenu) {
-      this.viewer.on("contextmenu", () => this.options.contextmenu(d3.event));
-    }
-    if (this.options.click) {
-      this.viewer.on("click", () => this.options.click(d3.event));
-    }
     // create the viewer
     const levels = data.groups.map((group) => {
       return Math.max.apply(null, group.genes.map((gene) => gene.y)) + 1;
@@ -301,7 +295,12 @@ export class Micro extends Visualizer {
       .on("click", (g) => obj.options.geneClick(g, t));
     // add genes to the gene groups
     const genes = geneGroups.append("path")
-      .attr("d", d3.symbol().type(d3.symbolTriangle).size(200))
+      .attr("d", (g) => {
+        if (g.glyph === "circle") {
+          return d3.symbol().type(d3.symbolCircle).size(50)();
+        }
+        return d3.symbol().type(d3.symbolTriangle).size(200)();
+      })
       .attr("class", (g) => {
         if (obj.options.highlight.indexOf(g.name) !== -1) {
           return "point focus";

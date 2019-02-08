@@ -62,6 +62,8 @@ export class Legend extends Visualizer {
     // parse optional parameters
     this.options = Object.assign({}, options);
     this.options.highlight = this.options.highlight || [];
+    this.options.checkboxes = this.options.checkboxes || [];
+    this.options.checkboxCallback = this.options.checkboxCallback || ((id, checked) => { /* noop */ });
     this.options.selectiveColoring = this.options.selectiveColoring;
     this.options.keyClick = this.options.keyClick || ((k) => { /* noop */ });
     this.options.autoResize = this.options.autoResize || false;
@@ -71,12 +73,6 @@ export class Legend extends Visualizer {
     this.options.blankDashed = this.options.blankDashed || undefined;
     this.options.multiDelimiter = this.options.multiDelimiter || undefined;
     this.options.sizeCallback = this.options.sizeCallback || ((s) => { /* noop */ });
-    if (this.options.contextmenu) {
-      this.viewer.on("contextmenu", () => this.options.contextmenu(d3.event));
-    }
-    if (this.options.click) {
-      this.viewer.on("click", () => this.options.click(d3.event));
-    }
     super.initResize();
   }
 
@@ -106,13 +102,15 @@ export class Legend extends Visualizer {
    */
   private drawKey(legend, f) {
     const obj = this;
+    const row = legend.append("g");
     // create the key group
     const publishKeyEvent = (type) => {
       const event = {type, targets: {}};
       event.targets[obj.options.selector] = f.id;
       return () => eventBus.publish(event);
     };
-    const key = legend.append("g")
+    // add a key gorup to handle mouse events
+    const key = row.append("g")
       .attr("class", "legend")
       .attr("data-" + this.options.selector, f.id)
       .style("cursor", "pointer")
@@ -120,9 +118,17 @@ export class Legend extends Visualizer {
       .on("mouseout", () => this.clearTimeout(publishKeyEvent("deselect")))
       .on("click", () => this.options.keyClick(f));
     // add the colored rectangles
-    const rect = key.append("rect")
-      .attr("width", this.RECT_SIZE)
-      .attr("height", this.RECT_SIZE)
+    let shape;
+    if (f.glyph === "circle") {
+      shape = key.append("circle")
+        .attr("r", this.RECT_SIZE/2)
+        .attr("cy", () => this.RECT_SIZE / 2);
+    } else {
+      shape = key.append("rect")
+        .attr("width", this.RECT_SIZE)
+        .attr("height", this.RECT_SIZE);
+    }
+    shape
       .style("fill", () => {
         if (f === this.options.blank || f === this.options.blankDashed) {
           return "#FFFFFF";
@@ -145,16 +151,44 @@ export class Legend extends Visualizer {
       .style("dominant-baseline", "middle")
       .attr("y", () => this.RECT_SIZE / 2)
       .text(() => f.name);
+    // add optional key checkbox
+    let foreigner = undefined;
+    if (this.options.checkboxes.indexOf(f.id) !== -1) {
+      foreigner = row.append("foreignObject")
+          .attr("width", this.RECT_SIZE)
+          .attr("height", this.RECT_SIZE);
+      const checkbox = foreigner
+        .append("xhtml:div")
+        .attr("class", "checkbox")
+          .attr("line-height", this.RECT_SIZE)
+          .append("input")
+          .attr("type", "checkbox");
+      if (f.checked === undefined || f.checked) {
+        checkbox.attr("checked", true);
+      }
+      checkbox
+        .node().onclick = function () {
+          obj.options.checkboxCallback(f.id, this.checked);
+        };
+    }
     // implement the resize function
-    key.resize = function(rect, text) {
+    row.resize = function(f, shape, text, foreigner) {
       const w = this.viewer.attr("width");
       let x = w - (this.PAD + this.RECT_SIZE);
-      rect.attr("x", x);
+      if (f.glyph === "circle") {
+        shape.attr("cx", x + this.RECT_SIZE/2)
+      } else {
+        shape.attr("x", x);
+      }
       x -= (2 * this.PAD);
       text.attr("x", x);
-    }.bind(this, rect, text);
-    key.resize();
-    return key;
+      if (foreigner !== undefined) {
+        x -= this.RECT_SIZE + text.node().getComputedTextLength();
+        foreigner.attr("x", x);
+      }
+    }.bind(this, f, shape, text, foreigner);
+    row.resize();
+    return row;
   }
 
   /**

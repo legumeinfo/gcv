@@ -70,7 +70,7 @@
 </app-main>
 
 
-<left-slider [selected]="selectedDetail" [tracks]="microTracks">
+<left-slider [selected]="selectedDetail" [tracks]="microTracks" (onClose)="hideLeftSlider()">
   <multi-params
     (invalid)="selectParams()"
     (valid)="hideLeftSlider()" >

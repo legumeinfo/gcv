@@ -22,6 +22,7 @@ export class FilterService {
   private orderIDs = ORDER_ALGORITHMS.map(a => a.id);
 
   constructor(private store: Store<fromRoot.State>) {
+    // order algorithm
     this.store.select(fromRouter.getOrder)
       .subscribe((order) => {
         const i = this.orderIDs.indexOf(order);
@@ -31,6 +32,7 @@ export class FilterService {
       });
     this.orderAlgorithm = this.orderSubject.asObservable().pipe(
       filter((order) => order !== undefined));
+    // regexp algorithm
     this.store.select(fromRouter.getRegexp)
       .subscribe((regexp) => {
         this.regexpSubject.next(regexpAlgorithmFactory(regexp));

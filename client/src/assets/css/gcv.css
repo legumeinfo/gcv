@@ -94,6 +94,10 @@ iframe.GCV-resizer {
   fill: #CCCCCC;
   fill-opacity: 0.4;
 }
+/* legend */
+.GCV .checkbox input[type="checkbox"] {
+  vertical-align: middle;
+}
 /* CircosJS */
 .GCV path.chord {
   fill: #000;

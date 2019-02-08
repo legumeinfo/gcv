@@ -46,16 +46,6 @@ export class Plot {
     this.options.autoResize = this.options.autoResize || false;
     this.options.outlier  = this.options.outlier || undefined;
     this.options.hoverDelay = this.options.hoverDelay || 500;
-    //if (this.options.contextmenu) {
-    //  this.viewer.on("contextmenu", () => {
-    //    this.options.contextmenu(d3.event);
-    //  });
-    //}
-    //if (this.options.click) {
-    //  this.viewer.on("click", () => {
-    //    this.options.click(d3.event);
-    //  });
-    //}
   }
 
   private parseData(plot) {

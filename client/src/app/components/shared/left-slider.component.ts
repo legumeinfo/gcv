@@ -1,6 +1,5 @@
 // Angular
-import { Component, Input, OnChanges, SimpleChanges } from "@angular/core";
-
+import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from "@angular/core";
 // App
 import { toggleSlider } from "../../animations";
 import { SliderStates } from "../../constants";
@@ -22,6 +21,7 @@ enum DetailTypes {
 export class LeftSliderComponent implements OnChanges {
   @Input() selected: Family | Gene | Group | object;
   @Input() tracks: MicroTracks;
+  @Output() onClose = new EventEmitter<any>();
 
   state = SliderStates.SLIDER_ACTIVE;
 
@@ -58,11 +58,19 @@ export class LeftSliderComponent implements OnChanges {
     }
   }
 
-  hide(): void {
+  // public methods
+
+  close(): void {
+    this.onClose.emit();
+  }
+
+  // private methods
+
+  private hide(): void {
     this.state = SliderStates.SLIDER_INACTIVE;
   }
 
-  show(): void {
+  private show(): void {
     this.state = SliderStates.SLIDER_ACTIVE;
   }
 }

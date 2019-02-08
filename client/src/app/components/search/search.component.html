@@ -165,7 +165,7 @@
 
 </app-main>
 
-<left-slider [selected]="selectedDetail" [tracks]="microTracks">
+<left-slider [selected]="selectedDetail" [tracks]="microTracks" (onClose)="hideLeftSlider()">
   <search-params
     (invalid)="selectParams()"
     (valid)="hideLeftSlider()" >
