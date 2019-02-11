@@ -3,7 +3,7 @@ import { NgModule } from "@angular/core";
 import { RouterModule, Routes } from "@angular/router";
 // app
 import { InstructionsComponent, MultiComponent, SearchComponent } from "./components";
-import { DefaultSearchGuard, MultiGuard, SearchGuard } from "./guards";
+import { DefaultSearchGuard, MultiGuard, SearchGuard, SpanSearchGuard } from "./guards";
 
 const routes: Routes = [
   {
@@ -37,6 +37,11 @@ const routes: Routes = [
     canDeactivate: [SearchGuard],
     component: SearchComponent,
     path: "search/:source/:gene",
+  },
+  {
+    canActivate: [SpanSearchGuard],
+    component: SearchComponent,
+    path: "search/:source/:chromosome/:span",
   },
 ];
 

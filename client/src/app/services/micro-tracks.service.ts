@@ -103,6 +103,23 @@ export class MicroTracksService extends HttpService {
     })));
   }
 
+  // takes a span for a specific chromosome and retrieves the relevant search
+  // (query gene and neighbors)
+  getSearchFromSpan(
+    chromosome: string,
+    begin: number,
+    end: number,
+    serverID: string):
+  Observable<{gene: string, neighbors: number}> {
+    const body = {
+      chromosome,
+      begin: String(begin),
+      end: String(end),
+    };
+    return this._makeRequest<{gene: string, neighbors: number}>(serverID, "spanToSearch", body)
+      .pipe(catchError((error) => throwError(error)));
+  }
+
   updateParams(params: QueryParams): void {
     const path = [];
     const query = Object.assign({}, params, {sources: params.sources.join(",")});

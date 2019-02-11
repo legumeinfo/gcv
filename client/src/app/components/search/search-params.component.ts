@@ -50,7 +50,7 @@ export class SearchParamsComponent implements OnDestroy, OnInit {
   ngOnInit(): void {
     // initialize block group and subscribe to store updates
     const defaultBlock = new BlockParams();
-    this.blockGroup  = this.fb.group(defaultBlock.formControls());
+    this.blockGroup = this.fb.group(defaultBlock.formControls());
     this.macroTracksService.blockParams
       .pipe(takeUntil(this.destroy))
       .subscribe((params) => this._updateGroup(this.blockGroup, params));

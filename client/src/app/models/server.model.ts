@@ -18,4 +18,5 @@ export class Server {
   plotGlobal: Request;
   nearestGene: Request;
   chromosome: Request;
+  spanToSearch: Request;
 }

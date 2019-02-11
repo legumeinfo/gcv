@@ -19,7 +19,8 @@ export class DefaultSearchGuard implements CanActivate {
     const url = "/search" +
                 "/" + AppConfig.getDefaultServer().id +
                 "/" + route.params.gene;
-    this.store.dispatch(new routerActions.Go({path: [url, {routeParam: 1}]}));
+    // TODO: update url so back button skips search
+    this.store.dispatch(new routerActions.Go({path: [url]}));
     return false;
   }
 }
