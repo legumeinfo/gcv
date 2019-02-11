@@ -1002,7 +1002,6 @@ minsize, familymask, chromosome_as_genes, family_counts))):
 
 # computes chromosome scale synteny blocks for the given chromosome (ordered
 # list of gene families)
-import time
 @csrf_exempt
 @ensure_nocache
 def v1_1_macro_synteny(request):
@@ -1015,7 +1014,6 @@ def v1_1_macro_synteny(request):
     'intermediate' in POST and 'mask' in POST:
         pool = ThreadPool(4)
 
-        T0 = t0 = time.time()
         # parse the parameters
         query = POST['families']
         maxinsert = POST['intermediate'] + 1
@@ -1057,11 +1055,6 @@ def v1_1_macro_synteny(request):
           block = ((begin, begin), (end, end))
           trivial_blocks.add(block)
 
-        t1 = time.time()
-        total = t1-t0
-        print "filtering: " + str(total)
-        T1 = t0 = t1
-
         # mine synteny from each chromosome
         args = []
         target_chromosomes = []
@@ -1082,11 +1075,6 @@ def v1_1_macro_synteny(request):
                 paths[c_id] = c_paths
                 end_genes.extend(c_end_genes)
 
-        t1 = time.time()
-        total = t1-T1
-        print "algorithm: " + str(total)
-        t0 = t1
-
         # get the genomic locations of the genes that each path begin/ends at
         flocs = list(Featureloc.objects.only(
             'feature_id',
@@ -1102,11 +1090,6 @@ def v1_1_macro_synteny(request):
         organisms = list(Organism.objects.only('genus', 'species')
             .filter(pk__in=organism_ids))
         organism_map = dict((o.pk, o) for o in organisms)
-
-        t1 = time.time()
-        total = t1-t0
-        print "organsisms: " + str(total)
-        t0 = t1
 
         # generate the JSON
         tracks = []
@@ -1136,13 +1119,6 @@ def v1_1_macro_synteny(request):
                 'genus':      organism.genus,
                 'blocks':     blocks
             })
-
-        t1 = time.time()
-        total = t1-t0
-        print "json: " + str(total)
-
-        total = t1-T0
-        print "total: " + str(total)
 
         pool.close()
 
