@@ -8,13 +8,12 @@ from django.shortcuts             import get_object_or_404, render
 from django.utils.http            import http_date
 from django.views.decorators.csrf import csrf_exempt
 from django.conf                  import settings
-
 # services app
 from services.models import Cv, Cvterm, Feature, Featureloc, Featureprop, \
     FeatureRelationship, GeneFamilyAssignment, GeneOrder, Organism, Phylonode
-
 # Python
 import json
+import math
 import operator
 import time
 from collections     import defaultdict, OrderedDict
@@ -773,65 +772,6 @@ def v1_macro_synteny(request):
         )
     return HttpResponseBadRequest()
 
-
-# returns the gene on the given chromosome that is closest to the given position
-@csrf_exempt
-@ensure_nocache
-def v1_nearest_gene(request):
-    # parse the POST data (Angular puts it in the request body)
-    POST = json.loads(request.body)
-    # make sure the request type is POST and that it contains the correct data
-    if request.method == 'POST' and 'chromosome' in POST and 'position' in POST:
-        # parse the position
-        pos = POST['position']
-        try:
-            pos = int(pos)
-            if pos < 0:
-                raise ValueError("matched can't be negative")
-        except:
-            return HttpResponseBadRequest()
-        # get the gene type
-        sequence_cv = Cv.objects.only('pk').filter(name='sequence')
-        gene_type = list(
-            Cvterm.objects.only('pk').filter(name='gene', cv_id=sequence_cv)
-        )
-        if len(gene_type) == 0:
-            raise Http404
-        gene_type = gene_type[0]
-        # find the gene closest to the given position
-        loc = Featureloc.objects.only(
-            'feature_id',
-            'srcfeature_id',
-            'fmin',
-            'fmax',
-            'strand'
-        ).filter(
-            feature__type=gene_type, srcfeature=POST['chromosome']
-        ).annotate(dist=Func(
-            ((F('fmin') + F('fmax')) / 2) - pos, function='ABS'
-        )).order_by('dist').first()
-        gene = get_object_or_404(Feature, pk=loc.feature.pk)
-        family = None
-        try:
-            family = GeneFamilyAssignment.objects.get(gene_id=gene.pk)
-        except GeneFamilyAssignment.DoesNotExist:
-            family = GeneFamilyAssignment(family_label='')
-        # jsonify the gene and return it
-        data = {
-            "name": gene.name,
-            "id": gene.pk,
-            "family": family.family_label,
-            "fmin": loc.fmin,
-            "fmax": loc.fmax,
-            "strand": loc.strand
-        }
-        # return the synteny data as encoded as json
-        return HttpResponse(
-            json.dumps(data),
-            content_type='application/json; charset=utf8'
-        )
-    return HttpResponseBadRequest()
-
 ###############
 # depreciated #
 ###############
@@ -1209,6 +1149,66 @@ def v1_1_macro_synteny(request):
         # create and return JSON
         return HttpResponse(
             json.dumps(tracks),
+            content_type='application/json; charset=utf8'
+        )
+    return HttpResponseBadRequest()
+
+
+# given a chromosome and a span on that chromosome, the function returns the
+# gene at the center of the span and the number of neighbors that best describes
+# the span, thus defining a genomic context.
+@csrf_exempt
+@ensure_nocache
+def v1_1_span_to_context(request):
+    # parse the POST data (Angular puts it in the request body)
+    POST = json.loads(request.body)
+    # make sure the request type is POST and that it contains the correct data
+    if request.method == 'POST' and 'chromosome' in POST and 'begin' in POST and \
+    'end' in POST:
+        # parse the position
+        begin = POST['begin']
+        end = POST['end']
+        try:
+            beign = int(begin)
+            end = int(end)
+            if begin < 0 or end < 0:
+                raise ValueError("begin/end must be non-negative integers")
+        except:
+            return HttpResponseBadRequest()
+        # get the gene type
+        sequence_cv = Cv.objects.only('pk').filter(name='sequence')
+        gene_type = list(
+            Cvterm.objects.only('pk').filter(name='gene', cv_id=sequence_cv)
+        )
+        if len(gene_type) == 0:
+            raise Http404
+        gene_type = gene_type[0]
+        # get the chromosome
+        chromosome = get_object_or_404(Feature, name=POST['chromosome'])
+        # find the gene closest to the given position
+        locs = list(Featureloc.objects.only(
+            'feature_id',
+            'srcfeature_id',
+            'fmin',
+            'fmax',
+        ).filter(
+            feature__type=gene_type,
+            srcfeature=chromosome.pk,
+            fmin__gte=begin,
+            fmax__lte=end
+        ))
+        if len(locs) == 0:
+            return HttpResponseBadRequest()
+        mid = int(math.floor(len(locs)/2))
+        gene = get_object_or_404(Feature, pk=locs[mid].feature_id)
+        # jsonify the context and return it
+        data = {
+            "gene": gene.name,
+            "neighbors": mid
+        }
+        # return the synteny data as encoded as json
+        return HttpResponse(
+            json.dumps(data),
             content_type='application/json; charset=utf8'
         )
     return HttpResponseBadRequest()

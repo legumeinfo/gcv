@@ -19,8 +19,6 @@ urlpatterns = [
     # macro-synteny
     url(r'^synteny/$', views.v1_macro_synteny),
     url(r'^macro-synteny/$', views.v1_macro_synteny),
-    # genomic location to nearest gene
-    url(r'^nearest-gene/$', views.v1_nearest_gene),
 
     # v1
 
@@ -34,8 +32,6 @@ urlpatterns = [
     url(r'^v1/global-plots/$', views.v1_global_plot),
     # macro-synteny
     url(r'^v1/macro-synteny/$', views.v1_macro_synteny),
-    # genomic location to nearest gene
-    url(r'^v1/nearest-gene/$', views.v1_nearest_gene),
 
     # v1.1
 
@@ -43,4 +39,6 @@ urlpatterns = [
     url(r'^v1_1/chromosome/$', views.v1_1_chromosome),
     # macro-synteny
     url(r'^v1_1/macro-synteny/$', views.v1_1_macro_synteny),
+    # genomic location to nearest gene
+    url(r'^v1_1/span-to-context/$', views.v1_1_span_to_context),
 ]
