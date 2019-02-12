@@ -170,6 +170,8 @@ export class SearchComponent implements AfterViewInit, OnDestroy, OnInit {
           this._requestToAlertComponent(args.serverID, request, "query track", this.microAlerts);
         } else if (args.requestType === "microSearch") {
           this._requestToAlertComponent(args.serverID, request, "tracks", this.microAlerts);
+        } else if (args.requestType === "spanToSearch") {
+          this._requestToAlertComponent(args.serverID, request, "span", this.microAlerts);
         }
       });
     this.plotsService.requests
