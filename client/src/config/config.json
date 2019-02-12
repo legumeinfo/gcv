@@ -20,7 +20,7 @@
     ]
   },
   "miscellaneous": {
-    "searchPlaceholder": "e.g. phavu.Phvul.002G100400",
+    "searchPlaceholder": "e.g. phavu.Phvul.002G100400 or phavu.Chr02:13142457-13496658",
     "communicationChannel": "GCV"
   },
   "tours": [
