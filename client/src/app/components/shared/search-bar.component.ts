@@ -41,7 +41,7 @@ export class SearchBarComponent {
   constructor(private router: Router) { }
 
   submit(): void {
-    const query = this.model.query.replace(":", "/");
+    const query = this.model.query.replace(":", "/").replace("..", "-");
     const url = "/search/" + this.model.source.id + "/" + query;
     this.router.navigateByUrl(url);
   }
