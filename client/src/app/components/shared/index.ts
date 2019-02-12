@@ -8,6 +8,7 @@ import { MainContentComponent } from "./main-content.component";
 import { MainComponent } from "./main.component";
 import { OrderingComponent } from "./ordering.component";
 import { RegexpComponent } from "./regexp.component";
+import { SearchBarComponent } from "./search-bar.component";
 import { SpinnerComponent } from "./spinner.component";
 import { ToggleButtonComponent } from "./toggle-button.component";
 import { TrackDetailComponent } from "./track-detail.component";
@@ -23,6 +24,7 @@ export const components: any[] = [
   MainComponent,
   OrderingComponent,
   RegexpComponent,
+  SearchBarComponent,
   SpinnerComponent,
   ToggleButtonComponent,
   TrackDetailComponent,
@@ -38,6 +40,7 @@ export * from "./main-content.component";
 export * from "./main.component";
 export * from "./ordering.component";
 export * from "./regexp.component";
+export * from "./search-bar.component";
 export * from "./spinner.component";
 export * from "./toggle-button.component";
 export * from "./track-detail.component";

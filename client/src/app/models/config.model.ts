@@ -20,7 +20,7 @@ export class Dashboard {
 }
 
 export class Miscellaneous {
-  geneSearchPlaceholder?: string;
+  searchPlaceholder?: string;
   communicationChannel?: string;
 }
 

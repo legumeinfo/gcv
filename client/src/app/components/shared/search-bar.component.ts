@@ -6,7 +6,7 @@ import { Router } from "@angular/router";
 import { AppConfig } from "../../app.config";
 
 @Component({
-  selector: "app-gene-search",
+  selector: "app-search-bar",
   styles: [`
     .select {
       width: auto;
@@ -33,11 +33,11 @@ import { AppConfig } from "../../app.config";
     </form>
   `,
 })
-export class GeneSearchComponent {
+export class SearchBarComponent {
 
   servers: any[] = AppConfig.SERVERS;
   model: any = {source: this.servers[0], gene: ""};
-  placeholder: string = AppConfig.MISCELLANEOUS.geneSearchPlaceholder;
+  placeholder: string = AppConfig.MISCELLANEOUS.searchPlaceholder;
 
   constructor(private router: Router) { }
 

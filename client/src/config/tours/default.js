@@ -162,19 +162,19 @@ var defaultTour = (function () {
         pathUrl: searchUrl,
         title: "Search Gene",
         content: "A search is performed by entering a gene name and selecting which data provider serves the gene.",
-        element: "app-gene-search",
+        element: "app-search-bar",
         placement: "top",
         onShow: (tour) => {
           return continueTourPromise(tour)
             .then(documentReadyPromise)
             // wait for the search widget to load
             .then(() => new Promise((resolve) => {
-              var selector = "app-gene-search";
+              var selector = "app-search-bar";
               waitForElement(selector, {callback: resolve});
             }))
             // show the search widget if necessary
             .then(() => new Promise((resolve) => {
-              if (!isVisible("app-gene-search form")) {
+              if (!isVisible("app-search-bar form")) {
                 var selector = ".gene-search-link";
                 universalClick(selector, {timeout: Infinity, callback: resolve});
               } else {

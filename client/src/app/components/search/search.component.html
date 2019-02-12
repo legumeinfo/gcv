@@ -50,7 +50,7 @@
               </a>
             </li>
             <li class="target" [ngClass]="{'active': accordion==accordionTypes.SEARCH}">
-              <app-gene-search></app-gene-search>
+              <app-search-bar></app-search-bar>
             </li>
             <li [ngClass]="{'active': accordion==accordionTypes.REGEXP}">
               <a class="track-regexp-link" (click)="setAccordion($event, accordionTypes.REGEXP)">
