@@ -23,8 +23,8 @@
           [data]="microTracks"
           [colors]="microColors"
           [arguments]="microArgs" >
-      	  <ul navbar class="nav navbar-nav accordion">
-      	    <li [ngClass]="{'active': accordion==accordionTypes.REGEXP}">
+          <ul navbar class="nav navbar-nav accordion">
+            <li data-toggle="tooltip" title="Micro chromosome filter" [ngClass]="{'active': accordion==accordionTypes.REGEXP}">
               <a (click)="setAccordion($event, accordionTypes.REGEXP)">
                 &nbsp;<span class="fa fa-filter" aria-hidden="true"></span>&nbsp;
               </a>
@@ -32,7 +32,7 @@
             <li class="target" [ngClass]="{'active': accordion==accordionTypes.REGEXP}">
               <app-regexp></app-regexp>
             </li>
-            <li [ngClass]="{'active': accordion==accordionTypes.ORDER}">
+            <li data-toggle="tooltip" title="Micro track order" [ngClass]="{'active': accordion==accordionTypes.ORDER}">
               <a (click)="setAccordion($event, accordionTypes.ORDER)">
                 &nbsp;<span class="fa fa-sort"></span>&nbsp;
               </a>

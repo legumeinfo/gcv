@@ -14,6 +14,8 @@ import { AlignmentService, FilterService, MacroTracksService, MicroTracksService
 import { Channel } from "../../utils";
 import { AlertComponent } from "../shared/alert.component";
 
+declare var $: any;
+
 @Component({
   encapsulation: ViewEncapsulation.None,
   selector: "multi",
@@ -98,6 +100,7 @@ export class MultiComponent implements AfterViewInit, OnDestroy, OnInit {
   // Angular hooks
 
   ngAfterViewInit(): void {
+    // initialize Split.js
     this.verticalSplit = Split([this.left.nativeElement, this.right.nativeElement], {
         direction: "horizontal",
         minSize: 0,
@@ -110,6 +113,10 @@ export class MultiComponent implements AfterViewInit, OnDestroy, OnInit {
         direction: "vertical",
         minSize: 0,
       });
+    // enable tooltips
+    $(function () {
+      $("[data-toggle='tooltip']").tooltip()
+    });
   }
 
   ngOnDestroy(): void {

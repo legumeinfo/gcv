@@ -16,6 +16,8 @@ import { Channel } from "../../utils";
 import { AlertComponent } from "../shared/alert.component";
 import { PlotViewerComponent } from "../viewers/plot.component";
 
+declare var $: any;
+
 declare let RegExp: any;  // TypeScript doesn't support regexp arguments
 declare let parseInt: any;  // TypeScript doesn't recognize number inputs
 
@@ -127,6 +129,7 @@ export class SearchComponent implements AfterViewInit, OnDestroy, OnInit {
   // Angular hooks
 
   ngAfterViewInit(): void {
+    // initialize Split.js
     this.verticalSplit = Split([this.left.nativeElement, this.right.nativeElement], {
         direction: "horizontal",
         minSize: 0,
@@ -139,6 +142,10 @@ export class SearchComponent implements AfterViewInit, OnDestroy, OnInit {
         direction: "vertical",
         minSize: 0,
       });
+    // enable tooltips
+    $(function () {
+      $("[data-toggle='tooltip']").tooltip()
+    });
   }
 
   ngOnDestroy(): void {
