@@ -6,6 +6,7 @@ import { BehaviorSubject, Observable, Subject, combineLatest } from "rxjs";
 import { filter, map, scan, take, takeUntil, withLatestFrom } from "rxjs/operators";
 // app
 import Split from "split.js";
+import tippy from "tippy.js";
 import { GCV } from "../../../assets/js/gcv";
 import { AppConfig } from "../../app.config";
 import { Alert, Family, Gene, Group, MacroTracks, MicroTracks } from "../../models";
@@ -143,9 +144,7 @@ export class SearchComponent implements AfterViewInit, OnDestroy, OnInit {
         minSize: 0,
       });
     // enable tooltips
-    $(function () {
-      $("[data-toggle='tooltip']").tooltip()
-    });
+    tippy("[data-tippy-content]", {animation: "fade", arrow: true});
   }
 
   ngOnDestroy(): void {

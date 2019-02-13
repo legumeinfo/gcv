@@ -38,7 +38,6 @@ export class InstructionsComponent implements AfterViewInit, OnDestroy {
       html: true,
       placement: "left",
     });
-
     // show popovers on scroll
     $(document).on('scroll', () => {
       if (elementIsVisible(this.searchScreenshotEl.nativeElement, true) && !this.searchPopover) {

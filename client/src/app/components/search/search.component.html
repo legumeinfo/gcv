@@ -44,7 +44,7 @@
           [colors]="microColors"
           [arguments]="microArgs" >
           <ul navbar class="nav navbar-nav accordion">
-            <li data-toggle="tooltip" title="Gene/span search" [ngClass]="{'active': accordion==accordionTypes.SEARCH}">
+            <li data-tippy-content="Gene/span search" [ngClass]="{'active': accordion==accordionTypes.SEARCH}">
               <a class="gene-search-link" (click)="setAccordion($event, accordionTypes.SEARCH)">
               &nbsp;<span class="fa fa-search" aria-hidden="true"></span>&nbsp;
               </a>
@@ -52,7 +52,7 @@
             <li class="target" [ngClass]="{'active': accordion==accordionTypes.SEARCH}">
               <app-search-bar></app-search-bar>
             </li>
-            <li data-toggle="tooltip" title="Micro chromosome filter" [ngClass]="{'active': accordion==accordionTypes.REGEXP}">
+            <li data-tippy-content="Micro chromosome filter" [ngClass]="{'active': accordion==accordionTypes.REGEXP}">
               <a class="track-regexp-link" (click)="setAccordion($event, accordionTypes.REGEXP)">
               &nbsp;<span class="fa fa-filter" aria-hidden="true"></span>&nbsp;
               </a>
@@ -60,7 +60,7 @@
             <li class="target" [ngClass]="{'active': accordion==accordionTypes.REGEXP}">
               <app-regexp></app-regexp>
             </li>
-            <li data-toggle="tooltip" title="Micro track order" [ngClass]="{'active': accordion==accordionTypes.ORDER}">
+            <li data-tippy-content="Micro track order" [ngClass]="{'active': accordion==accordionTypes.ORDER}">
               <a class="track-order-link" (click)="setAccordion($event, accordionTypes.ORDER)">
               &nbsp;<span class="fa fa-sort"></span>&nbsp;
               </a>
@@ -68,7 +68,7 @@
             <li class="target" [ngClass]="{'active': accordion==accordionTypes.ORDER}">
               <app-ordering></app-ordering>
             </li>
-            <li data-toggle="tooltip" title="Scroll left/right on micro query" [ngClass]="{'active': accordion==accordionTypes.SCROLL}">
+            <li data-tippy-content="Scroll left/right on micro query" [ngClass]="{'active': accordion==accordionTypes.SCROLL}">
               <a (click)="setAccordion($event, accordionTypes.SCROLL)">
               &nbsp;<span class="fa fa-chevron-left" aria-hidden="true"></span>
               <span class="fa fa-chevron-right" aria-hidden="true"></span>&nbsp;

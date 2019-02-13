@@ -7,6 +7,7 @@ import { filter, map, scan, takeUntil, withLatestFrom } from "rxjs/operators";
 import { GCV } from "../../../assets/js/gcv";
 // app
 import Split from "split.js";
+import tippy from "tippy.js";
 import { AppConfig } from "../../app.config";
 import { Alert, Family, Gene, Group, MacroTracks, MicroTracks } from "../../models";
 import { microTracksOperator, multiMacroTracksOperator } from "../../operators";
@@ -114,9 +115,7 @@ export class MultiComponent implements AfterViewInit, OnDestroy, OnInit {
         minSize: 0,
       });
     // enable tooltips
-    $(function () {
-      $("[data-toggle='tooltip']").tooltip()
-    });
+    tippy("[data-tippy-content]", {animation: "fade", arrow: true});
   }
 
   ngOnDestroy(): void {
