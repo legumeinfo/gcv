@@ -26,7 +26,8 @@ declare let parseInt: any;  // TypeScript doesn't recognize number inputs
   encapsulation: ViewEncapsulation.None,
   selector: "search",
   styleUrls: [ "./search.component.scss",
-               "../../../assets/css/split.scss" ],
+               "../../../assets/css/split.scss",
+               "../../../../node_modules/tippy.js/themes/light-border.css" ],
   templateUrl: "./search.component.html",
 })
 export class SearchComponent implements AfterViewInit, OnDestroy, OnInit {
@@ -144,7 +145,7 @@ export class SearchComponent implements AfterViewInit, OnDestroy, OnInit {
         minSize: 0,
       });
     // enable tooltips
-    tippy("[data-tippy-content]", {animation: "fade", arrow: true});
+    tippy("[data-tippy-content]", {animation: "fade", arrow: true, boundary: "viewport"});
   }
 
   ngOnDestroy(): void {
@@ -507,7 +508,20 @@ export class SearchComponent implements AfterViewInit, OnDestroy, OnInit {
       nameClick: function (t) {
         this.selectTrack(t);
       }.bind(this),
-      selectiveColoring: familySizes
+      selectiveColoring: familySizes,
+      onInit: function () {
+        tippy(
+          "[data-tippy-content]",
+          {
+            animation: "fade",
+            arrow: true,
+            boundary: "viewport",
+            theme: "light-border",
+            interactive: true,
+            maxWidth: null,
+          }
+        );
+      }
     };
   }
 

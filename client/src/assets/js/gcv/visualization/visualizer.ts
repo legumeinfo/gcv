@@ -26,6 +26,9 @@ export abstract class Visualizer {
     this.PAD = 2;
     this.init(el, colors, data, options);
     this.draw();
+    if (this.options.onInit !== undefined) {
+      this.options.onInit();
+    }
   }
 
   /** Generates the raw SVG xml. */

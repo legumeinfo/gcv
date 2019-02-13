@@ -21,7 +21,8 @@ declare var $: any;
   encapsulation: ViewEncapsulation.None,
   selector: "multi",
   styleUrls: [ "./multi.component.scss",
-               "../../../assets/css/split.scss" ],
+               "../../../assets/css/split.scss",
+               "../../../../node_modules/tippy.js/themes/light-border.css" ],
   templateUrl: "./multi.component.html",
 })
 export class MultiComponent implements AfterViewInit, OnDestroy, OnInit {
@@ -115,7 +116,7 @@ export class MultiComponent implements AfterViewInit, OnDestroy, OnInit {
         minSize: 0,
       });
     // enable tooltips
-    tippy("[data-tippy-content]", {animation: "fade", arrow: true});
+    tippy("[data-tippy-content]", {animation: "fade", arrow: true, boundary: "viewport"});
   }
 
   ngOnDestroy(): void {
@@ -477,6 +478,19 @@ export class MultiComponent implements AfterViewInit, OnDestroy, OnInit {
       }.bind(this),
       selectiveColoring: familySizes,
       prefix: (t) => "group " + t.cluster + " - ",
+      onInit: function () {
+        tippy(
+          "[data-tippy-content]",
+          {
+            animation: "fade",
+            arrow: true,
+            boundary: "viewport",
+            theme: "light-border",
+            interactive: true,
+            maxWidth: null,
+          }
+        );
+      }
     };
   }
 
