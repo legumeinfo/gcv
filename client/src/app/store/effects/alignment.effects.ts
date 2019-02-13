@@ -9,7 +9,9 @@ import * as microTracksActions from "../actions/micro-tracks.actions";
 import * as fromRoot from "../reducers";
 import * as fromAlignedMicroTracks from "../reducers/aligned-micro-tracks.store";
 import * as fromRouter from "../reducers/router.store";
-// services
+// app
+import { MicroTracks } from "../../models";
+import { ClusterMixin } from "../../models/mixins";
 import { AlignmentService } from "../../services";
 
 @Injectable()
@@ -66,7 +68,7 @@ export class AlignmentEffects {
     ofType(alignedMicroTracksActions.GET_MULTI),
     map((action: alignedMicroTracksActions.GetMulti) => action.payload),
     switchMap(({tracks}) => {
-      return this.alignmentService.getMultipleAlignment(tracks).pipe(
+      return this.alignmentService.getMultipleAlignment(tracks as MicroTracks<{}, ClusterMixin>).pipe(
         map(tracks => new alignedMicroTracksActions.GetMultiSuccess({tracks})),
       );
     })

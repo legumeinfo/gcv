@@ -10,6 +10,7 @@ import Split from "split.js";
 import tippy from "tippy.js";
 import { AppConfig } from "../../app.config";
 import { Alert, Family, Gene, Group, MacroTracks, MicroTracks } from "../../models";
+import { ClusterMixin, DrawableMixin, PointMixin } from "../../models/mixins";
 import { microTracksOperator, multiMacroTracksOperator } from "../../operators";
 import { AlignmentService, FilterService, MacroTracksService, MicroTracksService } from "../../services";
 import { Channel } from "../../utils";
@@ -166,7 +167,7 @@ export class MultiComponent implements AfterViewInit, OnDestroy, OnInit {
         }),
         takeUntil(this.destroy));
 
-    const glyphedAlignedTracks = combineLatest(
+    const glyphedAlignedTracks: Observable<MicroTracks<DrawableMixin, ClusterMixin, DrawableMixin & PointMixin>> = combineLatest(
         this.alignmentService.alignedMicroTracks,
         this.familyGlyphs)
       .pipe(
@@ -208,7 +209,7 @@ export class MultiComponent implements AfterViewInit, OnDestroy, OnInit {
         withLatestFrom(this.microTracksService.routeParams),
         takeUntil(this.destroy))
       .subscribe(([tracks, route]) => {
-        this._onAlignedMicroTracks(tracks as MicroTracks, route);
+        this._onAlignedMicroTracks(tracks, route);
       });
 
     const filteredMicroTracks =
@@ -294,7 +295,7 @@ export class MultiComponent implements AfterViewInit, OnDestroy, OnInit {
     }
   }
 
-  private _onAlignedMicroTracks(tracks: MicroTracks, route): void {
+  private _onAlignedMicroTracks(tracks: MicroTracks<DrawableMixin, ClusterMixin>, route): void {
     if (tracks.groups.length > 0 && tracks.groups[0].genes.length > 0) {
       // update alert
       this.headerAlert = this._getHeaderAlert(tracks);
@@ -356,7 +357,7 @@ export class MultiComponent implements AfterViewInit, OnDestroy, OnInit {
       this.microLegend = uniqueFamilies.filter((f) => {
         return presentFamilies.indexOf(f.id) !== -1 && f.name !== "";
       });
-      const orphan: Family = {name: "Orphans", id: ""};
+      const orphan: Family & DrawableMixin = {name: "Orphans", id: ""};
       if (familyMap.hasOwnProperty("") && familyMap[""].glyph !== undefined) {
         orphan.glyph = familyMap[""].glyph;
         orphan.checked = false;
@@ -388,7 +389,7 @@ export class MultiComponent implements AfterViewInit, OnDestroy, OnInit {
     }
   }
 
-  private _getHeaderAlert(tracks: MicroTracks): Alert {
+  private _getHeaderAlert(tracks: MicroTracks<DrawableMixin, ClusterMixin>): Alert {
     let message = "";
     const numTracks = tracks.groups.length;
     message += numTracks + " track" + ((numTracks !== 1) ? "s" : "") + " returned; ";

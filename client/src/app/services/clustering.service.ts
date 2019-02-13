@@ -10,6 +10,7 @@ import * as fromRouter from "../store/reducers/router.store";
 // app
 import { GCV } from "../../assets/js/gcv";
 import { ClusteringParams, MicroTracks } from "../models";
+import { ClusterMixin } from "../models/mixins";
 
 @Injectable()
 export class ClusteringService {
@@ -25,7 +26,7 @@ export class ClusteringService {
   getClusteredMicroTracks(tracks: MicroTracks, params: ClusteringParams): Observable<MicroTracks> {
     return new Observable((observer) => {
       // create modifiable extension of tracks
-      const clusteredTracks = new MicroTracks();
+      const clusteredTracks = new MicroTracks() as MicroTracks<{}, ClusterMixin>;
       clusteredTracks.families = tracks.families;
       clusteredTracks.groups = tracks.groups.map((g) => Object.create(g));
       // cluster the tracks

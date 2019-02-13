@@ -78,7 +78,7 @@ export default function repeat(sequence, reference, options) {
           alignments[index].sequence.unshift(seq[j - 1]);
           alignments[index].reference.unshift(ref[i - 1]);
           if (options.suffixScores) {
-            alignments[index].reference[0].suffixScore = a[i][j];
+            alignments[index].reference[0].score = a[i][j];
           }
         } else {
           // try starting an alignment in the next column
@@ -113,7 +113,7 @@ export default function repeat(sequence, reference, options) {
                 alignments[index].sequence.unshift(seq[j - 1]);
                 alignments[index].reference.unshift((ref[i - 1]));
                 if (options.suffixScores) {
-                  alignments[index].reference[0].suffixScore = a[i][j];
+                  alignments[index].reference[0].score = a[i][j];
                 }
                 length++;
               }
@@ -133,7 +133,7 @@ export default function repeat(sequence, reference, options) {
                 alignments[index].sequence.unshift(null);
                 alignments[index].reference.unshift(ref[i - 1]);
                 if (options.suffixScores) {
-                  alignments[index].reference[0].suffixScore = a[i][j];
+                  alignments[index].reference[0].score = a[i][j];
                 }
               }
               break;

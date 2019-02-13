@@ -11,6 +11,7 @@ import * as fromRouter from "../store/reducers/router.store";
 import { GCV } from "../../assets/js/gcv";
 import { ALIGNMENT_ALGORITHMS } from "../algorithms";
 import { AlignmentParams, Group, MicroTracks } from "../models";
+import { AlignmentMixin, ClusterMixin } from "../models/mixins";
 
 @Injectable()
 export class AlignmentService {
@@ -56,13 +57,13 @@ export class AlignmentService {
   ): Observable<MicroTracks> {
     return Observable.create((observer) => {
       // create modifiable extension of tracks
-      let alignedTracks = new MicroTracks();
+      let alignedTracks = new MicroTracks() as MicroTracks<{}, AlignmentMixin, AlignmentMixin>;
       alignedTracks.families = tracks.families;
       for (const group of tracks.groups) {
         alignedTracks.groups.push({
           ...group,
           genes: group.genes.map(g => Object.create(g)),
-        });
+        } as Group<AlignmentMixin> & AlignmentMixin);
       }
       // get the alignment algorithm
       const algorithmID = this.algorithmIDs.indexOf(params.algorithm);
@@ -109,7 +110,7 @@ export class AlignmentService {
       for (let i = 1; i < alignedTracks.groups.length; ++i) {
         const genes = alignedTracks.groups[i].genes;
         for (const g of genes) {
-          delete g.suffixScore;
+          delete g.score;
         }
       }
       // TODO: move to standalone filter
@@ -123,10 +124,10 @@ export class AlignmentService {
     });
   }
 
-  getMultipleAlignment(tracks: MicroTracks): Observable<MicroTracks> {
+  getMultipleAlignment(tracks: MicroTracks<{}, ClusterMixin>): Observable<MicroTracks> {
     return new Observable((observer) => {
       // create modifiable extension of tracks
-      let alignedTracks = new MicroTracks();
+      let alignedTracks = new MicroTracks() as MicroTracks<{}, AlignmentMixin & ClusterMixin, AlignmentMixin>;
       alignedTracks.families = tracks.families;
       // TODO: figure out how to Object.assign an object and its prototype chain
       for (const group of tracks.groups) {

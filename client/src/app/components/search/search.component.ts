@@ -10,6 +10,7 @@ import tippy from "tippy.js";
 import { GCV } from "../../../assets/js/gcv";
 import { AppConfig } from "../../app.config";
 import { Alert, Family, Gene, Group, MacroTracks, MicroTracks } from "../../models";
+import { DrawableMixin } from "../../models/mixins";
 import { macroTracksOperator, microTracksOperator, plotsOperator } from "../../operators";
 import { AlignmentService,  FilterService, MacroTracksService, MicroTracksService,
   PlotsService } from "../../services";
@@ -642,7 +643,7 @@ export class SearchComponent implements AfterViewInit, OnDestroy, OnInit {
       this.microLegend = uniqueFamilies.filter((f) => {
         return presentFamilies.indexOf(f.id) !== -1 && f.name !== "";
       });
-      const orphan: Family = {name: "Orphans", id: ""};
+      const orphan: Family & DrawableMixin = {name: "Orphans", id: ""};
       if (familyMap.hasOwnProperty("") && familyMap[""].glyph !== undefined) {
         orphan.glyph = familyMap[""].glyph;
         orphan.checked = false;

@@ -1,4 +1,5 @@
 import { Algorithm, Group, MicroTracks } from "../models";
+import { AlignmentMixin, PointMixin } from "../models/mixins";
 import { orderAlgorithmFactory } from "../utils";
 
 export const ORDER_ALGORITHMS: Algorithm[] = [
@@ -14,7 +15,7 @@ export const ORDER_ALGORITHMS: Algorithm[] = [
   orderAlgorithmFactory(
     "distance",
     "Edit distance",
-    (prefix, a: Group, b: Group) => {
+    (prefix, a: Group<PointMixin> & AlignmentMixin, b: Group<PointMixin> & AlignmentMixin) => {
       const diff = b.score - a.score;
       if (diff === 0) {
         if (a.chromosome_name === b.chromosome_name) {

@@ -50,7 +50,7 @@ export function merge(tracks) {
             let max = Math.max.apply(null, indices);
             const startGene = kTrack.genes[min];
             const endGene = kTrack.genes[max];
-            const score = endGene.suffixScore - startGene.suffixScore;
+            const score = endGene.score - startGene.score;
             // perform the inversion if it will improve the super-track's score
             if (jTrack.score > score) {
               merged.push(j);
@@ -63,15 +63,15 @@ export function merge(tracks) {
               Array.prototype.splice.apply(kTrack.genes, geneArgs);
               // adjust inversion scores and y coordinates
               max = min + jTrack.genes.length;
-              const pred = (min > 0) ? kTrack.genes[min - 1].suffixScore : 0;
+              const pred = (min > 0) ? kTrack.genes[min - 1].score : 0;
               for (let l = min; l < max; l++) {
-                kTrack.genes[l].suffixScore += pred;
+                kTrack.genes[l].score += pred;
                 kTrack.genes[l].y = kLevels;
               }
               // adjust post-inversion scores
               const adjustment = jTrack.score - score;
               for (let l = max; l < kTrack.genes.length; l++) {
-                kTrack.genes[l].suffixScore += adjustment;
+                kTrack.genes[l].score += adjustment;
               }
               kTrack.score += adjustment;
             }
@@ -86,7 +86,7 @@ export function merge(tracks) {
             let max = Math.max.apply(null, indices);
             const startGene = jTrack.genes[min];
             const endGene = jTrack.genes[max];
-            const score = endGene.suffixScore - startGene.suffixScore;
+            const score = endGene.score - startGene.score;
             // perform the inversion if it will improve the super-track's score
             if (kTrack.score > score) {
               merged.push(k);
@@ -101,15 +101,15 @@ export function merge(tracks) {
               Array.prototype.splice.apply(jIds, idArgs);
               // adjust inversion scores and y coordinates
               max = min + kTrack.genes.length;
-              const pred = (min > 0) ? jTrack.genes[min - 1].suffixScore : 0;
+              const pred = (min > 0) ? jTrack.genes[min - 1].score : 0;
               for (let l = min; l < max; l++) {
-                jTrack.genes[l].suffixScore += pred;
+                jTrack.genes[l].score += pred;
                 jTrack.genes[l].y = jLevels;
               }
               // adjust post-inversion scores
               const adjustment = kTrack.score - score;
               for (let l = max; l < jTrack.genes.length; l++) {
-                jTrack.genes[l].suffixScore += adjustment;
+                jTrack.genes[l].score += adjustment;
               }
               jTrack.score += adjustment;
             }

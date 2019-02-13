@@ -13,6 +13,7 @@ import * as fromRouter from "../store/reducers/router.store";
 import * as fromSearchQueryTrack from "../store/reducers/search-query-track.store";
 // app
 import { Group, MicroTracks, QueryParams } from "../models";
+import { PointMixin } from "../models/mixins";
 import { HttpService } from "./http.service";
 
 @Injectable()
@@ -35,7 +36,7 @@ export class MicroTracksService extends HttpService {
   // fetches multi tracks for the given genes from the given source
   getMultiTracks(genes: string[], neighbors: number, serverID: string): Observable<MicroTracks> {
     const body = {genes, neighbors};
-    return this._makeRequest<MicroTracks>(serverID, "microMulti", body).pipe(
+    return this._makeRequest<MicroTracks<{}, {}, PointMixin>>(serverID, "microMulti", body).pipe(
       map((tracks) => {
         this._mergeOverlappingTracks(tracks);
         this._parseTracks(serverID, tracks);
@@ -62,7 +63,7 @@ export class MicroTracksService extends HttpService {
   // fetches a query track for the given gene from the given source
   getQueryTrack(gene: string, neighbors: number, serverID: string): Observable<Group> {
     const body = {gene, neighbors: String(neighbors)};
-    return this._makeRequest<Group>(serverID, "microQuery", body).pipe(
+    return this._makeRequest<Group<PointMixin>>(serverID, "microQuery", body).pipe(
       map((track) => {
         this._parseTrack(serverID, track);
         return track;
@@ -78,7 +79,7 @@ export class MicroTracksService extends HttpService {
       matched: String(params.matched),
       query: query.genes.map((g) => g.family),
     };
-    return this._makeRequest<MicroTracks>(serverID, "microSearch", body).pipe(
+    return this._makeRequest<MicroTracks<{}, {}, PointMixin>>(serverID, "microSearch", body).pipe(
       map((tracks) => {
         this._removeQuery(query, tracks);
         this._mergeOverlappingTracks(tracks);
@@ -151,7 +152,7 @@ export class MicroTracksService extends HttpService {
   }
 
   // adds the server id the track came from to the track and its genes
-  private _parseTrack(source: string, track: Group, i: number = -1): void {
+  private _parseTrack(source: string, track: Group<PointMixin>, i: number = -1): void {
     track.source = source;
     track.id = source + i;
     for (const gene of track.genes) {
@@ -162,7 +163,7 @@ export class MicroTracksService extends HttpService {
   }
 
   // calls _parseTrack on each track in the given microtracks
-  private _parseTracks(source: string, tracks: MicroTracks): void {
+  private _parseTracks(source: string, tracks: MicroTracks<{}, {}, PointMixin>): void {
     for (let i = 0; i < tracks.groups.length; i++) {
       const group = tracks.groups[i];
       this._parseTrack(source, group, i);
