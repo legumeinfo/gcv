@@ -3,7 +3,7 @@ import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from
 // App
 import { toggleSlider } from "../../animations";
 import { SliderStates } from "../../constants";
-import { Family, Gene, Group, MicroTracks } from "../../models";
+import { Family, Gene, Group, MicroTracks, isFamily, isGene, isGroup } from "../../models";
 
 enum DetailTypes {
   PARAMS,
@@ -33,15 +33,15 @@ export class LeftSliderComponent implements OnChanges {
   track;
 
   ngOnChanges(changes: SimpleChanges): void {
-    if (this.selected instanceof Family) {
+    if (isFamily(this.selected)) {
       this.selectedDetail = DetailTypes.FAMILY;
       this.family = this.selected;
       this.show();
-    } else if (this.selected instanceof Gene) {
+    } else if (isGene(this.selected)) {
       this.selectedDetail = DetailTypes.GENE;
       this.gene = this.selected;
       this.show();
-    } else if (this.selected instanceof Group) {
+    } else if (isGroup(this.selected)) {
       this.selectedDetail = DetailTypes.TRACK;
       this.track = this.selected;
       this.show();

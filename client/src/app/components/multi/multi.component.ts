@@ -246,35 +246,13 @@ export class MultiComponent implements AfterViewInit, OnDestroy, OnInit {
   }
 
   // left slider
-  // EVIL: typescript checks types at compile time so we have to explicitly
-  // instantiate those that will be checked by left-slider at run-time
 
   hideLeftSlider(): void {
     this.selectedDetail = null;
   }
 
-  selectFamily(family: Family): void {
-    const f = Object.assign(Object.create(Family.prototype), family);
-    this.selectedDetail = f;
-  }
-
-  selectGene(gene: Gene): void {
-    // TODO: this uses specific knowledge about the origins of gene objects, instead,
-    // create a util function that returns all objects in prototype chain and spead
-    // into assign
-    const instance = (gene.hasOwnProperty("glyph") ? Object.getPrototypeOf(Object.getPrototypeOf(gene)) : Object.getPrototypeOf(gene));
-    const g = Object.assign(Object.create(Gene.prototype), instance);
-    this.selectedDetail = g;
-  }
-
-  selectParams(): void {
-    this.selectedDetail = {};
-  }
-
-  selectTrack(track: Group): void {
-    // TODO: Ditto note from selectGene
-    const t = Object.assign(Object.create(Group.prototype), Object.getPrototypeOf(track));
-    this.selectedDetail = t;
+  selectDetail(detail: {} | Family | Gene | Group = {}): void {
+    this.selectedDetail = detail;
   }
 
   // private
@@ -471,11 +449,11 @@ export class MultiComponent implements AfterViewInit, OnDestroy, OnInit {
     return {
       autoResize: true,
       geneClick: function(g, track) {
-        this.selectGene(g);
+        this.selectDetail(g);
       }.bind(this),
       highlight: focusNames,
       nameClick: function(t) {
-        this.selectTrack(t);
+        this.selectDetail(t);
       }.bind(this),
       selectiveColoring: familySizes,
       prefix: (t) => "group " + t.cluster + " - ",
@@ -507,7 +485,7 @@ export class MultiComponent implements AfterViewInit, OnDestroy, OnInit {
       }.bind(this),
       highlight,
       keyClick: function(f) {
-        this.selectFamily(f);
+        this.selectDetail(f);
       }.bind(this),
       multiDelimiter: ",",
       selectiveColoring: familySizes,

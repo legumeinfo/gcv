@@ -2,7 +2,7 @@
 
   <header>
     <ul class="nav navbar-nav tabs" left>
-      <li><toggle-button (toggleFn)="selectParams()">Parameters</toggle-button></li>
+      <li><toggle-button (toggleFn)="selectDetail()">Parameters</toggle-button></li>
     </ul>
     <alert [alert]="headerAlert" center></alert>
   </header>
@@ -72,7 +72,7 @@
 
 <left-slider [selected]="selectedDetail" [tracks]="microTracks" (onClose)="hideLeftSlider()">
   <multi-params
-    (invalid)="selectParams()"
+    (invalid)="selectDetail()"
     (valid)="hideLeftSlider()" >
   </multi-params>
 </left-slider>

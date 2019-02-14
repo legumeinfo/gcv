@@ -4,7 +4,7 @@
     <alert [alert]="headerAlert" center></alert>
     <ul class="navbar-nav mr-2" left>
       <li class="nav-item active">
-        <toggle-button id="parameters-button" (toggleFn)="selectParams()">Parameters</toggle-button>
+        <toggle-button id="parameters-button" (toggleFn)="selectDetail()">Parameters</toggle-button>
       </li>
       <li class="nav-item" [ngClass]="{'active': selectedContent==contentTypes.VIEWERS}">
         <a class="nav-link" (click)="showViewers()">Viewers</a>
@@ -167,7 +167,7 @@
 
 <left-slider [selected]="selectedDetail" [tracks]="microTracks" (onClose)="hideLeftSlider()">
   <search-params
-    (invalid)="selectParams()"
+    (invalid)="selectDetail()"
     (valid)="hideLeftSlider()" >
   </search-params>
 </left-slider>
