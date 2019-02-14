@@ -431,7 +431,7 @@ def v1_micro_synteny_search(request):
         # how many matched_families should there be?
         num_matched_families = POST['matched']
         try:
-            num_matched_families = int(num_matched_families)
+            num_matched_families = float(num_matched_families)
             if num_matched_families <= 0:
                 raise ValueError("matched can't be negative")
         except:
@@ -440,7 +440,7 @@ def v1_micro_synteny_search(request):
         # family genes
         non_family = POST['intermediate']
         try:
-            non_family = int(non_family)
+            non_family = float(non_family)
             if non_family < 0:
                 raise ValueError("intermediate can't be negative")
         except:
@@ -512,14 +512,20 @@ def v1_micro_synteny_search(request):
                 g = genes[i]
                 # add the gene to the current block if it meets the non query family
                 # criteria
-                gap_size = gene_order_map[g]-gene_order_map[genes[block[-1]]]-1
-                if gap_size <= non_family:
+                gap_size = float(gene_order_map[g]-gene_order_map[genes[block[-1]]]-1)
+                if (non_family < 1 and gap_size/len(family_ids) <= non_family) or \
+                (non_family >= 1 and gap_size <= non_family):
                     matched_families.add(gene_family_map[g])
                     block.append(i)
                 # otherwise, generate a track from the block and start a new block
-                if gap_size > non_family or i == len(genes)-1:
+                num_matched = float(len(matched_families))
+                if (non_family < 1 and gap_size/len(family_ids) > non_family) or \
+                (non_family >= 1 and gap_size > non_family) or i == len(genes)-1:
                     # generate a track from the block
-                    if len(matched_families) >= num_matched_families:
+                    if (num_matched_families < 1 and \
+                    num_matched/len(family_ids) >= num_matched_families) or \
+                    (num_matched_families >= 1 and \
+                    num_matched >= num_matched_families):
                         # get all the gene ids
                         tracks[
                             (chromosome_id, gene_order_map[genes[block[0]]],
