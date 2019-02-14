@@ -498,6 +498,7 @@ export class SearchComponent implements AfterViewInit, OnDestroy, OnInit {
             theme: "light-border",
             interactive: true,
             maxWidth: null,
+            delay: [500, 20],
           }
         );
       }
