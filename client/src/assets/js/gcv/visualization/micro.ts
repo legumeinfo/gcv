@@ -194,12 +194,6 @@ export class Micro extends Visualizer {
       });
     };
     this.decorateResize(resizeTracks);
-    // rotate the tips now that all the tracks have been drawn
-    //tracks.forEach((t, i) => {
-    //  t.adjustTips();
-    //});
-    // move all tips to front
-    //this.viewer.selectAll(".synteny-tip").moveToFront();
     // create an auto resize iframe, if necessary
     if (this.options.autoResize) {
       this.resizer = this.autoResize(this.container, (e) => {
@@ -264,11 +258,6 @@ export class Micro extends Visualizer {
         }
         return (n.a.y < n.b.y) ? 0 : height;
       });
-    // add tooltips to the lines
-    //const lineTips = lineGroups.append("text")
-    //  .attr("class", "synteny-tip")
-    //  .attr("text-anchor", "end")
-    //  .text((n, j) => obj.distances[i][j]);
     // make the gene groups
     const publishGeneEvent = (type, gene) => {
       return () => eventBus.publish({
@@ -285,16 +274,6 @@ export class Micro extends Visualizer {
       .append("g")
       .attr("class", "gene")
       .attr("data-gene", (g) => g.name)
-      .attr("data-tippy-content", (g) => {
-        return `
-          <div class="media" style="text-align:left;">
-            <div class="media-body">
-              <h6 class="mt-0 mb-1"><b>${g.name}</b> (${g.family})</h6>
-              ${g.fmin} - ${g.fmax}
-            </div>
-          </div>
-        `;
-      })
       .attr("data-family", (g) => g.family)
       .attr("transform", (g) => {
         return "translate(" + obj.x(g.x) + ", " + obj.y(y + g.y) + ")";
@@ -302,7 +281,9 @@ export class Micro extends Visualizer {
       .style("cursor", "pointer")
       .on("mouseover", (g) => this.setTimeout(publishGeneEvent("select", g)))
       .on("mouseout", (g) => this.clearTimeout(publishGeneEvent("deselect", g)))
-      .on("click", (g) => obj.options.geneClick(g, t));
+      .on("click", (g) => obj.options.geneClick(g, t))
+      // add optional HTML attributes to gene elelements
+      .addHTMLAttributes();
     // add genes to the gene groups
     const genes = geneGroups.append("path")
       .attr("d", (g) => {
@@ -347,13 +328,8 @@ export class Micro extends Visualizer {
         .attr("fill", "#e7e7e7")
         .moveToBack();
     }
-    // add tooltips to the gene groups
-    //const geneTips = geneGroups.append("text")
-    //  .attr("class", "synteny-tip")
-    //  .attr("text-anchor", "end")
-    //  .text((g) => g.name + ": " + g.fmin + " - " + g.fmax);
     // how the track is resized
-    track.resize = function(geneGroups, linesGroups, lines/*, lineTips */) {
+    track.resize = function(geneGroups, linesGroups, lines) {
       const obj = this;
       geneGroups.attr("transform", (g) => {
         return "translate(" + obj.x(g.x) + ", " + obj.y(y + g.y) + ")";
@@ -364,35 +340,10 @@ export class Micro extends Visualizer {
         return "translate(" + obj.x(left) + ", " + obj.y(top) + ")";
       });
       lines.attr("x2", (n) => Math.abs(obj.x(n.a.x) - obj.x(n.b.x)));
-      //lineTips.attr("transform", function(n) {
-      //  const x = Math.abs(obj.x(n.a.x) - obj.x(n.b.x)) / 2;
-      //  const y = Math.abs(obj.y(n.a.y) - obj.y(n.b.y)) / 2;
-      //  //// awkward syntax FTW
-      //  //const transform = d3.transform(d3.select(this).attr("transform"));
-      //  //transform.translate = [x, y];
-      //  //return transform;
-      //  const t1 = "translate(0, 0)";
-      //  const t2 = "translate(" + x + ", " + y + ")";
-      //  return d3.interpolateTransformSvg(t1, t2);
-      //});
       if (track.highlight !== undefined) {
         track.highlight.attr("width", this.viewer.attr("width"));
       }
-    }.bind(this, geneGroups, lineGroups, lines/*, lineTips */);
-    // how tips are rotated so they don"t overflow the view
-    //const tips = track.selectAll(".synteny-tip");
-    //track.adjustTips = function(tips, resize) {
-    //  const vRect = obj.viewer.node().getBoundingClientRect();
-    //  tips.classed("synteny-tip", false)
-    //    .attr("transform", function(t) {
-    //      const tRect = this.getBoundingClientRect();
-    //      const h = Math.sqrt(Math.pow(tRect.width, 2) / 2);  // rotated height
-    //      const o = (tRect.bottom + h > vRect.bottom) ? h : 0;
-    //      return "translate(" + o + ", " + (-o) + ") rotate(-45)";
-    //    })
-    //    .classed("synteny-tip", true);
-    //  resize();
-    //}.bind(this, tips, track.resize);
+    }.bind(this, geneGroups, lineGroups, lines);
     return track;
   }
 

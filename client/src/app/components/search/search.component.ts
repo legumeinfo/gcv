@@ -262,6 +262,25 @@ export class SearchComponent implements AfterViewInit, OnDestroy, OnInit {
     filteredMicroTracks
       .pipe(takeUntil(this.destroy))
       .subscribe((tracks) => {
+        // add gene tooltips
+        tracks.groups.forEach((group) => {
+          group.genes = group.genes.map((gene) => {
+            const g = Object.create(gene);
+            g.htmlAttributes = {
+              "data-tippy-content": function (g) {
+                return `
+                  <div class="media" style="text-align:left;">
+                    <div class="media-body">
+                      <h6 class="mt-0 mb-1"><b>${g.name}</b> (${g.family})</h6>
+                      ${g.fmin} - ${g.fmax}
+                    </div>
+                  </div>
+                `;
+              }
+            };
+            return g;
+          });
+        });
         this.microTracks = tracks as MicroTracks;
       });
 
@@ -490,7 +509,7 @@ export class SearchComponent implements AfterViewInit, OnDestroy, OnInit {
       selectiveColoring: familySizes,
       onInit: function () {
         tippy(
-          "[data-tippy-content]",
+          ".GCV [data-tippy-content]",
           {
             animation: "fade",
             arrow: true,

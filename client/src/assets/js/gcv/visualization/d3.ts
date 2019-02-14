@@ -17,4 +17,15 @@ d3.selection.prototype.moveToFront = function() {
   });
 };
 
+// a helper function that creates an attribute for every property in an object's
+// htmlAttributes property
+d3.selection.prototype.addHTMLAttributes = function () {
+  return this.each(function (e) {
+    const selection = d3.select(this);
+    for (const attr in e.htmlAttributes || {}) {
+      selection.attr(attr, e.htmlAttributes[attr]);
+    }
+  });
+}
+
 export { d3 };
