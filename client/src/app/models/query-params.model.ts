@@ -3,6 +3,7 @@ import { AbstractControl, Validators } from "@angular/forms";
 import { Regex } from "../constants";
 // App
 import { AppConfig } from "../app.config";
+import { regexpOr } from "../utils/regexp-or.util";
 
 export class QueryParams {
   private sourceIDs: string[] = AppConfig.SERVERS.map((s) => s.id);
@@ -18,11 +19,13 @@ export class QueryParams {
     return {
       intermediate: [this.intermediate, Validators.compose([
         Validators.required,
-        Validators.pattern(Regex.POSITIVE_INT_AND_ZERO),
+        Validators.pattern(
+          regexpOr(Regex.FRACTION_TO_ONE, Regex.POSITIVE_INT_AND_ZERO)),
       ])],
       matched: [this.matched, Validators.compose([
         Validators.required,
-        Validators.pattern(Regex.POSITIVE_INT),
+        Validators.pattern(
+          regexpOr(Regex.FRACTION_TO_ONE, Regex.POSITIVE_INT)),
       ])],
       neighbors: [this.neighbors, Validators.compose([
         Validators.required,

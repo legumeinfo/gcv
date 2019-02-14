@@ -33,8 +33,6 @@ implements RouterStateSerializer<fromRouter.RouterStateUrl> {
         case 'bmask':
         // micro query params
         case 'neighbors':
-        case 'matched':
-        case 'intermediate':
         // alignment params
         case 'match':
         case 'mismatch':
@@ -49,6 +47,13 @@ implements RouterStateSerializer<fromRouter.RouterStateUrl> {
           break;
         case 'alpha':
           queryParams[key] = parseFloat(queryParams[key]);
+          break;
+        case 'matched':
+        case 'intermediate':
+          queryParams[key] = parseFloat(queryParams[key]);
+          if (queryParams[key] >= 1) {
+            queryParams[key] = parseInt(queryParams[key]);
+          }
           break;
         case 'sources':
           if (!Array.isArray(queryParams[key])) {

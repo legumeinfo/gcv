@@ -2,56 +2,65 @@
   <fieldset [formGroup]="blockGroup">
     <legend>Block Parameters<a id="block-params-help" class="float-right" (click)="blockHelp=!blockHelp"><span class="fa fa-question-circle"></span></a></legend>
     <div class="form-group" [ngClass]="{'has-error': !blockGroup.controls.bmatched.valid}">
-      <label for="bmatched">Min Matched families (min 1)</label>
+      <label for="bmatched">Min Matched Families</label>
       <input type="number" class="form-control" formControlName="bmatched" >
+      <small class="form-text text-muted">Positive integer (&ge;1)</small>
       <p class="help-block" *ngIf="blockHelp">The minimum number of gene families that must match between the query and a result chromosome in each block.</p>
     </div>
     <div class="form-group" [ngClass]="{'has-error': !blockGroup.controls.bintermediate.valid}">
-      <label for="bintermediate">Max Insertion Size (min 0)</label>
+      <label for="bintermediate">Max Insertion Size</label>
       <input type="number" class="form-control" formControlName="bintermediate" >
+      <small class="form-text text-muted">Non-negative integer (&ge;0)</small>
       <p class="help-block" *ngIf="blockHelp">The maximum number of non-matching genes between successive matching genes in a block.</p>
     </div>
     <div class="form-group" [ngClass]="{'has-error': !blockGroup.controls.bmask.valid}">
-      <label for="bmask">Max Family Size (min 1)</label>
+      <label for="bmask">Max Family Size</label>
       <input type="number" class="form-control" formControlName="bmask" >
+      <small class="form-text text-muted">Positive integer (&ge;1)</small>
       <p class="help-block" *ngIf="blockHelp">The maximum number of instances of a family that can occur on a chromosome before it's omitted from block computations.</p>
     </div>
   </fieldset>
   <fieldset [formGroup]="queryGroup">
     <legend>Query Parameters<a class="float-right"><span class="fa fa-question-circle" (click)="queryHelp=!queryHelp"></span></a></legend>
     <div class="form-group" [ngClass]="{'has-error': !queryGroup.controls.neighbors.valid}">
-      <label for="neighbors">Neighbors (min 1)</label>
+      <label for="neighbors">Neighbors</label>
       <input type="number" class="form-control" formControlName="neighbors" >
+      <small class="form-text text-muted">Positive integer (&ge;1)</small>
       <p class="help-block" *ngIf="queryHelp">Number of genes on either side of each query gene.</p>
     </div>
     <div class="form-group" [ngClass]="{'has-error': !queryGroup.controls.sources.valid}">
-      <label for="sources">Sources (min 1)</label>
+      <label for="sources">Sources</label>
       <select multiple class="form-control" formControlName="sources" >
         <option *ngFor="let src of sources" [value]="src.id">{{src.name}}</option>
       </select>
+      <small class="form-text text-muted">Select one or more</small>
       <p class="help-block" *ngIf="queryHelp">Which databases to load data from.</p>
     </div>
   </fieldset>
   <fieldset [formGroup]="clusteringGroup">
     <legend>Clustering Parameters<a id="align-params-help" class="float-right" (click)="clusteringHelp=!clusteringHelp"><span class="fa fa-question-circle"></span></a></legend>
     <div class="form-group" [ngClass]="{'has-error': !clusteringGroup.controls.alpha.valid}">
-      <label for="alpha">Identity (in (0,1])</label>
+      <label for="alpha">Sequence Identity</label>
       <input type="number" step="0.01" class="form-control" formControlName="alpha" >
+      <small class="form-text text-muted">Non-zero percent (&le;1)</small>
       <p class="help-block" *ngIf="clusteringHelp">What percent of the genes in a track need to match the genes in a cluster to be considered a member.</p>
     </div>
     <div class="form-group" [ngClass]="{'has-error': !clusteringGroup.controls.kappa.valid}">
-      <label for="kappa">Max Insertion Size (min 0)</label>
+      <label for="kappa">Max Insertion Size</label>
       <input type="number" class="form-control" formControlName="kappa" >
+      <small class="form-text text-muted">Non-negative integer (&ge;0)</small>
       <p class="help-block" *ngIf="clusteringHelp">The maximum number of non-matching genes between successive matching genes in a track relative to its cluster.</p>
     </div>
     <div class="form-group" [ngClass]="{'has-error': !clusteringGroup.controls.minsup.valid}">
-      <label for="minsup">Min Support (min 2)</label>
+      <label for="minsup">Min Support</label>
       <input type="number" class="form-control" formControlName="minsup" >
+      <small class="form-text text-muted">Integer greater than 1 (&gt;1)</small>
       <p class="help-block" *ngIf="clusteringHelp">The minimum number of tracks a cluster must contain to be reported.</p>
     </div>
     <div class="form-group" [ngClass]="{'has-error': !clusteringGroup.controls.minsize.valid}">
-      <label for="minsize">Min Size (min 1)</label>
+      <label for="minsize">Min Size</label>
       <input type="number" class="form-control" formControlName="minsize" >
+      <small class="form-text text-muted">Positive integer (&ge;1)</small>
       <p class="help-block" *ngIf="clusteringHelp">The minimum numbers of genes a cluster must contain to be reported.</p>
     </div>
     <button type="submit" class="btn btn-primary col-sm-12" [disabled]="!queryGroup.valid || !clusteringGroup.valid">Submit</button>
