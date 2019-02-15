@@ -1,6 +1,6 @@
 <form (ngSubmit)="submit()">
   <fieldset [formGroup]="blockGroup">
-    <legend>Block Parameters<a id="block-params-help" class="float-right" (click)="blockHelp=!blockHelp"><span class="fa fa-question-circle"></span></a></legend>
+    <legend>Macro-Synteny<a id="block-params-help" class="float-right" (click)="blockHelp=!blockHelp"><span class="fa fa-question-circle"></span></a></legend>
     <div class="form-group" [ngClass]="{'has-error': !blockGroup.controls.bmatched.valid}">
       <label for="bmatched">Min Matched Families</label>
       <input type="number" class="form-control" formControlName="bmatched" >
@@ -21,7 +21,7 @@
     </div>
   </fieldset>
   <fieldset [formGroup]="queryGroup">
-    <legend>Query Parameters<a class="float-right"><span class="fa fa-question-circle" (click)="queryHelp=!queryHelp"></span></a></legend>
+    <legend>Micro-Synteny<a class="float-right"><span class="fa fa-question-circle" (click)="queryHelp=!queryHelp"></span></a></legend>
     <div class="form-group" [ngClass]="{'has-error': !queryGroup.controls.neighbors.valid}">
       <label for="neighbors">Neighbors</label>
       <input type="number" class="form-control" formControlName="neighbors" >
@@ -38,7 +38,7 @@
     </div>
   </fieldset>
   <fieldset [formGroup]="clusteringGroup">
-    <legend>Clustering Parameters<a id="align-params-help" class="float-right" (click)="clusteringHelp=!clusteringHelp"><span class="fa fa-question-circle"></span></a></legend>
+    <legend>Micro-Synteny Clustering<a id="align-params-help" class="float-right" (click)="clusteringHelp=!clusteringHelp"><span class="fa fa-question-circle"></span></a></legend>
     <div class="form-group" [ngClass]="{'has-error': !clusteringGroup.controls.alpha.valid}">
       <label for="alpha">Sequence Identity</label>
       <input type="number" step="0.01" class="form-control" formControlName="alpha" >
