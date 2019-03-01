@@ -1,7 +1,7 @@
 // Angular
 import { AfterViewInit, Component, ComponentFactory, ComponentFactoryResolver,
-  ComponentRef, ElementRef, OnDestroy, OnInit, QueryList, ViewContainerRef,
-  ViewChild, ViewChildren, ViewEncapsulation } from "@angular/core";
+  ComponentRef, ElementRef, NgZone, OnDestroy, OnInit, QueryList,
+  ViewContainerRef, ViewChild, ViewChildren, ViewEncapsulation } from "@angular/core";
 import { BehaviorSubject, Observable, Subject, combineLatest } from "rxjs";
 import { filter, map, scan, take, takeUntil, withLatestFrom } from "rxjs/operators";
 // app
@@ -112,6 +112,7 @@ export class SearchComponent implements AfterViewInit, OnDestroy, OnInit {
               private filterService: FilterService,
               private macroTracksService: MacroTracksService,
               private microTracksService: MicroTracksService,
+              private zone: NgZone,
               private plotsService: PlotsService) {
     this.destroy = new Subject();
     // hook the GCV eventbus into a Broadcast Channel
@@ -405,10 +406,14 @@ export class SearchComponent implements AfterViewInit, OnDestroy, OnInit {
                    g.fmax >= low && g.fmax <= high;
           });
           if (genes.length === 0) {
-            this.microTracksService.spanSearch(c, low, high);
+            this.zone.run(() => {
+              this.microTracksService.spanSearch(c, low, high);
+            });
           }
         } else {
-          this.microTracksService.spanSearch(c, low, high);
+          this.zone.run(() => {
+            this.microTracksService.spanSearch(c, low, high);
+          });
         }
       }
       // propogate the message

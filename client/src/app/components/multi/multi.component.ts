@@ -1,7 +1,7 @@
 // Angular + dependencies
 import { AfterViewInit, Component, ComponentFactory, ComponentFactoryResolver,
-  ComponentRef, ElementRef, OnDestroy, OnInit, ViewChild, ViewContainerRef,
-  ViewEncapsulation } from "@angular/core";
+  ComponentRef, ElementRef, NgZone, OnDestroy, OnInit, ViewChild,
+  ViewContainerRef, ViewEncapsulation } from "@angular/core";
 import { BehaviorSubject, Observable, Subject, combineLatest } from "rxjs";
 import { filter, map, scan, takeUntil, withLatestFrom } from "rxjs/operators";
 import { GCV } from "../../../assets/js/gcv";
@@ -83,7 +83,8 @@ export class MultiComponent implements AfterViewInit, OnDestroy, OnInit {
               private resolver: ComponentFactoryResolver,
               private filterService: FilterService,
               private macroTracksService: MacroTracksService,
-              private microTracksService: MicroTracksService) {
+              private microTracksService: MicroTracksService,
+              private zone: NgZone) {
     this.destroy = new Subject();
     // hook the GCV eventbus into a Broadcast Channel
     if (AppConfig.MISCELLANEOUS.communicationChannel !== undefined) {
@@ -282,10 +283,14 @@ export class MultiComponent implements AfterViewInit, OnDestroy, OnInit {
                    g.fmax >= low && g.fmax <= high;
           });
           if (genes.length === 0) {
-            this.microTracksService.spanSearch(c, low, high);
+            this.zone.run(() => {
+              this.microTracksService.spanSearch(c, low, high);
+            });
           }
         } else {
-          this.microTracksService.spanSearch(c, low, high);
+          this.zone.run(() => {
+            this.microTracksService.spanSearch(c, low, high);
+          });
         }
       }
       // propogate the message
