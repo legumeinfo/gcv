@@ -12,6 +12,7 @@ import * as fromMicroTracks from "../store/reducers/micro-tracks.store";
 import * as fromRouter from "../store/reducers/router.store";
 import * as fromSearchQueryTrack from "../store/reducers/search-query-track.store";
 // app
+import { AppConfig } from "../app.config";
 import { Group, MicroTracks, QueryParams } from "../models";
 import { PointMixin } from "../models/mixins";
 import { HttpService } from "./http.service";
@@ -149,6 +150,16 @@ export class MicroTracksService extends HttpService {
         observer.complete();
       });
     });
+  }
+
+  spanSearch(chromosome: string, low: number, high: number): void {
+    // search the default (first) server for now
+    const source = AppConfig.SERVERS[0].id;
+    const url = "/search" +
+          "/" + source +
+          "/" + chromosome +
+          "/" + low + "-" + high;
+    this.store.dispatch(new routerActions.Go({path: [url, { routeParam: 1 }]}));
   }
 
   // adds the server id the track came from to the track and its genes

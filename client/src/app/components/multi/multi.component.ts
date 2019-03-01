@@ -87,16 +87,7 @@ export class MultiComponent implements AfterViewInit, OnDestroy, OnInit {
     this.destroy = new Subject();
     // hook the GCV eventbus into a Broadcast Channel
     if (AppConfig.MISCELLANEOUS.communicationChannel !== undefined) {
-      this.channel = new Channel(AppConfig.MISCELLANEOUS.communicationChannel);
-      this.channel.onmessage((message) => {
-        message.data.flag = true;
-        GCV.common.eventBus.publish(message.data);
-      });
-      this.eventBus = GCV.common.eventBus.subscribe((event) => {
-        if (!event.flag) {
-          this.channel.postMessage(event, this.microTracks);
-        }
-      });
+      this._setupChannel(AppConfig.MISCELLANEOUS.communicationChannel);
     }
   }
 
@@ -123,8 +114,8 @@ export class MultiComponent implements AfterViewInit, OnDestroy, OnInit {
   ngOnDestroy(): void {
     if (AppConfig.MISCELLANEOUS.communicationChannel !== undefined) {
       this.channel.close();
+      this.eventBus.unsubscribe();
     }
-    this.eventBus.unsubscribe();
     this.destroy.next(true);
     this.destroy.complete();
   }
@@ -275,6 +266,38 @@ export class MultiComponent implements AfterViewInit, OnDestroy, OnInit {
   }
 
   // private
+
+  private _setupChannel(channel: string): void {
+    this.channel = new Channel(channel);
+    this.channel.onmessage((message) => {
+      // perform an extent search if extent not in micro-synteny
+      if (message.data.targets.hasOwnProperty("chromosome") &&
+          message.data.targets.hasOwnProperty("extent")) {
+        const c = message.data.targets.chromosome;
+        const [low, high] = message.data.targets.extent;
+        const i = this.microTracks.groups.map((g) => g.chromosome_name).indexOf(c);
+        if (i !== -1) {
+          const genes = this.microTracks.groups[i].genes.filter((g) => {
+            return g.fmin >= low && g.fmin <= high ||
+                   g.fmax >= low && g.fmax <= high;
+          });
+          if (genes.length === 0) {
+            this.microTracksService.spanSearch(c, low, high);
+          }
+        } else {
+          this.microTracksService.spanSearch(c, low, high);
+        }
+      }
+      // propogate the message
+      message.data.flag = true;
+      GCV.common.eventBus.publish(message.data);
+    });
+    this.eventBus = GCV.common.eventBus.subscribe((event) => {
+      if (!event.flag) {
+        this.channel.postMessage(event, this.microTracks);
+      }
+    });
+  }
 
   private _setFamilyGlyph(family: string, glyph: string): void {
     this.familyGlyphsSubject.next({family, glyph});
