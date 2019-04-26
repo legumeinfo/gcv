@@ -5,7 +5,7 @@ import { Observable } from "rxjs";
 import { concatMap, mergeMap, tap } from "rxjs/operators";
 // app
 import { Server } from "./models/server.model";  // avoid circular dependencies
-import { Brand, Config, Dashboard, Miscellaneous } from "./models/config.model";  // ditto
+import { Brand, Communication, Config, Dashboard, Miscellaneous } from "./models/config.model";  // ditto
 
 declare var document: any;
 
@@ -18,6 +18,7 @@ export class AppConfig {
   public static BRAND: Brand;
   public static DASHBOARD: Dashboard;
   public static MISCELLANEOUS: Miscellaneous;
+  public static COMMUNICATION: Communication;
 
   constructor(private http: HttpClient) {}
 
@@ -42,6 +43,7 @@ export class AppConfig {
     return this.http.get<Config>("config/config.json")
       .pipe(
         tap((config) => this._loadBrand(config.brand)),
+        tap((config) => this._loadCommunication(config.communication)),
         tap((config) => this._loadDashboard(config.dashboard)),
         tap((config) => this._loadMiscellaneous(config.miscellaneous)))
       .toPromise()
@@ -104,6 +106,11 @@ export class AppConfig {
     }
     AppConfig.BRAND = brand;
     Object.freeze(AppConfig.BRAND);
+  }
+
+  private _loadCommunication(communication: any): void {
+    AppConfig.COMMUNICATION = communication || {};
+    Object.freeze(AppConfig.COMMUNICATION);
   }
 
   private _loadDashboard(dashboard: any): void {

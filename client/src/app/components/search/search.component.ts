@@ -12,9 +12,8 @@ import { AppConfig } from "../../app.config";
 import { Alert, Family, Gene, Group, MacroTracks, MicroTracks } from "../../models";
 import { DrawableMixin } from "../../models/mixins";
 import { macroTracksOperator, microTracksOperator, plotsOperator } from "../../operators";
-import { AlignmentService,  FilterService, MacroTracksService, MicroTracksService,
-  PlotsService } from "../../services";
-import { Channel } from "../../utils";
+import { AlignmentService, FilterService, InterAppCommunicationService,
+  MacroTracksService, MicroTracksService, PlotsService } from "../../services";
 import { AlertComponent } from "../shared/alert.component";
 import { PlotViewerComponent } from "../viewers/plot.component";
 
@@ -90,7 +89,7 @@ export class SearchComponent implements AfterViewInit, OnDestroy, OnInit {
   macroTracks: MacroTracks;
 
   // inter-app communication
-  private channel;
+  communicate: boolean = AppConfig.COMMUNICATION.channel !== undefined;
   private eventBus;
 
   // store the vertical Split for resizing
@@ -110,14 +109,15 @@ export class SearchComponent implements AfterViewInit, OnDestroy, OnInit {
   constructor(private alignmentService: AlignmentService,
               private resolver: ComponentFactoryResolver,
               private filterService: FilterService,
+              private communicationService: InterAppCommunicationService,
               private macroTracksService: MacroTracksService,
               private microTracksService: MicroTracksService,
               private zone: NgZone,
               private plotsService: PlotsService) {
     this.destroy = new Subject();
     // hook the GCV eventbus into a Broadcast Channel
-    if (AppConfig.MISCELLANEOUS.communicationChannel !== undefined) {
-      this._setupChannel(AppConfig.MISCELLANEOUS.communicationChannel);
+    if (this.communicate) {
+      this._setupCommunication();
     }
   }
 
@@ -142,8 +142,7 @@ export class SearchComponent implements AfterViewInit, OnDestroy, OnInit {
   }
 
   ngOnDestroy(): void {
-    if (AppConfig.MISCELLANEOUS.communicationChannel !== undefined) {
-      this.channel.close();
+    if (this.communicate) {
       this.eventBus.unsubscribe();
     }
     this.destroy.next(true);
@@ -391,38 +390,39 @@ export class SearchComponent implements AfterViewInit, OnDestroy, OnInit {
 
   // private
 
-  private _setupChannel(channel: string): void {
-    this.channel = new Channel(channel);
-    this.channel.onmessage((message) => {
-      // perform an extent search if extent not in micro-synteny
-      if (message.data.targets.hasOwnProperty("chromosome") &&
-          message.data.targets.hasOwnProperty("extent")) {
-        const c = message.data.targets.chromosome;
-        const [low, high] = message.data.targets.extent;
-        const i = this.microTracks.groups.map((g) => g.chromosome_name).indexOf(c);
-        if (i !== -1) {
-          const genes = this.microTracks.groups[i].genes.filter((g) => {
-            return g.fmin >= low && g.fmin <= high ||
-                   g.fmax >= low && g.fmax <= high;
-          });
-          if (genes.length === 0) {
+  private _setupCommunication(): void {
+    this.communicationService.messages
+      .pipe(takeUntil(this.destroy))
+      .subscribe((message) => {
+        // perform an extent search if extent not in micro-synteny
+        if (message.data.targets.hasOwnProperty("chromosome") &&
+            message.data.targets.hasOwnProperty("extent")) {
+          const c = message.data.targets.chromosome;
+          const [low, high] = message.data.targets.extent;
+          const i = this.microTracks.groups.map((g) => g.chromosome_name).indexOf(c);
+          if (i !== -1) {
+            const genes = this.microTracks.groups[i].genes.filter((g) => {
+              return g.fmin >= low && g.fmin <= high ||
+                     g.fmax >= low && g.fmax <= high;
+            });
+            if (genes.length === 0) {
+              this.zone.run(() => {
+                this.microTracksService.spanSearch(c, low, high);
+              });
+            }
+          } else {
             this.zone.run(() => {
               this.microTracksService.spanSearch(c, low, high);
             });
           }
-        } else {
-          this.zone.run(() => {
-            this.microTracksService.spanSearch(c, low, high);
-          });
         }
-      }
-      // propogate the message
-      message.data.flag = true;
-      GCV.common.eventBus.publish(message.data);
-    });
+        // propogate the message
+        message.data.flag = true;
+        GCV.common.eventBus.publish(message.data);
+      });
     this.eventBus = GCV.common.eventBus.subscribe((event) => {
       if (!event.flag) {
-        this.channel.postMessage(event, this.microTracks);
+        this.communicationService.postMessage(event, this.microTracks);
       }
     });
   }

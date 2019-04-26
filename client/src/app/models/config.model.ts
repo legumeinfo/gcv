@@ -8,6 +8,11 @@ export class Brand {
   slogan?: string;
 }
 
+export class Communication {
+  communicate?: boolean;
+  channel?: string;
+}
+
 export class DashboardView {
   img?: string;  // URL to example screenshot
   caption?: string;
@@ -21,7 +26,6 @@ export class Dashboard {
 
 export class Miscellaneous {
   searchPlaceholder?: string;
-  communicationChannel?: string;
 }
 
 export class Tour {
@@ -31,6 +35,7 @@ export class Tour {
 
 export class Config {
   brand?: Brand;
+  communication?: Communication;
   dashboard?: Dashboard;
   miscellaneous?: Miscellaneous;
   tours?: Tour[];

@@ -35,9 +35,6 @@
   height: 28px;
 }
 ::content > li { }
-:host /deep/ * {
-  border-radius: 0;
-}
 :host /deep/ .navbar form {
   white-space: nowrap;
   overflow: hidden;

@@ -1,8 +1,8 @@
 <div role="alert" [className]="className">
   <a class="float-right" *ngIf="alert.options.closable" (click)="close()">
-    <span class="fa fa-remove" aria-hidden="true"></span>
+    <span class="fas fa-times" aria-hidden="true"></span>
   </a>
   <span *ngIf="alert.options.autoClose > 0" class="float-right">{{closeCountDown | async}}</span>
   {{alert.message}}
-  <img *ngIf="alert.options.spinner" src="assets/img/spinner.gif">
+  <span *ngIf="alert.options.spinner" class="fas fa-circle-notch fa-spin"></span>
 </div>

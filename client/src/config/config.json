@@ -6,6 +6,9 @@
     "name": "LIS - Legume Information System",
     "slogan": "Information about legume traits for crop improvement"
   },
+  "communication": {
+    "channel": "lis"
+  },
   "dashboard": {
     "search": {
       "caption": "A Search view using a genomic context from Phaseolus vulgaris (common bean) Chromosome II as the query. Note, the result genomic context from Glycine max (soybean) Chromosome I contains an inversion. Also, the Global dot plot of Arachis hypogaea (peanut) reveals an inversion not present in the Micro-Synteny viewer. Lastly, the Macro-Synteny viewer reveals that some of the result genomic contexts belong to larger syntenic structures."
@@ -20,8 +23,7 @@
     ]
   },
   "miscellaneous": {
-    "searchPlaceholder": "e.g. phavu.Phvul.002G100400 or phavu.Chr02:13142457-13496658",
-    "communicationChannel": "GCV"
+    "searchPlaceholder": "e.g. phavu.Phvul.002G100400 or phavu.Chr02:13142457-13496658"
   },
   "tours": [
     {"script": "default.js", "name": "defaultTour"}

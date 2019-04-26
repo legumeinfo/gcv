@@ -1,4 +1,3 @@
-import { Channel } from "./channel.util";
 import { CustomRouterStateSerializer } from "./custom-router-state-serializer.util";
 import { elementIsVisible } from "./element-is-visible.util";
 import { instantiateAndPopulate } from "./instantiate-and-populate.util";
@@ -7,7 +6,6 @@ import { regexpAlgorithmFactory, regexpFilter } from "./regexp-algorithm-factory
 import { regexpOr } from "./regexp-or.util";
 
 export const utils: any[] = [
-  Channel,
   CustomRouterStateSerializer,
   elementIsVisible,
   instantiateAndPopulate,
@@ -18,7 +16,6 @@ export const utils: any[] = [
   regexpOr,
 ];
 
-export * from "./channel.util";
 export * from "./custom-router-state-serializer.util";
 export * from "./element-is-visible.util";
 export * from "./instantiate-and-populate.util";

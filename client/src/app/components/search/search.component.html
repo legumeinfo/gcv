@@ -13,6 +13,16 @@
         <a class="nav-link" (click)="showPlots()">Dot Plots</a>
       </li>
     </ul>
+    <ul class="navbar-nav ml-2" right *ngIf="communicate">
+      <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown"  data-display="static" data-boundary="viewport" aria-haspopup="true" aria-expanded="false">
+          <span class="fas fa-broadcast-tower" aria-hidden="true"></span>
+        </a>
+        <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdown" style="padding-top: 0;">
+          <inter-app-communication></inter-app-communication>
+        </div>
+      </li>
+    </ul>
   </header>
 
   <main-content [hidden]="selectedContent!==contentTypes.VIEWERS">
@@ -119,7 +129,7 @@
                   </ul>
                   <li class="nav-item" navright>
                     <a class="nav-link">
-                      <span class="fa fa-remove" aria-hidden="true" (click)="hideLocalGlobalPlots()"></span>
+                      <span class="fas fa-times" aria-hidden="true" (click)="hideLocalGlobalPlots()"></span>
                     </a>
                   </li>
                 </viewer-plot>
@@ -137,7 +147,7 @@
                   </ul>
                   <li class="nav-item" navright>
                     <a class="nav-link">
-                      <span class="fa fa-remove" aria-hidden="true" (click)="hideLocalGlobalPlots()"></span>
+                      <span class="fas fa-times" aria-hidden="true" (click)="hideLocalGlobalPlots()"></span>
                     </a>
                   </li>
                   <ng-container #plotAlerts overlay></ng-container>

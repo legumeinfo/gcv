@@ -5,6 +5,16 @@
       <li><toggle-button (toggleFn)="selectDetail()">Parameters</toggle-button></li>
     </ul>
     <alert [alert]="headerAlert" center></alert>
+    <ul class="navbar-nav ml-2" right *ngIf="communicate">
+      <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown"  data-display="static" data-boundary="viewport" aria-haspopup="true" aria-expanded="false">
+          <span class="fas fa-broadcast-tower" aria-hidden="true"></span>
+        </a>
+        <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdown">
+          <inter-app-communication></inter-app-communication>
+        </div>
+      </li>
+    </ul>
   </header>
 
   <main-content>

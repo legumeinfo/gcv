@@ -14,6 +14,7 @@ import { Alert } from "../../models";
 export class AlertComponent implements OnChanges {
   @Input() alert: Alert;
   @Input() float?: boolean = false;
+  @Input() rounded?: boolean = true;
   @Output() onClose? = new EventEmitter<void>();
 
   className: string;
@@ -31,6 +32,9 @@ export class AlertComponent implements OnChanges {
     const classes = ["alert", "alert-" + this.alert.type];
     if (this.float) {
       classes.push("float");
+    }
+    if (!this.rounded) {
+      classes.push("no-round");
     }
     this.className = classes.join(" ");
   }
