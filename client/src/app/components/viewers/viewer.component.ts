@@ -42,10 +42,24 @@ export abstract class Viewer implements AfterViewInit, OnChanges, OnDestroy {
     this.destroy();
   }
 
+  private _flattenObject(o: any): any {
+    let flat = Object.create(o);
+    for (let key in flat) {
+      let value = flat[key];
+      if (value instanceof Object) {
+        flat[key] = this._flattenObject(value);
+      } else {
+        flat[key] = value;
+      }
+    }
+    return flat;
+  }
+
   // public
 
   saveAsJSON(data): void {
-    this.saveFile(JSON.stringify(data), "application/json", "json");
+    const copy = this._flattenObject(data);
+    this.saveFile(JSON.stringify(copy), "application/json", "json");
   }
 
   saveXMLasSVG(xml): void {
