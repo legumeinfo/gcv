@@ -1,6 +1,6 @@
 // Angular
 import { HttpClientModule } from "@angular/common/http";
-import { APP_INITIALIZER, NgModule } from "@angular/core";
+import { APP_INITIALIZER, NgModule, NO_ERRORS_SCHEMA } from "@angular/core";
 import { FormsModule, ReactiveFormsModule } from "@angular/forms";
 import { BrowserModule } from "@angular/platform-browser";
 import { BrowserAnimationsModule } from "@angular/platform-browser/animations";
@@ -9,7 +9,10 @@ import { AppConfig } from "./app.config";
 import { AppRoutingModule } from "./app-routing.module";
 // components
 import * as fromComponents from "./components";
-import { AlertComponent } from "./components";
+import { AlertComponent, MacroComponent, MicroComponent, PlotComponent }
+  from "./components";
+// directives
+import * as fromDirectives from "./directives";
 // services
 import * as fromServices from "./services";
 // route guards
@@ -23,8 +26,8 @@ import { CustomRouterStateSerializer } from "./utils";
 
 @NgModule({
   bootstrap: [ fromComponents.AppComponent ],
-  declarations: [ ...fromComponents.components ],
-  entryComponents: [ AlertComponent ],
+  declarations: [ ...fromComponents.components, ...fromDirectives.directives ],
+  entryComponents: [ AlertComponent, MacroComponent, MicroComponent, PlotComponent ],
   imports: [
     AppRoutingModule,
     BrowserAnimationsModule,
@@ -47,5 +50,6 @@ import { CustomRouterStateSerializer } from "./utils";
     ...fromServices.services,
     ...fromGuards.guards
   ],
+  schemas: [ NO_ERRORS_SCHEMA ],
 })
 export class AppModule { }

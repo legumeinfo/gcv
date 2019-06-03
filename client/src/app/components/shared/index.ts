@@ -2,7 +2,7 @@ import { AlertComponent } from "./alert.component";
 import { ContextMenuComponent } from "./context-menu.component";
 import { FamilyDetailComponent } from "./family-detail.component";
 import { GeneDetailComponent } from "./gene-detail.component";
-import { HeaderComponent } from "./header.component";
+//import { HeaderComponent } from "./header.component";
 import { InterAppCommunicationComponent } from "./inter-app-communication.component";
 import { LeftSliderComponent } from "./left-slider.component";
 import { MainContentComponent } from "./main-content.component";
@@ -18,7 +18,7 @@ export const components: any[] = [
   ContextMenuComponent,
   FamilyDetailComponent,
   GeneDetailComponent,
-  HeaderComponent,
+  //HeaderComponent,
   InterAppCommunicationComponent,
   LeftSliderComponent,
   MainContentComponent,
@@ -34,7 +34,7 @@ export * from "./alert.component";
 export * from "./context-menu.component";
 export * from "./family-detail.component";
 export * from "./gene-detail.component";
-export * from "./header.component";
+//export * from "./header.component";
 export * from "./inter-app-communication.component";
 export * from "./left-slider.component";
 export * from "./main-content.component";
