@@ -1,22 +1,22 @@
-import { AlignmentEffects } from "./alignment.effects";
+import { ChromosomeEffects } from "./chromosome.effects";
 import { ClusteringEffects } from "./clustering.effects";
-import { MacroTracksEffects } from "./macro-tracks.effects";
+import { GeneEffects } from "./gene.effects";
 import { MicroTracksEffects } from "./micro-tracks.effects";
-import { PlotsEffects } from "./plots.effects";
+import { PairwiseBlocksEffects } from "./pairwise-blocks.effects";
 import { RouterEffects } from "./router.effects";
 
 export const effects: any[] = [
-  AlignmentEffects,
+  ChromosomeEffects,
   ClusteringEffects,
-  MacroTracksEffects,
+  GeneEffects,
   MicroTracksEffects,
-  PlotsEffects,
+  PairwiseBlocksEffects,
   RouterEffects,
 ];
 
-export * from "./alignment.effects";
+export * from "./chromosome.effects";
 export * from "./clustering.effects";
-export * from "./macro-tracks.effects";
+export * from "./gene.effects";
 export * from "./micro-tracks.effects";
-export * from "./plots.effects";
+export * from "./pairwise-blocks.effects";
 export * from "./router.effects";

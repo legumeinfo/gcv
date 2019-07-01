@@ -3,7 +3,7 @@
 import { MacroComponent } from "./macro.component";
 import { MicroComponent } from "./micro.component";
 import { PlotComponent } from "./plot.component";
-import { ReferenceComponent } from "./reference.component";
+import { GeneComponent } from "./gene.component";
 //import { VisualizationComponent } from "./visualization.component";
 
 export const components: any[] = [
@@ -12,7 +12,7 @@ export const components: any[] = [
   MacroComponent,
   MicroComponent,
   PlotComponent,
-  ReferenceComponent,
+  GeneComponent,
   //VisualizationComponent,
 ];
 
@@ -21,5 +21,5 @@ export const components: any[] = [
 export * from "./macro.component";
 export * from "./micro.component";
 export * from "./plot.component";
-export * from "./reference.component";
+export * from "./gene.component";
 //export * from "./visualization.component";

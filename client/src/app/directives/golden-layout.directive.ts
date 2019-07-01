@@ -5,7 +5,7 @@ import { AfterContentInit, ApplicationRef, ComponentFactoryResolver,
 // dependencies
 //import * as GoldenLayout from "golden-layout";
 
-import { MicroComponent } from "../components/reference/micro.component";
+import { MicroComponent } from "../components/gene/micro.component";
 
 declare var GoldenLayout: any;
  

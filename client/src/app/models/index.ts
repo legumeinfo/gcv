@@ -13,7 +13,10 @@ import { MacroChromosome } from "./macro-chromosome.model";
 import { MacroTrack } from "./macro-track.model";
 import { MacroTracks } from "./macro-tracks.model";
 import { MicroTracks } from "./micro-tracks.model";
+import { PairwiseBlock } from "./pairwise-block.model";
+import { PairwiseBlocks } from "./pairwise-blocks.model";
 import { QueryParams } from "./query-params.model";
+import { Track } from "./track.model";
 import { GET, POST, Request, Server } from "./server.model";
 
 export const models: any[] = [
@@ -32,7 +35,10 @@ export const models: any[] = [
   MacroTrack,
   MacroTracks,
   MicroTracks,
+  PairwiseBlock,
+  PairwiseBlocks,
   QueryParams,
+  Track,
   GET,
   POST,
   Request,
@@ -54,5 +60,8 @@ export * from "./macro-chromosome.model";
 export * from "./macro-track.model";
 export * from "./macro-tracks.model";
 export * from "./micro-tracks.model";
+export * from "./pairwise-block.model";
+export * from "./pairwise-blocks.model";
 export * from "./query-params.model";
+export * from "./track.model";
 export * from "./server.model";

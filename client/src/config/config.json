@@ -70,11 +70,19 @@
       },
       "chromosome": {
         "type": "POST",
-        "url": "http://localhost:8000/services/v1_1/chromosome/"
+        "url": "http://localhost:8000/services/v2/chromosome/"
       },
       "spanToSearch": {
         "type": "POST",
         "url": "http://localhost:8000/services/v1_1/span-to-context/"
+      },
+      "genes": {
+        "type": "POST",
+        "url": "http://localhost:8000/services/v2/genes/"
+      },
+      "blocks": {
+        "type": "POST",
+        "url": "http://localhost:8000/services/v2/pairwise-blocks/"
       }
     }
   ]

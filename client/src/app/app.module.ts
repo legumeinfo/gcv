@@ -48,7 +48,7 @@ import { CustomRouterStateSerializer } from "./utils";
       useFactory: (config: AppConfig) => () => config.load(),
     },
     ...fromServices.services,
-    ...fromGuards.guards
+    ...fromGuards.guards,
   ],
   schemas: [ NO_ERRORS_SCHEMA ],
 })
