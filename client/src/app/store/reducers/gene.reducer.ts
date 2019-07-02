@@ -8,7 +8,16 @@ declare var Object: any;  // because TypeScript doesn't support Object.values
 
 export type GeneID = {name: string, source: string};
 
-const geneID = (name: string, source: string) => `${name}:${source}`;
+function geneID(name: string, source: string): string;
+function geneID({name, source}): string;
+function geneID(...args): string {
+  if (typeof args[0] === "object") {
+    const id = args[0];
+    return geneID(id.name, id.source);
+  }
+  const [name, source] = args;
+  return `${name}:${source}`;
+}
 
 const adapter = createEntityAdapter<Gene>({
   selectId: (e) => geneID(e.name, e.source)
@@ -134,17 +143,30 @@ export const getFailed = createSelector(
   (state): GeneID[] => state.failed,
 );
 
+export const getUnloadedSelectedGeneIDs = createSelector(
+  getLoadState,
+  getSelectedGeneIDs,
+  (state, ids: GeneID[]): GeneID[] => {
+    const loadingIDs = new Set(state.loading.map(geneID));
+    const loadedIDs = new Set(state.loaded.map(geneID));
+    const unloadedIDs = ids.filter((id) => {
+        const idString = geneID(id);
+        return !loadingIDs.has(idString) && !loadedIDs.has(idString);
+      });
+    return unloadedIDs;
+  },
+);
+
 export const selectionComplete = createSelector(
   getLoadState,
   getSelectedGeneIDs,
   (state, ids: GeneID[]): boolean => {
-    const id2string = ({name, source}) => geneID(name, source);
-    const loadedIDs = state.loaded.map(id2string);
+    const loadedIDs = state.loaded.map(geneID);
     const loadedIDset = new Set(loadedIDs);
-    const failedIDs = state.failed.map(id2string);
+    const failedIDs = state.failed.map(geneID);
     const failedIDset = new Set(failedIDs);
     return ids
-      .map(id2string)
+      .map(geneID)
       .every((id) => loadedIDset.has(id) || failedIDset.has(id));
   },
 );

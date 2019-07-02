@@ -9,7 +9,16 @@ declare var Object: any;  // because TypeScript doesn't support Object.values
 
 export type ChromosomeID = {name: string, source: string};
 
-const chromosomeID = (name: string, source: string) => `${name}:${source}`;
+function chromosomeID(name: string, source: string): string;
+function chromosomeID({name, source}): string;
+function chromosomeID(...args): string {
+  if (typeof args[0] === "object") {
+    const id = args[0];
+    return chromosomeID(id.name, id.source);
+  }
+  const [name, source] = args;
+  return `${name}:${source}`;
+}
 
 const adapter = createEntityAdapter<Track>({
   selectId: (e) => chromosomeID(e.name, e.source)
@@ -172,6 +181,20 @@ export const getFailed = createSelector(
   (state): ChromosomeID[] => state.failed,
 );
 
+export const getUnloadedSelectedChromosomeIDs = createSelector(
+  getLoadState,
+  getSelectedChromosomeIDs,
+  (state, ids: ChromosomeID[]): ChromosomeID[] => {
+    const loadingIDs = new Set(state.loading.map(chromosomeID));
+    const loadedIDs = new Set(state.loaded.map(chromosomeID));
+    const unloadedIDs = ids.filter((id) => {
+        const idString = chromosomeID(id);
+        return loadingIDs.has(idString) && !loadedIDs.has(idString);
+      });
+    return unloadedIDs;
+  },
+);
+
 export const selectionComplete = createSelector(
   fromGene.selectionComplete,
   getLoadState,
@@ -180,13 +203,12 @@ export const selectionComplete = createSelector(
     if (!genesComplete) {
       return false;
     }
-    const id2string = ({name, source}) => chromosomeID(name, source);
-    const loadedIDs = state.loaded.map(id2string);
+    const loadedIDs = state.loaded.map(chromosomeID);
     const loadedIDset = new Set(loadedIDs);
-    const failedIDs = state.failed.map(id2string);
+    const failedIDs = state.failed.map(chromosomeID);
     const failedIDset = new Set(failedIDs);
     return ids
-      .map(id2string)
+      .map(chromosomeID)
       .every((id) => loadedIDset.has(id) || failedIDset.has(id));
   },
 );

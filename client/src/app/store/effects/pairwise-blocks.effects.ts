@@ -27,8 +27,9 @@ export class PairwiseBlocksEffects {
     withLatestFrom(
       this.store.select(fromChromosome.getSelectedChromosomes),
       this.store.select(fromRouter.getMicroQueryParamSources)),
-    map(([params, chromosomes, sources]) => {
-      const actions: pairwiseBlocksActions.Actions[] = [];
+    switchMap(([params, chromosomes, sources]) => {
+      const clear = new pairwiseBlocksActions.Clear();
+      const actions: pairwiseBlocksActions.Actions[] = [clear];
       chromosomes.forEach((chromosome) => {
         sources.forEach((source) => {
           const payload = {params, chromosome, source};
@@ -36,8 +37,6 @@ export class PairwiseBlocksEffects {
           actions.push(action);
         });
       });
-      const clear = new pairwiseBlocksActions.Clear();
-      actions.unshift(clear);
       return actions;
     }),
   );

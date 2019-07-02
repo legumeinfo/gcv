@@ -25,8 +25,15 @@ chromosome: string, chromosomeSource: string) => {
   return `${reference}:${referenceSource}:${chromosome}:${chromosomeSource}`;
 };
 
-const partialPairwiseBlocksID = (reference: string, referenceSource: string,
-source: string) => {
+function partialPairwiseBlocksID(reference: string, referenceSource: string,
+source: string): string;
+function partialPairwiseBlocksID({reference, referenceSource, source}): string;
+function partialPairwiseBlocksID(...args): string {
+  if (typeof args[0] === "object") {
+    const id = args[0];
+    return partialPairwiseBlocksID(id.reference, id.referenceSource, id.source);
+  }
+  const [reference, referenceSource, source] = args;
   return `${reference}:${referenceSource}:${source}`;
 };
 
@@ -138,17 +145,17 @@ export const getSelectedPartialBlockIDs = createSelector(
   fromRouter.getMicroQueryParamSources,
   (state: State, ids: fromChromosome.ChromosomeID[], sources: string[]):
   PartialPairwiseBlocksID[] => {
-    const flatten = (arr) => [].concat(...arr);
-    const partialIDstrings = flatten(ids.map(({name, source}) => {
-        const id = `${name}:${source}:`;
-        return sources.map((s) => id+s);
-      }));
-    const partialBlockIDset = new Set(...partialIDstrings);
-    const partialIDs = Array.from(partialBlockIDset).map((id) => {
-        const [reference, referenceSource, source] = id.split(":");
-        return {reference, referenceSource, source};
-      });
-    return partialIDs;
+    const reducer = (accumulator, {name: reference, source: referenceSource}) =>
+      {
+        sources.forEach((source) => {
+          const partialID =
+            partialPairwiseBlocksID(reference, referenceSource, source);
+          accumulator[partialID] = {reference, referenceSource, source};
+        });
+        return accumulator;
+      };
+    const idMap = ids.reduce(reducer, {});
+    return Object.values(idMap);
   },
 );
 
@@ -165,7 +172,8 @@ export const getSelectedChromosomes = createSelector(
     const reducer = (accumulator, id) => {
         const [reference, referenceSource, chromosome, chromosomeSource] =
           id.split(":");
-        const partialID = `${reference}:${referenceSource}:${chromosomeSource}`;
+        const partialID = partialPairwiseBlocksID(reference, referenceSource,
+          chromosomeSource);
         if (partialBlockIDset.has(partialID)) {
           const blocks = state.entities[id];
           accumulator.push(blocks);
@@ -177,34 +185,43 @@ export const getSelectedChromosomes = createSelector(
   },
 );
 
-export const getLoading = createSelector(
+export const getLoadState = createSelector(
   getPairwiseBlocksState,
-  (state: State): PartialPairwiseBlocksID[] => state.loading,
+  // TODO: is there a way of addressing this upstream?
+  (state: State = initialState) => {
+    return {
+      failed: state.failed,
+      loading: state.loading,
+      loaded: state.loaded,
+    };
+  },
+);
+
+export const getLoading = createSelector(
+  getLoadState,
+  (state): PartialPairwiseBlocksID[] => state.loading,
 );
 
 export const getLoaded = createSelector(
-  getPairwiseBlocksState,
-  getSelectedPartialBlockIDs,
-  (state: State, ids: PartialPairwiseBlocksID[]): PartialPairwiseBlocksID[] => {
-    const partialIDs = [...state.ids].map((id: string) => {
-      const [reference, referenceSource, chromosome, chromosomeSource] =
-        id.split(":");
-      return partialPairwiseBlocksID(reference, referenceSource,
-        chromosomeSource); 
-      });
-    const entityIDs = new Set(partialIDs);
-    const loaded = ids.filter(({reference, referenceSource, source}) => {
-        const idString = partialPairwiseBlocksID(reference, referenceSource,
-          source);
-        return entityIDs.has(idString);
-      });
-    return Array.from(loaded);
+  getLoadState,
+  (state): PartialPairwiseBlocksID[] => {
+    const reducer = (accumulator, id) => {
+        const reference = id.reference;
+        const referenceSource = id.referenceSource;
+        const source = id.chromosomeSource;
+        const idString =
+          partialPairwiseBlocksID(reference, referenceSource, source);
+        accumulator[idString] = {reference, referenceSource, source};
+        return accumulator;
+      };
+    const idMap = state.loaded.reduce(reducer, {});
+    return Object.values(idMap);
   },
 );
 
 export const getFailed = createSelector(
-  getPairwiseBlocksState,
-  (state: State): PartialPairwiseBlocksID[] => state.failed,
+  getLoadState,
+  (state): PartialPairwiseBlocksID[] => state.failed,
 );
 
 /*
@@ -223,6 +240,20 @@ referenceSource: string, source: string) => createSelector(
   }
 );
 */
+
+export const getUnloadedSelectedPartialPairwiseBlocksIDs = createSelector(
+  getLoadState,
+  getSelectedPartialBlockIDs,
+  (state, ids: PartialPairwiseBlocksID[]): PartialPairwiseBlocksID[] => {
+    const loadingIDs = new Set(state.loading.map(partialPairwiseBlocksID));
+    const loadedIDs = new Set(state.loaded.map(partialPairwiseBlocksID));
+    const unloadedIDs = ids.filter((id) => {
+        const idString = partialPairwiseBlocksID(id);
+        return loadingIDs.has(idString) && !loadedIDs.has(idString);
+      });
+    return unloadedIDs;
+  },
+);
 
 export const hasPairwiseBlocks = (reference: string, referenceSource: string,
 chromosome: string, chromosomeSource) => createSelector(

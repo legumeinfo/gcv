@@ -30,7 +30,15 @@ export const getParams = createSelector(
 // TODO: get multi route genes too
 export const getRouteGenes = createSelector(
   getRouterState,
-  (route=initialState): {name: string, source: string}[] => {
+  (route): {name: string, source: string}[] => {
+    // TODO: can this be handled upstream?
+    if (route === undefined ||
+        route.state === undefined ||
+        route.state.params === undefined ||
+        route.state.params.gene === undefined ||
+        route.state.params.source === undefined) {
+      return [];
+    }
     const params = route.state.params;
     return [{name: params.gene, source: params.source}];
   },
