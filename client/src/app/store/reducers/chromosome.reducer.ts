@@ -172,7 +172,7 @@ export const getFailed = createSelector(
   (state): ChromosomeID[] => state.failed,
 );
 
-export const selectoinComplete = createSelector(
+export const selectionComplete = createSelector(
   fromGene.selectionComplete,
   getLoadState,
   getSelectedChromosomeIDs,
