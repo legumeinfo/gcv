@@ -1,5 +1,7 @@
 import { createEntityAdapter, EntityState } from "@ngrx/entity";
-import { createFeatureSelector, createSelector } from "@ngrx/store";
+import { createFeatureSelector, createSelector, select } from "@ngrx/store";
+import { pipe } from "rxjs";
+import { filter, map, withLatestFrom } from "rxjs/operators";
 import * as fromGene from "./gene.reducer";
 import * as fromRouter from "./router.store";
 import * as chromosomeActions from "../actions/chromosome.actions";
@@ -81,13 +83,6 @@ export function reducer(
 
 export const getChromosomeState = createFeatureSelector<State>("chromosome");
 
-// TODO: replace with entity selector
-// https://ngrx.io/guide/entity/adapter#entity-selectors
-export const getAll = createSelector(
-  getChromosomeState,
-  (state: State): Track[] => Object.values(state.entities),
-);
-
 // derive selected chromosome from Gene State
 export const getSelectedChromosomeIDs = createSelector(
   fromGene.getSelectedGenes,
@@ -155,65 +150,39 @@ export const getSelectedSlices = createSelector(
   }
 );
 
-export const getLoadState = createSelector(
-  getChromosomeState,
-  (state: State) => {
-    return {
-      failed: state.failed,
-      loading: state.loading,
-      loaded: state.loaded,
-    };
-  },
-);
-
-export const getLoading = createSelector(
-  getLoadState,
-  (state): ChromosomeID[] => state.loading,
-);
-
-export const getLoaded = createSelector(
-  getLoadState,
-  (state): ChromosomeID[] => state.loaded,
-);
-
-export const getFailed = createSelector(
-  getLoadState,
-  (state): ChromosomeID[] => state.failed,
-);
-
 export const getUnloadedSelectedChromosomeIDs = createSelector(
-  getLoadState,
+  getChromosomeState,
   getSelectedChromosomeIDs,
-  (state, ids: ChromosomeID[]): ChromosomeID[] => {
+  (state: State, ids: ChromosomeID[]): ChromosomeID[] => {
     const loadingIDs = new Set(state.loading.map(chromosomeID));
     const loadedIDs = new Set(state.loaded.map(chromosomeID));
     const unloadedIDs = ids.filter((id) => {
         const idString = chromosomeID(id);
-        return loadingIDs.has(idString) && !loadedIDs.has(idString);
+        return !loadingIDs.has(idString) && !loadedIDs.has(idString);
       });
     return unloadedIDs;
   },
 );
 
-export const selectionComplete = createSelector(
-  fromGene.selectionComplete,
-  getLoadState,
+const getChromosomeStateAndSelectedChromosomeIDs = createSelector(
+  getChromosomeState,
   getSelectedChromosomeIDs,
-  (genesComplete, state, ids: ChromosomeID[]): boolean => {
-    if (!genesComplete) {
-      return false;
-    }
+  (state: State, ids: ChromosomeID[]) => ({state, ids}),
+);
+
+// TODO: AND fromGene.selectedLoaded to output
+export const selectedLoaded = pipe(
+  select(getChromosomeStateAndSelectedChromosomeIDs),
+  map(({state, ids}) => {
     const loadedIDs = state.loaded.map(chromosomeID);
     const loadedIDset = new Set(loadedIDs);
     const failedIDs = state.failed.map(chromosomeID);
     const failedIDset = new Set(failedIDs);
+    const complete = ids
+      .map(chromosomeID)
+      .every((id) => loadedIDset.has(id) || failedIDset.has(id));
     return ids
       .map(chromosomeID)
       .every((id) => loadedIDset.has(id) || failedIDset.has(id));
-  },
-);
-
-export const hasChromosome = (name: string, source: string) => createSelector(
-  getChromosomeState,
-  (state: State): boolean => chromosomeID(name, source) in state.entities,
+  }),
 );

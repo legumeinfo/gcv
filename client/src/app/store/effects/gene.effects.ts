@@ -43,9 +43,7 @@ export class GeneEffects {
     // TODO: will the switchMap cancel in flight requests in a federated context?
     switchMap(({names, source}) => {
       return this.geneService.getGenes(names, source).pipe(
-        map((genes: Gene[]) => {
-          return new geneActions.GetSuccess({genes});
-        }),
+        map((genes: Gene[]) =>  new geneActions.GetSuccess({genes})),
         catchError((error) => of(new geneActions.GetFailure({names, source})))
       );
     })

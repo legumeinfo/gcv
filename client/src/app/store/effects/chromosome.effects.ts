@@ -25,7 +25,7 @@ export class ChromosomeEffects {
   getSelected$ = this.store
   .select(fromChromosome.getUnloadedSelectedChromosomeIDs).pipe(
     filter((ids) => ids.length > 0),
-    map((ids) => ids.map((id) => new chromosomeActions.Get(id))),
+    switchMap((ids) =>  ids.map((id) => new chromosomeActions.Get(id))),
   );
 
   // get chromosome via the chromosome service

@@ -132,13 +132,6 @@ export function reducer(
 
 export const getPairwiseBlocksState = createFeatureSelector<State>("pairwise-blocks");
 
-// TODO: replace with entity selector
-// https://ngrx.io/guide/entity/adapter#entity-selectors
-export const getAll = createSelector(
-  getPairwiseBlocksState,
-  (state: State): PairwiseBlocks[] => Object.values(state.entities),
-);
-
 export const getSelectedPartialBlockIDs = createSelector(
   getPairwiseBlocksState,
   fromChromosome.getSelectedChromosomeIDs,
@@ -185,66 +178,11 @@ export const getSelectedChromosomes = createSelector(
   },
 );
 
-export const getLoadState = createSelector(
-  getPairwiseBlocksState,
-  // TODO: is there a way of addressing this upstream?
-  (state: State = initialState) => {
-    return {
-      failed: state.failed,
-      loading: state.loading,
-      loaded: state.loaded,
-    };
-  },
-);
-
-export const getLoading = createSelector(
-  getLoadState,
-  (state): PartialPairwiseBlocksID[] => state.loading,
-);
-
-export const getLoaded = createSelector(
-  getLoadState,
-  (state): PartialPairwiseBlocksID[] => {
-    const reducer = (accumulator, id) => {
-        const reference = id.reference;
-        const referenceSource = id.referenceSource;
-        const source = id.chromosomeSource;
-        const idString =
-          partialPairwiseBlocksID(reference, referenceSource, source);
-        accumulator[idString] = {reference, referenceSource, source};
-        return accumulator;
-      };
-    const idMap = state.loaded.reduce(reducer, {});
-    return Object.values(idMap);
-  },
-);
-
-export const getFailed = createSelector(
-  getLoadState,
-  (state): PartialPairwiseBlocksID[] => state.failed,
-);
-
-/*
-export const hasPairwiseBlocksFromSource = (reference: string,
-referenceSource: string, source: string) => createSelector(
-  getPairwiseBlocksState,
-  (state: State): boolean => {
-    const id = partialPairwiseBlocksID(reference, referenceSource, source);
-    const ids = [...state.ids].map((id: string) => {
-        const [reference, referenceSource, chromosome, chromosomeSource] =
-          id.split(":");
-        const partialID = `${reference}:${referenceSource}:${chromosomeSource}`;
-        return partialID;
-      });
-    return ids.indexOf(id) > -1;
-  }
-);
-*/
-
 export const getUnloadedSelectedPartialPairwiseBlocksIDs = createSelector(
-  getLoadState,
+  getPairwiseBlocksState,
   getSelectedPartialBlockIDs,
-  (state, ids: PartialPairwiseBlocksID[]): PartialPairwiseBlocksID[] => {
+  // TODO: can initialState be handled upstream?
+  (state: State=initialState, ids: PartialPairwiseBlocksID[]): PartialPairwiseBlocksID[] => {
     const loadingIDs = new Set(state.loading.map(partialPairwiseBlocksID));
     const loadedIDs = new Set(state.loaded.map(partialPairwiseBlocksID));
     const unloadedIDs = ids.filter((id) => {
@@ -252,15 +190,5 @@ export const getUnloadedSelectedPartialPairwiseBlocksIDs = createSelector(
         return loadingIDs.has(idString) && !loadedIDs.has(idString);
       });
     return unloadedIDs;
-  },
-);
-
-export const hasPairwiseBlocks = (reference: string, referenceSource: string,
-chromosome: string, chromosomeSource) => createSelector(
-  getPairwiseBlocksState,
-  (state: State): boolean => {
-    const id = pairwiseBlocksID(reference, referenceSource, chromosome,
-      chromosomeSource);
-   return id in state.entities;
   },
 );

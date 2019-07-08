@@ -43,26 +43,25 @@ export class PairwiseBlocksEffects {
 
   // gets blocks for selected chromosomes from selected sources
   @Effect()
-  blocks4chromosomes$ = combineLatest(
+  getSelected = combineLatest(
     this.store.select(fromChromosome.getSelectedChromosomes),
     this.store.select(fromRouter.getMicroQueryParamSources),
-    this.store.select(fromPairwiseBlocks.getLoading),
-    this.store.select(fromPairwiseBlocks.getLoaded),
+    this.store.select(
+      fromPairwiseBlocks.getUnloadedSelectedPartialPairwiseBlocksIDs),
   ).pipe(
     withLatestFrom(this.store.select(fromRouter.getMacroBlockParams)),
     // TODO: will switchMap cancel the previous request as chromosomes are loaded?
-    switchMap(([[chromosomes, sources, loading, loaded], params]) => {
+    switchMap(([[chromosomes, sources, ids], params]) => {
       const join = (...args) => args.join(":");
       const id2string = (id) => {
           return join(id.reference, id.referenceSource, id.source);
         };
-      const loadingIDs = new Set(loading.map(id2string));
-      const loadedIDs = new Set(loaded.map(id2string));
+      const notLoaded = new Set(ids.map(id2string));
       const actions: pairwiseBlocksActions.Actions[] = [];
       chromosomes.forEach((chromosome) => {
         sources.forEach((source) => {
           const id = join(chromosome.name, chromosome.source, source);
-          if (!loadingIDs.has(id) && !loadedIDs.has(id)) {
+          if (notLoaded.has(id)) {
             const payload = {chromosome, params, source};
             const action = new pairwiseBlocksActions.Get(payload);
             actions.push(action);

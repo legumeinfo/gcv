@@ -1,5 +1,7 @@
 import { createEntityAdapter, EntityState } from "@ngrx/entity";
-import { createFeatureSelector, createSelector } from "@ngrx/store";
+import { createFeatureSelector, createSelector, select } from "@ngrx/store";
+import { pipe } from "rxjs";
+import { filter, map, withLatestFrom } from "rxjs/operators";
 import * as geneActions from "../actions/gene.actions";
 import * as fromRouter from "./router.store";
 import { Gene } from "../../models";
@@ -92,13 +94,6 @@ export function reducer(
 
 export const getGeneState = createFeatureSelector<State>("gene");
 
-// TODO: replace with entity selector
-// https://ngrx.io/guide/entity/adapter#entity-selectors
-export const getAll = createSelector(
-  getGeneState,
-  (state: State): Gene[] => Object.values(state.entities),
-);
-
 export const getSelectedGeneIDs = fromRouter.getRouteGenes;
 
 export const getSelectedGenes = createSelector(
@@ -117,36 +112,10 @@ export const getSelectedGenes = createSelector(
   },
 );
 
-export const getLoadState = createSelector(
-  getGeneState,
-  (state: State) => {
-    return {
-      failed: state.failed,
-      loading: state.loading,
-      loaded: state.loaded,
-    };
-  }
-);
-
-export const getLoading = createSelector(
-  getLoadState,
-  (state): GeneID[] => state.loading,
-);
-
-export const getLoaded = createSelector(
-  getLoadState,
-  (state): GeneID[] => state.loaded,
-);
-
-export const getFailed = createSelector(
-  getLoadState,
-  (state): GeneID[] => state.failed,
-);
-
 export const getUnloadedSelectedGeneIDs = createSelector(
-  getLoadState,
+  getGeneState,
   getSelectedGeneIDs,
-  (state, ids: GeneID[]): GeneID[] => {
+  (state: State, ids: GeneID[]): GeneID[] => {
     const loadingIDs = new Set(state.loading.map(geneID));
     const loadedIDs = new Set(state.loaded.map(geneID));
     const unloadedIDs = ids.filter((id) => {
@@ -157,21 +126,41 @@ export const getUnloadedSelectedGeneIDs = createSelector(
   },
 );
 
-export const selectionComplete = createSelector(
-  getLoadState,
+const getGeneStateAndSelectedGeneIDs = createSelector(
+  getGeneState,
   getSelectedGeneIDs,
-  (state, ids: GeneID[]): boolean => {
+  (state: State, ids: GeneID[]) => ({state, ids}),
+);
+
+export const getSelectedGenesAfterLoadComplete = pipe(
+  select(getGeneStateAndSelectedGeneIDs),
+  filter(({state, ids}) => {
     const loadedIDs = state.loaded.map(geneID);
     const loadedIDset = new Set(loadedIDs);
     const failedIDs = state.failed.map(geneID);
     const failedIDset = new Set(failedIDs);
+    const complete = ids
+      .map(geneID)
+      .every((id) => loadedIDset.has(id) || failedIDset.has(id));
     return ids
       .map(geneID)
       .every((id) => loadedIDset.has(id) || failedIDset.has(id));
-  },
+  }),
+  map(({state, ids}) => ids.map((id) => state.entities[geneID(id)])),
 );
 
-export const hasGene = (name: string, source: string) => createSelector(
-  getGeneState,
-  (state: State): boolean => geneID(name, source) in state.entities,
+export const selectedLoaded = pipe(
+  select(getGeneStateAndSelectedGeneIDs),
+  map(({state, ids}) => {
+    const loadedIDs = state.loaded.map(geneID);
+    const loadedIDset = new Set(loadedIDs);
+    const failedIDs = state.failed.map(geneID);
+    const failedIDset = new Set(failedIDs);
+    const complete = ids
+      .map(geneID)
+      .every((id) => loadedIDset.has(id) || failedIDset.has(id));
+    return ids
+      .map(geneID)
+      .every((id) => loadedIDset.has(id) || failedIDset.has(id));
+  }),
 );

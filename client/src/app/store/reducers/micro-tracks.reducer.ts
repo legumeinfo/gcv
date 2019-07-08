@@ -130,83 +130,56 @@ export const getSelectedMicroTracks = createSelector(
   }
 );
 
-export const getLoadState = createSelector(
-  getMicroTracksState,
-  (state) => {
-    return {
-      failed: state.failed,
-      loading: state.loading,
-      loaded: state.loaded,
-    };
-  }
-);
-
-export const getLoading = createSelector(
-  getLoadState,
-  (state): string[] => state.loading,
-);
-
-export const getLoaded = createSelector(
-  getLoadState,
-  (state): string[] => state.loaded,
-);
-
-export const getFailed = createSelector(
-  getLoadState,
-  (state): string[] => state.failed,
-);
-
-// selected micro tracks are just slices of the chromosome tracks
-export const selectionComplete = fromChromosome.selectionComplete;
+export const selectedLoaded = fromChromosome.selectedLoaded;
 
 // clusters micro tracks based on their families
 // TODO: update params to work with new clusterer
-export const getClusteredSelectedMicroTracks = createSelector(
-  getSelectedMicroTracks,
-  fromRouter.getMicroClusteringParams,
-  selectionComplete,
-  (tracks: Track[], params: ClusteringParams, ready: boolean):
-  (Track | ClusterMixin)[] => {
-    if (!ready) {
-      return [];
-    }
-    const metric = (a: Track, b: Track): number => {
-        const f1 = a.families;
-        const f2 = b.families;
-        const f3 = [...f2].reverse();
-        const d1 = GCV.metrics.levenshtein(f1, f2);
-        const d2 = GCV.metrics.levenshtein(f1, f3);
-        return Math.min(d1, d2);
-      };
-    const clusters = clusterfck.hcluster(tracks, metric,
-      clusterfck.AVERAGE_LINKAGE, 10);
-    const recurrence = (cluster) => {
-        const elements = [];
-        if ("left" in cluster || "right" in cluster) {
-          if ("left" in cluster) {
-            elements.concat(recurrence(cluster["left"]));
-          }
-          if ("right" in cluster) {
-            elements.concat(recurrence(cluster["right"]));
-          }
-        } else {
-          elements.push(cluster["canonical"]);
-        }
-        return elements;
-      };
-    const mixin = (i) => {
-        return (t) => {
-          const t2 = Object.create(t);
-          t2.cluster = i;
-          return t2;
-        };
-      };
-    const reducer = (accumulator, cluster, i) => {
-        const clusterTracks = recurrence(cluster).map(mixin(i));
-        accumulator.concat(clusterTracks);
-        return accumulator;
-      };
-    const clusteredTracks = tracks.reduce(reducer, []);
-    return clusteredTracks;
-  }
-);
+//export const getClusteredSelectedMicroTracks = createSelector(
+//  getSelectedMicroTracks,
+//  fromRouter.getMicroClusteringParams,
+//  selectionComplete,
+//  (tracks: Track[], params: ClusteringParams, ready: boolean):
+//  (Track | ClusterMixin)[] => {
+//    if (!ready) {
+//      return [];
+//    }
+//    const metric = (a: Track, b: Track): number => {
+//        const f1 = a.families;
+//        const f2 = b.families;
+//        const f3 = [...f2].reverse();
+//        const d1 = GCV.metrics.levenshtein(f1, f2);
+//        const d2 = GCV.metrics.levenshtein(f1, f3);
+//        return Math.min(d1, d2);
+//      };
+//    const clusters = clusterfck.hcluster(tracks, metric,
+//      clusterfck.AVERAGE_LINKAGE, 10);
+//    const recurrence = (cluster) => {
+//        const elements = [];
+//        if ("left" in cluster || "right" in cluster) {
+//          if ("left" in cluster) {
+//            elements.concat(recurrence(cluster["left"]));
+//          }
+//          if ("right" in cluster) {
+//            elements.concat(recurrence(cluster["right"]));
+//          }
+//        } else {
+//          elements.push(cluster["canonical"]);
+//        }
+//        return elements;
+//      };
+//    const mixin = (i) => {
+//        return (t) => {
+//          const t2 = Object.create(t);
+//          t2.cluster = i;
+//          return t2;
+//        };
+//      };
+//    const reducer = (accumulator, cluster, i) => {
+//        const clusterTracks = recurrence(cluster).map(mixin(i));
+//        accumulator.concat(clusterTracks);
+//        return accumulator;
+//      };
+//    const clusteredTracks = tracks.reduce(reducer, []);
+//    return clusteredTracks;
+//  }
+//);
