@@ -178,3 +178,51 @@ export const getClusteredSelectedMicroTracks = createSelector(
     return clusteredTracks;
   }
 );
+
+// performs a multiple sequence alignment of the tracks in each cluster and
+// outputs the aligned tracks and their consensus sequence
+export const getClusteredAndAlignedSelectedMicroTracks = createSelector(
+  getClusteredSelectedMicroTracks,
+  (tracks: (Track | ClusterMixin)[]) => {
+    // group tracks by cluster
+    const clusterer = (accumulator, track) => {
+        if (!(track.cluster in accumulator)) {
+          accumulator[track.cluster] = [];
+        }
+        accumulator[track.cluster].push(track);
+        return accumulator;
+      };
+    const clusters = tracks.reduce(clusterer, {});
+    // multiple align each cluster's tracks
+    const aligner = (accumulator, [i, tracks]) => {
+        // prepare the data
+        const trackFamilies = tracks.map((t) => t.families);
+        const l = trackFamilies[0].length;
+        const flattenedTracks = [].concat.apply([], trackFamilies);
+        const characters = new Set(flattenedTracks);
+        const omit = new Set();
+        // construct and train the model
+        const hmm = new GCV.graph.MSAHMM(l, characters);
+        hmm.train(trackFamilies, {reverse: true, omit, surgery: true});
+        // align the tracks
+        const alignments = trackFamilies.map((f) => hmm.align(f));
+        const mixin = (t, i) => {
+            const t2 = Object.create(t);
+            t2.alignment = alignments[i];
+            return t2;
+          };
+        const alignedTracks = tracks.map(mixin);
+        const consensus = hmm.consensus();
+        accumulator.consensuses[i] = hmm.consensus();
+        accumulator.tracks.push(...alignedTracks);
+        return accumulator;
+      };
+    const clusteredAlignments = {
+        consensuses: new Array(Object.keys(clusters).length),
+        tracks: []
+      };
+    const alignedClusters =
+      Object.entries(clusters).reduce(aligner, clusteredAlignments);
+    return clusteredAlignments;
+  },
+);
