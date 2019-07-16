@@ -1473,3 +1473,202 @@ def v2_pairwise_blocks(request):
             content_type='application/json; charset=utf8'
         )
     return HttpResponseBadRequest()
+
+
+# returns similar contexts to the families provided
+@csrf_exempt
+@ensure_nocache
+def v2_micro_synteny_search(request):
+    # parse the POST data (Angular puts it in the request body)
+    POST = json.loads(request.body)
+
+    # make sure the request type is POST and that it contains a query (families)
+    if request.method == 'POST' and 'query' in POST and 'matched' in POST and \
+    'intermediate' in POST:
+
+        ###############################
+        # begin - function parameters #
+        ###############################
+
+        # how many matched_families should there be?
+        num_matched_families = POST['matched']
+        try:
+            num_matched_families = float(num_matched_families)
+            if num_matched_families <= 0:
+                raise ValueError("matched can't be negative")
+        except:
+            return HttpResponseBadRequest()
+        # the number of non query family genes tolerated between each pair of
+        # family genes
+        non_family = POST['intermediate']
+        try:
+            non_family = float(non_family)
+            if non_family < 0:
+                raise ValueError("intermediate can't be negative")
+        except:
+            return HttpResponseBadRequest()
+        # the number of non query family genes tolerated between each pair of
+        # get the gene family type
+        gene_family_type = list(
+            Cvterm.objects.only('pk').filter(name='gene family')
+        )
+        if len(gene_family_type) == 0:
+            raise Http404
+        gene_family_type = gene_family_type[0]
+
+        ##################
+        # begin - search #
+        ##################
+
+        # find all genes with the same families (excluding the query genes)
+        # huge loss of power here - should use some kind of indexed lookup instead
+        # of the value field
+        family_ids = POST['query']
+        related_genes = list(GeneFamilyAssignment.objects.only(
+            'gene_id',
+            'family_label'
+        ).filter(family_label__in=family_ids))
+        gene_family_map = dict((o.gene_id, o.family_label) for o in related_genes)
+
+        # get the orders (and chromosomes) of the genes
+        related_orders = list(GeneOrder.objects.only(
+            'gene_id',
+            'number',
+            'chromosome_id'
+        ).filter(gene__in=gene_family_map.keys()))
+        gene_order_map = dict((o.gene_id, o.number) for o in related_orders)
+        # group the genes by their chromosomes
+        chromosome_genes_map = {}
+        for o in related_orders:
+            if o.chromosome_id in chromosome_genes_map:
+                chromosome_genes_map[o.chromosome_id].append(o.gene_id)
+            else:
+                chromosome_genes_map[o.chromosome_id] = [o.gene_id]
+
+        # fetch all the chromosome names (organism_id and pk are implicit)
+        chromosomes = Feature.objects.only('organism_id', 'name')\
+            .filter(pk__in=chromosome_genes_map.keys())
+        id_chromosome_map = dict((o.pk, o) for o in chromosomes)
+
+        # fetch the chromosome organisms
+        organism_ids = chromosomes.values_list('organism_id', flat=True)
+        organisms = list(Organism.objects.only('genus', 'species')\
+            .filter(pk__in=organism_ids))
+        id_organism_map = dict((o.pk, o) for o in organisms)
+
+        # construct tracks for each chromosome
+        tracks = {}
+        gene_queries = []
+        for chromosome_id, genes in chromosome_genes_map.iteritems():
+            if len(genes) < 2:
+                continue
+            # put the genes in order
+            genes.sort(key=lambda g: gene_order_map[g])
+            # find all disjoint subsets of the genes where all sequential genes in
+            # the set are separated by no more than non_family non-query-family
+            # genes
+            block = [0]
+            matched_families = set([gene_family_map[genes[0]]])
+            # traverse the genes in the order they appear on the chromosome
+            for i in range(1, len(genes)):
+                g = genes[i]
+                # add the gene to the current block if it meets the non query family
+                # criteria
+                gap_size = float(gene_order_map[g]-gene_order_map[genes[block[-1]]]-1)
+                if (non_family < 1 and gap_size/len(family_ids) <= non_family) or \
+                (non_family >= 1 and gap_size <= non_family):
+                    matched_families.add(gene_family_map[g])
+                    block.append(i)
+                # otherwise, generate a track from the block and start a new block
+                num_matched = float(len(matched_families))
+                if (non_family < 1 and gap_size/len(family_ids) > non_family) or \
+                (non_family >= 1 and gap_size > non_family) or i == len(genes)-1:
+                    # generate a track from the block
+                    if (num_matched_families < 1 and \
+                    num_matched/len(family_ids) >= num_matched_families) or \
+                    (num_matched_families >= 1 and \
+                    num_matched >= num_matched_families):
+                        # get all the gene ids
+                        tracks[
+                            (chromosome_id, gene_order_map[genes[block[0]]],
+                            gene_order_map[genes[block[-1]]])
+                        ] = []
+                        gene_queries.append(
+                            Q(chromosome=chromosome_id,
+                              number__gte=gene_order_map[genes[block[0]]],
+                              number__lte=gene_order_map[genes[block[-1]]])
+                        )
+                    # start the next block
+                    block = [i]
+                    matched_families = set([gene_family_map[g]])
+
+        # are there any queries to operate on?
+        if len(gene_queries) != 0:
+            # get the track genes
+            gene_pool = list(GeneOrder.objects\
+                .filter(reduce(operator.or_, gene_queries)))
+            gene_ids = map(lambda x: x.gene_id, gene_pool)
+
+            # get the track gene families
+            track_gene_families = list(GeneFamilyAssignment.objects.only(
+                'gene_id',
+                'family_label'
+            ).filter(gene_id__in=gene_ids))
+            track_family_map = dict(
+                (o.gene_id, o.family_label) for o in track_gene_families
+            )
+
+            # make sure all families are present in the json
+            for f in track_family_map.values():
+                if f not in family_ids:
+                    family_ids.append(f)
+
+            # get all the gene names
+            gene_names = list(Feature.objects.only('name').filter(pk__in=gene_ids))
+            gene_name_map = dict((o.pk, o.name) for o in gene_names)
+
+            # construct a list of genes for each track
+            for key in tracks.keys():
+                chromosome_id, lower_bound, upper_bound = key
+                for o in gene_pool:
+                    if o.chromosome_id == chromosome_id and o.number >= lower_bound\
+                    and o.number <= upper_bound:
+                        tracks[key].append(o)
+                tracks[key] = map(
+                    lambda x: x.gene_id,
+                    sorted(tracks[key], key=lambda o: o.number)
+                )
+
+        # jsonify the tracks... that's right, jsonify
+        groups = []
+        for key in tracks.keys():
+            chromosome_id, lower_order, upper_order = key
+            o = id_organism_map[id_chromosome_map[chromosome_id].organism_id]
+            group = {
+              "genus": o.genus,
+              "species": o.species,
+              "name": id_chromosome_map[chromosome_id].name,
+              "families": [],
+              "genes": []
+            }
+            for g in tracks[key]:
+                family = track_family_map[g] if g in track_family_map else ''
+                group["families"].append(family)
+                group["genes"].append(gene_name_map[g])
+            groups.append(group)
+            # prepare for the next track
+
+        ################
+        # begin - json #
+        ################
+
+        # make the json
+        view_json = {
+          "tracks": groups
+        }
+
+        return HttpResponse(
+            json.dumps(view_json),
+            content_type='application/json; charset=utf8'
+        )
+    return HttpResponseBadRequest()
