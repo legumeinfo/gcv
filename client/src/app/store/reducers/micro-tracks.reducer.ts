@@ -21,16 +21,17 @@ const microTrackID = (startGene: string, stopGene: string, source: string) => {
   return `${startGene}:${stopGene}:${source}`;
 };
 
-const adapter = createEntityAdapter<Track>({
+const adapter = createEntityAdapter<(Track | ClusterMixin)>({
   selectId: (e) => {
-    const startGene = e.genes[0];
-    const stopGene = e.genes[e.genes.length-1];
-    return microTrackID(startGene, stopGene, e.source);
+    const track = e as Track;
+    const startGene = track.genes[0];
+    const stopGene = track.genes[track.genes.length-1];
+    return microTrackID(startGene, stopGene, track.source);
   }
 });
 
 // TODO: is loaded even necessary or can it be derived from entity ids?
-export interface State extends EntityState<Track> {
+export interface State extends EntityState<(Track | ClusterMixin)> {
   failed: string[];  // TODO: include group from clustering
   loaded: string[];  // ditto
   loading: string[];  // ditto

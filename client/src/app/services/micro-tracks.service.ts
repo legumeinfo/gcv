@@ -12,7 +12,7 @@ import * as fromRouter from "../store/reducers/router.store";
 import * as fromSearchQueryTrack from "../store/reducers/search-query-track.store";
 // app
 import { AppConfig } from "../app.config";
-import { Group, MicroTracks, QueryParams } from "../models";
+import { Group, MicroTracks, QueryParams, Track } from "../models";
 import { PointMixin } from "../models/mixins";
 import { HttpService } from "./http.service";
 
@@ -33,40 +33,16 @@ export class MicroTracksService extends HttpService {
     this.routeParams = store.select(fromRouter.getParams);
   }
 
-  // fetches multi tracks for the given genes from the given source
-  getMultiTracks(genes: string[], neighbors: number, serverID: string): Observable<MicroTracks> {
-    const body = {genes, neighbors};
-    return this._makeRequest<MicroTracks<{}, {}, PointMixin>>(serverID, "microMulti", body).pipe(
-      map((tracks) => {
-        this._mergeOverlappingTracks(tracks);
-        this._parseTracks(serverID, tracks);
+  microTracksSearch(families: string[], params: QueryParams, serverID: string):
+  Observable<Track[]> {
+    const body = {
+      intermediate: String(params.intermediate),
+      matched: String(params.matched),
+      query: families,
+    };
+    return this._makeRequest<{tracks: Track[]}>(serverID, "microSearch", body).pipe(
+      map(({tracks}) => {
         return tracks;
-      }),
-      catchError((error) => throwError(error)),
-    )
-  }
-
-  // gets a macro tracks for each server provided
-  getFederatedMultiTracks(
-    query: string[],
-    neighbors: number,
-    serverIDs: string[],
-  ): Observable<[string, MicroTracks]> {
-    return merge(onErrorResumeNext(...serverIDs.map((serverID) => {
-      return this.getMultiTracks(query, neighbors, serverID).pipe(
-        map((tracks): [string, MicroTracks] => [serverID, tracks]),
-        catchError((error) => throwError([serverID, error])),
-      );
-    })));
-  }
-
-  // fetches a query track for the given gene from the given source
-  getQueryTrack(gene: string, neighbors: number, serverID: string): Observable<Group> {
-    const body = {gene, neighbors: String(neighbors)};
-    return this._makeRequest<Group<PointMixin>>(serverID, "microQuery", body).pipe(
-      map((track) => {
-        this._parseTrack(serverID, track);
-        return track;
       }),
       catchError((error) => throwError(error)),
     );
@@ -88,37 +64,6 @@ export class MicroTracksService extends HttpService {
       }),
       catchError((error) => throwError(error)),
     );
-  }
-
-  // performs a micro track search for each server provided
-  getFederatedSearchTracks(
-    query: Group,
-    params: QueryParams,
-    serverIDs: string[]
-  ): Observable<[string, MicroTracks]> {
-    return merge(onErrorResumeNext(...serverIDs.map((serverID) => {
-      return this.getSearchTracks(query, params, serverID).pipe(
-        map((tracks): [string, MicroTracks] => [serverID, tracks]),
-        catchError((error) => throwError([serverID, error])),
-      );
-    })));
-  }
-
-  // takes a span for a specific chromosome and retrieves the relevant search
-  // (query gene and neighbors)
-  getSearchFromSpan(
-    chromosome: string,
-    begin: number,
-    end: number,
-    serverID: string):
-  Observable<{gene: string, neighbors: number}> {
-    const body = {
-      chromosome,
-      begin: String(begin),
-      end: String(end),
-    };
-    return this._makeRequest<{gene: string, neighbors: number}>(serverID, "spanToSearch", body)
-      .pipe(catchError((error) => throwError(error)));
   }
 
   updateParams(params: QueryParams): void {

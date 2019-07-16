@@ -1,5 +1,6 @@
 import { Action } from "@ngrx/store";
 import { Track, QueryParams } from "../../models";
+import { ClusterMixin } from "../../models/mixins";
 
 export const CLEAR = "[MICRO_TRACKS] CLEAR";
 export const SEARCH = "[MICRO_TRACKS] SEARCH";
@@ -12,18 +13,20 @@ export class Clear implements Action {
 
 export class Search implements Action {
   readonly type = SEARCH;
-  constructor(public payload: {families: string[], source: string,
-    params: QueryParams}) { }
+  constructor(public payload: {cluster: number, families: string[],
+    source: string, params: QueryParams}) { }
 }
 
 export class SearchSuccess implements Action {
   readonly type = SEARCH_SUCCESS;
-  constructor(public payload: {tracks: Track[], source: string}) { }
+  constructor(public payload: {cluster: number, tracks: (Track | ClusterMixin)[],
+    source: string}) { }
 }
 
 export class SearchFailure implements Action {
   readonly type = SEARCH_FAILURE;
-  constructor(public payload: {families: string[], source: string}) { }
+  constructor(public payload: {cluster: number, families: string[],
+    source: string}) { }
 }
 
 export type Actions = Clear | Search | SearchSuccess | SearchFailure;

@@ -1,15 +1,9 @@
 import { Action } from "@ngrx/store";
 import { Track } from "../../models";
 
-//export const SELECT = "[CHROMOSOME] SELECT";
 export const GET = "[CHROMOSOME] GET";
 export const GET_SUCCESS = "[CHROMOSOME] GET_SUCCESS";
 export const GET_FAILURE = "[CHROMOSOME] GET_FAILURE";
-
-//export class Select implements Action {
-//  readonly type = SELECT;
-//  constructor(public payload: {chromosomes: {name: string, source: string}[]}) { }
-//}
 
 export class Get implements Action {
   readonly type = GET;
