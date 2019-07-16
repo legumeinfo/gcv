@@ -7,9 +7,16 @@ import { GCV } from "../../../assets/js/gcv";
   selector: "micro",
   styles: [],
   template: `
-    <div #container>
-    micro-synteny viewer
-    <a class="btn btn-primary" (click)="spawnPlot()">Plot</a>
+    <div class="row no-gutters h-100 overflow-hidden">
+      <div class="col-md-auto card-col-left border-right" gcvSidebar #macroParams="sidebar">
+        parameters
+      </div>
+      <div class="col card-col">
+        micro viewer
+      </div>
+      <div class="col-md-auto card-col-right border-left" gcvSidebar #macroLegend="sidebar">
+        macro legend
+      </div>
     </div>
   `,
 })

@@ -8,7 +8,6 @@ import { Store } from "@ngrx/store";
 import * as routerActions from "../store/actions/router.actions";
 import * as fromRoot from "../store/reducers";
 import * as fromMacroChromosome from "../store/reducers/macro-chromosome.store";
-import * as fromMicroTracks from "../store/reducers/micro-tracks.store";
 import * as fromRouter from "../store/reducers/router.store";
 import * as fromSearchQueryTrack from "../store/reducers/search-query-track.store";
 // app
@@ -27,7 +26,7 @@ export class MicroTracksService extends HttpService {
   constructor(private _http: HttpClient, private store: Store<fromRoot.State>) {
     super(_http);
     // initialize observables
-    this.microTracks = store.select(fromMicroTracks.getMicroTracks);
+    //this.microTracks = store.select(fromMicroTracks.getMicroTracks);
     this.queryParams = store.select(fromRouter.getMicroQueryParams);
     this.searchQueryTrack = store.select(fromSearchQueryTrack.getSearchQueryTrack)
       .pipe(filter((queryTrack) => queryTrack !== undefined));
@@ -184,25 +183,25 @@ export class MicroTracksService extends HttpService {
   // merges all the groups in the given array into a single group
   private _mergeTracks(toMerge: Group[]): Group {
     const merged: Group = Object.assign({}, toMerge[0]);
-    merged.genes = toMerge[0].genes.slice();
-    const seen = new Set(merged.genes.map((g) => g.id));
-    for (let i = 1; i < toMerge.length; i++) {
-      for (const g of toMerge[i].genes) {
-        if (!seen.has(g.id)) {
-          seen.add(g.id);
-          merged.genes.push(g);
-        }
-      }
-    }
+    //merged.genes = toMerge[0].genes.slice();
+    //const seen = new Set(merged.genes.map((g) => g.id));
+    //for (let i = 1; i < toMerge.length; i++) {
+    //  for (const g of toMerge[i].genes) {
+    //    if (!seen.has(g.id)) {
+    //      seen.add(g.id);
+    //      merged.genes.push(g);
+    //    }
+    //  }
+    //}
     return merged;
   }
 
   // removes the query from given MicroTracks if present
   private _removeQuery(query: Group, tracks: MicroTracks): void {
-    const genes = new Set(query.genes.map((g) => g.id));
-    tracks.groups = tracks.groups.filter((group) => {
-      return !group.genes.some((g) => genes.has(g.id));
-    });
+    //const genes = new Set(query.genes.map((g) => g.id));
+    //tracks.groups = tracks.groups.filter((group) => {
+    //  return !group.genes.some((g) => genes.has(g.id));
+    //});
   }
 
   // updates the given MicroTracks set of tracks by combining overlapping tracks

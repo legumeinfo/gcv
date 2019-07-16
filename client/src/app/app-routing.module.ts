@@ -2,8 +2,15 @@
 import { NgModule } from "@angular/core";
 import { RouterModule, Routes } from "@angular/router";
 // app
-import { InstructionsComponent, MultiComponent, ReferenceComponent, SearchComponent } from "./components";
-import { DefaultSearchGuard, MultiGuard, SearchGuard, SpanSearchGuard } from "./guards";
+import { InstructionsComponent, MultiComponent, GeneComponent,
+  SearchComponent } from "./components";
+import { DefaultSearchGuard, MultiGuard, SearchGuard,
+  SpanSearchGuard } from "./guards";
+
+export enum Paths {
+  gene = "gene/:source/:gene",
+  multi = "multi/:genes",
+}
 
 const routes: Routes = [
   {
@@ -17,42 +24,40 @@ const routes: Routes = [
   },
   {
     canActivate: [DefaultSearchGuard],  // use guard to redirect to default server in AppConfig
-    path: "reference/:gene",
+    path: "gene/:gene",
     pathMatch: "full",
     component: SearchComponent,
   },
   {
-    canActivate: [SearchGuard],
-    canDeactivate: [SearchGuard],
-    component: ReferenceComponent,
-    path: "reference/:source/:gene",
+    component: GeneComponent,
+    path: Paths.gene,
   },
   {
     canActivate: [SpanSearchGuard],
     component: SearchComponent,
-    path: "reference/:source/:chromosome/:span",
+    path: "gene/:source/:chromosome/:span",
   },
   {
     canActivate: [MultiGuard],
     canDeactivate: [MultiGuard],
     component: MultiComponent,
-    path: "multi/:genes",
+    path: Paths.multi,
   },
   // legacy
   {
     path: "search/:gene",
     pathMatch: "full",
-    redirectTo: "reference/:gene",
+    redirectTo: "gene/:gene",
   },
   {
     path: "search/:source/:gene",
     pathMatch: "full",
-    redirectTo: "reference/:source/:gene",
+    redirectTo: "gene/:source/:gene",
   },
   {
     path: "search/:source/:chromosome/:span",
     pathMatch: "full",
-    redirectTo: "reference/:source/:chromosome/:span",
+    redirectTo: "gene/:source/:chromosome/:span",
   },
   {
     path: "basic/:genes",

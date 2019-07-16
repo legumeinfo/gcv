@@ -7,11 +7,11 @@ import { MicroComponent } from "./micro.component";
 import { PlotComponent } from "./plot.component";
 
 @Component({
-  selector: "reference",
-  styleUrls: ["./reference.component.scss"],
-  templateUrl: "./reference.component.html",
+  selector: "gene",
+  styleUrls: ["./gene.component.scss"],
+  templateUrl: "./gene.component.html",
 })
-export class ReferenceComponent {
+export class GeneComponent {
 
   @ViewChild(GoldenLayoutDirective) goldenLayoutDirective;
 

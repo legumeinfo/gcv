@@ -27,9 +27,28 @@ export const getParams = createSelector(
   (route) => route.state.params,
 );
 
+// TODO: get multi route genes too
+export const getRouteGenes = createSelector(
+  getRouterState,
+  (route): {name: string, source: string}[] => {
+    // TODO: can this be handled upstream?
+    if (route === undefined ||
+        route.state === undefined ||
+        route.state.params === undefined ||
+        route.state.params.gene === undefined ||
+        route.state.params.source === undefined) {
+      return [];
+    }
+    const params = route.state.params;
+    return [{name: params.gene, source: params.source}];
+  },
+);
+
 export const getSearchRoute = createSelector(
   getRouterState,
-  (route) => {
+  // TODO: "properly" set initial state
+  // https://github.com/ngrx/platform/issues/662
+  (route=initialState): {gene: string, source: string} => {
     const params = route.state.params;
     return {source: params.source, gene: params.gene};
   },
