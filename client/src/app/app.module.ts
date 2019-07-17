@@ -15,8 +15,6 @@ import { AlertComponent, MacroComponent, MicroComponent, PlotComponent }
 import * as fromDirectives from "./directives";
 // services
 import * as fromServices from "./services";
-// route guards
-import * as fromGuards from "./guards";
 // ngrx store
 import { RouterStateSerializer, StoreRouterConnectingModule } from "@ngrx/router-store";
 import { EffectsModule } from "@ngrx/effects";
@@ -48,7 +46,6 @@ import { CustomRouterStateSerializer } from "./utils";
       useFactory: (config: AppConfig) => () => config.load(),
     },
     ...fromServices.services,
-    ...fromGuards.guards,
   ],
   schemas: [ NO_ERRORS_SCHEMA ],
 })

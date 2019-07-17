@@ -4,8 +4,6 @@ import { RouterModule, Routes } from "@angular/router";
 // app
 import { InstructionsComponent, MultiComponent, GeneComponent,
   SearchComponent } from "./components";
-import { DefaultSearchGuard, MultiGuard, SearchGuard,
-  SpanSearchGuard } from "./guards";
 
 export enum Paths {
   gene = "gene/:source/:gene",
@@ -23,7 +21,6 @@ const routes: Routes = [
     path: "instructions",
   },
   {
-    canActivate: [DefaultSearchGuard],  // use guard to redirect to default server in AppConfig
     path: "gene/:gene",
     pathMatch: "full",
     component: SearchComponent,
@@ -33,13 +30,10 @@ const routes: Routes = [
     path: Paths.gene,
   },
   {
-    canActivate: [SpanSearchGuard],
     component: SearchComponent,
     path: "gene/:source/:chromosome/:span",
   },
   {
-    canActivate: [MultiGuard],
-    canDeactivate: [MultiGuard],
     component: MultiComponent,
     path: Paths.multi,
   },
