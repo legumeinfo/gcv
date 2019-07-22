@@ -1,15 +1,16 @@
 // Angular
 import { HttpClient } from "@angular/common/http";
 import { Injectable } from "@angular/core";
-import { Observable, combineLatest, merge, onErrorResumeNext, throwError } from "rxjs";
+import { Observable, combineLatest, empty, merge, onErrorResumeNext,
+  throwError } from "rxjs";
 import { catchError, filter, map, take } from "rxjs/operators";
 // store
 import { Store } from "@ngrx/store";
 import * as routerActions from "../store/actions/router.actions";
 import * as fromRoot from "../store/reducers";
-import * as fromMacroChromosome from "../store/reducers/macro-chromosome.store";
-import * as fromRouter from "../store/reducers/router.store";
-import * as fromSearchQueryTrack from "../store/reducers/search-query-track.store";
+//import * as fromMacroChromosome from "../store/reducers/macro-chromosome.store";
+import * as fromRouter from "../store/reducers/router.reducer";
+//import * as fromSearchQueryTrack from "../store/reducers/search-query-track.store";
 // app
 import { AppConfig } from "../app.config";
 import { Group, MicroTracks, QueryParams, Track } from "../models";
@@ -28,8 +29,8 @@ export class MicroTracksService extends HttpService {
     // initialize observables
     //this.microTracks = store.select(fromMicroTracks.getMicroTracks);
     this.queryParams = store.select(fromRouter.getMicroQueryParams);
-    this.searchQueryTrack = store.select(fromSearchQueryTrack.getSearchQueryTrack)
-      .pipe(filter((queryTrack) => queryTrack !== undefined));
+    //this.searchQueryTrack = store.select(fromSearchQueryTrack.getSearchQueryTrack)
+    //  .pipe(filter((queryTrack) => queryTrack !== undefined));
     this.routeParams = store.select(fromRouter.getParams);
   }
 
@@ -73,27 +74,28 @@ export class MicroTracksService extends HttpService {
   }
 
   scroll(step: number): Observable<any> {
-    return Observable.create((observer) => {
-      combineLatest(
-        this.routeParams,
-        this.store.select(fromMacroChromosome.getMacroChromosome))
-      .pipe(take(1))
-      .subscribe(([route, chromosome]) => {
-        if (route.gene !== undefined) {
-          const i = chromosome.genes.indexOf(route.gene);
-          if (i > -1 && i + step >= 0 && i + step < chromosome.genes.length) {
-            const gene = chromosome.genes[i + step];
-            const path = ["search", route.source, gene];
-            this.store.dispatch(new routerActions.Go({path}));
-          } else {
-            observer.error(new Error("Cannot compute target focus gene"));
-          }
-        } else {
-          observer.error(new Error("Cannot scroll at this time"));
-        }
-        observer.complete();
-      });
-    });
+    //return Observable.create((observer) => {
+    //  combineLatest(
+    //    this.routeParams,
+    //    this.store.select(fromMacroChromosome.getMacroChromosome))
+    //  .pipe(take(1))
+    //  .subscribe(([route, chromosome]) => {
+    //    if (route.gene !== undefined) {
+    //      const i = chromosome.genes.indexOf(route.gene);
+    //      if (i > -1 && i + step >= 0 && i + step < chromosome.genes.length) {
+    //        const gene = chromosome.genes[i + step];
+    //        const path = ["search", route.source, gene];
+    //        this.store.dispatch(new routerActions.Go({path}));
+    //      } else {
+    //        observer.error(new Error("Cannot compute target focus gene"));
+    //      }
+    //    } else {
+    //      observer.error(new Error("Cannot scroll at this time"));
+    //    }
+    //    observer.complete();
+    //  });
+    //});
+    return empty();
   }
 
   spanSearch(chromosome: string, low: number, high: number): void {

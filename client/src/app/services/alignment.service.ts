@@ -5,8 +5,8 @@ import { Observable } from "rxjs";
 import { Store } from "@ngrx/store";
 import * as routerActions from "../store/actions/router.actions";
 import * as fromRoot from "../store/reducers";
-import * as fromAlignedMicroTracks from "../store/reducers/aligned-micro-tracks.store";
-import * as fromRouter from "../store/reducers/router.store";
+//import * as fromAlignedMicroTracks from "../store/reducers/aligned-micro-tracks.store";
+import * as fromRouter from "../store/reducers/router.reducer";
 // app
 import { GCV } from "../../assets/js/gcv";
 import { ALIGNMENT_ALGORITHMS } from "../algorithms";
@@ -23,7 +23,7 @@ export class AlignmentService {
 
   constructor(private store: Store<fromRoot.State>) {
     // initialize observables
-    this.alignedMicroTracks = this.store.select(fromAlignedMicroTracks.getAlignedMicroTracks);
+    //this.alignedMicroTracks = this.store.select(fromAlignedMicroTracks.getAlignedMicroTracks);
     this.alignmentParams = this.store.select(fromRouter.getMicroAlignmentParams);
   }
 

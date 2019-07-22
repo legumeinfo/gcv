@@ -11,7 +11,7 @@ import { createEntityAdapter, EntityState } from "@ngrx/entity";
 import { createFeatureSelector, createSelector } from "@ngrx/store";
 // stpre
 import * as fromChromosome from "./chromosome.reducer";
-import * as fromRouter from "./router.store";
+import * as fromRouter from "./router.reducer";
 import * as pairwiseBlocksActions from "../actions/pairwise-blocks.actions";
 // app
 import { PairwiseBlocks } from "../../models";

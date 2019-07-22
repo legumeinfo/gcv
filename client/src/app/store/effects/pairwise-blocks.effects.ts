@@ -10,7 +10,7 @@ import * as pairwiseBlocksActions from "../actions/pairwise-blocks.actions";
 import * as fromRoot from "../reducers";
 import * as fromChromosome from "../reducers/chromosome.reducer";
 import * as fromPairwiseBlocks from "../reducers/pairwise-blocks.reducer";
-import * as fromRouter from "../reducers/router.store";
+import * as fromRouter from "../reducers/router.reducer";
 // app
 import { PairwiseBlocksService } from "../../services";
 

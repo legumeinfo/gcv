@@ -11,7 +11,7 @@ import { pipe } from "rxjs";
 import { filter, map, withLatestFrom } from "rxjs/operators";
 // store
 import * as geneActions from "../actions/gene.actions";
-import * as fromRouter from "./router.store";
+import * as fromRouter from "./router.reducer";
 // app
 import { Gene } from "../../models";
 

@@ -7,10 +7,10 @@ import { catchError, filter, map } from "rxjs/operators";
 import { Store } from "@ngrx/store";
 import * as routerActions from "../store/actions/router.actions";
 import * as fromRoot from "../store/reducers";
-import * as fromMacroChromosome from "../store/reducers/macro-chromosome.store";
-import * as fromMacroTracks from "../store/reducers/macro-tracks.store";
-import * as fromMultiMacroTracks from "../store/reducers/multi-macro-tracks.store";
-import * as fromRouter from "../store/reducers/router.store";
+//import * as fromMacroChromosome from "../store/reducers/macro-chromosome.store";
+//import * as fromMacroTracks from "../store/reducers/macro-tracks.store";
+//import * as fromMultiMacroTracks from "../store/reducers/multi-macro-tracks.store";
+import * as fromRouter from "../store/reducers/router.reducer";
 // app
 import { BlockParams, MacroChromosome, MacroTrack, MacroTracks } from "../models";
 import { HttpService } from "./http.service";
@@ -30,12 +30,12 @@ export class MacroTracksService extends HttpService {
     super(_http);
     // initialize observables
     this.blockParams = store.select(fromRouter.getMacroBlockParams);
-    this.macroChromosome = store.select(fromMacroChromosome.getMacroChromosome);
-    this.macroTracks = store.select(fromMacroTracks.getMacroTracks);
-    this.multiMacroTracks = store.select(fromMultiMacroTracks.getMultiMacroTracks);
+    //this.macroChromosome = store.select(fromMacroChromosome.getMacroChromosome);
+    //this.macroTracks = store.select(fromMacroTracks.getMacroTracks);
+    //this.multiMacroTracks = store.select(fromMultiMacroTracks.getMultiMacroTracks);
     this.searchRoute = store.select(fromRouter.getSearchRoute);
-    this.macroChromosomeLoadState = store.select(fromMacroChromosome.getMacroChromosomeLoadState);
-    this.macroTracksLoadState = store.select(fromMacroTracks.getMacroTracksLoadState);
+    //this.macroChromosomeLoadState = store.select(fromMacroChromosome.getMacroChromosomeLoadState);
+    //this.macroTracksLoadState = store.select(fromMacroTracks.getMacroTracksLoadState);
   }
 
   getChromosome(chromosome: string, serverID: string): Observable<MacroChromosome> {

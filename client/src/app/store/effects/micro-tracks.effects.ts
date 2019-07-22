@@ -4,7 +4,7 @@ import { Injectable } from "@angular/core";
 import { Action, Store } from "@ngrx/store";
 import * as fromRoot from "../reducers";
 import * as fromMicroTracks from "../reducers/micro-tracks.reducer";
-import * as fromRouter from "../reducers/router.store";
+import * as fromRouter from "../reducers/router.reducer";
 import { Effect, Actions, ofType } from "@ngrx/effects";
 import { combineLatest, of } from "rxjs";
 import { catchError, map, switchMap, withLatestFrom } from "rxjs/operators";

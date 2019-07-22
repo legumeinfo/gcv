@@ -6,7 +6,7 @@ import { filter } from "rxjs/operators";
 import { Store } from "@ngrx/store";
 import * as routerActions from "../store/actions/router.actions";
 import * as fromRoot from "../store/reducers";
-import * as fromRouter from "../store/reducers/router.store";
+import * as fromRouter from "../store/reducers/router.reducer";
 // app
 import { ORDER_ALGORITHMS } from "../algorithms";
 import { Algorithm } from "../models";

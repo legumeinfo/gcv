@@ -5,8 +5,8 @@ import { Observable } from "rxjs";
 import { Store } from "@ngrx/store";
 import * as routerActions from "../store/actions/router.actions";
 import * as fromRoot from "../store/reducers";
-import * as fromClusteredMicroTracks from "../store/reducers/clustered-micro-tracks.store";
-import * as fromRouter from "../store/reducers/router.store";
+//import * as fromClusteredMicroTracks from "../store/reducers/clustered-micro-tracks.store";
+import * as fromRouter from "../store/reducers/router.reducer";
 // app
 import { GCV } from "../../assets/js/gcv";
 import { ClusteringParams, MicroTracks } from "../models";
@@ -19,7 +19,7 @@ export class ClusteringService {
 
   constructor(private store: Store<fromRoot.State>) {
     // initialize observables
-    this.clusteredMicroTracks = this.store.select(fromClusteredMicroTracks.getClusteredMicroTracks);
+    //this.clusteredMicroTracks = this.store.select(fromClusteredMicroTracks.getClusteredMicroTracks);
     this.clusteringParams = this.store.select(fromRouter.getMicroClusteringParams);
   }
 

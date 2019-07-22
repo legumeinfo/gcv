@@ -26,7 +26,7 @@ import { createFeatureSelector, createSelector } from "@ngrx/store";
 // store
 import * as fromChromosome from "./chromosome.reducer";
 import * as fromGene from "./gene.reducer";
-import * as fromRouter from "./router.store";
+import * as fromRouter from "./router.reducer";
 import * as microTrackActions from "../actions/micro-tracks.actions";
 // app
 import * as clusterfck from "../../../assets/js/clusterfck";

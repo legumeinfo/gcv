@@ -8,8 +8,8 @@ import { Store } from "@ngrx/store";
 import * as globalPlotsActions from "../store/actions/global-plots.actions";
 import * as localPlotsActions from "../store/actions/local-plots.actions";
 import * as fromRoot from "../store/reducers";
-import * as fromGlobalPlots from "../store/reducers/global-plots.store";
-import * as fromLocalPlots from "../store/reducers/local-plots.store";
+//import * as fromGlobalPlots from "../store/reducers/global-plots.store";
+//import * as fromLocalPlots from "../store/reducers/local-plots.store";
 // app
 import { Gene, Group, MicroTracks } from "../models";
 import { HttpService } from "./http.service";
@@ -26,11 +26,11 @@ export class PlotsService extends HttpService {
   constructor(private _http: HttpClient, private store: Store<fromRoot.State>) {
     super(_http);
     // initialize observables
-    this.localPlots = store.select(fromLocalPlots.getAllPlots);
-    this.selectedLocalPlotID = store.select(fromLocalPlots.getSelectedPlotID);
-    this.selectedGlobalPlotID = store.select(fromGlobalPlots.getSelectedPlotID);
-    this.selectedLocalPlot = store.select(fromLocalPlots.getSelectedPlot);
-    this.selectedGlobalPlot = store.select(fromGlobalPlots.getSelectedPlot);
+    //this.localPlots = store.select(fromLocalPlots.getAllPlots);
+    //this.selectedLocalPlotID = store.select(fromLocalPlots.getSelectedPlotID);
+    //this.selectedGlobalPlotID = store.select(fromGlobalPlots.getSelectedPlotID);
+    //this.selectedLocalPlot = store.select(fromLocalPlots.getSelectedPlot);
+    //this.selectedGlobalPlot = store.select(fromGlobalPlots.getSelectedPlot);
   }
 
   getPlot(reference: Group, track: Group): Observable<Group> {
