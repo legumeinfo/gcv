@@ -14,7 +14,6 @@ import * as fromGlobalPlots from "./global-plots.store";
 import * as fromLocalPlots from "./local-plots.store";
 import * as fromMacroChromosome from "./macro-chromosome.store";
 import * as fromMacroTracks from "./macro-tracks.store";
-//import * as fromMicroTracks from "./micro-tracks.store";
 import * as fromMicroTracks from "./micro-tracks.reducer";
 import * as fromMultiMacroChromosome from "./multi-macro-chromosome.store";
 import * as fromMultiMacroTracks from "./multi-macro-tracks.store";
@@ -53,4 +52,5 @@ export const reducers: ActionReducerMap<State> = {
   searchQueryTrack: fromSearchQueryTrack.reducer,
 };
 
-export const metaReducers: Array<MetaReducer<State>> = environment.production ? [storeFreeze] : [];
+export const metaReducers: Array<MetaReducer<State>> =
+  environment.production ? [storeFreeze] : [];

@@ -1,8 +1,19 @@
+// A PairwiseBlock is a syntenic block defined between two chromosomes. A
+// PairwiseBlocks is a collection of these blocks. This file contains an NgRx
+// reducer and selectors for storing and accessing PairwiseBlocks. Specifically,
+// syntenic blocks are loaded as PairwiseBlocks for each chromosome loaded for
+// the genes provided by the user (see ./chromosome.reducer.ts). These
+// PairwiseBlocks are stored by the pairwise-blocks reducer and made available
+// via selectors.
+
+// NgRx
 import { createEntityAdapter, EntityState } from "@ngrx/entity";
 import { createFeatureSelector, createSelector } from "@ngrx/store";
+// stpre
 import * as fromChromosome from "./chromosome.reducer";
 import * as fromRouter from "./router.store";
 import * as pairwiseBlocksActions from "../actions/pairwise-blocks.actions";
+// app
 import { PairwiseBlocks } from "../../models";
 
 declare var Object: any;  // because TypeScript doesn't support Object.values
@@ -153,7 +164,7 @@ export const getSelectedPartialBlockIDs = createSelector(
 );
 
 // derive selected pairwise blocks from Chromosome State
-export const getSelectedChromosomes = createSelector(
+export const getSelectedPairwiseBlocks = createSelector(
   getPairwiseBlocksState,
   getSelectedPartialBlockIDs,
   (state: State, ids: PartialPairwiseBlocksID[]):

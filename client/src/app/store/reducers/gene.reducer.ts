@@ -1,9 +1,18 @@
+// A Gene is a second class citizen in the GCV, that is, other than dictating
+// what chromosomes are loaded, all visualizations, algorithms, and auxiliary
+// models are derived from the gene families of the Track model. As such, genes
+// are loaded on an as needed basis. This file contains an NgRx reducer and
+// selectors for storing and accessing Genes.
+
+// NgRx
 import { createEntityAdapter, EntityState } from "@ngrx/entity";
 import { createFeatureSelector, createSelector, select } from "@ngrx/store";
 import { pipe } from "rxjs";
 import { filter, map, withLatestFrom } from "rxjs/operators";
+// store
 import * as geneActions from "../actions/gene.actions";
 import * as fromRouter from "./router.store";
+// app
 import { Gene } from "../../models";
 
 declare var Object: any;  // because TypeScript doesn't support Object.values

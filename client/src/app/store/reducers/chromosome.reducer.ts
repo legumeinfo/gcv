@@ -1,10 +1,22 @@
+// A chromosome is an instance of Track that represents an entire chromosome
+// as an ordered list of genes and a corresponding list of gene families. This
+// file provides an NgRx reducer and selectors for storing and accessing
+// chromosome data. Specifically, a chromosome is loaded as a Track for each
+// gene provided by the user. These Tracks are stored by the chromosome reducer
+// and made available via selectors. This includes a selector that provides the
+// neighborhood each user provided gene occurs is as a slice of the gene's
+// chromosome.
+
+// NgRx
 import { createEntityAdapter, EntityState } from "@ngrx/entity";
 import { createFeatureSelector, createSelector, select } from "@ngrx/store";
 import { pipe } from "rxjs";
 import { filter, map, withLatestFrom } from "rxjs/operators";
+// store
 import * as fromGene from "./gene.reducer";
 import * as fromRouter from "./router.store";
 import * as chromosomeActions from "../actions/chromosome.actions";
+// app
 import { Gene, Track } from "../../models";
 
 declare var Object: any;  // because TypeScript doesn't support Object.values
