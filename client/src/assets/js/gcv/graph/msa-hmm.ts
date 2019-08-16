@@ -711,6 +711,7 @@ export class MSAHMM extends Directed {
     // parse options
     this._setOption(options, "reverse", true);
     this._setOption(options, "inversions", true);
+
     // compute Viterbi paths and their emission probabilities
     let forward = sequence;
     const forwardPath = this.viterbi(forward);
@@ -719,6 +720,7 @@ export class MSAHMM extends Directed {
       [...forward].reverse() : [];
     const reversePath = this.viterbi(reverse);
     let reverseEmissions = this.sequenceEmissions(reverse, reversePath);
+
     // swap orientations depending on score
     const reversed =
       options.reverse && forwardPath.probability < reversePath.probability;
@@ -726,6 +728,7 @@ export class MSAHMM extends Directed {
       [forward, forwardEmissions, reverseEmissions] =
         [reverse, reverseEmissions, forwardEmissions];
     }
+
     // compute inversions
     let alignmentPath = forwardPath;
     if (options.inversions) {
@@ -733,12 +736,14 @@ export class MSAHMM extends Directed {
         this._emissionsToOrientation(forwardEmissions, reverseEmissions);
       alignmentPath = this._mergePaths(forwardPath, reversePath, orientations);
     }
+
     // convert path to hmm state independent alignment
     let alignment = this.pathToAlignment(alignmentPath);
     if (reversed) {
       const l = sequence.length-1;
       alignment = alignment.map((x) => l-x);
     }
+
     return alignment;
   }
 

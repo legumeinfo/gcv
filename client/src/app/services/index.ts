@@ -1,4 +1,3 @@
-import { AlignmentService } from "./alignment.service";
 import { ChromosomeService } from "./chromosome.service";
 import { ClusteringService } from "./clustering.service";
 import { DetailsService } from "./details.service";
@@ -12,7 +11,6 @@ import { PlotsService } from "./plots.service";
 import { TourService } from "./tour.service";
 
 export const services: any[] = [
-  AlignmentService,
   ChromosomeService,
   ClusteringService,
   DetailsService,
@@ -26,7 +24,6 @@ export const services: any[] = [
   TourService,
 ];
 
-export * from "./alignment.service";
 export * from "./chromosome.service";
 export * from "./clustering.service";
 export * from "./details.service";

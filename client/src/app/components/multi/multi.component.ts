@@ -12,7 +12,7 @@ import { AppConfig } from "../../app.config";
 import { Alert, Family, Gene, Group, MacroTracks, MicroTracks } from "../../models";
 import { ClusterMixin, DrawableMixin, PointMixin } from "../../models/mixins";
 import { microTracksOperator, multiMacroTracksOperator } from "../../operators";
-import { AlignmentService, FilterService, InterAppCommunicationService,
+import { FilterService, InterAppCommunicationService,
   MacroTracksService, MicroTracksService } from "../../services";
 import { AlertComponent } from "../shared/alert.component";
 
@@ -79,8 +79,7 @@ export class MultiComponent implements AfterViewInit, OnDestroy, OnInit {
   // track which families have been checked
   private familyGlyphsSubject = new BehaviorSubject<{[key: string]: string}>({});
 
-  constructor(private alignmentService: AlignmentService,
-              private resolver: ComponentFactoryResolver,
+  constructor(private resolver: ComponentFactoryResolver,
               private filterService: FilterService,
               private communicationService: InterAppCommunicationService,
               private macroTracksService: MacroTracksService,
@@ -158,94 +157,6 @@ export class MultiComponent implements AfterViewInit, OnDestroy, OnInit {
           return glyphs;
         }),
         takeUntil(this.destroy));
-
-    const glyphedAlignedTracks: Observable<MicroTracks<DrawableMixin, ClusterMixin, DrawableMixin & PointMixin>> = combineLatest(
-        this.alignmentService.alignedMicroTracks,
-        this.familyGlyphs)
-      .pipe(
-        map(([tracks, glyphs]) => {
-          return {
-            // ensure the orphan family is present
-            families: [...tracks.families, {id: "", name: ""}].map((f) => {
-              if (glyphs.hasOwnProperty(f.id)) {
-                const family = Object.create(f);
-                family.glyph = glyphs[f.id];
-                return family;
-              }
-              return f;
-            }),
-            groups: tracks.groups.map((t) => {
-              const track = Object.create(t);
-              track.genes = t.genes.map((g) => {
-                if (glyphs.hasOwnProperty(g.family)) {
-                  const gene = Object.create(g);
-                  gene.glyph = glyphs[g.family];
-                  return gene;
-                }
-                return g;
-              });
-              return track;
-            }),
-          };
-        }));
-
-    this.alignmentService.alignedMicroTracks
-      .pipe(takeUntil(this.destroy))
-      .subscribe((tracks) => {
-        this.hideLeftSlider();
-        this._setFamilyGlyph(null, null);
-      });
-
-    glyphedAlignedTracks
-      .pipe(
-        withLatestFrom(this.microTracksService.routeParams),
-        takeUntil(this.destroy))
-      .subscribe(([tracks, route]) => {
-        this._onAlignedMicroTracks(tracks, route);
-      });
-
-    const filteredMicroTracks =
-      combineLatest(
-        glyphedAlignedTracks,
-        this.filterService.regexpAlgorithm,
-        this.filterService.orderAlgorithm)
-      .pipe(microTracksOperator({prefix: (t) => "group " + t.cluster + " - "}));
-
-    filteredMicroTracks
-      .pipe(takeUntil(this.destroy))
-      .subscribe((tracks) => {
-        // add gene tooltips
-        tracks.groups.forEach((group) => {
-          group.genes = group.genes.map((gene) => {
-            const g = Object.create(gene);
-            g.htmlAttributes = {
-              "data-tippy-content": function (g) {
-                return `
-                  <div class="media" style="text-align:left;">
-                    <div class="media-body">
-                      <h6 class="mt-0 mb-1"><b>${g.name}</b> (${g.family})</h6>
-                      ${g.fmin} - ${g.fmax}
-                    </div>
-                  </div>
-                `;
-              }
-            };
-            return g;
-          });
-        });
-        this.microTracks = tracks as MicroTracks;
-      });
-
-    // subscribe to macro track data
-      combineLatest(
-        this.macroTracksService.multiMacroTracks
-          .pipe(filter((tracks) => tracks !== undefined)),
-        filteredMicroTracks)
-      .pipe(multiMacroTracksOperator())
-      .pipe(takeUntil(this.destroy))
-      .subscribe((tracks) => {
-        this._onMacroTracks(tracks);
-      });
   }
 
   // public

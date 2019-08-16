@@ -43,7 +43,7 @@ export class PairwiseBlocksEffects {
 
   // gets blocks for selected chromosomes from selected sources
   @Effect()
-  getSelected = combineLatest(
+  getSelected$ = combineLatest(
     this.store.select(fromChromosome.getSelectedChromosomes),
     this.store.select(fromRouter.getMicroQueryParamSources),
     this.store.select(

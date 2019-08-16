@@ -25,6 +25,8 @@ export class GoldenLayoutDirective implements AfterContentInit {
     private _el: ElementRef,
     private _injector: Injector) { }
 
+  // Angular hooks
+
   ngAfterContentInit() {
     // set the initial layout configuration
     if (this.config === undefined) {
@@ -67,6 +69,8 @@ export class GoldenLayoutDirective implements AfterContentInit {
 
   }
 
+  // private
+
   private _createComponent(component, $container, inputs, outputs): ComponentRef<any> {
     const factory = this._componentFactoryResolver
       .resolveComponentFactory(component);
@@ -92,6 +96,8 @@ export class GoldenLayoutDirective implements AfterContentInit {
     this._appRef.detachView(componentRef.hostView);
     componentRef.destroy();
   }
+
+  // public
 
   addItem(itemConfig) {
     this._layout.root.contentItems[0].addChild(itemConfig);

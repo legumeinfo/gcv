@@ -36,6 +36,7 @@
     "d3": "^5.8.2",
     "golden-layout": "^1.5.9",
     "jquery": "^3.3.1",
+    "mnemonist": "^0.30.0",
     "rxjs": "^6.4.0",
     "split.js": "^1.5.10",
     "tippy.js": "^4.0.1",

@@ -7,7 +7,7 @@ import { takeUntil } from "rxjs/operators";
 import { AppConfig } from "../../app.config";
 import { ALIGNMENT_ALGORITHMS } from "../../algorithms";
 import { AlignmentParams, BlockParams, QueryParams } from "../../models";
-import { AlignmentService, MacroTracksService, MicroTracksService } from "../../services";
+import { MacroTracksService, MicroTracksService } from "../../services";
 
 @Component({
   selector: "search-params",
@@ -38,8 +38,7 @@ export class SearchParamsComponent implements OnDestroy, OnInit {
   private destroy: Subject<boolean>;
 
   // constructor
-  constructor(private alignmentService: AlignmentService,
-              private fb: FormBuilder,
+  constructor(private fb: FormBuilder,
               private macroTracksService: MacroTracksService,
               private microTracksService: MicroTracksService) {
     this.destroy = new Subject();
@@ -65,9 +64,9 @@ export class SearchParamsComponent implements OnDestroy, OnInit {
     // initialize alignment group and subscribe to store updates
     const defaultAlignment = new AlignmentParams();
     this.alignmentGroup  = this.fb.group(defaultAlignment.formControls());
-    this.alignmentService.alignmentParams
-      .pipe(takeUntil(this.destroy))
-      .subscribe((params) => this._updateGroup(this.alignmentGroup, params));
+    //this.alignmentService.alignmentParams
+    //  .pipe(takeUntil(this.destroy))
+    //  .subscribe((params) => this._updateGroup(this.alignmentGroup, params));
 
     // submit the updated form
     this.blockGroup.markAsDirty();
@@ -95,7 +94,7 @@ export class SearchParamsComponent implements OnDestroy, OnInit {
       });
       // submit alignment params
       this._submitGroup(this.alignmentGroup, (params) => {
-        this.alignmentService.updateParams(params);
+        //this.alignmentService.updateParams(params);
       });
     } else {
       this.invalid.emit();

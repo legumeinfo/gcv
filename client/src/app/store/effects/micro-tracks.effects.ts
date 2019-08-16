@@ -47,7 +47,7 @@ export class MicroTracksEffects {
   // TODO: update so it only gets tracks that haven't been fetched already, e.g.
   // if a source is (de)selected
   @Effect()
-  consensusSearch = combineLatest(
+  consensusSearch$ = combineLatest(
       this.store.select(
         fromMicroTracks.getClusteredAndAlignedSelectedMicroTracks),
       this.store.select(fromRouter.getMicroQueryParamSources)

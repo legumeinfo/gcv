@@ -5,16 +5,17 @@ import { Observable, combineLatest, empty, merge, onErrorResumeNext,
   throwError } from "rxjs";
 import { catchError, filter, map, take } from "rxjs/operators";
 // store
-import { Store } from "@ngrx/store";
+import { Store, select } from "@ngrx/store";
 import * as routerActions from "../store/actions/router.actions";
 import * as fromRoot from "../store/reducers";
+import * as fromMicroTracks from "../store/reducers/micro-tracks.reducer";
 //import * as fromMacroChromosome from "../store/reducers/macro-chromosome.store";
 import * as fromRouter from "../store/reducers/router.reducer";
 //import * as fromSearchQueryTrack from "../store/reducers/search-query-track.store";
 // app
 import { AppConfig } from "../app.config";
 import { Group, MicroTracks, QueryParams, Track } from "../models";
-import { PointMixin } from "../models/mixins";
+import { AlignmentMixin, ClusterMixin, PointMixin } from "../models/mixins";
 import { HttpService } from "./http.service";
 
 @Injectable()
@@ -24,8 +25,11 @@ export class MicroTracksService extends HttpService {
   routeParams: Observable<any>;
   searchQueryTrack: Observable<Group>;
 
+  clusterIDs: Observable<number[]>;
+
   constructor(private _http: HttpClient, private store: Store<fromRoot.State>) {
     super(_http);
+    this.clusterIDs = store.select(fromMicroTracks.getClusterIDs);
     // initialize observables
     //this.microTracks = store.select(fromMicroTracks.getMicroTracks);
     this.queryParams = store.select(fromRouter.getMicroQueryParams);
@@ -58,9 +62,9 @@ export class MicroTracksService extends HttpService {
     };
     return this._makeRequest<MicroTracks<{}, {}, PointMixin>>(serverID, "microSearch", body).pipe(
       map((tracks) => {
-        this._removeQuery(query, tracks);
-        this._mergeOverlappingTracks(tracks);
-        this._parseTracks(serverID, tracks);
+        //this._removeQuery(query, tracks);
+        //this._mergeOverlappingTracks(tracks);
+        //this._parseTracks(serverID, tracks);
         return tracks;
       }),
       catchError((error) => throwError(error)),
@@ -106,6 +110,15 @@ export class MicroTracksService extends HttpService {
           "/" + chromosome +
           "/" + low + "-" + high;
     this.store.dispatch(new routerActions.Go({path: [url, { routeParam: 1 }]}));
+  }
+
+  // returns all the aligned micro-tracks (selected and search result) belonging
+  // to a specific cluster
+  getCluster(id: number): Observable<(Track | ClusterMixin | AlignmentMixin)[]>
+  {
+    return this.store.pipe(
+      select(fromMicroTracks.getAlignedMicroTrackCluster(id))
+    );
   }
 
   // adds the server id the track came from to the track and its genes

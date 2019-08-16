@@ -31,8 +31,9 @@ import * as microTrackActions from "../actions/micro-tracks.actions";
 // app
 import * as clusterfck from "../../../assets/js/clusterfck";
 import { GCV } from "../../../assets/js/gcv";
-import { ClusteringParams, Gene, Track } from "../../models";
-import { ClusterMixin } from "../../models/mixins";
+import { ALIGNMENT_ALGORITHMS } from "../../algorithms";
+import { AlignmentParams, ClusteringParams, Gene, Track } from "../../models";
+import { AlignmentMixin, ClusterMixin } from "../../models/mixins";
 
 declare var Object: any;  // because TypeScript doesn't support Object.values
 
@@ -242,11 +243,24 @@ export const getClusteredSelectedMicroTracks = createSelector(
   }
 );
 
+export const getClusterIDs = createSelector(
+  getClusteredSelectedMicroTracks,
+  (tracks: (Track | ClusterMixin)[]): number[] => {
+    const IDs = tracks.map((t: ClusterMixin) => t.cluster);
+    const uniqueIDs = new Set(IDs);
+    return Array.from(uniqueIDs);
+  },
+);
+
 // performs a multiple sequence alignment of the tracks in each cluster and
 // outputs the aligned tracks and their consensus sequence
 export const getClusteredAndAlignedSelectedMicroTracks = createSelector(
   getClusteredSelectedMicroTracks,
-  (tracks: (Track | ClusterMixin)[]) => {
+  (tracks: (Track | ClusterMixin)[]):
+  {
+    consensuses: string[][],
+    tracks: (Track | ClusterMixin | AlignmentMixin)[]
+  } => {
     // group tracks by cluster
     const clusterer = (accumulator, track) => {
         if (!(track.cluster in accumulator)) {
@@ -287,5 +301,68 @@ export const getClusteredAndAlignedSelectedMicroTracks = createSelector(
     const alignedClusters =
       Object.entries(clusters).reduce(aligner, clusteredAlignments);
     return clusteredAlignments;
+  },
+);
+
+export const getClusteredAndAlignedSearchMicroTracks = createSelector(
+  getMicroTracksState,
+  getClusteredAndAlignedSelectedMicroTracks,
+  fromRouter.getMicroAlignmentParams,
+  (state: State, {consensuses, tracks}, params: AlignmentParams):
+  (Track | ClusterMixin | AlignmentMixin)[] => {
+    // get selected alignment algorithm
+    const algorithmIDs = ALIGNMENT_ALGORITHMS.map((a) => a.id);
+    const algorithmID = algorithmIDs.indexOf(params.algorithm);
+    const algorithm = ALIGNMENT_ALGORITHMS[algorithmID].algorithm;
+    // creates an alignment mixin for the given track
+    const mixin = (track, alignment) => {
+        const t = Object.create(track);
+        t.alignment = alignment.alignment;
+        t.score = alignment.score;
+        return t;
+      };
+    // returns one or more alignments (depending on the alignment algorithm) for
+    // the given sequence relative to the given reference
+    const aligner = (reference, sequence) => {
+        const options = {
+            omit: new Set(""),
+            scores: Object.assign({}, params),
+          };
+        const alignments = algorithm(reference, sequence);
+        // TODO: combine repeat tracks
+        return alignments;
+      };
+    // aligns each track to its cluster's consensus sequence, creates an
+    // alignment mixin for each track's alignments, and return a flattened array
+    const reducer = (accumulator, track) => {
+        const cluster = (track as ClusterMixin).cluster;
+        const consensus = consensuses[cluster];
+        const families = (track as Track).families;
+        const alignments = aligner(consensus, families);
+        const trackAlignments = alignments.map((a) => mixin(track, a));
+        accumulator.push(...trackAlignments);
+        return accumulator;
+      };
+    // align the tracks
+    const searchTracks = Object.values(state.entities);
+    const alignedTracks = searchTracks.reduce(reducer, []);
+    return alignedTracks;
+  },
+);
+
+export const getAllAlignedAndClusteredMicroTrackCluster = createSelector(
+  getClusteredAndAlignedSelectedMicroTracks,
+  getClusteredAndAlignedSearchMicroTracks,
+  ({consensuses, tracks}, searchTracks):
+  (Track | ClusterMixin | AlignmentMixin)[] => {
+    return tracks.concat(searchTracks);
+  },
+);
+
+export const getAlignedMicroTrackCluster = (id: number) => createSelector(
+  getClusteredAndAlignedSelectedMicroTracks,
+  ({consensuses, tracks}) => {
+    const cluster = tracks.filter((t: ClusterMixin) => t.cluster === id);
+    return cluster;
   },
 );

@@ -1,7 +1,10 @@
 // Angular
-import { Component, ViewChild } from "@angular/core";
+import { AfterViewInit, Component, OnDestroy, ViewChild } from "@angular/core";
+import { Subject } from "rxjs";
+import { takeUntil } from "rxjs/operators";
 // app
 import { GoldenLayoutDirective } from "../../directives";
+import { MicroTracksService } from "../../services";
 import { MacroComponent } from "./macro.component";
 import { MicroComponent } from "./micro.component";
 import { PlotComponent } from "./plot.component";
@@ -11,9 +14,11 @@ import { PlotComponent } from "./plot.component";
   styleUrls: ["./gene.component.scss"],
   templateUrl: "./gene.component.html",
 })
-export class GeneComponent {
+export class GeneComponent implements OnDestroy, AfterViewInit {
 
   @ViewChild(GoldenLayoutDirective) goldenLayoutDirective;
+
+  private _destroy: Subject<boolean> = new Subject();
 
   layoutComponents = [
       {component: MacroComponent, name: "macro"},
@@ -23,26 +28,50 @@ export class GeneComponent {
   layoutConfig = {
       content: [{
         type: "column",
-        content: [
-          {
-            type: "component",
-            componentName: "macro",
-            isClosable: false
-          },
-          {
-            type: "component",
-            componentName: "micro",
-            componentState: {
-              inputs: {key: "value"},
-              outputs: {
-                plot: (() => {
-                  this.goldenLayoutDirective.addItem({type: "component", componentName: "plot"});
-                })
-              },
-            },
-            isClosable: false
-          }
-        ]
+        content: []
       }]
     };
+
+  constructor(private _microTracksService: MicroTracksService) { }
+
+  // Angular hooks
+
+  ngOnDestroy(): void {
+    this._destroy.next(true);
+    this._destroy.complete();
+  }
+
+  ngAfterViewInit(): void {
+    this._microTracksService.clusterIDs
+      .pipe(takeUntil(this._destroy))
+      .subscribe((IDs) => {
+        this._setLayoutConfig(IDs);
+      });
+  }
+
+  // private
+
+  private _setLayoutConfig(clusterIDs): void {
+    const microConfig = (id) => {
+      return  {
+       type: "component",
+        componentName: "micro",
+        componentState: {
+          inputs: {cluster: id},
+          outputs: {
+            plot: (() => {
+              this.goldenLayoutDirective.addItem({type: "component", componentName: "plot"});
+            })
+          },
+        },
+        isClosable: false
+      };
+    };
+    // TODO: remove existing components before adding new ones
+    clusterIDs.forEach((id) => {
+      this.goldenLayoutDirective.addItem(microConfig(id));
+    });
+  }
+
+  // public
 }
