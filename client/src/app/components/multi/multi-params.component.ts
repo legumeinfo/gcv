@@ -6,7 +6,7 @@ import { takeUntil } from "rxjs/operators";
 // App
 import { AppConfig } from "../../app.config";
 import { BlockParams, ClusteringParams, QueryParams } from "../../models";
-import { ClusteringService, MacroTracksService, MicroTracksService } from "../../services";
+import { MacroTracksService, MicroTracksService } from "../../services";
 
 @Component({
   moduleId: module.id.toString(),
@@ -37,8 +37,7 @@ export class MultiParamsComponent implements OnDestroy, OnInit {
   private destroy: Subject<boolean>;
 
   // constructor
-  constructor(private clusteringService: ClusteringService,
-              private fb: FormBuilder,
+  constructor(private fb: FormBuilder,
               private macroTracksService: MacroTracksService,
               private microTracksService: MicroTracksService) {
     this.destroy = new Subject();
@@ -64,9 +63,9 @@ export class MultiParamsComponent implements OnDestroy, OnInit {
     // initialize clustering group and subscribe to store updates
     const defaultClustering = new ClusteringParams();
     this.clusteringGroup  = this.fb.group(defaultClustering.formControls());
-    this.clusteringService.clusteringParams
-      .pipe(takeUntil(this.destroy))
-      .subscribe((params) => this._updateGroup(this.clusteringGroup, params));
+    //this.clusteringService.clusteringParams
+    //  .pipe(takeUntil(this.destroy))
+    //  .subscribe((params) => this._updateGroup(this.clusteringGroup, params));
 
     // submit the updated form
     this.blockGroup.markAsDirty();
@@ -94,7 +93,7 @@ export class MultiParamsComponent implements OnDestroy, OnInit {
       });
       // submit clustering params
       this._submitGroup(this.clusteringGroup, (params) => {
-        this.clusteringService.updateParams(params);
+        //this.clusteringService.updateParams(params);
       });
     } else {
       this.invalid.emit();

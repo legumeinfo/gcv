@@ -1,5 +1,4 @@
 import { ChromosomeService } from "./chromosome.service";
-import { ClusteringService } from "./clustering.service";
 import { DetailsService } from "./details.service";
 import { FilterService } from "./filter.service";
 import { GeneService } from "./gene.service";
@@ -12,7 +11,6 @@ import { TourService } from "./tour.service";
 
 export const services: any[] = [
   ChromosomeService,
-  ClusteringService,
   DetailsService,
   FilterService,
   GeneService,
@@ -25,7 +23,6 @@ export const services: any[] = [
 ];
 
 export * from "./chromosome.service";
-export * from "./clustering.service";
 export * from "./details.service";
 export * from "./filter.service";
 export * from "./gene.service";
