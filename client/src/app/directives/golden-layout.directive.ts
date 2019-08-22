@@ -1,7 +1,7 @@
 // Angular
 import { AfterContentInit, ApplicationRef, ComponentFactoryResolver,
-  ComponentRef, Directive, ElementRef, EmbeddedViewRef, Injector, Input }
-  from '@angular/core';
+  ComponentRef, Directive, ElementRef, EmbeddedViewRef, Injector, Input,
+  OnDestroy } from "@angular/core";
 // dependencies
 //import * as GoldenLayout from "golden-layout";
 
@@ -12,7 +12,7 @@ declare var GoldenLayout: any;
 @Directive({
   selector: "[gcvGoldenLayout]",
 })
-export class GoldenLayoutDirective implements AfterContentInit {
+export class GoldenLayoutDirective implements AfterContentInit, OnDestroy {
 
   @Input("gcvGoldenLayout") components: any[];
   @Input() config: any;
@@ -59,17 +59,31 @@ export class GoldenLayoutDirective implements AfterContentInit {
     });
 
     // bind component destructor to layout's item destroy event
-    this._layout.on('itemDestroyed', (item, state) => {
-      if (item.type === 'component') {
+    this._layout.on("itemDestroyed", (item, state) => {
+      if (item.type === "component") {
         this._destroyComponent(item.instance.componentRef);
       }
     });
     
+    // initialize the layout
     this._layout.init();
 
+    // add a resize listener
+    window.addEventListener("resize", this._resize.bind(this));
+  }
+
+  ngOnDestroy() {
+    // remove resize listener
+    window.removeEventListener("resize", this._resize.bind(this));
   }
 
   // private
+
+  private _resize() {
+    const width = this._el.nativeElement.offsetWidth;
+    const height = this._el.nativeElement.offsetHeight;
+    this._layout.updateSize(width, height);
+  }
 
   private _createComponent(component, $container, inputs, outputs): ComponentRef<any> {
     const factory = this._componentFactoryResolver
