@@ -350,7 +350,7 @@ export const getClusteredAndAlignedSearchMicroTracks = createSelector(
   },
 );
 
-export const getAllAlignedAndClusteredMicroTrackCluster = createSelector(
+export const getAllClusteredAndAlignedMicroTracks = createSelector(
   getClusteredAndAlignedSelectedMicroTracks,
   getClusteredAndAlignedSearchMicroTracks,
   ({consensuses, tracks}, searchTracks):
@@ -360,8 +360,8 @@ export const getAllAlignedAndClusteredMicroTrackCluster = createSelector(
 );
 
 export const getAlignedMicroTrackCluster = (id: number) => createSelector(
-  getClusteredAndAlignedSelectedMicroTracks,
-  ({consensuses, tracks}) => {
+  getAllClusteredAndAlignedMicroTracks,
+  (tracks) => {
     const cluster = tracks.filter((t: ClusterMixin) => t.cluster === id);
     return cluster;
   },

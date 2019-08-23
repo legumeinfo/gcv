@@ -29,6 +29,25 @@ export class GoldenLayoutDirective implements AfterContentInit, OnDestroy {
 
   ngAfterContentInit() {
     // set the initial layout configuration
+    this._setConfig();
+    // instantiate the layout
+    this._layout = new GoldenLayout(this.config, this._el.nativeElement);
+    // configure the layout components
+    this._configureLayoutComponents();
+    // initialize the layout
+    this._layout.init();
+    // add a resize listener
+    window.addEventListener("resize", this._resize.bind(this));
+  }
+
+  ngOnDestroy() {
+    // remove resize listener
+    window.removeEventListener("resize", this._resize.bind(this));
+  }
+
+  // private
+
+  private _setConfig() {
     if (this.config === undefined) {
       this.config = {
         content: [{
@@ -43,41 +62,27 @@ export class GoldenLayoutDirective implements AfterContentInit, OnDestroy {
         }]
       };
     }
-    
-    // instantiate the layout
-    this._layout = new GoldenLayout(this.config, this._el.nativeElement);
+  }
 
+  private _configureLayoutComponents() {
     // register component factories
     this.components.forEach((c) => {
       let context = this;
       this._layout.registerComponent(c.name, function($container, state) {
         const inputs = state.inputs || {};
         const outputs = state.outputs || {};
-        this.componentRef = context._createComponent(c.component, $container, inputs, outputs);
+        this.componentRef =
+          context._createComponent(c.component, $container, inputs, outputs);
         return this;
       });
     });
-
     // bind component destructor to layout's item destroy event
     this._layout.on("itemDestroyed", (item, state) => {
       if (item.type === "component") {
         this._destroyComponent(item.instance.componentRef);
       }
     });
-    
-    // initialize the layout
-    this._layout.init();
-
-    // add a resize listener
-    window.addEventListener("resize", this._resize.bind(this));
   }
-
-  ngOnDestroy() {
-    // remove resize listener
-    window.removeEventListener("resize", this._resize.bind(this));
-  }
-
-  // private
 
   private _resize() {
     const width = this._el.nativeElement.offsetWidth;
@@ -85,7 +90,8 @@ export class GoldenLayoutDirective implements AfterContentInit, OnDestroy {
     this._layout.updateSize(width, height);
   }
 
-  private _createComponent(component, $container, inputs, outputs): ComponentRef<any> {
+  private _createComponent(component, $container, inputs, outputs):
+  ComponentRef<any> {
     const factory = this._componentFactoryResolver
       .resolveComponentFactory(component);
     //const providers = Object.keys(inputs).map((i) => {
@@ -93,9 +99,7 @@ export class GoldenLayoutDirective implements AfterContentInit, OnDestroy {
     //  });
     //const injector = Injector.create({providers});
     const componentRef = factory.create(this._injector);
-    Object.keys(inputs).forEach((i) => {
-      componentRef.instance[i] = inputs[i];
-    });
+    Object.keys(inputs).forEach((i) => componentRef.instance[i] = inputs[i]);
     Object.keys(outputs).forEach((o) => {
       componentRef.instance[o].subscribe(outputs[o]);
     });
@@ -113,7 +117,17 @@ export class GoldenLayoutDirective implements AfterContentInit, OnDestroy {
 
   // public
 
-  addItem(itemConfig) {
-    this._layout.root.contentItems[0].addChild(itemConfig);
+  addItem(itemConfig, indices: number[]) {
+    let item = this._layout.root;
+    indices.forEach((i) => item = item.contentItems[i]);
+    item.addChild(itemConfig);
+  }
+
+  reset() {
+    const config = this._layout.toConfig()
+    config.content = this.config.content;
+    this._layout.destroy()
+    this._layout.config = config;
+    this._layout.init()
   }
 }

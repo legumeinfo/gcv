@@ -9,14 +9,15 @@ import { AppConfig } from "./app.config";
 import { AppRoutingModule } from "./app-routing.module";
 // components
 import * as fromComponents from "./components";
-import { AlertComponent, MacroComponent, MicroComponent, PlotComponent }
-  from "./components";
+import { AlertComponent, LegendComponent, MacroComponent, MicroComponent,
+  PlotComponent } from "./components";
 // directives
 import * as fromDirectives from "./directives";
 // services
 import * as fromServices from "./services";
 // ngrx store
-import { RouterStateSerializer, StoreRouterConnectingModule } from "@ngrx/router-store";
+import { RouterStateSerializer, StoreRouterConnectingModule }
+  from "@ngrx/router-store";
 import { EffectsModule } from "@ngrx/effects";
 import { StoreModule } from "@ngrx/store";
 import { metaReducers, reducers, effects } from "./store";
@@ -25,7 +26,13 @@ import { CustomRouterStateSerializer } from "./utils";
 @NgModule({
   bootstrap: [ fromComponents.AppComponent ],
   declarations: [ ...fromComponents.components, ...fromDirectives.directives ],
-  entryComponents: [ AlertComponent, MacroComponent, MicroComponent, PlotComponent ],
+  entryComponents: [
+    AlertComponent,
+    LegendComponent,
+    MacroComponent,
+    MicroComponent,
+    PlotComponent
+  ],
   imports: [
     AppRoutingModule,
     BrowserAnimationsModule,
@@ -34,7 +41,8 @@ import { CustomRouterStateSerializer } from "./utils";
     HttpClientModule,
     ReactiveFormsModule,
     StoreModule.forRoot(reducers, {metaReducers}),
-    StoreRouterConnectingModule.forRoot({serializer: CustomRouterStateSerializer}),
+    StoreRouterConnectingModule
+      .forRoot({serializer: CustomRouterStateSerializer}),
     EffectsModule.forRoot(effects),
   ],
   providers: [

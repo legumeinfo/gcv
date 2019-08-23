@@ -79,12 +79,12 @@ function align<T>(
         let step = 1/(insertion+1);
         for (let k = insertion-1; k >= 0; k--) {
           const x = j + (k+1)*step;
-          alignment.coordinates.unshift(x);
+          alignment.coordinates.unshift(x-1);
           alignment.scores.unshift(m[i][j+k+1]-m[i][j+k]);
         }
         insertion = 0;
       }
-      alignment.coordinates.unshift(j)
+      alignment.coordinates.unshift(j-1)
       alignment.scores.unshift(m[i][j]-m[i2][j2]);
     }
     // end alignment

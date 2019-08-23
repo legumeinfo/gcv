@@ -99,7 +99,7 @@ export class Micro extends Visualizer {
     this.options.hoverDelay = this.options.hoverDelay || 500;
     this.options.prefix = this.options.prefix || ((t) => "");
     // create the viewer
-    const levels = data.groups.map((group) => {
+    const levels = data.map((group) => {
       return Math.max.apply(null, group.genes.map((gene) => gene.y)) + 1;
     });
     const numLevels = levels.reduce((a, b) => a + b, 0);
@@ -117,8 +117,8 @@ export class Micro extends Visualizer {
     this.ticks = [];
     let tick = 0;
     this.distances = [];
-    for (let i = 0; i < this.data.groups.length; i++) {
-      const group = this.data.groups[i];
+    for (let i = 0; i < this.data.length; i++) {
+      const group = this.data[i];
       let fminI = Infinity;
       let fmaxI = -Infinity;
       this.ticks.push(tick);
@@ -183,7 +183,7 @@ export class Micro extends Visualizer {
     this.resize();
     // draw the tracks
     const tracks = [];
-    for (let i = 0; i < this.data.groups.length; i++) {
+    for (let i = 0; i < this.data.length; i++) {
       // make the track and save it for the resize call
       tracks.push(this.drawTrack(i).moveToBack());
     }
@@ -219,7 +219,7 @@ export class Micro extends Visualizer {
    */
   private drawTrack(i) {
     const obj = this;
-    const t = this.data.groups[i];
+    const t = this.data[i];
     const y = this.ticks[i];
     // make svg group for the track
     const track = this.viewer.append("g")
@@ -287,7 +287,7 @@ export class Micro extends Visualizer {
     // add genes to the gene groups
     const genes = geneGroups.append("path")
       .attr("d", (g) => {
-        if (g.glyph === "circle") {
+        if (g.glyph === "circle" || g.strand === undefined) {
           return d3.symbol().type(d3.symbolCircle).size(50)();
         }
         return d3.symbol().type(d3.symbolTriangle).size(200)();
@@ -362,7 +362,7 @@ export class Micro extends Visualizer {
       .attr("class", "axis")
       .call(axis);
     const publishTrackEvent = (type, i) => {
-      const track = this.data.groups[i];
+      const track = this.data[i];
       const interval = this.intervals[i];
       return () => eventBus.publish({
         type,
@@ -378,12 +378,12 @@ export class Micro extends Visualizer {
       .attr("class", (y, i) => (i === 0 && this.options.boldFirst) ? "query " : "")
       .attr("data-micro-track", (y, i) => i.toString())
       .attr("data-extent", (y, i) => this.intervals[i].join(":"))
-      .attr("data-chromosome", (y, i) => this.data.groups[i].chromosome_name)
-      .attr("data-organism", (y, i) => this.data.groups[i].genus + " " + this.data.groups[i].species)
+      .attr("data-chromosome", (y, i) => this.data[i].chromosome_name)
+      .attr("data-organism", (y, i) => this.data[i].genus + " " + this.data[i].species)
       .style("cursor", "pointer")
       .on("mouseover", (y, i) => this.setTimeout(publishTrackEvent("select", i)))
       .on("mouseout", (y, i) => this.clearTimeout(publishTrackEvent("deselect", i)))
-      .on("click", (y, i) => this.options.nameClick(this.data.groups[i]));
+      .on("click", (y, i) => this.options.nameClick(this.data[i]));
     return yAxis;
   }
 
@@ -404,7 +404,7 @@ export class Micro extends Visualizer {
     plotYAxis.selectAll("text")
       .attr("class", "micro-plot-link")
       .style("cursor", "pointer")
-      .on("click", (y, i) => this.options.plotClick(this.data.groups[i]));
+      .on("click", (y, i) => this.options.plotClick(this.data[i]));
     return plotYAxis;
   }
 }

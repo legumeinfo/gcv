@@ -120,12 +120,12 @@ function align<T>(
         let step = 1/(insertion+1);
         for (let k = insertion-1; k >= 0; k--) {
           const x = j + (k+1)*step;
-          a.coordinates.unshift(x);
+          a.coordinates.unshift(x-1);
           a.scores.unshift(m[i][j+k+1]-m[i][j+k]);
         }
         insertion = 0;
       }
-      a.coordinates.unshift(j)
+      a.coordinates.unshift(j-1)
       a.scores.unshift(m[i][j]-m[i2][j2]);
     }
     // end alignment
