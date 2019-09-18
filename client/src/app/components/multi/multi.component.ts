@@ -6,8 +6,8 @@ import { BehaviorSubject, Observable, Subject, combineLatest } from "rxjs";
 import { filter, map, scan, takeUntil, withLatestFrom } from "rxjs/operators";
 import { GCV } from "../../../assets/js/gcv";
 // app
-import Split from "split.js";
-import tippy from "tippy.js";
+//import Split from "split.js";
+//import tippy from "tippy.js";
 import { AppConfig } from "../../app.config";
 import { Alert, Family, Gene, Group, MacroTracks, MicroTracks } from "../../models";
 import { ClusterMixin, DrawableMixin, PointMixin } from "../../models/mixins";
@@ -22,20 +22,21 @@ declare var $: any;
   encapsulation: ViewEncapsulation.None,
   selector: "multi",
   styleUrls: [ "./multi.component.scss",
-               "../../../assets/css/split.scss",
-               "../../../../node_modules/tippy.js/themes/light-border.css" ],
+               //"../../../assets/css/split.scss",
+               //"../../../../node_modules/tippy.js/themes/light-border.css" 
+             ],
   templateUrl: "./multi.component.html",
 })
 export class MultiComponent implements AfterViewInit, OnDestroy, OnInit {
   // view children
-  @ViewChild("left") left: ElementRef;
-  @ViewChild("topLeft") topLeft: ElementRef;
-  @ViewChild("bottomLeft") bottomLeft: ElementRef;
-  @ViewChild("right") right: ElementRef;
-  @ViewChild("topRight") topRight: ElementRef;
-  @ViewChild("bottomRight") bottomRight: ElementRef;
-  @ViewChild("macroAlerts", {read: ViewContainerRef}) macroAlerts: ViewContainerRef;
-  @ViewChild("microAlerts", {read: ViewContainerRef}) microAlerts: ViewContainerRef;
+  @ViewChild("left", {static: true}) left: ElementRef;
+  @ViewChild("topLeft", {static: true}) topLeft: ElementRef;
+  @ViewChild("bottomLeft", {static: true}) bottomLeft: ElementRef;
+  @ViewChild("right", {static: true}) right: ElementRef;
+  @ViewChild("topRight", {static: true}) topRight: ElementRef;
+  @ViewChild("bottomRight", {static: true}) bottomRight: ElementRef;
+  @ViewChild("macroAlerts", {read: ViewContainerRef, static: true}) macroAlerts: ViewContainerRef;
+  @ViewChild("microAlerts", {read: ViewContainerRef, static: true}) microAlerts: ViewContainerRef;
 
   headerAlert = new Alert("info", "Loading...");
 
@@ -96,20 +97,20 @@ export class MultiComponent implements AfterViewInit, OnDestroy, OnInit {
 
   ngAfterViewInit(): void {
     // initialize Split.js
-    this.verticalSplit = Split([this.left.nativeElement, this.right.nativeElement], {
-        direction: "horizontal",
-        minSize: 0,
-      });
-    Split([this.topLeft.nativeElement, this.bottomLeft.nativeElement], {
-        direction: "vertical",
-        minSize: 0,
-      });
-    Split([this.topRight.nativeElement, this.bottomRight.nativeElement], {
-        direction: "vertical",
-        minSize: 0,
-      });
+    //this.verticalSplit = Split([this.left.nativeElement, this.right.nativeElement], {
+    //    direction: "horizontal",
+    //    minSize: 0,
+    //  });
+    //Split([this.topLeft.nativeElement, this.bottomLeft.nativeElement], {
+    //    direction: "vertical",
+    //    minSize: 0,
+    //  });
+    //Split([this.topRight.nativeElement, this.bottomRight.nativeElement], {
+    //    direction: "vertical",
+    //    minSize: 0,
+    //  });
     // enable tooltips
-    tippy("[data-tippy-content]", {animation: "fade", arrow: true, boundary: "viewport"});
+    //tippy("[data-tippy-content]", {animation: "fade", arrow: true, boundary: "viewport"});
   }
 
   ngOnDestroy(): void {
@@ -221,15 +222,15 @@ export class MultiComponent implements AfterViewInit, OnDestroy, OnInit {
   }
 
   private _setSplitWidth(legend: number, size: any): void {
-    if (this.verticalSplit !== undefined) {
-      this.legendWidths[legend] = size.width;
-      const width = Math.max(...this.legendWidths);
-      const totalWidth = this.left.nativeElement.offsetWidth +
-                         this.right.nativeElement.offsetWidth;
-      const rightWidth = ((width + 50) / totalWidth) * 100;
-      const leftWidth = 100 - rightWidth;
-      this.verticalSplit.setSizes([leftWidth, rightWidth]);
-    }
+    //if (this.verticalSplit !== undefined) {
+    //  this.legendWidths[legend] = size.width;
+    //  const width = Math.max(...this.legendWidths);
+    //  const totalWidth = this.left.nativeElement.offsetWidth +
+    //                     this.right.nativeElement.offsetWidth;
+    //  const rightWidth = ((width + 50) / totalWidth) * 100;
+    //  const leftWidth = 100 - rightWidth;
+    //  this.verticalSplit.setSizes([leftWidth, rightWidth]);
+    //}
   }
 
   private _onAlignedMicroTracks(tracks: MicroTracks<DrawableMixin, ClusterMixin>, route): void {
@@ -273,15 +274,15 @@ export class MultiComponent implements AfterViewInit, OnDestroy, OnInit {
         });
       });
       const familyMap = {};
-      tracks.families.forEach((f) => {
-        familyMap[f.id] = f;
-      });
+      //tracks.families.forEach((f) => {
+      //  familyMap[f.id] = f;
+      //});
       const uniqueFamilies = [];
-      orderedUniqueFamilyIds.forEach((id) => {
-        if (familyMap[id] !== undefined) {
-          uniqueFamilies.push(familyMap[id]);
-        }
-      });
+      //orderedUniqueFamilyIds.forEach((id) => {
+      //  if (familyMap[id] !== undefined) {
+      //    uniqueFamilies.push(familyMap[id]);
+      //  }
+      //});
       const singletonIds = ["singleton"].concat(uniqueFamilies.filter((f) => {
         return familySizes === undefined || familySizes[f.id] === 1;
       }).map((f) => f.id)).join(",");
@@ -417,18 +418,18 @@ export class MultiComponent implements AfterViewInit, OnDestroy, OnInit {
       selectiveColoring: familySizes,
       prefix: (t) => "group " + t.cluster + " - ",
       onInit: function () {
-        tippy(
-          ".GCV [data-tippy-content]",
-          {
-            animation: "fade",
-            arrow: true,
-            boundary: "viewport",
-            theme: "light-border",
-            interactive: true,
-            maxWidth: null,
-            delay: [500, 20],
-          }
-        );
+        //tippy(
+        //  ".GCV [data-tippy-content]",
+        //  {
+        //    animation: "fade",
+        //    arrow: true,
+        //    boundary: "viewport",
+        //    theme: "light-border",
+        //    interactive: true,
+        //    maxWidth: null,
+        //    delay: [500, 20],
+        //  }
+        //);
       }
     };
   }

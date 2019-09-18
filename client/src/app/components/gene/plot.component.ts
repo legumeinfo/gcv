@@ -10,7 +10,7 @@ import { GCV } from "../../../assets/js/gcv";
 })
 export class PlotComponent implements AfterViewInit, OnDestroy {
 
-  @ViewChild("container") container: ElementRef;
+  @ViewChild("container", {static: true}) container: ElementRef;
 
   ngAfterViewInit() {
     //const viewer = new GCV.visualization.Micro(this.container.nativeElement);

@@ -26,7 +26,7 @@ export class LegendComponent implements AfterViewInit, OnDestroy {
   @Input() colors: any;  // D3 color function
   @Output() click = new EventEmitter();
 
-  @ViewChild("container") container: ElementRef;
+  @ViewChild("container", {static: true}) container: ElementRef;
 
   private _destroy: Subject<boolean> = new Subject();
   private _viewer;

@@ -18,7 +18,7 @@ import { PlotComponent } from "./plot.component";
 })
 export class GeneComponent implements AfterViewInit, OnDestroy {
 
-  @ViewChild(GoldenLayoutDirective) goldenLayoutDirective;
+  @ViewChild(GoldenLayoutDirective, {static: true}) goldenLayoutDirective;
 
   private _destroy: Subject<boolean> = new Subject();
   private _microColors = GCV.common.colors;

@@ -9,7 +9,6 @@ import { BlockParams, ClusteringParams, QueryParams } from "../../models";
 import { MacroTracksService, MicroTracksService } from "../../services";
 
 @Component({
-  moduleId: module.id.toString(),
   selector: "multi-params",
   styleUrls: [ "./multi-params.component.scss" ],
   templateUrl: "./multi-params.component.html",

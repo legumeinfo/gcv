@@ -5,8 +5,8 @@ import { AfterViewInit, Component, ComponentFactory, ComponentFactoryResolver,
 import { BehaviorSubject, Observable, Subject, combineLatest } from "rxjs";
 import { filter, map, scan, take, takeUntil, withLatestFrom } from "rxjs/operators";
 // app
-import Split from "split.js";
-import tippy from "tippy.js";
+//import Split from "split.js";
+//import tippy from "tippy.js";
 import { GCV } from "../../../assets/js/gcv";
 import { AppConfig } from "../../app.config";
 import { Alert, Family, Gene, Group, MacroTracks, MicroTracks } from "../../models";
@@ -26,21 +26,22 @@ declare let parseInt: any;  // TypeScript doesn't recognize number inputs
   encapsulation: ViewEncapsulation.None,
   selector: "search",
   styleUrls: [ "./search.component.scss",
-               "../../../assets/css/split.scss",
-               "../../../../node_modules/tippy.js/themes/light-border.css" ],
+               //"../../../assets/css/split.scss",
+               //"../../../../node_modules/tippy.js/themes/light-border.css"
+             ],
   templateUrl: "./search.component.html",
 })
 export class SearchComponent implements AfterViewInit, OnDestroy, OnInit {
   // view children
-  @ViewChild("left") left: ElementRef;
-  @ViewChild("topLeft") topLeft: ElementRef;
-  @ViewChild("bottomLeft") bottomLeft: ElementRef;
-  @ViewChild("right") right: ElementRef;
-  @ViewChild("topRight") topRight: ElementRef;
-  @ViewChild("bottomRight") bottomRight: ElementRef;
-  @ViewChild("macroAlerts", {read: ViewContainerRef}) macroAlerts: ViewContainerRef;
-  @ViewChild("microAlerts", {read: ViewContainerRef}) microAlerts: ViewContainerRef;
-  @ViewChild("plotAlerts", {read: ViewContainerRef}) plotAlerts: ViewContainerRef;
+  @ViewChild("left", {static: true}) left: ElementRef;
+  @ViewChild("topLeft", {static: true}) topLeft: ElementRef;
+  @ViewChild("bottomLeft", {static: true}) bottomLeft: ElementRef;
+  @ViewChild("right", {static: true}) right: ElementRef;
+  @ViewChild("topRight", {static: true}) topRight: ElementRef;
+  @ViewChild("bottomRight", {static: true}) bottomRight: ElementRef;
+  @ViewChild("macroAlerts", {read: ViewContainerRef, static: true}) macroAlerts: ViewContainerRef;
+  @ViewChild("microAlerts", {read: ViewContainerRef, static: true}) microAlerts: ViewContainerRef;
+  @ViewChild("plotAlerts", {read: ViewContainerRef, static: true}) plotAlerts: ViewContainerRef;
   @ViewChildren(PlotViewerComponent) plotComponents: QueryList<PlotViewerComponent>;
 
   headerAlert = new Alert("info", "Loading...");
@@ -124,20 +125,20 @@ export class SearchComponent implements AfterViewInit, OnDestroy, OnInit {
 
   ngAfterViewInit(): void {
     // initialize Split.js
-    this.verticalSplit = Split([this.left.nativeElement, this.right.nativeElement], {
-        direction: "horizontal",
-        minSize: 0,
-      });
-    Split([this.topLeft.nativeElement, this.bottomLeft.nativeElement], {
-        direction: "vertical",
-        minSize: 0,
-      });
-    Split([this.topRight.nativeElement, this.bottomRight.nativeElement], {
-        direction: "vertical",
-        minSize: 0,
-      });
+    //this.verticalSplit = Split([this.left.nativeElement, this.right.nativeElement], {
+    //    direction: "horizontal",
+    //    minSize: 0,
+    //  });
+    //Split([this.topLeft.nativeElement, this.bottomLeft.nativeElement], {
+    //    direction: "vertical",
+    //    minSize: 0,
+    //  });
+    //Split([this.topRight.nativeElement, this.bottomRight.nativeElement], {
+    //    direction: "vertical",
+    //    minSize: 0,
+    //  });
     // enable tooltips
-    tippy("[data-tippy-content]", {animation: "fade", arrow: true, boundary: "viewport"});
+    //tippy("[data-tippy-content]", {animation: "fade", arrow: true, boundary: "viewport"});
   }
 
   ngOnDestroy(): void {
@@ -326,15 +327,15 @@ export class SearchComponent implements AfterViewInit, OnDestroy, OnInit {
   }
 
   private _setSplitWidth(legend: number, size: any): void {
-    if (this.verticalSplit !== undefined) {
-      this.legendWidths[legend] = size.width;
-      const width = Math.max(...this.legendWidths);
-      const totalWidth = this.left.nativeElement.offsetWidth +
-                         this.right.nativeElement.offsetWidth;
-      const rightWidth = ((width + 50) / totalWidth) * 100;
-      const leftWidth = 100 - rightWidth;
-      this.verticalSplit.setSizes([leftWidth, rightWidth]);
-    }
+    //if (this.verticalSplit !== undefined) {
+    //  this.legendWidths[legend] = size.width;
+    //  const width = Math.max(...this.legendWidths);
+    //  const totalWidth = this.left.nativeElement.offsetWidth +
+    //                     this.right.nativeElement.offsetWidth;
+    //  const rightWidth = ((width + 50) / totalWidth) * 100;
+    //  const leftWidth = 100 - rightWidth;
+    //  this.verticalSplit.setSizes([leftWidth, rightWidth]);
+    //}
   }
 
   private _getHeaderAlert(tracks: MicroTracks, numTracks: number): Alert {
@@ -430,18 +431,18 @@ export class SearchComponent implements AfterViewInit, OnDestroy, OnInit {
       }.bind(this),
       selectiveColoring: familySizes,
       onInit: function () {
-        tippy(
-          ".GCV [data-tippy-content]",
-          {
-            animation: "fade",
-            arrow: true,
-            boundary: "viewport",
-            theme: "light-border",
-            interactive: true,
-            maxWidth: null,
-            delay: [500, 20],
-          }
-        );
+        //tippy(
+        //  ".GCV [data-tippy-content]",
+        //  {
+        //    animation: "fade",
+        //    arrow: true,
+        //    boundary: "viewport",
+        //    theme: "light-border",
+        //    interactive: true,
+        //    maxWidth: null,
+        //    delay: [500, 20],
+        //  }
+        //);
       }
     };
   }
@@ -542,15 +543,15 @@ export class SearchComponent implements AfterViewInit, OnDestroy, OnInit {
         });
       });
       const familyMap = {};
-      tracks.families.forEach((f) => {
-        familyMap[f.id] = f;
-      });
+      //tracks.families.forEach((f) => {
+      //  familyMap[f.id] = f;
+      //});
       const uniqueFamilies = [];
-      orderedUniqueFamilyIds.forEach((id) => {
-        if (familyMap[id] !== undefined) {
-          uniqueFamilies.push(familyMap[id]);
-        }
-      });
+      //orderedUniqueFamilyIds.forEach((id) => {
+      //  if (familyMap[id] !== undefined) {
+      //    uniqueFamilies.push(familyMap[id]);
+      //  }
+      //});
       const singletonIds = ["singleton"].concat(uniqueFamilies.filter((f) => {
         return familySizes === undefined || familySizes[f.id] === 1;
       }).map((f) => f.id)).join(",");

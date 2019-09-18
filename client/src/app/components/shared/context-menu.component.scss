@@ -9,6 +9,7 @@
   line-height: 28px;
   height: 28px;
 }
+/*
 .navbar .navbar-nav > li > a,
 :host /deep/ .navbar .navbar-nav > li > a {
   padding-top: 0px;
@@ -26,6 +27,7 @@
 :host /deep/ .navbar .navbar-nav.navbar-right > li > a::before {
   content: "\00a0";
 }
+*/
 .dropdown-menu {
   min-width: 200px;
 }
@@ -34,6 +36,7 @@
   overflow: hidden;
   height: 28px;
 }
+/*
 ::content > li { }
 :host /deep/ .navbar form {
   white-space: nowrap;
@@ -54,3 +57,4 @@
   padding-top: 3px;
   padding-bottom: 3px;
 }
+*/
