@@ -1,67 +1,26 @@
 // Angular
-import { NgModule } from "@angular/core";
-import { RouterModule, Routes } from "@angular/router";
-// app
-import { InstructionsComponent, MultiComponent, GeneComponent,
-  SearchComponent } from "./components";
+import { NgModule } from '@angular/core';
+import { RouterModule, Routes } from '@angular/router';
 
-export enum Paths {
-  gene = "gene/:source/:gene",
-  multi = "multi/:genes",
-}
 
 const routes: Routes = [
   {
-    path: "",
-    pathMatch: "full",
-    redirectTo: "/instructions",
+    path: '',
+    pathMatch: 'full',
+    redirectTo: '/instructions',
   },
   {
-    component: InstructionsComponent,
-    path: "instructions",
+    path: 'instructions',
+    loadChildren: '@gcv/instructions/instructions.module#InstructionsModule',
   },
   {
-    path: "gene/:gene",
-    pathMatch: "full",
-    component: SearchComponent,
-  },
-  {
-    component: GeneComponent,
-    path: Paths.gene,
-  },
-  {
-    component: SearchComponent,
-    path: "gene/:source/:chromosome/:span",
-  },
-  {
-    component: MultiComponent,
-    path: Paths.multi,
-  },
-  // legacy
-  {
-    path: "search/:gene",
-    pathMatch: "full",
-    redirectTo: "gene/:gene",
-  },
-  {
-    path: "search/:source/:gene",
-    pathMatch: "full",
-    redirectTo: "gene/:source/:gene",
-  },
-  {
-    path: "search/:source/:chromosome/:span",
-    pathMatch: "full",
-    redirectTo: "gene/:source/:chromosome/:span",
-  },
-  {
-    path: "basic/:genes",
-    pathMatch: "full",
-    redirectTo: "multi/:genes",
+    path: 'gene',
+    loadChildren: '@gcv/gene/gene.module#GeneModule',
   },
 ];
 
 @NgModule({
-  exports: [ RouterModule ],
-  imports: [ RouterModule.forRoot(routes) ],
+  imports: [RouterModule.forRoot(routes)],
+  exports: [RouterModule],
 })
 export class AppRoutingModule { }

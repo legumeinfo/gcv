@@ -2,6 +2,11 @@
   "compileOnSave": false,
   "compilerOptions": {
     "baseUrl": "./",
+    "paths": {
+      "@gcv/*": ["./src/app/*"],
+      "@gcv-assets/*": ["./src/assets/*"],
+      "@gcv-environments/*": ["./src/environments/*"]
+    },
     "outDir": "./dist/out-tsc",
     "sourceMap": true,
     "declaration": false,
