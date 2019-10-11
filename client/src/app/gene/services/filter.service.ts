@@ -6,7 +6,7 @@ import { filter } from 'rxjs/operators';
 import { Store } from '@ngrx/store';
 import * as routerActions from '@gcv/core/store/actions/router.actions';
 import * as fromRoot from '@gcv/reducers';
-import * as fromRouter from '@gcv/gene/store/selectors/router.selectors';
+import * as fromRouter from '@gcv/gene/store/selectors/router/';
 // app
 import { ORDER_ALGORITHMS } from '@gcv/gene/algorithms';
 import { Algorithm } from '@gcv/gene/models';

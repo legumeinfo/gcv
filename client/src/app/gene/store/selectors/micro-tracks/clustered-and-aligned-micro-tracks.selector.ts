@@ -1,67 +1,20 @@
 // NgRx
 import { createSelector } from '@ngrx/store';
 // store
-import * as fromModule from '@gcv/gene/store/reducers';
-import * as fromGene from './gene.selectors';
-import * as fromChromosome from './chromosome.selectors';
-import * as fromRouter from './router.selectors';
-import { initialState, State } from '@gcv/gene/store/reducers/micro-tracks.reducer'; 
+import { State } from '@gcv/gene/store/reducers/micro-tracks.reducer';
+import * as fromRouter from '@gcv/gene/store/selectors/router/';
+import { getMicroTracksState } from './micro-tracks-state.selector';
+import { getSelectedMicroTracks } from './selected-micro-tracks.selector';
 // app
 import * as clusterfck from '@gcv-assets/js/clusterfck';
 import { GCV } from '@gcv-assets/js/gcv';
 import { ALIGNMENT_ALGORITHMS } from '@gcv/gene/algorithms';
-import { AlignmentParams, ClusteringParams, Gene, Track }
-  from '@gcv/gene/models';
+import { AlignmentParams, Track } from '@gcv/gene/models';
 import { AlignmentMixin, ClusterMixin } from '@gcv/gene/models/mixins';
 
 
-export const getMicroTracksState = createSelector(
-  fromModule.getGeneModuleState,
-  state => state['microtracks']
-);
+// clsutered
 
-export const getLoadedMicroTracks = createSelector(
-  getMicroTracksState,
-  // TODO: can initialState be handled upstream?
-  (state=initialState) => Object.values(state.entities),
-);
-
-// derive selected tracks from Chromosome and Gene States
-export const getSelectedMicroTracks = createSelector(
-  fromChromosome.getSelectedChromosomes,
-  fromGene.getSelectedGenes,
-  fromRouter.getMicroQueryParamNeighbors,
-  (chromosomes: Track[], genes: Gene[], neighbors: number):
-  Track[] => {
-    const chromosomeMap = {};
-    chromosomes.forEach((c) => {
-      const id = `${c.name}:${c.source}`;
-      chromosomeMap[id] = c;
-    });
-    const reducer = (accumulator, gene) => {
-        const id = `${gene.chromosome}:${gene.source}`;
-        if (id in chromosomeMap) {
-          const chromosome = chromosomeMap[id];
-          const i = chromosome.genes.indexOf(gene.name);
-          if (i > -1) {
-            const begin = Math.max(0, i-neighbors);
-            const end = Math.min(chromosome.genes.length, i+neighbors+1);
-            const track = {
-                ...chromosome,
-                genes: chromosome.genes.slice(begin, end),
-                families: chromosome.families.slice(begin, end),
-              };
-            accumulator.push(track);
-          }
-        }
-        return accumulator;
-      };
-    const tracks = genes.reduce(reducer, []);
-    return tracks;
-  }
-);
-
-export const selectedLoaded = fromChromosome.selectedLoaded;
 
 // clusters micro tracks based on their families
 // TODO: update params to work with new clusterer
@@ -119,8 +72,12 @@ export const getClusterIDs = createSelector(
   },
 );
 
-// performs a multiple sequence alignment of the tracks in each cluster and
-// outputs the aligned tracks and their consensus sequence
+
+// clustered and aligned
+
+
+// performs a multiple sequence alignment of the selected tracks in each cluster
+// and outputs the aligned tracks and their consensus sequence
 export const getClusteredAndAlignedSelectedMicroTracks = createSelector(
   getClusteredSelectedMicroTracks,
   (tracks: (Track | ClusterMixin)[]):
@@ -171,6 +128,7 @@ export const getClusteredAndAlignedSelectedMicroTracks = createSelector(
   },
 );
 
+// pairwise aligns each search result track to its cluster's consensus track
 export const getClusteredAndAlignedSearchMicroTracks = createSelector(
   getMicroTracksState,
   getClusteredAndAlignedSelectedMicroTracks,

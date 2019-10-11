@@ -8,9 +8,9 @@ import { catchError, filter, map, switchMap, withLatestFrom }
 import { Store } from '@ngrx/store';
 import * as pairwiseBlocksActions from '@gcv/gene/store/actions/pairwise-blocks.actions';
 import * as fromRoot from '@gcv/gene/store/reducers';
-import * as fromChromosome from '@gcv/gene/store/selectors/chromosome.selectors';
-import * as fromPairwiseBlocks from '@gcv/gene/store/selectors/pairwise-blocks.selectors';
-import * as fromRouter from '@gcv/gene/store/selectors/router.selectors';
+import * as fromChromosome from '@gcv/gene/store/selectors/chromosome/';
+import * as fromPairwiseBlocks from '@gcv/gene/store/selectors/pairwise-blocks/';
+import * as fromRouter from '@gcv/gene/store/selectors/router/';
 // app
 import { PairwiseBlocksService } from '@gcv/gene/services';
 

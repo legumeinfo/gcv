@@ -1,9 +1,8 @@
 // Angular
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, combineLatest, merge, onErrorResumeNext, throwError }
-  from 'rxjs';
-import { catchError, filter, map } from 'rxjs/operators';
+import { Observable, throwError } from 'rxjs';
+import { catchError, map } from 'rxjs/operators';
 // store
 import { Store } from '@ngrx/store';
 import * as routerActions from '@gcv/core/store/actions/router.actions';
@@ -15,7 +14,7 @@ import { HttpService } from '@gcv/core/services/http.service';
 @Injectable()
 export class PairwiseBlocksService extends HttpService {
 
-  constructor(private _http: HttpClient, private store: Store<fromRoot.State>) {
+  constructor(private _http: HttpClient, private _store: Store<fromRoot.State>) {
     super(_http);
   }
 
@@ -48,6 +47,6 @@ export class PairwiseBlocksService extends HttpService {
   updateParams(params: BlockParams): void {
     const path = [];
     const query = Object.assign({}, params);
-    this.store.dispatch(new routerActions.Go({path, query}));
+    this._store.dispatch(new routerActions.Go({path, query}));
   }
 }

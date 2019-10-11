@@ -3,8 +3,8 @@ import { Injectable } from '@angular/core';
 // store
 import { Action, Store } from '@ngrx/store';
 import * as fromRoot from '@gcv/gene/store/reducers';
-import * as fromMicroTracks from '@gcv/gene/store/selectors/micro-tracks.selectors';
-import * as fromRouter from '@gcv/gene/store/selectors/router.selectors';
+import * as fromMicroTracks from '@gcv/gene/store/selectors/micro-tracks/';
+import * as fromRouter from '@gcv/gene/store/selectors/router/';
 import { Effect, Actions, ofType } from '@ngrx/effects';
 import { combineLatest, of } from 'rxjs';
 import { catchError, map, switchMap, withLatestFrom } from 'rxjs/operators';

@@ -5,7 +5,7 @@ import { map, takeUntil } from 'rxjs/operators';
 // app
 import { GCV } from '@gcv-assets/js/gcv';
 import { GoldenLayoutDirective } from '@gcv/gene/directives';
-import { MicroTracksService } from '@gcv/gene/services';
+import { GeneService, MicroTracksService } from '@gcv/gene/services';
 import { LegendComponent } from './legend.component';
 import { MacroComponent } from './macro.component';
 import { MicroComponent } from './micro.component';
@@ -46,7 +46,8 @@ export class GeneComponent implements AfterViewInit, OnDestroy {
       }]
     };
 
-  constructor(private _microTracksService: MicroTracksService) { }
+  constructor(private _geneService: GeneService,
+              private _microTracksService: MicroTracksService) { }
 
   // Angular hooks
 
@@ -114,6 +115,7 @@ export class GeneComponent implements AfterViewInit, OnDestroy {
       componentState: {
         inputs: {
           tracks: this._microTracksService.getCluster(clusterID),
+          genes: this._geneService.getClusterGenes(clusterID),
           colors: this._microColors
         },
         outputs: {

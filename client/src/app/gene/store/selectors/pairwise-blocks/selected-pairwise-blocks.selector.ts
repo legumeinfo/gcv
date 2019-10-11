@@ -1,24 +1,20 @@
 // NgRx
 import { createSelector } from '@ngrx/store';
 // store
-import * as fromModule from '@gcv/gene/store/reducers';
-import * as fromChromosome from './chromosome.selectors';
-import * as fromRouter from './router.selectors';
+import { getSelectedChromosomeIDs }
+  from '@gcv/gene/store/selectors/chromosome/selected-chromosomes.selector';
+import * as fromRouter from '@gcv/gene/store/selectors/router';
 import { ChromosomeID } from '@gcv/gene/store/reducers/chromosome.reducer';
 import { initialState, partialPairwiseBlocksID, PartialPairwiseBlocksID, State }
   from '@gcv/gene/store/reducers/pairwise-blocks.reducer';
+import { getPairwiseBlocksState } from './pairwise-blocks-state.selector';
 // app
 import { PairwiseBlocks } from '@gcv/gene/models';
 
 
-export const getPairwiseBlocksState = createSelector(
-  fromModule.getGeneModuleState,
-  state => state['pairwiseblocks']
-);
-
 export const getSelectedPartialBlockIDs = createSelector(
   getPairwiseBlocksState,
-  fromChromosome.getSelectedChromosomeIDs,
+  getSelectedChromosomeIDs,
   fromRouter.getMicroQueryParamSources,
   (state: State, ids: ChromosomeID[], sources: string[]):
   PartialPairwiseBlocksID[] => {

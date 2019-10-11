@@ -1,11 +1,12 @@
 // Angular + dependencies
 import { AfterViewInit, Component, ElementRef, EventEmitter, Input, OnDestroy,
   Output, ViewChild } from '@angular/core';
-import { Observable, Subject } from 'rxjs';
+import { Observable, Subject, combineLatest } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { takeUntil } from 'rxjs/operators';
 // app
 import { GCV } from '@gcv-assets/js/gcv';
-import { Track } from '@gcv/gene/models';
+import { Gene, Track } from '@gcv/gene/models';
 
 @Component({
   selector: 'micro',
@@ -24,6 +25,7 @@ import { Track } from '@gcv/gene/models';
 export class MicroComponent implements AfterViewInit, OnDestroy {
 
   @Input() tracks: Observable<Track[]>;
+  @Input() genes: Observable<Gene[]>;
   @Input() colors: any;  // D3 color function
   @Output() plot = new EventEmitter();
 
@@ -36,9 +38,13 @@ export class MicroComponent implements AfterViewInit, OnDestroy {
 
   ngAfterViewInit() {
     // fetch own data because injected components don't have change detection
-    this.tracks
-      .pipe(takeUntil(this._destroy))
-      .subscribe((tracks) => this._draw(tracks));
+    combineLatest(
+      this.tracks,
+      this.genes)
+      .pipe(
+        takeUntil(this._destroy),
+        map(([tracks, genes]) => this._shim(tracks, genes)))
+      .subscribe((data) => this._draw(data));
   }
 
   ngOnDestroy() {
@@ -55,7 +61,7 @@ export class MicroComponent implements AfterViewInit, OnDestroy {
 
   // private
 
-  // use the 'breakpoint reversal sort' technique to identify segments
+  // use the "breakpoint reversal sort" technique to identify segments
   // (inversions and rearrangements) and their orientations
   private _coordinatesToSegments(a: any[]) {
     const indexes = a.map((e, i) => i);
@@ -83,9 +89,13 @@ export class MicroComponent implements AfterViewInit, OnDestroy {
     return segments;
   }
 
-  // convert track data into a visualization friendly format
-  private _shim(tracks) {
-    return tracks.map((t) => {
+  // convert track and gene data into a visualization friendly format
+  private _shim(tracks, genes) {
+    const geneMap = {};
+    genes.forEach((g) => {
+      geneMap[g.name] = g;
+    });
+    return tracks.map((t, j) => {
       // make track
       const track = {
           genus: t.genus,
@@ -104,6 +114,9 @@ export class MicroComponent implements AfterViewInit, OnDestroy {
               fmin: 0,
               fmax: 0
             };
+          if (name in geneMap) {
+            Object.assign(gene, geneMap[name]);
+          }
           track.genes.push(gene);
         }
       });
@@ -113,12 +126,15 @@ export class MicroComponent implements AfterViewInit, OnDestroy {
       let y = -1;
       track.genes.forEach((g, i) => {
         const segment = segments.indexSegments[i];
+        const orientation = segments.segmentOrientations[segment];
         if (segment !== prevSegment) {
           y += 1;
         }
         g.y = y%2;
         g.segment = segment;
-        // TODO: use orientation to invert strand
+        if (g.strand !== undefined && orientation ===  '-') {
+          g.strand *= -1;
+        }
         prevSegment = segment;
       });
       return track;
@@ -131,9 +147,8 @@ export class MicroComponent implements AfterViewInit, OnDestroy {
     }
   }
 
-  private _draw(tracks): void {
+  private _draw(data): void {
     this._destroyViewer();
-    const data = this._shim(tracks);
     this._viewer = new GCV.visualization.Micro(this.container.nativeElement, this.colors, data, {});
   }
 }

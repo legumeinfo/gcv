@@ -1,25 +1,19 @@
 // NgRx
-import { createSelector, select } from '@ngrx/store';
-import { pipe } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { createSelector } from '@ngrx/store';
 // store
-import * as fromModule from '@gcv/gene/store/reducers';
-import * as fromGene from './gene.selectors';
-import * as fromRouter from './router.selectors';
 import { chromosomeID, ChromosomeID, State }
   from '@gcv/gene/store/reducers/chromosome.reducer';
+import { getMicroQueryParamNeighbors } from '@gcv/gene/store/selectors/router/';
+import { getSelectedGenes }
+  from '@gcv/gene/store/selectors/gene/selected-genes.selector';
+import { getChromosomeState } from './chromosome-state.selector';
 // app
 import { Gene, Track } from '@gcv/gene/models';
 
 
-export const getChromosomeState = createSelector(
-  fromModule.getGeneModuleState,
-  state => state['chromosome']
-);
-
 // derive selected chromosome from Gene State
 export const getSelectedChromosomeIDs = createSelector(
-  fromGene.getSelectedGenes,
+  getSelectedGenes,
   (genes: Gene[]): ChromosomeID[] => {
     const reducer = (accumulator, gene) => {
         const name = gene.chromosome;
@@ -52,8 +46,8 @@ export const getSelectedChromosomes = createSelector(
 // derive selected tracks from Chromosome and Gene States
 export const getSelectedSlices = createSelector(
   getSelectedChromosomes,
-  fromGene.getSelectedGenes,
-  fromRouter.getMicroQueryParamNeighbors,
+  getSelectedGenes,
+  getMicroQueryParamNeighbors,
   (chromosomes: Track[], genes: Gene[], neighbors: number):
   Track[] => {
     const chromosomeMap = {};
@@ -96,27 +90,4 @@ export const getUnloadedSelectedChromosomeIDs = createSelector(
       });
     return unloadedIDs;
   },
-);
-
-const getChromosomeStateAndSelectedChromosomeIDs = createSelector(
-  getChromosomeState,
-  getSelectedChromosomeIDs,
-  (state: State, ids: ChromosomeID[]) => ({state, ids}),
-);
-
-// TODO: AND fromGene.selectedLoaded to output
-export const selectedLoaded = pipe(
-  select(getChromosomeStateAndSelectedChromosomeIDs),
-  map(({state, ids}) => {
-    const loadedIDs = state.loaded.map(chromosomeID);
-    const loadedIDset = new Set(loadedIDs);
-    const failedIDs = state.failed.map(chromosomeID);
-    const failedIDset = new Set(failedIDs);
-    const complete = ids
-      .map(chromosomeID)
-      .every((id) => loadedIDset.has(id) || failedIDset.has(id));
-    return ids
-      .map(chromosomeID)
-      .every((id) => loadedIDset.has(id) || failedIDset.has(id));
-  }),
 );

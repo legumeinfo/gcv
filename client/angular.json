@@ -33,6 +33,7 @@
               "node_modules/golden-layout/src/css/goldenlayout-base.css",
               "src/assets/css/goldenlayout-gcv-theme.css",
               "src/assets/css/styles.css",
+              "src/assets/css/gcv.css",
             ],
             "scripts": [
               "node_modules/jquery/dist/jquery.min.js",
@@ -108,6 +109,7 @@
               "node_modules/golden-layout/src/css/goldenlayout-base.css",
               "src/assets/css/goldenlayout-gcv-theme.css",
               "src/assets/css/styles.css",
+              "src/assets/css/gcv.css",
             ],
             "scripts": [
               "node_modules/jquery/dist/jquery.min.js",
