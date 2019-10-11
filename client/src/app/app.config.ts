@@ -1,18 +1,18 @@
 // Angular
-import { HttpClient, HttpParams } from "@angular/common/http";
-import { Inject, Injectable } from "@angular/core";
-import { Observable } from "rxjs";
-import { concatMap, mergeMap, tap } from "rxjs/operators";
+import { HttpClient, HttpParams } from '@angular/common/http';
+import { Inject, Injectable } from '@angular/core';
+import { Observable } from 'rxjs';
+import { concatMap, mergeMap, tap } from 'rxjs/operators';
 // app
-import { Server } from "./models/server.model";  // avoid circular dependencies
-import { Brand, Communication, Config, Dashboard, Miscellaneous } from "./models/config.model";  // ditto
+import { Brand, Communication, Config, Dashboard, Miscellaneous, Server } from
+  '@gcv/core/models';  // ditto
 
 declare var document: any;
 
 @Injectable()
 export class AppConfig {
 
-  // later frozen to be "const"
+  // later frozen to be 'const'
   public static SERVERS: Server[] = [];
   public static TOURS: string[] = [];
   public static BRAND: Brand;
@@ -40,7 +40,7 @@ export class AppConfig {
   }
 
   public load(): Promise<any> {
-    return this.http.get<Config>("config/config.json")
+    return this.http.get<Config>('config/config.json')
       .pipe(
         tap((config) => this._loadBrand(config.brand)),
         tap((config) => this._loadCommunication(config.communication)),
@@ -55,7 +55,7 @@ export class AppConfig {
   // general support for namespace function strings
   private _executeFunctionByName(functionName, context, args): any {
     args = [].slice.call(arguments).splice(2);
-    const namespaces = functionName.split(".");
+    const namespaces = functionName.split('.');
     const func = namespaces.pop();
     for (const space of namespaces) {
       context = context[space];
@@ -67,13 +67,13 @@ export class AppConfig {
   private _loadScript(src: string): Promise<any> {
     return new Promise((resolve, reject) => {
       // load script
-      const script = document.createElement("script");
-      script.type = "text/javascript";
+      const script = document.createElement('script');
+      script.type = 'text/javascript';
       script.src = src;
       if (script.readyState) {  // IE
         script.onreadystatechange = () => {
-          if (script.readyState === "loaded" ||
-              script.readyState === "complete") {
+          if (script.readyState === 'loaded' ||
+              script.readyState === 'complete') {
             script.onreadystatechange = null;
             resolve();
           }
@@ -82,7 +82,7 @@ export class AppConfig {
         script.onload = resolve;
       }
       script.onerror = reject;
-      document.getElementsByTagName("head")[0].appendChild(script);
+      document.getElementsByTagName('head')[0].appendChild(script);
     });
   }
 
@@ -98,11 +98,11 @@ export class AppConfig {
 
   private _loadBrand(brand: any): void {
     if (brand.favicon !== undefined) {
-      const link = document.createElement("link");
-      link.rel = "icon";
-      link.type = "image/x-icon";
+      const link = document.createElement('link');
+      link.rel = 'icon';
+      link.type = 'image/x-icon';
       link.href = brand.favicon;
-      document.getElementsByTagName("head")[0].appendChild(link);
+      document.getElementsByTagName('head')[0].appendChild(link);
     }
     AppConfig.BRAND = brand;
     Object.freeze(AppConfig.BRAND);
@@ -115,10 +115,10 @@ export class AppConfig {
 
   private _loadDashboard(dashboard: any): void {
     if (dashboard.search.img === undefined) {
-      dashboard.search.img = require("../assets/img/search.png");
+      dashboard.search.img = require('@gcv-assets/img/search.png');
     }
     if (dashboard.multi.img === undefined) {
-      dashboard.multi.img = require("../assets/img/multi.png");
+      dashboard.multi.img = require('@gcv-assets/img/multi.png');
     }
     AppConfig.DASHBOARD = dashboard;
     Object.freeze(AppConfig.DASHBOARD);
@@ -138,14 +138,14 @@ export class AppConfig {
                  s.macroColors.functionName !== undefined;
         })
         .map((s) => {
-          return this._loadScript(s.macroColors.scriptUrl || "").then(
+          return this._loadScript(s.macroColors.scriptUrl || '').then(
             () => {
               s.macroColors.function = (args) => {
                 return this._executeFunctionByName(s.macroColors.functionName, window, args);
               };
             }, (error) => {
               delete s.macroColors;
-              console.log("Failed to load macro-synteny colors");
+              console.log('Failed to load macro-synteny colors');
             },
           );
         })
@@ -156,7 +156,7 @@ export class AppConfig {
 
   private _loadTours(tours: any[]): Promise<any> {
     tours = tours || [];
-    return Promise.all(tours.map((t) => this._loadScript("config/tours/" + t.script)))
+    return Promise.all(tours.map((t) => this._loadScript('config/tours/' + t.script)))
       .then(() => this._setAndFreezeTours(tours))
       .catch((error) => this._setAndFreezeTours(tours));
   }

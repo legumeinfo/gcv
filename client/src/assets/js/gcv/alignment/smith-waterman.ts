@@ -1,112 +1,157 @@
-import { computeScore, matrix } from "./alignment";
+// library
+import { matrix, setOption, sum } from "../common";
+import { Alignment, InternalAlignment, Scores, Traceback } from "./models";
+import { computeScore, mergeAlignments } from "./utils";
+
+
+/**
+ * Aligns the given sequence to the given reference using the Smith-Waterman
+ * alignment algorithm.
+ * @param {Array<T>} seq - The sequence to be aligned to the refernece.
+ * @param {Array<T>} ref - The reference to align the sequence to.
+ * @param {Scores} scores - An object defining the (mis)match and gap values to
+ * be used during scoring.
+ * @param {Set<T>} omit - A set of elements to be considered unmatchable.
+ * @return {InternalAlignment} - An alignment object with a "coordinates"
+ * attribute that is an array describing each reference element's aligned
+ * position in the sequence (null if it wasn't aligned) and a "scores" attribute
+ * that is an array describing what each element in the reference contributes to
+ * the alignment's score (null if the element wasn't aligned).
+ * Ex: TODO
+ */
+function align<T>(
+  seq: T[],
+  ref: T[],
+  scores: Scores,
+  omit: Set<T>=new Set): InternalAlignment
+{
+
+  // construct score and traceback matrices
+  const cols = ref.length + 1;  // first item is at index 1
+  const rows = seq.length + 1;  // ditto
+  const m = matrix(cols, rows, 0);  // scores
+  const t = matrix(cols, rows, [0, 0]);  // traceback
+  let max = 0;
+  let maxCell = [0, 0];
+  for (let i = 1; i < cols; i++) {
+    for (let j = 1; j < rows; j++) {
+      const choices = [
+          0,
+          m[i-1][j-1] + computeScore(ref[i-1], seq[j-1], scores, omit),
+          m[i-1][j] + scores.gap,
+          m[i][j-1] + scores.gap
+        ];
+      m[i][j] = Math.max(...choices);
+      switch (choices.indexOf(m[i][j])) {
+        case Traceback.FIRST:
+          // points to default [0, 0]
+          break;
+        case Traceback.DIAGONAL:
+          t[i][j] = [i-1, j-1];
+          break;
+        case Traceback.LEFT:
+          t[i][j] = [i-1, j];
+          break;
+        case Traceback.UP:
+          t[i][j] = [i, j-1];
+          break;
+      }
+      if (m[i][j] > max) {
+        max = m[i][j];
+        maxCell = [i, j];
+      }
+    }
+  }
+
+  // construct alignment via traceback
+  const alignment = {coordinates: [], scores: []};
+  let insertion = 0;
+  let [i, j] = maxCell;
+  while (m[i][j] !== 0) {
+    let [i2, j2] = t[i][j];
+    // insertion
+    if (j2 === j && j !== 0) {
+      insertion += 1;
+    // (mis)match
+    } else if (j2 === j-1 && i2 === i-1) {
+      // backfill insertion
+      if (insertion > 0) {
+        let step = 1/(insertion+1);
+        for (let k = insertion-1; k >= 0; k--) {
+          const x = j + (k+1)*step;
+          alignment.coordinates.unshift(x-1);
+          alignment.scores.unshift(m[i][j+k+1]-m[i][j+k]);
+        }
+        insertion = 0;
+      }
+      alignment.coordinates.unshift(j-1)
+      alignment.scores.unshift(m[i][j]-m[i2][j2]);
+    }
+    // end alignment
+    if (m[i2][j2] === 0) {
+      if (alignment.coordinates.filter((x) => x !== null).length > 2) {
+        const fill = Array(ref.length-alignment.coordinates.length).fill(null);
+        alignment.coordinates.unshift(...fill);
+        alignment.scores.unshift(...fill);
+      }
+    }
+    [i, j] = [i2, j2];
+  }
+
+  return alignment;
+}
+
 
 /**
  * The Smith-Waterman algorithm.
- * @param {Array} sequence - The sequence to be aligned.
- * @param {Array} reference - The sequence to be aligned to.
+ * @param {Array<T>} reference - The sequence to be aligned to.
+ * @param {Array<T>} sequence - The sequence to align to the reference.
  * @param {object} options - Optional parameters.
- * @return {Array} - The aligned sequences and score.
+ * @return {Alignment[]} - Local alignments in the form of coordinates
+ * describing which element in reference each element in sequence aligned to. In
+ * the case of an insertion, the value will be a decimal between the flanking
+ * match states. Non-aligned genes get a null coordinate value.
+ * Ex: [0, 1, 2, 3, 4, 5]  // a perfect alignment
+ *     [0, 0.5, 1, 2, 3, 4]  // an insertion
+ *     [0, 0.3, 0.6, 1, 2 ]  // sequential insertions
+ *     [0, 1, 2, 5, 6, 7]  // deletions
+ *     [null, null, 3, 4, 5, null]  // ends weren't aligned
  */
-export default function smithWaterman(sequence, reference, options) {
-
-  /**
-   * The actual alignment algorithm.
-   * @param {Array} seq - The sequence being aligned to.
-   * @param {Array} ref - The sequence being aligned.
-   * @return {object} - The hidden iframe.
-   */
-  function align(seq, ref) {
-    // initialize letiables
-    const rows = ref.length + 1;
-    const cols = seq.length + 1;
-    const a = matrix(rows, cols, 0);
-    let i = 0;
-    let j = 0;
-    const choice = [0, 0, 0, 0];
-    // populate the matrix
-    let max = 0;
-    let iMax = 0;
-    let jMax = 0;
-    for (i = 1; i < rows; i++) {
-      for (j = 1; j < cols; j++) {
-        choice[0] = 0;
-        choice[1] = a[i - 1][j - 1] + computeScore(
-          ref[i - 1], seq[j - 1], options.accessor, options.scores, options.ignore,
-        );
-        choice[2] = a[i - 1][j] + options.scores.gap;
-        choice[3] = a[i][j - 1] + options.scores.gap;
-        a[i][j] = Math.max.apply(null, choice);
-        if (a[i][j] >= max) {
-          max = a[i][j];
-          iMax = i;
-          jMax = j;
-        }
-      }
-    }
-    // traceback
-    i = iMax;
-    j = jMax;
-    let diag;
-    let up;
-    let left;
-    let score = max;
-    const outRef = [];
-    const outSeq = [];
-    while (i > 0 && j > 0) {
-      score = a[i][j];
-      if (score === 0) {
-        break;
-      }
-      diag = a[i - 1][j - 1];
-      up = a[i][j - 1];
-      left = a[i - 1][j];
-      if (score === diag + computeScore(
-        ref[i - 1], seq[j - 1], options.accessor, options.scores, options.ignore,
-      )) {
-        outRef.unshift(ref[i - 1]);
-        outSeq.unshift(seq[j - 1]);
-        i -= 1;
-        j -= 1;
-      } else if (score === left + options.scores.gap) {
-          outRef.unshift(ref[i - 1]);
-          outSeq.unshift(null);
-          i -= 1;
-      } else if (score === up + options.scores.gap) {
-        outRef.unshift(null);
-        outSeq.unshift(seq[j - 1]);
-        j -= 1;
-      } else {
-        break;
-      }
-    }
-    while (j > 0) {
-      outRef.unshift(null);
-      outSeq.unshift(seq[j - 1]);
-      j -= 1;
-    }
-    return {sequence: outSeq, reference: outRef, score: max};
-  }
+export function smithWaterman<T>(
+  reference: T[],
+  sequence: T[],
+  options: any={}): Alignment[]
+{
 
   // parse optional parameters
-  options = options || {};
-  options.accessor = options.accessor || ((e) => e);
-  options.scores = options.scores || {};
-  options.scores.match = options.scores.match || 5;
-  options.scores.mismatch = options.scores.mismatch || 0;
-  options.scores.gap = options.scores.gap || -1;
-  options.ignore = options.ignore || [];
-  options.reverse = options.reverse || ((s) => {
-      const r = s.slice();
-      r.reverse();
-      return r;
-    });
+  options = Object.assign({}, options);
+  options.scores = Object.assign({}, options.scores);
+  setOption(options.scores, "match", 5);
+  setOption(options.scores, "mismatch", 0);
+  setOption(options.scores, "gap", -1);
+  setOption(options, "omit", new Set());
+  setOption(options, "reverse", true);
+  setOption(options, "inversions", true);
 
   // perform forward and reverse alignments
-  const forward = align(sequence, reference);
-  const reverseReference = options.reverse(reference);
-  const reverse = align(sequence, reverseReference);
+  const forward = sequence;
+  const forwardAlignment =
+    align(reference, forward, options.scores, options.omit);
+  const reverse = (options.reverse || options.inversions) ?
+    [...forward].reverse() : [];
+  const reverseAlignment =
+    align(reference, reverse, options.scores, options.omit);
+  // reverse the reverse alignment
+  reverseAlignment.coordinates.reverse();
+  reverseAlignment.scores.reverse();
 
-  // output the highest scoring alignment
-  const output = forward.score >= reverse.score ? forward : reverse;
-  return [output];
+  // merge alignments
+  const alignments = mergeAlignments(
+      [forwardAlignment],
+      [reverseAlignment],
+      options.reversals,
+      options.inversions)
+    .map((a) => ({alignment: a.coordinates, score: sum(a.scores)}));
+
+  return alignments;
 }

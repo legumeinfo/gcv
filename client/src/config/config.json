@@ -42,7 +42,7 @@
       },
       "microSearch": {
         "type": "POST",
-        "url": "http://localhost:8000/services/v1/micro-synteny-search/"
+        "url": "http://localhost:8000/services/v2/micro-synteny-search/"
       },
       "microQuery": {
         "type": "POST",
