@@ -1252,7 +1252,7 @@ def v2_genes(request):
         for i in range(len(genes)):
             g = genes[i]
             g_id = g.feature_id
-            family = str(family_map[g_id] ) if g in family_map else ''
+            family = str(family_map[g_id]) if g_id in family_map else ''
             floc = floc_map[g_id]
             chromosome = chromosome_name_map[floc_map[g_id].srcfeature_id]
             out_genes.append({
