@@ -113,12 +113,61 @@ export class GoldenLayoutDirective implements AfterContentInit, OnDestroy {
     componentRef.destroy();
   }
 
+  // finds the closest ancestor to an item that is a stack
+  private _closestStack(item) {
+    const root = this._layout.root;
+    let stack = item;
+    while (stack != root && !stack.isStack) {
+      stack = stack.parent;
+    }
+    if (stack.isStack) {
+      return stack;
+    }
+    return null
+  }
+
   // public
 
   addItem(itemConfig, indices: number[]) {
     let item = this._layout.root;
-    indices.forEach((i) => item = item.contentItems[i]);
-    item.addChild(itemConfig);
+    const id = itemConfig.id;
+    if (id !== undefined) {
+      const instances = item.getItemsById(id);
+      if (instances.length === 0) {
+        indices.forEach((i) => item = item.contentItems[i]);
+        item.addChild(itemConfig);
+      } else {
+        const contentItem = instances[0];
+        const stack = this._closestStack(contentItem);
+        if (stack !== null) {
+          item.setActiveContentItem(contentItem);
+        }
+      }
+    }
+  }
+
+  stackItem(itemConfig, stackID: number) {
+    let root = this._layout.root;
+    const id = itemConfig.id;
+    const items = root.getItemsById(stackID);
+    if (id !== undefined && items.length > 0) {
+      const instances = root.getItemsById(id);
+      // find the nearest stack ancestor and add the item as a child
+      if (instances.length === 0) {
+        const item = items[0];
+        let stack = this._closestStack(item);
+        if (stack !== null) {
+          stack.addChild(itemConfig);
+        }
+      // get the item's stack and make it the active item
+      } else {
+        const contentItem = instances[0];
+        let stack = this._closestStack(contentItem);
+        if (stack !== null) {
+          stack.setActiveContentItem(contentItem);
+        }
+      }
+    }
   }
 
   reset() {

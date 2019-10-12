@@ -383,7 +383,7 @@ export class Micro extends Visualizer {
       .style("cursor", "pointer")
       .on("mouseover", (y, i) => this.setTimeout(publishTrackEvent("select", i)))
       .on("mouseout", (y, i) => this.clearTimeout(publishTrackEvent("deselect", i)))
-      .on("click", (y, i) => this.options.nameClick(this.data[i]));
+      .on("click", (y, i) => this.options.nameClick(this.data[i], i));
     return yAxis;
   }
 
@@ -404,7 +404,7 @@ export class Micro extends Visualizer {
     plotYAxis.selectAll("text")
       .attr("class", "micro-plot-link")
       .style("cursor", "pointer")
-      .on("click", (y, i) => this.options.plotClick(this.data[i]));
+      .on("click", (y, i) => this.options.plotClick(this.data[i], i));
     return plotYAxis;
   }
 }

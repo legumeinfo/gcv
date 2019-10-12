@@ -27,7 +27,10 @@ export class MicroComponent implements AfterViewInit, OnDestroy {
   @Input() tracks: Observable<Track[]>;
   @Input() genes: Observable<Gene[]>;
   @Input() colors: any;  // D3 color function
-  @Output() plot = new EventEmitter();
+  @Input() options: any = {};
+  @Output() plotClick = new EventEmitter();
+  @Output() geneClick = new EventEmitter();
+  @Output() nameClick = new EventEmitter();
 
   @ViewChild('container', {static: true}) container: ElementRef;
 
@@ -41,10 +44,8 @@ export class MicroComponent implements AfterViewInit, OnDestroy {
     combineLatest(
       this.tracks,
       this.genes)
-      .pipe(
-        takeUntil(this._destroy),
-        map(([tracks, genes]) => this._shim(tracks, genes)))
-      .subscribe((data) => this._draw(data));
+      .pipe(takeUntil(this._destroy))
+      .subscribe(([tracks, genes]) => this._draw(tracks, genes));
   }
 
   ngOnDestroy() {
@@ -55,8 +56,16 @@ export class MicroComponent implements AfterViewInit, OnDestroy {
 
   // public
 
-  emitPlot() {
-    this.plot.emit();
+  emitPlot(track) {
+    this.plotClick.emit(track);
+  }
+
+  emitGene(name) {
+    this.geneClick.emit(name);
+  }
+
+  emitName(track) {
+    this.nameClick.emit(track);
   }
 
   // private
@@ -147,12 +156,19 @@ export class MicroComponent implements AfterViewInit, OnDestroy {
     }
   }
 
-  private _draw(data): void {
+  private _draw(tracks, genes): void {
+    const data = this._shim(tracks, genes);
     this._destroyViewer();
+    let options = {
+        plotClick: (t, i) => this.emitPlot(tracks[i]),
+        geneClick: (g, t) => this.emitGene(g.name),
+        nameClick: (t, i) => this.emitName(tracks[i])
+      };
+    options = Object.assign(options, this.options);
     this._viewer = new GCV.visualization.Micro(
         this.container.nativeElement,
         this.colors,
         data,
-        {autoResize: true});
+        options);
   }
 }

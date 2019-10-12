@@ -5,6 +5,7 @@ import { map, takeUntil } from 'rxjs/operators';
 // app
 import { GCV } from '@gcv-assets/js/gcv';
 import { GoldenLayoutDirective } from '@gcv/gene/directives';
+import { Track } from '@gcv/gene/models';
 import { GeneService, MicroTracksService } from '@gcv/gene/services';
 import { LegendComponent } from './legend.component';
 import { MacroComponent } from './macro.component';
@@ -92,9 +93,12 @@ export class GeneComponent implements AfterViewInit, OnDestroy {
   }
 
   private _legendConfigFactory(elements, colors) {
+    const id = 'microlegend';
     return  {
-     type: 'component',
+      type: 'component',
       componentName: 'legend',
+      id: id,
+      title: 'Micro Synteny Legend',
       componentState: {
         inputs: {elements: elements, colors: colors},
         outputs: {
@@ -108,22 +112,46 @@ export class GeneComponent implements AfterViewInit, OnDestroy {
     };
   }
 
+  private _plotConfigFactory(clusterID: number, track: Track) {
+    const name = track.name;
+    const first = track.genes[0];
+    const last = track.genes[track.genes.length-1];
+    const id = `micro${clusterID}plot${name}:${first}:${last}`;
+    return {
+      type: 'component',
+      componentName: 'plot',
+      id: id,
+      title: `${name} (${clusterID}) plot`,
+    };
+  }
+
   private _microConfigFactory(clusterID: number) {
+    const id = `micro${clusterID}`;
+    const options = {autoResize: true};
     return  {
-     type: 'component',
+      type: 'component',
       componentName: 'micro',
+      id: id,
+      title: `Micro Synteny Cluster ${clusterID}`,
       componentState: {
         inputs: {
           tracks: this._microTracksService.getCluster(clusterID),
           genes: this._geneService.getClusterGenes(clusterID),
-          colors: this._microColors
+          colors: this._microColors,
+          options
         },
         outputs: {
-          plot: (() => {
+          plotClick: (track) => {
+            const plotConfig = this._plotConfigFactory(clusterID, track);
             this.goldenLayoutDirective
-              // TODO: this should call a plot config factory
-              .addItem({type: 'component', componentName: 'plot'});
-          })
+              .stackItem(plotConfig, id);
+          },
+          geneClick: (name) => {
+            console.log(name);
+          },
+          nameClick: (track) => {
+            console.log(track);
+          }
         },
       },
       isClosable: false
