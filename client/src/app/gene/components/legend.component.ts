@@ -16,9 +16,7 @@ import { GCV } from '@gcv-assets/js/gcv';
       overflow-y: auto;
     }
   `],
-  template: `
-    <div #container></div>
-  `,
+  template: '<div #container></div>',
 })
 export class LegendComponent implements AfterViewInit, OnDestroy {
 
@@ -62,6 +60,10 @@ export class LegendComponent implements AfterViewInit, OnDestroy {
 
   private _draw(elements): void {
     this._destroyViewer();
-    this._viewer = new GCV.visualization.Legend(this.container.nativeElement, this.colors, elements, {});
+    this._viewer = new GCV.visualization.Legend(
+        this.container.nativeElement,
+        this.colors,
+        elements,
+        {autoResize: true});
   }
 }

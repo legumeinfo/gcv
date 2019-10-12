@@ -149,6 +149,10 @@ export class MicroComponent implements AfterViewInit, OnDestroy {
 
   private _draw(data): void {
     this._destroyViewer();
-    this._viewer = new GCV.visualization.Micro(this.container.nativeElement, this.colors, data, {});
+    this._viewer = new GCV.visualization.Micro(
+        this.container.nativeElement,
+        this.colors,
+        data,
+        {autoResize: true});
   }
 }
