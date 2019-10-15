@@ -92,7 +92,7 @@ export class Micro extends Visualizer {
     this.options.boldFirst = this.options.boldFirst || false;
     this.options.highlight = this.options.highlight || [];
     this.options.selectiveColoring = this.options.selectiveColoring;
-    this.options.nameClick = this.options.nameClick || ((c) => { /* noop */ });
+    this.options.nameClick = this.options.nameClick || ((t, i) => { /* noop */ });
     this.options.geneClick = this.options.geneClick || ((t, g, i) => { /* noop */ });
     this.options.plotClick = this.options.plotClick;
     this.options.autoResize = this.options.autoResize || false;

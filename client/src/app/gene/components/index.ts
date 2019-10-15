@@ -29,5 +29,6 @@ export * from './legend.component';
 export * from './macro.component';
 export * from './micro.component';
 export * from './plot.component';
+export * from './track-detail.component';
 export * from './shared';
 export * from './viewers';

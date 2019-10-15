@@ -63,7 +63,7 @@ export class MicroComponent implements AfterViewInit, OnDestroy {
   }
 
   emitName(track) {
-    this.nameClick.emit(track);
+    this.nameClick.emit({track});
   }
 
   // private

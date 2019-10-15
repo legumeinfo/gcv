@@ -13,6 +13,7 @@ import { LegendComponent } from './legend.component';
 import { MacroComponent } from './macro.component';
 import { MicroComponent } from './micro.component';
 import { PlotComponent } from './plot.component';
+import { TrackDetailComponent } from './track-detail.component';
 
 @Component({
   selector: 'gene',
@@ -33,7 +34,8 @@ export class GeneComponent implements AfterViewInit, OnDestroy {
       {component: LegendComponent, name: 'legend'},
       {component: MacroComponent, name: 'macro'},
       {component: MicroComponent, name: 'micro'},
-      {component: PlotComponent, name: 'plot'}
+      {component: PlotComponent, name: 'plot'},
+      {component: TrackDetailComponent, name: 'track'}
     ];
   layoutConfig = {
       content: [{
@@ -123,6 +125,19 @@ export class GeneComponent implements AfterViewInit, OnDestroy {
     };
   }
 
+  private _trackDetailConfigFactory(track) {
+    const first = track.genes[0];
+    const last = track.genes[track.genes.length-1];
+    const id = `track:${track.name}:${first}:${last}:${track.source}`;
+    return {
+      type: 'component',
+      componentName: 'track',
+      id: id,
+      title: `Track: ${track.name}`,
+      componentState: {inputs: {track}},
+    };
+  }
+
   private _legendConfigFactory(elements, colors) {
     const id = 'microlegend';
     const options = {autoResize: true};
@@ -182,8 +197,9 @@ export class GeneComponent implements AfterViewInit, OnDestroy {
               this._geneDetailConfigFactory(gene, family, source);
             this.goldenLayoutDirective.stackItem(geneConfig, id);
           },
-          nameClick: (track) => {
-            console.log(track);
+          nameClick: ({track}) => {
+            const trackConfig = this._trackDetailConfigFactory(track);
+            this.goldenLayoutDirective.stackItem(trackConfig, id);
           }
         },
       },
