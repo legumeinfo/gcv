@@ -7,6 +7,7 @@ import { GCV } from '@gcv-assets/js/gcv';
 import { GoldenLayoutDirective } from '@gcv/gene/directives';
 import { Track } from '@gcv/gene/models';
 import { GeneService, MicroTracksService } from '@gcv/gene/services';
+import { FamilyDetailComponent } from './family-detail.component';
 import { LegendComponent } from './legend.component';
 import { MacroComponent } from './macro.component';
 import { MicroComponent } from './micro.component';
@@ -26,6 +27,7 @@ export class GeneComponent implements AfterViewInit, OnDestroy {
   private _microLegend: Observable<{name: string, id: string}[]>;
 
   layoutComponents = [
+      {component: FamilyDetailComponent, name: 'family'},
       {component: LegendComponent, name: 'legend'},
       {component: MacroComponent, name: 'macro'},
       {component: MicroComponent, name: 'micro'},
@@ -92,20 +94,37 @@ export class GeneComponent implements AfterViewInit, OnDestroy {
       });
   }
 
+  private _familyDetailConfigFactory(family) {
+    const id = `family:${family}`;
+    return {
+      type: 'component',
+      componentName: 'family',
+      id: id,
+      title: `Family ${family}`,
+      componentState: {
+        inputs: {
+          family: family,
+          tracks: this._microTracksService.allTracks,
+        },
+      }
+    };
+  }
+
   private _legendConfigFactory(elements, colors) {
     const id = 'microlegend';
+    const options = {autoResize: true};
     return  {
       type: 'component',
       componentName: 'legend',
       id: id,
       title: 'Micro Synteny Legend',
       componentState: {
-        inputs: {elements: elements, colors: colors},
+        inputs: {elements: elements, colors: colors, options},
         outputs: {
-          click: (() => {
-            // TODO: this should do something more useful
-            console.log('legend click');
-          })
+          click: (family) => {
+            const familyConfig = this._familyDetailConfigFactory(family);
+            this.goldenLayoutDirective.stackItem(familyConfig, id);
+          }
         },
       },
       isClosable: false
@@ -143,8 +162,7 @@ export class GeneComponent implements AfterViewInit, OnDestroy {
         outputs: {
           plotClick: (track) => {
             const plotConfig = this._plotConfigFactory(clusterID, track);
-            this.goldenLayoutDirective
-              .stackItem(plotConfig, id);
+            this.goldenLayoutDirective.stackItem(plotConfig, id);
           },
           geneClick: (name) => {
             console.log(name);

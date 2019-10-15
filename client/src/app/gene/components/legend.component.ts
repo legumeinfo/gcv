@@ -6,6 +6,7 @@ import { takeUntil } from 'rxjs/operators';
 // app
 import { GCV } from '@gcv-assets/js/gcv';
 
+
 @Component({
   selector: 'legend',
   styles: [`
@@ -22,6 +23,7 @@ export class LegendComponent implements AfterViewInit, OnDestroy {
 
   @Input() elements: Observable<{name: string, id: string}[]>;
   @Input() colors: any;  // D3 color function
+  @Input() options: any = {};
   @Output() click = new EventEmitter();
 
   @ViewChild('container', {static: true}) container: ElementRef;
@@ -46,8 +48,8 @@ export class LegendComponent implements AfterViewInit, OnDestroy {
 
   // public
 
-  emitClick() {
-    this.click.emit();
+  emitClick(key) {
+    this.click.emit(key);
   }
 
   // private
@@ -59,11 +61,13 @@ export class LegendComponent implements AfterViewInit, OnDestroy {
   }
 
   private _draw(elements): void {
+    let options = {keyClick: (k) => this.emitClick(k.id)};
+    options = Object.assign(options, this.options);
     this._destroyViewer();
     this._viewer = new GCV.visualization.Legend(
         this.container.nativeElement,
         this.colors,
         elements,
-        {autoResize: true});
+        options);
   }
 }

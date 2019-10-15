@@ -41,9 +41,7 @@ export class MicroComponent implements AfterViewInit, OnDestroy {
 
   ngAfterViewInit() {
     // fetch own data because injected components don't have change detection
-    combineLatest(
-      this.tracks,
-      this.genes)
+    combineLatest(this.tracks, this.genes)
       .pipe(takeUntil(this._destroy))
       .subscribe(([tracks, genes]) => this._draw(tracks, genes));
   }

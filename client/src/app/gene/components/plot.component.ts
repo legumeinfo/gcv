@@ -1,6 +1,7 @@
 // Angular + dependencies
 import { AfterViewInit, Component, ElementRef, OnDestroy, ViewChild }
   from '@angular/core';
+// app
 import { GCV } from '@gcv-assets/js/gcv';
 
 @Component({

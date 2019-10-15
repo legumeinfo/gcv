@@ -1,17 +1,20 @@
 // Angular
-import { Component, Input, OnChanges, SimpleChanges } from '@angular/core';
+import { Component, Input, OnDestroy, OnInit } from '@angular/core';
+import { Observable, Subject } from 'rxjs';
+import { take, takeUntil } from 'rxjs/operators';
 // App
 import { AppConfig } from '@gcv/app.config';
 import { DetailsService } from '@gcv/gene/services';
 import { Server } from '@gcv/core/models';
-import { Family, Gene, MicroTracks } from '@gcv/gene/models';
+import { Track } from '@gcv/gene/models';
+
 
 @Component({
   selector: 'family-detail',
   styles: [ '' ],
   template: `
     <h4>{{family.name}}</h4>
-    <p><a [routerLink]="['/multi', geneList]" queryParamsHandling="merge">View genes in multi-alignment view</a></p>
+    <p><a [routerLink]="['/multi', geneString]" queryParamsHandling="merge">View genes in multi-alignment view</a></p>
     <p>Phylograms: <span *ngIf="familyTreeLinks.length === 0">none</span></p>
     <ul *ngIf="familyTreeLinks.length > 0">
       <li *ngFor="let link of familyTreeLinks">
@@ -20,57 +23,72 @@ import { Family, Gene, MicroTracks } from '@gcv/gene/models';
     </ul>
     <p>Genes:</p>
     <ul>
-      <li *ngFor="let gene of genes">
-        {{gene.name}}: {{gene.fmin}} - {{gene.fmax}}
-      </li>
+      <li *ngFor="let gene of genes">{{ gene }}</li>
     </ul>
   `,
 })
-export class FamilyDetailComponent implements OnChanges {
+export class FamilyDetailComponent implements OnInit, OnDestroy {
 
   private _serverIDs = AppConfig.SERVERS.map(s => s.id);
 
-  @Input() family: Family;
-  @Input() tracks: MicroTracks;
+  @Input() family: string;
+  @Input() tracks: Observable<Track[]>;
 
-  genes: Gene[];
-  geneList: string;
-  familyTreeLinks: any[];
+  private _destroy: Subject<boolean> = new Subject();
+
+  genes: string[] = [];
+  geneString: string = "";
+  familyTreeLinks: any[] = [];
 
   constructor(private detailsService: DetailsService) { }
 
-  ngOnChanges(changes: SimpleChanges): void {
-    if (this.family !== undefined && this.tracks !== undefined) {
-      this.genes = this.tracks.groups.reduce((l, group) => {
-        const genes = group.genes.filter((g) => {
-          return (g.family.length > 0 && this.family.id.includes(g.family)) ||
-            g.family === this.family.id;
-        });
-        l.push.apply(l, genes);
-        return l;
-      }, []);
-      const linkablePhylo = this.family.id !== '' && new Set(this.genes.map((g) => {
-        return g.family;
-      })).size === 1;
-      this.geneList = this.genes.map((x) => x.name).join(',');
-      this.familyTreeLinks = [];
+  // Angular hooks
 
-      if (linkablePhylo) {
-        const sources = new Set(this.genes.map((g) => g.source));
-        sources.forEach((source) => {
-          const idx = this._serverIDs.indexOf(source);
-          if (idx !== -1) {
-            const s: Server = AppConfig.SERVERS[idx];
-            if (s.hasOwnProperty('familyTreeLink')) {
-              const familyTreeLink = {
-                url: s.familyTreeLink.url + this.family.name + '&gene_name=' + this.geneList,
-                text: s.name,
-              };
-              this.familyTreeLinks.push(familyTreeLink);
-            }
+  ngOnInit() {
+    this.tracks
+      .pipe(
+        takeUntil(this._destroy),
+        take(1))
+      .subscribe((tracks) => this._process(tracks));
+  }
+
+  ngOnDestroy() {
+    this._destroy.next(true);
+    this._destroy.complete();
+  }
+
+  // private
+
+  private _process(tracks) {
+    this.genes = [];
+    const families = new Set<string>();
+    const sources = new Set<string>();
+    tracks.forEach((t) => {
+      sources.add(t.source);
+      t.families.forEach((f, i) => {
+        if ((f.length > 0 && this.family.includes(f)) || f === this.family) {
+          this.genes.push(t.genes[i]);
+          families.add(f);
+        }
+      });
+    });
+    this.geneString = this.genes.join(',');
+
+    this.familyTreeLinks = [];
+    if (families.size === 1) {
+      sources.forEach((s) => {
+        const idx = this._serverIDs.indexOf(s);
+        if (idx !== -1) {
+          const server: Server = AppConfig.SERVERS[idx];
+          if (server.hasOwnProperty('familyTreeLink')) {
+            const familyTreeLink = {
+              url: server.familyTreeLink.url + this.family + '&gene_name=' + this.geneString,
+              text: server.name,
+            };
+            this.familyTreeLinks.push(familyTreeLink);
           }
-        });
-      }
+        }
+      });
     }
   }
 }
