@@ -55,11 +55,11 @@ export class MicroComponent implements AfterViewInit, OnDestroy {
   // public
 
   emitPlot(track) {
-    this.plotClick.emit(track);
+    this.plotClick.emit({track});
   }
 
-  emitGene(name) {
-    this.geneClick.emit(name);
+  emitGene(gene, family, source) {
+    this.geneClick.emit({gene, family, source});
   }
 
   emitName(track) {
@@ -105,6 +105,7 @@ export class MicroComponent implements AfterViewInit, OnDestroy {
     return tracks.map((t, j) => {
       // make track
       const track = {
+          source: t.source,
           genus: t.genus,
           species: t.species,
           chromosome_name: t.name,
@@ -159,7 +160,7 @@ export class MicroComponent implements AfterViewInit, OnDestroy {
     this._destroyViewer();
     let options = {
         plotClick: (t, i) => this.emitPlot(tracks[i]),
-        geneClick: (g, t) => this.emitGene(g.name),
+        geneClick: (t, g, i) => this.emitGene(g.name, g.family, t.source),
         nameClick: (t, i) => this.emitName(tracks[i])
       };
     options = Object.assign(options, this.options);

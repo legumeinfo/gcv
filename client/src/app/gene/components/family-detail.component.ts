@@ -4,7 +4,6 @@ import { Observable, Subject } from 'rxjs';
 import { take, takeUntil } from 'rxjs/operators';
 // App
 import { AppConfig } from '@gcv/app.config';
-import { DetailsService } from '@gcv/gene/services';
 import { Server } from '@gcv/core/models';
 import { Track } from '@gcv/gene/models';
 
@@ -29,20 +28,22 @@ import { Track } from '@gcv/gene/models';
 })
 export class FamilyDetailComponent implements OnInit, OnDestroy {
 
-  private _serverIDs = AppConfig.SERVERS.map(s => s.id);
-
   @Input() family: string;
   @Input() tracks: Observable<Track[]>;
 
+  private _serverIDs = AppConfig.SERVERS.map(s => s.id);
   private _destroy: Subject<boolean> = new Subject();
 
   genes: string[] = [];
-  geneString: string = "";
+  geneString: string = '';
   familyTreeLinks: any[] = [];
 
-  constructor(private detailsService: DetailsService) { }
-
   // Angular hooks
+
+  ngOnDestroy() {
+    this._destroy.next(true);
+    this._destroy.complete();
+  }
 
   ngOnInit() {
     this.tracks
@@ -50,11 +51,6 @@ export class FamilyDetailComponent implements OnInit, OnDestroy {
         takeUntil(this._destroy),
         take(1))
       .subscribe((tracks) => this._process(tracks));
-  }
-
-  ngOnDestroy() {
-    this._destroy.next(true);
-    this._destroy.complete();
   }
 
   // private

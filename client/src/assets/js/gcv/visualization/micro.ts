@@ -93,7 +93,7 @@ export class Micro extends Visualizer {
     this.options.highlight = this.options.highlight || [];
     this.options.selectiveColoring = this.options.selectiveColoring;
     this.options.nameClick = this.options.nameClick || ((c) => { /* noop */ });
-    this.options.geneClick = this.options.geneClick || ((b) => { /* noop */ });
+    this.options.geneClick = this.options.geneClick || ((t, g, i) => { /* noop */ });
     this.options.plotClick = this.options.plotClick;
     this.options.autoResize = this.options.autoResize || false;
     this.options.hoverDelay = this.options.hoverDelay || 500;
@@ -281,7 +281,7 @@ export class Micro extends Visualizer {
       .style("cursor", "pointer")
       .on("mouseover", (g) => this.setTimeout(publishGeneEvent("select", g)))
       .on("mouseout", (g) => this.clearTimeout(publishGeneEvent("deselect", g)))
-      .on("click", (g) => obj.options.geneClick(g, t))
+      .on("click", (g, i) => obj.options.geneClick(t, g, i))
       // add optional HTML attributes to gene elelements
       .addHTMLAttributes();
     // add genes to the gene groups

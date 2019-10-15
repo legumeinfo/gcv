@@ -8,6 +8,7 @@ import { GoldenLayoutDirective } from '@gcv/gene/directives';
 import { Track } from '@gcv/gene/models';
 import { GeneService, MicroTracksService } from '@gcv/gene/services';
 import { FamilyDetailComponent } from './family-detail.component';
+import { GeneDetailComponent } from './gene-detail.component';
 import { LegendComponent } from './legend.component';
 import { MacroComponent } from './macro.component';
 import { MicroComponent } from './micro.component';
@@ -27,6 +28,7 @@ export class GeneComponent implements AfterViewInit, OnDestroy {
   private _microLegend: Observable<{name: string, id: string}[]>;
 
   layoutComponents = [
+      {component: GeneDetailComponent, name: 'gene'},
       {component: FamilyDetailComponent, name: 'family'},
       {component: LegendComponent, name: 'legend'},
       {component: MacroComponent, name: 'macro'},
@@ -92,6 +94,17 @@ export class GeneComponent implements AfterViewInit, OnDestroy {
       .subscribe((IDs) => {
         this._addMicroViewers(IDs);
       });
+  }
+
+  private _geneDetailConfigFactory(gene, family, source) {
+    const id = `gene:${gene}`;
+    return {
+      type: 'component',
+      componentName: 'gene',
+      id: id,
+      title: `Gene ${gene}`,
+      componentState: {inputs: {gene, family, source}}
+    };
   }
 
   private _familyDetailConfigFactory(family) {
@@ -160,12 +173,14 @@ export class GeneComponent implements AfterViewInit, OnDestroy {
           options
         },
         outputs: {
-          plotClick: (track) => {
+          plotClick: ({track}) => {
             const plotConfig = this._plotConfigFactory(clusterID, track);
             this.goldenLayoutDirective.stackItem(plotConfig, id);
           },
-          geneClick: (name) => {
-            console.log(name);
+          geneClick: ({gene, family, source}) => {
+            const geneConfig =
+              this._geneDetailConfigFactory(gene, family, source);
+            this.goldenLayoutDirective.stackItem(geneConfig, id);
           },
           nameClick: (track) => {
             console.log(track);

@@ -36,4 +36,10 @@ export class GeneService extends HttpService {
       select(fromGene.getAlignedMicroTrackClusterGenes(id))
     );
   }
+
+  // fetches source specific details for the given gene
+  getGeneDetails(gene: string, source: string): Observable<any> {
+    const makeUrl = (url: string) => url + gene + '/json';
+    return this._makeRequest<any>(source, 'geneLinks', {}, makeUrl);
+  }
 }

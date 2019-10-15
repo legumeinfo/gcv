@@ -20,7 +20,7 @@ export abstract class HttpService {
   protected _makeRequest<T>(
     serverID: string,
     requestType: string,
-    body: any,
+    body: any = {},
     makeUrl = ((url: string) => url),
   ): Observable<T> {
     const args = {serverID, requestType, body};

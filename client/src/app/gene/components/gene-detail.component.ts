@@ -1,128 +1,67 @@
 // Angular
-import { Component, ComponentFactory, ComponentFactoryResolver, ComponentRef,
-  Input, OnChanges, OnDestroy, OnInit, SimpleChanges, ViewContainerRef, ViewChild } from '@angular/core';
+import { Component,
+  Input, OnDestroy, OnInit } from '@angular/core';
 import { Subject } from 'rxjs';
-import { takeUntil } from 'rxjs/operators';
+import { take, takeUntil } from 'rxjs/operators';
 // App
-import { AlertComponent } from '@gcv/core/components';
 import { AppConfig } from '@gcv/app.config';
 import { Server } from '@gcv/core/models';
-import { Alert, Gene } from '@gcv/gene/models';
-import { DetailsService } from '@gcv/gene/services';
+import { GeneService } from '@gcv/gene/services';
 
 @Component({
   selector: 'gene-detail',
-  styles: [`
-    #alerts {
-      position: absolute;
-      left: 0;
-      right: 0;
-    }
-  `],
+  styles: [ '' ],
   template: `
-    <div id="alerts">
-      <ng-container #alerts></ng-container>
-    </div>
-    <h4>{{gene.name}}</h4>
-    <p *ngIf="familyTreeLink !== undefined">Family: <a href="{{familyTreeLink}}">{{gene.family}}</a></p>
-    <p><a [routerLink]="['/search', gene.source, gene.name]" queryParamsHandling="merge">Search for similar contexts</a></p>
+    <h4>{{ gene }}</h4>
+    <p *ngIf="familyTreeLink !== undefined">Family: <a href="{{ familyTreeLink }}">{{ family }}</a></p>
+    <p><a [routerLink]="['/search', source, name]" queryParamsHandling="merge">Search for similar contexts</a></p>
     <ul>
       <li *ngFor="let link of links">
-        <a href="{{link.href}}">{{link.text}}</a>
+        <a href="{{ link.href }}">{{ link.text }}</a>
       </li>
     </ul>
   `,
 })
 
-export class GeneDetailComponent implements OnChanges, OnDestroy, OnInit {
-  @Input() gene: Gene;
+export class GeneDetailComponent implements OnDestroy, OnInit {
 
-  @ViewChild('alerts', {read: ViewContainerRef, static: true}) alerts: ViewContainerRef;
-
-  links: any[];
-  familyTreeLink: string;
+  @Input() gene: string;
+  @Input() family: string;
+  @Input() source: string
 
   private _serverIDs = AppConfig.SERVERS.map(s => s.id);
+  private _destroy: Subject<boolean> = new Subject();
 
-  // emits when the component is destroyed
-  private destroy: Subject<boolean>;
+  links: any[] = [];
+  familyTreeLink: string = '';
 
-  constructor(
-    private resolver: ComponentFactoryResolver,
-    private detailsService: DetailsService
-  ) {
-    this.destroy = new Subject();
-  }
+  constructor(private _geneService: GeneService) { }
 
-  ngOnChanges(changes: SimpleChanges): void {
-    this.links = undefined;
-    if (this.gene !== undefined) {
-      this.links = undefined;
-
-      this.familyTreeLink = undefined;
-      const idx = this._serverIDs.indexOf(this.gene.source);
-      if (idx !== -1) {
-        const s: Server = AppConfig.SERVERS[idx];
-        if (s.hasOwnProperty('familyTreeLink')) {
-          this.familyTreeLink = s.familyTreeLink.url + this.gene.family;
-        }
-      }
-
-      this.detailsService.getGeneDetails(this.gene, (links) => {
-        this.links = links;
-      });
-    }
-  }
+  // Angular hooks
 
   ngOnDestroy(): void {
-    this.destroy.next(true);
-    this.destroy.complete();
+    this._destroy.next(true);
+    this._destroy.complete();
   }
 
   ngOnInit(): void {
-    this.detailsService.requests
-      .pipe(takeUntil(this.destroy))
-      .subscribe(([args, request]) => {
-        this._requestToAlertComponent(args.serverID, request, 'links', this.alerts);
-      });
+    const idx = this._serverIDs.indexOf(this.source);
+    if (idx !== -1) {
+      const server: Server = AppConfig.SERVERS[idx];
+      if (server.hasOwnProperty('familyTreeLink')) {
+        this.familyTreeLink = server.familyTreeLink.url + this.family;
+      }
+    }
+    this._geneService.getGeneDetails(this.gene, this.source)
+      .pipe(
+        takeUntil(this._destroy),
+        take(1))
+      .subscribe((links) => this._process(links));
   }
 
-  private _requestToAlertComponent(serverID, request, what, container) {
-    const source = AppConfig.getServer(serverID).name;
-    const factory: ComponentFactory<AlertComponent> = this.resolver.resolveComponentFactory(AlertComponent);
-    const componentRef: ComponentRef<AlertComponent> = container.createComponent(factory);
-    // EVIL: Angular doesn't have a defined method for hooking dynamic components into
-    // the Angular lifecycle so we must explicitly call ngOnChanges whenever a change
-    // occurs. Even worse, there is no hook for the Output directive, so we must
-    // shoehorn the desired functionality in!
-    componentRef.instance.close = function(componentRef) {
-      componentRef.destroy();
-    }.bind(this, componentRef);
-    componentRef.instance.float = true;
-    componentRef.instance.alert = new Alert(
-      'info',
-      'Loading ' + what + ' from \'' + source + '\'',
-      {spinner: true},
-    );
-    componentRef.instance.ngOnChanges({});
-    request
-      .pipe(takeUntil(componentRef.instance.onClose))
-      .subscribe(
-        (response) => {
-          componentRef.instance.alert = new Alert(
-            'success',
-            'Successfully loaded ' + what + ' from \'' + source + '\'',
-            {closable: true, autoClose: 3},
-          );
-          componentRef.instance.ngOnChanges({});
-        },
-        (error) => {
-          componentRef.instance.alert = new Alert(
-            'danger',
-            'Failed to load ' + what + ' from \'' + source + '\'',
-            {closable: true},
-          );
-          componentRef.instance.ngOnChanges({});
-        });
+  // private
+
+  private _process(links: any[]) {
+    this.links = links;
   }
 }
