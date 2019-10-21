@@ -1,7 +1,7 @@
 // Angular
 import { Injectable } from '@angular/core';
 // store
-import { Action, Store } from '@ngrx/store';
+import { Store } from '@ngrx/store';
 import * as fromRoot from '@gcv/gene/store/reducers';
 import * as fromMicroTracks from '@gcv/gene/store/selectors/micro-tracks/';
 import * as fromRouter from '@gcv/gene/store/selectors/router/';
@@ -9,7 +9,6 @@ import { Effect, Actions, ofType } from '@ngrx/effects';
 import { combineLatest, of } from 'rxjs';
 import { catchError, map, switchMap, withLatestFrom } from 'rxjs/operators';
 import * as microTracksActions from '@gcv/gene/store/actions/micro-tracks.actions';
-import * as searchQueryTrackActions from '@gcv/gene/store/actions/search-query-track.actions';
 // app
 import { Track } from '@gcv/gene/models';
 import { ClusterMixin } from '@gcv/gene/models/mixins';
@@ -21,6 +20,16 @@ export class MicroTracksEffects {
   constructor(private actions$: Actions,
               private microTracksService: MicroTracksService,
               private store: Store<fromRoot.State>) { }
+
+  // private
+
+  // returns true if any of the tracks overlap with the given track
+  private _tracksOverlap(track: Track, tracks: Track[]): boolean {
+    const genes = new Set(track.genes);
+    return tracks.some((t) => t.genes.some((g) => genes.has(g)));
+  }
+
+  // public
 
   // clear the store every time new parameters are emitted and search for tracks
   @Effect()
@@ -71,7 +80,12 @@ export class MicroTracksEffects {
   miroTracksSearch$ = this.actions$.pipe(
     ofType(microTracksActions.SEARCH),
     map((action: microTracksActions.Search) => action.payload),
-    switchMap(({cluster, families, source, params}) => {
+    withLatestFrom(
+      this.store.select(fromMicroTracks.getClusteredSelectedMicroTracks)),
+    switchMap(([{cluster, families, source, params}, clusteredTracks]) => {
+      const clusterTracks = clusteredTracks.filter((t: ClusterMixin) => {
+          return t.cluster === cluster;
+        });
       const mixin = (track: Track): (Track | ClusterMixin) => {
           track.source = source;
           const t = Object.create(track);
@@ -81,6 +95,7 @@ export class MicroTracksEffects {
       return this.microTracksService.microTracksSearch(families, params, source)
       .pipe(
         map((tracks) => {
+          tracks = tracks.filter((t) => !this._tracksOverlap(t, clusterTracks as Track[]));
           const payload = {cluster, source, tracks: tracks.map(mixin)};
           return new microTracksActions.SearchSuccess(payload);
         }),

@@ -42,12 +42,10 @@ export class MicroTracksService extends HttpService {
       matched: String(params.matched),
       query: families,
     };
-    return this._makeRequest<{tracks: Track[]}>(serverID, 'microSearch', body).pipe(
-      map(({tracks}) => {
-        return tracks;
-      }),
-      catchError((error) => throwError(error)),
-    );
+    return this._makeRequest<{tracks: Track[]}>(serverID, 'microSearch', body)
+      .pipe(
+        map(({tracks}) => tracks),
+        catchError((error) => throwError(error)));
   }
 
   updateParams(params: QueryParams): void {
@@ -99,28 +97,4 @@ export class MicroTracksService extends HttpService {
       select(fromMicroTracks.getAlignedMicroTrackCluster(id))
     );
   }
-
-  // merges all the groups in the given array into a single group
-  private _mergeTracks(toMerge: Group[]): Group {
-    const merged: Group = Object.assign({}, toMerge[0]);
-    //merged.genes = toMerge[0].genes.slice();
-    //const seen = new Set(merged.genes.map((g) => g.id));
-    //for (let i = 1; i < toMerge.length; i++) {
-    //  for (const g of toMerge[i].genes) {
-    //    if (!seen.has(g.id)) {
-    //      seen.add(g.id);
-    //      merged.genes.push(g);
-    //    }
-    //  }
-    //}
-    return merged;
-  }
-
-  // removes the query from given MicroTracks if present
-  //private _removeQuery(query: Group, tracks: MicroTracks): void {
-    //const genes = new Set(query.genes.map((g) => g.id));
-    //tracks.groups = tracks.groups.filter((group) => {
-    //  return !group.genes.some((g) => genes.has(g.id));
-    //});
-  //}
 }
