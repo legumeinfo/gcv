@@ -282,7 +282,7 @@ export class Micro extends Visualizer {
       .on("mouseover", (g) => this.setTimeout(publishGeneEvent("select", g)))
       .on("mouseout", (g) => this.clearTimeout(publishGeneEvent("deselect", g)))
       .on("click", (g, i) => obj.options.geneClick(t, g, i))
-      // add optional HTML attributes to gene elelements
+      // add optional HTML attributes to gene elements
       .addHTMLAttributes();
     // add genes to the gene groups
     const genes = geneGroups.append("path")
@@ -374,6 +374,7 @@ export class Micro extends Visualizer {
         }
       });
     };
+    const obj = this;
     yAxis.selectAll("text")
       .attr("class", (y, i) => (i === 0 && this.options.boldFirst) ? "query " : "")
       .attr("data-micro-track", (y, i) => i.toString())
@@ -383,7 +384,14 @@ export class Micro extends Visualizer {
       .style("cursor", "pointer")
       .on("mouseover", (y, i) => this.setTimeout(publishTrackEvent("select", i)))
       .on("mouseout", (y, i) => this.clearTimeout(publishTrackEvent("deselect", i)))
-      .on("click", (y, i) => this.options.nameClick(this.data[i], i));
+      .on("click", (y, i) => this.options.nameClick(this.data[i], i))
+      // add optional HTML attributes to gene elements
+      //.addHTMLAttributes();
+      .each(function(y, i) {
+        const selection = d3.select(this);
+        //console.log(obj.data[i]);
+        selection.addHTMLAttributes(obj.data[i]);
+      });
     return yAxis;
   }
 

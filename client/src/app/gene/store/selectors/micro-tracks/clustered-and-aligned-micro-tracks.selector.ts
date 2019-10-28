@@ -13,7 +13,7 @@ import { AlignmentParams, Track } from '@gcv/gene/models';
 import { AlignmentMixin, ClusterMixin } from '@gcv/gene/models/mixins';
 
 
-// clsutered
+// clustered
 
 
 // clusters micro tracks based on their families
@@ -60,6 +60,14 @@ export const getClusteredSelectedMicroTracks = createSelector(
       };
     const clusteredTracks = clusters.reduce(reducer, []);
     return clusteredTracks;
+  }
+);
+
+export const getSelectedMicroTracksForCluster = (id: number) => createSelector(
+  getClusteredSelectedMicroTracks,
+  (tracks: (Track | ClusterMixin)[]): (Track | ClusterMixin)[] => {
+    const filteredTracks = tracks.filter((t: ClusterMixin) => t.cluster === id);
+    return filteredTracks;
   }
 );
 

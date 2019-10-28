@@ -8,16 +8,10 @@ import { takeUntil } from 'rxjs/operators';
 import { GCV } from '@gcv-assets/js/gcv';
 import { Gene, Track } from '@gcv/gene/models';
 
+
 @Component({
   selector: 'micro',
-  styles: [`
-    div {
-      width: 100%;
-      height: 100%;
-      overflow-x: hidden;
-      overflow-y: auto;
-    }
-  `],
+  styleUrls: ['./golden-content.scss'],
   template: `
     <div #container></div>
   `,
@@ -99,9 +93,7 @@ export class MicroComponent implements AfterViewInit, OnDestroy {
   // convert track and gene data into a visualization friendly format
   private _shim(tracks, genes) {
     const geneMap = {};
-    genes.forEach((g) => {
-      geneMap[g.name] = g;
-    });
+    genes.forEach((g) => geneMap[g.name] = g);
     return tracks.map((t, j) => {
       // make track
       const track = {

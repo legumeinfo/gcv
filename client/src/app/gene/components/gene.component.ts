@@ -6,7 +6,9 @@ import { map, takeUntil } from 'rxjs/operators';
 import { GCV } from '@gcv-assets/js/gcv';
 import { GoldenLayoutDirective } from '@gcv/gene/directives';
 import { Track } from '@gcv/gene/models';
-import { GeneService, MicroTracksService } from '@gcv/gene/services';
+import { ClusterMixin } from '@gcv/gene/models/mixins';
+import { GeneService, MicroTracksService, PlotsService }
+  from '@gcv/gene/services';
 import { FamilyDetailComponent } from './family-detail.component';
 import { GeneDetailComponent } from './gene-detail.component';
 import { LegendComponent } from './legend.component';
@@ -54,7 +56,8 @@ export class GeneComponent implements AfterViewInit, OnDestroy {
     };
 
   constructor(private _geneService: GeneService,
-              private _microTracksService: MicroTracksService) { }
+              private _microTracksService: MicroTracksService,
+              private _plotsService: PlotsService) { }
 
   // Angular hooks
 
@@ -159,16 +162,34 @@ export class GeneComponent implements AfterViewInit, OnDestroy {
     };
   }
 
-  private _plotConfigFactory(clusterID: number, track: Track) {
-    const name = track.name;
-    const first = track.genes[0];
-    const last = track.genes[track.genes.length-1];
-    const id = `micro${clusterID}plot${name}:${first}:${last}`;
+  private _plotConfigFactory(track: (Track | ClusterMixin)) {
+    const cluster = (track as ClusterMixin).cluster;
+    const selected = (track as Track);
+    const name = selected.name;
+    const first = selected.genes[0];
+    const last = selected.genes[selected.genes.length-1];
+    const id = `micro${cluster}plot${name}:${first}:${last}`;
+    const options = {autoResize: true};
     return {
       type: 'component',
       componentName: 'plot',
       id: id,
-      title: `${name} (${clusterID}) plot`,
+      title: `${name} (${cluster}) plot`,
+      componentState: {
+        inputs: {
+          plots: this._plotsService.getLocalPlots(track),
+          genes: this._geneService.getLocalPlotGenes(track),
+          colors: this._microColors,
+          options
+        },
+        outputs: {
+          geneClick: ({gene, family, source}) => {
+            const geneConfig =
+              this._geneDetailConfigFactory(gene, family, source);
+            this.goldenLayoutDirective.stackItem(geneConfig, id);
+          }
+        }
+      }
     };
   }
 
@@ -189,7 +210,7 @@ export class GeneComponent implements AfterViewInit, OnDestroy {
         },
         outputs: {
           plotClick: ({track}) => {
-            const plotConfig = this._plotConfigFactory(clusterID, track);
+            const plotConfig = this._plotConfigFactory(track);
             this.goldenLayoutDirective.stackItem(plotConfig, id);
           },
           geneClick: ({gene, family, source}) => {

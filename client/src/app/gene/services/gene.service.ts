@@ -8,7 +8,8 @@ import { Store, select } from '@ngrx/store';
 import * as fromRoot from '@gcv/gene/store/reducers';
 import * as fromGene from '@gcv/gene/store/selectors/gene/';
 // app
-import { Gene } from '@gcv/gene/models';
+import { Gene, Track } from '@gcv/gene/models';
+import { ClusterMixin } from '@gcv/gene/models/mixins';
 import { HttpService } from '@gcv/core/services/http.service';
 
 @Injectable()
@@ -36,6 +37,20 @@ export class GeneService extends HttpService {
       select(fromGene.getAlignedMicroTrackClusterGenes(id))
     );
   }
+
+  // returns all the genes belonging to the local plots of the given track
+  getLocalPlotGenes(track: (Track | ClusterMixin)): Observable<Gene[]> {
+    return this._store.pipe(
+      select(fromGene.getLocalPlotGenes(track))
+    );
+  }
+
+  // returns all the genes belonging to the global plots of the given track
+  //getGlobalPlotGenes(track: (Track | ClusterMixin)): Observable<Gene[]> {
+  //  return this._store.pipe(
+  //    select(fromGene.getAlignedMicroTrackClusterGenes(id))
+  //  );
+  //}
 
   // fetches source specific details for the given gene
   getGeneDetails(gene: string, source: string): Observable<any> {

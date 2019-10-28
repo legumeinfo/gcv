@@ -34,7 +34,7 @@ export class Plot {
     this.options.autoResize = this.options.autoResize || false;
     this.options.resizeDelay = this.options.resizeDelay || 250;
     this.options.selectiveColoring = this.options.selectiveColoring;
-    this.options.geneClick = this.options.geneClick || ((selection) => {
+    this.options.geneClick = this.options.geneClick || ((g, i) => {
         // noop
       });
     this.options.plotClick = this.options.plotClick || ((plot) => {
@@ -171,7 +171,7 @@ export class Plot {
       .style("cursor", "pointer")
       .on("mouseover", (g) => publishGeneEvent("select", g))
       .on("mouseout", (g) => publishGeneEvent("deselect", g))
-      .on("click", (g) => this.options.geneClick(g, this.data));;
+      .on("click", (g, i) => this.options.geneClick(g, i));;
 
     const points = genes.append("circle")
       .attr("r", radius)

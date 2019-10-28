@@ -12,7 +12,7 @@ import * as fromRouter from '@gcv/gene/store/selectors/router/';
 // app
 import { AppConfig } from '@gcv/app.config';
 import { Group, QueryParams, Track } from '@gcv/gene/models';
-import { AlignmentMixin, ClusterMixin, PointMixin } from '@gcv/gene/models/mixins';
+import { AlignmentMixin, ClusterMixin } from '@gcv/gene/models/mixins';
 import { HttpService } from '@gcv/core/services/http.service';
 
 @Injectable()

@@ -87,4 +87,6 @@ export class GeneEffects {
     }),
   );
 
+  // get all genes for the loaded global plots
+
 }
