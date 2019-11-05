@@ -7,6 +7,7 @@ import { takeUntil } from 'rxjs/operators';
 // app
 import { GCV } from '@gcv-assets/js/gcv';
 import { Gene, Track } from '@gcv/gene/models';
+import { GeneService, MicroTracksService } from '@gcv/gene/services';
 
 
 @Component({
@@ -166,4 +167,45 @@ export class MicroComponent implements AfterViewInit, OnDestroy {
         data,
         options);
   }
+}
+
+export function microConfigFactory(
+  clusterID: number,
+  microTracksService: MicroTracksService,
+  geneService: GeneService,
+  outputs: any={})
+{
+  const id = `micro${clusterID}`;
+  const options = {autoResize: true};
+  let _outputs = {
+      plotClick: (id, track, queryTracks) => { /* no-op */ },
+      geneClick: (id, gene, family, source) => { /* no-op */ },
+      nameClick: (id, track) => { /* no-op */ },
+    };
+  _outputs = Object.assign(_outputs, outputs);
+  return  {
+    type: 'component',
+    componentName: 'micro',
+    id: id,
+    title: `Micro Synteny Cluster ${clusterID}`,
+    componentState: {
+      inputs: {
+        queryTracks: microTracksService.getSelectedClusterTracks(clusterID),
+        tracks: microTracksService.getCluster(clusterID),
+        genes: geneService.getClusterGenes(clusterID),
+        colors: GCV.common.colors,
+        options
+      },
+      outputs: {
+        plotClick: ({track, queryTracks}) => {
+          _outputs.plotClick(id, track, queryTracks);
+        },
+        geneClick: ({gene, family, source}) => {
+          _outputs.geneClick(id, gene, family, source);
+        },
+        nameClick: ({track}) => _outputs.nameClick(id, track),
+      },
+    },
+    isClosable: false
+  };
 }

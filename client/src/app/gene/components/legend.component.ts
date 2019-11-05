@@ -71,3 +71,21 @@ export class LegendComponent implements AfterViewInit, OnDestroy {
         options);
   }
 }
+
+export function legendConfigFactory(elements, outputs: any={}) {
+  const id = 'microlegend';
+  const options = {autoResize: true};
+  let _outputs = {click: (id, family) => { /* no-op */ }};
+  _outputs = Object.assign(_outputs, outputs);
+  return  {
+    type: 'component',
+    componentName: 'legend',
+    id: id,
+    title: 'Micro Synteny Legend',
+    componentState: {
+      inputs: {elements: elements, colors: GCV.common.colors, options},
+      outputs: {click: (family) => _outputs.click(id, family)},
+    },
+    isClosable: false
+  };
+}

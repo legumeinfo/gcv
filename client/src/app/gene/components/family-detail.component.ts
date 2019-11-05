@@ -6,6 +6,7 @@ import { take, takeUntil } from 'rxjs/operators';
 import { AppConfig } from '@gcv/app.config';
 import { Server } from '@gcv/core/models';
 import { Track } from '@gcv/gene/models';
+import { MicroTracksService } from '@gcv/gene/services';
 
 
 @Component({
@@ -87,4 +88,23 @@ export class FamilyDetailComponent implements OnInit, OnDestroy {
       });
     }
   }
+}
+
+export function familyDetailConfigFactory(
+  family: string,
+  microTracksService: MicroTracksService)
+{
+  const id = `family:${family}`;
+  return {
+    type: 'component',
+    componentName: 'family',
+    id: id,
+    title: `Family ${family}`,
+    componentState: {
+      inputs: {
+        family: family,
+        tracks: microTracksService.allTracks,
+      },
+    }
+  };
 }

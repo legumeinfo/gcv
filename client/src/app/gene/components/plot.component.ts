@@ -2,10 +2,12 @@
 import { AfterViewInit, Component, ElementRef, EventEmitter, Input, OnDestroy,
   Output, ViewChild } from '@angular/core';
 import { Observable, Subject, combineLatest } from 'rxjs';
-import { takeUntil } from 'rxjs/operators';
+import { filter, mergeAll, takeUntil } from 'rxjs/operators';
 // app
 import { GCV } from '@gcv-assets/js/gcv';
-import { Gene, Plot, Track } from '@gcv/gene/models';
+import { Gene, Plot, Track, clusteredTrackID } from '@gcv/gene/models';
+import { ClusterMixin } from '@gcv/gene/models/mixins';
+import { GeneService, PlotsService } from '@gcv/gene/services';
 
 @Component({
   selector: 'plot',
@@ -105,4 +107,59 @@ export class PlotComponent implements AfterViewInit, OnDestroy {
       data,
       options);
   }
+}
+
+
+export function plotStackConfigFactory(track: (Track | ClusterMixin)) {
+  const cluster = (track as ClusterMixin).cluster;
+  const selected = (track as Track);
+  const name = selected.name;
+  const id = `plots:${clusteredTrackID(track)}`;
+  return {
+    type: 'stack',
+    id: id,
+    title: `${name} (${cluster}) plots`,
+    content: [],
+  };
+}
+
+
+export function plotConfigFactory(
+  track: (Track | ClusterMixin),
+  query: Track,
+  plotsService: PlotsService,
+  geneService: GeneService,
+  outputs: any={})
+{
+  const cluster = (track as ClusterMixin).cluster;
+  const selected = (track as Track);
+  const trackName = selected.name;
+  const queryName = query.name;
+  const options = {autoResize: true};
+  const id = `plot:${clusteredTrackID(track)}x${clusteredTrackID(query)}`;
+  let _outputs = {geneClick: (id, gene, family, source) => { /* no-op */ }};
+  _outputs = Object.assign(_outputs, outputs);
+  return {
+    type: 'component',
+    componentName: 'plot',
+    id: id,
+    title: `${trackName} x ${queryName} (${cluster})local plot`,
+    componentState: {
+      inputs: {
+        // NOTE: this feels awkward; is there a better way to get one plot?
+        plot: plotsService.getLocalPlots(track).pipe(
+          mergeAll(),
+          filter((plot) => (plot.reference as Track).name === query.name),
+        ),
+        genes: geneService.getLocalPlotGenes(track),
+        colors: GCV.common.colors,
+        options
+      },
+      outputs: {
+        geneClick: ({gene, family, source}) => {
+          _outputs.geneClick(id, gene, family, source);
+        }
+      }
+    }
+  };
 }
