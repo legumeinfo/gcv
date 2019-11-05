@@ -1,7 +1,7 @@
 // Angular
 import { AfterViewInit, Component, OnDestroy, ViewChild } from '@angular/core';
 import { Observable, Subject } from 'rxjs';
-import { map, takeUntil } from 'rxjs/operators';
+import { filter, map, mergeAll, takeUntil } from 'rxjs/operators';
 // app
 import { GCV } from '@gcv-assets/js/gcv';
 import { GoldenLayoutDirective } from '@gcv/gene/directives';
@@ -131,7 +131,7 @@ export class GeneComponent implements AfterViewInit, OnDestroy {
   private _trackDetailConfigFactory(track) {
     const first = track.genes[0];
     const last = track.genes[track.genes.length-1];
-    const id = `track:${track.name}:${first}:${last}:${track.source}`;
+    const id = `track:${this._trackIDstring(track)}`;
     return {
       type: 'component',
       componentName: 'track',
@@ -162,22 +162,35 @@ export class GeneComponent implements AfterViewInit, OnDestroy {
     };
   }
 
-  private _plotConfigFactory(track: (Track | ClusterMixin)) {
+  private _trackIDstring(track: (Track | ClusterMixin)) {
     const cluster = (track as ClusterMixin).cluster;
     const selected = (track as Track);
     const name = selected.name;
     const first = selected.genes[0];
     const last = selected.genes[selected.genes.length-1];
-    const id = `micro${cluster}plot${name}:${first}:${last}`;
+    const source = selected.source;
+    return `${cluster}:${name}:${first}:${last}:${source}`;
+  }
+
+  private _plotConfigFactory(track: (Track | ClusterMixin), query: Track) {
+    const cluster = (track as ClusterMixin).cluster;
+    const selected = (track as Track);
+    const trackName = selected.name;
+    const queryName = query.name;
     const options = {autoResize: true};
+    const id = `plot:${this._trackIDstring(track)}x${this._trackIDstring(query)}`;
     return {
       type: 'component',
       componentName: 'plot',
       id: id,
-      title: `${name} (${cluster}) plot`,
+      title: `${trackName} x ${queryName} (${cluster})local plot`,
       componentState: {
         inputs: {
-          plots: this._plotsService.getLocalPlots(track),
+          // NOTE: this feels awkward; is there a better way to get one plot?
+          plot: this._plotsService.getLocalPlots(track).pipe(
+            mergeAll(),
+            filter((plot) => (plot.reference as Track).name === query.name),
+          ),
           genes: this._geneService.getLocalPlotGenes(track),
           colors: this._microColors,
           options
@@ -193,6 +206,31 @@ export class GeneComponent implements AfterViewInit, OnDestroy {
     };
   }
 
+  // stack for local and global plots
+  private _plotStackConfigFactory(track: (Track | ClusterMixin)) {
+    const cluster = (track as ClusterMixin).cluster;
+    const selected = (track as Track);
+    const name = selected.name;
+    const id = `plots:${this._trackIDstring(track)}`;
+    return {
+      type: 'stack',
+      id: id,
+      title: `${name} (${cluster}) plots`,
+      content: [],
+    };
+  }
+
+  private _localPlots(id, track, queryTracks) {
+    const plotStackConfig = this._plotStackConfigFactory(track);
+    this.goldenLayoutDirective.stackItem(plotStackConfig, id);
+    // NOTE: this feel awkward; do we really need to know which track are being
+    // plotted ahead of time?
+    queryTracks.forEach((query) => {
+      const plotConfig = this._plotConfigFactory(track, query);
+      this.goldenLayoutDirective.stackItem(plotConfig, plotStackConfig.id);
+    });
+  }
+
   private _microConfigFactory(clusterID: number) {
     const id = `micro${clusterID}`;
     const options = {autoResize: true};
@@ -203,15 +241,16 @@ export class GeneComponent implements AfterViewInit, OnDestroy {
       title: `Micro Synteny Cluster ${clusterID}`,
       componentState: {
         inputs: {
+          queryTracks:
+            this._microTracksService.getSelectedClusterTracks(clusterID),
           tracks: this._microTracksService.getCluster(clusterID),
           genes: this._geneService.getClusterGenes(clusterID),
           colors: this._microColors,
           options
         },
         outputs: {
-          plotClick: ({track}) => {
-            const plotConfig = this._plotConfigFactory(track);
-            this.goldenLayoutDirective.stackItem(plotConfig, id);
+          plotClick: ({track, queryTracks}) => {
+            this._localPlots(id, track, queryTracks);
           },
           geneClick: ({gene, family, source}) => {
             const geneConfig =

@@ -89,7 +89,7 @@ export class Micro extends Visualizer {
     this.GLYPH_SIZE = 30;
     // parse optional parameters
     this.options = Object.assign({}, options);
-    this.options.boldFirst = this.options.boldFirst || false;
+    this.options.bold = this.options.bold || [];
     this.options.highlight = this.options.highlight || [];
     this.options.selectiveColoring = this.options.selectiveColoring;
     this.options.nameClick = this.options.nameClick || ((t, i) => { /* noop */ });
@@ -376,7 +376,12 @@ export class Micro extends Visualizer {
     };
     const obj = this;
     yAxis.selectAll("text")
-      .attr("class", (y, i) => (i === 0 && this.options.boldFirst) ? "query " : "")
+      .attr("class", (y, i) => {
+        if (this.options.bold.indexOf(this.data[i].chromosome_name) !== -1) {
+          return "query";
+        }
+        return "";
+      })
       .attr("data-micro-track", (y, i) => i.toString())
       .attr("data-extent", (y, i) => this.intervals[i].join(":"))
       .attr("data-chromosome", (y, i) => this.data[i].chromosome_name)

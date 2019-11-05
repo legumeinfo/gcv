@@ -97,4 +97,11 @@ export class MicroTracksService extends HttpService {
       select(fromMicroTracks.getAlignedMicroTrackCluster(id))
     );
   }
+
+  getSelectedClusterTracks(id: number):
+  Observable<(Track | ClusterMixin | AlignmentMixin)[]> {
+    return this._store.pipe(
+      select(fromMicroTracks.getSelectedMicroTracksForCluster(id))
+    );
+  }
 }

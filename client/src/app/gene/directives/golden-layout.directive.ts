@@ -146,7 +146,7 @@ export class GoldenLayoutDirective implements AfterContentInit, OnDestroy {
     }
   }
 
-  stackItem(itemConfig, stackID: number) {
+  stackItem(itemConfig, stackID: string) {
     let root = this._layout.root;
     const id = itemConfig.id;
     const items = root.getItemsById(stackID);

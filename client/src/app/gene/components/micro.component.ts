@@ -18,6 +18,7 @@ import { Gene, Track } from '@gcv/gene/models';
 })
 export class MicroComponent implements AfterViewInit, OnDestroy {
 
+  @Input() queryTracks: Observable<Track[]>;
   @Input() tracks: Observable<Track[]>;
   @Input() genes: Observable<Gene[]>;
   @Input() colors: any;  // D3 color function
@@ -35,9 +36,11 @@ export class MicroComponent implements AfterViewInit, OnDestroy {
 
   ngAfterViewInit() {
     // fetch own data because injected components don't have change detection
-    combineLatest(this.tracks, this.genes)
+    combineLatest(this.queryTracks, this.tracks, this.genes)
       .pipe(takeUntil(this._destroy))
-      .subscribe(([tracks, genes]) => this._draw(tracks, genes));
+      .subscribe(([queryTracks, tracks, genes]) => {
+        this._draw(queryTracks, tracks, genes);
+      });
   }
 
   ngOnDestroy() {
@@ -48,8 +51,8 @@ export class MicroComponent implements AfterViewInit, OnDestroy {
 
   // public
 
-  emitPlot(track) {
-    this.plotClick.emit({track});
+  emitPlot(track, queryTracks) {
+    this.plotClick.emit({track, queryTracks});
   }
 
   emitGene(gene, family, source) {
@@ -147,11 +150,12 @@ export class MicroComponent implements AfterViewInit, OnDestroy {
     }
   }
 
-  private _draw(tracks, genes): void {
+  private _draw(queryTracks, tracks, genes): void {
     const data = this._shim(tracks, genes);
     this._destroyViewer();
     let options = {
-        plotClick: (t, i) => this.emitPlot(tracks[i]),
+        bold: queryTracks.map((t) => t.name),
+        plotClick: (t, i) => this.emitPlot(tracks[i], queryTracks),
         geneClick: (t, g, i) => this.emitGene(g.name, g.family, t.source),
         nameClick: (t, i) => this.emitName(tracks[i])
       };

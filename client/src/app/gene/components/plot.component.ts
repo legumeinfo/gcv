@@ -14,7 +14,7 @@ import { Gene, Plot, Track } from '@gcv/gene/models';
 })
 export class PlotComponent implements AfterViewInit, OnDestroy {
 
-  @Input() plots: Observable<Plot[]>;
+  @Input() plot: Observable<Plot>;
   @Input() genes: Observable<Gene[]>;
   @Input() colors: any;  // D3 color function
   @Input() options: any = {};
@@ -25,14 +25,14 @@ export class PlotComponent implements AfterViewInit, OnDestroy {
   @ViewChild('container', {static: true}) container: ElementRef;
 
   private _destroy: Subject<boolean> = new Subject();
-  private _viewers;
+  private _viewer;
 
   // Angular hooks
 
   ngAfterViewInit() {
-    combineLatest(this.plots, this.genes)
+    combineLatest(this.plot, this.genes)
       .pipe(takeUntil(this._destroy))
-      .subscribe(([plots, genes]) => this._draw(plots, genes));
+      .subscribe(([plot, genes]) => this._draw(plot, genes));
   }
 
   ngOnDestroy() {
@@ -53,60 +53,56 @@ export class PlotComponent implements AfterViewInit, OnDestroy {
 
   // private
 
-  private _shim(plots: Plot[], genes: Gene[]) {
+  private _shim(plot: Plot, genes: Gene[]) {
     const geneMap = {};
     genes.forEach((g) => geneMap[g.name] = g);
-    return plots.map((p) => {
-      const reference = p.reference as Track;
-      // make plot
-      const plot = {
-          chromosome_name: reference.name,
-          genes: []
-        };
-      // make plot genes
-      const xCoordinates = p.pairs.every(({i, j}) => {
-          return p.sequence.genes[j] in geneMap;
-        });
-      const yCoordinates = p.pairs.every(({i, j}) => {
-          return reference.genes[i] in geneMap;
-        });
-      const geneToPoint = (g) => (g.fmin+g.fmax)/2;
-      p.pairs.forEach(({i, j}) => {
-        const gene = {
-            name: reference.genes[i],
-            family: reference.families[i],
-            x: (xCoordinates) ? geneToPoint(geneMap[p.sequence.genes[j]]) : j,
-            y: (yCoordinates) ? geneToPoint(geneMap[reference.genes[i]]) : i, 
-          };
-        plot.genes.push(gene);
+    const reference = plot.reference as Track;
+    // make plot
+    const shimPlot = {
+        chromosome_name: reference.name,
+        genes: []
+      };
+    // make plot genes
+    const xCoordinates = plot.pairs.every(({i, j}) => {
+        return plot.sequence.genes[j] in geneMap;
       });
-      return plot;
+    const yCoordinates = plot.pairs.every(({i, j}) => {
+        return reference.genes[i] in geneMap;
+      });
+    const geneToPoint = (g) => (g.fmin+g.fmax)/2;
+    plot.pairs.forEach(({i, j}) => {
+      const gene = {
+          name: reference.genes[i],
+          family: reference.families[i],
+          x: (xCoordinates) ? geneToPoint(geneMap[plot.sequence.genes[j]]) : j,
+          y: (yCoordinates) ? geneToPoint(geneMap[reference.genes[i]]) : i, 
+        };
+      shimPlot.genes.push(gene);
     });
+    return shimPlot;
   }
 
   private _destroyViewers(): void {
-    if (this._viewers !== undefined) {
-      this._viewers.forEach((viewer) => viewer.destroy());
+    if (this._viewer !== undefined) {
+      this._viewer.destroy();
     }
   }
 
-  private _draw(plots: Plot[], genes: Gene[]): void {
-    const data = this._shim(plots, genes);
+  private _draw(plot: Plot, genes: Gene[]): void {
+    const data = this._shim(plot, genes);
     this._destroyViewers();
-    this._viewers = data.map((plot, i) => {
-      let options = {
-          plotClick: () => this.emitPlot(plot),
-          geneClick: (g, j) => {
-            const source = (plots[i].reference as Track).source;
-            this.emitGene(g.name, g.family, source);
-          },
-        };
-      options = Object.assign(options, this.options);
-        return new GCV.visualization.Plot(
-          this.container.nativeElement,
-          this.colors,
-          plot,
-          options)
-      });
+    let options = {
+        plotClick: () => this.emitPlot(plot),
+        geneClick: (g, j) => {
+          const source = (plot.reference as Track).source;
+          this.emitGene(g.name, g.family, source);
+        },
+      };
+    options = Object.assign(options, this.options);
+    this._viewer = new GCV.visualization.Plot(
+      this.container.nativeElement,
+      this.colors,
+      data,
+      options);
   }
 }
