@@ -24,7 +24,7 @@ import { GeneRoutingModule } from '@gcv/gene/gene-routing.module';
   entryComponents: [
     fromComponents.GeneDetailComponent,
     fromComponents.FamilyDetailComponent,
-    fromComponents.LegendComponent,
+    fromComponents.MicroLegendComponent,
     fromComponents.MacroComponent,
     fromComponents.MicroComponent,
     fromComponents.PlotComponent,

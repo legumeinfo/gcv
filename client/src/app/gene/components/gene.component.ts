@@ -1,9 +1,8 @@
 // Angular
 import { AfterViewInit, Component, OnDestroy, ViewChild } from '@angular/core';
 import { Observable, Subject } from 'rxjs';
-import { map, takeUntil } from 'rxjs/operators';
+import { takeUntil } from 'rxjs/operators';
 // app
-import { GCV } from '@gcv-assets/js/gcv';
 import { GoldenLayoutDirective } from '@gcv/gene/directives';
 import { GeneService, MicroTracksService, PlotsService }
   from '@gcv/gene/services';
@@ -11,7 +10,8 @@ import { FamilyDetailComponent, familyDetailConfigFactory }
   from './family-detail.component';
 import { GeneDetailComponent, geneDetailConfigFactory }
   from './gene-detail.component';
-import { LegendComponent, legendConfigFactory } from './legend.component';
+import { MicroLegendComponent, microLegendConfigFactory }
+  from './micro-legend.component';
 import { MacroComponent } from './macro.component';
 import { MicroComponent, microConfigFactory } from './micro.component';
 import { PlotComponent, plotConfigFactory, plotStackConfigFactory }
@@ -30,13 +30,11 @@ export class GeneComponent implements AfterViewInit, OnDestroy {
   @ViewChild(GoldenLayoutDirective, {static: true}) goldenLayoutDirective;
 
   private _destroy: Subject<boolean> = new Subject();
-  private _microColors = GCV.common.colors;
-  private _microLegend: Observable<{name: string, id: string}[]>;
 
   layoutComponents = [
       {component: GeneDetailComponent, name: 'gene'},
       {component: FamilyDetailComponent, name: 'family'},
-      {component: LegendComponent, name: 'legend'},
+      {component: MicroLegendComponent, name: 'microlegend'},
       {component: MacroComponent, name: 'macro'},
       {component: MicroComponent, name: 'micro'},
       {component: PlotComponent, name: 'plot'},
@@ -77,26 +75,15 @@ export class GeneComponent implements AfterViewInit, OnDestroy {
   // private
 
   private _initializeLegends(): void {
-    this._microLegend = this._microTracksService.allTracks
-      .pipe(
-        takeUntil(this._destroy),
-        map((tracks) => {
-          const reducer = (accumulator, track) => {
-              track.families.forEach((f) => accumulator.add(f));
-              return accumulator;
-            };
-          const familySet = tracks.reduce(reducer, new Set());
-          const families = Array.from(familySet);
-          const legendFamilies = families.map((f: string) => ({name: f, id: f}));
-          return legendFamilies;
-        })
-      );
     const click = (id, family) => {
         const familyConfig =
           familyDetailConfigFactory(family, this._microTracksService);
         this.goldenLayoutDirective.stackItem(familyConfig, id);
       };
-    const legend = legendConfigFactory(this._microLegend, {click});
+    const legend = microLegendConfigFactory(
+        this._geneService,
+        this._microTracksService,
+        {click});
     this.goldenLayoutDirective.addItem(legend, [0, 1]);
   }
 
@@ -141,11 +128,7 @@ export class GeneComponent implements AfterViewInit, OnDestroy {
         this.goldenLayoutDirective.stackItem(trackConfig, id);
       };
     clusterIDs.forEach((id) => {
-      const config = microConfigFactory(
-          id,
-          this._microTracksService,
-          this._geneService,
-          {plotClick, geneClick, nameClick});
+      const config = microConfigFactory(id, {plotClick, geneClick, nameClick});
       this.goldenLayoutDirective.addItem(config, [0, 0]);
     });
   }

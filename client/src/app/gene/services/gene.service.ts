@@ -45,6 +45,11 @@ export class GeneService extends HttpService {
     );
   }
 
+  // returns all the genes from the URL
+  getQueryGenes(): Observable<Gene[]> {
+    return this._store.select(fromGene.getSelectedGenes);
+  }
+
   // returns all the genes belonging to the global plots of the given track
   //getGlobalPlotGenes(track: (Track | ClusterMixin)): Observable<Gene[]> {
   //  return this._store.pipe(

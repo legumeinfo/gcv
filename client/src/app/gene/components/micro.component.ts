@@ -19,10 +19,7 @@ import { GeneService, MicroTracksService } from '@gcv/gene/services';
 })
 export class MicroComponent implements AfterViewInit, OnDestroy {
 
-  @Input() queryTracks: Observable<Track[]>;
-  @Input() tracks: Observable<Track[]>;
-  @Input() genes: Observable<Gene[]>;
-  @Input() colors: any;  // D3 color function
+  @Input() clusterID: number;
   @Input() options: any = {};
   @Output() plotClick = new EventEmitter();
   @Output() geneClick = new EventEmitter();
@@ -33,14 +30,22 @@ export class MicroComponent implements AfterViewInit, OnDestroy {
   private _destroy: Subject<boolean> = new Subject();
   private _viewer;
 
+  constructor(private _geneService: GeneService,
+              private _microTracksService: MicroTracksService) { }
+
   // Angular hooks
 
   ngAfterViewInit() {
+    const queryGenes = this._geneService.getQueryGenes();
+    const queryTracks =
+      this._microTracksService.getSelectedClusterTracks(this.clusterID);
+    const tracks = this._microTracksService.getAllTracks();
+    const genes = this._geneService.getClusterGenes(this.clusterID);
     // fetch own data because injected components don't have change detection
-    combineLatest(this.queryTracks, this.tracks, this.genes)
+    combineLatest(queryGenes, queryTracks, tracks, genes)
       .pipe(takeUntil(this._destroy))
-      .subscribe(([queryTracks, tracks, genes]) => {
-        this._draw(queryTracks, tracks, genes);
+      .subscribe(([queryGenes, queryTracks, tracks, genes]) => {
+        this._draw(queryGenes, queryTracks, tracks, genes);
       });
   }
 
@@ -94,55 +99,82 @@ export class MicroComponent implements AfterViewInit, OnDestroy {
     return segments;
   }
 
-  // convert track and gene data into a visualization friendly format
-  private _shim(tracks, genes) {
+  private _tracksToData(tracks, genes) {
     const geneMap = {};
     genes.forEach((g) => geneMap[g.name] = g);
     return tracks.map((t, j) => {
-      // make track
-      const track = {
-          source: t.source,
-          genus: t.genus,
-          species: t.species,
-          chromosome_name: t.name,
-          genes: []
-        };
-      // make track genes
-      t.genes.forEach((name, i) => {
-        const x = t.alignment[i];
-        if (x !== null) {
-          const gene = {
-              name: name,
-              family: t.families[i],
-              x: x,
-              fmin: 0,
-              fmax: 0
-            };
-          if (name in geneMap) {
-            Object.assign(gene, geneMap[name]);
+        // make track
+        const track = {
+            source: t.source,
+            genus: t.genus,
+            species: t.species,
+            chromosome_name: t.name,
+            genes: []
+          };
+        // make track genes
+        t.genes.forEach((name, i) => {
+          const x = t.alignment[i];
+          if (x !== null) {
+            const gene = {
+                name: name,
+                family: t.families[i],
+                x: x,
+                fmin: 0,
+                fmax: 0
+              };
+            if (name in geneMap) {
+              Object.assign(gene, geneMap[name]);
+            }
+            track.genes.push(gene);
           }
-          track.genes.push(gene);
-        }
+        });
+        // use track segments to assign y values and reverse strands
+        const segments =
+          this._coordinatesToSegments(track.genes.map((g) => g.x));
+        let prevSegment = -1;
+        let y = -1;
+        track.genes.forEach((g, i) => {
+          const segment = segments.indexSegments[i];
+          const orientation = segments.segmentOrientations[segment];
+          if (segment !== prevSegment) {
+            y += 1;
+          }
+          g.y = y%2;
+          g.segment = segment;
+          if (g.strand !== undefined && orientation ===  '-') {
+            g.strand *= -1;
+          }
+          prevSegment = segment;
+        });
+        return track;
       });
-      // use track segments to assign y values and reverse strands
-      const segments = this._coordinatesToSegments(track.genes.map((g) => g.x));
-      let prevSegment = -1;
-      let y = -1;
-      track.genes.forEach((g, i) => {
-        const segment = segments.indexSegments[i];
-        const orientation = segments.segmentOrientations[segment];
-        if (segment !== prevSegment) {
-          y += 1;
-        }
-        g.y = y%2;
-        g.segment = segment;
-        if (g.strand !== undefined && orientation ===  '-') {
-          g.strand *= -1;
-        }
-        prevSegment = segment;
-      });
-      return track;
+
+  }
+
+  // convert track and gene data into a visualization friendly format
+  private _shim(queryTracks, tracks, genes) {
+    // create data
+    const filteredTracks = tracks.filter((t) => t.cluster == this.clusterID);
+    const data = this._tracksToData(tracks, genes);
+    // identify bold tracks
+    const bold = [];
+    filteredTracks.forEach((t, i) => {
+      if (queryTracks.some((query) => query.isPrototypeOf(t))) {
+        bold.push(data[i]);
+      }
     });
+    // compute (global) family sizes
+    const reducer = (accumulator, track) => {
+        track.families.forEach((f) => {
+          if (!(f in accumulator)) {
+            accumulator[f] = 0;
+          }
+          accumulator[f] += 1;
+        });
+        return accumulator;
+      };
+    const familySizes = tracks.reduce(reducer, {});
+    return {data, bold, familySizes};
   }
 
   private _destroyViewer(): void {
@@ -151,11 +183,13 @@ export class MicroComponent implements AfterViewInit, OnDestroy {
     }
   }
 
-  private _draw(queryTracks, tracks, genes): void {
-    const data = this._shim(tracks, genes);
+  private _draw(queryGenes, queryTracks, tracks, genes): void {
+    const {data, bold, familySizes} = this._shim(queryTracks, tracks, genes);
     this._destroyViewer();
     let options = {
-        bold: queryTracks.map((t) => t.name),
+        bold: bold,
+        highlight: queryGenes.map((g) => g.name),
+        selectiveColoring: familySizes,
         plotClick: (t, i) => this.emitPlot(tracks[i], queryTracks),
         geneClick: (t, g, i) => this.emitGene(g.name, g.family, t.source),
         nameClick: (t, i) => this.emitName(tracks[i])
@@ -163,18 +197,13 @@ export class MicroComponent implements AfterViewInit, OnDestroy {
     options = Object.assign(options, this.options);
     this._viewer = new GCV.visualization.Micro(
         this.container.nativeElement,
-        this.colors,
+        GCV.common.colors,
         data,
         options);
   }
 }
 
-export function microConfigFactory(
-  clusterID: number,
-  microTracksService: MicroTracksService,
-  geneService: GeneService,
-  outputs: any={})
-{
+export function microConfigFactory(clusterID: number, outputs: any={}) {
   const id = `micro${clusterID}`;
   const options = {autoResize: true};
   let _outputs = {
@@ -189,13 +218,7 @@ export function microConfigFactory(
     id: id,
     title: `Micro Synteny Cluster ${clusterID}`,
     componentState: {
-      inputs: {
-        queryTracks: microTracksService.getSelectedClusterTracks(clusterID),
-        tracks: microTracksService.getCluster(clusterID),
-        genes: geneService.getClusterGenes(clusterID),
-        colors: GCV.common.colors,
-        options
-      },
+      inputs: {clusterID, options},
       outputs: {
         plotClick: ({track, queryTracks}) => {
           _outputs.plotClick(id, track, queryTracks);

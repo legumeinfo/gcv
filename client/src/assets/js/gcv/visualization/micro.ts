@@ -377,7 +377,7 @@ export class Micro extends Visualizer {
     const obj = this;
     yAxis.selectAll("text")
       .attr("class", (y, i) => {
-        if (this.options.bold.indexOf(this.data[i].chromosome_name) !== -1) {
+        if (this.options.bold.indexOf(this.data[i]) !== -1) {
           return "query";
         }
         return "";
