@@ -71,13 +71,23 @@ export class GeneComponent implements AfterViewInit, OnDestroy {
 
   // private
 
+  private _addItem(index, configFactory, ...args): any {
+    const config = configFactory(...args);
+    this.goldenLayoutDirective.addItem(config, index);
+    return config;
+  }
+
+  private _stackItem(id, configFactory, ...args): any {
+    const config = configFactory(...args);
+    this.goldenLayoutDirective.stackItem(config, id);
+    return config;
+  }
+
   private _initializeLegends(): void {
     const click = (id, family) => {
-        const familyConfig = familyDetailConfigFactory(family);
-        this.goldenLayoutDirective.stackItem(familyConfig, id);
+        this._stackItem(id, familyDetailConfigFactory, family);
       };
-    const legend = microLegendConfigFactory({click});
-    this.goldenLayoutDirective.addItem(legend, [0, 1]);
+    this._addItem([0, 1], microLegendConfigFactory, {click});
   }
 
   private _initializeMicroTracks(): void {
@@ -87,15 +97,13 @@ export class GeneComponent implements AfterViewInit, OnDestroy {
   }
 
   private _addLocalPlots(id, track, queryTracks): void {
-    const plotStackConfig = plotStackConfigFactory(track);
-    this.goldenLayoutDirective.stackItem(plotStackConfig, id);
+    const plotStackConfig = this._stackItem(id, plotStackConfigFactory, track);
+    const stackID = plotStackConfig.id;
     const geneClick = (id, gene, family, source) => {
-        const geneConfig = geneDetailConfigFactory(gene, family, source);
-        this.goldenLayoutDirective.stackItem(geneConfig, id);
+        this._stackItem(id, geneDetailConfigFactory, gene, family, source);
       };
     queryTracks.forEach((query) => {
-      const plotConfig = plotConfigFactory(track, query, {geneClick});
-      this.goldenLayoutDirective.stackItem(plotConfig, plotStackConfig.id);
+      this._stackItem(stackID, plotConfigFactory, track, query, {geneClick});
     });
   }
 
@@ -104,16 +112,14 @@ export class GeneComponent implements AfterViewInit, OnDestroy {
         this._addLocalPlots(id, track, queryTracks);
       };
     const geneClick = (id, gene, family, source) => {
-        const geneConfig = geneDetailConfigFactory(gene, family, source);
-        this.goldenLayoutDirective.stackItem(geneConfig, id);
+        this._stackItem(id, geneDetailConfigFactory, gene, family, source);
       };
     const nameClick = (id, track) => {
-        const trackConfig = trackDetailConfigFactory(track);
-        this.goldenLayoutDirective.stackItem(trackConfig, id);
+        this._stackItem(id, trackDetailConfigFactory, track);
       };
     clusterIDs.forEach((id) => {
-      const config = microConfigFactory(id, {plotClick, geneClick, nameClick});
-      this.goldenLayoutDirective.addItem(config, [0, 0]);
+      const options = {plotClick, geneClick, nameClick};
+      this._addItem([0, 0], microConfigFactory, id, options);
     });
   }
 
