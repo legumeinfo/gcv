@@ -15,10 +15,6 @@
   <!-- scrollable content -->
   <div class="left-slider-content" [ngSwitch]="selectedDetail">
     <ng-content *ngSwitchCase="detailTypes.PARAMS"></ng-content>
-    <family-detail *ngSwitchCase="detailTypes.FAMILY"
-     [family]="family"
-     [tracks]="tracks" >
-    </family-detail>
     <gene-detail *ngSwitchCase="detailTypes.GENE" [gene]="gene"></gene-detail>
     <track-detail *ngSwitchCase="detailTypes.TRACK" [track]="track"></track-detail>
   </div>

@@ -1,22 +1,21 @@
 // Angular
 import { AfterViewInit, Component, OnDestroy, ViewChild } from '@angular/core';
-import { Observable, Subject } from 'rxjs';
+import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 // app
 import { GoldenLayoutDirective } from '@gcv/gene/directives';
-import { GeneService, MicroTracksService, PlotsService }
-  from '@gcv/gene/services';
-import { FamilyDetailComponent, familyDetailConfigFactory }
+import { MicroTracksService } from '@gcv/gene/services';
+import { familyDetailConfigFactory, familyDetailLayoutComponent }
   from './family-detail.component';
-import { GeneDetailComponent, geneDetailConfigFactory }
+import { geneDetailConfigFactory, geneDetailLayoutComponent }
   from './gene-detail.component';
-import { MicroLegendComponent, microLegendConfigFactory }
+import { macroLayoutComponent } from './macro.component';
+import { microLegendConfigFactory, microLegendLayoutComponent }
   from './micro-legend.component';
-import { MacroComponent } from './macro.component';
-import { MicroComponent, microConfigFactory } from './micro.component';
-import { PlotComponent, plotConfigFactory, plotStackConfigFactory }
+import { microConfigFactory, microLayoutComponent } from './micro.component';
+import { plotConfigFactory, plotLayoutComponent, plotStackConfigFactory }
   from './plot.component';
-import { TrackDetailComponent, trackDetailConfigFactory }
+import { trackDetailConfigFactory, trackDetailLayoutComponent }
   from './track-detail.component';
 
 
@@ -32,13 +31,13 @@ export class GeneComponent implements AfterViewInit, OnDestroy {
   private _destroy: Subject<boolean> = new Subject();
 
   layoutComponents = [
-      {component: GeneDetailComponent, name: 'gene'},
-      {component: FamilyDetailComponent, name: 'family'},
-      {component: MicroLegendComponent, name: 'microlegend'},
-      {component: MacroComponent, name: 'macro'},
-      {component: MicroComponent, name: 'micro'},
-      {component: PlotComponent, name: 'plot'},
-      {component: TrackDetailComponent, name: 'track'}
+      familyDetailLayoutComponent,
+      geneDetailLayoutComponent,
+      macroLayoutComponent,
+      microLegendLayoutComponent,
+      microLayoutComponent,
+      plotLayoutComponent,
+      trackDetailLayoutComponent,
     ];
   layoutConfig = {
       content: [{
@@ -56,9 +55,7 @@ export class GeneComponent implements AfterViewInit, OnDestroy {
       }]
     };
 
-  constructor(private _geneService: GeneService,
-              private _microTracksService: MicroTracksService,
-              private _plotsService: PlotsService) { }
+  constructor(private _microTracksService: MicroTracksService) { }
 
   // Angular hooks
 
@@ -76,48 +73,35 @@ export class GeneComponent implements AfterViewInit, OnDestroy {
 
   private _initializeLegends(): void {
     const click = (id, family) => {
-        const familyConfig =
-          familyDetailConfigFactory(family, this._microTracksService);
+        const familyConfig = familyDetailConfigFactory(family);
         this.goldenLayoutDirective.stackItem(familyConfig, id);
       };
-    const legend = microLegendConfigFactory(
-        this._geneService,
-        this._microTracksService,
-        {click});
+    const legend = microLegendConfigFactory({click});
     this.goldenLayoutDirective.addItem(legend, [0, 1]);
   }
 
   private _initializeMicroTracks(): void {
     this._microTracksService.clusterIDs
       .pipe(takeUntil(this._destroy))
-      .subscribe((IDs) => {
-        this._addMicroViewers(IDs);
-      });
+      .subscribe((IDs) => this._addMicroViewers(IDs));
   }
 
-  private _localPlots(id, track, queryTracks) {
+  private _addLocalPlots(id, track, queryTracks): void {
     const plotStackConfig = plotStackConfigFactory(track);
     this.goldenLayoutDirective.stackItem(plotStackConfig, id);
-    // NOTE: this feel awkward; do we really need to know which tracks are being
-    // plotted ahead of time?
     const geneClick = (id, gene, family, source) => {
         const geneConfig = geneDetailConfigFactory(gene, family, source);
         this.goldenLayoutDirective.stackItem(geneConfig, id);
       };
     queryTracks.forEach((query) => {
-      const plotConfig = plotConfigFactory(
-          track,
-          query,
-          this._plotsService,
-          this._geneService,
-          {geneClick});
+      const plotConfig = plotConfigFactory(track, query, {geneClick});
       this.goldenLayoutDirective.stackItem(plotConfig, plotStackConfig.id);
     });
   }
 
   private _addMicroViewers(clusterIDs): void {
     const plotClick = (id, track, queryTracks) => {
-        this._localPlots(id, track, queryTracks);
+        this._addLocalPlots(id, track, queryTracks);
       };
     const geneClick = (id, gene, family, source) => {
         const geneConfig = geneDetailConfigFactory(gene, family, source);

@@ -6,6 +6,7 @@ import { Server } from '@gcv/core/models';
 import { Gene, Track, clusteredTrackID } from '@gcv/gene/models';
 import { ClusterMixin } from '@gcv/gene/models/mixins';
 
+
 @Component({
   selector: 'track-detail',
   styles: [ '' ],
@@ -49,6 +50,11 @@ export class TrackDetailComponent implements OnInit {
     }
   }
 }
+
+
+export const trackDetailLayoutComponent =
+  {component: TrackDetailComponent, name: 'track'};
+
 
 export function trackDetailConfigFactory(track) {
   const first = track.genes[0];

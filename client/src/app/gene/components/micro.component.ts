@@ -203,6 +203,10 @@ export class MicroComponent implements AfterViewInit, OnDestroy {
   }
 }
 
+
+export const microLayoutComponent = {component: MicroComponent, name: 'micro'};
+
+
 export function microConfigFactory(clusterID: number, outputs: any={}) {
   const id = `micro${clusterID}`;
   const options = {autoResize: true};

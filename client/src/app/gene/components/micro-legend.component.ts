@@ -24,9 +24,6 @@ import { GeneService, MicroTracksService } from '@gcv/gene/services';
 })
 export class MicroLegendComponent implements AfterViewInit, OnDestroy {
 
-  @Input() queryGenes: Observable<Gene[]>;
-  @Input() tracks: Observable<(Track | ClusterMixin | AlignmentMixin)[]>;
-  @Input() colors: any;  // D3 color function
   @Input() options: any = {};
   @Output() click = new EventEmitter();
 
@@ -35,11 +32,16 @@ export class MicroLegendComponent implements AfterViewInit, OnDestroy {
   private _destroy: Subject<boolean> = new Subject();
   private _viewer;
 
+  constructor(private _geneService: GeneService,
+              private _microTracksService: MicroTracksService) { }
+
   // Angular hooks
 
   ngAfterViewInit() {
     // fetch own data because injected components don't have change detection
-    combineLatest(this.tracks, this.queryGenes)
+    const queryGenes = this._geneService.getQueryGenes();
+    const tracks = this._microTracksService.getAllTracks();
+    combineLatest(tracks, queryGenes)
       .pipe(takeUntil(this._destroy))
       .subscribe(([tracks, queryGenes]) => this._draw(tracks, queryGenes));
   }
@@ -101,17 +103,18 @@ export class MicroLegendComponent implements AfterViewInit, OnDestroy {
     this._destroyViewer();
     this._viewer = new GCV.visualization.Legend(
         this.container.nativeElement,
-        this.colors,
+        GCV.common.colors,
         data,
         options);
   }
 }
 
-export function microLegendConfigFactory(
-  geneService: GeneService,
-  microTracksService: MicroTracksService,
-  outputs: any={})
-{
+
+export const microLegendLayoutComponent = 
+  {component: MicroLegendComponent, name: 'microlegend'};
+
+
+export function microLegendConfigFactory(outputs: any={}) {
   const id = 'microlegend';
   const options = {autoResize: true};
   let _outputs = {click: (id, family) => { /* no-op */ }};
@@ -122,12 +125,7 @@ export function microLegendConfigFactory(
     id: id,
     title: 'Micro Synteny Legend',
     componentState: {
-      inputs: {
-        queryGenes: geneService.getQueryGenes(),
-        tracks: microTracksService.allTracks,
-        colors: GCV.common.colors,
-        options
-      },
+      inputs: {options},
       outputs: {click: (family) => _outputs.click(id, family)},
     },
     isClosable: false

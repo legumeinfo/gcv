@@ -66,6 +66,11 @@ export class GeneDetailComponent implements OnDestroy, OnInit {
   }
 }
 
+
+export const geneDetailLayoutComponent = 
+  {component: GeneDetailComponent, name: 'gene'};
+
+
 export function geneDetailConfigFactory(gene, family, source) {
   const id = `gene:${gene}:${source}`;
   return {

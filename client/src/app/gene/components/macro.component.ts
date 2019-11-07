@@ -1,7 +1,9 @@
 // Angular + dependencies
 import { AfterViewInit, Component, ElementRef, OnDestroy, ViewChild }
   from '@angular/core';
+// app
 import { GCV } from '@gcv-assets/js/gcv';
+
 
 @Component({
   selector: 'macro',
@@ -21,3 +23,6 @@ export class MacroComponent implements AfterViewInit, OnDestroy {
     console.log('macro destroyed');
   }
 }
+
+
+export const macroLayoutComponent = {component: MacroComponent, name: 'macro'};

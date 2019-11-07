@@ -16,9 +16,8 @@ import { GeneService, PlotsService } from '@gcv/gene/services';
 })
 export class PlotComponent implements AfterViewInit, OnDestroy {
 
-  @Input() plot: Observable<Plot>;
-  @Input() genes: Observable<Gene[]>;
-  @Input() colors: any;  // D3 color function
+  @Input() reference: Track;
+  @Input() track: (Track | ClusterMixin);
   @Input() options: any = {};
   @Output() plotClick = new EventEmitter();
   @Output() geneClick = new EventEmitter();
@@ -29,10 +28,19 @@ export class PlotComponent implements AfterViewInit, OnDestroy {
   private _destroy: Subject<boolean> = new Subject();
   private _viewer;
 
+  constructor(private _plotsService: PlotsService,
+              private _geneService: GeneService) { }
+
   // Angular hooks
 
   ngAfterViewInit() {
-    combineLatest(this.plot, this.genes)
+    // NOTE: this feels awkward; is there a better way to get one plot?
+    const plot = this._plotsService.getLocalPlots(this.track).pipe(
+      mergeAll(),
+      filter((plot) => (plot.reference as Track).name === this.reference.name),
+    );
+    const genes = this._geneService.getLocalPlotGenes(this.track);
+    combineLatest(plot, genes)
       .pipe(takeUntil(this._destroy))
       .subscribe(([plot, genes]) => this._draw(plot, genes));
   }
@@ -103,11 +111,14 @@ export class PlotComponent implements AfterViewInit, OnDestroy {
     options = Object.assign(options, this.options);
     this._viewer = new GCV.visualization.Plot(
       this.container.nativeElement,
-      this.colors,
+      GCV.common.colors,
       data,
       options);
   }
 }
+
+
+export const plotLayoutComponent = {component: PlotComponent, name: 'plot'};
 
 
 export function plotStackConfigFactory(track: (Track | ClusterMixin)) {
@@ -126,35 +137,24 @@ export function plotStackConfigFactory(track: (Track | ClusterMixin)) {
 
 export function plotConfigFactory(
   track: (Track | ClusterMixin),
-  query: Track,
-  plotsService: PlotsService,
-  geneService: GeneService,
+  reference: Track,
   outputs: any={})
 {
   const cluster = (track as ClusterMixin).cluster;
   const selected = (track as Track);
   const trackName = selected.name;
-  const queryName = query.name;
+  const referenceName = reference.name;
   const options = {autoResize: true};
-  const id = `plot:${clusteredTrackID(track)}x${clusteredTrackID(query)}`;
+  const id = `plot:${clusteredTrackID(track)}x${clusteredTrackID(reference)}`;
   let _outputs = {geneClick: (id, gene, family, source) => { /* no-op */ }};
   _outputs = Object.assign(_outputs, outputs);
   return {
     type: 'component',
     componentName: 'plot',
     id: id,
-    title: `${trackName} x ${queryName} (${cluster})local plot`,
+    title: `${trackName} x ${referenceName} (${cluster})local plot`,
     componentState: {
-      inputs: {
-        // NOTE: this feels awkward; is there a better way to get one plot?
-        plot: plotsService.getLocalPlots(track).pipe(
-          mergeAll(),
-          filter((plot) => (plot.reference as Track).name === query.name),
-        ),
-        genes: geneService.getLocalPlotGenes(track),
-        colors: GCV.common.colors,
-        options
-      },
+      inputs: {reference, track, options},
       outputs: {
         geneClick: ({gene, family, source}) => {
           _outputs.geneClick(id, gene, family, source);

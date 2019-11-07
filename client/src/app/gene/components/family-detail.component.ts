@@ -27,10 +27,9 @@ import { MicroTracksService } from '@gcv/gene/services';
     </ul>
   `,
 })
-export class FamilyDetailComponent implements OnInit, OnDestroy {
+export class FamilyDetailComponent implements OnDestroy, OnInit {
 
   @Input() family: string;
-  @Input() tracks: Observable<Track[]>;
 
   private _serverIDs = AppConfig.SERVERS.map(s => s.id);
   private _destroy: Subject<boolean> = new Subject();
@@ -38,6 +37,8 @@ export class FamilyDetailComponent implements OnInit, OnDestroy {
   genes: string[] = [];
   geneString: string = '';
   familyTreeLinks: any[] = [];
+
+  constructor(private _microTracksService: MicroTracksService) { }
 
   // Angular hooks
 
@@ -47,10 +48,9 @@ export class FamilyDetailComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
-    this.tracks
-      .pipe(
-        takeUntil(this._destroy),
-        take(1))
+    const tracks = this._microTracksService.getAllTracks();
+    tracks
+      .pipe(takeUntil(this._destroy), take(1))
       .subscribe((tracks) => this._process(tracks));
   }
 
@@ -90,21 +90,24 @@ export class FamilyDetailComponent implements OnInit, OnDestroy {
   }
 }
 
-export function familyDetailConfigFactory(
-  family: string,
-  microTracksService: MicroTracksService)
-{
+
+export const familyDetailLayoutComponent =
+  {component: FamilyDetailComponent, name: 'family'};
+
+
+export function familyDetailConfigFactory(family: string) {
   const id = `family:${family}`;
+  let title = family;
+  if (title == '') {
+    title = 'Orphans';
+  } else if (title.split(',').length > 1) {
+    title = 'Singletons';
+  }
   return {
     type: 'component',
     componentName: 'family',
     id: id,
-    title: `Family ${family}`,
-    componentState: {
-      inputs: {
-        family: family,
-        tracks: microTracksService.allTracks,
-      },
-    }
+    title: `Family: ${title}`,
+    componentState: {inputs: {family}}
   };
 }
