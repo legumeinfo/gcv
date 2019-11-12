@@ -7,9 +7,9 @@ import { catchError, map } from 'rxjs/operators';
 import { Track } from '@gcv/gene/models';
 import { HttpService } from '@gcv/core/services/http.service';
 
+
 @Injectable()
 export class ChromosomeService extends HttpService {
-  chromosomes: Observable<Track[]>;
 
   constructor(private _http: HttpClient) {
     super(_http);

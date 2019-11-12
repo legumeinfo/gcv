@@ -26,7 +26,7 @@ export class PairwiseBlocksEffects {
   clearBlocks$ = this.store.select(fromRouter.getMacroBlockParams).pipe(
     withLatestFrom(
       this.store.select(fromChromosome.getSelectedChromosomes),
-      this.store.select(fromRouter.getMicroQueryParamSources)),
+      this.store.select(fromRouter.getSources)),
     switchMap(([params, chromosomes, sources]) => {
       const clear = new pairwiseBlocksActions.Clear();
       const actions: pairwiseBlocksActions.Actions[] = [clear];
@@ -45,7 +45,7 @@ export class PairwiseBlocksEffects {
   @Effect()
   getSelected$ = combineLatest(
     this.store.select(fromChromosome.getSelectedChromosomes),
-    this.store.select(fromRouter.getMicroQueryParamSources),
+    this.store.select(fromRouter.getSources),
     this.store.select(
       fromPairwiseBlocks.getUnloadedSelectedPartialPairwiseBlocksIDs),
   ).pipe(

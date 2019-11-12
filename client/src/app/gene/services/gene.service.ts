@@ -12,6 +12,7 @@ import { Gene, Track } from '@gcv/gene/models';
 import { ClusterMixin } from '@gcv/gene/models/mixins';
 import { HttpService } from '@gcv/core/services/http.service';
 
+
 @Injectable()
 export class GeneService extends HttpService {
 

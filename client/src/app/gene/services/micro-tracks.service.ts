@@ -2,37 +2,24 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable, combineLatest, empty, throwError } from 'rxjs';
-import { catchError, filter, map, take } from 'rxjs/operators';
+import { catchError, map, take } from 'rxjs/operators';
 // store
 import { Store, select } from '@ngrx/store';
 import * as routerActions from '@gcv/core/store/actions/router.actions';
 import * as fromRoot from '@gcv/gene/store/reducers';
 import * as fromMicroTracks from '@gcv/gene/store/selectors/micro-tracks/';
-import * as fromRouter from '@gcv/gene/store/selectors/router/';
 // app
 import { AppConfig } from '@gcv/app.config';
-import { Group, QueryParams, Track } from '@gcv/gene/models';
+import { QueryParams, Track } from '@gcv/gene/models';
 import { AlignmentMixin, ClusterMixin } from '@gcv/gene/models/mixins';
 import { HttpService } from '@gcv/core/services/http.service';
 
+
 @Injectable()
 export class MicroTracksService extends HttpService {
-  queryParams: Observable<QueryParams>;
-  routeParams: Observable<any>;
-  searchQueryTrack: Observable<Group>;
-
-  clusterIDs: Observable<number[]>;
-  allTracks: Observable<(Track | ClusterMixin | AlignmentMixin)[]>;
 
   constructor(private _http: HttpClient, private _store: Store<fromRoot.State>) {
     super(_http);
-    this.clusterIDs = _store.select(fromMicroTracks.getClusterIDs);
-    this.allTracks = _store.select(fromMicroTracks.getAllClusteredAndAlignedMicroTracks);
-    // initialize observables
-    this.queryParams = _store.select(fromRouter.getMicroQueryParams);
-    //this.searchQueryTrack = store.select(fromSearchQueryTrack.getSearchQueryTrack)
-    //  .pipe(filter((queryTrack) => queryTrack !== undefined));
-    this.routeParams = _store.select(fromRouter.getParams);
   }
 
   microTracksSearch(families: string[], params: QueryParams, serverID: string):
@@ -46,12 +33,6 @@ export class MicroTracksService extends HttpService {
       .pipe(
         map(({tracks}) => tracks),
         catchError((error) => throwError(error)));
-  }
-
-  updateParams(params: QueryParams): void {
-    const path = [];
-    const query = Object.assign({}, params, {sources: params.sources.join(',')});
-    this._store.dispatch(new routerActions.Go({path, query}));
   }
 
   scroll(step: number): Observable<any> {
@@ -87,6 +68,10 @@ export class MicroTracksService extends HttpService {
           '/' + chromosome +
           '/' + low + '-' + high;
     this._store.dispatch(new routerActions.Go({path: [url, { routeParam: 1 }]}));
+  }
+
+  getClusterIDs(): Observable<number[]> {
+    return this._store.select(fromMicroTracks.getClusterIDs);
   }
 
   // returns all the aligned micro-tracks (selected and search result) belonging

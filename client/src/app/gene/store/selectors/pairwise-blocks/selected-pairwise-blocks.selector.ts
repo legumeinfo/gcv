@@ -15,7 +15,7 @@ import { PairwiseBlocks } from '@gcv/gene/models';
 export const getSelectedPartialBlockIDs = createSelector(
   getPairwiseBlocksState,
   getSelectedChromosomeIDs,
-  fromRouter.getMicroQueryParamSources,
+  fromRouter.getSources,
   (state: State, ids: ChromosomeID[], sources: string[]):
   PartialPairwiseBlocksID[] => {
     const reducer = (accumulator, {name: reference, source: referenceSource}) =>

@@ -4,8 +4,8 @@ import { createSelector } from '@ngrx/store';
 import * as fromModule from '@gcv/gene/store/reducers';
 import { initialState } from '@gcv/gene/store/reducers/router.reducer';
 // app
-import { AlignmentParams, BlockParams, ClusteringParams, QueryParams }
-  from '@gcv/gene/models';
+import { AlignmentParams, BlockParams, ClusteringParams, QueryParams,
+  SourceParams } from '@gcv/gene/models';
 import { instantiateAndPopulate } from '@gcv/gene/utils';
 
 
@@ -69,6 +69,16 @@ export const getQueryParams = createSelector(
 );
 
 // app parameters encoded in route query params
+export const getSourceParams = createSelector(
+  getQueryParams,
+  (params) => instantiateAndPopulate(SourceParams, params),
+)
+
+export const getSources = createSelector(
+  getSourceParams,
+  (params) => params.sources,
+)
+
 export const getMicroQueryParams = createSelector(
   getQueryParams,
   (params) => instantiateAndPopulate(QueryParams, params),
@@ -77,11 +87,6 @@ export const getMicroQueryParams = createSelector(
 export const getMicroQueryParamNeighbors = createSelector(
   getMicroQueryParams,
   (params) => params.neighbors,
-)
-
-export const getMicroQueryParamSources = createSelector(
-  getMicroQueryParams,
-  (params) => params.sources,
 )
 
 export const getMicroAlignmentParams = createSelector(

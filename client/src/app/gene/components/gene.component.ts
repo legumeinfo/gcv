@@ -88,7 +88,7 @@ export class GeneComponent implements AfterViewInit, OnDestroy {
   }
 
   private _initializeMicroTracks(): void {
-    this._microTracksService.clusterIDs
+    this._microTracksService.getClusterIDs()
       .pipe(takeUntil(this._destroy))
       .subscribe((IDs) => this._addMicroViewers(IDs));
   }

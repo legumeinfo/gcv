@@ -17,6 +17,7 @@ import { PairwiseBlock } from './pairwise-block.model';
 import { PairwiseBlocks } from './pairwise-blocks.model';
 import { Plot } from './plot.model';
 import { QueryParams } from './query-params.model';
+import { SourceParams } from './source-params.model';
 import { Track } from './track.model';
 
 export const models: any[] = [
@@ -39,6 +40,7 @@ export const models: any[] = [
   PairwiseBlocks,
   Plot,
   QueryParams,
+  SourceParams,
   Track,
 ];
 
@@ -61,4 +63,5 @@ export * from './pairwise-block.model';
 export * from './pairwise-blocks.model';
 export * from './plot.model';
 export * from './query-params.model';
+export * from './source-params.model';
 export * from './track.model';

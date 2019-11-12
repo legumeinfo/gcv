@@ -37,7 +37,7 @@ export class MicroTracksEffects {
     withLatestFrom(
       this.store.select(
         fromMicroTracks.getClusteredAndAlignedSelectedMicroTracks),
-      this.store.select(fromRouter.getMicroQueryParamSources)),
+      this.store.select(fromRouter.getSources)),
     switchMap(([params, {consensuses, tracks}, sources]) => {
       const clear = new microTracksActions.Clear();
       const actions: microTracksActions.Actions[] = [clear];
@@ -59,7 +59,7 @@ export class MicroTracksEffects {
   consensusSearch$ = combineLatest(
       this.store.select(
         fromMicroTracks.getClusteredAndAlignedSelectedMicroTracks),
-      this.store.select(fromRouter.getMicroQueryParamSources)
+      this.store.select(fromRouter.getSources)
   ).pipe(
     withLatestFrom(this.store.select(fromRouter.getMicroQueryParams)),
     switchMap(([[{consensuses, tracks}, sources], params]) => {

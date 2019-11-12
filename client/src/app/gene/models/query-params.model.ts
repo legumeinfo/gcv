@@ -1,16 +1,13 @@
 // Angular
-import { AbstractControl, Validators } from '@angular/forms';
+import { Validators } from '@angular/forms';
 import { Regex } from '@gcv/gene/constants';
 // App
-import { AppConfig } from '@gcv/app.config';
 import { regexpOr } from '@gcv/gene/utils/regexp-or.util';
 
 export class QueryParams {
-  private sourceIDs: string[] = AppConfig.SERVERS.map((s) => s.id);
 
   constructor(
     public neighbors: number = 10,
-    public sources: string[] = AppConfig.SERVERS.map((s) => s.id),
     public matched: number = 4,
     public intermediate: number = 5,
   ) { }
@@ -31,20 +28,6 @@ export class QueryParams {
         Validators.required,
         Validators.pattern(Regex.POSITIVE_INT),
       ])],
-      sources: [this.sources, Validators.compose([
-        Validators.required,
-        this.sourcesValidator,
-      ])],
     };
-  }
-
-  private sourcesValidator = (sources: AbstractControl): {[key: string]: any} => {
-    if (!sources || !sources.value.length) {
-      return {invalidSources: {}};
-    }
-    if (sources.value.every((s) => this.sourceIDs.indexOf(s.id))) {
-      return null;
-    }
-    return {invalidSources: {sources: sources.value}};
   }
 }
