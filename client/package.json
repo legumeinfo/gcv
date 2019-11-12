@@ -22,6 +22,7 @@
     "@angular/platform-browser": "~8.2.5",
     "@angular/platform-browser-dynamic": "~8.2.5",
     "@angular/router": "~8.2.5",
+    "@fortawesome/fontawesome-free": "^5.11.2",
     "@ngrx/effects": "^8.3.0",
     "@ngrx/entity": "^8.3.0",
     "@ngrx/router-store": "^8.3.0",

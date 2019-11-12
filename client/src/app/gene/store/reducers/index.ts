@@ -9,6 +9,7 @@ import * as fromRoot from '@gcv/reducers';
 import * as fromPairwiseBlocks from './pairwise-blocks.reducer';
 import * as fromChromosome from './chromosome.reducer';
 import * as fromGene from './gene.reducer';
+import * as fromLayout from './layout.reducer';
 import * as fromMicroTracks from './micro-tracks.reducer';
 
 
@@ -19,6 +20,7 @@ export interface GeneState {
   [fromPairwiseBlocks.pairwiseBlocksFeatureKey]: fromPairwiseBlocks.State;
   [fromChromosome.chromosomeFeatureKey]: fromChromosome.State;
   [fromGene.geneFeatureKey]: fromGene.State;
+  [fromLayout.layoutFeatureKey]: fromLayout.State;
   [fromMicroTracks.microTracksFeatureKey]: fromMicroTracks.State;
 }
 
@@ -33,6 +35,7 @@ export function reducers(state: GeneState | undefined, action: Action) {
     [fromPairwiseBlocks.pairwiseBlocksFeatureKey]: fromPairwiseBlocks.reducer,
     [fromChromosome.chromosomeFeatureKey]: fromChromosome.reducer,
     [fromGene.geneFeatureKey]: fromGene.reducer,
+    [fromLayout.layoutFeatureKey]: fromLayout.reducer,
     [fromMicroTracks.microTracksFeatureKey]: fromMicroTracks.reducer,
   })(state, action);
 }

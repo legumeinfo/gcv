@@ -13,7 +13,7 @@ declare var window: any;
 @Component({
   selector: 'app-root',
   template: `
-    <header>
+    <gcvheader>
       <nav class="navbar navbar-light bg-light">
         <a class="navbar-brand" href="#">
           <!-- TODO: load image, title, and subtitle from config -->
@@ -26,8 +26,7 @@ declare var window: any;
           <button class="btn btn-outline-dark my-2 my-sm-0" type="submit">Search</button>
         </form>
       </nav>
-    </header>
-
+    </gcvheader>
     <router-outlet></router-outlet>
   `,
 })

@@ -1,6 +1,8 @@
 import { FamilyDetailComponent } from './family-detail.component';
 import { GeneComponent } from './gene.component';
 import { GeneDetailComponent } from './gene-detail.component';
+import { HeaderLeftComponent } from './header-left.component';
+import { LeftSliderComponent } from './left-slider.component';
 import { MacroComponent } from './macro.component';
 import { MicroLegendComponent } from './micro-legend.component';
 import { MicroComponent } from './micro.component';
@@ -13,6 +15,8 @@ export const components: any[] = [
   FamilyDetailComponent,
   GeneComponent,
   GeneDetailComponent,
+  HeaderLeftComponent,
+  LeftSliderComponent,
   MacroComponent,
   MicroComponent,
   MicroLegendComponent,
@@ -25,6 +29,8 @@ export const components: any[] = [
 export * from './family-detail.component';
 export * from './gene.component';
 export * from './gene-detail.component';
+export * from './header-left.component';
+export * from './left-slider.component';
 export * from './macro.component';
 export * from './micro-legend.component';
 export * from './micro.component';

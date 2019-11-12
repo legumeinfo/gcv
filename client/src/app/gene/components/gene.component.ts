@@ -1,10 +1,10 @@
 // Angular
 import { AfterViewInit, Component, OnDestroy, ViewChild } from '@angular/core';
-import { Subject } from 'rxjs';
+import { Observable, Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 // app
 import { GoldenLayoutDirective } from '@gcv/gene/directives';
-import { MicroTracksService } from '@gcv/gene/services';
+import { LayoutService, MicroTracksService } from '@gcv/gene/services';
 import { familyDetailConfigFactory, familyDetailLayoutComponent }
   from './family-detail.component';
 import { geneDetailConfigFactory, geneDetailLayoutComponent }
@@ -42,22 +42,19 @@ export class GeneComponent implements AfterViewInit, OnDestroy {
   layoutConfig = {
       content: [{
         type: 'row',
-        content: [
-          {
-            type: 'column',
-            content: []
-          },
-          {
-            type: 'column',
-            content: []
-          }
-        ],
+        content: [{type: 'column', content: []}, {type: 'column', content: []}],
       }]
     };
+  showLeftSlider: Observable<boolean>;
 
-  constructor(private _microTracksService: MicroTracksService) { }
+  constructor(private _layoutService: LayoutService,
+              private _microTracksService: MicroTracksService) { }
 
   // Angular hooks
+
+  ngOnInit(): void {
+    this.showLeftSlider = this._layoutService.getLeftSliderState();
+  }
 
   ngAfterViewInit(): void {
     this._initializeLegends();
@@ -124,4 +121,8 @@ export class GeneComponent implements AfterViewInit, OnDestroy {
   }
 
   // public
+
+  closeLeftSlider(): void {
+    this._layoutService.closeLeftSlider();
+  }
 }

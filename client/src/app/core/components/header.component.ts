@@ -5,7 +5,7 @@ import * as $ from 'jquery';
 import { AppConfig } from '@gcv/app.config';
 
 @Component({
-  selector: 'header',
+  selector: 'gcvheader',
   styleUrls: [ './header.component.scss' ],
   templateUrl: './header.component.html',
 })
@@ -18,7 +18,9 @@ export class HeaderComponent implements AfterViewInit {
   }
 
   toggleBrand(): void {
-    // TODO: replace with Angular animation
-    $('.navbar-brand span').animate({width: 'toggle'}, 150);
+    if (this.brand.hide) {
+      // TODO: replace with Angular animation or CSS transition
+      $('.navbar-brand span, .navbar-brand div').animate({width: 'toggle'}, 150);
+    }
   }
 }

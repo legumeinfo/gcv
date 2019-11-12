@@ -13,9 +13,7 @@ import { GeneService, MicroTracksService } from '@gcv/gene/services';
 @Component({
   selector: 'micro',
   styleUrls: ['./golden-content.scss'],
-  template: `
-    <div #container></div>
-  `,
+  template: `<div #container></div>`,
 })
 export class MicroComponent implements AfterViewInit, OnDestroy {
 

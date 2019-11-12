@@ -6,6 +6,7 @@ export class Brand {
   img?: string;
   name?: string;
   slogan?: string;
+  hide?: boolean;
 }
 
 export class Communication {

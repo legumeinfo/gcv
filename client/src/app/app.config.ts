@@ -104,6 +104,9 @@ export class AppConfig {
       link.href = brand.favicon;
       document.getElementsByTagName('head')[0].appendChild(link);
     }
+    if (brand.hide === undefined) {
+      brand.hide = true;
+    }
     AppConfig.BRAND = brand;
     Object.freeze(AppConfig.BRAND);
   }

@@ -1,7 +1,13 @@
 // Angular
-import { animate, state, style, transition, trigger } from '@angular/animations';
-// App
-import { SliderStates } from '@gcv/gene/constants';
+import { animate, state, style, transition, trigger }
+  from '@angular/animations';
+
+
+export enum SliderStates {
+  SLIDER_ACTIVE   = 'SLIDER_ACTIVE',
+  SLIDER_INACTIVE = 'SLIDER_INACTIVE'
+}
+
 
 export const toggleSlider = trigger('toggleSlider', [
   state(SliderStates.SLIDER_ACTIVE,
