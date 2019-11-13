@@ -1,2 +1,4 @@
-<left-slider [open]="showLeftSlider|async" (onClose)="closeLeftSlider()">Slider (left)</left-slider>
+<left-slider [open]="showLeftSlider|async" (onClose)="closeLeftSlider()">
+  <params (valid)="closeLeftSlider()" (invalid)="openLeftSlider()"></params>
+</left-slider>
 <div class="viewers" [gcvGoldenLayout]="layoutComponents" [config]="layoutConfig">

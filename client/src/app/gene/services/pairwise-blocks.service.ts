@@ -8,7 +8,8 @@ import { Store } from '@ngrx/store';
 import * as routerActions from '@gcv/core/store/actions/router.actions';
 import * as fromRoot from '@gcv/gene/store/reducers';
 // app
-import { BlockParams, PairwiseBlocks, Track } from '@gcv/gene/models';
+import { PairwiseBlocks, Track } from '@gcv/gene/models';
+import { BlockParams } from '@gcv/gene/models/params';
 import { HttpService } from '@gcv/core/services/http.service';
 
 

@@ -125,4 +125,8 @@ export class GeneComponent implements AfterViewInit, OnDestroy {
   closeLeftSlider(): void {
     this._layoutService.closeLeftSlider();
   }
+
+  openLeftSlider(): void {
+    this._layoutService.openLeftSlider();
+  }
 }

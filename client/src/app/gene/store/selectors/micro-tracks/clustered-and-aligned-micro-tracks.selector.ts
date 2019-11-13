@@ -9,7 +9,8 @@ import { getSelectedMicroTracks } from './selected-micro-tracks.selector';
 import * as clusterfck from '@gcv-assets/js/clusterfck';
 import { GCV } from '@gcv-assets/js/gcv';
 import { ALIGNMENT_ALGORITHMS } from '@gcv/gene/algorithms';
-import { AlignmentParams, Track } from '@gcv/gene/models';
+import { Track } from '@gcv/gene/models';
+import { AlignmentParams, ClusteringParams } from '@gcv/gene/models/params';
 import { AlignmentMixin, ClusterMixin } from '@gcv/gene/models/mixins';
 
 
@@ -21,7 +22,8 @@ import { AlignmentMixin, ClusterMixin } from '@gcv/gene/models/mixins';
 // TODO: only cluster when selectedLoaded emits true
 export const getClusteredSelectedMicroTracks = createSelector(
   getSelectedMicroTracks,
-  (tracks: Track[]): (Track | ClusterMixin)[] => {
+  fromRouter.getMicroClusteringParams,
+  (tracks: Track[], params: ClusteringParams): (Track | ClusterMixin)[] => {
     const metric = (a: Track, b: Track): number => {
         const f1 = a.families;
         const f2 = b.families;
@@ -30,8 +32,8 @@ export const getClusteredSelectedMicroTracks = createSelector(
         const d2 = GCV.metrics.levenshtein(f1, f3);
         return Math.min(d1, d2);
       };
-    const clusters = clusterfck.hcluster(tracks, metric,
-      clusterfck.AVERAGE_LINKAGE, 10);
+    const clusters =
+      clusterfck.hcluster(tracks, metric, params.linkage, params.threshold);
     const recurrence = (cluster) => {
         const elements = [];
         if ('left' in cluster || 'right' in cluster) {

@@ -40,14 +40,9 @@ implements RouterStateSerializer<fromRouter.RouterStateUrl> {
         case 'score':
         // clustering params
         case 'threshold':
-        case 'kappa':
-        case 'minsup':
-        case 'minsize':
           queryParams[key] = parseInt(queryParams[key]);
           break;
-        case 'alpha':
-          queryParams[key] = parseFloat(queryParams[key]);
-          break;
+        // micro query params
         case 'matched':
         case 'intermediate':
           queryParams[key] = parseFloat(queryParams[key]);
@@ -55,10 +50,15 @@ implements RouterStateSerializer<fromRouter.RouterStateUrl> {
             queryParams[key] = parseInt(queryParams[key]);
           }
           break;
+        // sources
         case 'sources':
           if (!Array.isArray(queryParams[key])) {
             queryParams[key] = queryParams[key].split(',');
           }
+          break;
+        // clustering params
+        case 'linkage':
+          /* no-op */
           break;
       }
     });

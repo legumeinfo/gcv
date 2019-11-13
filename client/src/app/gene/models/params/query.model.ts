@@ -3,8 +3,10 @@ import { Validators } from '@angular/forms';
 import { Regex } from '@gcv/gene/constants';
 // App
 import { regexpOr } from '@gcv/gene/utils/regexp-or.util';
+import { Params } from './params.model';
 
-export class QueryParams {
+
+export class QueryParams implements Params {
 
   constructor(
     public neighbors: number = 10,

@@ -1,6 +1,6 @@
 import { Params } from '@angular/router';
 import * as fromRouterStore from '@ngrx/router-store';
-import { QueryParams } from '@gcv/gene/models';
+import { QueryParams } from '@gcv/gene/models/params';
 
 
 export interface RouterStateUrl {

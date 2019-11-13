@@ -4,6 +4,7 @@ import { GeneService } from './gene.service';
 import { LayoutService } from './layout.service';
 import { MicroTracksService } from './micro-tracks.service';
 import { PairwiseBlocksService} from './pairwise-blocks.service';
+import { ParamsService } from './params.service';
 import { PlotsService } from './plots.service';
 
 export const services: any[] = [
@@ -13,6 +14,7 @@ export const services: any[] = [
   LayoutService,
   MicroTracksService,
   PairwiseBlocksService,
+  ParamsService,
   PlotsService,
 ];
 
@@ -22,4 +24,5 @@ export * from './gene.service';
 export * from './layout.service';
 export * from './micro-tracks.service';
 export * from './pairwise-blocks.service';
+export * from './params.service';
 export * from './plots.service';

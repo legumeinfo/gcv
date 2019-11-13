@@ -10,7 +10,8 @@ import * as fromRoot from '@gcv/gene/store/reducers';
 import * as fromMicroTracks from '@gcv/gene/store/selectors/micro-tracks/';
 // app
 import { AppConfig } from '@gcv/app.config';
-import { QueryParams, Track } from '@gcv/gene/models';
+import { Track } from '@gcv/gene/models';
+import { QueryParams } from '@gcv/gene/models/params';
 import { AlignmentMixin, ClusterMixin } from '@gcv/gene/models/mixins';
 import { HttpService } from '@gcv/core/services/http.service';
 

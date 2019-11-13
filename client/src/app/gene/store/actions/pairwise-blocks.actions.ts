@@ -1,5 +1,6 @@
 import { Action } from '@ngrx/store';
-import { BlockParams, PairwiseBlocks, Track } from '@gcv/gene/models';
+import { PairwiseBlocks, Track } from '@gcv/gene/models';
+import { BlockParams } from '@gcv/gene/models/params';
 
 export const CLEAR = '[PAIRWISE_BLOCKS] CLEAR';
 export const GET = '[PAIRWISE_BLOCKS] GET';

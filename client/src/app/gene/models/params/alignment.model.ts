@@ -1,8 +1,10 @@
 import { Validators } from '@angular/forms';
 import { ALIGNMENT_ALGORITHMS } from '@gcv/gene/algorithms/alignment-algorithms';  // avoid circular dependency
 import { Regex } from '@gcv/gene/constants';
+import { Params } from './params.model';
 
-export class AlignmentParams {
+
+export class AlignmentParams implements Params {
   private algorithms: string = ALIGNMENT_ALGORITHMS.map((a) => a.id).join('|');
 
   constructor(

@@ -1,8 +1,5 @@
 import { Alert } from './alert.model';
-import { AlignmentParams } from './alignment-params.model';
 import { Algorithm } from './algorithm.model';
-import { BlockParams } from './block-params.model';
-import { ClusteringParams } from './clustering-params.model';
 import { Family } from './family.model';
 import { GeneLoc } from './gene-loc.model';
 import { Gene } from './gene.model';
@@ -16,16 +13,11 @@ import { Pair } from './pair.model';
 import { PairwiseBlock } from './pairwise-block.model';
 import { PairwiseBlocks } from './pairwise-blocks.model';
 import { Plot } from './plot.model';
-import { QueryParams } from './query-params.model';
-import { SourceParams } from './source-params.model';
 import { Track } from './track.model';
 
 export const models: any[] = [
   Alert,
-  AlignmentParams,
   Algorithm,
-  BlockParams,
-  ClusteringParams,
   Family,
   GeneLoc,
   Gene,
@@ -39,16 +31,11 @@ export const models: any[] = [
   PairwiseBlock,
   PairwiseBlocks,
   Plot,
-  QueryParams,
-  SourceParams,
   Track,
 ];
 
 export * from './alert.model';
-export * from './alignment-params.model';
 export * from './algorithm.model';
-export * from './block-params.model';
-export * from './clustering-params.model';
 export * from './family.model';
 export * from './gene-loc.model';
 export * from './gene.model';
@@ -62,6 +49,4 @@ export * from './pair.model';
 export * from './pairwise-block.model';
 export * from './pairwise-blocks.model';
 export * from './plot.model';
-export * from './query-params.model';
-export * from './source-params.model';
 export * from './track.model';

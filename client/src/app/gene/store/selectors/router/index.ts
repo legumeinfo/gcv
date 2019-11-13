@@ -5,7 +5,7 @@ import * as fromModule from '@gcv/gene/store/reducers';
 import { initialState } from '@gcv/gene/store/reducers/router.reducer';
 // app
 import { AlignmentParams, BlockParams, ClusteringParams, QueryParams,
-  SourceParams } from '@gcv/gene/models';
+  SourceParams } from '@gcv/gene/models/params';
 import { instantiateAndPopulate } from '@gcv/gene/utils';
 
 

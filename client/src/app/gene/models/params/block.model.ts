@@ -1,10 +1,11 @@
 // Angular
 import { Validators } from '@angular/forms';
-
 // App
 import { Regex } from '@gcv/gene/constants';
+import { Params } from './params.model';
 
-export class BlockParams {
+
+export class BlockParams implements Params {
 
   constructor(
     public bmatched: number = 20,

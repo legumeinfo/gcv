@@ -1,5 +1,6 @@
 import { Action } from '@ngrx/store';
-import { Track, QueryParams } from '@gcv/gene/models';
+import { Track } from '@gcv/gene/models';
+import { QueryParams } from '@gcv/gene/models/params';
 import { ClusterMixin } from '@gcv/gene/models/mixins';
 
 export const CLEAR = '[MICRO_TRACKS] CLEAR';
