@@ -121,7 +121,7 @@ function align<T>(
         for (let k = insertion-1; k >= 0; k--) {
           const x = j + (k+1)*step;
           a.coordinates.unshift(x-1);
-          a.scores.unshift(m[i][j+k+1]-m[i][j+k]);
+          a.scores.unshift(m[i+k+1][j]-m[i+k][j]);
         }
         insertion = 0;
       }

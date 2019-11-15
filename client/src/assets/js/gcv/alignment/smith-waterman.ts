@@ -64,12 +64,15 @@ function align<T>(
   }
 
   // construct alignment via traceback
-  const alignment = {coordinates: [], scores: []};
   let insertion = 0;
   let [i, j] = maxCell;
+  // begin alginment
+  const alignment = {
+      coordinates: Array(ref.length-i).fill(null),
+      scores: Array(ref.length-i).fill(null)
+    };
   while (m[i][j] !== 0) {
     let [i2, j2] = t[i][j];
-    // insertion
     if (j2 === j && j !== 0) {
       insertion += 1;
     // (mis)match
@@ -80,22 +83,22 @@ function align<T>(
         for (let k = insertion-1; k >= 0; k--) {
           const x = j + (k+1)*step;
           alignment.coordinates.unshift(x-1);
-          alignment.scores.unshift(m[i][j+k+1]-m[i][j+k]);
+          alignment.scores.unshift(m[i+k+1][j]-m[i+k][j]);
         }
         insertion = 0;
       }
       alignment.coordinates.unshift(j-1)
       alignment.scores.unshift(m[i][j]-m[i2][j2]);
     }
-    // end alignment
-    if (m[i2][j2] === 0) {
-      if (alignment.coordinates.filter((x) => x !== null).length > 2) {
-        const fill = Array(ref.length-alignment.coordinates.length).fill(null);
-        alignment.coordinates.unshift(...fill);
-        alignment.scores.unshift(...fill);
-      }
-    }
     [i, j] = [i2, j2];
+  }
+  // end alignment
+  if (alignment.coordinates.filter((x) => x !== null).length > 2) {
+    const fill = Array(ref.length-alignment.coordinates.length).fill(null);
+    alignment.coordinates.unshift(...fill);
+    alignment.scores.unshift(...fill);
+  } else {
+    return null;
   }
 
   return alignment;
@@ -142,16 +145,25 @@ export function smithWaterman<T>(
   const reverseAlignment =
     align(reference, reverse, options.scores, options.omit);
   // reverse the reverse alignment
-  reverseAlignment.coordinates.reverse();
-  reverseAlignment.scores.reverse();
+  if (reverseAlignment !== null) {
+    reverseAlignment.coordinates.reverse();
+    reverseAlignment.scores.reverse();
+  }
 
   // merge alignments
+  const toAlignment = (a) => ({alignment: a.coordinates, score: sum(a.scores)});
+  if (forwardAlignment === null && reverseAlignment === null) {
+    return [];
+  } else if (forwardAlignment !== null && reverseAlignment === null) {
+    return [toAlignment(forwardAlignment)];
+  } else if (forwardAlignment === null && reverseAlignment !== null) {
+    return [toAlignment(reverseAlignment)];
+  }
   const alignments = mergeAlignments(
       [forwardAlignment],
       [reverseAlignment],
       options.reversals,
       options.inversions)
-    .map((a) => ({alignment: a.coordinates, score: sum(a.scores)}));
-
+    .map(toAlignment);
   return alignments;
 }

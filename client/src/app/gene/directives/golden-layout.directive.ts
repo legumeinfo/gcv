@@ -26,6 +26,16 @@ export class GoldenLayoutDirective implements AfterContentInit, OnDestroy {
   // Angular hooks
 
   ngAfterContentInit() {
+    this._initialize();
+  }
+
+  ngOnDestroy() {
+    this._destroy();
+  }
+
+  // private
+
+  private _initialize(): void {
     // set the initial layout configuration
     this._setConfig();
     // instantiate the layout
@@ -38,12 +48,12 @@ export class GoldenLayoutDirective implements AfterContentInit, OnDestroy {
     window.addEventListener('resize', this._resize.bind(this));
   }
 
-  ngOnDestroy() {
+  private _destroy(): void {
     // remove resize listener
     window.removeEventListener('resize', this._resize.bind(this));
+    // destroy layout
+    this._layout.destroy()
   }
-
-  // private
 
   private _setConfig() {
     if (this.config === undefined) {
@@ -171,10 +181,7 @@ export class GoldenLayoutDirective implements AfterContentInit, OnDestroy {
   }
 
   reset() {
-    const config = this._layout.toConfig()
-    config.content = this.config.content;
-    this._layout.destroy()
-    this._layout.config = config;
-    this._layout.init()
+    this._destroy();
+    this._initialize();
   }
 }

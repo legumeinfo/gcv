@@ -4,5 +4,9 @@
  * @return {number} - The sum.
  */
 export function sum(l) {
-  return l.reduce((a, b) => a + b);
+  const ls = l.filter((e) => e !== null);
+  if (ls.length === 0) {
+    return 0;
+  }
+  return ls.reduce((a, b) => a + b);
 }

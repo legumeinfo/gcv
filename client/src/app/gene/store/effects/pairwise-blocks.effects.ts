@@ -22,6 +22,7 @@ export class PairwiseBlocksEffects {
               private store: Store<fromRoot.State>) { }
 
   // clear the store every time new parameters are emitted and get new blocks
+  /*
   @Effect()
   clearBlocks$ = this.store.select(fromRouter.getMacroBlockParams).pipe(
     withLatestFrom(
@@ -40,8 +41,10 @@ export class PairwiseBlocksEffects {
       return actions;
     }),
   );
+  */
 
   // gets blocks for selected chromosomes from selected sources
+  /*
   @Effect()
   getSelected$ = combineLatest(
     this.store.select(fromChromosome.getSelectedChromosomes),
@@ -71,6 +74,7 @@ export class PairwiseBlocksEffects {
       return actions;
     }),
   );
+  */
 
   // get pairwise blocks via the pairwise blocks service
   @Effect()

@@ -86,10 +86,10 @@ export class ParamsComponent implements OnDestroy, OnInit {
     this[group].markAsDirty();
   }
 
-  private _submitGroup(group, callback): void {
+  private _submitGroup(group): void {
     if (group.dirty) {
       const params = group.getRawValue();
-      callback(params);
+      this._paramsService.updateParams(params);
       group.reset(params);
     }
   }
@@ -101,20 +101,16 @@ export class ParamsComponent implements OnDestroy, OnInit {
   // public
 
   submit(): void {
-    if (this.blockGroup.valid && this.queryGroup.valid && this.alignmentGroup.valid) {
+    if (this.blockGroup.valid && this.queryGroup.valid && this.clusteringGroup &&
+        this.alignmentGroup.valid && this.sourcesGroup)
+    {
       this.valid.emit();
-      // submit block params
-      this._submitGroup(this.blockGroup, (params) => {
-        this._paramsService.updateParams(params);
-      });
-      // submit query params
-      this._submitGroup(this.queryGroup, (params) => {
-        this._paramsService.updateParams(params);
-      });
-      // submit alignment params
-      this._submitGroup(this.alignmentGroup, (params) => {
-        this._paramsService.updateParams(params);
-      });
+      // submit params
+      this._submitGroup(this.blockGroup);
+      this._submitGroup(this.queryGroup);
+      this._submitGroup(this.clusteringGroup);
+      this._submitGroup(this.alignmentGroup);
+      this._submitGroup(this.sourcesGroup);
     } else {
       this.invalid.emit();
     }

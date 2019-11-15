@@ -57,8 +57,9 @@ export class GeneComponent implements AfterViewInit, OnDestroy {
   }
 
   ngAfterViewInit(): void {
-    this._initializeLegends();
-    this._initializeMicroTracks();
+    this._microTracksService.getClusterIDs()
+      .pipe(takeUntil(this._destroy))
+      .subscribe((IDs) => this._resetLayout(IDs));
   }
 
   ngOnDestroy(): void {
@@ -67,6 +68,12 @@ export class GeneComponent implements AfterViewInit, OnDestroy {
   }
 
   // private
+
+  private _resetLayout(IDs): void {
+    this.goldenLayoutDirective.reset();
+    this._initializeLegends();
+    this._addMicroViewers(IDs);
+  }
 
   private _addItem(index, configFactory, ...args): any {
     const config = configFactory(...args);
@@ -85,12 +92,6 @@ export class GeneComponent implements AfterViewInit, OnDestroy {
         this._stackItem(id, familyDetailConfigFactory, family);
       };
     this._addItem([0, 1], microLegendConfigFactory, {click});
-  }
-
-  private _initializeMicroTracks(): void {
-    this._microTracksService.getClusterIDs()
-      .pipe(takeUntil(this._destroy))
-      .subscribe((IDs) => this._addMicroViewers(IDs));
   }
 
   private _addLocalPlots(id, track, queryTracks): void {
