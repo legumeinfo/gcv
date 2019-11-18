@@ -1,3 +1,4 @@
+import { ContextMenuComponent } from './context-menu.component';
 import { FamilyDetailComponent } from './family-detail.component';
 import { GeneComponent } from './gene.component';
 import { GeneDetailComponent } from './gene-detail.component';
@@ -13,6 +14,7 @@ import * as fromShared from './shared';
 import * as fromViewers from './viewers';
 
 export const components: any[] = [
+  ContextMenuComponent,
   FamilyDetailComponent,
   GeneComponent,
   GeneDetailComponent,
@@ -28,6 +30,7 @@ export const components: any[] = [
   ...fromViewers.components
 ];
 
+export * from './context-menu.component';
 export * from './family-detail.component';
 export * from './gene.component';
 export * from './gene-detail.component';

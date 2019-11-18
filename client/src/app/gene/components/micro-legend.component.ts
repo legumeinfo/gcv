@@ -5,6 +5,7 @@ import { Observable, Subject, combineLatest } from 'rxjs';
 import { map, takeUntil } from 'rxjs/operators';
 // app
 import { GCV } from '@gcv-assets/js/gcv';
+import { saveFile } from '@gcv/core/utils';
 import { Gene, Track } from '@gcv/gene/models';
 import { AlignmentMixin, ClusterMixin } from '@gcv/gene/models/mixins';
 import { GeneService, MicroTracksService } from '@gcv/gene/services';
@@ -12,15 +13,11 @@ import { GeneService, MicroTracksService } from '@gcv/gene/services';
 
 @Component({
   selector: 'micro-legend',
-  styles: [`
-    div {
-      width: 100%;
-      height: 100%;
-      overflow-x: hidden;
-      overflow-y: auto;
-    }
-  `],
-  template: '<div #container></div>',
+  styleUrls: ['./golden-content.scss'],
+  template: `
+    <context-menu (saveImage)="saveImage()"></context-menu>
+    <div class="viewer" #container></div>
+  `,
 })
 export class MicroLegendComponent implements AfterViewInit, OnDestroy {
 
@@ -56,6 +53,12 @@ export class MicroLegendComponent implements AfterViewInit, OnDestroy {
 
   emitClick(key) {
     this.click.emit(key);
+  }
+
+  saveImage(): void {
+    if (this._viewer !== undefined) {
+      saveFile('micro-synteny', this._viewer.xml(), 'image/svg+xml', 'svg');
+    }
   }
 
   // private

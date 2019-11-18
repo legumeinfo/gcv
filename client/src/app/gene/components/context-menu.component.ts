@@ -8,13 +8,15 @@ import { AfterViewInit, ChangeDetectorRef, Component, ElementRef, EventEmitter,
   templateUrl: './context-menu.component.html',
 })
 export class ContextMenuComponent implements AfterViewInit {
-  @Input() title: string;
+
   @Output() saveData = new EventEmitter();
   @Output() saveImage = new EventEmitter();
 
   @ViewChild('dropdown', {static: false}) el: ElementRef;
 
   constructor(private changeDetector: ChangeDetectorRef) { }
+
+  // Angular hooks
 
   ngAfterViewInit(): void {
     this.changeDetector.detectChanges();
@@ -28,19 +30,7 @@ export class ContextMenuComponent implements AfterViewInit {
     this.saveImage.emit();
   }
 
-  showDropdown(): boolean {
-    return this.saveData.observers.length > 0
-        || this.saveImage.observers.length > 0
-        || (this.el !== undefined
-        && this._hasContent(this.el.nativeElement.children));
-  }
-
-  showSeparator(): boolean {
-    return (this.saveData.observers.length > 0
-        || this.saveImage.observers.length > 0)
-        && (this.el !== undefined
-        && this._hasContent(this.el.nativeElement.children));
-  }
+  // private
 
   private _hasContent(children: any): any {
     for (const c of children) {
@@ -50,4 +40,29 @@ export class ContextMenuComponent implements AfterViewInit {
     }
     return false;
   }
+
+  // private
+
+  showData(): boolean {
+    return this.saveData.observers.length > 0;
+  }
+
+  showImage(): boolean {
+    return this.saveImage.observers.length > 0;
+  }
+
+  showDropdown(): boolean {
+    return this.showData()
+        || this.showImage()
+        || (this.el !== undefined
+        && this._hasContent(this.el.nativeElement.children));
+  }
+
+  showSeparator(): boolean {
+    return (this.showData()
+        || this.showImage())
+        && (this.el !== undefined
+        && this._hasContent(this.el.nativeElement.children));
+  }
+
 }

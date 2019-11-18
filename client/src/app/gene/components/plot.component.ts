@@ -5,14 +5,19 @@ import { Observable, Subject, combineLatest } from 'rxjs';
 import { filter, mergeAll, takeUntil } from 'rxjs/operators';
 // app
 import { GCV } from '@gcv-assets/js/gcv';
+import { saveFile } from '@gcv/core/utils';
 import { Gene, Plot, Track, clusteredTrackID } from '@gcv/gene/models';
 import { ClusterMixin } from '@gcv/gene/models/mixins';
 import { GeneService, PlotsService } from '@gcv/gene/services';
 
+
 @Component({
   selector: 'plot',
-  styles: [],
-  template: '<div #container></div>',
+  styleUrls: ['./golden-content.scss'],
+  template: `
+    <context-menu (saveImage)="saveImage()"></context-menu>
+    <div #container></div>
+  `,
 })
 export class PlotComponent implements AfterViewInit, OnDestroy {
 
@@ -59,6 +64,12 @@ export class PlotComponent implements AfterViewInit, OnDestroy {
 
   emitGene(gene, family, source) {
     this.geneClick.emit({gene, family, source});
+  }
+
+  saveImage(): void {
+    if (this._viewer !== undefined) {
+      saveFile('micro-synteny', this._viewer.xml(), 'image/svg+xml', 'svg');
+    }
   }
 
   // private

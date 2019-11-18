@@ -6,6 +6,7 @@ import { map } from 'rxjs/operators';
 import { takeUntil } from 'rxjs/operators';
 // app
 import { GCV } from '@gcv-assets/js/gcv';
+import { saveFile } from '@gcv/core/utils';
 import { Gene, Track } from '@gcv/gene/models';
 import { GeneService, MicroTracksService } from '@gcv/gene/services';
 
@@ -13,7 +14,10 @@ import { GeneService, MicroTracksService } from '@gcv/gene/services';
 @Component({
   selector: 'micro',
   styleUrls: ['./golden-content.scss'],
-  template: `<div #container></div>`,
+  template: `
+    <context-menu (saveImage)="saveImage()"></context-menu>
+    <div class="viewer" #container></div>
+  `,
 })
 export class MicroComponent implements AfterViewInit, OnDestroy {
 
@@ -65,6 +69,12 @@ export class MicroComponent implements AfterViewInit, OnDestroy {
 
   emitName(track) {
     this.nameClick.emit({track});
+  }
+
+  saveImage(): void {
+    if (this._viewer !== undefined) {
+      saveFile('micro-synteny', this._viewer.xml(), 'image/svg+xml', 'svg');
+    }
   }
 
   // private
