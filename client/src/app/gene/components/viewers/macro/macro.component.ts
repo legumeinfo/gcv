@@ -7,12 +7,19 @@ import { GCV } from '@gcv-assets/js/gcv';
 
 @Component({
   selector: 'macro',
-  styles: [],
-  template: '<div #container></div>',
+  styleUrls: ['../golden-viewer.scss'],
+  template: `
+    <context-menu></context-menu>
+    <div class="viewer" #container></div>
+  `,
 })
 export class MacroComponent implements AfterViewInit, OnDestroy {
 
   @ViewChild('container', {static: true}) container: ElementRef;
+
+  private _viewer;
+
+  // Angular hooks
 
   ngAfterViewInit() {
     //const viewer = new GCV.visualization.Micro(this.container.nativeElement);
@@ -20,9 +27,23 @@ export class MacroComponent implements AfterViewInit, OnDestroy {
   }
 
   ngOnDestroy() {
-    console.log('macro destroyed');
+    this._destroyViewer();
+  }
+
+  // private
+
+  private _destroyViewer(): void {
+    if (this._viewer !== undefined) {
+      this._viewer.destroy();
+    }
+  }
+
+  private _draw(data): void {
+    this._destroyViewer();
+    let options = {};
+    this._viewer = new GCV.visualization.Macro(
+      this.container.nativeElement,
+      data,
+      options);
   }
 }
-
-
-export const macroLayoutComponent = {component: MacroComponent, name: 'macro'};

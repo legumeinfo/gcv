@@ -9,11 +9,12 @@ import { saveFile } from '@gcv/core/utils';
 import { Gene, Track } from '@gcv/gene/models';
 import { AlignmentMixin, ClusterMixin } from '@gcv/gene/models/mixins';
 import { GeneService, MicroTracksService } from '@gcv/gene/services';
+import { microLegendShim } from './micro-legend.shim';
 
 
 @Component({
   selector: 'micro-legend',
-  styleUrls: ['./golden-content.scss'],
+  styleUrls: ['../golden-viewer.scss'],
   template: `
     <context-menu (saveImage)="saveImage()"></context-menu>
     <div class="viewer" #container></div>
@@ -69,33 +70,9 @@ export class MicroLegendComponent implements AfterViewInit, OnDestroy {
     }
   }
 
-  // convert track and gene data into a visualization friendly format
-  private _shim(tracks) {
-    const reducer = (accumulator, track) => {
-        track.families.forEach((f) => {
-          if (f != '') {
-            if (!(f in accumulator)) {
-              accumulator[f] = 0;
-            }
-            accumulator[f] += 1;
-          }
-        });
-        return accumulator;
-      };
-    const familySizes = tracks.reduce(reducer, {});
-    const singletonIDs =
-      Object.keys(familySizes).filter((f) => familySizes[f] == 1);
-    const singletons = {
-        name: 'Singletons',
-        id: ['singleton'].concat(singletonIDs).join(','),
-      };
-    const many = Object.keys(familySizes).filter((f) => familySizes[f] > 1);
-    const data = many.map((f: string) => ({name: f, id: f}));
-    return {data, singletons};
-  }
-
   private _draw(tracks, queryGenes): void {
-    const {data, singletons} = this._shim(tracks);
+    this._destroyViewer();
+    const {data, singletons} = microLegendShim(tracks);
     let options = {
         blank: singletons,
         blankDashed: {name: "Orphans", id: ''},
@@ -103,34 +80,10 @@ export class MicroLegendComponent implements AfterViewInit, OnDestroy {
         keyClick: (k) => this.emitClick(k.id),
       };
     options = Object.assign(options, this.options);
-    this._destroyViewer();
     this._viewer = new GCV.visualization.Legend(
         this.container.nativeElement,
         GCV.common.colors,
         data,
         options);
   }
-}
-
-
-export const microLegendLayoutComponent = 
-  {component: MicroLegendComponent, name: 'microlegend'};
-
-
-export function microLegendConfigFactory(outputs: any={}) {
-  const id = 'microlegend';
-  const options = {autoResize: true};
-  let _outputs = {click: (id, family) => { /* no-op */ }};
-  _outputs = Object.assign(_outputs, outputs);
-  return  {
-    type: 'component',
-    componentName: 'microlegend',
-    id: id,
-    title: 'Micro Synteny Legend',
-    componentState: {
-      inputs: {options},
-      outputs: {click: (family) => _outputs.click(id, family)},
-    },
-    isClosable: false
-  };
 }

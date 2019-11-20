@@ -1,6 +1,5 @@
 // Angular
-import { Component,
-  Input, OnDestroy, OnInit } from '@angular/core';
+import { Component, Input, OnDestroy, OnInit } from '@angular/core';
 import { Subject } from 'rxjs';
 import { take, takeUntil } from 'rxjs/operators';
 // App
@@ -64,20 +63,4 @@ export class GeneDetailComponent implements OnDestroy, OnInit {
   private _process(links: any[]) {
     this.links = links;
   }
-}
-
-
-export const geneDetailLayoutComponent = 
-  {component: GeneDetailComponent, name: 'gene'};
-
-
-export function geneDetailConfigFactory(gene, family, source) {
-  const id = `gene:${gene}:${source}`;
-  return {
-    type: 'component',
-    componentName: 'gene',
-    id: id,
-    title: `Gene ${gene}`,
-    componentState: {inputs: {gene, family, source}}
-  };
 }

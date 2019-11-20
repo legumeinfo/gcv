@@ -5,18 +5,8 @@ import { takeUntil } from 'rxjs/operators';
 // app
 import { GoldenLayoutDirective } from '@gcv/gene/directives';
 import { LayoutService, MicroTracksService } from '@gcv/gene/services';
-import { familyDetailConfigFactory, familyDetailLayoutComponent }
-  from './family-detail.component';
-import { geneDetailConfigFactory, geneDetailLayoutComponent }
-  from './gene-detail.component';
-import { macroLayoutComponent } from './macro.component';
-import { microLegendConfigFactory, microLegendLayoutComponent }
-  from './micro-legend.component';
-import { microConfigFactory, microLayoutComponent } from './micro.component';
-import { plotConfigFactory, plotLayoutComponent, plotStackConfigFactory }
-  from './plot.component';
-import { trackDetailConfigFactory, trackDetailLayoutComponent }
-  from './track-detail.component';
+import * as fromDetails from './details';
+import * as fromViewers from './viewers';
 
 
 @Component({
@@ -31,13 +21,8 @@ export class GeneComponent implements AfterViewInit, OnDestroy {
   private _destroy: Subject<boolean> = new Subject();
 
   layoutComponents = [
-      familyDetailLayoutComponent,
-      geneDetailLayoutComponent,
-      macroLayoutComponent,
-      microLegendLayoutComponent,
-      microLayoutComponent,
-      plotLayoutComponent,
-      trackDetailLayoutComponent,
+      ...fromDetails.layoutComponents,
+      ...fromViewers.layoutComponents,
     ];
   layoutConfig = {
       content: [{
@@ -89,19 +74,20 @@ export class GeneComponent implements AfterViewInit, OnDestroy {
 
   private _initializeLegends(): void {
     const click = (id, family) => {
-        this._stackItem(id, familyDetailConfigFactory, family);
+        this._stackItem(id, fromDetails.familyDetailConfigFactory, family);
       };
-    this._addItem([0, 1], microLegendConfigFactory, {click});
+    this._addItem([0, 1], fromViewers.microLegendConfigFactory, {click});
   }
 
   private _addLocalPlots(id, track, queryTracks): void {
-    const plotStackConfig = this._stackItem(id, plotStackConfigFactory, track);
+    const plotStackConfig =
+      this._stackItem(id, fromViewers.plotStackConfigFactory, track);
     const stackID = plotStackConfig.id;
     const geneClick = (id, gene, family, source) => {
-        this._stackItem(id, geneDetailConfigFactory, gene, family, source);
+        this._stackItem(id, fromDetails.geneDetailConfigFactory, gene, family, source);
       };
     queryTracks.forEach((query) => {
-      this._stackItem(stackID, plotConfigFactory, track, query, {geneClick});
+      this._stackItem(stackID, fromViewers.plotConfigFactory, track, query, {geneClick});
     });
   }
 
@@ -110,14 +96,14 @@ export class GeneComponent implements AfterViewInit, OnDestroy {
         this._addLocalPlots(id, track, queryTracks);
       };
     const geneClick = (id, gene, family, source) => {
-        this._stackItem(id, geneDetailConfigFactory, gene, family, source);
+        this._stackItem(id, fromDetails.geneDetailConfigFactory, gene, family, source);
       };
     const nameClick = (id, track) => {
-        this._stackItem(id, trackDetailConfigFactory, track);
+        this._stackItem(id, fromDetails.trackDetailConfigFactory, track);
       };
     clusterIDs.forEach((id) => {
       const options = {plotClick, geneClick, nameClick};
-      this._addItem([0, 0], microConfigFactory, id, options);
+      this._addItem([0, 0], fromViewers.microConfigFactory, id, options);
     });
   }
 

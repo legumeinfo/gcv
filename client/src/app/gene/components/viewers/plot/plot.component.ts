@@ -6,17 +6,18 @@ import { filter, mergeAll, takeUntil } from 'rxjs/operators';
 // app
 import { GCV } from '@gcv-assets/js/gcv';
 import { saveFile } from '@gcv/core/utils';
-import { Gene, Plot, Track, clusteredTrackID } from '@gcv/gene/models';
+import { Gene, Plot, Track } from '@gcv/gene/models';
 import { ClusterMixin } from '@gcv/gene/models/mixins';
 import { GeneService, PlotsService } from '@gcv/gene/services';
+import { plotShim } from './plot.shim';
 
 
 @Component({
   selector: 'plot',
-  styleUrls: ['./golden-content.scss'],
+  styleUrls: ['../golden-viewer.scss'],
   template: `
     <context-menu (saveImage)="saveImage()"></context-menu>
-    <div #container></div>
+    <div class="viewer" #container></div>
   `,
 })
 export class PlotComponent implements AfterViewInit, OnDestroy {
@@ -74,35 +75,6 @@ export class PlotComponent implements AfterViewInit, OnDestroy {
 
   // private
 
-  private _shim(plot: Plot, genes: Gene[]) {
-    const geneMap = {};
-    genes.forEach((g) => geneMap[g.name] = g);
-    const reference = plot.reference as Track;
-    // make plot
-    const shimPlot = {
-        chromosome_name: reference.name,
-        genes: []
-      };
-    // make plot genes
-    const xCoordinates = plot.pairs.every(({i, j}) => {
-        return plot.sequence.genes[j] in geneMap;
-      });
-    const yCoordinates = plot.pairs.every(({i, j}) => {
-        return reference.genes[i] in geneMap;
-      });
-    const geneToPoint = (g) => (g.fmin+g.fmax)/2;
-    plot.pairs.forEach(({i, j}) => {
-      const gene = {
-          name: reference.genes[i],
-          family: reference.families[i],
-          x: (xCoordinates) ? geneToPoint(geneMap[plot.sequence.genes[j]]) : j,
-          y: (yCoordinates) ? geneToPoint(geneMap[reference.genes[i]]) : i, 
-        };
-      shimPlot.genes.push(gene);
-    });
-    return shimPlot;
-  }
-
   private _destroyViewers(): void {
     if (this._viewer !== undefined) {
       this._viewer.destroy();
@@ -110,8 +82,8 @@ export class PlotComponent implements AfterViewInit, OnDestroy {
   }
 
   private _draw(plot: Plot, genes: Gene[]): void {
-    const data = this._shim(plot, genes);
     this._destroyViewers();
+    const data = plotShim(plot, genes);
     let options = {
         plotClick: () => this.emitPlot(plot),
         geneClick: (g, j) => {
@@ -126,51 +98,4 @@ export class PlotComponent implements AfterViewInit, OnDestroy {
       data,
       options);
   }
-}
-
-
-export const plotLayoutComponent = {component: PlotComponent, name: 'plot'};
-
-
-export function plotStackConfigFactory(track: (Track | ClusterMixin)) {
-  const cluster = (track as ClusterMixin).cluster;
-  const selected = (track as Track);
-  const name = selected.name;
-  const id = `plots:${clusteredTrackID(track)}`;
-  return {
-    type: 'stack',
-    id: id,
-    title: `${name} (${cluster}) plots`,
-    content: [],
-  };
-}
-
-
-export function plotConfigFactory(
-  track: (Track | ClusterMixin),
-  reference: Track,
-  outputs: any={})
-{
-  const cluster = (track as ClusterMixin).cluster;
-  const selected = (track as Track);
-  const trackName = selected.name;
-  const referenceName = reference.name;
-  const options = {autoResize: true};
-  const id = `plot:${clusteredTrackID(track)}x${clusteredTrackID(reference)}`;
-  let _outputs = {geneClick: (id, gene, family, source) => { /* no-op */ }};
-  _outputs = Object.assign(_outputs, outputs);
-  return {
-    type: 'component',
-    componentName: 'plot',
-    id: id,
-    title: `${trackName} x ${referenceName} (${cluster})local plot`,
-    componentState: {
-      inputs: {reference, track, options},
-      outputs: {
-        geneClick: ({gene, family, source}) => {
-          _outputs.geneClick(id, gene, family, source);
-        }
-      }
-    }
-  };
 }
