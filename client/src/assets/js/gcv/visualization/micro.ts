@@ -417,7 +417,7 @@ export class Micro extends Visualizer {
     plotYAxis.selectAll("text")
       .attr("class", "micro-plot-link")
       .style("cursor", "pointer")
-      .on("click", (y, i) => this.options.plotClick(this.data[i], i));
+      .on("click", (y, i) => this.options.plotClick(d3.event, this.data[i], i));
     return plotYAxis;
   }
 }

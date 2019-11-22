@@ -8,6 +8,9 @@ import { EffectsModule } from '@ngrx/effects';
 import { StoreModule } from '@ngrx/store';
 // components
 import * as fromComponents from './components';
+import * as fromDetails from './components/details';
+import * as fromTooltips from './components/tooltips';
+import * as fromViewers from './components/viewers';
 // directives
 import * as fromDirectives from './directives';
 // services
@@ -22,13 +25,9 @@ import { GeneRoutingModule } from '@gcv/gene/gene-routing.module';
 @NgModule({
   declarations: [...fromComponents.components, ...fromDirectives.directives],
   entryComponents: [
-    fromComponents.GeneDetailComponent,
-    fromComponents.FamilyDetailComponent,
-    fromComponents.MicroLegendComponent,
-    fromComponents.MacroComponent,
-    fromComponents.MicroComponent,
-    fromComponents.PlotComponent,
-    fromComponents.TrackDetailComponent
+    ...fromDetails.components,
+    ...fromTooltips.components,
+    ...fromViewers.components,
   ],
   imports: [
     CommonModule,

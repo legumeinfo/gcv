@@ -61,8 +61,8 @@ export class MicroComponent implements AfterViewInit, OnDestroy {
 
   // public
 
-  emitPlot(track, queryTracks) {
-    this.plotClick.emit({track, queryTracks});
+  emitPlot(event, track, queryTracks) {
+    this.plotClick.emit({event, track, queryTracks});
   }
 
   emitGene(gene, family, source) {
@@ -95,7 +95,7 @@ export class MicroComponent implements AfterViewInit, OnDestroy {
         bold: bold,
         highlight: queryGenes.map((g) => g.name),
         selectiveColoring: familySizes,
-        plotClick: (t, i) => this.emitPlot(tracks[i], queryTracks),
+        plotClick: (e, t, i) => this.emitPlot(e, tracks[i], queryTracks),
         geneClick: (t, g, i) => this.emitGene(g.name, g.family, t.source),
         nameClick: (t, i) => this.emitName(tracks[i])
       };

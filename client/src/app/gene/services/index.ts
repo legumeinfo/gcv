@@ -1,5 +1,6 @@
 import { FilterService } from './filter.service';
 import { ChromosomeService } from './chromosome.service';
+import { ComponentService } from './component.service';
 import { GeneService } from './gene.service';
 import { LayoutService } from './layout.service';
 import { MicroTracksService } from './micro-tracks.service';
@@ -9,6 +10,7 @@ import { PlotsService } from './plots.service';
 
 export const services: any[] = [
   ChromosomeService,
+  ComponentService,
   FilterService,
   GeneService,
   LayoutService,
@@ -19,6 +21,7 @@ export const services: any[] = [
 ];
 
 export * from './chromosome.service';
+export * from './component.service';
 export * from './filter.service';
 export * from './gene.service';
 export * from './layout.service';

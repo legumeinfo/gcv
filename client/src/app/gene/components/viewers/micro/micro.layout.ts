@@ -8,7 +8,7 @@ export function microConfigFactory(clusterID: number, outputs: any={}) {
   const id = `micro${clusterID}`;
   const options = {autoResize: true};
   let _outputs = {
-      plotClick: (id, track, queryTracks) => { /* no-op */ },
+      plotClick: (e, id, track, queryTracks) => { /* no-op */ },
       geneClick: (id, gene, family, source) => { /* no-op */ },
       nameClick: (id, track) => { /* no-op */ },
     };
@@ -21,8 +21,8 @@ export function microConfigFactory(clusterID: number, outputs: any={}) {
     componentState: {
       inputs: {clusterID, options},
       outputs: {
-        plotClick: ({track, queryTracks}) => {
-          _outputs.plotClick(id, track, queryTracks);
+        plotClick: ({event, track, queryTracks}) => {
+          _outputs.plotClick(event, id, track, queryTracks);
         },
         geneClick: ({gene, family, source}) => {
           _outputs.geneClick(id, gene, family, source);

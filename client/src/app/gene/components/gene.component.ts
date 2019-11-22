@@ -3,10 +3,14 @@ import { AfterViewInit, Component, OnDestroy, ViewChild } from '@angular/core';
 import { Observable, Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 // app
-import { GoldenLayoutDirective } from '@gcv/gene/directives';
+import { GoldenLayoutDirective, TooltipFactoryDirective }
+  from '@gcv/gene/directives';
 import { LayoutService, MicroTracksService } from '@gcv/gene/services';
 import * as fromDetails from './details';
+import * as fromTooltips from './tooltips';
 import * as fromViewers from './viewers';
+// dependencies
+import tippy from 'tippy.js';
 
 
 @Component({
@@ -17,6 +21,7 @@ import * as fromViewers from './viewers';
 export class GeneComponent implements AfterViewInit, OnDestroy {
 
   @ViewChild(GoldenLayoutDirective, {static: true}) goldenLayoutDirective;
+  @ViewChild(TooltipFactoryDirective, {static: true}) tooltipFactoryDirective;
 
   private _destroy: Subject<boolean> = new Subject();
 
@@ -30,6 +35,7 @@ export class GeneComponent implements AfterViewInit, OnDestroy {
         content: [{type: 'column', content: []}, {type: 'column', content: []}],
       }]
     };
+  tooltipComponents = [...fromTooltips.tooltipComponents];
   showLeftSlider: Observable<boolean>;
 
   constructor(private _layoutService: LayoutService,
@@ -92,8 +98,17 @@ export class GeneComponent implements AfterViewInit, OnDestroy {
   }
 
   private _addMicroViewers(clusterIDs): void {
-    const plotClick = (id, track, queryTracks) => {
-        this._addLocalPlots(id, track, queryTracks);
+    const plotClick = (e, id, track, queryTracks) => {
+        const outputs = {
+            localClick: () => this._addLocalPlots(id, track, queryTracks),
+            globalClick: () => console.log('global'),
+          };
+        const tipOptions = {
+            boundary: this.goldenLayoutDirective._el.nativeElement,
+          };
+        const config =
+          fromTooltips.geneTooltipConfigFactory(outputs, tipOptions);
+        this.tooltipFactoryDirective.componentTip(e.target, config);
       };
     const geneClick = (id, gene, family, source) => {
         this._stackItem(id, fromDetails.geneDetailConfigFactory, gene, family, source);
