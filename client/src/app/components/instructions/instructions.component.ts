@@ -15,11 +15,12 @@ declare var scrollToSelector: any;  // src/assets/js/utils
 })
 export class InstructionsComponent implements AfterViewInit, OnDestroy {
 
-  @ViewChild("searchScreenshot") searchScreenshotEl: ElementRef;
-  @ViewChild("multiScreenshot") multiScreenshotEl: ElementRef;
+  @ViewChild("searchScreenshot", {static: true}) searchScreenshotEl: ElementRef;
+  @ViewChild("multiScreenshot", {static: true}) multiScreenshotEl: ElementRef;
 
   brand = AppConfig.BRAND;
   dashboard = AppConfig.DASHBOARD;
+  sources = AppConfig.SERVERS;
   copyrightYear = (new Date()).getFullYear();
 
   private searchPopover = false;

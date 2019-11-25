@@ -6,7 +6,7 @@ export abstract class Viewer implements AfterViewInit, OnChanges, OnDestroy {
 
   // view children
 
-  @ViewChild("viewerContainer") el: ElementRef;
+  @ViewChild("viewerContainer", {static: true}) el: ElementRef;
 
   // variables
   title: string;

@@ -32,15 +32,15 @@ declare let parseInt: any;  // TypeScript doesn't recognize number inputs
 })
 export class SearchComponent implements AfterViewInit, OnDestroy, OnInit {
   // view children
-  @ViewChild("left") left: ElementRef;
-  @ViewChild("topLeft") topLeft: ElementRef;
-  @ViewChild("bottomLeft") bottomLeft: ElementRef;
-  @ViewChild("right") right: ElementRef;
-  @ViewChild("topRight") topRight: ElementRef;
-  @ViewChild("bottomRight") bottomRight: ElementRef;
-  @ViewChild("macroAlerts", {read: ViewContainerRef}) macroAlerts: ViewContainerRef;
-  @ViewChild("microAlerts", {read: ViewContainerRef}) microAlerts: ViewContainerRef;
-  @ViewChild("plotAlerts", {read: ViewContainerRef}) plotAlerts: ViewContainerRef;
+  @ViewChild("left", {static: true}) left: ElementRef;
+  @ViewChild("topLeft", {static: true}) topLeft: ElementRef;
+  @ViewChild("bottomLeft", {static: true}) bottomLeft: ElementRef;
+  @ViewChild("right", {static: true}) right: ElementRef;
+  @ViewChild("topRight", {static: true}) topRight: ElementRef;
+  @ViewChild("bottomRight", {static: true}) bottomRight: ElementRef;
+  @ViewChild("macroAlerts", {static: true, read: ViewContainerRef}) macroAlerts: ViewContainerRef;
+  @ViewChild("microAlerts", {static: true, read: ViewContainerRef}) microAlerts: ViewContainerRef;
+  @ViewChild("plotAlerts", {static: true, read: ViewContainerRef}) plotAlerts: ViewContainerRef;
   @ViewChildren(PlotViewerComponent) plotComponents: QueryList<PlotViewerComponent>;
 
   headerAlert = new Alert("info", "Loading...");
@@ -641,13 +641,13 @@ export class SearchComponent implements AfterViewInit, OnDestroy, OnInit {
 
       // make sure families are unique and ordered by appearance in tracks
       // TODO: move uniqueness to reducer and ordering to selector
-      const orderedUniqueFamilyIds = new Set();
+      const orderedUniqueFamilyIds = new Set<string>();
       tracks.groups.forEach((group) => {
         group.genes.forEach((gene) => {
           orderedUniqueFamilyIds.add(gene.family);
         });
       });
-      const familyMap = {};
+      const familyMap: any = {};
       tracks.families.forEach((f) => {
         familyMap[f.id] = f;
       });

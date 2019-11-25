@@ -9,6 +9,8 @@ export class Request {
 export class Server {
   id: string;  // unique & url friendly
   name: string;
+  description?: string;
+  website?: string;
   microMulti: Request;
   microSearch: Request;
   microQuery: Request;

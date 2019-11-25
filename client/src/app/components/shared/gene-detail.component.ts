@@ -36,7 +36,7 @@ import { DetailsService } from "../../services";
 export class GeneDetailComponent implements OnChanges, OnDestroy, OnInit {
   @Input() gene: Gene;
 
-  @ViewChild("alerts", {read: ViewContainerRef}) alerts: ViewContainerRef;
+  @ViewChild("alerts", {static: true, read: ViewContainerRef}) alerts: ViewContainerRef;
 
   links: any[];
   familyTreeLink: string;
