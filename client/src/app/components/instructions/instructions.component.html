@@ -43,6 +43,31 @@
       </div>
     </div>
 
+    <hr class="featurette-divider">
+
+    <div class="row">
+      <div class="col-md-7 flex-shrink-1">
+        <h2 class="featurette-heading">Sources</h2>
+        <p class="lead">Source are <i>data providers</i> that allow the Genome Context Viewer access to their data via web services.</p>
+        <p class="lead">The Genome Context Viewer can load data from multiple sources simultaneously, enabling the comparative analysis of data curated by independent providers.</p>
+      </div>
+      <div class="col-md-5 flex-shrink-1">
+        <div class="card">
+          <div class="card-header">
+            <b>{{brand.name}}</b> sources
+          </div>
+          <ul class="list-group list-group-flush">
+            <li class="list-group-item" *ngFor="let s of sources">
+              <h5>{{s.name}}</h5>
+              <p *ngIf="s.description">{{s.description}}</p>
+              <a *ngIf="s.website" href="{{s.website}}" target="_blank" class="btn btn-primary">Website</a>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+    </div>
+
     <hr id="features" class="featurette-divider">
 
     <div class="row featurette">

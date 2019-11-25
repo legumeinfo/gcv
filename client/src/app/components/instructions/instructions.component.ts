@@ -20,6 +20,7 @@ export class InstructionsComponent implements AfterViewInit, OnDestroy {
 
   brand = AppConfig.BRAND;
   dashboard = AppConfig.DASHBOARD;
+  sources = AppConfig.SERVERS;
   copyrightYear = (new Date()).getFullYear();
 
   private searchPopover = false;
