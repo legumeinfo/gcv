@@ -59,7 +59,7 @@
           <ul class="list-group list-group-flush">
             <li class="list-group-item" *ngFor="let s of sources">
               <h5>{{s.name}}</h5>
-              <p *ngIf="s.description">{{s.description}}</p>
+              <p *ngIf="s.description" [innerHTML]="s.description"></p>
               <a *ngIf="s.website" href="{{s.website}}" target="_blank" class="btn btn-primary">Website</a>
             </li>
           </ul>
