@@ -2,7 +2,7 @@
 import { AfterViewInit, Component, ElementRef, EventEmitter, Input, OnDestroy,
   Output, ViewChild } from '@angular/core';
 import { Observable, Subject, combineLatest } from 'rxjs';
-import { filter, mergeAll, takeUntil } from 'rxjs/operators';
+import { filter, mergeAll, switchMap, takeUntil } from 'rxjs/operators';
 // app
 import { GCV } from '@gcv-assets/js/gcv';
 import { saveFile } from '@gcv/core/utils';
@@ -22,6 +22,7 @@ import { plotShim } from './plot.shim';
 })
 export class PlotComponent implements AfterViewInit, OnDestroy {
 
+  @Input() type: 'local' | 'global';
   @Input() reference: Track;
   @Input() track: (Track | ClusterMixin);
   @Input() options: any = {};
@@ -40,12 +41,21 @@ export class PlotComponent implements AfterViewInit, OnDestroy {
   // Angular hooks
 
   ngAfterViewInit() {
+    const plotFilter = (plot) => plot.reference.name === this.reference.name;
+    const plots = this.type == 'local' ?
+      this._plotsService.getLocalPlots(this.track) :
+      this._plotsService.getGlobalPlots(this.track);
     // NOTE: this feels awkward; is there a better way to get one plot?
-    const plot = this._plotsService.getLocalPlots(this.track).pipe(
-      mergeAll(),
-      filter((plot) => (plot.reference as Track).name === this.reference.name),
-    );
-    const genes = this._geneService.getLocalPlotGenes(this.track);
+    const plot = plots.pipe(
+        mergeAll(),
+        filter(plotFilter),
+      );
+    const genes = plot.pipe(
+        switchMap((p) => {
+          const tracks = [p.reference, p.sequence];
+          return this._geneService.getGenesForTracks(tracks);
+        }),
+      );
     combineLatest(plot, genes)
       .pipe(takeUntil(this._destroy))
       .subscribe(([plot, genes]) => this._draw(plot, genes));
@@ -87,7 +97,7 @@ export class PlotComponent implements AfterViewInit, OnDestroy {
     let options = {
         plotClick: () => this.emitPlot(plot),
         geneClick: (g, j) => {
-          const source = (plot.reference as Track).source;
+          const source = plot.sequence.source;
           this.emitGene(g.name, g.family, source);
         },
       };

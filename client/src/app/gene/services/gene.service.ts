@@ -5,6 +5,7 @@ import { Observable, throwError } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 // store
 import { Store, select } from '@ngrx/store';
+import * as geneActions from '@gcv/gene/store/actions/gene.actions';
 import * as fromRoot from '@gcv/gene/store/reducers';
 import * as fromGene from '@gcv/gene/store/selectors/gene/';
 // app
@@ -32,6 +33,14 @@ export class GeneService extends HttpService {
     );
   }
 
+  // TODO: all of these should be replaced with a single all-purpose method
+
+  getGenesForTracks(tracks: Track[]): Observable<Gene[]> {
+    const actions = geneActions.tracksToGetGeneActions(tracks);
+    actions.forEach((a) => this._store.dispatch(a));
+    return this._store.pipe(select(fromGene.getGenes(tracks)));
+  }
+
   // returns all the genes belonging to the given cluster
   getClusterGenes(id: number): Observable<Gene[]> {
     return this._store.pipe(
@@ -39,24 +48,10 @@ export class GeneService extends HttpService {
     );
   }
 
-  // returns all the genes belonging to the local plots of the given track
-  getLocalPlotGenes(track: (Track | ClusterMixin)): Observable<Gene[]> {
-    return this._store.pipe(
-      select(fromGene.getLocalPlotGenes(track))
-    );
-  }
-
   // returns all the genes from the URL
   getQueryGenes(): Observable<Gene[]> {
     return this._store.select(fromGene.getSelectedGenes);
   }
-
-  // returns all the genes belonging to the global plots of the given track
-  //getGlobalPlotGenes(track: (Track | ClusterMixin)): Observable<Gene[]> {
-  //  return this._store.pipe(
-  //    select(fromGene.getAlignedMicroTrackClusterGenes(id))
-  //  );
-  //}
 
   // fetches source specific details for the given gene
   getGeneDetails(gene: string, source: string): Observable<any> {

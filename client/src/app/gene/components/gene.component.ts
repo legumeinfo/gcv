@@ -85,23 +85,25 @@ export class GeneComponent implements AfterViewInit, OnDestroy {
     this._addItem([0, 1], fromViewers.microLegendConfigFactory, {click});
   }
 
-  private _addLocalPlots(id, track, queryTracks): void {
+  private _addPlots(id, type, track, queryTracks): void {
     const plotStackConfig =
       this._stackItem(id, fromViewers.plotStackConfigFactory, track);
     const stackID = plotStackConfig.id;
     const geneClick = (id, gene, family, source) => {
-        this._stackItem(id, fromDetails.geneDetailConfigFactory, gene, family, source);
+        const args = [gene, family, source];
+        this._stackItem(id, fromDetails.geneDetailConfigFactory, ...args);
       };
     queryTracks.forEach((query) => {
-      this._stackItem(stackID, fromViewers.plotConfigFactory, track, query, {geneClick});
+      const args = [type, track, query, {geneClick}];
+      this._stackItem(stackID, fromViewers.plotConfigFactory, ...args);
     });
   }
 
   private _addMicroViewers(clusterIDs): void {
     const plotClick = (e, id, track, queryTracks) => {
         const outputs = {
-            localClick: () => this._addLocalPlots(id, track, queryTracks),
-            globalClick: () => console.log('global'),
+            localClick: () => this._addPlots(id, 'local', track, queryTracks),
+            globalClick: () => this._addPlots(id, 'global', track, queryTracks),
           };
         const tipOptions = {
             boundary: this.goldenLayoutDirective._el.nativeElement,

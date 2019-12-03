@@ -3,8 +3,7 @@ import { Injectable } from '@angular/core';
 // store
 import { Effect, Actions, ofType } from '@ngrx/effects';
 import { of } from 'rxjs';
-import { catchError, filter, map, switchMap }
-  from 'rxjs/operators';
+import { catchError, filter, map, switchMap } from 'rxjs/operators';
 import { Store } from '@ngrx/store';
 import * as chromosomeActions from '@gcv/gene/store/actions/chromosome.actions';
 import * as fromRoot from '@gcv/gene/store/reducers';

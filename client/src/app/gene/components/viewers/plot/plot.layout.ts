@@ -21,6 +21,7 @@ export function plotStackConfigFactory(track: (Track | ClusterMixin)) {
 
 
 export function plotConfigFactory(
+  type: 'local' | 'global',
   track: (Track | ClusterMixin),
   reference: Track,
   outputs: any={})
@@ -30,16 +31,16 @@ export function plotConfigFactory(
   const trackName = selected.name;
   const referenceName = reference.name;
   const options = {autoResize: true};
-  const id = `plot:${clusteredTrackID(track)}x${clusteredTrackID(reference)}`;
+  const id = `plot:${type}:${clusteredTrackID(track)}x${clusteredTrackID(reference)}`;
   let _outputs = {geneClick: (id, gene, family, source) => { /* no-op */ }};
   _outputs = Object.assign(_outputs, outputs);
   return {
     type: 'component',
     componentName: 'plot',
     id: id,
-    title: `${trackName} x ${referenceName} (${cluster})local plot`,
+    title: `${trackName} x ${referenceName} (${cluster}) ${type} plot`,
     componentState: {
-      inputs: {reference, track, options},
+      inputs: {type, reference, track, options},
       outputs: {
         geneClick: ({gene, family, source}) => {
           _outputs.geneClick(id, gene, family, source);

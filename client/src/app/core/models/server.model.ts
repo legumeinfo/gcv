@@ -15,7 +15,6 @@ export class Server {
   macro: Request;
   geneLinks: Request;
   familyTreeLink: Request;
-  plotGlobal: Request;
   nearestGene: Request;
   chromosome: Request;
   spanToSearch: Request;
