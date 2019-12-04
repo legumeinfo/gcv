@@ -64,7 +64,8 @@ export class Plot {
     this.eventBus = eventBus.subscribe(this.eventHandler.bind(this));
 
     const margin = { top: 20, right: 20, bottom: 30, left: 30 };
-    const dim = Math.max(this.container.clientWidth, this.container.clientHeight);
+    const dim =
+      Math.min(this.container.clientWidth, this.container.clientHeight);
     const width = dim - margin.left - margin.right;
     const height = dim - margin.top - margin.bottom;
     const radius = 4;
