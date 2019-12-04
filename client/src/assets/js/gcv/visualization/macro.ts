@@ -168,9 +168,7 @@ export class Macro extends Visualizer {
     }
     // create an auto resize iframe, if necessary
     if (this.options.autoResize) {
-      this.resizer = this.autoResize(this.container, (e) => {
-        this.resize();
-      });
+      this.autoResize();
     }
     // add bottom padding
     const h = parseInt(this.viewer.attr("height"), 10) + this.PAD;

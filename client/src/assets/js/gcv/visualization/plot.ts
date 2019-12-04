@@ -241,8 +241,8 @@ export class Plot {
 
   // TODO: clearTimeout doesn't appear to be working due to a scoping issue
   // NOTE: is there a more efficient way to resize other than redrawing?
+  // NOTE: does the observer need to be disconnected?
   private autoResize() {
-    const scope = this;
     const ro = new ResizeObserver((entries) => {
       clearTimeout(this.resizeTimer);
       const id = this.resizeTimer = setTimeout(() => {

@@ -196,9 +196,7 @@ export class Micro extends Visualizer {
     this.decorateResize(resizeTracks);
     // create an auto resize iframe, if necessary
     if (this.options.autoResize) {
-      this.resizer = this.autoResize(this.container, (e) => {
-        this.resize();
-      });
+      this.autoResize();
     }
     this.resize();
   }

@@ -1,4 +1,5 @@
 import { d3 } from "./d3";
+import ResizeObserver from "resize-observer-polyfill";
 
 export abstract class Visualizer {
   // private
@@ -7,7 +8,8 @@ export abstract class Visualizer {
   protected container: HTMLElement;
   protected data: any;
   protected options: any;
-  protected resizer: any;
+  protected resizeObserver: any;
+  protected resizeTimer: any;
   protected viewer: any;
   protected callbackTimeout;
 
@@ -50,33 +52,27 @@ export abstract class Visualizer {
     if (this.eventBus !== undefined) {
       this.eventBus.unsubscribe();
     }
-    if (this.resizer) {
-      if (this.resizer.contentWindow) {
-        this.resizer.contentWindow.onresize = undefined;
-      }
-      this.container.removeChild(this.resizer);
+    if (this.resizeObserver) {
+      this.resizeObserver.disconnect();
     }
     this.container.removeChild(this.viewer.node());
-    this.container = this.viewer = this.resizer = undefined;
+    this.container = this.viewer = this.resizeObserver = undefined;
   }
 
   /**
-   * Adds a hidden iframe that calls the given resize event whenever its width
-   * changes.
-   * @param {string} el - The element to add the iframe to.
-   * @param {function} f - The function to call when a resize event occurs.
-   * @return {object} - The hidden iframe.
+   * Adds a ResizeObserver to the viewer element to detect resize events.
    */
-  protected autoResize(el, f) {
-    const iframe: any = document.createElement("IFRAME");
-    iframe.setAttribute("allowtransparency", "true");
-    iframe.className = "GCV-resizer";
-    el.appendChild(iframe);
-    iframe.contentWindow.onresize = function() {
+  protected autoResize() {
+    this.resizeObserver = new ResizeObserver((entries) => {
       clearTimeout(this.resizeTimer);
-      this.resizeTimer = setTimeout(f, 10);
-    };
-    return iframe;
+      const id = this.resizeTimer = setTimeout(() => {
+        const width = Math.max(this.container.clientWidth, this.container.clientHeight);
+        if (this.viewer !== undefined && this.viewer.attr("width") !== width) {
+          this.resize();
+        }
+      }, this.options.resizeDelay);
+    });
+    this.resizeObserver.observe(this.container);
   }
 
   /**
