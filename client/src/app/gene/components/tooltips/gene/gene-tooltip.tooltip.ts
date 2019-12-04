@@ -19,5 +19,6 @@ export function geneTooltipConfigFactory(outputs: any={}, tipOptions: any={}) {
       outputs: _outputs,
     },
     tipOptions: _tipOptions,
+    hideOutputs: ['localClick', 'globalClick'],
   };
 }

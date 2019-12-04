@@ -33,9 +33,12 @@ export class TooltipFactoryDirective {
     return null;
   }
 
-  private _createComponentTip(target, component, inputs, outputs, options) {
+  private _createComponentTip(target, component, inputs, outputs, options,
+  hideOutputs): void {
+    // create component
     const componentRef = this._componentService
       .createComponent(component, this._el.nativeElement, inputs, outputs);
+    // create tooltip
     let _options = {
         appendTo: document.body,
         content: componentRef.location.nativeElement,
@@ -52,7 +55,14 @@ export class TooltipFactoryDirective {
         },
       };
     _options = Object.assign(_options, options);
-    tippy(target, _options);
+    const tip: any = tippy(target, _options);
+    // hide the tooltip when component outputs emit
+    hideOutputs.forEach((o) => {
+      if (o in componentRef.instance) {
+        const eventEmitter = componentRef.instance[o];
+        eventEmitter.subscribe((...args) => tip.hide());
+      }
+    });
   }
 
   private _destroyComponentTip(componentRef) {
@@ -61,14 +71,16 @@ export class TooltipFactoryDirective {
 
   // public
 
-  componentTip(target, config: any={}) {
+  componentTip(target, config: any={}): void {
     if (target._tippy === undefined) {
       const component = this._getComponent(config.componentName);
       const state = config.componentState || {};
       const inputs = state.inputs || {};
       const outputs = state.outputs || {};
       const options = config.tipOptions || {};
-      this._createComponentTip(target, component, inputs, outputs, options);
+      const hideOutputs = config.hideOutputs || [];
+      this._createComponentTip(target, component, inputs, outputs, options,
+        hideOutputs);
     }
   }
 
