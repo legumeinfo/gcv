@@ -1,6 +1,6 @@
 // Angular
 import { ApplicationRef, ComponentFactoryResolver, ComponentRef,
-  EmbeddedViewRef, Injectable, Injector } from '@angular/core';
+  EmbeddedViewRef, Injectable, Injector, NgZone } from '@angular/core';
 // store
 import { Store } from '@ngrx/store';
 import * as layoutActions from '@gcv/gene/store/actions/layout.actions';
@@ -15,7 +15,8 @@ export class ComponentService {
 
   constructor(private _appRef: ApplicationRef,
               private _componentFactoryResolver: ComponentFactoryResolver,
-              private _injector: Injector) { }
+              private _injector: Injector,
+              private _zone: NgZone) { }
 
   createComponent(component, element, inputs, outputs): ComponentRef<any> {
     const factory =
@@ -27,7 +28,9 @@ export class ComponentService {
     const componentRef = factory.create(this._injector);
     Object.keys(inputs).forEach((i) => componentRef.instance[i] = inputs[i]);
     Object.keys(outputs).forEach((o) => {
-      componentRef.instance[o].subscribe(outputs[o]);
+      componentRef.instance[o].subscribe((...args) => {
+        this._zone.run(() => outputs[o](...args));
+      });
     });
     this._appRef.attachView(componentRef.hostView);
     const domElem = (componentRef.hostView as EmbeddedViewRef<any>)
