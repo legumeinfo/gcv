@@ -2,12 +2,12 @@
 import { AfterViewInit, Component, ElementRef, EventEmitter, Input, OnDestroy,
   Output, ViewChild } from '@angular/core';
 import { Observable, Subject, combineLatest } from 'rxjs';
-import { map } from 'rxjs/operators';
-import { takeUntil } from 'rxjs/operators';
+import { map, switchMap, takeUntil } from 'rxjs/operators';
 // app
 import { GCV } from '@gcv-assets/js/gcv';
 import { saveFile } from '@gcv/core/utils';
 import { Gene, Track } from '@gcv/gene/models';
+import { ClusterMixin } from '@gcv/gene/models/mixins';
 import { GeneService, MicroTracksService } from '@gcv/gene/services';
 // component
 import { microShim } from './micro.shim';
@@ -43,13 +43,21 @@ export class MicroComponent implements AfterViewInit, OnDestroy {
     const queryGenes = this._geneService.getQueryGenes();
     const queryTracks =
       this._microTracksService.getSelectedClusterTracks(this.clusterID);
-    const tracks = this._microTracksService.getAllTracks();
-    const genes = this._geneService.getClusterGenes(this.clusterID);
+    const allTracks = this._microTracksService.getAllTracks();
+    const genes = allTracks.pipe(
+        map((tracks) => {
+          const filter = (t) => (t as ClusterMixin).cluster == this.clusterID;
+          return tracks.filter(filter);
+        }),
+        switchMap((tracks) => {
+          return this._geneService.getGenesForTracks(tracks as Track[]);
+        }),
+      );
     // fetch own data because injected components don't have change detection
-    combineLatest(queryGenes, queryTracks, tracks, genes)
+    combineLatest(queryGenes, queryTracks, allTracks, genes)
       .pipe(takeUntil(this._destroy))
-      .subscribe(([queryGenes, queryTracks, tracks, genes]) => {
-        this._draw(queryGenes, queryTracks, tracks, genes);
+      .subscribe(([queryGenes, queryTracks, allTracks, genes]) => {
+        this._draw(queryGenes, queryTracks, allTracks, genes);
       });
   }
 

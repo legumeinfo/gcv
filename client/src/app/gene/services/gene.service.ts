@@ -33,19 +33,10 @@ export class GeneService extends HttpService {
     );
   }
 
-  // TODO: all of these should be replaced with a single all-purpose method
-
   getGenesForTracks(tracks: Track[]): Observable<Gene[]> {
     const actions = geneActions.tracksToGetGeneActions(tracks);
     actions.forEach((a) => this._store.dispatch(a));
     return this._store.pipe(select(fromGene.getGenes(tracks)));
-  }
-
-  // returns all the genes belonging to the given cluster
-  getClusterGenes(id: number): Observable<Gene[]> {
-    return this._store.pipe(
-      select(fromGene.getAlignedMicroTrackClusterGenes(id))
-    );
   }
 
   // returns all the genes from the URL
