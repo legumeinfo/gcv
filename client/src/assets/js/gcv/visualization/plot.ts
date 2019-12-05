@@ -296,7 +296,7 @@ export class Plot {
     if (this.eventBus !== undefined) {
       this.eventBus.unsubscribe();
     }
-    this.container.removeChild(this.viewer.node());
+    this.viewer.node().remove();
   }
 
   /** Generates the raw SVG xml. */

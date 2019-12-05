@@ -10,5 +10,5 @@ export function saveFile(filename, data, mimetype, extension) {
   document.body.appendChild(a);
   a.click();
   window.URL.revokeObjectURL(url);
-  document.body.removeChild(a);
+  a.remove();
 }

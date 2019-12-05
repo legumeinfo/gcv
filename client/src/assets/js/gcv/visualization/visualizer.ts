@@ -55,7 +55,7 @@ export abstract class Visualizer {
     if (this.resizeObserver) {
       this.resizeObserver.disconnect();
     }
-    this.container.removeChild(this.viewer.node());
+    this.viewer.node().remove();
     this.container = this.viewer = this.resizeObserver = undefined;
   }
 
