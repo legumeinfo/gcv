@@ -66,8 +66,8 @@ export class Plot {
     const margin = { top: 20, right: 20, bottom: 30, left: 30 };
     const dim =
       Math.min(this.container.clientWidth, this.container.clientHeight);
-    const width = dim - margin.left - margin.right;
-    const height = dim - margin.top - margin.bottom;
+    const width = Math.max(dim - margin.left - margin.right, 0);
+    const height = Math.max(dim - margin.top - margin.bottom, 0);
     const radius = 4;
 
     this.scale.x.range([radius + 1, width - radius - 1]);
