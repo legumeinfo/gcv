@@ -22,8 +22,7 @@ declare var $: any;
   encapsulation: ViewEncapsulation.None,
   selector: "multi",
   styleUrls: [ "./multi.component.scss",
-               "../../../assets/css/split.scss",
-               "../../../../node_modules/tippy.js/themes/light-border.css" ],
+               "../../../assets/css/split.scss" ],
   templateUrl: "./multi.component.html",
 })
 export class MultiComponent implements AfterViewInit, OnDestroy, OnInit {
@@ -510,6 +509,7 @@ export class MultiComponent implements AfterViewInit, OnDestroy, OnInit {
           ".GCV [data-tippy-content]",
           {
             animation: "fade",
+            appendTo: document.body,
             arrow: true,
             boundary: "viewport",
             theme: "light-border",

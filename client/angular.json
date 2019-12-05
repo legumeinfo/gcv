@@ -32,7 +32,9 @@
               "node_modules/@fortawesome/fontawesome-free/css/all.min.css",
               "node_modules/bootstrap-tour/build/css/bootstrap-tour.min.css",
               "src/assets/css/gcv.css",
-              "src/assets/css/styles.css"
+              "src/assets/css/styles.css",
+              "node_modules/tippy.js/dist/tippy.css",
+              "node_modules/tippy.js/themes/light-border.css"
             ],
             "scripts": [
               "node_modules/jquery/dist/jquery.min.js",
@@ -106,7 +108,9 @@
               "node_modules/@fortawesome/fontawesome-free/css/all.min.css",
               "node_modules/bootstrap-tour/build/css/bootstrap-tour.min.css",
               "src/assets/css/gcv.css",
-              "src/assets/css/styles.css"
+              "src/assets/css/styles.css",
+              "node_modules/tippy.js/dist/tippy.css",
+              "node_modules/tippy.js/themes/light-border.css"
             ],
             "scripts": [
               "node_modules/jquery/dist/jquery.min.js",

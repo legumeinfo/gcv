@@ -26,8 +26,7 @@ declare let parseInt: any;  // TypeScript doesn't recognize number inputs
   encapsulation: ViewEncapsulation.None,
   selector: "search",
   styleUrls: [ "./search.component.scss",
-               "../../../assets/css/split.scss",
-               "../../../../node_modules/tippy.js/themes/light-border.css" ],
+               "../../../assets/css/split.scss" ],
   templateUrl: "./search.component.html",
 })
 export class SearchComponent implements AfterViewInit, OnDestroy, OnInit {
@@ -540,6 +539,7 @@ export class SearchComponent implements AfterViewInit, OnDestroy, OnInit {
           ".GCV [data-tippy-content]",
           {
             animation: "fade",
+            appendTo: document.body,
             arrow: true,
             boundary: "viewport",
             theme: "light-border",
