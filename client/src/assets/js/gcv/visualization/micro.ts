@@ -22,12 +22,7 @@ export class Micro extends Visualizer {
   /** Resizes the viewer and x scale. Will be decorated by other components. */
   protected resize() {
     const w = this.container.clientWidth;
-    const doublePad = 2 * this.PAD;
-    const halfGlyph = this.GLYPH_SIZE / 2;
-    const r1 = this.left + halfGlyph;
-    const r2 = w - (this.right + halfGlyph);
     this.viewer.attr("width", w);
-    this.x.range([r1, r2]);
   }
 
   /** Handles events that come from the GCV eventBus.
@@ -167,21 +162,36 @@ export class Micro extends Visualizer {
   protected draw() {
     // draw the y-axes
     const yAxis = this.drawYAxis();
-    this.left = yAxis.node().getBBox().width + this.PAD;
-    yAxis.attr("transform", "translate(" + this.left + ", 0)");
-    this.left += this.PAD;
+    const resizeYaxis = () => {
+      this.left = yAxis.node().getBBox().width + this.PAD;
+      yAxis.attr("transform", "translate(" + this.left + ", 0)");
+      this.left += this.PAD;
+    };
+    resizeYaxis();
+    this.decorateResize(resizeYaxis);
+    const setRight = () => this.right = this.PAD;
+    setRight();
+    this.decorateResize(setRight);
     if (this.options.plotClick !== undefined) {
       const plotAxis = this.drawPlotAxis();
-      this.right += plotAxis.node().getBBox().width + this.PAD;
-      const obj = this;
       const resizePlotYAxis = () => {
-        const x = obj.viewer.attr("width") - obj.right + obj.PAD;
+        this.right += plotAxis.node().getBBox().width + this.PAD;
+        const x = this.viewer.attr("width") - this.right + this.PAD;
         plotAxis.attr("transform", "translate(" + x + ", 0)");
       };
+      resizePlotYAxis();
       this.decorateResize(resizePlotYAxis);
     }
-    this.resize();
     // draw the tracks
+    const setXrange = () => {
+      const w = this.container.clientWidth;
+      const halfGlyph = this.GLYPH_SIZE / 2;
+      const r1 = this.left + halfGlyph;
+      const r2 = w - (this.right + halfGlyph);
+      this.x.range([r1, r2]);
+    };
+    setXrange();
+    this.decorateResize(setXrange);
     const tracks = [];
     for (let i = 0; i < this.data.length; i++) {
       // make the track and save it for the resize call
@@ -193,12 +203,12 @@ export class Micro extends Visualizer {
         t.resize();
       });
     };
+    resizeTracks();
     this.decorateResize(resizeTracks);
-    // create an auto resize iframe, if necessary
+    // create an auto resize listener, if necessary
     if (this.options.autoResize) {
       this.autoResize();
     }
-    this.resize();
   }
 
   // Public
@@ -318,11 +328,7 @@ export class Micro extends Visualizer {
       });
     // draw the background highlight
     if (i % 2) {
-      const highY = obj.y(y) + genes.node().getBBox().y;
-      const height = track.node().getBBox().height - highY;
       track.highlight = track.append("rect")
-        .attr("y", highY)
-        .attr("height", height)
         .attr("fill", "#e7e7e7")
         .moveToBack();
     }
@@ -339,7 +345,12 @@ export class Micro extends Visualizer {
       });
       lines.attr("x2", (n) => Math.abs(obj.x(n.a.x) - obj.x(n.b.x)));
       if (track.highlight !== undefined) {
-        track.highlight.attr("width", this.viewer.attr("width"));
+        const highY = obj.y(y) + geneGroups.node().getBBox().y;
+        const height = track.node().getBBox().height;
+        track.highlight
+          .attr("width", obj.viewer.attr("width"))
+          .attr("y", highY)
+          .attr("height", height);
       }
     }.bind(this, geneGroups, lineGroups, lines);
     return track;
@@ -392,7 +403,6 @@ export class Micro extends Visualizer {
       //.addHTMLAttributes();
       .each(function(y, i) {
         const selection = d3.select(this);
-        //console.log(obj.data[i]);
         selection.addHTMLAttributes(obj.data[i]);
       });
     return yAxis;
