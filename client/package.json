@@ -2,7 +2,7 @@
   "name": "genome-context-viewer",
   "description": "Genomic Context Viewer is a web-app that visualizes genomic context data provided by third party services.",
   "repository": "https://github.com/legumeinfo/lis_context_viewer",
-  "version": "1.3.1-beta",
+  "version": "1.4.1",
   "author": "Alan Cleary",
   "license": "GPL-3.0",
   "scripts": {
