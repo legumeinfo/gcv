@@ -66,9 +66,12 @@ export abstract class Visualizer {
     this.resizeObserver = new ResizeObserver((entries) => {
       clearTimeout(this.resizeTimer);
       const id = this.resizeTimer = setTimeout(() => {
-        const width = Math.max(this.container.clientWidth, this.container.clientHeight);
-        if (this.viewer !== undefined && this.viewer.attr("width") !== width) {
-          this.resize();
+        if (this.container !== undefined && this.viewer !== undefined) {
+          const width =
+            Math.max(this.container.clientWidth, this.container.clientHeight);
+          if (this.viewer.attr("width") !== width) {
+            this.resize();
+          }
         }
       }, this.options.resizeDelay);
     });
