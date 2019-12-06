@@ -85,7 +85,7 @@ export class GeneComponent implements AfterViewInit, OnDestroy {
     this._addItem([0, 1], fromViewers.microLegendConfigFactory, {click});
   }
 
-  private _addPlots(id, type, track, queryTracks): void {
+  private _addPlots(id, track, queryTracks, type): void {
     const plotStackConfig =
       this._stackItem(id, fromViewers.plotStackConfigFactory, track);
     const stackID = plotStackConfig.id;
@@ -101,9 +101,10 @@ export class GeneComponent implements AfterViewInit, OnDestroy {
 
   private _addMicroViewers(clusterIDs): void {
     const plotClick = (e, id, track, queryTracks) => {
+        const addPlots = this._addPlots.bind(this, id, track, queryTracks);
         const outputs = {
-            localClick: () => this._addPlots(id, 'local', track, queryTracks),
-            globalClick: () => this._addPlots(id, 'global', track, queryTracks),
+            localClick: () => addPlots('local'),
+            globalClick: () => addPlots('global'),
           };
         const tipOptions = {
             boundary: this.goldenLayoutDirective._el.nativeElement,

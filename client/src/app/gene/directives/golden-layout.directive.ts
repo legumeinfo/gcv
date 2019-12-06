@@ -148,7 +148,9 @@ export class GoldenLayoutDirective implements AfterContentInit, OnDestroy {
       // get the item's stack and make it the active item
       } else {
         const contentItem = instances[0];
-        let stack = this._closestStack(contentItem);
+        // handle nested stacks
+        const item = contentItem.isStack ? contentItem.parent : contentItem;
+        let stack = this._closestStack(item);
         if (stack !== null) {
           stack.setActiveContentItem(contentItem);
         }
