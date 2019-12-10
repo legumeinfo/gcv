@@ -20,6 +20,8 @@ export class FiltersComponent {
 
   microHelp = false;
 
+  private _typingTimer;
+  private _doneTypingInterval = 1000;  // 1 seconds
   private _destroy: Subject<boolean> = new Subject();
 
   constructor(private _filterService: FilterService) {
@@ -30,7 +32,10 @@ export class FiltersComponent {
   // public
 
   updateRegexp(regexp: string): void {
-    this._filterService.setRegexp(regexp);
+    clearTimeout(this._typingTimer);
+    this._typingTimer = setTimeout(() => {
+      this._filterService.setRegexp(regexp);
+    }, this._doneTypingInterval);
   }
 
   updateOrder(id: string): void {

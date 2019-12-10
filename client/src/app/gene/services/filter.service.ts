@@ -15,8 +15,6 @@ import { Algorithm } from '@gcv/gene/models';
 @Injectable()
 export class FilterService {
 
-  private _typingTimer;
-  private _doneTypingInterval = 1000;  // 1 seconds
   private _orderMap: any = {};
 
   constructor(private _store: Store<fromRoot.State>) {
@@ -45,11 +43,8 @@ export class FilterService {
   }
 
   setRegexp(regexp: string): void {
-    clearTimeout(this._typingTimer);
-    this._typingTimer = setTimeout(() => {
-      const path = [];
-      const query = Object.assign({}, {regexp});
-      this._store.dispatch(new routerActions.Go({path, query}));
-    }, this._doneTypingInterval);
+    const path = [];
+    const query = Object.assign({}, {regexp});
+    this._store.dispatch(new routerActions.Go({path, query}));
   }
 }
