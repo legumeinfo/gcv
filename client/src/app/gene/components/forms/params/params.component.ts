@@ -1,19 +1,19 @@
 // Angular
-import { Component, EventEmitter, OnDestroy, OnInit, Output } from "@angular/core";
-import { FormBuilder, FormGroup } from "@angular/forms";
-import { Subject } from "rxjs";
-import { takeUntil } from "rxjs/operators";
+import { Component, EventEmitter, OnDestroy, OnInit, Output } from '@angular/core';
+import { FormBuilder, FormGroup } from '@angular/forms';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 // app
-import { AppConfig } from "@gcv/app.config";
-import { ALIGNMENT_ALGORITHMS } from "@gcv/gene/algorithms";
+import { AppConfig } from '@gcv/app.config';
+import { ALIGNMENT_ALGORITHMS } from '@gcv/gene/algorithms';
 import { LINKAGES } from '@gcv/gene/constants';
 import { AlignmentParams, BlockParams, ClusteringParams, Params, QueryParams,
-  SourceParams } from "@gcv/gene/models/params";
-import { ParamsService } from "@gcv/gene/services";
+  SourceParams } from '@gcv/gene/models/params';
+import { ParamsService } from '@gcv/gene/services';
 
 @Component({
-  selector: "params",
-  templateUrl: "./params.component.html",
+  selector: 'params',
+  templateUrl: './params.component.html',
 })
 export class ParamsComponent implements OnDestroy, OnInit {
 
@@ -37,7 +37,7 @@ export class ParamsComponent implements OnDestroy, OnInit {
 
   // form data
   linkages = LINKAGES;
-  sources = AppConfig.SERVERS.filter((s) => s.hasOwnProperty("microSearch"));
+  sources = AppConfig.SERVERS.filter((s) => s.hasOwnProperty('microSearch'));
   algorithms = ALIGNMENT_ALGORITHMS;
 
   // emits when the component is destroyed
@@ -62,8 +62,6 @@ export class ParamsComponent implements OnDestroy, OnInit {
       'alignmentGroup',
       'getAlignmentParams');
     this._initializeGroup(SourceParams, 'sourcesGroup', 'getSourceParams');
-    // submit the updated form
-    this.submit();
   }
 
   ngOnDestroy(): void {

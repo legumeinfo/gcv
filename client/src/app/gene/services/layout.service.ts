@@ -21,19 +21,27 @@ export class LayoutService extends HttpService {
   }
 
   getLeftSliderState(): Observable<boolean> {
-    return this._store.select(fromLayout.getShowSidenav);
+    return this._store.select(fromLayout.getShowLeftSlider);
+  }
+
+  getLeftSliderContent(): Observable<string> {
+    return this._store.select(fromLayout.getLeftSliderContent);
   }
 
   closeLeftSlider(): void {
-    this._store.dispatch(layoutActions.CloseSidenav());
+    this._store.dispatch(layoutActions.CloseLeftSlider());
   }
 
   openLeftSlider(): void {
-    this._store.dispatch(layoutActions.OpenSidenav());
+    this._store.dispatch(layoutActions.OpenLeftSlider());
   }
 
   toggleLeftSlider(): void {
-    this._store.dispatch(layoutActions.ToggleSidenav());
+    this._store.dispatch(layoutActions.ToggleLeftSlider());
+  }
+
+  toggleLeftSliderContent(content: string) {
+    this._store.dispatch(layoutActions.ToggleLeftSliderContent({content}));
   }
 
 }

@@ -1,1 +1,1 @@
-export * from './sidenav.selector';
+export * from './left-slider.selector';

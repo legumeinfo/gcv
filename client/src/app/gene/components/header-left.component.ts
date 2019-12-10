@@ -1,5 +1,6 @@
 // Angular
 import { Component } from '@angular/core';
+import { Observable } from 'rxjs';
 // app
 import { LayoutService } from '@gcv/gene/services';
 
@@ -15,17 +16,34 @@ import { LayoutService } from '@gcv/gene/services';
     }
   `],
   template: `
-    <a class="btn btn-outline-dark" role="button" (click)="toggleSlider()">Parameters</a>
+    <ul class="navbar-nav mr-auto">
+      <li>
+        <a [class.active]="(visible|async)&&(content|async)=='parameters'" class="btn btn-outline-dark mr-sm-2" role="button" (click)="toggleParameters()">Parameters</a>
+      </li>
+      <li>
+        <a [class.active]="(visible|async)&&(content|async)=='filters'" class="btn btn-outline-dark" role="button" (click)="toggleFilters()">Filters</a>
+      </li>
+    </ul>
   `,
 })
 export class HeaderLeftComponent {
 
-  constructor(private _layoutService: LayoutService) { }
+  visible: Observable<boolean>;
+  content: Observable<string>;
+
+  constructor(private _layoutService: LayoutService) {
+    this.visible = _layoutService.getLeftSliderState();
+    this.content = _layoutService.getLeftSliderContent();
+  }
 
   // public
 
-  toggleSlider(): void {
-    this._layoutService.toggleLeftSlider();
+  toggleParameters(): void {
+    this._layoutService.toggleLeftSliderContent('parameters');
+  }
+
+  toggleFilters(): void {
+    this._layoutService.toggleLeftSliderContent('filters');
   }
 
 }

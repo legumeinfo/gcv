@@ -1,0 +1,22 @@
+<form id="search-parameters" (ngSubmit)="submit()">
+  <fieldset id="micro-filters">
+    <legend>Micro-Synteny<a id="micro-help" class="float-right" (click)="microHelp=!microHelp"><span class="fa fa-question-circle"></span></a></legend>
+    <div class="form-group">
+      <label for="regexp">Filter by name</label>
+      <input class="form-control" type="text" id="regexp" name="regexp"
+        (input)="updateRegexp($event.target.value)"
+        [ngModel]="currentRegexp|async">
+      <small class="form-text text-muted">A regular expression</small>
+      <p class="help-block" *ngIf="microHelp">A regular expression used to filter the micro-synteny tracks by name.</p>
+    </div>
+    <div class="form-group">
+      <label for="order">Track order</label>
+      <select class="form-control" id="order" name="order"
+          (change)="updateOrder($event.target.value)"
+          [ngModel]="(selectedOrderAlgorithm|async).id">
+        <option *ngFor="let alg of orderAlgorithms" [value]="alg.id">{{alg.name}}</option>
+      </select>
+      <p class="help-block" *ngIf="microHelp">What order the micro-synteny tracks should be displayed in.</p>
+    </div>
+  </fieldset>
+</form>

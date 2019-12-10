@@ -6,17 +6,40 @@ import * as LayoutActions from '@gcv/gene/store/actions/layout.actions';
 export const layoutFeatureKey = 'layout';
 
 export interface State {
-  showSidenav: boolean;
+  showLeftSlider: boolean;
+  leftSliderContent: string;
 }
 
 const initialState: State = {
-  showSidenav: false,
+  showLeftSlider: false,
+  leftSliderContent: null,
 };
 
 export const reducer = createReducer(
   initialState,
-  // Even thought the `state` is unused, it helps infer the return type
-  on(LayoutActions.CloseSidenav, state => ({showSidenav: false})),
-  on(LayoutActions.OpenSidenav, state => ({showSidenav: true})),
-  on(LayoutActions.ToggleSidenav, state => ({showSidenav: !state.showSidenav}))
+  on(LayoutActions.CloseLeftSlider, (state) => {
+    return {
+      ...state,
+      showLeftSlider: false,
+    };
+  }),
+  on(LayoutActions.OpenLeftSlider, (state) => {
+    return {
+      ...state,
+      showLeftSlider: true,
+    };
+  }),
+  on(LayoutActions.ToggleLeftSlider, (state) => {
+    return {
+      ...state,
+      showLeftSlider: !state.showLeftSlider,
+    };
+  }),
+  on(LayoutActions.ToggleLeftSliderContent, (state, {content}) => {
+    return {
+      ...state,
+      showLeftSlider: (state.leftSliderContent !== content) || !state.showLeftSlider,
+      leftSliderContent: content,
+    };
+  }),
 );

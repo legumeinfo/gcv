@@ -5,7 +5,7 @@ import { takeUntil } from 'rxjs/operators';
 // app
 import { GoldenLayoutDirective, TooltipFactoryDirective }
   from '@gcv/gene/directives';
-import { LayoutService, MicroTracksService } from '@gcv/gene/services';
+import { MicroTracksService } from '@gcv/gene/services';
 import * as fromDetails from './details';
 import * as fromTooltips from './tooltips';
 import * as fromViewers from './viewers';
@@ -38,14 +38,9 @@ export class GeneComponent implements AfterViewInit, OnDestroy {
   tooltipComponents = [...fromTooltips.tooltipComponents];
   showLeftSlider: Observable<boolean>;
 
-  constructor(private _layoutService: LayoutService,
-              private _microTracksService: MicroTracksService) { }
+  constructor(private _microTracksService: MicroTracksService) { }
 
   // Angular hooks
-
-  ngOnInit(): void {
-    this.showLeftSlider = this._layoutService.getLeftSliderState();
-  }
 
   ngAfterViewInit(): void {
     this._microTracksService.getClusterIDs()
@@ -125,13 +120,4 @@ export class GeneComponent implements AfterViewInit, OnDestroy {
     });
   }
 
-  // public
-
-  closeLeftSlider(): void {
-    this._layoutService.closeLeftSlider();
-  }
-
-  openLeftSlider(): void {
-    this._layoutService.openLeftSlider();
-  }
 }

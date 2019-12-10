@@ -185,12 +185,36 @@ export const getClusteredAndAlignedSearchMicroTracks = createSelector(
   },
 );
 
+const trackName = (track): string => {
+  return `${track.genus}:${track.species}:${track.name}`;
+};
+
+const sortByDistance = (t1, t2) => {
+  return t2.score-t1.score;
+};
+
+const sortByName = (t1, t2) => {
+  const name1 = trackName(t1);
+  const name2 = trackName(t2);
+  return name1.localeCompare(name2);
+};
+
+const trackFilter = (tracks, regexp) => {
+  const r = new RegExp(regexp);
+  return tracks.filter((t) => r.test(trackName(t)));
+};
+
 export const getAllClusteredAndAlignedMicroTracks = createSelector(
   getClusteredAndAlignedSelectedMicroTracks,
   getClusteredAndAlignedSearchMicroTracks,
-  ({consensuses, tracks}, searchTracks):
+  fromRouter.getRegexp,
+  fromRouter.getOrder,
+  ({consensuses, tracks}, searchTracks, regexp, order):
   (Track | ClusterMixin | AlignmentMixin)[] => {
-    return tracks.concat(searchTracks);
+    const orderAlg = (order == 'distance') ? sortByDistance : sortByName;
+    const sortedTracks = [...tracks].sort(orderAlg);
+    const sortedSearchTracks = trackFilter(searchTracks, regexp).sort(orderAlg);
+    return sortedTracks.concat(sortedSearchTracks);
   },
 );
 
