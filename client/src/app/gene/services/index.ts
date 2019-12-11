@@ -2,6 +2,7 @@ import { FilterService } from './filter.service';
 import { ChromosomeService } from './chromosome.service';
 import { ComponentService } from './component.service';
 import { GeneService } from './gene.service';
+import { InterAppCommunicationService } from './inter-app-communication.service';
 import { LayoutService } from './layout.service';
 import { MicroTracksService } from './micro-tracks.service';
 import { PairwiseBlocksService} from './pairwise-blocks.service';
@@ -13,6 +14,7 @@ export const services: any[] = [
   ComponentService,
   FilterService,
   GeneService,
+  InterAppCommunicationService,
   LayoutService,
   MicroTracksService,
   PairwiseBlocksService,
@@ -24,6 +26,7 @@ export * from './chromosome.service';
 export * from './component.service';
 export * from './filter.service';
 export * from './gene.service';
+export * from './inter-app-communication.service';
 export * from './layout.service';
 export * from './micro-tracks.service';
 export * from './pairwise-blocks.service';

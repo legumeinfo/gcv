@@ -2,7 +2,7 @@
 import { Component } from '@angular/core';
 // app
 import { Alert } from '@gcv/gene/models';
-import { InterAppCommunicationService } from '@gcv/core/services';
+import { InterAppCommunicationService } from '@gcv/gene/services';
 
 @Component({
   selector: 'inter-app-communication',

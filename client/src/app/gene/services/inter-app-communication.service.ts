@@ -9,21 +9,61 @@ import { MicroTracks } from '@gcv/gene/models';
 
 @Injectable()
 export class InterAppCommunicationService {
-  messages: Observable<any>;
-  private _messages = new Subject<any>();
 
   private _bc;
   private _channel: string;
   private _communicate: boolean;
+  private _messages = new Subject<any>();
 
   constructor() {
-    this.messages = this._messages.asObservable();
     this.setChannel(AppConfig.COMMUNICATION.channel);
     this.setCommunicate(AppConfig.COMMUNICATION.communicate);
   }
 
+  // private
+
+  private _open(): void {
+    this._bc = new BroadcastChannel(this._channel);
+    this._bc.onmessage = (message) => {
+      this._messages.next(message);
+    };
+  }
+
+  private _close(): void {
+    if (this._bc !== undefined) {
+      this._bc.close();
+      this._bc = undefined;
+    }
+  }
+
+  //private _enrich(message: any, microTracks: MicroTracks): any {
+  //  if (message.targets.hasOwnProperty('family') &&
+  //      !message.targets.hasOwnProperty('genes')) {
+  //    const genes = microTracks.groups
+  //      .reduce((familyGenes, group) => {
+  //        const groupGenes = group.genes
+  //          .reduce((filteredGenes, gene) => {
+  //            if (gene.family === message.targets.family) {
+  //              filteredGenes.push(gene.name);
+  //            }
+  //            return filteredGenes;
+  //          }, []);
+  //        familyGenes.push(...groupGenes);
+  //        return familyGenes;
+  //      }, []);
+  //    message = {type: message.type, targets: {genes, ...message.targets}};
+  //  }
+  //  return message;
+  //}
+
+  // public
+
   getChannel(): string {
     return this._channel;
+  }
+
+  getMessages(): Observable<any> {
+    return this._messages.asObservable();
   }
 
   setChannel(channel: string): void {
@@ -55,44 +95,11 @@ export class InterAppCommunicationService {
 
   postMessage(message: any, enrich?: MicroTracks): void {
     if (this._communicate) {
-      if (enrich !== undefined) {
-        message = this.enrich(message, enrich);
-      }
+      //if (enrich !== undefined) {
+      //  message = this._enrich(message, enrich);
+      //}
       this._bc.postMessage(message);
     }
   }
 
-  private _open(): void {
-    this._bc = new BroadcastChannel(this._channel);
-    this._bc.onmessage = (message) => {
-      this._messages.next(message);
-    };
-  }
-
-  private _close(): void {
-    if (this._bc !== undefined) {
-      this._bc.close();
-      this._bc = undefined;
-    }
-  }
-
-  private enrich(message: any, microTracks: MicroTracks): any {
-    if (message.targets.hasOwnProperty('family') &&
-        !message.targets.hasOwnProperty('genes')) {
-      const genes = microTracks.groups
-        .reduce((familyGenes, group) => {
-          const groupGenes = group.genes
-            .reduce((filteredGenes, gene) => {
-              if (gene.family === message.targets.family) {
-                filteredGenes.push(gene.name);
-              }
-              return filteredGenes;
-            }, []);
-          familyGenes.push(...groupGenes);
-          return familyGenes;
-        }, []);
-      message = {type: message.type, targets: {genes, ...message.targets}};
-    }
-    return message;
-  }
 }

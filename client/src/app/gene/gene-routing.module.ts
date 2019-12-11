@@ -2,7 +2,8 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 // App
-import { GeneComponent, HeaderLeftComponent } from '@gcv/gene/components';
+import { GeneComponent, HeaderLeftComponent, HeaderRightComponent }
+  from '@gcv/gene/components';
 
 export const routes: Routes = [
   {
@@ -13,7 +14,12 @@ export const routes: Routes = [
     path: '',
     component: HeaderLeftComponent,
     outlet: 'header-left'
-  }
+  },
+  {
+    path: '',
+    component: HeaderRightComponent,
+    outlet: 'header-right'
+  },
 ];
 
 @NgModule({
