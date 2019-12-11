@@ -8,7 +8,8 @@ import { getSelectedMicroTracks } from './selected-micro-tracks.selector';
 // app
 import * as clusterfck from '@gcv-assets/js/clusterfck';
 import { GCV } from '@gcv-assets/js/gcv';
-import { ALIGNMENT_ALGORITHMS } from '@gcv/gene/algorithms';
+import { ALIGNMENT_ALGORITHMS, ORDER_ALGORITHMS } from '@gcv/gene/algorithms';
+import { regexpFactory } from '@gcv/gene/algorithms/utils';
 import { Track } from '@gcv/gene/models';
 import { AlignmentParams, ClusteringParams } from '@gcv/gene/models/params';
 import { AlignmentMixin, ClusterMixin } from '@gcv/gene/models/mixins';
@@ -185,24 +186,10 @@ export const getClusteredAndAlignedSearchMicroTracks = createSelector(
   },
 );
 
-const trackName = (track): string => {
-  return `${track.genus}:${track.species}:${track.name}`;
-};
-
-const sortByDistance = (t1, t2) => {
-  return t2.score-t1.score;
-};
-
-const sortByName = (t1, t2) => {
-  const name1 = trackName(t1);
-  const name2 = trackName(t2);
-  return name1.localeCompare(name2);
-};
-
-const trackFilter = (tracks, regexp) => {
-  const r = new RegExp(regexp);
-  return tracks.filter((t) => r.test(trackName(t)));
-};
+const orderAlgorithmMap = ORDER_ALGORITHMS.reduce((map, a) => {
+    map[a.id] = a;
+    return map;
+  }, {});
 
 export const getAllClusteredAndAlignedMicroTracks = createSelector(
   getClusteredAndAlignedSelectedMicroTracks,
@@ -211,9 +198,11 @@ export const getAllClusteredAndAlignedMicroTracks = createSelector(
   fromRouter.getOrder,
   ({consensuses, tracks}, searchTracks, regexp, order):
   (Track | ClusterMixin | AlignmentMixin)[] => {
-    const orderAlg = (order == 'distance') ? sortByDistance : sortByName;
+    const orderAlg = (order in orderAlgorithmMap) ?
+      orderAlgorithmMap[order].algorithm : (t1, t2) => 0;
+    const trackFilter = regexpFactory(regexp).algorithm;
     const sortedTracks = [...tracks].sort(orderAlg);
-    const sortedSearchTracks = trackFilter(searchTracks, regexp).sort(orderAlg);
+    const sortedSearchTracks = trackFilter(searchTracks).sort(orderAlg);
     return sortedTracks.concat(sortedSearchTracks);
   },
 );

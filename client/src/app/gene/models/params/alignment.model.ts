@@ -1,5 +1,5 @@
 import { Validators } from '@angular/forms';
-import { ALIGNMENT_ALGORITHMS } from '@gcv/gene/algorithms/alignment-algorithms';  // avoid circular dependency
+import { ALIGNMENT_ALGORITHMS } from '@gcv/gene/algorithms/alignment.algorithm';  // avoid circular dependency
 import { Regex } from '@gcv/gene/constants';
 import { Params } from './params.model';
 

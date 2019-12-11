@@ -3,13 +3,13 @@ import { GCV } from '@gcv-assets/js/gcv';
 
 export const ALIGNMENT_ALGORITHMS: Algorithm[] = [
   {
-    algorithm: GCV.alignment.smithWaterman,
     id: 'smith-waterman',
     name: 'Smith-Waterman',
+    algorithm: GCV.alignment.smithWaterman,
   },
   {
-    algorithm: GCV.alignment.repeat,
     id: 'repeat',
     name: 'Repeat',
+    algorithm: GCV.alignment.repeat,
   },
 ];

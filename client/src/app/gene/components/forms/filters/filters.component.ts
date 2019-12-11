@@ -4,7 +4,6 @@ import { Observable, Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 // app
 import { ORDER_ALGORITHMS } from '@gcv/gene/algorithms';
-import { Algorithm } from '@gcv/gene/models';
 import { FilterService } from '@gcv/gene/services';
 
 
@@ -16,7 +15,7 @@ export class FiltersComponent {
 
   orderAlgorithms = ORDER_ALGORITHMS;
   currentRegexp: Observable<string>;
-  selectedOrderAlgorithm: Observable<Algorithm>;
+  selectedOrderAlgorithm: Observable<{id: string, name: string}>;
 
   microHelp = false;
 
