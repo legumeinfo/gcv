@@ -78,6 +78,7 @@ export class MicroLegendComponent implements AfterViewInit, OnDestroy {
         blankDashed: {name: "Orphans", id: ''},
         highlight: queryGenes.map((g) => g.family),
         keyClick: (k) => this.emitClick(k.id),
+        selector: 'family',
       };
     options = Object.assign(options, this.options);
     this._viewer = new GCV.visualization.Legend(
