@@ -27,6 +27,7 @@ export class MicroComponent implements AfterViewInit, OnDestroy {
   @Input() options: any = {};
   @Output() plotClick = new EventEmitter();
   @Output() geneClick = new EventEmitter();
+  @Output() geneOver = new EventEmitter();
   @Output() nameClick = new EventEmitter();
 
   @ViewChild('container', {static: true}) container: ElementRef;
@@ -69,15 +70,19 @@ export class MicroComponent implements AfterViewInit, OnDestroy {
 
   // public
 
-  emitPlot(event, track, queryTracks) {
+  emitPlotClick(event, track, queryTracks) {
     this.plotClick.emit({event, track, queryTracks});
   }
 
-  emitGene(gene, family, source) {
+  emitGeneClick(gene, family, source) {
     this.geneClick.emit({gene, family, source});
   }
 
-  emitName(track) {
+  emitGeneOver(event, gene, family, source) {
+    this.geneOver.emit({event, gene, family, source});
+  }
+
+  emitNameClick(track) {
     this.nameClick.emit({track});
   }
 
@@ -103,9 +108,10 @@ export class MicroComponent implements AfterViewInit, OnDestroy {
         bold: bold,
         highlight: queryGenes.map((g) => g.name),
         selectiveColoring: familySizes,
-        plotClick: (e, t, i) => this.emitPlot(e, tracks[i], queryTracks),
-        geneClick: (t, g, i) => this.emitGene(g.name, g.family, t.source),
-        nameClick: (t, i) => this.emitName(tracks[i])
+        plotClick: (e, t, i) => this.emitPlotClick(e, tracks[i], queryTracks),
+        geneClick: (t, g, i) => this.emitGeneClick(g.name, g.family, t.source),
+        geneOver: (e, t, g, i) => this.emitGeneOver(e, g.name, g.family, t.source),
+        nameClick: (t, i) => this.emitNameClick(tracks[i])
       };
     options = Object.assign(options, this.options);
     this._viewer = new GCV.visualization.Micro(

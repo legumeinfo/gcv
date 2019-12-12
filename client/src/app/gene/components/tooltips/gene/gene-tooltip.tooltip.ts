@@ -5,20 +5,14 @@ export const geneTooltipComponent =
   {component: GeneTooltipComponent, name: 'gene'};
 
 
-export function geneTooltipConfigFactory(outputs: any={}, tipOptions: any={}) {
-  let _outputs = {
-      localClick: () => { /* no-op */ },
-      globalClick: () => { /* no-op */ },
-    };
-  _outputs = Object.assign(_outputs, outputs);
-  let _tipOptions = Object.assign({}, tipOptions);
+export function geneTooltipConfigFactory(inputs: any, tipOptions: any={}) {
+  let _tipOptions = Object.assign({distance: 20}, tipOptions);
   return  {
     componentName: 'gene',
     componentState: {
-      inputs: {},
-      outputs: _outputs,
+      inputs,
+      outputs: {},
     },
     tipOptions: _tipOptions,
-    hideOutputs: ['localClick', 'globalClick'],
   };
 }

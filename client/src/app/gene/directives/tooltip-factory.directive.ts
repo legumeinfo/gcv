@@ -42,10 +42,8 @@ export class TooltipFactoryDirective {
     let _options = {
         appendTo: document.body,
         content: componentRef.location.nativeElement,
-        interactive: true,
         showOnCreate: true,
         theme: 'light',
-        trigger: 'click',
         onDestroy: (instance) => {
           this._componentService.destroyComponent(componentRef);
         },

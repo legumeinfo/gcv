@@ -1,28 +1,34 @@
 // Angular
-import { Component, EventEmitter, Output }
-  from '@angular/core';
-// dependencies
-import tippy from 'tippy.js';
+import { Component, Input, OnInit } from '@angular/core';
+import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
+// app
+import { Gene } from '@gcv/gene/models';
+import { GeneService } from '@gcv/gene/services';
 
 
 @Component({
   selector: 'gene-tooltip',
   template: `
-    <a [routerLink]="" queryParamsHandling="preserve" (click)="local()">local</a>&nbsp;|&nbsp;<a [routerLink]="" queryParamsHandling="preserve" (click)="global()">global</a>
+    <b>{{ gene }}</b> ({{ source }})
+    <div *ngIf="instance|async; let g">
+    {{ g.fmin }}-{{ g.fmax }}
   `,
 })
-export class GeneTooltipComponent {
+export class GeneTooltipComponent implements OnInit {
 
-  @Output() localClick = new EventEmitter();
-  @Output() globalClick = new EventEmitter();
+  @Input() gene: string;
+  @Input() source: string;
 
-  // public
+  instance: Observable<Gene>;
 
-  local(): void {
-    this.localClick.emit();
+  constructor(private _geneService: GeneService) { }
+
+  // Angular hooks
+
+  ngOnInit(): void {
+    this.instance = this._geneService.getGenes([this.gene], this.source)
+      .pipe(map((genes) => genes[0]));
   }
 
-  global(): void {
-    this.globalClick.emit();
-  }
 }

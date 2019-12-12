@@ -32,7 +32,10 @@ export function plotConfigFactory(
   const referenceName = reference.name;
   const options = {autoResize: true};
   const id = `plot:${type}:${clusteredTrackID(track)}x${clusteredTrackID(reference)}`;
-  let _outputs = {geneClick: (id, gene, family, source) => { /* no-op */ }};
+  let _outputs = {
+      geneClick: (id, gene, family, source) => { /* no-op */ },
+      geneOver: (e, gene, family, source) => { /* no-op */ },
+    };
   _outputs = Object.assign(_outputs, outputs);
   return {
     type: 'component',
@@ -44,6 +47,9 @@ export function plotConfigFactory(
       outputs: {
         geneClick: ({gene, family, source}) => {
           _outputs.geneClick(id, gene, family, source);
+        },
+        geneOver: ({event, gene, family, source}) => {
+          _outputs.geneOver(event, gene, family, source);
         }
       }
     }

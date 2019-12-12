@@ -24,6 +24,7 @@ export class GeneComponent implements AfterViewInit, OnDestroy {
   @ViewChild(TooltipFactoryDirective, {static: true}) tooltipFactoryDirective;
 
   private _destroy: Subject<boolean> = new Subject();
+  private _tipOptions: any;
 
   layoutComponents = [
       ...fromDetails.layoutComponents,
@@ -43,6 +44,9 @@ export class GeneComponent implements AfterViewInit, OnDestroy {
   // Angular hooks
 
   ngAfterViewInit(): void {
+    this._tipOptions = {
+      boundary: this.goldenLayoutDirective._el.nativeElement,
+    }
     this._microTracksService.getClusterIDs()
       .pipe(takeUntil(this._destroy))
       .subscribe((IDs) => this._resetLayout(IDs));
@@ -88,8 +92,14 @@ export class GeneComponent implements AfterViewInit, OnDestroy {
         const args = [gene, family, source];
         this._stackItem(id, fromDetails.geneDetailConfigFactory, ...args);
       };
+    const geneOver = (e, gene, family, source) => {
+        const inputs = {gene, source};
+        const config =
+          fromTooltips.geneTooltipConfigFactory(inputs, this._tipOptions);
+        this.tooltipFactoryDirective.componentTip(e.target, config);
+      };
     queryTracks.forEach((query) => {
-      const args = [type, track, query, {geneClick}];
+      const args = [type, track, query, {geneClick, geneOver}];
       this._stackItem(stackID, fromViewers.plotConfigFactory, ...args);
     });
   }
@@ -101,21 +111,24 @@ export class GeneComponent implements AfterViewInit, OnDestroy {
             localClick: () => addPlots('local'),
             globalClick: () => addPlots('global'),
           };
-        const tipOptions = {
-            boundary: this.goldenLayoutDirective._el.nativeElement,
-          };
         const config =
-          fromTooltips.geneTooltipConfigFactory(outputs, tipOptions);
+          fromTooltips.plotTooltipConfigFactory(outputs, this._tipOptions);
         this.tooltipFactoryDirective.componentTip(e.target, config);
       };
     const geneClick = (id, gene, family, source) => {
         this._stackItem(id, fromDetails.geneDetailConfigFactory, gene, family, source);
       };
+    const geneOver = (e, gene, family, source) => {
+        const inputs = {gene, source};
+        const config =
+          fromTooltips.geneTooltipConfigFactory(inputs, this._tipOptions);
+        this.tooltipFactoryDirective.componentTip(e.target, config);
+      };
     const nameClick = (id, track) => {
         this._stackItem(id, fromDetails.trackDetailConfigFactory, track);
       };
     clusterIDs.forEach((id) => {
-      const options = {plotClick, geneClick, nameClick};
+      const options = {plotClick, geneClick, geneOver, nameClick};
       this._addItem([0, 0], fromViewers.microConfigFactory, id, options);
     });
   }

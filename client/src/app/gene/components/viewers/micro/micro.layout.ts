@@ -10,6 +10,7 @@ export function microConfigFactory(clusterID: number, outputs: any={}) {
   let _outputs = {
       plotClick: (e, id, track, queryTracks) => { /* no-op */ },
       geneClick: (id, gene, family, source) => { /* no-op */ },
+      geneOver: (e, gene, family, source) => { /* no-op */ },
       nameClick: (id, track) => { /* no-op */ },
     };
   _outputs = Object.assign(_outputs, outputs);
@@ -26,6 +27,9 @@ export function microConfigFactory(clusterID: number, outputs: any={}) {
         },
         geneClick: ({gene, family, source}) => {
           _outputs.geneClick(id, gene, family, source);
+        },
+        geneOver: ({event, gene, family, source}) => {
+          _outputs.geneOver(event, gene, family, source);
         },
         nameClick: ({track}) => _outputs.nameClick(id, track),
       },

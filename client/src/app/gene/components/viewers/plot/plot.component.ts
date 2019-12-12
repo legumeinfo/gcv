@@ -28,6 +28,7 @@ export class PlotComponent implements AfterViewInit, OnDestroy {
   @Input() options: any = {};
   @Output() plotClick = new EventEmitter();
   @Output() geneClick = new EventEmitter();
+  @Output() geneOver = new EventEmitter();
 
 
   @ViewChild('container', {static: true}) container: ElementRef;
@@ -69,12 +70,16 @@ export class PlotComponent implements AfterViewInit, OnDestroy {
 
   // public
 
-  emitPlot(plot) {
+  emitPlotClick(plot) {
     this.plotClick.emit({plot});
   }
 
-  emitGene(gene, family, source) {
+  emitGeneClick(gene, family, source) {
     this.geneClick.emit({gene, family, source});
+  }
+
+  emitGeneOver(event, gene, family, source) {
+    this.geneOver.emit({event, gene, family, source});
   }
 
   saveImage(): void {
@@ -93,13 +98,12 @@ export class PlotComponent implements AfterViewInit, OnDestroy {
 
   private _draw(plot: Plot, genes: Gene[]): void {
     this._destroyViewers();
+    const source = plot.sequence.source;
     const data = plotShim(plot, genes);
     let options = {
-        plotClick: () => this.emitPlot(plot),
-        geneClick: (g, j) => {
-          const source = plot.sequence.source;
-          this.emitGene(g.name, g.family, source);
-        },
+        plotClick: () => this.emitPlotClick(plot),
+        geneClick: (g, j) => this.emitGeneClick(g.name, g.family, source),
+        geneOver: (e, g) => this.emitGeneOver(e, g.name, g.family, source),
       };
     options = Object.assign(options, this.options);
     this._viewer = new GCV.visualization.Plot(

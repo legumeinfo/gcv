@@ -34,9 +34,8 @@ export class Plot {
     this.options.autoResize = this.options.autoResize || false;
     this.options.resizeDelay = this.options.resizeDelay || 250;
     this.options.selectiveColoring = this.options.selectiveColoring;
-    this.options.geneClick = this.options.geneClick || ((g, i) => {
-        // noop
-      });
+    this.options.geneClick = this.options.geneClick || ((g, i) => { /* noop */ });
+    this.options.geneOpen = this.options.geneOver || ((e, g, i) => { /* noop */ });
     this.options.plotClick = this.options.plotClick || ((plot) => {
         // noop
       });
@@ -170,7 +169,10 @@ export class Plot {
       .attr("data-gene", (g) => g.name)
       .attr("data-family", (g) => g.family)
       .style("cursor", "pointer")
-      .on("mouseover", (g) => publishGeneEvent("select", g))
+      .on("mouseover", (g) => {
+        publishGeneEvent("select", g);
+        this.options.geneOver(d3.event, g);
+      })
       .on("mouseout", (g) => publishGeneEvent("deselect", g))
       .on("click", (g, i) => this.options.geneClick(g, i));;
 
