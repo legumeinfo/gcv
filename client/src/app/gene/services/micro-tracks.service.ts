@@ -1,7 +1,7 @@
 // Angular
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { Observable, combineLatest, empty, throwError } from 'rxjs';
+import { Observable, combineLatest, throwError } from 'rxjs';
 import { catchError, map, take } from 'rxjs/operators';
 // store
 import { Store, select } from '@ngrx/store';
@@ -34,31 +34,6 @@ export class MicroTracksService extends HttpService {
       .pipe(
         map(({tracks}) => tracks),
         catchError((error) => throwError(error)));
-  }
-
-  scroll(step: number): Observable<any> {
-    //return Observable.create((observer) => {
-    //  combineLatest(
-    //    this.routeParams,
-    //    this.store.select(fromMacroChromosome.getMacroChromosome))
-    //  .pipe(take(1))
-    //  .subscribe(([route, chromosome]) => {
-    //    if (route.gene !== undefined) {
-    //      const i = chromosome.genes.indexOf(route.gene);
-    //      if (i > -1 && i + step >= 0 && i + step < chromosome.genes.length) {
-    //        const gene = chromosome.genes[i + step];
-    //        const path = ['search', route.source, gene];
-    //        this.store.dispatch(new routerActions.Go({path}));
-    //      } else {
-    //        observer.error(new Error('Cannot compute target focus gene'));
-    //      }
-    //    } else {
-    //      observer.error(new Error('Cannot scroll at this time'));
-    //    }
-    //    observer.complete();
-    //  });
-    //});
-    return empty();
   }
 
   spanSearch(chromosome: string, low: number, high: number): void {

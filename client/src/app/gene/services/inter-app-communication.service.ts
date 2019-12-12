@@ -5,7 +5,6 @@ import { Observable, Subject } from 'rxjs';
 import { filter } from 'rxjs/operators';
 // app
 import { AppConfig } from '@gcv/app.config';
-import { MicroTracks } from '@gcv/gene/models';
 
 @Injectable()
 export class InterAppCommunicationService {
@@ -35,26 +34,6 @@ export class InterAppCommunicationService {
       this._bc = undefined;
     }
   }
-
-  //private _enrich(message: any, microTracks: MicroTracks): any {
-  //  if (message.targets.hasOwnProperty('family') &&
-  //      !message.targets.hasOwnProperty('genes')) {
-  //    const genes = microTracks.groups
-  //      .reduce((familyGenes, group) => {
-  //        const groupGenes = group.genes
-  //          .reduce((filteredGenes, gene) => {
-  //            if (gene.family === message.targets.family) {
-  //              filteredGenes.push(gene.name);
-  //            }
-  //            return filteredGenes;
-  //          }, []);
-  //        familyGenes.push(...groupGenes);
-  //        return familyGenes;
-  //      }, []);
-  //    message = {type: message.type, targets: {genes, ...message.targets}};
-  //  }
-  //  return message;
-  //}
 
   // public
 
@@ -93,11 +72,8 @@ export class InterAppCommunicationService {
     }
   }
 
-  postMessage(message: any, enrich?: MicroTracks): void {
+  postMessage(message: any): void {
     if (this._communicate) {
-      //if (enrich !== undefined) {
-      //  message = this._enrich(message, enrich);
-      //}
       this._bc.postMessage(message);
     }
   }
