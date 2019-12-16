@@ -105,30 +105,39 @@ export class GeneComponent implements AfterViewInit, OnDestroy {
   }
 
   private _addMicroViewers(clusterIDs): void {
-    const plotClick = (e, id, track, queryTracks) => {
-        const addPlots = this._addPlots.bind(this, id, track, queryTracks);
-        const outputs = {
-            localClick: () => addPlots('local'),
-            globalClick: () => addPlots('global'),
-          };
-        const config =
-          fromTooltips.plotTooltipConfigFactory(outputs, this._tipOptions);
-        this.tooltipFactoryDirective.componentTip(e.target, config);
-      };
-    const geneClick = (id, gene, family, source) => {
-        this._stackItem(id, fromDetails.geneDetailConfigFactory, gene, family, source);
-      };
-    const geneOver = (e, gene, family, source) => {
-        const inputs = {gene, source};
-        const config =
-          fromTooltips.geneTooltipConfigFactory(inputs, this._tipOptions);
-        this.tooltipFactoryDirective.componentTip(e.target, config);
-      };
-    const nameClick = (id, track) => {
-        this._stackItem(id, fromDetails.trackDetailConfigFactory, track);
+    const options = {
+        plotClick: (e, id, track, queryTracks) => {
+          const addPlots = this._addPlots.bind(this, id, track, queryTracks);
+          const outputs = {
+              localClick: () => addPlots('local'),
+              globalClick: () => addPlots('global'),
+            };
+          const config =
+            fromTooltips.plotTooltipConfigFactory(outputs, this._tipOptions);
+          this.tooltipFactoryDirective.componentTip(e.target, config);
+        },
+        geneClick: (id, gene, family, source) => {
+          this._stackItem(id, fromDetails.geneDetailConfigFactory, gene, family, source);
+        },
+        geneOver: (e, gene, family, source) => {
+          const inputs = {gene, source};
+          const config =
+            fromTooltips.geneTooltipConfigFactory(inputs, this._tipOptions);
+          this.tooltipFactoryDirective.componentTip(e.target, config);
+        },
+        nameClick: (id, track) => {
+          this._stackItem(id, fromDetails.trackDetailConfigFactory, track);
+        },
+        circos: (id, clusterID) => {
+          const args = [clusterID];
+          this._stackItem(id, fromViewers.macroCircosConfigFactory, ...args);
+        },
+        reference: (id, name, source) => {
+          const args = [name, source];
+          this._stackItem(id, fromViewers.macroConfigFactory, ...args);
+        }
       };
     clusterIDs.forEach((id) => {
-      const options = {plotClick, geneClick, geneOver, nameClick};
       this._addItem([0, 0], fromViewers.microConfigFactory, id, options);
     });
   }

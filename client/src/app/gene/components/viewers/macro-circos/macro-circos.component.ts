@@ -1,5 +1,6 @@
 // Angular
-import { Component, ElementRef, OnDestroy, ViewChild } from '@angular/core';
+import { Component, ElementRef, Input, OnDestroy, ViewChild }
+  from '@angular/core';
 // app
 import { GCV } from '@gcv-assets/js/gcv';
 
@@ -9,10 +10,13 @@ import { GCV } from '@gcv-assets/js/gcv';
   styleUrls: ['../golden-viewer.scss'],
   template: `
     <context-menu (saveImage)="saveImage()"></context-menu>
-    <div class="viewer" #container></div>
+    <div class="viewer" #container>Macro-circos</div>
   `,
 })
 export class MacroCircosComponent implements OnDestroy {
+
+  @Input() clusterID: number;
+  @Input() options: any = {};
 
   @ViewChild('container', {static: true}) container: ElementRef;
 

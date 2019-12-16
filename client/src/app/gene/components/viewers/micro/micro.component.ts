@@ -1,13 +1,13 @@
 // Angular + dependencies
 import { AfterViewInit, Component, ElementRef, EventEmitter, Input, OnDestroy,
-  Output, ViewChild } from '@angular/core';
+  OnInit, Output, ViewChild } from '@angular/core';
 import { Observable, Subject, combineLatest } from 'rxjs';
 import { map, switchMap, takeUntil } from 'rxjs/operators';
 // app
 import { GCV } from '@gcv-assets/js/gcv';
 import { saveFile } from '@gcv/core/utils';
 import { Gene, Track } from '@gcv/gene/models';
-import { ClusterMixin } from '@gcv/gene/models/mixins';
+import { AlignmentMixin, ClusterMixin } from '@gcv/gene/models/mixins';
 import { GeneService, MicroTracksService } from '@gcv/gene/services';
 // component
 import { microShim } from './micro.shim';
@@ -17,33 +17,61 @@ import { microShim } from './micro.shim';
   selector: 'micro',
   styleUrls: ['../golden-viewer.scss'],
   template: `
-    <context-menu (saveImage)="saveImage()"></context-menu>
+    <context-menu (saveImage)="saveImage()">
+      <ul class="navbar-nav mr-auto">
+        <li *ngIf="showMacro()" class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            Macro Viewers
+          </a>
+          <div *ngIf="queryTracks|async as tracks" class="dropdown-menu" aria-labelledby="navbarDropdown">
+            <div *ngIf="showCircos()">
+              <h6 class="dropdown-header">Multi</h6>
+              <a [routerLink]="" queryParamsHandling="preserve" class="dropdown-item" (click)="emitCircos(tracks)">Circos</a>
+            </div>
+            <div *ngIf="showCircos() && showReference()" class="dropdown-divider"></div>
+            <div *ngIf="showReference()">
+              <h6 class="dropdown-header">Reference</h6>
+              <a [routerLink]="" queryParamsHandling="preserve" *ngFor="let track of tracks" class="dropdown-item" (click)="emitReference(track)">{{ track.name }}</a>
+            </div>
+          </div>
+        </li>
+      </ul>
+    </context-menu>
     <div class="viewer" #container></div>
   `,
 })
-export class MicroComponent implements AfterViewInit, OnDestroy {
+export class MicroComponent implements AfterViewInit, OnDestroy, OnInit {
 
   @Input() clusterID: number;
   @Input() options: any = {};
+  // viewer
   @Output() plotClick = new EventEmitter();
   @Output() geneClick = new EventEmitter();
   @Output() geneOver = new EventEmitter();
   @Output() nameClick = new EventEmitter();
+  // context menu
+  @Output() circos = new EventEmitter();
+  @Output() reference = new EventEmitter();
 
   @ViewChild('container', {static: true}) container: ElementRef;
 
   private _destroy: Subject<boolean> = new Subject();
   private _viewer;
 
+  queryTracks: Observable<(Track | ClusterMixin | AlignmentMixin)[]>;
+
   constructor(private _geneService: GeneService,
               private _microTracksService: MicroTracksService) { }
 
   // Angular hooks
 
+  ngOnInit() {
+    this.queryTracks =
+      this._microTracksService.getSelectedClusterTracks(this.clusterID);
+  }
+
   ngAfterViewInit() {
     const queryGenes = this._geneService.getQueryGenes();
-    const queryTracks =
-      this._microTracksService.getSelectedClusterTracks(this.clusterID);
     const allTracks = this._microTracksService.getAllTracks();
     const genes = allTracks.pipe(
         map((tracks) => {
@@ -55,7 +83,7 @@ export class MicroComponent implements AfterViewInit, OnDestroy {
         }),
       );
     // fetch own data because injected components don't have change detection
-    combineLatest(queryGenes, queryTracks, allTracks, genes)
+    combineLatest(queryGenes, this.queryTracks, allTracks, genes)
       .pipe(takeUntil(this._destroy))
       .subscribe(([queryGenes, queryTracks, allTracks, genes]) => {
         this._draw(queryGenes, queryTracks, allTracks, genes);
@@ -86,10 +114,30 @@ export class MicroComponent implements AfterViewInit, OnDestroy {
     this.nameClick.emit({track});
   }
 
+  emitCircos(tracks) {
+    this.circos.emit({tracks});
+  }
+
+  emitReference(track) {
+    this.reference.emit({track});
+  }
+
   saveImage(): void {
     if (this._viewer !== undefined) {
       saveFile('micro-synteny', this._viewer.xml(), 'image/svg+xml', 'svg');
     }
+  }
+
+  showCircos(): boolean {
+    return this.circos.observers.length > 0;
+  }
+
+  showReference(): boolean {
+    return this.reference.observers.length > 0;
+  }
+
+  showMacro(): boolean {
+    return this.showCircos() || this.showReference();
   }
 
   // private
