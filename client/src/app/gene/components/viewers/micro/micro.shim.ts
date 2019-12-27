@@ -1,3 +1,6 @@
+import { geneMap } from '@gcv/gene/models/shims';
+
+
 // use the "breakpoint reversal sort" technique to identify segments
 // (inversions and rearrangements) and their orientations
 function _coordinatesToSegments(a: any[]) {
@@ -28,8 +31,7 @@ function _coordinatesToSegments(a: any[]) {
 
 
 function _tracksToData(tracks, genes) {
-  const geneMap = {};
-  genes.forEach((g) => geneMap[g.name] = g);
+  const map = geneMap(genes);
   return tracks.map((t, j) => {
       // make track
       const track = {
@@ -50,8 +52,8 @@ function _tracksToData(tracks, genes) {
               fmin: 0,
               fmax: 0
             };
-          if (name in geneMap) {
-            Object.assign(gene, geneMap[name]);
+          if (name in map) {
+            Object.assign(gene, map[name]);
           }
           track.genes.push(gene);
         }

@@ -3,6 +3,10 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable, throwError } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
+// store
+import { Store, select } from '@ngrx/store';
+import * as fromRoot from '@gcv/gene/store/reducers';
+import * as fromChromosome from '@gcv/gene/store/selectors/chromosome/';
 // app
 import { Track } from '@gcv/gene/models';
 import { HttpService } from '@gcv/core/services/http.service';
@@ -11,7 +15,8 @@ import { HttpService } from '@gcv/core/services/http.service';
 @Injectable()
 export class ChromosomeService extends HttpService {
 
-  constructor(private _http: HttpClient) {
+  constructor(private _http: HttpClient,
+              private _store: Store<fromRoot.State>) {
     super(_http);
   }
 
@@ -28,6 +33,16 @@ export class ChromosomeService extends HttpService {
         return c;
       }),
       catchError((error) => throwError(error)),
+    );
+  }
+
+  getSelectedChromosomes(): Observable<Track[]> {
+    return this._store.select(fromChromosome.getSelectedChromosomes);
+  }
+
+  getSelectedChromosomesForCluster(clusterID: number): Observable<Track[]> {
+    return this._store.pipe(
+      select(fromChromosome.getSelectedChromosomesForCluster(clusterID))
     );
   }
 }

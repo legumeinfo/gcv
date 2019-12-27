@@ -1,7 +1,7 @@
 export class PairwiseBlock {
   orientation: '+' | '-';
-  referenceFmin: number;
-  referenceFmax: number;
-  chromosomeFmin: number;
-  chromosomeFmax: number;
+  i: number;
+  j: number;
+  fmin: number;
+  fmax: number;
 }

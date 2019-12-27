@@ -4,7 +4,7 @@ import { createSelector } from '@ngrx/store';
 import { getSelectedChromosomeIDs }
   from '@gcv/gene/store/selectors/chromosome/selected-chromosomes.selector';
 import * as fromRouter from '@gcv/gene/store/selectors/router';
-import { ChromosomeID } from '@gcv/gene/store/reducers/chromosome.reducer';
+import { TrackID } from '@gcv/gene/store/utils';
 import { initialState, partialPairwiseBlocksID, PartialPairwiseBlocksID, State }
   from '@gcv/gene/store/reducers/pairwise-blocks.reducer';
 import { getPairwiseBlocksState } from './pairwise-blocks-state.selector';
@@ -16,7 +16,7 @@ export const getSelectedPartialBlockIDs = createSelector(
   getPairwiseBlocksState,
   getSelectedChromosomeIDs,
   fromRouter.getSources,
-  (state: State, ids: ChromosomeID[], sources: string[]):
+  (state: State, ids: TrackID[], sources: string[]):
   PartialPairwiseBlocksID[] => {
     const reducer = (accumulator, {name: reference, source: referenceSource}) =>
       {
@@ -38,15 +38,13 @@ export const getSelectedPairwiseBlocks = createSelector(
   getSelectedPartialBlockIDs,
   (state: State, ids: PartialPairwiseBlocksID[]):
   PairwiseBlocks[] => {
-    const idStrings = ids.map(({reference, referenceSource, source}) => {
-        return `${reference}:${referenceSource}:${source}`;
-      });
+    const idStrings = ids.map((id) => partialPairwiseBlocksID(id));
     const partialBlockIDset = new Set(idStrings);
     const reducer = (accumulator, id) => {
         const [reference, referenceSource, chromosome, chromosomeSource] =
           id.split(':');
-        const partialID = partialPairwiseBlocksID(reference, referenceSource,
-          chromosomeSource);
+        const partialID =
+          partialPairwiseBlocksID(reference, referenceSource, chromosomeSource);
         if (partialBlockIDset.has(partialID)) {
           const blocks = state.entities[id];
           accumulator.push(blocks);

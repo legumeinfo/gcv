@@ -1,11 +1,11 @@
 // NgRx
 import { createSelector } from '@ngrx/store';
 // store
-import { chromosomeID, ChromosomeID, State }
-  from '@gcv/gene/store/reducers/chromosome.reducer';
+import { State } from '@gcv/gene/store/reducers/chromosome.reducer';
 import { getMicroQueryParamNeighbors } from '@gcv/gene/store/selectors/router/';
 import { getSelectedGenes }
   from '@gcv/gene/store/selectors/gene/selected-genes.selector';
+import { trackID, TrackID } from '@gcv/gene/store/utils';
 import { getChromosomeState } from './chromosome-state.selector';
 // app
 import { Gene, Track } from '@gcv/gene/models';
@@ -14,11 +14,11 @@ import { Gene, Track } from '@gcv/gene/models';
 // derive selected chromosome from Gene State
 export const getSelectedChromosomeIDs = createSelector(
   getSelectedGenes,
-  (genes: Gene[]): ChromosomeID[] => {
+  (genes: Gene[]): TrackID[] => {
     const reducer = (accumulator, gene) => {
         const name = gene.chromosome;
         const source = gene.source;
-        const id = chromosomeID(name, source);
+        const id = trackID(name, source);
         accumulator[id] = {name, source}; 
         return accumulator;
       };
@@ -30,9 +30,9 @@ export const getSelectedChromosomeIDs = createSelector(
 export const getSelectedChromosomes = createSelector(
   getChromosomeState,
   getSelectedChromosomeIDs,
-  (state: State, ids: ChromosomeID[]): Track[] => {
+  (state: State, ids: TrackID[]): Track[] => {
     const reducer = (accumulator, {name, source}) => {
-        const id = chromosomeID(name, source);
+        const id = trackID(name, source);
         if (id in state.entities) {
           accumulator[id] = state.entities[id];
         }
@@ -81,11 +81,11 @@ export const getSelectedSlices = createSelector(
 export const getUnloadedSelectedChromosomeIDs = createSelector(
   getChromosomeState,
   getSelectedChromosomeIDs,
-  (state: State, ids: ChromosomeID[]): ChromosomeID[] => {
-    const loadingIDs = new Set(state.loading.map(chromosomeID));
-    const loadedIDs = new Set(state.loaded.map(chromosomeID));
+  (state: State, ids: TrackID[]): TrackID[] => {
+    const loadingIDs = new Set(state.loading.map(trackID));
+    const loadedIDs = new Set(state.loaded.map(trackID));
     const unloadedIDs = ids.filter((id) => {
-        const idString = chromosomeID(id);
+        const idString = trackID(id);
         return !loadingIDs.has(idString) && !loadedIDs.has(idString);
       });
     return unloadedIDs;

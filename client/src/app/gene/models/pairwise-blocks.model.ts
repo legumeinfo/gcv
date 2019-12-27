@@ -5,7 +5,7 @@ export class PairwiseBlocks {
   referenceSource: string;
   chromosome: string;
   chromosomeSource: string;
-  genus: string;
-  species: string;
+  chromosomeGenus: string;
+  chromosomeSpecies: string;
   blocks: PairwiseBlock[];
 }

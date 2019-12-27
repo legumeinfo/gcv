@@ -4,13 +4,24 @@ import { HttpClient } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 // store
-import { Store } from '@ngrx/store';
+import { Store, select } from '@ngrx/store';
+import * as pairwiseBlocksActions
+  from '@gcv/gene/store/actions/pairwise-blocks.actions';
 import * as routerActions from '@gcv/core/store/actions/router.actions';
 import * as fromRoot from '@gcv/gene/store/reducers';
+import * as fromPairwiseBlocks from '@gcv/gene/store/selectors/pairwise-blocks/';
 // app
-import { PairwiseBlocks, Track } from '@gcv/gene/models';
+import { PairwiseBlocks, PairwiseBlock, Track } from '@gcv/gene/models';
 import { BlockParams } from '@gcv/gene/models/params';
 import { HttpService } from '@gcv/core/services/http.service';
+
+
+type RawPairwiseBlocks = {
+  chromosome: string,
+  genus: string,
+  species: string,
+  blocks: PairwiseBlock[],
+};
 
 
 @Injectable()
@@ -24,8 +35,8 @@ export class PairwiseBlocksService extends HttpService {
     chromosome: Track,
     blockParams: BlockParams,
     serverID: string,
-    targets: string[] = [],
-  ): Observable<PairwiseBlocks[]> {
+    targets: string[] = []):
+  Observable<PairwiseBlocks[]> {
     const body = {
       families: chromosome.families,
       intermediate: blockParams.bintermediate,
@@ -33,17 +44,41 @@ export class PairwiseBlocksService extends HttpService {
       matched: blockParams.bmatched,
       targets,
     };
-    return this._makeRequest<{blocks: PairwiseBlocks[]}>(serverID, 'macro', body).pipe(
+    return this._makeRequest<{blocks: RawPairwiseBlocks[]}>(serverID, 'blocks', body).pipe(
       map((result) => {
-        const blocks = result.blocks;
-        blocks.forEach((pair) => {
-          pair.referenceSource = chromosome.source;
-          pair.chromosomeSource = serverID;
+        const blocks = result.blocks.map((block) => {
+          return {
+            reference: chromosome.name,
+            referenceSource: chromosome.source,
+            chromosome: block.chromosome,
+            chromosomeSource: serverID,
+            chromosomeGenus: block.genus,
+            chromosomeSpecies: block.species,
+            blocks: block.blocks,
+          };
         });
         return blocks;
       }),
       catchError((error) => throwError(error)),
     );
+  }
+
+  getPairwiseBlocksForTracks(
+    tracks: Track[],
+    sources: string[],
+    params: BlockParams,
+    // TODO: targets should specify sources
+    targets: string[] = []):
+  Observable<PairwiseBlocks[]> {
+    const trackActions = tracks.map((t) => {
+        return sources.map((s) => {
+          const payload = {chromosome: t, source: s, params, targets};
+          return new pairwiseBlocksActions.Get(payload);
+        });
+      });
+    trackActions.forEach((ta) => ta.forEach((a) => this._store.dispatch(a)));
+    return this._store
+      .pipe(select(fromPairwiseBlocks.getPairwiseBlocks(tracks, sources)));
   }
 
   updateParams(params: BlockParams): void {

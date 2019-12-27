@@ -13,14 +13,14 @@ import { ClusterMixin } from '@gcv/gene/models/mixins';
 @Injectable()
 export class PlotsService {
 
-  constructor(private store: Store<fromRoot.State>) { }
+  constructor(private _store: Store<fromRoot.State>) { }
 
   getLocalPlots(track: (Track | ClusterMixin)): Observable<Plot[]> {
-    return this.store.pipe(select(fromPlots.getLocalPlots(track)));
+    return this._store.pipe(select(fromPlots.getLocalPlots(track)));
   }
 
   getGlobalPlots(track: (Track | ClusterMixin)): Observable<Plot[]> {
-    return this.store.pipe(select(fromPlots.getGlobalPlots(track)));
+    return this._store.pipe(select(fromPlots.getGlobalPlots(track)));
   }
 
 }

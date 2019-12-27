@@ -11,6 +11,7 @@
 import { createEntityAdapter, EntityState } from '@ngrx/entity';
 // store
 import * as chromosomeActions from '@gcv/gene/store/actions/chromosome.actions';
+import { TrackID, trackID } from '@gcv/gene/store/utils';
 // app
 import { Track } from '@gcv/gene/models';
 
@@ -18,29 +19,16 @@ declare var Object: any;  // because TypeScript doesn't support Object.values
 
 export const chromosomeFeatureKey = 'chromosome';
 
-export type ChromosomeID = {name: string, source: string};
-
-export function chromosomeID(name: string, source: string): string;
-export function chromosomeID({name, source}): string;
-export function chromosomeID(...args): string {
-  if (typeof args[0] === 'object') {
-    const id = args[0];
-    return chromosomeID(id.name, id.source);
-  }
-  const [name, source] = args;
-  return `${name}:${source}`;
-}
-
 const adapter = createEntityAdapter<Track>({
-  selectId: (e) => chromosomeID(e.name, e.source)
+  selectId: (e) => trackID(e.name, e.source)
 });
 
 // TODO: is loaded even necessary or can it be derived from entity ids and
 // selectedChromosomeIDs selector?
 export interface State extends EntityState<Track> {
-  failed: ChromosomeID[];
-  loaded: ChromosomeID[];
-  loading: ChromosomeID[];
+  failed: TrackID[];
+  loaded: TrackID[];
+  loading: TrackID[];
 }
 
 const initialState: State = adapter.getInitialState({

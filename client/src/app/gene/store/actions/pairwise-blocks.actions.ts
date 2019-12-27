@@ -14,7 +14,7 @@ export class Clear implements Action {
 export class Get implements Action {
   readonly type = GET;
   constructor(public payload: {chromosome: Track, source: string,
-    params: BlockParams}) { }
+    params: BlockParams, targets: string[]}) { }
 }
 
 export class GetSuccess implements Action {

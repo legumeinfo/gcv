@@ -18,33 +18,40 @@ declare var Object: any;  // because TypeScript doesn't support Object.values
 export const pairwiseBlocksFeatureKey = 'pairwiseblocks';
 
 export type PairwiseBlocksID = {
-  reference: string,
+  referenceName: string,
   referenceSource: string,
-  chromosome: string,
-  chromosomeSource: string
+  chromosomeName: string,
+  chromosomeSource: string,
 };
 
 export type PartialPairwiseBlocksID = {
-  reference: string,
+  referenceName: string,
   referenceSource: string,
-  source: string
+  source: string,
+};
+
+export function singleID(name: string, source: string): string {
+  return `${name}:${source}`;
 };
 
 const pairwiseBlocksID = (reference: string, referenceSource: string,
 chromosome: string, chromosomeSource: string) => {
-  return `${reference}:${referenceSource}:${chromosome}:${chromosomeSource}`;
+  const referenceID = singleID(reference, referenceSource);
+  const chromosomeID = singleID(chromosome, chromosomeSource);
+  return `${referenceID}:${chromosomeID}`;
 };
 
 export function partialPairwiseBlocksID(reference: string,
   referenceSource: string, source: string): string;
-export function partialPairwiseBlocksID({reference, referenceSource, source}): string;
+export function partialPairwiseBlocksID({referenceName, referenceSource, source}): string;
 export function partialPairwiseBlocksID(...args): string {
   if (typeof args[0] === 'object') {
     const id = args[0];
-    return partialPairwiseBlocksID(id.reference, id.referenceSource, id.source);
+    return partialPairwiseBlocksID(id.reference.name, id.reference.source, id.source);
   }
-  const [reference, referenceSource, source] = args;
-  return `${reference}:${referenceSource}:${source}`;
+  const [referenceName, referenceSource, source] = args;
+  const referenceID = singleID(referenceName, referenceSource);
+  return `${referenceID}:${source}`;
 };
 
 const adapter = createEntityAdapter<PairwiseBlocks>({
@@ -83,7 +90,7 @@ export function reducer(
       const chromosome = action.payload.chromosome;
       const source = action.payload.source;
       const partialID = {
-          reference: chromosome.name,
+          referenceName: chromosome.name,
           referenceSource: chromosome.source,
           source,
         };
@@ -97,7 +104,7 @@ export function reducer(
       const source = action.payload.source;
       const blocks = action.payload.blocks;
       const partialID = {
-          reference: chromosome.name,
+          referenceName: chromosome.name,
           referenceSource: chromosome.source,
           source,
         };
@@ -107,8 +114,8 @@ export function reducer(
           ...state,
           loaded: state.loaded.concat(partialID),
           loading: state.loading.filter(
-          ({reference, referenceSource, source}) => {
-            return !(reference === partialID.reference &&
+          ({referenceName, referenceSource, source}) => {
+            return !(referenceName === partialID.referenceName &&
                      referenceSource === partialID.referenceSource &&
                      source === partialID.source);
           }),
@@ -120,7 +127,7 @@ export function reducer(
       const chromosome = action.payload.chromosome;
       const source = action.payload.source;
       const partialID = {
-          reference: chromosome.name,
+          referenceName: chromosome.name,
           referenceSource: chromosome.source,
           source,
         };
@@ -128,8 +135,8 @@ export function reducer(
         ...state,
         failed: state.failed.concat(partialID),
         loading: state.loading.filter(
-        ({reference, referenceSource, source}) => {
-          return !(reference === partialID.reference &&
+        ({referenceName, referenceSource, source}) => {
+          return !(referenceName === partialID.referenceName &&
                    referenceSource === partialID.referenceSource &&
                    source === partialID.source);
         }),
