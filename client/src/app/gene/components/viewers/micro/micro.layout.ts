@@ -13,7 +13,7 @@ export function microConfigFactory(clusterID: number, outputs: any={}) {
       geneOver: (e, gene, family, source) => { /* no-op */ },
       nameClick: (id, track) => { /* no-op */ },
       circos: (id, tracks) => { /* no-op */ },
-      reference: (id, name, source) => { /* no-op */ },
+      reference: (id, name, source, clusterID) => { /* no-op */ },
     };
   _outputs = Object.assign(_outputs, outputs);
   return  {
@@ -35,7 +35,9 @@ export function microConfigFactory(clusterID: number, outputs: any={}) {
         },
         nameClick: ({track}) => _outputs.nameClick(id, track),
         circos: ({tracks}) => _outputs.circos(id, clusterID),
-        reference: ({track}) => _outputs.reference(id, track.name, track.source),
+        reference: ({track}) => {
+          _outputs.reference(id, track.name, track.source, clusterID);
+        },
       },
     },
     isClosable: false

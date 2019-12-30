@@ -27,6 +27,7 @@ export class MacroComponent implements AfterViewInit, OnDestroy {
 
   @Input() name: string;
   @Input() source: string;
+  @Input() clusterID: number;
   @Input() options: any = {};
 
   @ViewChild('container', {static: true}) container: ElementRef;
@@ -48,6 +49,7 @@ export class MacroComponent implements AfterViewInit, OnDestroy {
       .pipe(
         mergeAll(),
         filter((t) => nameSourceID(t.name, t.source) == queryID));
+    const clusterTracks = this._microTracksService.getCluster(this.clusterID);
     const queryChromosome = this._chromosomeService.getSelectedChromosomes()
       .pipe(
         mergeAll(),
@@ -75,10 +77,16 @@ export class MacroComponent implements AfterViewInit, OnDestroy {
           return this._geneService.getGenesForTracks(tracks);
         }),
       );
-    combineLatest(queryChromosome, queryTrack, pairwiseBlocks, blockGenes)
+    combineLatest(
+      queryChromosome,
+      queryTrack,
+      clusterTracks,
+      pairwiseBlocks,
+      blockGenes
+    )
       .pipe(takeUntil(this._destroy))
-      .subscribe(([chromosome, query, blocks, genes]) => {
-        this._draw(chromosome, query, blocks, genes);
+      .subscribe(([chromosome, query, tracks, blocks, genes]) => {
+        this._draw(chromosome, query, tracks, blocks, genes);
       });
   }
 
@@ -96,11 +104,12 @@ export class MacroComponent implements AfterViewInit, OnDestroy {
     }
   }
 
-  private _draw(chromosome, query, blocks, genes): void {
+  private _draw(chromosome, query, tracks, blocks, genes): void {
     this._destroyViewer();
-    const {data, viewport} = macroShim(chromosome, query, blocks, genes);
+    const {data, viewport, highlight} =
+      macroShim(chromosome, query, tracks, blocks, genes);
     const colors = getMacroColors([chromosome]);
-    let options = {colors, viewport};
+    let options = {colors, viewport, highlight};
     options = Object.assign(options, this.options);
     this._viewer = new GCV.visualization.Macro(
       this.container.nativeElement,

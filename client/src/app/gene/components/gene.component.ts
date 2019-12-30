@@ -132,8 +132,8 @@ export class GeneComponent implements AfterViewInit, OnDestroy {
           const args = [clusterID];
           this._stackItem(id, fromViewers.macroCircosConfigFactory, ...args);
         },
-        reference: (id, name, source) => {
-          const args = [name, source];
+        reference: (id, name, source, clusterID) => {
+          const args = [name, source, clusterID];
           this._stackItem(id, fromViewers.macroConfigFactory, ...args);
         }
       };
