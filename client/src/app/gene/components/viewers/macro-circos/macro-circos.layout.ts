@@ -6,8 +6,8 @@ export const macroCircosLayoutComponent =
 
 
 export function macroCircosConfigFactory(clusterID: number, outputs: any={}) {
-  const id = `macrocircos${clusterID}`;
-  const options = {autoResize: true};
+  const id = `macrocircos:${clusterID}`;
+  const options = {autoResize: true/*,replicateBlocks: true*/};
   let _outputs = {};
   _outputs = Object.assign(_outputs, outputs);
   return  {

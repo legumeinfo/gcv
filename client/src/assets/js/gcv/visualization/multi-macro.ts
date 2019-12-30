@@ -231,6 +231,11 @@ export class MultiMacro {
         innerRadius: chordInnerRadius,
         outerRadius: chordOuterRadius,
         tooltipContent: null,
+        // NOTE: same as "viewport" class from gcv.css
+        color: '#CCCCCC',
+        strokeWidth: 1,
+        strokeColor: '#000000',
+        opacity: 0.4,
       })
       .render()
 

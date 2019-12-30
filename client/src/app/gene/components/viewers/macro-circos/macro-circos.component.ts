@@ -5,14 +5,15 @@ import { Subject, combineLatest } from 'rxjs';
 import { map, switchMap, takeUntil } from 'rxjs/operators';
 // app
 import { GCV } from '@gcv-assets/js/gcv';
-import { AppConfig } from '@gcv/app.config';
 import { saveFile } from '@gcv/core/utils';
 import { Track } from '@gcv/gene/models';
-import { blockIndexMap, nameSourceID } from '@gcv/gene/models/shims';
-import { ChromosomeService, GeneService, PairwiseBlocksService, ParamsService }
-  from '@gcv/gene/services';
+import { blockIndexMap, endpointGenesShim, nameSourceID }
+  from '@gcv/gene/models/shims';
+import { ChromosomeService, GeneService, MicroTracksService,
+  PairwiseBlocksService, ParamsService } from '@gcv/gene/services';
+import { getMacroColors } from '@gcv/gene/utils';
 // component
-import { endpointGenesShim, macroCircosShim } from './macro-circos.shim';
+import { macroCircosShim } from './macro-circos.shim';
 
 
 @Component({
@@ -35,13 +36,15 @@ export class MacroCircosComponent implements AfterViewInit, OnDestroy {
 
   constructor(private _chromosomeService: ChromosomeService,
               private _geneService: GeneService,
+              private _microTracksService: MicroTracksService,
               private _pairwiseBlocksService: PairwiseBlocksService,
               private _paramsService: ParamsService) { }
 
   // Angular hooks
 
   ngAfterViewInit() {
-    const trackID = (track) => `${track.name}:${track.source}`;
+    const queryTracks = this._microTracksService
+      .getSelectedClusterTracks(this.clusterID);
     const queryChromosomes = this._chromosomeService
       .getSelectedChromosomesForCluster(this.clusterID);
     const sourceParams = this._paramsService.getSourceParams();
@@ -55,22 +58,23 @@ export class MacroCircosComponent implements AfterViewInit, OnDestroy {
             .getPairwiseBlocksForTracks(chromosomes, _sources, params, targets);
         }),
       );
-    const blockGenes = combineLatest(queryChromosomes, pairwiseBlocks).pipe(
-        map(([chromosomes, blocks]) => {
+    const blockGenes =
+      combineLatest(queryTracks, queryChromosomes, pairwiseBlocks).pipe(
+        map(([queries, chromosomes, blocks]) => {
           const chromosomeGeneIndexes = blockIndexMap(blocks);
           // create chromosome copies that only contain index gene
           const geneChromosomes = chromosomes
             .map((c) => endpointGenesShim(c, chromosomeGeneIndexes));
-          return geneChromosomes;
+          return queries.concat(geneChromosomes);
         }),
-        switchMap((geneChromosomes) => {
-          return this._geneService.getGenesForTracks(geneChromosomes);
+        switchMap((tracks) => {
+          return this._geneService.getGenesForTracks(tracks as Track[]);
         }),
       );
-    combineLatest(queryChromosomes, pairwiseBlocks, blockGenes)
+    combineLatest(queryTracks, queryChromosomes, pairwiseBlocks, blockGenes)
       .pipe(takeUntil(this._destroy))
-      .subscribe(([chromosomes, blocks, genes]) => {
-        this._draw(chromosomes, blocks, genes);
+      .subscribe(([queries, chromosomes, blocks, genes]) => {
+        this._draw(queries, chromosomes, blocks, genes);
       });
   }
 
@@ -88,26 +92,12 @@ export class MacroCircosComponent implements AfterViewInit, OnDestroy {
     }
   }
 
-  private _getColors(chromosomes): any {
-    if (chromosomes.length == 0) {
-      return undefined;
-    }
-    const s: any = AppConfig.getServer(chromosomes[0].source);
-    if (s !== undefined && s.macroColors !== undefined) {
-      return s.macroColors.function;
-    }
-    return undefined;
-  }
-
-  private _draw(chromosomes, blocks, genes): void {
-    const colors = this._getColors(chromosomes);
+  private _draw(queries, chromosomes, blocks, genes): void {
     this._destroyViewer();
-    const data = macroCircosShim(chromosomes, blocks, genes);
-    let options = {
-      autoResize: true,
-      colors,
-      //replicateBlocks: true,
-    };
+    const {data, highlight} =
+      macroCircosShim(queries, chromosomes, blocks, genes);
+    const colors = getMacroColors(chromosomes);
+    let options = {colors, highlight};
     options = Object.assign(options, this.options);
     this._viewer = new GCV.visualization.MultiMacro(
       this.container.nativeElement,

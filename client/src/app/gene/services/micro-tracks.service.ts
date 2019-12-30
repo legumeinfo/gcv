@@ -46,6 +46,10 @@ export class MicroTracksService extends HttpService {
     this._store.dispatch(new routerActions.Go({path: [url, { routeParam: 1 }]}));
   }
 
+  getSelectedTracks(): Observable<Track[]> {
+    return this._store.select(fromMicroTracks.getSelectedMicroTracks);
+  }
+
   getClusterIDs(): Observable<number[]> {
     return this._store.select(fromMicroTracks.getClusterIDs);
   }

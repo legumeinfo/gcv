@@ -14,7 +14,7 @@ export function macroConfigFactory(name: string, source: string, outputs: any={}
     type: 'component',
     componentName: 'macro',
     id: id,
-    title: `${name} Macro Synteny`,
+    title: `${name} (${source}) Macro Synteny`,
     componentState: {
       inputs: {name, source, options},
       outputs: _outputs,

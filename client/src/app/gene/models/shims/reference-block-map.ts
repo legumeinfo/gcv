@@ -6,7 +6,7 @@ export type ReferenceBlockMap = {[key: string]: PairwiseBlocks[]};
 
 
 // bin blocks by reference chromosome+source
-export function blockReferenceMap(pairwiseBlocks: PairwiseBlocks[]):
+export function referenceBlockMap(pairwiseBlocks: PairwiseBlocks[]):
 ReferenceBlockMap {
   const reducer = (accumulator, pairBlocks) => {
       const {reference, referenceSource} = pairBlocks;
