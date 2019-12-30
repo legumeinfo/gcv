@@ -5,6 +5,7 @@ import { Subject, combineLatest } from 'rxjs';
 import { filter, map, mergeAll, switchMap, takeUntil } from 'rxjs/operators';
 // app
 import { GCV } from '@gcv-assets/js/gcv';
+import { saveFile } from '@gcv/core/utils';
 import { blockIndexMap, endpointGenesShim, nameSourceID }
   from '@gcv/gene/models/shims';
 import { ChromosomeService, GeneService, MicroTracksService,
@@ -18,7 +19,7 @@ import { macroShim } from './macro.shim';
   selector: 'macro',
   styleUrls: ['../golden-viewer.scss'],
   template: `
-    <context-menu></context-menu>
+    <context-menu (saveImage)="saveImage()"></context-menu>
     <div class="viewer" #container></div>
   `,
 })
@@ -105,5 +106,13 @@ export class MacroComponent implements AfterViewInit, OnDestroy {
       this.container.nativeElement,
       data,
       options);
+  }
+
+  // public
+
+  saveImage(): void {
+    if (this._viewer !== undefined) {
+      saveFile('macro', this._viewer.xml(), 'image/svg+xml', 'svg');
+    }
   }
 }
