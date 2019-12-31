@@ -1,26 +1,25 @@
 // Angular + dependencies
 import { AfterViewInit, Component, ElementRef, EventEmitter, Input, OnDestroy,
   Output, ViewChild } from '@angular/core';
-import { Observable, Subject, combineLatest } from 'rxjs';
-import { map, takeUntil } from 'rxjs/operators';
+import { Subject, combineLatest } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 // app
 import { GCV } from '@gcv-assets/js/gcv';
 import { saveFile } from '@gcv/core/utils';
-import { Gene, Track } from '@gcv/gene/models';
-import { AlignmentMixin, ClusterMixin } from '@gcv/gene/models/mixins';
-import { GeneService, MicroTracksService } from '@gcv/gene/services';
-import { microLegendShim } from './micro-legend.shim';
+import { MicroTracksService } from '@gcv/gene/services';
+import { getMacroColors } from '@gcv/gene/utils';
+import { macroLegendShim } from './macro-legend.shim';
 
 
 @Component({
-  selector: 'micro-legend',
+  selector: 'macro-legend',
   styleUrls: ['../golden-viewer.scss'],
   template: `
     <context-menu (saveImage)="saveImage()"></context-menu>
     <div class="viewer" #container></div>
   `,
 })
-export class MicroLegendComponent implements AfterViewInit, OnDestroy {
+export class MacroLegendComponent implements AfterViewInit, OnDestroy {
 
   @Input() options: any = {};
   @Output() click = new EventEmitter();
@@ -30,18 +29,17 @@ export class MicroLegendComponent implements AfterViewInit, OnDestroy {
   private _destroy: Subject<boolean> = new Subject();
   private _viewer;
 
-  constructor(private _geneService: GeneService,
-              private _microTracksService: MicroTracksService) { }
+  constructor(private _microTracksService: MicroTracksService) { }
 
   // Angular hooks
 
   ngAfterViewInit() {
     // fetch own data because injected components don't have change detection
-    const queryGenes = this._geneService.getQueryGenes();
+    const selectedTracks = this._microTracksService.getSelectedTracks();
     const tracks = this._microTracksService.getAllTracks();
-    combineLatest(tracks, queryGenes)
+    combineLatest(selectedTracks, tracks)
       .pipe(takeUntil(this._destroy))
-      .subscribe(([tracks, queryGenes]) => this._draw(tracks, queryGenes));
+      .subscribe(([queries, tracks]) => this._draw(queries, tracks));
   }
 
   ngOnDestroy() {
@@ -58,7 +56,7 @@ export class MicroLegendComponent implements AfterViewInit, OnDestroy {
 
   saveImage(): void {
     if (this._viewer !== undefined) {
-      saveFile('micro-legend', this._viewer.xml(), 'image/svg+xml', 'svg');
+      saveFile('macro-legend', this._viewer.xml(), 'image/svg+xml', 'svg');
     }
   }
 
@@ -70,20 +68,18 @@ export class MicroLegendComponent implements AfterViewInit, OnDestroy {
     }
   }
 
-  private _draw(tracks, queryGenes): void {
+  private _draw(queries, tracks): void {
     this._destroyViewer();
-    const {data, singletons} = microLegendShim(tracks);
-    let options = {
-        blank: singletons,
-        blankDashed: {name: "Orphans", id: ''},
-        highlight: queryGenes.map((g) => g.family),
-        keyClick: (k) => this.emitClick(k.id),
-        selector: 'family',
-      };
+    const {data, highlight} = macroLegendShim(queries, tracks);
+    let colors = getMacroColors(queries);
+    if (colors === undefined) {
+      colors = (organism) => '#000000';
+    }
+    let options = {highlight, selector: 'organism'};
     options = Object.assign(options, this.options);
     this._viewer = new GCV.visualization.Legend(
         this.container.nativeElement,
-        GCV.common.colors,
+        colors,
         data,
         options);
   }
