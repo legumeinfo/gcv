@@ -11,8 +11,14 @@ import { GeneService } from '@gcv/gene/services';
   selector: 'gene-tooltip',
   template: `
     <b>{{ gene }}</b> ({{ source }})
-    <div *ngIf="instance|async; let g">
-    {{ g.fmin }}-{{ g.fmax }}
+    <div *ngIf="instance|async; else loading; let g">
+      {{ g.fmin }}-{{ g.fmax }}
+    </div>
+    <ng-template #loading>
+      <div>
+        <i class="fas fa-circle-notch fa-spin"></i>
+      </div>
+    </ng-template>
   `,
 })
 export class GeneTooltipComponent implements OnInit {

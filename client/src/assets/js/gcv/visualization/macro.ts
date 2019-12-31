@@ -106,6 +106,7 @@ export class Macro extends Visualizer {
     this.options = Object.assign({}, options);
     this.options.nameClick = this.options.nameClick || ((y, i) => { /* noop */ });
     this.options.blockClick = this.options.blockClick || ((b) => { /* noop */ });
+    this.options.blockOver = this.options.blockOver || ((e, t, b) => { /* noop */ });
     this.options.viewportDrag = this.options.viewportDrag;
     this.options.viewport = this.options.viewport || false;
     this.options.autoResize = this.options.autoResize || false;
@@ -148,12 +149,6 @@ export class Macro extends Visualizer {
       });
     };
     this.decorateResize(resizeTracks);
-    // rotate the tips now that all the tracks have been drawn
-    tracks.forEach((t, i) => {
-      t.adjustTips();
-    });
-    // move all tips to front
-    this.viewer.selectAll(".synteny-tip").moveToFront();
     // draw the y-axis
     const yAxis = this.drawYAxis(ticks, t, b);
     this.left = Math.max(xAxis.labelWidth, yAxis.node().getBBox().width)
@@ -375,9 +370,13 @@ export class Macro extends Visualizer {
       .attr("data-reference-locus", (b) => b.query_start + ":" + b.query_stop)
       .attr("data-orientation", (b) => b.orientation)
       .style("cursor", "pointer")
-      .on("mouseover", function (b) {
+      .on("mouseover", function (b, j) {
+        const event = d3.event;
         obj.block = this;
-        obj.setTimeout(publishBlockEvent("select", b));
+        obj.setTimeout(() => {
+          publishBlockEvent("select", b)();
+          obj.options.blockOver(event, datum, i, b, j);
+        });
       })
       .on("mouseout", function (b) {
         obj.block = undefined;
@@ -440,25 +439,8 @@ export class Macro extends Visualizer {
         .attr("fill", "#e7e7e7")
         .moveToBack();
     }
-    // draw the tooltips
-    const tips = blocks.append("text")
-      .attr("class", "synteny-tip")
-      .attr("text-anchor", "end")
-      .text((b) => b.start + " - " + b.stop)
-      .attr("data-x", (b) => {
-        const x1 = b.query_start;
-        const x2 = b.query_stop;
-        return x1 + ((x2 - x1) / 2);
-      })
-      .attr("data-y", (b) => (obj.BLOCK_HEIGHT + obj.PAD) * (b.y + 1))
-      .attr("transform", function(b) {
-        const tip = d3.select(this);
-        const x = obj.scale(tip.attr("data-x"));
-        const y = tip.attr("data-y");
-        return "translate(" + x + ", " + y + ")";
-      });
     // how the blocks are resized
-    track.resize = function(polygons, tips) {
+    track.resize = function(polygons) {
       const obj = this;
       polygons.attr("points", function(b) {
         const block = d3.select(this);
@@ -467,29 +449,10 @@ export class Macro extends Visualizer {
         const yMiddle = block.attr("data-y-middle");
         return genPoints(b, yTop, yBottom, yMiddle);
       });
-      tips.attr("transform", function(b) {
-        const tip = d3.select(this);
-        const o = parseInt(tip.attr("data-offset"), 10);
-        const x = obj.scale(tip.attr("data-x")) + o;
-        const y = parseInt(tip.attr("data-y"), 10) - o;
-        return "translate(" + x + ", " + y + ") rotate(-45)";
-      });
       if (track.highlight !== undefined) {
         track.highlight.attr("width", this.viewer.attr("width"));
       }
-    }.bind(this, polygons, tips);
-    // how tips are adjusted so they don"t overflow the view
-    track.adjustTips = function(tips, resize) {
-      const vRect = obj.viewer.node().getBoundingClientRect();
-      tips.classed("synteny-tip", false)
-        .attr("data-offset", function(b) {
-          const tRect = this.getBoundingClientRect();
-          const d = Math.sqrt(Math.pow(tRect.width, 2) / 2);  // rotated height
-          return (tRect.bottom + d > vRect.bottom) ? d : 0;
-        })
-        .classed("synteny-tip", true);
-      resize();
-    }.bind(this, tips, track.resize);
+    }.bind(this, polygons);
     return track;
   }
 

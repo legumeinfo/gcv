@@ -7,7 +7,7 @@ import { map, switchMap, takeUntil } from 'rxjs/operators';
 import { GCV } from '@gcv-assets/js/gcv';
 import { saveFile } from '@gcv/core/utils';
 import { Track } from '@gcv/gene/models';
-import { blockIndexMap, endpointGenesShim, nameSourceID }
+import { blockIndexMap, endpointGenes, nameSourceID }
   from '@gcv/gene/models/shims';
 import { ChromosomeService, GeneService, MicroTracksService,
   PairwiseBlocksService, ParamsService } from '@gcv/gene/services';
@@ -64,7 +64,10 @@ export class MacroCircosComponent implements AfterViewInit, OnDestroy {
           const chromosomeGeneIndexes = blockIndexMap(blocks);
           // create chromosome copies that only contain index gene
           const geneChromosomes = chromosomes
-            .map((c) => endpointGenesShim(c, chromosomeGeneIndexes));
+            .map((c) => {
+              const id = nameSourceID(c.name, c.source);
+              return endpointGenes(c, chromosomeGeneIndexes[id]);
+            });
           return queries.concat(geneChromosomes);
         }),
         switchMap((tracks) => {

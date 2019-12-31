@@ -13,7 +13,9 @@ export function macroConfigFactory(
   // NOTE: should the id include end genes?
   const id = `macro:${name}:${source}`;
   const options = {autoResize: true};
-  let _outputs = {};
+  let _outputs = {
+      blockOver: (e, pairwiseBlocks, block) => { /* no-op */ },
+    };
   _outputs = Object.assign(_outputs, outputs);
   return  {
     type: 'component',
@@ -22,7 +24,11 @@ export function macroConfigFactory(
     title: `${name} (cluster ${clusterID}) Macro Synteny`,
     componentState: {
       inputs: {name, source, clusterID, options},
-      outputs: _outputs,
+      outputs: {
+        blockOver: ({event, pairwiseBlocks, block}) => {
+          _outputs.blockOver(event, pairwiseBlocks, block);
+        },
+      },
     },
   };
 }

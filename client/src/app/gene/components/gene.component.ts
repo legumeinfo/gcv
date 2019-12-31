@@ -118,7 +118,8 @@ export class GeneComponent implements AfterViewInit, OnDestroy {
           this.tooltipFactoryDirective.componentTip(e.target, config);
         },
         geneClick: (id, gene, family, source) => {
-          this._stackItem(id, fromDetails.geneDetailConfigFactory, gene, family, source);
+          this._stackItem(id, fromDetails.geneDetailConfigFactory, gene, family,
+            source);
         },
         geneOver: (e, gene, family, source) => {
           const inputs = {gene, source};
@@ -134,7 +135,15 @@ export class GeneComponent implements AfterViewInit, OnDestroy {
           this._stackItem(id, fromViewers.macroCircosConfigFactory, ...args);
         },
         reference: (id, name, source, clusterID) => {
-          const args = [name, source, clusterID];
+          const outputs = {
+              blockOver: (e, pairwiseBlocks, block) => {
+                const inputs = {pairwiseBlocks, block};
+                const config = fromTooltips
+                  .macroBlockTooltipConfigFactory(inputs, this._tipOptions);
+                this.tooltipFactoryDirective.componentTip(e.target, config);
+              }
+            };
+          const args = [name, source, clusterID, outputs];
           this._stackItem(id, fromViewers.macroConfigFactory, ...args);
         }
       };

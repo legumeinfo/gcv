@@ -3,7 +3,7 @@ import { Directive, ElementRef, Input } from '@angular/core';
 // app
 import { ComponentService } from '@gcv/gene/services';
 // dependencies
-import tippy from 'tippy.js';
+import tippy, { sticky } from 'tippy.js';
 
 
 @Directive({
@@ -51,6 +51,7 @@ export class TooltipFactoryDirective {
         onHidden: (instance) => {
           instance.destroy();
         },
+        plugins: [sticky],
       };
     _options = Object.assign(_options, options);
     const tip: any = tippy(target, _options);

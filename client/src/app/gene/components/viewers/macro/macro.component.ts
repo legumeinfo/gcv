@@ -1,12 +1,12 @@
 // Angular + dependencies
-import { AfterViewInit, Component, ElementRef, Input, OnDestroy, ViewChild }
-  from '@angular/core';
+import { AfterViewInit, Component, ElementRef, EventEmitter, Input, OnDestroy,
+  Output, ViewChild } from '@angular/core';
 import { Subject, combineLatest } from 'rxjs';
 import { filter, map, mergeAll, switchMap, takeUntil } from 'rxjs/operators';
 // app
 import { GCV } from '@gcv-assets/js/gcv';
 import { saveFile } from '@gcv/core/utils';
-import { blockIndexMap, endpointGenesShim, nameSourceID }
+import { blockIndexMap, endpointGenes, nameSourceID }
   from '@gcv/gene/models/shims';
 import { ChromosomeService, GeneService, MicroTracksService,
   PairwiseBlocksService, ParamsService } from '@gcv/gene/services';
@@ -29,6 +29,7 @@ export class MacroComponent implements AfterViewInit, OnDestroy {
   @Input() source: string;
   @Input() clusterID: number;
   @Input() options: any = {};
+  @Output() blockOver = new EventEmitter();
 
   @ViewChild('container', {static: true}) container: ElementRef;
 
@@ -69,8 +70,9 @@ export class MacroComponent implements AfterViewInit, OnDestroy {
         map(([query, chromosome, blocks]) => {
           const chromosomeGeneIndexes = blockIndexMap(blocks);
           // create chromosome copies that only contain index gene
+          const id = nameSourceID(chromosome.name, chromosome.source);
           const geneChromosome =
-            endpointGenesShim(chromosome, chromosomeGeneIndexes);
+            endpointGenes(chromosome, chromosomeGeneIndexes[id]);
           return [query, geneChromosome];
         }),
         switchMap((tracks) => {
@@ -109,7 +111,20 @@ export class MacroComponent implements AfterViewInit, OnDestroy {
     const {data, viewport, highlight} =
       macroShim(chromosome, query, tracks, blocks, genes);
     const colors = getMacroColors([chromosome]);
-    let options = {colors, viewport, highlight};
+    let options = {
+        colors,
+        viewport,
+        highlight,
+        blockOver: (e, t, i, b, j) => {
+          const pairwiseBlocks = blocks[i];
+          // NOTE: this is sloppy; is there a better way to get the block?
+          const block = pairwiseBlocks.blocks.find((block) => {
+              return (b.start == block.fmin && b.stop == block.fmax) ||
+                     (b.start == block.fmax && b.stop == block.fmin);
+            });
+          this.emitBlockOver(e, pairwiseBlocks, block);
+        },
+      };
     options = Object.assign(options, this.options);
     this._viewer = new GCV.visualization.Macro(
       this.container.nativeElement,
@@ -118,6 +133,10 @@ export class MacroComponent implements AfterViewInit, OnDestroy {
   }
 
   // public
+
+  emitBlockOver(event, pairwiseBlocks, block) {
+    this.blockOver.emit({event, pairwiseBlocks, block});
+  }
 
   saveImage(): void {
     if (this._viewer !== undefined) {

@@ -6,7 +6,11 @@ export const geneTooltipComponent =
 
 
 export function geneTooltipConfigFactory(inputs: any, tipOptions: any={}) {
-  let _tipOptions = Object.assign({distance: 20}, tipOptions);
+  let _tipOptions = {
+      distance: 20,
+      sticky: true,
+    };
+  _tipOptions = Object.assign(_tipOptions, tipOptions);
   return  {
     componentName: 'gene',
     componentState: {
