@@ -5,6 +5,7 @@ import { State, singleID }
   from '@gcv/gene/store/reducers/pairwise-blocks.reducer';
 import { getPairwiseBlocksState } from './pairwise-blocks-state.selector';
 // app
+import { arrayFlatten } from '@gcv/core/utils';
 import { Gene, PairwiseBlocks, Track } from '@gcv/gene/models';
 
 
@@ -40,6 +41,6 @@ export const getPairwiseBlocks =
   getPairwiseBlocksState,
   (state: State) => {
     const trackBlocks = getTrackPairwiseBlocksFromState(tracks, state);
-    return [].concat.apply([], trackBlocks);
+    return arrayFlatten(trackBlocks);
   }
 );

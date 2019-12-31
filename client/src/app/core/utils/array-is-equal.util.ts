@@ -9,5 +9,6 @@ export function arrayIsEqual(a: any[], b: any[]) {
       return false;
     }
   }
+
   return true;
 }

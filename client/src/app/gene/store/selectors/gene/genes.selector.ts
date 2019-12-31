@@ -4,6 +4,7 @@ import { createSelector } from '@ngrx/store';
 import { State, geneID } from '@gcv/gene/store/reducers/gene.reducer';
 import { getGeneState } from './gene-state.selector';
 // app
+import { arrayFlatten } from '@gcv/core/utils';
 import { Gene, Track } from '@gcv/gene/models';
 
 
@@ -19,6 +20,6 @@ export const getGenes = (tracks: Track[]) => createSelector(
   getGeneState,
   (state: State) => {
     const trackGenes = tracks.map((t) => getTrackGenesFromState(t, state));
-    return [].concat.apply([], trackGenes);
+    return arrayFlatten(trackGenes);
   }
 );

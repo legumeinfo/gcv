@@ -8,6 +8,7 @@ import { getSelectedMicroTracks } from './selected-micro-tracks.selector';
 // app
 import * as clusterfck from '@gcv-assets/js/clusterfck';
 import { GCV } from '@gcv-assets/js/gcv';
+import { arrayFlatten } from '@gcv/core/utils';
 import { ALIGNMENT_ALGORITHMS, ORDER_ALGORITHMS } from '@gcv/gene/algorithms';
 import { regexpFactory } from '@gcv/gene/algorithms/utils';
 import { Track } from '@gcv/gene/models';
@@ -110,7 +111,7 @@ export const getClusteredAndAlignedSelectedMicroTracks = createSelector(
         // prepare the data
         const trackFamilies = tracks.map((t) => t.families);
         const l = trackFamilies[0].length;
-        const flattenedTracks = [].concat.apply([], trackFamilies);
+        const flattenedTracks = arrayFlatten(trackFamilies);
         const characters = new Set(flattenedTracks);
         const omit = new Set();
         // construct and train the model
