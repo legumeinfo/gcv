@@ -7,7 +7,8 @@ import * as fromMicroTracks from '@gcv/gene/store/selectors/micro-tracks/';
 import * as fromRouter from '@gcv/gene/store/selectors/router/';
 import { Effect, Actions, ofType } from '@ngrx/effects';
 import { combineLatest, of } from 'rxjs';
-import { catchError, map, switchMap, withLatestFrom } from 'rxjs/operators';
+import { catchError, map, mergeMap,switchMap, withLatestFrom }
+  from 'rxjs/operators';
 import * as microTracksActions from '@gcv/gene/store/actions/micro-tracks.actions';
 // app
 import { Track } from '@gcv/gene/models';
@@ -82,7 +83,7 @@ export class MicroTracksEffects {
     map((action: microTracksActions.Search) => action.payload),
     withLatestFrom(
       this.store.select(fromMicroTracks.getClusteredSelectedMicroTracks)),
-    switchMap(([{cluster, families, source, params}, clusteredTracks]) => {
+    mergeMap(([{cluster, families, source, params}, clusteredTracks]) => {
       const clusterTracks = clusteredTracks.filter((t: ClusterMixin) => {
           return t.cluster === cluster;
         });

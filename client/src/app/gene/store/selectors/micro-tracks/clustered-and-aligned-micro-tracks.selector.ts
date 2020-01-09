@@ -131,7 +131,7 @@ export const getClusteredAndAlignedSelectedMicroTracks = createSelector(
             return t2;
           };
         // msa via hmm
-        if (characters.size > 0) {
+        if (characters.size > 0 && tracks.length > 1) {
           const hmm = new GCV.graph.MSAHMM(l, characters);
           hmm.train(trackFamilies, {reverse: true, omit});
           // align the tracks
