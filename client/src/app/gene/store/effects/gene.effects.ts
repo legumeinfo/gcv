@@ -29,34 +29,45 @@ export class GeneEffects {
   getSelected$ = this.store.select(fromGene.getUnloadedSelectedGeneIDs).pipe(
     filter((ids) => ids.length > 0),
     switchMap((ids) => {
-      const id2action = ({name, source}) => {
-          return new geneActions.Get({names: [name], source});
+      // bin ids by source
+      const reducer = (accumulator, {name, source}) => {
+          if (!(source in accumulator)) {
+            accumulator[source] = [];
+          }
+          accumulator[source].push(name);
+          return accumulator;
         };
-      const actions = ids.map(id2action);
+      const geneBins = ids.reduce(reducer, {});
+      // make a gene request action for each source bin
+      const actions = Object.entries(geneBins)
+        .map(([source, names]: [string, string[]]) => {
+          return new geneActions.Get({names, source});
+        });
       return actions;
     }),
   );
-
-  // TODO: when loading multi route, take loading and failed genes into
-  // consideration
 
   // get genes via the gene service
   @Effect()
   getGenes$ = this.actions$.pipe(
     ofType(geneActions.GET),
-    map((action: geneActions.Get) => action.payload),
-    withLatestFrom(this.store.select(fromGene.getGeneState)),
-    concatMap(([{names, source}, state]) => {
+    map((action: geneActions.Get) => ({action: action.id, ...action.payload})),
+    withLatestFrom(this.store.select(fromGene.getLoading)),
+    concatMap(([{action, names, source}, loading]) => {
       // get loaded/loading genes
-      const loadingIDs = new Set(state.loading.map(geneID));
-      const loadedIDs = new Set(state.loaded.map(geneID));
-      // filter out genes that are already loaded or loading
-      const filteredNamess = names.filter((n) => {
-          const gID = geneID(n, source);
-          return !loadingIDs.has(gID) && !loadedIDs.has(gID);
+      const actionGeneID =
+        ({name, source, action}) => `${geneID(name, source)}:${action}`;
+      const loadingIDs = new Set(loading.map(actionGeneID));
+      // only keep genes whose action is loaded
+      const filteredNames = names.filter((name) => {
+          const id = actionGeneID({name, source, action});
+          return loadingIDs.has(id);
         });
       // get the genes
-      return this.geneService.getGenes(names, source).pipe(
+      if (filteredNames.length == 0) {
+        return [];
+      }
+      return this.geneService.getGenes(filteredNames, source).pipe(
         map((genes: Gene[]) =>  new geneActions.GetSuccess({genes})),
         catchError((error) => of(new geneActions.GetFailure({names, source})))
       );
@@ -66,9 +77,7 @@ export class GeneEffects {
   // get all genes for the selected micro-tracks
   @Effect()
   getMicroTrackGenes$ = this.store.select(fromMicroTracks.getAllMicroTracks).pipe(
-    switchMap((tracks) => {
-      return geneActions.tracksToGetGeneActions(tracks);
-    }),
+    switchMap((tracks) => geneActions.tracksToGetGeneActions(tracks)),
   );
 
 }

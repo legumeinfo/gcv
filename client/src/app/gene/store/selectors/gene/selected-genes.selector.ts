@@ -32,7 +32,7 @@ export const getUnloadedSelectedGeneIDs = createSelector(
   getSelectedGeneIDs,
   (state: State, ids: GeneID[]): GeneID[] => {
     const loadingIDs = new Set(state.loading.map(geneID));
-    const loadedIDs = new Set(state.loaded.map(geneID));
+    const loadedIDs = new Set(state.ids as string[]);
     const unloadedIDs = ids.filter((id) => {
         const idString = geneID(id);
         return !loadingIDs.has(idString) && !loadedIDs.has(idString);

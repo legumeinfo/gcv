@@ -1,8 +1,8 @@
 // A Gene is a second class citizen in the GCV, that is, other than dictating
 // what chromosomes are loaded, all visualizations, algorithms, and auxiliary
 // models are derived from the gene families of the Track model. As such, genes
-// are loaded on an as needed basis. This file contains an NgRx reducer and
-// selectors for storing and accessing Genes.
+// are loaded on an as needed basis. This file contains an NgRx reducer for
+// storing Genes.
 
 // NgRx
 import { createEntityAdapter, EntityState } from '@ngrx/entity';
@@ -10,6 +10,7 @@ import { createEntityAdapter, EntityState } from '@ngrx/entity';
 import * as geneActions from '@gcv/gene/store/actions/gene.actions';
 // app
 import { Gene } from '@gcv/gene/models';
+import { ActionID } from '@gcv/gene/store/utils';
 
 declare var Object: any;  // because TypeScript doesn't support Object.values
 
@@ -32,17 +33,14 @@ const adapter = createEntityAdapter<Gene>({
   selectId: (e) => geneID(e.name, e.source)
 });
 
-// TODO: is loaded even necessary or can it be derived from entity ids and
 // selectedGeneIDs selector?
 export interface State extends EntityState<Gene> {
   failed: GeneID[];
-  loaded: GeneID[];
-  loading: GeneID[];
+  loading: (GeneID & ActionID)[];
 }
 
 const initialState: State = adapter.getInitialState({
   failed: [],
-  loaded: [],
   loading: [],
 });
 
@@ -53,10 +51,24 @@ export function reducer(
   switch (action.type) {
     case geneActions.GET:
       const source = action.payload.source;
-      const loading = action.payload.names.map((name) => ({name, source}));
+      const loadingIDs = new Set(state.loading.map(geneID));
+      const loading = action.payload.names
+        .filter((name) => {
+          const id = geneID(name, source);
+          return !loadingIDs.has(id) && !(id in state.entities);
+        })
+        .map((name) => {
+          return {name, source, action: action.id};
+        });
+      const newLoadingIDs = new Set(loading.map(geneID));
+      const failed = state.failed.filter(({name, source}) => {
+          const id = geneID(name, source);
+          return !newLoadingIDs.has(id);
+        });
       return {
         ...state,
         loading: state.loading.concat(loading),
+        failed,
       };
     case geneActions.GET_SUCCESS:
     {
@@ -72,7 +84,6 @@ export function reducer(
         genes,
         {
           ...state,
-          loaded: state.loaded.concat(loaded),
           loading,
         },
       );

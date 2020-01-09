@@ -1,12 +1,15 @@
 import { Action } from '@ngrx/store';
+import { counter } from '@gcv/core/utils';
 import { Gene, Track } from '@gcv/gene/models';
 
 export const GET = '[GENE] GET';
 export const GET_SUCCESS = '[GENE] GET_SUCCESS';
 export const GET_FAILURE = '[GENE] GET_FAILURE';
 
+
 export class Get implements Action {
   readonly type = GET;
+  readonly id = counter.getCount();
   constructor(public payload: {names: string[], source: string}) { }
 }
 

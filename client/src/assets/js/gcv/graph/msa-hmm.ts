@@ -456,7 +456,7 @@ export class MSAHMM extends Directed {
         }
         while (reversePath[j].startsWith("d") && j >= 0) {
           if (reverse) {
-            path.push(reverse[j]);
+            path.push(reversePath[j]);
           }
           j--;
         }
@@ -610,7 +610,7 @@ export class MSAHMM extends Directed {
    */
   train(sequences,
         options: {
-          omit?: Set<any>,  // TODO: should omitting be left to the user?
+          omit?: Set<any>,
           reverse?: boolean,
           surgery?: boolean,
         }={})
@@ -618,7 +618,7 @@ export class MSAHMM extends Directed {
     // parse optional parameters
     this._setOption(options, "omit", new Set());
     this._setOption(options, "reverse", true);
-    this._setOption(options, "surgery", false);
+    this._setOption(options, "surgery", true);
     // train the model
     const filter = (sequence) => sequence.filter((s) => !options.omit.has(s));
     sequences.forEach((s, i) => {
@@ -668,7 +668,7 @@ export class MSAHMM extends Directed {
         }
         insertion = 0;
       };
-    let prev = "a";
+    let prev = "a0";
     let prevIndex = -1;
     for (let i = 1; i < path.length; i++) {
       const n = path[i];
@@ -688,6 +688,8 @@ export class MSAHMM extends Directed {
       } else if (n.startsWith("i")) {
         insertion++;
       }
+      prev = n;
+      prevIndex = n;
     }
     return alignment;
   }
@@ -714,19 +716,23 @@ export class MSAHMM extends Directed {
 
     // compute Viterbi paths and their emission probabilities
     let forward = sequence;
-    const forwardPath = this.viterbi(forward);
+    let forwardPath = this.viterbi(forward);
     let forwardEmissions = this.sequenceEmissions(forward, forwardPath);
     let reverse = (options.reverse || options.inversions) ?
       [...forward].reverse() : [];
-    const reversePath = this.viterbi(reverse);
+    let reversePath = this.viterbi(reverse);
     let reverseEmissions = this.sequenceEmissions(reverse, reversePath);
 
     // swap orientations depending on score
     const reversed =
       options.reverse && forwardPath.probability < reversePath.probability;
     if (reversed) {
-      [forward, forwardEmissions, reverseEmissions] =
-        [reverse, reverseEmissions, forwardEmissions];
+      [forward, reverse,
+      forwardPath, reversePath,
+      forwardEmissions, reverseEmissions] =
+        [reverse, forward,
+        reversePath, forwardPath,
+        reverseEmissions, forwardEmissions];
     }
 
     // compute inversions
@@ -740,8 +746,7 @@ export class MSAHMM extends Directed {
     // convert path to hmm state independent alignment
     let alignment = this.pathToAlignment(alignmentPath);
     if (reversed) {
-      const l = sequence.length-1;
-      alignment = alignment.map((x) => l-x);
+      alignment.reverse();
     }
 
     return alignment;

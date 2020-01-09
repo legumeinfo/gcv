@@ -84,7 +84,7 @@ function _tracksToData(tracks, genes) {
 export function microShim(clusterID, queryTracks, tracks, genes) {
   // create data
   const filteredTracks = tracks.filter((t) => t.cluster == clusterID);
-  const data = _tracksToData(tracks, genes);
+  const data = _tracksToData(filteredTracks, genes);
   // identify bold tracks
   const bold = [];
   filteredTracks.forEach((t, i) => {

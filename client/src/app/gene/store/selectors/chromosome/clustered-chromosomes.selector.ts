@@ -10,7 +10,8 @@ import { Track } from '@gcv/gene/models';
 import { ClusterMixin } from '@gcv/gene/models/mixins';
 
 
-export const getSelectedChromosomesForCluster = (id: number) => createSelector(
+export const getSelectedChromosomesForCluster =
+(id: number) => createSelector(
   getSelectedChromosomes,
   getSelectedMicroTracksForCluster(id),
   (chromosomes: Track[], tracks: (Track | ClusterMixin)[]): Track[] => {

@@ -14,13 +14,13 @@ import { regexpFactory } from '@gcv/gene/algorithms/utils';
 import { Track } from '@gcv/gene/models';
 import { AlignmentParams, ClusteringParams } from '@gcv/gene/models/params';
 import { AlignmentMixin, ClusterMixin } from '@gcv/gene/models/mixins';
+import { familyCountMap } from '@gcv/gene/models/shims';
 
 
 // clustered
 
 
 // clusters micro tracks based on their families
-// TODO: update params to work with new clusterer
 // TODO: only cluster when selectedLoaded emits true
 export const getClusteredSelectedMicroTracks = createSelector(
   getSelectedMicroTracks,
@@ -38,12 +38,13 @@ export const getClusteredSelectedMicroTracks = createSelector(
       clusterfck.hcluster(tracks, metric, params.linkage, params.threshold);
     const recurrence = (cluster) => {
         const elements = [];
-        if ('left' in cluster || 'right' in cluster) {
-          if ('left' in cluster) {
+        if ('left' in cluster && 'right' in cluster) {
+          if (cluster['left']['size'] >= cluster['right']['size']) {
             elements.push(...recurrence(cluster['left']));
-          }
-          if ('right' in cluster) {
             elements.push(...recurrence(cluster['right']));
+          } else {
+            elements.push(...recurrence(cluster['right']));
+            elements.push(...recurrence(cluster['left']));
           }
         } else {
           elements.push(cluster['value']);
@@ -111,23 +112,44 @@ export const getClusteredAndAlignedSelectedMicroTracks = createSelector(
         // prepare the data
         const trackFamilies = tracks.map((t) => t.families);
         const l = trackFamilies[0].length;
-        const flattenedTracks = arrayFlatten(trackFamilies);
-        const characters = new Set(flattenedTracks);
+        const flattenedTracks: string[] = arrayFlatten(trackFamilies);
+        //const characters = new Set(flattenedTracks);
+        const familyCounts = familyCountMap(flattenedTracks);
+        const characters = new Set();
         const omit = new Set();
+        Object.entries(familyCounts).forEach(([family, count]) => {
+          if (count == 1 || family == '') {
+            omit.add(family);
+          } else {
+            characters.add(family);
+          }
+        });
         // construct and train the model
-        const hmm = new GCV.graph.MSAHMM(l, characters);
-        hmm.train(trackFamilies, {reverse: true, omit, surgery: true});
-        // align the tracks
-        const alignments = trackFamilies.map((f) => hmm.align(f));
-        const mixin = (t, i) => {
+        const mixinFactory = (alignments) => (t, i) => {
             const t2 = Object.create(t);
             t2.alignment = alignments[i];
             return t2;
           };
-        const alignedTracks = tracks.map(mixin);
-        const consensus = hmm.consensus();
-        accumulator.consensuses[i] = hmm.consensus();
-        accumulator.tracks.push(...alignedTracks);
+        // msa via hmm
+        if (characters.size > 0) {
+          const hmm = new GCV.graph.MSAHMM(l, characters);
+          hmm.train(trackFamilies, {reverse: true, omit});
+          // align the tracks
+          const alignments = trackFamilies.map((f,i) => {
+              return hmm.align(f, {inversions: false});
+            });
+          const alignedTracks = tracks.map(mixinFactory(alignments));
+          accumulator.consensuses[i] = hmm.consensus();
+          accumulator.tracks.push(...alignedTracks);
+        // edge case where all families are orphans or singletons
+        } else {
+          const alignments = trackFamilies.map((families) => {
+              return families.map((f, i) => i);
+            });
+          const alignedTracks = tracks.map(mixinFactory(alignments));
+          accumulator.consensuses[i] = [];
+          accumulator.tracks.push(...alignedTracks);
+        }
         return accumulator;
       };
     const clusteredAlignments = {

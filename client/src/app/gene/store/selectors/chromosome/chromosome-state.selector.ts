@@ -10,3 +10,9 @@ export const getChromosomeState = createSelector(
   fromModule.getGeneModuleState,
   state => state[chromosomeFeatureKey]
 );
+
+
+export const getLoading = createSelector(
+  getChromosomeState,
+  state => state.loading,
+);

@@ -1,5 +1,8 @@
+// Angular
 import { Params, RouterStateSnapshot } from '@angular/router';
 import { RouterStateSerializer } from '@ngrx/router-store';
+// app
+import { AppConfig } from '@gcv/app.config';
 import * as fromRouter from '@gcv/gene/store/reducers/router.reducer';
 
 // Returns an object including only the URL, params, and query params instead of
@@ -15,13 +18,15 @@ implements RouterStateSerializer<fromRouter.RouterStateUrl> {
     }
 
     let { url, root: { queryParams } } = routerState;
-    let { params } = route;
+    const params = Object.assign({}, route.params);
 
-    // convert route params into expected types
-    if (params.genes) {
-      params = Object.assign({}, params);
-      params.genes = params.genes.split(',');
-    }
+    // convert route params into expected types (gene lists)
+    const sources = AppConfig.SERVERS.map((s) => s.id);
+    sources.forEach((source) => {
+      if (source in params) {
+        params[source] = params[source].split(',');
+      }
+    });
 
     // convert route query params into expected types
     queryParams = Object.assign({}, queryParams);

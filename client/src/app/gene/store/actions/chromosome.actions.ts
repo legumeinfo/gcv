@@ -1,4 +1,5 @@
 import { Action } from '@ngrx/store';
+import { counter } from '@gcv/core/utils';
 import { Track } from '@gcv/gene/models';
 
 export const GET = '[CHROMOSOME] GET';
@@ -7,6 +8,7 @@ export const GET_FAILURE = '[CHROMOSOME] GET_FAILURE';
 
 export class Get implements Action {
   readonly type = GET;
+  readonly id = counter.getCount();
   constructor(public payload: {name: string, source: string}) { }
 }
 

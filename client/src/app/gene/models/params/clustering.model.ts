@@ -11,7 +11,7 @@ export class ClusteringParams implements Params {
 
   constructor(
     public linkage: string = 'average',  // TODO: remove magic string
-    public threshold: number = 10) {
+    public threshold: number = 20) {
   }
 
   formControls(): any {

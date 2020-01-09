@@ -7,9 +7,13 @@ import { GeneComponent, HeaderLeftComponent, HeaderRightComponent }
 
 export const routes: Routes = [
   {
-    path: ':source/:gene',
+    path: '',
     component: GeneComponent,
   },
+  //{
+  //  path: ':source/:gene',
+  //  component: GeneComponent,
+  //},
   {
     path: '',
     component: HeaderLeftComponent,

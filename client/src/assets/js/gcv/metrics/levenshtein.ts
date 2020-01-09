@@ -1,17 +1,32 @@
-export const levenshtein = <T>(s: T[], t: T[]): number => {
-  const sLen = s.length;
-  const tLen = t.length;
-  return levenshteinRecurrence(s, sLen, t, tLen);
+import { matrix } from '../common';
+
+
+export const levenshtein = <T>(a: T[], b: T[]): number => {
+  const i = a.length;
+  const j = b.length;
+  const t = matrix(i+1, j+1, null);
+  return levenshteinRecurrence(a, i, b, j, t);
 }
 
-const levenshteinRecurrence = <T>(s: T[], sLen: number, t: T[], tLen: number): number => {
-  // base case: empty strings
-  if (sLen == 0) return tLen;
-  if (tLen == 0) return sLen;
-  // test if last characters of the strings match
-  let cost = (s[sLen-1] == t[tLen-1] ? 0 : 1);
-  // return minimum of delete char from s, delete char from t, and delete char from both
-  return Math.min(levenshteinRecurrence(s, sLen-1, t, tLen)+1,
-                  levenshteinRecurrence(s, sLen, t, tLen-1)+1,
-                  levenshteinRecurrence(s, sLen-1, t, tLen-1)+cost);
+
+const levenshteinRecurrence =
+<T>(a: T[], i: number, b: T[], j: number, t: number[]): number => {
+  // use memoized data if possible
+  if (t[i][j] === null) {
+    // base case: empty strings
+    if (i == 0) {
+      t[i][j] = j;
+    } else if (j == 0) {
+      t[i][j] = i;
+    // test if last characters of the strings match
+    } else {
+      let cost = (a[i-1] == b[j-1] ? 0 : 1);
+      // return minimum of delete char from a, delete char from b, and delete
+      // char from both
+      t[i][j] = Math.min(levenshteinRecurrence(a, i-1, b, j, t)+1,
+                         levenshteinRecurrence(a, i, b, j-1, t)+1,
+                         levenshteinRecurrence(a, i-1, b, j-1, t)+cost);
+    }
+  }
+  return t[i][j];
 }

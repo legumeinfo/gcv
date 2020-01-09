@@ -83,7 +83,7 @@ export const getUnloadedSelectedChromosomeIDs = createSelector(
   getSelectedChromosomeIDs,
   (state: State, ids: TrackID[]): TrackID[] => {
     const loadingIDs = new Set(state.loading.map(trackID));
-    const loadedIDs = new Set(state.loaded.map(trackID));
+    const loadedIDs = new Set(state.ids as string[]);
     const unloadedIDs = ids.filter((id) => {
         const idString = trackID(id);
         return !loadingIDs.has(idString) && !loadedIDs.has(idString);

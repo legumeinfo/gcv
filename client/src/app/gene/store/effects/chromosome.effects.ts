@@ -3,11 +3,13 @@ import { Injectable } from '@angular/core';
 // store
 import { Effect, Actions, ofType } from '@ngrx/effects';
 import { of } from 'rxjs';
-import { catchError, filter, map, mergeMap, switchMap } from 'rxjs/operators';
+import { catchError, filter, map, mergeMap, switchMap, withLatestFrom }
+  from 'rxjs/operators';
 import { Store } from '@ngrx/store';
 import * as chromosomeActions from '@gcv/gene/store/actions/chromosome.actions';
 import * as fromRoot from '@gcv/gene/store/reducers';
 import * as fromChromosome from '@gcv/gene/store/selectors/chromosome/';
+import { TrackID, trackID } from '@gcv/gene/store/utils';
 // app
 import { ChromosomeService } from '@gcv/gene/services';
 
@@ -24,15 +26,28 @@ export class ChromosomeEffects {
   getSelected$ = this.store
   .select(fromChromosome.getUnloadedSelectedChromosomeIDs).pipe(
     filter((ids) => ids.length > 0),
-    switchMap((ids) =>  ids.map((id) => new chromosomeActions.Get(id))),
+    mergeMap((ids) => ids.map((id) => new chromosomeActions.Get(id))),
   );
 
   // get chromosome via the chromosome service
   @Effect()
   getChromosome$ = this.actions$.pipe(
     ofType(chromosomeActions.GET),
-    map((action: chromosomeActions.Get) => action.payload),
-    mergeMap(({name, source}) => {
+    map((action: chromosomeActions.Get) => {
+      return {action: action.id, ...action.payload};
+    }),
+    withLatestFrom(this.store.select(fromChromosome.getLoading)),
+    mergeMap(([{action, name, source}, loading]) => {
+      // get loaded/loading genes
+      const actionTrackID =
+        ({name, source, action}) => `${trackID(name, source)}:${action}`;
+      const loadingIDs = new Set(loading.map(actionTrackID));
+      // only load chromosome if action is loading
+      const id = actionTrackID({action, name, source});
+      const chromosomeID = trackID(name, source);
+      if (!loadingIDs.has(id)) {
+        return [];
+      }
       return this.chromosomeService.getChromosome(name, source).pipe(
         map((chromosome) => {
           return new chromosomeActions.GetSuccess({chromosome});
