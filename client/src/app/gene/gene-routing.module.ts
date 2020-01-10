@@ -10,10 +10,6 @@ export const routes: Routes = [
     path: '',
     component: GeneComponent,
   },
-  //{
-  //  path: ':source/:gene',
-  //  component: GeneComponent,
-  //},
   {
     path: '',
     component: HeaderLeftComponent,

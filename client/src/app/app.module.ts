@@ -15,6 +15,8 @@ import { CoreModule } from '@gcv/core/core.module';
 import { AppRoutingModule } from '@gcv/app-routing.module';
 // components
 import { AppComponent } from '@gcv/core/containers';
+// guards
+import * as fromGuards from '@gcv/guards';
 // store
 import { CustomRouterStateSerializer } from '@gcv/gene/utils';
 import { ROOT_REDUCERS, metaReducers } from '@gcv/reducers';
@@ -50,6 +52,7 @@ import { RouterEffects } from '@gcv/core/store';
       provide: APP_INITIALIZER,
       useFactory: (config: AppConfig) => () => config.load(),
     },
+    ...fromGuards.guards,
   ],
   //schemas: [NO_ERRORS_SCHEMA],
   bootstrap: [AppComponent],

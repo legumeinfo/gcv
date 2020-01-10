@@ -1,6 +1,8 @@
 // Angular
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
+// app
+import { LegacyMultiRouteGuard, LegacySearchRouteGuard } from '@gcv/guards';
 
 
 const routes: Routes = [
@@ -13,9 +15,31 @@ const routes: Routes = [
     path: 'instructions',
     loadChildren: '@gcv/instructions/instructions.module#InstructionsModule',
   },
+  // modules
   {
     path: 'gene',
     loadChildren: '@gcv/gene/gene.module#GeneModule',
+  },
+  // legacy URLs
+  {
+    canActivate: [LegacySearchRouteGuard],
+    path: 'search/:gene',
+    children: [],
+  },
+  {
+    canActivate: [LegacySearchRouteGuard],
+    path: 'search/:source/:gene',
+    children: [],
+  },
+  {
+    canActivate: [LegacyMultiRouteGuard],
+    path: 'basic/:genes',
+    children: [],
+  },
+  {
+    canActivate: [LegacyMultiRouteGuard],
+    path: 'multi/:genes',
+    children: [],
   },
 ];
 
