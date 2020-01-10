@@ -147,7 +147,13 @@ export const getClusteredAndAlignedSelectedMicroTracks = createSelector(
               return families.map((f, i) => i);
             });
           const alignedTracks = tracks.map(mixinFactory(alignments));
-          accumulator.consensuses[i] = [];
+          // TODO: is this really the best way to handle 1 track vs poorly
+          // clustered tracks
+          if (tracks.length == 1) {
+            accumulator.consensuses[i] = trackFamilies[0];
+          } else {
+            accumulator.consensuses[i] = [];
+          }
           accumulator.tracks.push(...alignedTracks);
         }
         return accumulator;
