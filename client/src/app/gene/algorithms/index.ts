@@ -1,10 +1,13 @@
 import { ALIGNMENT_ALGORITHMS } from './alignment.algorithm';
-import { ORDER_ALGORITHMS } from './order.algorithm';
+import { MACRO_ORDER_ALGORITHMS } from './macro-order.algorithm';
+import { MICRO_ORDER_ALGORITHMS } from './micro-order.algorithm';
 
 export const algorithms: any[] = [
   ALIGNMENT_ALGORITHMS,
-  ORDER_ALGORITHMS,
+  MACRO_ORDER_ALGORITHMS,
+  MICRO_ORDER_ALGORITHMS,
 ];
 
 export * from './alignment.algorithm';
-export * from './order.algorithm';
+export * from './macro-order.algorithm';
+export * from './micro-order.algorithm';

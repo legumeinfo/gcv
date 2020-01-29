@@ -2,7 +2,7 @@ import { Algorithm } from '@gcv/gene/models';
 import { trackName } from './utils';
 
 
-export const ORDER_ALGORITHMS: Algorithm[] = [
+export const MICRO_ORDER_ALGORITHMS: Algorithm[] = [
   {
     id: 'chromosome',
     name: 'Chromosome name',

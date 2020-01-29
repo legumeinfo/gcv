@@ -14,6 +14,13 @@ export class ClusteringParams implements Params {
     public threshold: number = 20) {
   }
 
+  asObject() {
+    return {
+      linkage: this.linkage,
+      threshold: this.threshold,
+    };
+  }
+
   formControls(): any {
     return {
       linkage: [this.linkage, Validators.compose([

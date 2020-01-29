@@ -11,6 +11,10 @@ export class SourceParams implements Params {
 
   constructor(public sources: string[] = AppConfig.SERVERS.map((s) => s.id)) { }
 
+  asObject() {
+    return {sources: this.sources};
+  }
+
   formControls(): any {
     return {
       sources: [this.sources, Validators.compose([

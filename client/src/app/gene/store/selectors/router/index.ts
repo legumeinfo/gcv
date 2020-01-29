@@ -6,6 +6,8 @@ import { initialState } from '@gcv/gene/store/reducers/router.reducer';
 // app
 import { AppConfig } from '@gcv/app.config';
 import { arrayFlatten } from '@gcv/core/utils';
+import { MACRO_ORDER_ALGORITHMS, MICRO_ORDER_ALGORITHMS }
+  from '@gcv/gene/algorithms';
 import { AlignmentParams, BlockParams, ClusteringParams, QueryParams,
   SourceParams } from '@gcv/gene/models/params';
 import { instantiateAndPopulate } from '@gcv/gene/utils';
@@ -84,12 +86,48 @@ export const getMicroClusteringParams = createSelector(
   (params) => instantiateAndPopulate(ClusteringParams, params || {}),
 )
 
-export const getRegexp = createSelector(
+export const getMacroRegexp = createSelector(
   getQueryParams,
-  (params) => params.regexp,
+  (params) => params.bregexp || '',
 )
 
-export const getOrder = createSelector(
+export const getMacroOrder = createSelector(
   getQueryParams,
-  (params) => params.order,
+  (params) => {
+    const orderIDs = MACRO_ORDER_ALGORITHMS.map((a) => a.id);
+    if (params.border !== undefined && orderIDs.indexOf(params.border) !== -1) {
+      return params.border;
+    }
+    return orderIDs[0];
+  },
+)
+
+// TODO: should this have its own params object?
+export const getMacroFilterParamsObject = createSelector(
+  getMacroRegexp,
+  getMacroOrder,
+  (bregexp, border) => ({bregexp, border}),
+)
+
+export const getMicroRegexp = createSelector(
+  getQueryParams,
+  (params) => params.regexp || '',
+)
+
+export const getMicroOrder = createSelector(
+  getQueryParams,
+  (params) => {
+    const orderIDs = MICRO_ORDER_ALGORITHMS.map((a) => a.id);
+    if (params.order !== undefined && orderIDs.indexOf(params.order) !== -1) {
+      return params.order;
+    }
+    return orderIDs[0];
+  },
+)
+
+// TODO: should this have its own params object?
+export const getMicroFilterParamsObject = createSelector(
+  getMicroRegexp,
+  getMicroOrder,
+  (regexp, order) => ({regexp, order}),
 )

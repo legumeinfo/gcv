@@ -1,13 +1,21 @@
 import { Algorithm } from '@gcv/gene/models';
+import { pairwiseBlocksName } from './pairwise-blocks-name.util';
 import { trackName } from './track-name.util';
 
 
-function trackFilter(regexp, tracks) {
+function trackFilter(regexp, toString, tracks) {
   const r = new RegExp(regexp);
-  return tracks.filter((t) => r.test(trackName(t)));
+  return tracks.filter((t) => r.test(toString(t)));
 }
 
 
-export function regexpFactory(regexp: string): Algorithm {
-  return new Algorithm('regexp', regexp, trackFilter.bind(null, regexp));
+export function microRegexpFactory(regexp: string): Algorithm {
+  const algorithm = trackFilter.bind(null, regexp, trackName);
+  return new Algorithm('microregexp', regexp, algorithm);
+}
+
+
+export function macroRegexpFactory(regexp: string): Algorithm {
+  const algorithm = trackFilter.bind(null, regexp, pairwiseBlocksName);
+  return new Algorithm('macroregexp', regexp, algorithm);
 }

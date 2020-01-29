@@ -11,11 +11,11 @@ const routes: Routes = [
     pathMatch: 'full',
     redirectTo: '/instructions',
   },
+  // modules
   {
     path: 'instructions',
     loadChildren: '@gcv/instructions/instructions.module#InstructionsModule',
   },
-  // modules
   {
     path: 'gene',
     loadChildren: '@gcv/gene/gene.module#GeneModule',

@@ -16,6 +16,17 @@ export class AlignmentParams implements Params {
     public threshold: number = 25,
   ) { }
 
+  asObject() {
+    return {
+      algorithm: this.algorithm,
+      match: this.match,
+      mismatch: this.mismatch,
+      gap: this.gap,
+      score: this.score,
+      threshold: this.threshold,
+    };
+  }
+
   formControls(): any {
     return {
       algorithm: [this.algorithm, Validators.compose([

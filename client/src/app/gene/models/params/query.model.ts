@@ -14,6 +14,14 @@ export class QueryParams implements Params {
     public intermediate: number = 5,
   ) { }
 
+  asObject() {
+    return {
+      neighbors: this.neighbors,
+      matched: this.matched,
+      intermediate: this.intermediate,
+    };
+  }
+
   formControls(): any {
     return {
       intermediate: [this.intermediate, Validators.compose([

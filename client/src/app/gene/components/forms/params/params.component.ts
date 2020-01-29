@@ -81,8 +81,6 @@ export class ParamsComponent implements OnDestroy, OnInit {
       .subscribe(function(group, params) {
         this._updateGroup(this[group], params);
       }.bind(this, group));
-    this[group].markAsDirty();
-    this._submitGroup[this[group]];
   }
 
   private _submitGroup(group): void {

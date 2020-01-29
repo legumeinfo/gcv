@@ -1,9 +1,10 @@
 // Angular
 import { Component } from '@angular/core';
 import { Observable, Subject } from 'rxjs';
-import { takeUntil } from 'rxjs/operators';
+import { take } from 'rxjs/operators';
 // app
-import { ORDER_ALGORITHMS } from '@gcv/gene/algorithms';
+import { MACRO_ORDER_ALGORITHMS, MICRO_ORDER_ALGORITHMS }
+  from '@gcv/gene/algorithms';
 import { FilterService } from '@gcv/gene/services';
 
 
@@ -13,32 +14,56 @@ import { FilterService } from '@gcv/gene/services';
 })
 export class FiltersComponent {
 
-  orderAlgorithms = ORDER_ALGORITHMS;
-  currentRegexp: Observable<string>;
-  selectedOrderAlgorithm: Observable<{id: string, name: string}>;
+  // variables
 
+  macroOrderAlgorithms = MACRO_ORDER_ALGORITHMS;
+  currentMacroRegexp: Observable<string>;
+  selectedMacroOrderAlgorithm: Observable<{id: string, name: string}>;
+
+  microOrderAlgorithms = MICRO_ORDER_ALGORITHMS;
+  currentMicroRegexp: Observable<string>;
+  selectedMicroOrderAlgorithm: Observable<{id: string, name: string}>;
+
+  macroHelp = false;
   microHelp = false;
 
   private _typingTimer;
   private _doneTypingInterval = 1000;  // 1 seconds
   private _destroy: Subject<boolean> = new Subject();
 
+  // constructor
+
   constructor(private _filterService: FilterService) {
-    this.currentRegexp = this._filterService.getRegexp();
-    this.selectedOrderAlgorithm = this._filterService.getOrderAlgorithm();
+    this.currentMacroRegexp = this._filterService.getMacroRegexp();
+    this.selectedMacroOrderAlgorithm =
+      this._filterService.getMacroOrderAlgorithm();
+    this.currentMicroRegexp = this._filterService.getMicroRegexp();
+    this.selectedMicroOrderAlgorithm =
+      this._filterService.getMicroOrderAlgorithm();
   }
 
   // public
 
-  updateRegexp(regexp: string): void {
+  updateMacroRegexp(regexp: string): void {
     clearTimeout(this._typingTimer);
     this._typingTimer = setTimeout(() => {
-      this._filterService.setRegexp(regexp);
+      this._filterService.setMacroRegexp(regexp);
     }, this._doneTypingInterval);
   }
 
-  updateOrder(id: string): void {
-    this._filterService.setOrder(id);
+  updateMacroOrder(id: string): void {
+    this._filterService.setMacroOrder(id);
+  }
+
+  updateMicroRegexp(regexp: string): void {
+    clearTimeout(this._typingTimer);
+    this._typingTimer = setTimeout(() => {
+      this._filterService.setMicroRegexp(regexp);
+    }, this._doneTypingInterval);
+  }
+
+  updateMicroOrder(id: string): void {
+    this._filterService.setMicroOrder(id);
   }
 
 }

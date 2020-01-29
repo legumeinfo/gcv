@@ -13,6 +13,14 @@ export class BlockParams implements Params {
     public bmask: number = 10,
   ) { }
 
+  asObject() {
+    return {
+      bmatched: this.bmatched,
+      bintermediate: this.bintermediate,
+      bmask: this.bmask,
+    };
+  }
+
   formControls(): any {
     return {
       bintermediate: [this.bintermediate, Validators.compose([
