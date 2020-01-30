@@ -31,6 +31,9 @@ export class GeneComponent implements AfterViewInit, OnDestroy {
       ...fromViewers.layoutComponents,
     ];
   layoutConfig = {
+      settings: {
+        showPopoutIcon: false,
+      },
       content: [{
         type: 'row',
         content: [{type: 'column', content: []}, {type: 'column', content: []}],
