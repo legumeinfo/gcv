@@ -310,8 +310,16 @@ def v1_gene_to_query_track(request):
 
     # make sure the request type is POST and that it contains a focus gene name
     if request.method == 'POST' and 'gene' in POST and 'neighbors' in POST:
+        # get the gene type
+        sequence_cv = Cv.objects.only('pk').filter(name='sequence')
+        gene_type = list(
+            Cvterm.objects.only('pk').filter(name='gene', cv_id=sequence_cv)
+        )
+        if len(gene_type) == 0:
+            raise Http404
+        gene_type = gene_type[0]
         # get the focus gene of the query track
-        focus = get_object_or_404(Feature, name=POST['gene'])
+        focus = get_object_or_404(Feature, name=POST['gene'], type_id=gene_type)
         focus_id = focus.pk
         focus_order = list(GeneOrder.objects.filter(gene=focus))
         if len(focus_order) == 0:
