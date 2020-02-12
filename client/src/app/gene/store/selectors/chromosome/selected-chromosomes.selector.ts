@@ -1,5 +1,5 @@
 // NgRx
-import { createSelector } from '@ngrx/store';
+import { createSelectorFactory } from '@ngrx/store';
 // store
 import { State } from '@gcv/gene/store/reducers/chromosome.reducer';
 import { getQueryNeighborParam } from '@gcv/gene/store/selectors/params';
@@ -9,10 +9,11 @@ import { trackID, TrackID } from '@gcv/gene/store/utils';
 import { getChromosomeState } from './chromosome-state.selector';
 // app
 import { Gene, Track } from '@gcv/gene/models';
+import { memoizeArray } from '@gcv/core/utils';
 
 
 // derive selected chromosome from Gene State
-export const getSelectedChromosomeIDs = createSelector(
+export const getSelectedChromosomeIDs = createSelectorFactory(memoizeArray)(
   getSelectedGenes,
   (genes: Gene[]): TrackID[] => {
     const reducer = (accumulator, gene) => {
@@ -27,7 +28,7 @@ export const getSelectedChromosomeIDs = createSelector(
   },
 );
 
-export const getSelectedChromosomes = createSelector(
+export const getSelectedChromosomes = createSelectorFactory(memoizeArray)(
   getChromosomeState,
   getSelectedChromosomeIDs,
   (state: State, ids: TrackID[]): Track[] => {
@@ -44,7 +45,7 @@ export const getSelectedChromosomes = createSelector(
 );
 
 // derive selected tracks from Chromosome and Gene States
-export const getSelectedSlices = createSelector(
+export const getSelectedSlices = createSelectorFactory(memoizeArray)(
   getSelectedChromosomes,
   getSelectedGenes,
   getQueryNeighborParam,
@@ -78,7 +79,8 @@ export const getSelectedSlices = createSelector(
   }
 );
 
-export const getUnloadedSelectedChromosomeIDs = createSelector(
+export const getUnloadedSelectedChromosomeIDs =
+createSelectorFactory(memoizeArray)(
   getChromosomeState,
   getSelectedChromosomeIDs,
   (state: State, ids: TrackID[]): TrackID[] => {

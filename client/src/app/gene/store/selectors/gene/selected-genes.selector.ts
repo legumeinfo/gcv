@@ -1,5 +1,5 @@
 // NgRx
-import { createSelector, createSelectorFactory } from '@ngrx/store';
+import { createSelectorFactory } from '@ngrx/store';
 // store
 import { geneID, GeneID, State } from '@gcv/gene/store/reducers/gene.reducer';
 import { selectRouteParams } from '@gcv/store/selectors/router';
@@ -10,7 +10,7 @@ import { arrayFlatten, memoizeArray } from '@gcv/core/utils';
 import { Gene } from '@gcv/gene/models';
 
 
-export const getSelectedGeneIDs = createSelector(
+export const getSelectedGeneIDs = createSelectorFactory(memoizeArray)(
   selectRouteParams,
   (params): {name: string, source: string}[] => {
     // assumes is defined (see QueryParamsGuard)
@@ -42,7 +42,7 @@ export const getSelectedGenes = createSelectorFactory(memoizeArray)(
   },
 );
 
-export const getUnloadedSelectedGeneIDs = createSelector(
+export const getUnloadedSelectedGeneIDs = createSelectorFactory(memoizeArray)(
   getGeneState,
   getSelectedGeneIDs,
   (state: State, ids: GeneID[]): GeneID[] => {

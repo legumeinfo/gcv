@@ -1,17 +1,18 @@
 // NgRx
-import { createSelector } from '@ngrx/store';
+import { createSelectorFactory } from '@ngrx/store';
 // store
 import { trackID } from '@gcv/gene/store/utils';
 import { getSelectedMicroTracksForCluster } from
   '@gcv/gene/store/selectors/micro-tracks/clustered-and-aligned-micro-tracks.selector';
 import { getSelectedChromosomes } from './selected-chromosomes.selector';
 // app
+import { memoizeArray } from '@gcv/core/utils';
 import { Track } from '@gcv/gene/models';
 import { ClusterMixin } from '@gcv/gene/models/mixins';
 
 
 export const getSelectedChromosomesForCluster =
-(id: number) => createSelector(
+(id: number) => createSelectorFactory(memoizeArray)(
   getSelectedChromosomes,
   getSelectedMicroTracksForCluster(id),
   (chromosomes: Track[], tracks: (Track | ClusterMixin)[]): Track[] => {

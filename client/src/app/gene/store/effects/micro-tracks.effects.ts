@@ -7,7 +7,7 @@ import * as fromMicroTracks from '@gcv/gene/store/selectors/micro-tracks/';
 import * as fromParams from '@gcv/gene/store/selectors/params';
 import { Effect, Actions, ofType } from '@ngrx/effects';
 import { combineLatest, of } from 'rxjs';
-import { catchError, map, mergeMap,switchMap, withLatestFrom }
+import { catchError, map, mergeMap, switchMap, withLatestFrom }
   from 'rxjs/operators';
 import * as microTracksActions from '@gcv/gene/store/actions/micro-tracks.actions';
 // app

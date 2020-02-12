@@ -1,5 +1,5 @@
 // NgRx
-import { createSelector } from '@ngrx/store';
+import { createSelectorFactory } from '@ngrx/store';
 // store
 import { State } from '@gcv/gene/store/reducers/micro-tracks.reducer';
 import * as fromParams from '@gcv/gene/store/selectors/params';
@@ -8,7 +8,7 @@ import { getSelectedMicroTracks } from './selected-micro-tracks.selector';
 // app
 import * as clusterfck from '@gcv-assets/js/clusterfck';
 import { GCV } from '@gcv-assets/js/gcv';
-import { arrayFlatten } from '@gcv/core/utils';
+import { arrayFlatten, memoizeArray, memoizeObject } from '@gcv/core/utils';
 import { ALIGNMENT_ALGORITHM_MAP, MICRO_ORDER_ALGORITHM_MAP }
   from '@gcv/gene/algorithms';
 import { microRegexpFactory } from '@gcv/gene/algorithms/utils';
@@ -23,7 +23,8 @@ import { familyCountMap } from '@gcv/gene/models/shims';
 
 // clusters micro tracks based on their families
 // TODO: only cluster when selectedLoaded emits true
-export const getClusteredSelectedMicroTracks = createSelector(
+export const getClusteredSelectedMicroTracks =
+createSelectorFactory(memoizeArray)(
   getSelectedMicroTracks,
   fromParams.getClusteringParams,
   (tracks: Track[], params: ClusteringParams): (Track | ClusterMixin)[] => {
@@ -69,7 +70,8 @@ export const getClusteredSelectedMicroTracks = createSelector(
   }
 );
 
-export const getSelectedMicroTracksForCluster = (id: number) => createSelector(
+export const getSelectedMicroTracksForCluster =
+(id: number) => createSelectorFactory(memoizeArray)(
   getClusteredSelectedMicroTracks,
   (tracks: (Track | ClusterMixin)[]): (Track | ClusterMixin)[] => {
     const filteredTracks = tracks.filter((t: ClusterMixin) => t.cluster === id);
@@ -77,7 +79,7 @@ export const getSelectedMicroTracksForCluster = (id: number) => createSelector(
   }
 );
 
-export const getClusterIDs = createSelector(
+export const getClusterIDs = createSelectorFactory(memoizeArray)(
   getClusteredSelectedMicroTracks,
   (tracks: (Track | ClusterMixin)[]): number[] => {
     const IDs = tracks.map((t: ClusterMixin) => t.cluster);
@@ -92,13 +94,12 @@ export const getClusterIDs = createSelector(
 
 // performs a multiple sequence alignment of the selected tracks in each cluster
 // and outputs the aligned tracks and their consensus sequence
-export const getClusteredAndAlignedSelectedMicroTracks = createSelector(
+export const getClusteredAndAlignedSelectedMicroTracks =
+createSelectorFactory(memoizeObject)(
   getClusteredSelectedMicroTracks,
   (tracks: (Track | ClusterMixin)[]):
+  {consensuses: string[][], tracks: (Track | ClusterMixin | AlignmentMixin)[]} =>
   {
-    consensuses: string[][],
-    tracks: (Track | ClusterMixin | AlignmentMixin)[]
-  } => {
     // group tracks by cluster
     const clusterer = (accumulator, track) => {
         if (!(track.cluster in accumulator)) {
@@ -170,7 +171,8 @@ export const getClusteredAndAlignedSelectedMicroTracks = createSelector(
 );
 
 // pairwise aligns each search result track to its cluster's consensus track
-export const getClusteredAndAlignedSearchMicroTracks = createSelector(
+export const getClusteredAndAlignedSearchMicroTracks =
+createSelectorFactory(memoizeArray)(
   getMicroTracksState,
   getClusteredAndAlignedSelectedMicroTracks,
   fromParams.getAlignmentParams,
@@ -198,7 +200,7 @@ export const getClusteredAndAlignedSearchMicroTracks = createSelector(
       };
     // aligns each track to its cluster's consensus sequence, creates an
     // alignment mixin for each track's alignments, and return a flattened array
-    const reducer = (accumulator, track) => {
+    const reducer = (accumulator, track, i) => {
         const cluster = (track as ClusterMixin).cluster;
         const consensus = consensuses[cluster];
         const families = (track as Track).families;
@@ -214,7 +216,8 @@ export const getClusteredAndAlignedSearchMicroTracks = createSelector(
   },
 );
 
-export const getAllClusteredAndAlignedMicroTracks = createSelector(
+export const getAllClusteredAndAlignedMicroTracks =
+createSelectorFactory(memoizeArray)(
   getClusteredAndAlignedSelectedMicroTracks,
   getClusteredAndAlignedSearchMicroTracks,
   fromParams.getMicroFilterParams,
@@ -232,7 +235,8 @@ export const getAllClusteredAndAlignedMicroTracks = createSelector(
   },
 );
 
-export const getAlignedMicroTrackCluster = (id: number) => createSelector(
+export const getAlignedMicroTrackCluster =
+(id: number) => createSelectorFactory(memoizeArray)(
   getAllClusteredAndAlignedMicroTracks,
   (tracks) => {
     const cluster = tracks.filter((t: ClusterMixin) => t.cluster === id);

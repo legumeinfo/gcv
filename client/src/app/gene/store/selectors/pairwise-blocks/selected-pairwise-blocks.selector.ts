@@ -1,5 +1,5 @@
 // NgRx
-import { createSelector } from '@ngrx/store';
+import { createSelectorFactory } from '@ngrx/store';
 // store
 import { getSelectedChromosomeIDs }
   from '@gcv/gene/store/selectors/chromosome/selected-chromosomes.selector';
@@ -9,10 +9,11 @@ import { initialState, partialPairwiseBlocksID, PartialPairwiseBlocksID, State }
   from '@gcv/gene/store/reducers/pairwise-blocks.reducer';
 import { getPairwiseBlocksState } from './pairwise-blocks-state.selector';
 // app
+import { memoizeArray } from '@gcv/core/utils';
 import { PairwiseBlocks } from '@gcv/gene/models';
 
 
-export const getSelectedPartialBlockIDs = createSelector(
+export const getSelectedPartialBlockIDs = createSelectorFactory(memoizeArray)(
   getPairwiseBlocksState,
   getSelectedChromosomeIDs,
   fromParams.getSourcesParam,
@@ -33,7 +34,7 @@ export const getSelectedPartialBlockIDs = createSelector(
 );
 
 // derive selected pairwise blocks from Chromosome State
-export const getSelectedPairwiseBlocks = createSelector(
+export const getSelectedPairwiseBlocks = createSelectorFactory(memoizeArray)(
   getPairwiseBlocksState,
   getSelectedPartialBlockIDs,
   (state: State, ids: PartialPairwiseBlocksID[]):
@@ -56,11 +57,13 @@ export const getSelectedPairwiseBlocks = createSelector(
   },
 );
 
-export const getUnloadedSelectedPartialPairwiseBlocksIDs = createSelector(
+export const getUnloadedSelectedPartialPairwiseBlocksIDs =
+createSelectorFactory(memoizeArray)(
   getPairwiseBlocksState,
   getSelectedPartialBlockIDs,
   // TODO: can initialState be handled upstream?
-  (state: State=initialState, ids: PartialPairwiseBlocksID[]): PartialPairwiseBlocksID[] => {
+  (state: State=initialState, ids: PartialPairwiseBlocksID[]):
+  PartialPairwiseBlocksID[] => {
     const loadingIDs = new Set(state.loading.map(partialPairwiseBlocksID));
     const loadedIDs = new Set(state.loaded.map(partialPairwiseBlocksID));
     const unloadedIDs = ids.filter((id) => {

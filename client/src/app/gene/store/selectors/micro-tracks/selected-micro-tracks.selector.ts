@@ -1,5 +1,5 @@
 // NgRx
-import { createSelector } from '@ngrx/store';
+import { createSelectorFactory } from '@ngrx/store';
 // store
 import { getSelectedChromosomes }
   from '@gcv/gene/store/selectors/chromosome/selected-chromosomes.selector';
@@ -7,11 +7,12 @@ import { getSelectedGenes }
   from '@gcv/gene/store/selectors/gene/selected-genes.selector';
 import * as fromParams from '@gcv/gene/store/selectors/params';
 // app
+import { memoizeArray } from '@gcv/core/utils';
 import { Gene, Track } from '@gcv/gene/models';
 
 
 // derive selected tracks from Chromosome and Gene States
-export const getSelectedMicroTracks = createSelector(
+export const getSelectedMicroTracks = createSelectorFactory(memoizeArray)(
   getSelectedChromosomes,
   getSelectedGenes,
   fromParams.getQueryNeighborParam,

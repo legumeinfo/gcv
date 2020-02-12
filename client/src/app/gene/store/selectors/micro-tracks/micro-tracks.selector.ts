@@ -1,10 +1,11 @@
 // NgRx
-import { createSelector } from '@ngrx/store';
+import { createSelector, createSelectorFactory } from '@ngrx/store';
 // store
 import { initialState } from '@gcv/gene/store/reducers/micro-tracks.reducer'; 
 import { getMicroTracksState } from './micro-tracks-state.selector';
 import { getSelectedMicroTracks } from './selected-micro-tracks.selector';
 // app
+import { memoizeArray } from '@gcv/core/utils';
 import { Track } from '@gcv/gene/models';
 
 
@@ -16,7 +17,7 @@ export const getLoadedMicroTracks = createSelector(
   }
 );
 
-export const getAllMicroTracks = createSelector(
+export const getAllMicroTracks = createSelectorFactory(memoizeArray)(
   getSelectedMicroTracks,
   getLoadedMicroTracks,
   (selectedTracks: Track[], loadedTracks: Track[]) => {
