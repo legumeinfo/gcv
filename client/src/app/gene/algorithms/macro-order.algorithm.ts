@@ -1,5 +1,6 @@
 import { Algorithm } from '@gcv/gene/models';
 import { pairwiseBlocksName } from './utils';
+import { AlgorithmMap, algorithmMap } from './utils';
 
 
 export const MACRO_ORDER_ALGORITHMS: Algorithm[] = [
@@ -29,3 +30,7 @@ export const MACRO_ORDER_ALGORITHMS: Algorithm[] = [
     },
   },
 ];
+
+
+export const MACRO_ORDER_ALGORITHM_MAP: AlgorithmMap
+  = algorithmMap(MACRO_ORDER_ALGORITHMS);

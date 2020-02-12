@@ -5,7 +5,8 @@ import { BrowserModule } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 // NgRx
 import { EffectsModule } from '@ngrx/effects';
-import { StoreRouterConnectingModule } from '@ngrx/router-store';
+import { RouterStateSerializer, StoreRouterConnectingModule }
+  from '@ngrx/router-store';
 import { StoreModule } from '@ngrx/store';
 // config
 import { AppConfig } from '@gcv/app.config';
@@ -18,9 +19,11 @@ import { AppComponent } from '@gcv/core/containers';
 // guards
 import * as fromGuards from '@gcv/guards';
 // store
-import { CustomRouterStateSerializer } from '@gcv/gene/utils';
-import { ROOT_REDUCERS, metaReducers } from '@gcv/reducers';
-import { RouterEffects } from '@gcv/core/store';
+import { CustomRouterStateSerializer } from '@gcv/store/utils';
+import { metaReducers, reducers } from '@gcv/store/reducers';
+import * as fromRouter from '@gcv/store/reducers/router.reducer';
+import { RouterEffects } from '@gcv/store/effects';
+
 
 @NgModule({
   imports: [
@@ -28,7 +31,7 @@ import { RouterEffects } from '@gcv/core/store';
     BrowserAnimationsModule,
     BrowserModule,
     HttpClientModule,
-    StoreModule.forRoot(ROOT_REDUCERS, {
+    StoreModule.forRoot(reducers, {
       metaReducers,
       runtimeChecks: {
         strictStateImmutability: true,
@@ -36,11 +39,11 @@ import { RouterEffects } from '@gcv/core/store';
         strictStateSerializability: false,  // classes are not serializable...
         strictActionSerializability: false,  // breaks router store serializer
       },
+      initialState: {
+        routerReducer: fromRouter.initialState,
+      },
     }),
-    // TODO: how do we give modules their own routerstore/serializer?
-    StoreRouterConnectingModule.forRoot({
-      serializer: CustomRouterStateSerializer,
-    }),
+    StoreRouterConnectingModule.forRoot(),
     EffectsModule.forRoot([RouterEffects]),
     CoreModule,
   ],
@@ -51,6 +54,10 @@ import { RouterEffects } from '@gcv/core/store';
       multi: true,
       provide: APP_INITIALIZER,
       useFactory: (config: AppConfig) => () => config.load(),
+    },
+    {
+      provide: RouterStateSerializer,
+      useClass: CustomRouterStateSerializer,
     },
     ...fromGuards.guards,
   ],

@@ -1,11 +1,18 @@
 // Angular
 import { Component } from '@angular/core';
 import { Observable, Subject } from 'rxjs';
-import { take } from 'rxjs/operators';
+import { map } from 'rxjs/operators';
 // app
-import { MACRO_ORDER_ALGORITHMS, MICRO_ORDER_ALGORITHMS }
-  from '@gcv/gene/algorithms';
-import { FilterService } from '@gcv/gene/services';
+import {
+  MACRO_ORDER_ALGORITHMS, MACRO_ORDER_ALGORITHM_MAP,
+  MICRO_ORDER_ALGORITHMS, MICRO_ORDER_ALGORITHM_MAP
+} from '@gcv/gene/algorithms';
+import { Algorithm } from '@gcv/gene/models';
+import {
+  MacroFilterParams, MacroOrderParams,
+  MicroFilterParams, MicroOrderParams
+} from '@gcv/gene/models/params';
+import { ParamsService } from '@gcv/gene/services';
 
 
 @Component({
@@ -18,52 +25,56 @@ export class FiltersComponent {
 
   macroOrderAlgorithms = MACRO_ORDER_ALGORITHMS;
   currentMacroRegexp: Observable<string>;
-  selectedMacroOrderAlgorithm: Observable<{id: string, name: string}>;
+  selectedMacroOrderAlgorithm: Observable<Algorithm>;
 
   microOrderAlgorithms = MICRO_ORDER_ALGORITHMS;
   currentMicroRegexp: Observable<string>;
-  selectedMicroOrderAlgorithm: Observable<{id: string, name: string}>;
+  selectedMicroOrderAlgorithm: Observable<Algorithm>;
 
   macroHelp = false;
   microHelp = false;
 
+  private _macroOrderMap = MACRO_ORDER_ALGORITHM_MAP;
+  private _microOrderMap = MICRO_ORDER_ALGORITHM_MAP;
   private _typingTimer;
   private _doneTypingInterval = 1000;  // 1 seconds
   private _destroy: Subject<boolean> = new Subject();
 
   // constructor
 
-  constructor(private _filterService: FilterService) {
-    this.currentMacroRegexp = this._filterService.getMacroRegexp();
-    this.selectedMacroOrderAlgorithm =
-      this._filterService.getMacroOrderAlgorithm();
-    this.currentMicroRegexp = this._filterService.getMicroRegexp();
-    this.selectedMicroOrderAlgorithm =
-      this._filterService.getMicroOrderAlgorithm();
+  constructor(private _paramsService: ParamsService) {
+    this.currentMacroRegexp = this._paramsService.getMacroFilterParams()
+      .pipe(map((params: MacroFilterParams) => params.bregexp));
+    this.selectedMacroOrderAlgorithm = this._paramsService.getMacroOrderParams()
+      .pipe(map((params: MacroOrderParams) => this._macroOrderMap[params.border]));
+    this.currentMicroRegexp = this._paramsService.getMicroFilterParams()
+      .pipe(map((params: MicroFilterParams) => params.regexp));
+    this.selectedMicroOrderAlgorithm = this._paramsService.getMicroOrderParams()
+      .pipe(map((params: MicroOrderParams) => this._microOrderMap[params.order]));
   }
 
   // public
 
-  updateMacroRegexp(regexp: string): void {
+  updateMacroRegexp(bregexp: string): void {
     clearTimeout(this._typingTimer);
     this._typingTimer = setTimeout(() => {
-      this._filterService.setMacroRegexp(regexp);
+      this._paramsService.updateParams({bregexp});
     }, this._doneTypingInterval);
   }
 
-  updateMacroOrder(id: string): void {
-    this._filterService.setMacroOrder(id);
+  updateMacroOrder(border: string): void {
+    this._paramsService.updateParams({border});
   }
 
   updateMicroRegexp(regexp: string): void {
     clearTimeout(this._typingTimer);
     this._typingTimer = setTimeout(() => {
-      this._filterService.setMicroRegexp(regexp);
+      this._paramsService.updateParams({regexp});
     }, this._doneTypingInterval);
   }
 
-  updateMicroOrder(id: string): void {
-    this._filterService.setMicroOrder(id);
+  updateMicroOrder(order: string): void {
+    this._paramsService.updateParams({order});
   }
 
 }

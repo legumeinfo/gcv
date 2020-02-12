@@ -3,7 +3,7 @@ import { createSelector } from '@ngrx/store';
 // store
 import { State, singleID }
   from '@gcv/gene/store/reducers/pairwise-blocks.reducer';
-import * as fromRouter from '@gcv/gene/store/selectors/router/';
+import * as fromParams from '@gcv/gene/store/selectors/params';
 import { getPairwiseBlocksState } from './pairwise-blocks-state.selector';
 // app
 import { arrayFlatten } from '@gcv/core/utils';
@@ -46,12 +46,12 @@ const orderAlgorithmMap = MACRO_ORDER_ALGORITHMS.reduce((map, a) => {
 export const getPairwiseBlocks =
 (tracks: Track[], sources: string[]) => createSelector(
   getPairwiseBlocksState,
-  fromRouter.getMacroRegexp,
-  fromRouter.getMacroOrder,
-  (state: State, regexp, order) => {
-    const blocksFilter = macroRegexpFactory(regexp).algorithm;
-    const orderAlg = (order in orderAlgorithmMap) ?
-      orderAlgorithmMap[order].algorithm : (t1, t2) => 0;
+  fromParams.getMacroFilterParams,
+  fromParams.getMacroOrderParams,
+  (state: State, {bregexp}, {border}) => {
+    const blocksFilter = macroRegexpFactory(bregexp).algorithm;
+    const orderAlg = (border in orderAlgorithmMap) ?
+      orderAlgorithmMap[border].algorithm : (t1, t2) => 0;
     const trackBlocks = getTrackPairwiseBlocksFromState(tracks, state);
     const flattenedBlocks = arrayFlatten(trackBlocks);
     return blocksFilter(flattenedBlocks).sort(orderAlg);

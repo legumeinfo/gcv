@@ -3,41 +3,42 @@ import { Validators } from '@angular/forms';
 import { Regex } from '@gcv/gene/constants';
 // App
 import { regexpOr } from '@gcv/gene/utils/regexp-or.util';
-import { Params } from './params.model';
 
 
-export class QueryParams implements Params {
+export type QueryParams = {
+  neighbors: number,
+  matched: number,
+  intermediate: number,
+};
 
-  constructor(
-    public neighbors: number = 10,
-    public matched: number = 4,
-    public intermediate: number = 5,
-  ) { }
 
-  asObject() {
-    return {
-      neighbors: this.neighbors,
-      matched: this.matched,
-      intermediate: this.intermediate,
-    };
-  }
+export const queryParamMembers = [
+  'neighbors',
+  'matched',
+  'intermediate',
+];
 
-  formControls(): any {
-    return {
-      intermediate: [this.intermediate, Validators.compose([
-        Validators.required,
-        Validators.pattern(
-          regexpOr(Regex.FRACTION_TO_ONE, Regex.POSITIVE_INT_AND_ZERO)),
-      ])],
-      matched: [this.matched, Validators.compose([
-        Validators.required,
-        Validators.pattern(
-          regexpOr(Regex.FRACTION_TO_ONE, Regex.POSITIVE_INT)),
-      ])],
-      neighbors: [this.neighbors, Validators.compose([
-        Validators.required,
-        Validators.pattern(Regex.POSITIVE_INT),
-      ])],
-    };
-  }
-}
+
+export const queryParamValidators = {
+  intermediate: Validators.compose([
+    Validators.required,
+    Validators.pattern(
+      regexpOr(Regex.FRACTION_TO_ONE, Regex.POSITIVE_INT_AND_ZERO)),
+  ]),
+  matched: Validators.compose([
+    Validators.required,
+    Validators.pattern(
+      regexpOr(Regex.FRACTION_TO_ONE, Regex.POSITIVE_INT)),
+  ]),
+  neighbors: Validators.compose([
+    Validators.required,
+    Validators.pattern(Regex.POSITIVE_INT),
+  ]),
+};
+
+
+export const queryParamParsers = {
+  intermediate: parseFloat,
+  matched: parseFloat,
+  neighbors: parseInt,
+};

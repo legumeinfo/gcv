@@ -3,8 +3,8 @@ import { Component, NgZone, OnInit } from '@angular/core';
 import { NavigationStart, PRIMARY_OUTLET, Router } from '@angular/router';
 // store
 import { Store } from '@ngrx/store';
-import * as routerActions from '@gcv/core/store/actions/router.actions';
-import * as fromRoot from '@gcv/core/store/reducers';
+import * as routerActions from '@gcv/store/actions/router.actions';
+import * as fromRoot from '@gcv/store/reducers';
 // App
 import { TourService } from '@gcv/core/services';
 

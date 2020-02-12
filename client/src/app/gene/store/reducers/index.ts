@@ -5,7 +5,7 @@ import { Action, ActionReducerMap, combineReducers, createFeatureSelector }
   from '@ngrx/store';
 import { storeFreeze } from 'ngrx-store-freeze';
 // reducers
-import * as fromRoot from '@gcv/reducers';
+import * as fromRoot from '@gcv/store/reducers';
 import * as fromPairwiseBlocks from './pairwise-blocks.reducer';
 import * as fromChromosome from './chromosome.reducer';
 import * as fromGene from './gene.reducer';

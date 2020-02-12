@@ -7,7 +7,7 @@ import { catchError, filter, map, mergeMap, switchMap, withLatestFrom }
   from 'rxjs/operators';
 import { Store } from '@ngrx/store';
 import * as chromosomeActions from '@gcv/gene/store/actions/chromosome.actions';
-import * as fromRoot from '@gcv/gene/store/reducers';
+import * as fromRoot from '@gcv/store/reducers';
 import * as fromChromosome from '@gcv/gene/store/selectors/chromosome/';
 import { TrackID, trackID } from '@gcv/gene/store/utils';
 // app

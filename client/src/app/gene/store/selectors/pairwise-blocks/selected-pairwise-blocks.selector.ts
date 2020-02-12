@@ -3,7 +3,7 @@ import { createSelector } from '@ngrx/store';
 // store
 import { getSelectedChromosomeIDs }
   from '@gcv/gene/store/selectors/chromosome/selected-chromosomes.selector';
-import * as fromRouter from '@gcv/gene/store/selectors/router';
+import * as fromParams from '@gcv/gene/store/selectors/params';
 import { TrackID } from '@gcv/gene/store/utils';
 import { initialState, partialPairwiseBlocksID, PartialPairwiseBlocksID, State }
   from '@gcv/gene/store/reducers/pairwise-blocks.reducer';
@@ -15,7 +15,7 @@ import { PairwiseBlocks } from '@gcv/gene/models';
 export const getSelectedPartialBlockIDs = createSelector(
   getPairwiseBlocksState,
   getSelectedChromosomeIDs,
-  fromRouter.getSources,
+  fromParams.getSourcesParam,
   (state: State, ids: TrackID[], sources: string[]):
   PartialPairwiseBlocksID[] => {
     const reducer = (accumulator, {name: reference, source: referenceSource}) =>

@@ -5,7 +5,7 @@ import { Location } from '@angular/common';
 // store
 import { Effect, Actions, ofType } from '@ngrx/effects';
 import { map, scan, tap } from 'rxjs/operators';
-import * as routerActions from '@gcv/core/store/actions/router.actions';
+import * as routerActions from '@gcv/store/actions/router.actions';
 
 @Injectable()
 export class RouterEffects {

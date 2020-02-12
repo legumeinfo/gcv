@@ -2,36 +2,40 @@
 import { AbstractControl, Validators } from '@angular/forms';
 // App
 import { AppConfig } from '@gcv/app.config';
-import { Params } from './params.model';
 
 
-export class SourceParams implements Params {
+export type SourceParams = {
+  sources: string[],
+};
 
-  private _sourceIDs: string[] = AppConfig.SERVERS.map((s) => s.id);
 
-  constructor(public sources: string[] = AppConfig.SERVERS.map((s) => s.id)) { }
+export const sourceParamMembers = [
+  'sources',
+];
 
-  asObject() {
-    return {sources: this.sources};
+
+export const sourcesValidator = (sources: AbstractControl): {[key: string]: any} => {
+  if (!sources || !sources.value || !sources.value.length) {
+    return {invalidSources: {}};
   }
-
-  formControls(): any {
-    return {
-      sources: [this.sources, Validators.compose([
-        Validators.required,
-        this._sourcesValidator,
-      ])],
-    };
+  const sourceIDs = AppConfig.SERVERS.map((s) => s.id);
+  if (sources.value.every((s) => sourceIDs.indexOf(s.id))) {
+    return null;
   }
-
-  private _sourcesValidator = (sources: AbstractControl): {[key: string]: any} => {
-    if (!sources || !sources.value.length) {
-      return {invalidSources: {}};
-    }
-    if (sources.value.every((s) => this._sourceIDs.indexOf(s.id))) {
-      return null;
-    }
-    return {invalidSources: {sources: sources.value}};
-  }
-
+  return {invalidSources: {sources: sources.value}};
 }
+
+
+export const sourceParamValidators = {
+  sources: Validators.compose([
+    Validators.required,
+    sourcesValidator,
+  ]),
+};
+
+
+export const sourceParamParsers = {
+  // TODO: is there a way to make sure the param is always an array or string,
+  // not either?
+  sources: (s) => (Array.isArray(s)) ? s : s.split(','),
+};

@@ -1,5 +1,6 @@
 import { Algorithm } from '@gcv/gene/models';
 import { trackName } from './utils';
+import { AlgorithmMap, algorithmMap } from './utils';
 
 
 export const MICRO_ORDER_ALGORITHMS: Algorithm[] = [
@@ -20,3 +21,7 @@ export const MICRO_ORDER_ALGORITHMS: Algorithm[] = [
     },
   },
 ];
+
+
+export const MICRO_ORDER_ALGORITHM_MAP: AlgorithmMap
+  = algorithmMap(MICRO_ORDER_ALGORITHMS);

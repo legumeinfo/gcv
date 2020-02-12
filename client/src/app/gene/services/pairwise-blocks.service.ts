@@ -7,8 +7,8 @@ import { catchError, map } from 'rxjs/operators';
 import { Store, select } from '@ngrx/store';
 import * as pairwiseBlocksActions
   from '@gcv/gene/store/actions/pairwise-blocks.actions';
-import * as routerActions from '@gcv/core/store/actions/router.actions';
-import * as fromRoot from '@gcv/gene/store/reducers';
+import * as routerActions from '@gcv/store/actions/router.actions';
+import * as fromRoot from '@gcv/store/reducers';
 import * as fromPairwiseBlocks from '@gcv/gene/store/selectors/pairwise-blocks/';
 // app
 import { PairwiseBlocks, PairwiseBlock, Track } from '@gcv/gene/models';

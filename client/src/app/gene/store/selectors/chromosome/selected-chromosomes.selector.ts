@@ -2,7 +2,7 @@
 import { createSelector } from '@ngrx/store';
 // store
 import { State } from '@gcv/gene/store/reducers/chromosome.reducer';
-import { getMicroQueryParamNeighbors } from '@gcv/gene/store/selectors/router/';
+import { getQueryNeighborParam } from '@gcv/gene/store/selectors/params';
 import { getSelectedGenes }
   from '@gcv/gene/store/selectors/gene/selected-genes.selector';
 import { trackID, TrackID } from '@gcv/gene/store/utils';
@@ -47,7 +47,7 @@ export const getSelectedChromosomes = createSelector(
 export const getSelectedSlices = createSelector(
   getSelectedChromosomes,
   getSelectedGenes,
-  getMicroQueryParamNeighbors,
+  getQueryNeighborParam,
   (chromosomes: Track[], genes: Gene[], neighbors: number):
   Track[] => {
     const chromosomeMap = {};

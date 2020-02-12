@@ -8,11 +8,10 @@ import { catchError, concatMap, filter, map, switchMap, withLatestFrom }
 import { Store } from '@ngrx/store';
 import * as geneActions from '@gcv/gene/store/actions/gene.actions';
 import * as plotActions from '@gcv/gene/store/actions/plot.actions';
-import * as fromRoot from '@gcv/gene/store/reducers';
+import * as fromRoot from '@gcv/store/reducers';
 import { geneID } from '@gcv/gene/store/reducers/gene.reducer';
 import * as fromGene from '@gcv/gene/store/selectors/gene/';
 import * as fromMicroTracks from '@gcv/gene/store/selectors/micro-tracks/';
-import * as fromRouter from '@gcv/gene/store/selectors/router/';
 // app
 import { Gene, Track } from '@gcv/gene/models';
 import { GeneService } from '@gcv/gene/services';

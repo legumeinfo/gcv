@@ -5,7 +5,7 @@ import { getSelectedChromosomes }
   from '@gcv/gene/store/selectors/chromosome/selected-chromosomes.selector';
 import { getSelectedGenes }
   from '@gcv/gene/store/selectors/gene/selected-genes.selector';
-import * as fromRouter from '@gcv/gene/store/selectors/router/';
+import * as fromParams from '@gcv/gene/store/selectors/params';
 // app
 import { Gene, Track } from '@gcv/gene/models';
 
@@ -14,7 +14,7 @@ import { Gene, Track } from '@gcv/gene/models';
 export const getSelectedMicroTracks = createSelector(
   getSelectedChromosomes,
   getSelectedGenes,
-  fromRouter.getMicroQueryParamNeighbors,
+  fromParams.getQueryNeighborParam,
   (chromosomes: Track[], genes: Gene[], neighbors: number):
   Track[] => {
     const chromosomeMap = {};

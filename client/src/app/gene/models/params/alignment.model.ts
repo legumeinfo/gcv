@@ -1,58 +1,63 @@
+// Angular
 import { Validators } from '@angular/forms';
-import { ALIGNMENT_ALGORITHMS } from '@gcv/gene/algorithms/alignment.algorithm';  // avoid circular dependency
+// app
+import { ALIGNMENT_ALGORITHMS } from '@gcv/gene/algorithms/alignment.algorithm';
 import { Regex } from '@gcv/gene/constants';
-import { Params } from './params.model';
 
 
-export class AlignmentParams implements Params {
-  private algorithms: string = ALIGNMENT_ALGORITHMS.map((a) => a.id).join('|');
+export type AlignmentParams = {
+  algorithm: string,  // Algorithm ID
+  match: number,
+  mismatch: number,
+  gap: number,
+  score: number,
+  threshold: number,
+};
 
-  constructor(
-    public algorithm: string = 'repeat',  // Algorithm ID
-    public match: number = 10,
-    public mismatch: number = -1,
-    public gap: number = -1,
-    public score: number = 30,
-    public threshold: number = 25,
-  ) { }
 
-  asObject() {
-    return {
-      algorithm: this.algorithm,
-      match: this.match,
-      mismatch: this.mismatch,
-      gap: this.gap,
-      score: this.score,
-      threshold: this.threshold,
-    };
-  }
+export const alignmentParamMembers = [
+  'algorithm',
+  'match',
+  'mismatch',
+  'gap',
+  'score',
+  'threshold',
+];
 
-  formControls(): any {
-    return {
-      algorithm: [this.algorithm, Validators.compose([
-        Validators.required,
-        Validators.pattern(this.algorithms),
-      ])],
-      gap: [this.gap, Validators.compose([
-        Validators.required,
-        Validators.pattern(Regex.NEGATIVE_INT),
-      ])],
-      match: [this.match, Validators.compose([
-        Validators.required,
-        Validators.pattern(Regex.POSITIVE_INT),
-      ])],
-      mismatch: [this.mismatch, Validators.compose([
-        Validators.required,
-        Validators.pattern(Regex.NEGATIVE_INT),
-      ])],
-      score: [this.score, Validators.compose([
-        Validators.required,
-        Validators.pattern(Regex.POSITIVE_INT),
-      ])],
-      threshold: [this.threshold, Validators.compose([
-        Validators.required,
-        Validators.pattern(Regex.POSITIVE_INT),
-      ])],
-    };
-  }
-}
+
+export const alignmentParamValidators = {
+  algorithm: Validators.compose([
+    Validators.required,
+    Validators.pattern(ALIGNMENT_ALGORITHMS.map((a) => a.id).join('|')),
+  ]),
+  gap: Validators.compose([
+    Validators.required,
+    Validators.pattern(Regex.NEGATIVE_INT),
+  ]),
+  match: Validators.compose([
+    Validators.required,
+    Validators.pattern(Regex.POSITIVE_INT),
+  ]),
+  mismatch: Validators.compose([
+    Validators.required,
+    Validators.pattern(Regex.NEGATIVE_INT),
+  ]),
+  score: Validators.compose([
+    Validators.required,
+    Validators.pattern(Regex.POSITIVE_INT),
+  ]),
+  threshold: Validators.compose([
+    Validators.required,
+    Validators.pattern(Regex.POSITIVE_INT),
+  ]),
+};
+
+
+export const alignmentParamParsers = {
+  algorithm: (s) => s,
+  gap: parseInt,
+  match: parseInt,
+  mismatch: parseInt,
+  score: parseInt,
+  threshold: parseInt,
+};

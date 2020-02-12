@@ -6,7 +6,7 @@ import { catchError, map } from 'rxjs/operators';
 // store
 import { Store, select } from '@ngrx/store';
 import * as geneActions from '@gcv/gene/store/actions/gene.actions';
-import * as fromRoot from '@gcv/gene/store/reducers';
+import * as fromRoot from '@gcv/store/reducers';
 import * as fromGene from '@gcv/gene/store/selectors/gene/';
 // app
 import { Gene, Track } from '@gcv/gene/models';

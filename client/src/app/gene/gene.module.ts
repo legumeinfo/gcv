@@ -25,7 +25,10 @@ import { GeneRoutingModule } from '@gcv/gene/gene-routing.module';
 
 
 @NgModule({
-  declarations: [...fromComponents.components, ...fromDirectives.directives],
+  declarations: [
+    ...fromComponents.components,
+    ...fromDirectives.directives
+  ],
   entryComponents: [
     ...fromDetails.components,
     ...fromTooltips.components,

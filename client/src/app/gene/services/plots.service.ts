@@ -3,7 +3,7 @@ import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 // store
 import { Store, select } from '@ngrx/store';
-import * as fromRoot from '@gcv/gene/store/reducers';
+import * as fromRoot from '@gcv/store/reducers';
 import * as fromPlots from '@gcv/gene/store/selectors/plots';
 // app
 import { Plot, Track } from '@gcv/gene/models';

@@ -2,9 +2,9 @@
 import { Injectable } from '@angular/core';
 // store
 import { Store } from '@ngrx/store';
-import * as fromRoot from '@gcv/gene/store/reducers';
+import * as fromRoot from '@gcv/store/reducers';
 import * as fromMicroTracks from '@gcv/gene/store/selectors/micro-tracks/';
-import * as fromRouter from '@gcv/gene/store/selectors/router/';
+import * as fromParams from '@gcv/gene/store/selectors/params';
 import { Effect, Actions, ofType } from '@ngrx/effects';
 import { combineLatest, of } from 'rxjs';
 import { catchError, map, mergeMap,switchMap, withLatestFrom }
@@ -34,11 +34,11 @@ export class MicroTracksEffects {
 
   // clear the store every time new parameters are emitted and search for tracks
   @Effect()
-  clearTracks$ = this.store.select(fromRouter.getMicroQueryParams).pipe(
+  clearTracks$ = this.store.select(fromParams.getQueryParams).pipe(
     withLatestFrom(
       this.store.select(
         fromMicroTracks.getClusteredAndAlignedSelectedMicroTracks),
-      this.store.select(fromRouter.getSources)),
+      this.store.select(fromParams.getSourcesParam)),
     switchMap(([params, {consensuses, tracks}, sources]) => {
       const clear = new microTracksActions.Clear();
       const actions: microTracksActions.Actions[] = [clear];
@@ -60,9 +60,9 @@ export class MicroTracksEffects {
   consensusSearch$ = combineLatest(
       this.store.select(
         fromMicroTracks.getClusteredAndAlignedSelectedMicroTracks),
-      this.store.select(fromRouter.getSources)
+      this.store.select(fromParams.getSourcesParam)
   ).pipe(
-    withLatestFrom(this.store.select(fromRouter.getMicroQueryParams)),
+    withLatestFrom(this.store.select(fromParams.getQueryParams)),
     switchMap(([[{consensuses, tracks}, sources], params]) => {
       const actions: microTracksActions.Actions[] = [];
       consensuses.forEach((families, cluster) => {

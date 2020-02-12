@@ -10,7 +10,10 @@ import * as fromServices from '@gcv/core/services';
 
 
 @NgModule({
-  declarations: [...fromContainers.components, ...fromComponents.components],
+  declarations: [
+    ...fromContainers.components,
+    ...fromComponents.components
+  ],
   imports: [
     CommonModule,
     FormsModule,

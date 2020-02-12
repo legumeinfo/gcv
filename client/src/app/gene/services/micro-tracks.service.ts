@@ -5,8 +5,8 @@ import { Observable, combineLatest, throwError } from 'rxjs';
 import { catchError, map, take } from 'rxjs/operators';
 // store
 import { Store, select } from '@ngrx/store';
-import * as routerActions from '@gcv/core/store/actions/router.actions';
-import * as fromRoot from '@gcv/gene/store/reducers';
+import * as routerActions from '@gcv/store/actions/router.actions';
+import * as fromRoot from '@gcv/store/reducers';
 import * as fromMicroTracks from '@gcv/gene/store/selectors/micro-tracks/';
 // app
 import { AppConfig } from '@gcv/app.config';

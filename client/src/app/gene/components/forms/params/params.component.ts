@@ -7,9 +7,16 @@ import { takeUntil } from 'rxjs/operators';
 import { AppConfig } from '@gcv/app.config';
 import { ALIGNMENT_ALGORITHMS } from '@gcv/gene/algorithms';
 import { LINKAGES } from '@gcv/gene/constants';
-import { AlignmentParams, BlockParams, ClusteringParams, Params, QueryParams,
-  SourceParams } from '@gcv/gene/models/params';
+import {
+  formControlConfigFactory,
+  AlignmentParams, alignmentParamMembers, alignmentParamValidators,
+  BlockParams, blockParamMembers, blockParamValidators,
+  ClusteringParams, clusteringParamMembers, clusteringParamValidators,
+  QueryParams, queryParamMembers, queryParamValidators,
+  SourceParams, sourceParamMembers, sourceParamValidators,
+} from '@gcv/gene/models/params';
 import { ParamsService } from '@gcv/gene/services';
+
 
 @Component({
   selector: 'params',
@@ -45,23 +52,49 @@ export class ParamsComponent implements OnDestroy, OnInit {
 
   // constructor
   constructor(private _paramsService: ParamsService,
-              private _fb: FormBuilder) { }
+              private _fb: FormBuilder) {
+    // initialize form groups
+    this.blockGroup =
+      this._initializeGroup(blockParamMembers, blockParamValidators);
+    this.queryGroup =
+      this._initializeGroup(queryParamMembers, queryParamValidators);
+    this.clusteringGroup =
+      this._initializeGroup(clusteringParamMembers, clusteringParamValidators);
+    this.alignmentGroup =
+      this._initializeGroup(alignmentParamMembers, alignmentParamValidators);
+    this.sourcesGroup =
+      this._initializeGroup(sourceParamMembers, sourceParamValidators);
+  }
 
   // Angular hooks
 
   ngOnInit(): void {
-    // initialize form groups
-    this._initializeGroup(BlockParams, 'blockGroup', 'getBlockParams');
-    this._initializeGroup(QueryParams, 'queryGroup', 'getQueryParams');
-    this._initializeGroup(
-      ClusteringParams,
-      'clusteringGroup',
-      'getClusteringParams');
-    this._initializeGroup(
-      AlignmentParams,
-      'alignmentGroup',
-      'getAlignmentParams');
-    this._initializeGroup(SourceParams, 'sourcesGroup', 'getSourceParams');
+    // update form groups
+    this._paramsService.getBlockParams()
+      .pipe(takeUntil(this._destroy))
+      .subscribe((params: BlockParams) => {
+        this._updateGroup(this.blockGroup, params);
+      });
+    this._paramsService.getQueryParams()
+      .pipe(takeUntil(this._destroy))
+      .subscribe((params: QueryParams) => {
+        this._updateGroup(this.queryGroup, params);
+      });
+    this._paramsService.getClusteringParams()
+      .pipe(takeUntil(this._destroy))
+      .subscribe((params: ClusteringParams) => {
+        this._updateGroup(this.clusteringGroup, params);
+      });
+    this._paramsService.getAlignmentParams()
+      .pipe(takeUntil(this._destroy))
+      .subscribe((params: AlignmentParams) => {
+        this._updateGroup(this.alignmentGroup, params);
+      });
+    this._paramsService.getSourceParams()
+      .pipe(takeUntil(this._destroy))
+      .subscribe((params: SourceParams) => {
+        this._updateGroup(this.sourcesGroup, params);
+      });
   }
 
   ngOnDestroy(): void {
@@ -71,16 +104,9 @@ export class ParamsComponent implements OnDestroy, OnInit {
 
   // private
 
-  private _initializeGroup<T extends Params>
-  (P: {new():T}, group: string, getter: string): void {
-    // initialize group and subscribe to store updates
-    const defaultParams = new P();
-    this[group] = this._fb.group(defaultParams.formControls());
-    this._paramsService[getter]()
-      .pipe(takeUntil(this._destroy))
-      .subscribe(function(group, params) {
-        this._updateGroup(this[group], params);
-      }.bind(this, group));
+  private _initializeGroup(members, validators): FormGroup {
+    const controls = formControlConfigFactory(members, {}, validators);
+    return this._fb.group(controls);
   }
 
   private _submitGroup(group): void {
@@ -99,7 +125,7 @@ export class ParamsComponent implements OnDestroy, OnInit {
 
   submit(): void {
     if (this.blockGroup.valid && this.queryGroup.valid && this.clusteringGroup &&
-        this.alignmentGroup.valid && this.sourcesGroup)
+        this.alignmentGroup.valid && this.sourcesGroup.valid)
     {
       this.valid.emit();
       // submit params

@@ -2,14 +2,14 @@
 import { createSelector } from '@ngrx/store';
 // store
 import { State } from '@gcv/gene/store/reducers/micro-tracks.reducer';
-import * as fromRouter from '@gcv/gene/store/selectors/router/';
+import * as fromParams from '@gcv/gene/store/selectors/params';
 import { getMicroTracksState } from './micro-tracks-state.selector';
 import { getSelectedMicroTracks } from './selected-micro-tracks.selector';
 // app
 import * as clusterfck from '@gcv-assets/js/clusterfck';
 import { GCV } from '@gcv-assets/js/gcv';
 import { arrayFlatten } from '@gcv/core/utils';
-import { ALIGNMENT_ALGORITHMS, MICRO_ORDER_ALGORITHMS }
+import { ALIGNMENT_ALGORITHM_MAP, MICRO_ORDER_ALGORITHM_MAP }
   from '@gcv/gene/algorithms';
 import { microRegexpFactory } from '@gcv/gene/algorithms/utils';
 import { Track } from '@gcv/gene/models';
@@ -25,7 +25,7 @@ import { familyCountMap } from '@gcv/gene/models/shims';
 // TODO: only cluster when selectedLoaded emits true
 export const getClusteredSelectedMicroTracks = createSelector(
   getSelectedMicroTracks,
-  fromRouter.getMicroClusteringParams,
+  fromParams.getClusteringParams,
   (tracks: Track[], params: ClusteringParams): (Track | ClusterMixin)[] => {
     const metric = (a: Track, b: Track): number => {
         const f1 = a.families;
@@ -173,13 +173,11 @@ export const getClusteredAndAlignedSelectedMicroTracks = createSelector(
 export const getClusteredAndAlignedSearchMicroTracks = createSelector(
   getMicroTracksState,
   getClusteredAndAlignedSelectedMicroTracks,
-  fromRouter.getMicroAlignmentParams,
+  fromParams.getAlignmentParams,
   (state: State, {consensuses, tracks}, params: AlignmentParams):
   (Track | ClusterMixin | AlignmentMixin)[] => {
     // get selected alignment algorithm
-    const algorithmIDs = ALIGNMENT_ALGORITHMS.map((a) => a.id);
-    const algorithmID = algorithmIDs.indexOf(params.algorithm);
-    const algorithm = ALIGNMENT_ALGORITHMS[algorithmID].algorithm;
+    const algorithm = ALIGNMENT_ALGORITHM_MAP[params.algorithm].algorithm;
     // creates an alignment mixin for the given track
     const mixin = (track, alignment) => {
         const t = Object.create(track);
@@ -216,20 +214,17 @@ export const getClusteredAndAlignedSearchMicroTracks = createSelector(
   },
 );
 
-const orderAlgorithmMap = MICRO_ORDER_ALGORITHMS.reduce((map, a) => {
-    map[a.id] = a;
-    return map;
-  }, {});
-
 export const getAllClusteredAndAlignedMicroTracks = createSelector(
   getClusteredAndAlignedSelectedMicroTracks,
   getClusteredAndAlignedSearchMicroTracks,
-  fromRouter.getMicroRegexp,
-  fromRouter.getMicroOrder,
-  ({consensuses, tracks}, searchTracks, regexp, order):
+  fromParams.getMicroFilterParams,
+  fromParams.getMicroOrderParams,
+  ({consensuses, tracks}, searchTracks, {regexp}, {order}):
   (Track | ClusterMixin | AlignmentMixin)[] => {
-    const orderAlg = (order in orderAlgorithmMap) ?
-      orderAlgorithmMap[order].algorithm : (t1, t2) => 0;
+    const orderAlg = (order in MICRO_ORDER_ALGORITHM_MAP) ?
+      MICRO_ORDER_ALGORITHM_MAP[order].algorithm as
+      (a: AlignmentMixin | ClusterMixin | Track, b: AlignmentMixin | ClusterMixin | Track) => number :
+      (t1, t2) => 0;
     const trackFilter = microRegexpFactory(regexp).algorithm;
     const sortedTracks = [...tracks].sort(orderAlg);
     const sortedSearchTracks = trackFilter(searchTracks).sort(orderAlg);

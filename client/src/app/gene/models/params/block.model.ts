@@ -1,40 +1,41 @@
 // Angular
 import { Validators } from '@angular/forms';
-// App
+// app
 import { Regex } from '@gcv/gene/constants';
-import { Params } from './params.model';
 
 
-export class BlockParams implements Params {
+export type BlockParams = {
+  bmatched: number,
+  bintermediate: number,
+  bmask: number,
+};
 
-  constructor(
-    public bmatched: number = 20,
-    public bintermediate: number = 10,
-    public bmask: number = 10,
-  ) { }
 
-  asObject() {
-    return {
-      bmatched: this.bmatched,
-      bintermediate: this.bintermediate,
-      bmask: this.bmask,
-    };
-  }
+export const blockParamMembers = [
+  'bmatched',
+  'bintermediate',
+  'bmask',
+];
 
-  formControls(): any {
-    return {
-      bintermediate: [this.bintermediate, Validators.compose([
-        Validators.required,
-        Validators.pattern(Regex.POSITIVE_INT_AND_ZERO),
-      ])],
-      bmask: [this.bmask, Validators.compose([
-        Validators.required,
-        Validators.pattern(Regex.POSITIVE_INT),
-      ])],
-      bmatched: [this.bmatched, Validators.compose([
-        Validators.required,
-        Validators.pattern(Regex.POSITIVE_INT),
-      ])],
-    };
-  }
-}
+
+export const blockParamValidators = {
+  bintermediate: Validators.compose([
+    Validators.required,
+    Validators.pattern(Regex.POSITIVE_INT_AND_ZERO),
+  ]),
+  bmask: Validators.compose([
+    Validators.required,
+    Validators.pattern(Regex.POSITIVE_INT),
+  ]),
+  bmatched: Validators.compose([
+    Validators.required,
+    Validators.pattern(Regex.POSITIVE_INT),
+  ]),
+};
+
+
+export const blockParamParsers = {
+  bintermediate: parseInt,
+  bmask: parseInt,
+  bmatched: parseInt,
+};

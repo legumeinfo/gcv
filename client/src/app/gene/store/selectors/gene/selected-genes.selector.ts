@@ -2,14 +2,29 @@
 import { createSelector, createSelectorFactory } from '@ngrx/store';
 // store
 import { geneID, GeneID, State } from '@gcv/gene/store/reducers/gene.reducer';
-import * as fromRouter from '@gcv/gene/store/selectors/router/';
+import { selectRouteParams } from '@gcv/store/selectors/router';
 import { getGeneState } from './gene-state.selector';
 // app
-import { memoizeArray } from '@gcv/core/utils';
+import { AppConfig } from '@gcv/app.config';
+import { arrayFlatten, memoizeArray } from '@gcv/core/utils';
 import { Gene } from '@gcv/gene/models';
 
 
-export const getSelectedGeneIDs = fromRouter.getRouteGenes;
+export const getSelectedGeneIDs = createSelector(
+  selectRouteParams,
+  (params): {name: string, source: string}[] => {
+    // assumes is defined (see QueryParamsGuard)
+    const sources = AppConfig.SERVERS.map((s) => s.id);
+    const selectedGenes = sources
+      .filter((source) => source in params)
+      .map((source) => {
+        const names = params[source].split(',');
+        return names.map((name) => ({source, name}));
+      });
+    return arrayFlatten(selectedGenes);
+  },
+);
+
 
 export const getSelectedGenes = createSelectorFactory(memoizeArray)(
   getGeneState,

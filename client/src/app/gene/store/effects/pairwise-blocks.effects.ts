@@ -7,10 +7,10 @@ import { catchError, filter, map, mergeMap, switchMap, withLatestFrom }
   from 'rxjs/operators';
 import { Store } from '@ngrx/store';
 import * as pairwiseBlocksActions from '@gcv/gene/store/actions/pairwise-blocks.actions';
-import * as fromRoot from '@gcv/gene/store/reducers';
+import * as fromRoot from '@gcv/store/reducers';
 import * as fromChromosome from '@gcv/gene/store/selectors/chromosome/';
 import * as fromPairwiseBlocks from '@gcv/gene/store/selectors/pairwise-blocks/';
-import * as fromRouter from '@gcv/gene/store/selectors/router/';
+import * as fromParams from '@gcv/gene/store/selectors/params';
 // app
 import { PairwiseBlocksService } from '@gcv/gene/services';
 
@@ -23,10 +23,10 @@ export class PairwiseBlocksEffects {
 
   // clear the store every time new parameters are emitted and get new blocks
   @Effect()
-  clearBlocks$ = this.store.select(fromRouter.getMacroBlockParams).pipe(
+  clearBlocks$ = this.store.select(fromParams.getBlockParams).pipe(
     withLatestFrom(
       this.store.select(fromChromosome.getSelectedChromosomes),
-      this.store.select(fromRouter.getSources)),
+      this.store.select(fromParams.getSourcesParam)),
     switchMap(([params, chromosomes, sources]) => {
       const clear = new pairwiseBlocksActions.Clear();
       const actions: pairwiseBlocksActions.Actions[] = [clear];
