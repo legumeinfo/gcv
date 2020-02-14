@@ -27,6 +27,7 @@ import * as microTrackActions from '@gcv/gene/store/actions/micro-tracks.actions
 // app
 import { Track } from '@gcv/gene/models';
 import { ClusterMixin } from '@gcv/gene/models/mixins';
+import { ActionID } from '@gcv/gene/store/utils';
 
 declare var Object: any;  // because TypeScript doesn't support Object.values
 
@@ -59,9 +60,9 @@ export function microTrackID(...args): string {
   return `${cluster}:${startGene}:${stopGene}:${source}`;
 };
 
-function partialMicroTrackID(cluster: number, source: string): string;
-function partialMicroTrackID({cluster, source}): string;
-function partialMicroTrackID(...args): string {
+export function partialMicroTrackID(cluster: number, source: string): string;
+export function partialMicroTrackID({cluster, source}): string;
+export function partialMicroTrackID(...args): string {
   if (typeof args[0] === 'object') {
     const id = args[0];
     return partialMicroTrackID(id.cluster, id.source);
@@ -78,7 +79,7 @@ const adapter = createEntityAdapter<(Track | ClusterMixin)>({
 export interface State extends EntityState<(Track | ClusterMixin)> {
   failed: PartialMicroTrackID[];
   loaded: PartialMicroTrackID[];
-  loading: PartialMicroTrackID[];
+  loading: (PartialMicroTrackID & ActionID)[];
 }
 
 export const initialState: State = adapter.getInitialState({
@@ -105,6 +106,7 @@ export function reducer(
       const partialID = {
           cluster: action.payload.cluster,
           source: action.payload.source,
+          action: action.id,
         };
       return {
         ...state,

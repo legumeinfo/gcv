@@ -1,4 +1,5 @@
 import { Action } from '@ngrx/store';
+import { counter } from '@gcv/core/utils';
 import { Track } from '@gcv/gene/models';
 import { QueryParams } from '@gcv/gene/models/params';
 import { ClusterMixin } from '@gcv/gene/models/mixins';
@@ -14,6 +15,7 @@ export class Clear implements Action {
 
 export class Search implements Action {
   readonly type = SEARCH;
+  readonly id = counter.getCount();
   constructor(public payload: {cluster: number, families: string[],
     source: string, params: QueryParams}) { }
 }

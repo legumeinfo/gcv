@@ -44,7 +44,6 @@ export class ChromosomeEffects {
       const loadingIDs = new Set(loading.map(actionTrackID));
       // only load chromosome if action is loading
       const id = actionTrackID({action, name, source});
-      const chromosomeID = trackID(name, source);
       if (!loadingIDs.has(id)) {
         return [];
       }

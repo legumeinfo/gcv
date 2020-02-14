@@ -7,7 +7,6 @@ import { catchError, concatMap, filter, map, switchMap, withLatestFrom }
   from 'rxjs/operators';
 import { Store } from '@ngrx/store';
 import * as geneActions from '@gcv/gene/store/actions/gene.actions';
-import * as plotActions from '@gcv/gene/store/actions/plot.actions';
 import * as fromRoot from '@gcv/store/reducers';
 import { geneID } from '@gcv/gene/store/reducers/gene.reducer';
 import * as fromGene from '@gcv/gene/store/selectors/gene/';
@@ -57,7 +56,7 @@ export class GeneEffects {
       const actionGeneID =
         ({name, source, action}) => `${geneID(name, source)}:${action}`;
       const loadingIDs = new Set(loading.map(actionGeneID));
-      // only keep genes whose action is loaded
+      // only keep genes whose action is loading
       const filteredNames = names.filter((name) => {
           const id = actionGeneID({name, source, action});
           return loadingIDs.has(id);

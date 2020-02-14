@@ -6,10 +6,14 @@ import { combineLatest, of, zip } from 'rxjs';
 import { catchError, filter, map, mergeMap, switchMap, withLatestFrom }
   from 'rxjs/operators';
 import { Store } from '@ngrx/store';
-import * as pairwiseBlocksActions from '@gcv/gene/store/actions/pairwise-blocks.actions';
+import * as pairwiseBlocksActions
+  from '@gcv/gene/store/actions/pairwise-blocks.actions';
 import * as fromRoot from '@gcv/store/reducers';
+import { partialPairwiseBlocksID }
+  from '@gcv/gene/store/reducers/pairwise-blocks.reducer';
 import * as fromChromosome from '@gcv/gene/store/selectors/chromosome/';
-import * as fromPairwiseBlocks from '@gcv/gene/store/selectors/pairwise-blocks/';
+import * as fromPairwiseBlocks
+  from '@gcv/gene/store/selectors/pairwise-blocks/';
 import * as fromParams from '@gcv/gene/store/selectors/params';
 // app
 import { PairwiseBlocksService } from '@gcv/gene/services';
@@ -38,8 +42,30 @@ export class PairwiseBlocksEffects {
   @Effect()
   getPairwiseBlocks$ = this.actions$.pipe(
     ofType(pairwiseBlocksActions.GET),
-    map((action: pairwiseBlocksActions.Get) => action.payload),
-    mergeMap(({chromosome, source, params, targets}) => {
+    map((action: pairwiseBlocksActions.Get) => {
+      return {action: action.id, ...action.payload};
+    }),
+    withLatestFrom(this.store.select(fromPairwiseBlocks.getLoading)),
+    mergeMap(([{chromosome, source, params, targets, action}, loading]) => {
+      // get loaded/loading blocks
+      const actionBlockID =
+        ({action, referenceName, referenceSource, source}) => {
+          const partialID =
+            partialPairwiseBlocksID(referenceName, referenceSource, source);
+          return `${partialID}:${action}`;
+        };
+      const loadingIDs = new Set(loading.map(actionBlockID));
+      // only load blocks is action is loading
+      const id = actionBlockID({
+          referenceName: chromosome.name,
+          referenceSource: chromosome.source,
+          source,
+          action,
+        });
+      if (!loadingIDs.has(id)) {
+        return [];
+      }
+      // load blocks
       return this.pairwiseBlocksService
       .getPairwiseBlocks(chromosome, params, source, targets).pipe(
         map((blocks) => {

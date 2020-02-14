@@ -12,6 +12,7 @@ import { createEntityAdapter, EntityState } from '@ngrx/entity';
 import * as pairwiseBlocksActions from '@gcv/gene/store/actions/pairwise-blocks.actions';
 // app
 import { PairwiseBlocks } from '@gcv/gene/models';
+import { ActionID } from '@gcv/gene/store/utils';
 
 declare var Object: any;  // because TypeScript doesn't support Object.values
 
@@ -64,7 +65,7 @@ const adapter = createEntityAdapter<PairwiseBlocks>({
 export interface State extends EntityState<PairwiseBlocks> {
   failed: PartialPairwiseBlocksID[];
   loaded: PartialPairwiseBlocksID[];
-  loading: PartialPairwiseBlocksID[];
+  loading: (PartialPairwiseBlocksID & ActionID)[];
 }
 
 export const initialState: State = adapter.getInitialState({
@@ -93,6 +94,7 @@ export function reducer(
           referenceName: chromosome.name,
           referenceSource: chromosome.source,
           source,
+          action: action.id,
         };
       return {
         ...state,

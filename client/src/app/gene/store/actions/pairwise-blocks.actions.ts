@@ -1,4 +1,5 @@
 import { Action } from '@ngrx/store';
+import { counter } from '@gcv/core/utils';
 import { PairwiseBlocks, Track } from '@gcv/gene/models';
 import { BlockParams } from '@gcv/gene/models/params';
 
@@ -13,6 +14,7 @@ export class Clear implements Action {
 
 export class Get implements Action {
   readonly type = GET;
+  readonly id = counter.getCount();
   constructor(public payload: {chromosome: Track, source: string,
     params: BlockParams, targets: string[]}) { }
 }

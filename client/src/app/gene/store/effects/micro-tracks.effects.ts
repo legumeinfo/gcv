@@ -3,13 +3,16 @@ import { Injectable } from '@angular/core';
 // store
 import { Store } from '@ngrx/store';
 import * as fromRoot from '@gcv/store/reducers';
+import { partialMicroTrackID }
+  from '@gcv/gene/store/reducers/micro-tracks.reducer';
 import * as fromMicroTracks from '@gcv/gene/store/selectors/micro-tracks/';
 import * as fromParams from '@gcv/gene/store/selectors/params';
 import { Effect, Actions, ofType } from '@ngrx/effects';
 import { combineLatest, of } from 'rxjs';
 import { catchError, map, mergeMap, switchMap, withLatestFrom }
   from 'rxjs/operators';
-import * as microTracksActions from '@gcv/gene/store/actions/micro-tracks.actions';
+import * as microTracksActions
+  from '@gcv/gene/store/actions/micro-tracks.actions';
 // app
 import { Track } from '@gcv/gene/models';
 import { ClusterMixin } from '@gcv/gene/models/mixins';
@@ -78,12 +81,28 @@ export class MicroTracksEffects {
 
   // search for similar tracks to the query
   @Effect()
-  miroTracksSearch$ = this.actions$.pipe(
+  mircoTracksSearch$ = this.actions$.pipe(
     ofType(microTracksActions.SEARCH),
-    map((action: microTracksActions.Search) => action.payload),
+    map((action: microTracksActions.Search) => {
+      return {action: action.id, ...action.payload};
+    }),
     withLatestFrom(
-      this.store.select(fromMicroTracks.getClusteredSelectedMicroTracks)),
-    mergeMap(([{cluster, families, source, params}, clusteredTracks]) => {
+      this.store.select(fromMicroTracks.getClusteredSelectedMicroTracks),
+      this.store.select(fromMicroTracks.getLoading)),
+    mergeMap(
+    ([{cluster, families, source, params, action}, clusteredTracks, loading]) =>
+    {
+      //get loaded/loading tracks
+      const actionSearchID = ({cluster, source, action}) => {
+          return `${partialMicroTrackID(name, source)}:${action}`;
+        };
+      const loadingIDs = new Set(loading.map(actionSearchID));
+      // only search if action is loading
+      const id = actionSearchID({action, cluster, source});
+      if (!loadingIDs.has(id)) {
+        return [];
+      }
+      // search
       const clusterTracks = clusteredTracks.filter((t: ClusterMixin) => {
           return t.cluster === cluster;
         });
