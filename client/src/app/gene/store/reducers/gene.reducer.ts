@@ -49,6 +49,13 @@ export function reducer(
   action: geneActions.Actions
 ): State {
   switch (action.type) {
+    case geneActions.CLEAR:
+      // TODO: can we just return the initial state?
+      return adapter.removeAll({
+        ...state,
+        failed: [],
+        loading: [],
+      });
     case geneActions.GET:
       const source = action.payload.source;
       const loadingIDs = new Set(state.loading.map(geneID));

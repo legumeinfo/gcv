@@ -2,9 +2,9 @@
 import { Injectable } from '@angular/core';
 // store
 import { Effect, Actions, ofType } from '@ngrx/effects';
-import { of } from 'rxjs';
-import { catchError, concatMap, filter, map, switchMap, withLatestFrom }
-  from 'rxjs/operators';
+import { Observable, of } from 'rxjs';
+import { catchError, concatMap, filter, map, switchMap, takeUntil,
+  withLatestFrom } from 'rxjs/operators';
 import { Store } from '@ngrx/store';
 import * as geneActions from '@gcv/gene/store/actions/gene.actions';
 import * as fromRoot from '@gcv/store/reducers';
@@ -21,6 +21,12 @@ export class GeneEffects {
   constructor(private actions$: Actions,
               private geneService: GeneService,
               private store: Store<fromRoot.State>) { }
+
+  // clear the store every time the set of selected genes changes
+  @Effect()
+  clearGenes$ = this.store.select(fromGene.getSelectedGeneIDs).pipe(
+    map((...args) => new geneActions.Clear()),
+  );
 
   // emits a get action for each selected gene that's not loaded or loading
   @Effect()
@@ -66,6 +72,7 @@ export class GeneEffects {
         return [];
       }
       return this.geneService.getGenes(filteredNames, source).pipe(
+        takeUntil(this.actions$.pipe(ofType(geneActions.CLEAR))),
         map((genes: Gene[]) =>  new geneActions.GetSuccess({genes})),
         catchError((error) => of(new geneActions.GetFailure({names, source})))
       );

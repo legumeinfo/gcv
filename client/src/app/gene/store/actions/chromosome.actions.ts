@@ -2,9 +2,14 @@ import { Action } from '@ngrx/store';
 import { counter } from '@gcv/core/utils';
 import { Track } from '@gcv/gene/models';
 
+export const CLEAR = '[CHROMOSOME] CLEAR';
 export const GET = '[CHROMOSOME] GET';
 export const GET_SUCCESS = '[CHROMOSOME] GET_SUCCESS';
 export const GET_FAILURE = '[CHROMOSOME] GET_FAILURE';
+
+export class Clear implements Action {
+  readonly type = CLEAR;
+}
 
 export class Get implements Action {
   readonly type = GET;
@@ -22,4 +27,4 @@ export class GetFailure implements Action {
   constructor(public payload: any) { }
 }
 
-export type Actions = Get | GetSuccess | GetFailure;
+export type Actions = Clear | Get | GetSuccess | GetFailure;

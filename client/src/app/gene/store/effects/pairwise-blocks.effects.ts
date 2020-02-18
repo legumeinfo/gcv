@@ -3,8 +3,8 @@ import { Injectable } from '@angular/core';
 // store
 import { Effect, Actions, ofType } from '@ngrx/effects';
 import { combineLatest, of, zip } from 'rxjs';
-import { catchError, filter, map, mergeMap, switchMap, withLatestFrom }
-  from 'rxjs/operators';
+import { catchError, filter, map, mergeMap, switchMap, takeUntil,
+  withLatestFrom } from 'rxjs/operators';
 import { Store } from '@ngrx/store';
 import * as pairwiseBlocksActions
   from '@gcv/gene/store/actions/pairwise-blocks.actions';
@@ -12,6 +12,7 @@ import * as fromRoot from '@gcv/store/reducers';
 import { partialPairwiseBlocksID }
   from '@gcv/gene/store/reducers/pairwise-blocks.reducer';
 import * as fromChromosome from '@gcv/gene/store/selectors/chromosome/';
+import * as fromGenes from '@gcv/gene/store/selectors/gene/';
 import * as fromPairwiseBlocks
   from '@gcv/gene/store/selectors/pairwise-blocks/';
 import * as fromParams from '@gcv/gene/store/selectors/params';
@@ -25,17 +26,14 @@ export class PairwiseBlocksEffects {
               private pairwiseBlocksService: PairwiseBlocksService,
               private store: Store<fromRoot.State>) { }
 
-  // clear the store every time new parameters are emitted and get new blocks
+  // clear the store every time new query genes or parameters are emitted
   @Effect()
-  clearBlocks$ = this.store.select(fromParams.getBlockParams).pipe(
-    withLatestFrom(
-      this.store.select(fromChromosome.getSelectedChromosomes),
-      this.store.select(fromParams.getSourcesParam)),
-    switchMap(([params, chromosomes, sources]) => {
-      const clear = new pairwiseBlocksActions.Clear();
-      const actions: pairwiseBlocksActions.Actions[] = [clear];
-      return actions;
-    }),
+  clearPairwiseBlocks$ = combineLatest(
+    this.store.select(fromGenes.getSelectedGeneIDs),
+    this.store.select(fromParams.getBlockParams),
+    this.store.select(fromParams.getSourceParams),
+  ).pipe(
+    map((...args) => new pairwiseBlocksActions.Clear()),
   );
 
   // get pairwise blocks via the pairwise blocks service
@@ -68,6 +66,7 @@ export class PairwiseBlocksEffects {
       // load blocks
       return this.pairwiseBlocksService
       .getPairwiseBlocks(chromosome, params, source, targets).pipe(
+        takeUntil(this.actions$.pipe(ofType(pairwiseBlocksActions.CLEAR))),
         map((blocks) => {
           const payload = {chromosome, source, blocks};
           return new pairwiseBlocksActions.GetSuccess(payload);

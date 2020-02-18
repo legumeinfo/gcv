@@ -38,6 +38,13 @@ export function reducer(
   action: chromosomeActions.Actions
 ): State {
   switch (action.type) {
+    case chromosomeActions.CLEAR:
+      // TODO: can we just return the initial state?
+      return adapter.removeAll({
+        ...state,
+        failed: [],
+        loading: [],
+      });
     case chromosomeActions.GET:
       const loadingIDs = new Set(state.loading.map(trackID));
       const id = trackID(action.payload);

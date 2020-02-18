@@ -2,10 +2,15 @@ import { Action } from '@ngrx/store';
 import { counter } from '@gcv/core/utils';
 import { Gene, Track } from '@gcv/gene/models';
 
+export const CLEAR = '[GENE] CLEAR';
 export const GET = '[GENE] GET';
 export const GET_SUCCESS = '[GENE] GET_SUCCESS';
 export const GET_FAILURE = '[GENE] GET_FAILURE';
 
+
+export class Clear implements Action {
+  readonly type = CLEAR;
+}
 
 export class Get implements Action {
   readonly type = GET;
@@ -23,7 +28,7 @@ export class GetFailure implements Action {
   constructor(public payload: {names: string[], source: string}) { }
 }
 
-export type Actions = Get | GetSuccess | GetFailure;
+export type Actions = Clear | Get | GetSuccess | GetFailure;
 
 // bins track genes by source and generates a get action for each source
 export function tracksToGetGeneActions(tracks: Track[]): Get[] {
