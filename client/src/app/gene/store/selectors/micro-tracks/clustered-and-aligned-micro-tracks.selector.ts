@@ -3,6 +3,9 @@ import { createSelector, createSelectorFactory } from '@ngrx/store';
 // store
 import { State } from '@gcv/gene/store/reducers/micro-tracks.reducer';
 import * as fromParams from '@gcv/gene/store/selectors/params';
+import { getSelectedChromosomesLoaded }
+  from '@gcv/gene/store/selectors/chromosome/selected-chromosomes.selector';
+import { getSelectedGenesLoaded } from '@gcv/gene/store/selectors/gene';
 import { getMicroTracksState } from './micro-tracks-state.selector';
 import { getSelectedMicroTracks } from './selected-micro-tracks.selector';
 // app
@@ -25,9 +28,16 @@ import { familyCountMap } from '@gcv/gene/models/shims';
 // TODO: only cluster when selectedLoaded emits true
 export const getClusteredSelectedMicroTracks =
 createSelectorFactory(memoizeArray)(
+  getSelectedGenesLoaded,
+  getSelectedChromosomesLoaded,
   getSelectedMicroTracks,
   fromParams.getClusteringParams,
-  (tracks: Track[], params: ClusteringParams): (Track | ClusterMixin)[] => {
+  (genesLoaded: boolean, chromosomesLoaded: boolean, tracks: Track[],
+  params: ClusteringParams): (Track | ClusterMixin)[] => {
+    // TODO: should this also check that the selected IDs lists are non-empty?
+    if (!genesLoaded || !chromosomesLoaded) {
+      return [];
+    }
     const metric = (a: Track, b: Track): number => {
         const f1 = a.families;
         const f2 = b.families;
