@@ -51,9 +51,9 @@
       <small class="form-text text-muted">Select one</small>
       <p class="help-block" *ngIf="clusteringHelp">Which linkage algorithm to use.</p>
     </div>
-    <div class="form-group" [ngClass]="{'has-error': !clusteringGroup.controls.threshold.valid}">
-      <label for="threshold">Threshold</label>
-      <input type="number" class="form-control" formControlName="threshold" >
+    <div class="form-group" [ngClass]="{'has-error': !clusteringGroup.controls.cthreshold.valid}">
+      <label for="cthreshold">Threshold</label>
+      <input type="number" class="form-control" formControlName="cthreshold" >
       <small class="form-text text-muted">Positive integer (&ge;1)</small>
       <p class="help-block" *ngIf="clusteringHelp">The max distance between clusters.</p>
     </div>

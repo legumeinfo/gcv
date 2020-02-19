@@ -6,13 +6,13 @@ import { LINKAGES, Regex } from '@gcv/gene/constants';
 
 export type ClusteringParams = {
   linkage: string,  // TODO: remove magic string
-  threshold: number,
+  cthreshold: number,
 };
 
 
 export const clusteringParamMembers = [
   'linkage',
-  'threshold',
+  'cthreshold',
 ];
 
 
@@ -21,7 +21,7 @@ export const clusteringParamValidators = {
     Validators.required,
     Validators.pattern(LINKAGES.map((l) => l.id).join('|')),
   ]),
-  threshold: Validators.compose([
+  cthreshold: Validators.compose([
     Validators.required,
     Validators.pattern(Regex.POSITIVE_INT),
   ]),
@@ -30,5 +30,5 @@ export const clusteringParamValidators = {
 
 export const clusteringParamParsers = {
   linkage: (s) => s,
-  threshold: parseInt,
+  cthreshold: parseInt,
 };

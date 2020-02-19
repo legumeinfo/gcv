@@ -47,7 +47,7 @@ createSelectorFactory(memoizeArray)(
         return Math.min(d1, d2);
       };
     const clusters =
-      clusterfck.hcluster(tracks, metric, params.linkage, params.threshold);
+      clusterfck.hcluster(tracks, metric, params.linkage, params.cthreshold);
     const recurrence = (cluster) => {
         const elements = [];
         if ('left' in cluster && 'right' in cluster) {

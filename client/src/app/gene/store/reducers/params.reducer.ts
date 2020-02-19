@@ -16,7 +16,7 @@ export const initialState: Params = {
   bmask: 10,
   // clustering
   linkage: 'average',  // TODO: remove magic string
-  //threshold: 20,  // TODO: fix collision with alignment threshold
+  cthreshold: 20,
   // query
   neighbors: 10,
   matched: 4,
