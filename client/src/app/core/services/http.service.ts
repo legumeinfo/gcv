@@ -38,15 +38,11 @@ export abstract class HttpService {
     const url = makeUrl(request.url);
     const params = new HttpParams({fromObject: body});
     if (request.type === GET) {
-      const requestObservable = this.http.get<T>(url, {params}).pipe(
-        share()
-      );
+      const requestObservable = this.http.get<T>(url, {params}).pipe(share());
       this.requestsSubject.next([args, requestObservable]);
       return requestObservable;
     } else if (request.type === POST) {
-      const requestObservable = this.http.post<T>(url, body).pipe(
-        share()
-      );
+      const requestObservable = this.http.post<T>(url, body).pipe(share());
       this.requestsSubject.next([args, requestObservable]);
       return requestObservable;
     }

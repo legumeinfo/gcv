@@ -24,7 +24,7 @@ export class GetSuccess implements Action {
 
 export class GetFailure implements Action {
   readonly type = GET_FAILURE;
-  constructor(public payload: any) { }
+  constructor(public payload: {name: string, source: string}) { }
 }
 
 export type Actions = Clear | Get | GetSuccess | GetFailure;

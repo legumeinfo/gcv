@@ -56,10 +56,8 @@ export class ChromosomeEffects {
       }
       return this.chromosomeService.getChromosome(name, source).pipe(
         takeUntil(this.actions$.pipe(ofType(chromosomeActions.CLEAR))),
-        map((chromosome) => {
-          return new chromosomeActions.GetSuccess({chromosome});
-        }),
-        catchError((error) => of(new chromosomeActions.GetFailure(error)))
+        map((chromosome) => new chromosomeActions.GetSuccess({chromosome})),
+        catchError((e) => of(new chromosomeActions.GetFailure({name, source}))),
       );
     })
   );
