@@ -28,9 +28,9 @@ export class GeneEffects {
     map((...args) => new geneActions.Clear()),
   );
 
-  // emits a get action for each selected gene that's not loaded or loading
+  // emits a get action for each selected gene
   @Effect()
-  getSelected$ = this.store.select(fromGene.getUnloadedSelectedGeneIDs).pipe(
+  getSelected$ = this.store.select(fromGene.getSelectedGeneIDs).pipe(
     filter((ids) => ids.length > 0),
     switchMap((ids) => {
       // bin ids by source
@@ -56,8 +56,8 @@ export class GeneEffects {
   getGenes$ = this.actions$.pipe(
     ofType(geneActions.GET),
     map((action: geneActions.Get) => ({action: action.id, ...action.payload})),
-    withLatestFrom(this.store.select(fromGene.getLoading)),
-    concatMap(([{action, names, source}, loading]) => {
+    withLatestFrom(this.store.select(fromGene.getLoading), this.store.select(fromGene.getSelectedGeneIDs)),
+    concatMap(([{action, names, source}, loading, selectedIDs]) => {
       // get loaded/loading genes
       const actionGeneID =
         ({name, source, action}) => `${geneID(name, source)}:${action}`;
@@ -73,7 +73,19 @@ export class GeneEffects {
       }
       return this.geneService.getGenes(filteredNames, source).pipe(
         takeUntil(this.actions$.pipe(ofType(geneActions.CLEAR))),
-        map((genes: Gene[]) =>  new geneActions.GetSuccess({genes})),
+        switchMap((genes: Gene[]) => {
+          const actions: geneActions.Actions[] = [];
+          const successNames = new Set(genes.map((g) => g.name));
+          const failedNames = filteredNames.filter((n) => !successNames.has(n));
+          if (failedNames.length > 0) {
+            const payload = {names: failedNames, source};
+            const failureAction = new geneActions.GetFailure(payload);
+            actions.push(failureAction);
+          }
+          const successAction = new geneActions.GetSuccess({genes});
+          actions.push(successAction);
+          return actions;
+        }),
         catchError((error) => of(new geneActions.GetFailure({names, source})))
       );
     })

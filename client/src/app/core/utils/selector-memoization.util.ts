@@ -1,7 +1,7 @@
 // store
 import { MemoizedProjection } from '@ngrx/store';
 // app
-import { arrayIsEqual, objectIsEqual } from './comparators.util';
+import { arrayIsEqual, compare, objectIsEqual } from './comparators.util';
 
 
 type AnyFn = (...args: any[]) => any;
@@ -35,3 +35,4 @@ export const selectorMemoizerFactory = (comparator: Function) => {
 
 export const memoizeArray = selectorMemoizerFactory(arrayIsEqual);
 export const memoizeObject = selectorMemoizerFactory(objectIsEqual);
+export const memoizeValue = selectorMemoizerFactory(compare);

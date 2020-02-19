@@ -31,7 +31,7 @@ export class ChromosomeEffects {
   // loading
   @Effect()
   getSelected$ = this.store
-  .select(fromChromosome.getUnloadedSelectedChromosomeIDs).pipe(
+  .select(fromChromosome.getSelectedChromosomeIDs).pipe(
     filter((ids) => ids.length > 0),
     mergeMap((ids) => ids.map((id) => new chromosomeActions.Get(id))),
   );

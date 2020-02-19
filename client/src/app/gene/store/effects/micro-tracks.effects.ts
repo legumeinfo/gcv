@@ -5,13 +5,14 @@ import { Store } from '@ngrx/store';
 import * as fromRoot from '@gcv/store/reducers';
 import { partialMicroTrackID }
   from '@gcv/gene/store/reducers/micro-tracks.reducer';
+import * as fromChromosome from '@gcv/gene/store/selectors/chromosome/';
 import * as fromGenes from '@gcv/gene/store/selectors/gene';
 import * as fromMicroTracks from '@gcv/gene/store/selectors/micro-tracks/';
 import * as fromParams from '@gcv/gene/store/selectors/params';
 import { Effect, Actions, ofType } from '@ngrx/effects';
 import { Observable, combineLatest, of } from 'rxjs';
-import { catchError, map, mergeMap, switchMap, takeUntil, withLatestFrom }
-  from 'rxjs/operators';
+import { catchError, filter, map, mergeMap, switchMap, takeUntil,
+  withLatestFrom } from 'rxjs/operators';
 import * as microTracksActions
   from '@gcv/gene/store/actions/micro-tracks.actions';
 // app
@@ -36,16 +37,13 @@ export class MicroTracksEffects {
 
   // public
 
-  // clear the store every time a new query, parameters, or clustering occurs
+  // clear the store every time a new query or change of parameters occurs
   @Effect()
   clearTracks$ = combineLatest(
     this.store.select(fromGenes.getSelectedGeneIDs),
     this.store.select(fromParams.getQueryParams),
     this.store.select(fromParams.getSourcesParam),
-    // TODO: a temporary alternative to waiting for all tracks to load and
-    // cluster before searching
-    this.store.select(fromMicroTracks.getClusteredAndAlignedSelectedMicroTracks),
-    //this.store.select(fromParams.getClusteringParams),
+    this.store.select(fromParams.getClusteringParams),
   ).pipe(
     map((...args) => new microTracksActions.Clear())
   );
@@ -53,12 +51,19 @@ export class MicroTracksEffects {
   // initializes a search whenever new aligned clusters are generated
   @Effect()
   consensusSearch$ = combineLatest(
-      this.store.select(
-        fromMicroTracks.getClusteredAndAlignedSelectedMicroTracks),
-      this.store.select(fromParams.getSourcesParam)
+    this.store.select(fromGenes.getSelectedGenesLoaded),
+    this.store.select(fromChromosome.getSelectedChromosomesLoaded),
+    this.store.select(fromMicroTracks.getClusteredAndAlignedSelectedMicroTracks),
+    this.store.select(fromParams.getSourcesParam)
   ).pipe(
+    // TODO: should this also check that the selected IDs lists are non-empty?
+    filter(([genesLoaded, chromosomesLoaded, ...args]) => {
+      return genesLoaded && chromosomesLoaded;
+    }),
+    map(([genesLoaded, chromosomesLoaded, ...args]) => args),
     withLatestFrom(this.store.select(fromParams.getQueryParams)),
-    switchMap(([[{consensuses, tracks}, sources], params]) => {
+    switchMap(
+    ([[{consensuses, tracks}, sources], params]) => {
       const actions: microTracksActions.Actions[] = [];
       consensuses.forEach((families, cluster) => {
         sources.forEach((source) => {

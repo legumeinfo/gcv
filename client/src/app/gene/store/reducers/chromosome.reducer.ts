@@ -22,7 +22,6 @@ const adapter = createEntityAdapter<Track>({
   selectId: (e) => trackID(e.name, e.source)
 });
 
-// selectedChromosomeIDs selector?
 export interface State extends EntityState<Track> {
   failed: TrackID[];
   loading: (TrackID & ActionID)[];

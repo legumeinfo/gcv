@@ -6,7 +6,8 @@ import { selectRouteParams } from '@gcv/store/selectors/router';
 import { getGeneState } from './gene-state.selector';
 // app
 import { AppConfig } from '@gcv/app.config';
-import { arrayFlatten, memoizeArray } from '@gcv/core/utils';
+import { arrayFlatten, memoizeArray, memoizeValue, setIntersection }
+  from '@gcv/core/utils';
 import { Gene } from '@gcv/gene/models';
 
 
@@ -26,6 +27,19 @@ export const getSelectedGeneIDs = createSelectorFactory(memoizeArray)(
 );
 
 
+export const getSelectedGenesLoaded = createSelectorFactory(memoizeValue)(
+  getGeneState,
+  getSelectedGeneIDs,
+  (state: State, ids: GeneID[]): boolean => {
+    const loaded = new Set(state.ids as string[]);
+    state.failed.map(geneID).forEach(loaded.add, loaded);
+    const selected = new Set(ids.map(geneID));
+    const intersection = setIntersection(loaded, selected);
+    return selected.size == intersection.size;
+  },
+);
+
+
 export const getSelectedGenes = createSelectorFactory(memoizeArray)(
   getGeneState,
   getSelectedGeneIDs,
@@ -39,19 +53,5 @@ export const getSelectedGenes = createSelectorFactory(memoizeArray)(
       };
     const selectedGenes = ids.reduce(reducer, {});
     return Object.values(selectedGenes);
-  },
-);
-
-export const getUnloadedSelectedGeneIDs = createSelectorFactory(memoizeArray)(
-  getGeneState,
-  getSelectedGeneIDs,
-  (state: State, ids: GeneID[]): GeneID[] => {
-    const loadingIDs = new Set(state.loading.map(geneID));
-    const loadedIDs = new Set(state.ids as string[]);
-    const unloadedIDs = ids.filter((id) => {
-        const idString = geneID(id);
-        return !loadingIDs.has(idString) && !loadedIDs.has(idString);
-      });
-    return unloadedIDs;
   },
 );

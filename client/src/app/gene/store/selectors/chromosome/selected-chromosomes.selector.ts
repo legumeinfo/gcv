@@ -9,7 +9,7 @@ import { trackID, TrackID } from '@gcv/gene/store/utils';
 import { getChromosomeState } from './chromosome-state.selector';
 // app
 import { Gene, Track } from '@gcv/gene/models';
-import { memoizeArray } from '@gcv/core/utils';
+import { memoizeArray, memoizeValue, setIntersection } from '@gcv/core/utils';
 
 
 // derive selected chromosome from Gene State
@@ -25,6 +25,18 @@ export const getSelectedChromosomeIDs = createSelectorFactory(memoizeArray)(
       };
     const chromosomeMap = genes.reduce(reducer, {});
     return Object.values(chromosomeMap);
+  },
+);
+
+export const getSelectedChromosomesLoaded = createSelectorFactory(memoizeValue)(
+  getChromosomeState,
+  getSelectedChromosomeIDs,
+  (state: State, ids: TrackID[]): boolean => {
+    const loaded = new Set(state.ids as string[]);
+    state.failed.map(trackID).forEach(loaded.add, loaded);
+    const selected = new Set(ids.map(trackID));
+    const intersection = setIntersection(loaded, selected);
+    return selected.size == intersection.size;
   },
 );
 
@@ -77,19 +89,4 @@ export const getSelectedSlices = createSelectorFactory(memoizeArray)(
     const tracks = genes.reduce(reducer, []);
     return tracks;
   }
-);
-
-export const getUnloadedSelectedChromosomeIDs =
-createSelectorFactory(memoizeArray)(
-  getChromosomeState,
-  getSelectedChromosomeIDs,
-  (state: State, ids: TrackID[]): TrackID[] => {
-    const loadingIDs = new Set(state.loading.map(trackID));
-    const loadedIDs = new Set(state.ids as string[]);
-    const unloadedIDs = ids.filter((id) => {
-        const idString = trackID(id);
-        return !loadingIDs.has(idString) && !loadedIDs.has(idString);
-      });
-    return unloadedIDs;
-  },
 );
