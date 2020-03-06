@@ -2,8 +2,8 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 // App
-import { GeneComponent, HeaderLeftComponent, HeaderRightComponent }
-  from '@gcv/gene/components';
+import { GeneComponent, HeaderCenterComponent, HeaderLeftComponent,
+  HeaderRightComponent } from '@gcv/gene/components';
 import { QueryParamsGuard } from '@gcv/gene/guards';
 
 export const routes: Routes = [
@@ -15,12 +15,17 @@ export const routes: Routes = [
   {
     path: '',
     component: HeaderLeftComponent,
-    outlet: 'header-left'
+    outlet: 'header-left',
+  },
+  {
+    path: '',
+    component: HeaderCenterComponent,
+    outlet: 'header-center',
   },
   {
     path: '',
     component: HeaderRightComponent,
-    outlet: 'header-right'
+    outlet: 'header-right',
   },
 ];
 

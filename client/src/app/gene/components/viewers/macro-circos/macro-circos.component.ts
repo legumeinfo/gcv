@@ -1,16 +1,17 @@
 // Angular
-import { AfterViewInit, Component, ElementRef, Input, OnDestroy, ViewChild }
-  from '@angular/core';
+import { AfterViewInit, Component, ElementRef, Input, OnDestroy, OnInit,
+  ViewChild } from '@angular/core';
 import { Subject, combineLatest } from 'rxjs';
 import { map, switchMap, takeUntil } from 'rxjs/operators';
 // app
 import { GCV } from '@gcv-assets/js/gcv';
 import { saveFile } from '@gcv/core/utils';
-import { Track } from '@gcv/gene/models';
+import { Pipeline, Track } from '@gcv/gene/models';
 import { blockIndexMap, endpointGenes, nameSourceID }
   from '@gcv/gene/models/shims';
 import { ChromosomeService, GeneService, MicroTracksService,
-  PairwiseBlocksService, ParamsService } from '@gcv/gene/services';
+  PairwiseBlocksService, ParamsService, ProcessService }
+  from '@gcv/gene/services';
 import { getMacroColors } from '@gcv/gene/utils';
 // component
 import { macroCircosShim } from './macro-circos.shim';
@@ -20,27 +21,56 @@ import { macroCircosShim } from './macro-circos.shim';
   selector: 'macro-circos',
   styleUrls: ['../golden-viewer.scss'],
   template: `
-    <context-menu (saveImage)="saveImage()"></context-menu>
+    <context-menu (saveImage)="saveImage()">
+      <pipeline [info]=info [pipeline]=pipeline navcenter></pipeline>
+    </context-menu>
     <div class="viewer" #container></div>
   `,
 })
-export class MacroCircosComponent implements AfterViewInit, OnDestroy {
+export class MacroCircosComponent implements AfterViewInit, OnDestroy, OnInit {
+
+  // IO
 
   @Input() clusterID: number;
   @Input() options: any = {};
 
   @ViewChild('container', {static: true}) container: ElementRef;
 
+  // variables
+
+  info = `<p>This is the circos <i>pipeline</i>.
+          It depicts the flow of data from one <i>process</i> to the next for
+          this circos viewer.</p>
+          <p class="mb-0">
+          <b>Blocks</b> computes pairwise macro synteny blocks between this
+          viewer's chromosomes.
+          <br>
+          <b>Positions</b> fetches the physical positions of the computed blocks
+          on the chromosomes.
+          </p>`
+  pipeline: Pipeline;
+
   private _destroy: Subject<boolean> = new Subject();
   private _viewer;
+
+  // constructor
 
   constructor(private _chromosomeService: ChromosomeService,
               private _geneService: GeneService,
               private _microTracksService: MicroTracksService,
               private _pairwiseBlocksService: PairwiseBlocksService,
-              private _paramsService: ParamsService) { }
+              private _paramsService: ParamsService,
+              private _processService: ProcessService) { }
 
   // Angular hooks
+
+  ngOnInit() {
+    this.pipeline = {
+        'Blocks': this._processService.getMacroBlockProcess(this.clusterID),
+        'Positions': this._processService
+          .getMacroBlockPositionProcess(this.clusterID),
+      };
+  }
 
   ngAfterViewInit() {
     const queryTracks = this._microTracksService

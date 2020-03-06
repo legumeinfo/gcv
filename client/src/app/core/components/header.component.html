@@ -1,4 +1,4 @@
-<nav class="navbar navbar-expand-lg navbar-light bg-light">
+<nav class="navbar navbar-expand-lg navbar-light bg-light border-bottom">
   <a *ngIf="brand !== undefined" class="navbar-brand" href="{{brand.url}}">
     <img src="{{brand.img}}" class="d-inline-block align-top" alt="" (mouseenter)="toggleBrand()" (mouseleave)="toggleBrand()">
     <ng-template [ngIf]="brand.slogan === undefined">

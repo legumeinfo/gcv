@@ -1,0 +1,11 @@
+<div class="ml-2 mr-2 btn-group pipeline d-flex flex-fill" role="group">
+  <a *ngIf=info (click)="infoTooltip($event, info)" class="btn btn-light flex-grow-0"><i class="fas fa-question-circle"></i></a>
+  <ng-template ngFor let-name [ngForOf]="processNames">
+    <ng-container *ngIf="getProcess(name)|async; let p">
+      <a (click)="processTooltip($event, p)" class="btn pipeline-arrow flex-fill {{ statusToClass(p.status|async) }}">
+        <i class="fas {{ statusToIcon(p.status|async) }}"></i> {{ name }}
+      </a>
+    </ng-container>
+  </ng-template>
+</div>
+<div [gcvTooltipFactory]="tooltipComponents"></div>

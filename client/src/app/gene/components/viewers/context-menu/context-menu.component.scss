@@ -1,14 +1,17 @@
-.navbar {
-  min-height:28px;
-  height: 28px;
-  padding-right: 3px;
+.navbar-right {
+  float: right;
 }
-.navbar .navbar-brand {
-  padding: 0px 12px;
-  font-size: 16px;
-  line-height: 28px;
-  height: 28px;
-}
+//.navbar {
+//  //min-height:28px;
+//  //height: 28px;
+//  padding-right: 3px;
+//}
+//.navbar .navbar-brand {
+//  padding: 0px 12px;
+//  font-size: 16px;
+//  line-height: 28px;
+//  height: 28px;
+//}
 /*
 .navbar .navbar-nav > li > a,
 :host /deep/ .navbar .navbar-nav > li > a {
@@ -28,14 +31,14 @@
   content: "\00a0";
 }
 */
-.dropdown-menu {
-  min-width: 200px;
-}
-.navbar .navbar-content {
-  width: auto;
-  overflow: hidden;
-  height: 28px;
-}
+//.dropdown-menu {
+//  min-width: 200px;
+//}
+//.navbar .navbar-content {
+//  width: auto;
+//  overflow: hidden;
+//  height: 28px;
+//}
 /*
 ::content > li { }
 :host /deep/ .navbar form {

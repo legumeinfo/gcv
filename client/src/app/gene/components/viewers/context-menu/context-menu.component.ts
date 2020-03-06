@@ -4,7 +4,7 @@ import { AfterViewInit, ChangeDetectorRef, Component, ElementRef, EventEmitter,
 
 @Component({
   selector: 'context-menu',
-  styleUrls: [ './context-menu.component.scss' ],
+  styleUrls: ['./context-menu.component.scss'],
   templateUrl: './context-menu.component.html',
 })
 export class ContextMenuComponent implements AfterViewInit {

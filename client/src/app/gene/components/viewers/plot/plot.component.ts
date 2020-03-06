@@ -1,14 +1,14 @@
 // Angular + dependencies
 import { AfterViewInit, Component, ElementRef, EventEmitter, Input, OnDestroy,
-  Output, ViewChild } from '@angular/core';
+  OnInit, Output, ViewChild } from '@angular/core';
 import { Observable, Subject, combineLatest } from 'rxjs';
 import { filter, mergeAll, switchMap, takeUntil } from 'rxjs/operators';
 // app
 import { GCV } from '@gcv-assets/js/gcv';
 import { saveFile } from '@gcv/core/utils';
-import { Gene, Plot, Track } from '@gcv/gene/models';
+import { Gene, Pipeline, Plot, Track } from '@gcv/gene/models';
 import { ClusterMixin } from '@gcv/gene/models/mixins';
-import { GeneService, PlotsService } from '@gcv/gene/services';
+import { GeneService, PlotsService, ProcessService } from '@gcv/gene/services';
 import { plotShim } from './plot.shim';
 
 
@@ -16,11 +16,15 @@ import { plotShim } from './plot.shim';
   selector: 'plot',
   styleUrls: ['../golden-viewer.scss'],
   template: `
-    <context-menu (saveImage)="saveImage()"></context-menu>
+    <context-menu (saveImage)="saveImage()">
+      <pipeline [info]=info [pipeline]=pipeline navcenter></pipeline>
+    </context-menu>
     <div class="viewer" #container></div>
   `,
 })
-export class PlotComponent implements AfterViewInit, OnDestroy {
+export class PlotComponent implements AfterViewInit, OnDestroy, OnInit {
+
+  // IO
 
   @Input() type: 'local' | 'global';
   @Input() reference: Track;
@@ -30,16 +34,35 @@ export class PlotComponent implements AfterViewInit, OnDestroy {
   @Output() geneClick = new EventEmitter();
   @Output() geneOver = new EventEmitter();
 
-
   @ViewChild('container', {static: true}) container: ElementRef;
+
+  // variables
+
+  info = `<p>This is the plot <i>pipeline</i>.
+          It depicts the flow of data from one <i>process</i> to the next for
+          this plot.</p>
+          <p class="mb-0">
+          <b>Genes</b> fetches the genes for all the points in the plot.
+          </p>`
+  pipeline: Pipeline;
 
   private _destroy: Subject<boolean> = new Subject();
   private _viewer;
 
+  // constructor
+
   constructor(private _plotsService: PlotsService,
+              private _processService: ProcessService,
               private _geneService: GeneService) { }
 
   // Angular hooks
+
+  ngOnInit() {
+    this.pipeline = {
+        'Plot Genes': this._processService
+          .getPlotGeneProcess(this.type, this.reference, this.track),
+      };
+  }
 
   ngAfterViewInit() {
     const plotFilter = (plot) => plot.reference.name === this.reference.name;

@@ -6,9 +6,10 @@ import { map, switchMap, takeUntil } from 'rxjs/operators';
 // app
 import { GCV } from '@gcv-assets/js/gcv';
 import { saveFile } from '@gcv/core/utils';
-import { Gene, Track } from '@gcv/gene/models';
+import { Gene, Track, Pipeline } from '@gcv/gene/models';
 import { AlignmentMixin, ClusterMixin } from '@gcv/gene/models/mixins';
-import { GeneService, MicroTracksService } from '@gcv/gene/services';
+import { GeneService, MicroTracksService, ProcessService }
+  from '@gcv/gene/services';
 // component
 import { microShim } from './micro.shim';
 
@@ -36,6 +37,7 @@ import { microShim } from './micro.shim';
           </div>
         </li>
       </ul>
+      <pipeline [info]=info [pipeline]=pipeline navcenter></pipeline>
     </context-menu>
     <div class="viewer" #container></div>
   `,
@@ -58,16 +60,38 @@ export class MicroComponent implements AfterViewInit, OnDestroy, OnInit {
   private _destroy: Subject<boolean> = new Subject();
   private _viewer;
 
+  info = `<p>This is the micro synteny <i>pipeline</i>.
+          It depicts the flow of data from one <i>process</i> to the next for
+          this micro synteny viewer.</p>
+          <p class="mb-0">
+          <b>Track Search</b> searches for micro tracks similar to the query
+          tracks in this viewer.
+          <br>
+          <b>Track Alignment</b> aligns the search result tracks to the query
+          tracks.
+          <br>
+          <b>Track Genes</b> fetches the genes for all the tracks in the viewer.
+          </p>`;
+  pipeline: Pipeline;
+
   queryTracks: Observable<(Track | ClusterMixin | AlignmentMixin)[]>;
 
   constructor(private _geneService: GeneService,
-              private _microTracksService: MicroTracksService) { }
+              private _microTracksService: MicroTracksService,
+              private _processService: ProcessService) { }
 
   // Angular hooks
 
   ngOnInit() {
     this.queryTracks =
       this._microTracksService.getSelectedClusterTracks(this.clusterID);
+    this.pipeline = {
+        'Track Search':
+          this._processService.getTrackSearchProcess(this.clusterID),
+        'Track Alignment':
+          this._processService.getTrackAlignmentProcess(this.clusterID),
+        'Track Genes': this._processService.getTrackGeneProcess(this.clusterID),
+      };
   }
 
   ngAfterViewInit() {

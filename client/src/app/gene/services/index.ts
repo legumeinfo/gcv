@@ -7,6 +7,7 @@ import { MicroTracksService } from './micro-tracks.service';
 import { PairwiseBlocksService} from './pairwise-blocks.service';
 import { ParamsService } from './params.service';
 import { PlotsService } from './plots.service';
+import { ProcessService } from './process.service';
 
 export const services: any[] = [
   ChromosomeService,
@@ -18,6 +19,7 @@ export const services: any[] = [
   PairwiseBlocksService,
   ParamsService,
   PlotsService,
+  ProcessService,
 ];
 
 export * from './chromosome.service';
@@ -29,3 +31,4 @@ export * from './micro-tracks.service';
 export * from './pairwise-blocks.service';
 export * from './params.service';
 export * from './plots.service';
+export * from './process.service';
