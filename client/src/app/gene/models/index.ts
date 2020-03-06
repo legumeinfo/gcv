@@ -1,4 +1,3 @@
-export * from './alert.model';
 export * from './algorithm.model';
 export * from './gene.model';
 export * from './pair.model';

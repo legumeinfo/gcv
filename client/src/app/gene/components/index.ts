@@ -1,4 +1,3 @@
-import { AlertComponent } from './alert.component';
 import { GeneComponent } from './gene.component';
 import { InterAppCommunicationComponent } from './inter-app-communication.component';
 import { LeftSliderComponent } from './left-slider.component';
@@ -10,7 +9,6 @@ import * as fromTooltips from './tooltips';
 import * as fromViewers from './viewers';
 
 export const components: any[] = [
-  AlertComponent,
   GeneComponent,
   InterAppCommunicationComponent,
   LeftSliderComponent,
@@ -31,7 +29,6 @@ export const tooltipComponents: any[] = [
   ...fromTooltips.tooltipComponents,
 ];
 
-export * from './alert.component';
 export * from './gene.component';
 export * from './inter-app-communication.component';
 export * from './left-slider.component';

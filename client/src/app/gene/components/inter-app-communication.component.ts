@@ -1,7 +1,6 @@
 // Angular + dependencies
 import { Component } from '@angular/core';
 // app
-import { Alert } from '@gcv/gene/models';
 import { InterAppCommunicationService } from '@gcv/gene/services';
 
 @Component({
@@ -10,13 +9,17 @@ import { InterAppCommunicationService } from '@gcv/gene/services';
 })
 export class InterAppCommunicationComponent {
 
-  public alert: Alert;
+  alert = {
+    class: '',
+    message: '',
+    working: false,
+  };
 
   private _typingTimer;
   private _doneTypingInterval = 1000;  // 1 seconds
 
   constructor(private _communicationService: InterAppCommunicationService) {
-    this._setAlert();
+    this._alert();
   }
 
   getChannel(): string {
@@ -24,11 +27,11 @@ export class InterAppCommunicationComponent {
   }
 
   setChannel(channel: string): void {
-    this.alert = new Alert('info', 'Connecting', {spinner: true});
+    this._setAlert('info', 'Connecting', true);
     clearTimeout(this._typingTimer);
     this._typingTimer = setTimeout(() => {
       this._communicationService.setChannel(channel);
-      this._setAlert();
+      this._alert();
     }, this._doneTypingInterval);
   }
 
@@ -38,18 +41,25 @@ export class InterAppCommunicationComponent {
 
   setCommunicate(communicate: boolean): void {
     this._communicationService.setCommunicate(communicate);
-    this._setAlert();
+    this._alert();
   }
 
-  private _setAlert(): void {
+  private _setAlert(type, message, working=false): void {
+    console.log(`set alert(${type}, ${message}, ${working})`);
+    this.alert.class = `rounded-0 alert alert-${type}`;
+    this.alert.message = message;
+    this.alert.working = working;
+  }
+
+  private _alert(): void {
     const communicate = this.getCommunicate();
     const channel = this.getChannel();
     if (channel === '') {
-      this.alert = new Alert('danger', 'No channel!');
+      this._setAlert('danger', 'No channel!');
     } else if (communicate) {
-      this.alert = new Alert('success', 'Connected');
+      this._setAlert('success', 'Connected');
     } else if (!communicate) {
-      this.alert = new Alert('warning', 'Not connected');
+      this._setAlert('warning', 'Not connected');
     }
   }
 }
