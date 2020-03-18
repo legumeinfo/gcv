@@ -62,7 +62,7 @@ export class MicroComponent implements AfterViewInit, OnDestroy, OnInit {
 
   info = `<p>This is the micro synteny <i>pipeline</i>.
           It depicts the flow of data from one <i>process</i> to the next for
-          this micro synteny viewer.</p>
+          <u>this</u> micro synteny viewer.</p>
           <p class="mb-0">
           <b>Track Search</b> searches for micro tracks similar to the query
           tracks in this viewer.

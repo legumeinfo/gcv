@@ -13,7 +13,7 @@ import { Gene } from '@gcv/gene/models';
 
 export const getSelectedGeneIDs = createSelectorFactory(memoizeArray)(
   selectRouteParams,
-  (params): {name: string, source: string}[] => {
+  (params): GeneID[] => {
     // assumes is defined (see QueryParamsGuard)
     const sources = AppConfig.SERVERS.map((s) => s.id);
     const selectedGenes = sources

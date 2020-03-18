@@ -12,12 +12,12 @@ import { statusToClass, statusToIcon } from '@gcv/gene/components/pipeline.shim'
     <ng-container *ngIf="process.status|async; let processStatus">
       <ul class="list-group list-group-flush">
         <li class="list-group-item font-weight-bold {{ statusToClass(processStatus) }}">
-          <i class="fas {{ statusToIcon(processStatus) }}"></i> {{ processStatus.description }}
+          <i class="fas {{ statusToIcon(processStatus) }}"></i>&nbsp;<span [innerHTML]="processStatus.description"></span>
         </li>
         <ng-template ngFor let-subprocess [ngForOf]="subprocesses|async">
           <ng-container *ngIf="subprocess|async; let status">
             <li class="list-group-item {{ statusToClass(status) }}">
-              <i class="fas {{ statusToIcon(status) }}"></i> {{ status.description }}
+              <i class="fas {{ statusToIcon(status) }}"></i>&nbsp;<span [innerHTML]="status.description"></span>
             </li>
           </ng-container>
         </ng-template>

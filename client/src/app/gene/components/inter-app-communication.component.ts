@@ -45,7 +45,6 @@ export class InterAppCommunicationComponent {
   }
 
   private _setAlert(type, message, working=false): void {
-    console.log(`set alert(${type}, ${message}, ${working})`);
     this.alert.class = `rounded-0 alert alert-${type}`;
     this.alert.message = message;
     this.alert.working = working;
