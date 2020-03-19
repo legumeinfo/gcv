@@ -1,24 +1,34 @@
 // Angular
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { Observable, combineLatest } from 'rxjs';
-import { map, scan, switchMap } from 'rxjs/operators';
+import { Observable, combineLatest, merge } from 'rxjs';
+import { distinct, map, mergeAll, scan, startWith, switchMap }
+  from 'rxjs/operators';
 // store
 import { Store } from '@ngrx/store';
 import { GeneID, geneID } from '@gcv/gene/store/reducers/gene.reducer';
 import * as layoutActions from '@gcv/gene/store/actions/layout.actions';
 import * as fromRoot from '@gcv/store/reducers';
+import * as fromChromosome from '@gcv/gene/store/selectors/chromosome';
 import * as fromGenes from '@gcv/gene/store/selectors/gene';
 import * as fromLayout from '@gcv/gene/store/selectors/layout';
 // app
 import { Process, ProcessStatus, ProcessStatusStream, ProcessStatusWord,
   ProcessStream } from '@gcv/gene/models';
+import { TrackID, trackID } from '@gcv/gene/store/utils';
 
 
 @Injectable()
 export class ProcessService {
 
   constructor(private _store: Store<fromRoot.State>) { }
+
+  private _defaultProcessStatusFactory(description): ProcessStatus {
+    return {
+      word: 'process-waiting',
+      description,
+    };
+  }
 
   private _statusFactory(): ProcessStatusStream {
     return Observable.create((observer) => {
@@ -66,7 +76,7 @@ export class ProcessService {
         const loadingStrings = new Set(loading.map((g) => geneID(g)));
         if (loadingStrings.has(idString)) {
           return {
-            word: 'processing',
+            word: 'process-running',
             description: `Loading <b>${name}</b> from <b>${source}</b>`,
           };
         }
@@ -117,10 +127,10 @@ export class ProcessService {
         return combineLatest(...subs).pipe(
           map((subStates): ProcessStatus => {
             const words = new Set(subStates.map((status) => status.word));
-            let word: ProcessStatusWord;
-            let description: string;
-            if (words.has('processing')) {
-              word = 'processing';
+            let word: ProcessStatusWord = 'process-waiting';
+            let description: string = 'Waiting for query genes';
+            if (words.has('process-running')) {
+              word = 'process-running';
               description = 'Loading query genes';
             // all success
             } else if (words.has('process-success') && words.size == 1) {
@@ -156,10 +166,108 @@ export class ProcessService {
     );
   }
 
+  private _getQueryTrackSubprocess(id: TrackID): ProcessStatusStream {
+    let {name, source} = id;
+    const idString = trackID(id);
+    return combineLatest(
+      this._store.select(fromChromosome.getLoading),
+      this._store.select(fromChromosome.getLoaded),
+      this._store.select(fromChromosome.getFailed),
+    ).pipe(
+      map(([loading, loaded, failed]) => {
+        const loadingStrings = new Set(loading.map((c) => trackID(c)));
+        if (loadingStrings.has(idString)) {
+          return {
+            word: 'process-running',
+            description: `Loading <b>${name}</b> from <b>${source}</b>`,
+          };
+        }
+        const loadedStrings = new Set(loaded.map((c) => trackID(c)));
+        if (loadedStrings.has(idString)) {
+          return {
+            word: 'process-success',
+            description: `Successfully loaded <b>${name}</b> from <b>${source}</b>`,
+          };
+        }
+        const failedStrings = new Set(failed.map((c) => trackID(c)));
+        if (failedStrings.has(idString)) {
+          return {
+            word: 'process-error',
+            description: `Failed to load <b>${name}</b> from <b>${source}</b>`,
+          };
+        }
+        return {
+          word: 'process-warning',
+          description: `No status for <b>${name}</b> from <b>${source}</b>`,
+        };
+      }),
+    );
+  }
+
+  private _getQueryTrackSubprocesses(): Observable<ProcessStatusStream> {
+    return this._store.select(fromChromosome.getSelectedChromosomeIDs).pipe(
+      // flatten arrays into single emissions
+      mergeAll(),
+      // only let distinct IDs through
+      distinct((id: TrackID) => trackID(id)),
+      // convert IDs to subprocesses
+      map((id) => this._getQueryTrackSubprocess(id)),
+    );
+  }
+
+  private _getQueryTrackProcessStatus(subprocesses: Observable<ProcessStatusStream>):
+  ProcessStatusStream {
+    const defaultDescription = 'Waiting for query genes';
+    const defaultStatus = this._defaultProcessStatusFactory(defaultDescription);
+    return subprocesses.pipe(
+      // aggregate subprocesses into array
+      scan((accumulator, processStatus) => {
+        accumulator.push(processStatus);
+        return accumulator;
+      }, []),
+      // derive status from array
+      switchMap((subs): ProcessStatusStream => {
+        return combineLatest(...subs).pipe(
+          map((subStates): ProcessStatus => {
+            const words = new Set(subStates.map((status) => status.word));
+            let word: ProcessStatusWord;
+            let description: string;
+            if (words.has('process-running')) {
+              word = 'process-running';
+              description = 'Loading query tracks';
+            // all success
+            } else if (words.has('process-success') && words.size == 1) {
+              word = 'process-success';
+              description = 'All query tracks successfully loaded';
+            // all error
+            } else if (words.has('process-error') && words.size == 1) {
+              word = 'process-error';
+              description = 'Failed to load query tracks';
+            // success and error
+            } else {
+              word = 'process-warning';
+              description = 'Failed to load one or more query tracks';
+            }
+            return {word, description};
+          }),
+        );
+      }),
+      startWith(defaultStatus),
+    );
+  }
+
   getQueryTrackProcess(): ProcessStream {
-    // get query track chromosome ids
-    // get [query] chromosomes status from chromosome reducer
-    return this._processFactory();
+    // emit a new process every time the set of query genes changes
+    const selectedGeneIDs = this._store.select(fromGenes.getSelectedGeneIDs);
+    return this._store.select(fromGenes.getSelectedGeneIDs).pipe(
+      map((geneIDs): Process => {
+        const subprocesses = this._getQueryTrackSubprocesses();
+        return {
+          subprocesses,
+          status: this._getQueryTrackProcessStatus(subprocesses),
+        };
+      }),
+    );
   }
 
   getClusteringProcess(): ProcessStream {

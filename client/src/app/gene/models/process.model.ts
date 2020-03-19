@@ -1,8 +1,7 @@
 import { Observable } from 'rxjs';
 
 
-export type ProcessStatusWord =
-  'processing' | 'process-success' | 'process-error' | 'process-warning' | 'process-info';
+export type ProcessStatusWord = 'process-waiting' | 'process-running' | 'process-success' | 'process-error' | 'process-warning' | 'process-info';
 
 
 export type ProcessStatus = {

@@ -2,7 +2,8 @@ import { ProcessStatus } from '@gcv/gene/models';
 
 
 export const statusClasses = {
-  'processing': 'secondary',
+  'process-waiting': 'secondary',
+  'process-running': 'secondary',
   'process-success': 'success',
   'process-error': 'danger',
   'process-warning': 'warning',
@@ -19,7 +20,8 @@ export const statusToClass = (status: ProcessStatus): string => {
 
 
 export const statusIcons = {
-  'processing': 'fa-circle-notch fa-spin',
+  'process-waiting': 'fa-ban',
+  'process-running': 'fa-circle-notch fa-spin',
   'process-success': 'fa-check-circle',
   'process-error': 'fa-times-circle',
   'process-warning': 'fa-exclamation-circle',
