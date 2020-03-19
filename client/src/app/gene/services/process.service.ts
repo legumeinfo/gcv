@@ -1,8 +1,8 @@
 // Angular
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { Observable, combineLatest, merge } from 'rxjs';
-import { distinct, map, mergeAll, scan, startWith, switchMap }
+import { Observable, combineLatest, empty, merge } from 'rxjs';
+import { distinct, filter, map, mergeAll, scan, startWith, switchMap }
   from 'rxjs/operators';
 // store
 import { Store } from '@ngrx/store';
@@ -12,6 +12,8 @@ import * as fromRoot from '@gcv/store/reducers';
 import * as fromChromosome from '@gcv/gene/store/selectors/chromosome';
 import * as fromGenes from '@gcv/gene/store/selectors/gene';
 import * as fromLayout from '@gcv/gene/store/selectors/layout';
+import * as fromMicroTracks from '@gcv/gene/store/selectors/micro-tracks';
+import * as fromParams from '@gcv/gene/store/selectors/params';
 // app
 import { Process, ProcessStatus, ProcessStatusStream, ProcessStatusWord,
   ProcessStream } from '@gcv/gene/models';
@@ -127,8 +129,8 @@ export class ProcessService {
         return combineLatest(...subs).pipe(
           map((subStates): ProcessStatus => {
             const words = new Set(subStates.map((status) => status.word));
-            let word: ProcessStatusWord = 'process-waiting';
-            let description: string = 'Waiting for query genes';
+            let word: ProcessStatusWord;
+            let description: string;
             if (words.has('process-running')) {
               word = 'process-running';
               description = 'Loading query genes';
@@ -154,7 +156,6 @@ export class ProcessService {
 
   getQueryGeneProcess(): ProcessStream {
     // emit a new process every time the set of query genes changes
-    const selectedGeneIDs = this._store.select(fromGenes.getSelectedGeneIDs);
     return this._store.select(fromGenes.getSelectedGeneIDs).pipe(
       map((geneIDs): Process => {
         const subprocesses = this._getQueryGeneSubprocesses(geneIDs);
@@ -258,7 +259,6 @@ export class ProcessService {
 
   getQueryTrackProcess(): ProcessStream {
     // emit a new process every time the set of query genes changes
-    const selectedGeneIDs = this._store.select(fromGenes.getSelectedGeneIDs);
     return this._store.select(fromGenes.getSelectedGeneIDs).pipe(
       map((geneIDs): Process => {
         const subprocesses = this._getQueryTrackSubprocesses();
@@ -270,10 +270,49 @@ export class ProcessService {
     );
   }
 
+  private _getClusteringProcessStatus(): ProcessStatusStream {
+    const defaultDescription = 'Waiting for query tracks';
+    const defaultStatus = this._defaultProcessStatusFactory(defaultDescription);
+    return combineLatest(
+      this._store.select(fromGenes.getSelectedGenesLoaded),
+      this._store.select(fromChromosome.getSelectedChromosomesLoaded),
+      this._store.select(fromMicroTracks.getClusteredSelectedMicroTracks),
+    ).pipe(
+      filter(([genesLoaded, chromosomesLoaded, tracks]) => {
+        return genesLoaded && chromosomesLoaded;
+      }),
+      map(([genesLoaded, chromosomesLoaded, tracks]): ProcessStatus => {
+        const clusterIDs = new Set(tracks.map((t) => t.cluster));
+        const numClusters = clusterIDs.size;
+        const numTracks = tracks.length;
+        let word: ProcessStatusWord;
+        let description: string;
+        if (numClusters < numTracks) {
+          word = 'process-success';
+          description = `${numTracks} tracks grouped into ${numClusters} clusters`;
+        } else {
+          word = 'process-info';
+          description = 'Each track has its own cluster';
+        }
+        return {word, description};
+      }),
+      startWith(defaultStatus),
+    );
+  }
+
   getClusteringProcess(): ProcessStream {
-    // get selected genes and selected chromosomes loaded
-    // get clustered micro tracks
-    return this._processFactory();
+    // emit a new process every time the set of query genes or clustering params
+    // changes
+    const selectedGeneIDs = this._store.select(fromGenes.getSelectedGeneIDs);
+    const clusteringParams = this._store.select(fromParams.getClusteringParams);
+    return combineLatest(selectedGeneIDs, clusteringParams).pipe(
+      map(([geneIDs, params]): Process => {
+        return {
+          subprocesses: empty(),
+          status: this._getClusteringProcessStatus(),
+        };
+      }),
+    );
   }
 
   getQueryAlignmentProcess(): ProcessStream {

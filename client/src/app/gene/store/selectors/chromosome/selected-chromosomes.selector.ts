@@ -36,7 +36,7 @@ export const getSelectedChromosomesLoaded = createSelectorFactory(memoizeValue)(
     state.failed.map(trackID).forEach(loaded.add, loaded);
     const selected = new Set(ids.map(trackID));
     const intersection = setIntersection(loaded, selected);
-    return selected.size == intersection.size;
+    return selected.size == intersection.size && selected.size > 0;
   },
 );
 

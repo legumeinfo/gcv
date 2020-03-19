@@ -35,7 +35,7 @@ export const getSelectedGenesLoaded = createSelectorFactory(memoizeValue)(
     state.failed.map(geneID).forEach(loaded.add, loaded);
     const selected = new Set(ids.map(geneID));
     const intersection = setIntersection(loaded, selected);
-    return selected.size == intersection.size;
+    return selected.size == intersection.size && selected.size > 0;
   },
 );
 
