@@ -180,14 +180,19 @@ createSelectorFactory(memoizeObject)(
   },
 );
 
+export const getSearchMicroTracks = createSelectorFactory(memoizeArray)(
+  getMicroTracksState,
+  (state: State): (Track | ClusterMixin)[] => Object.values(state.entities),
+);
+
 // pairwise aligns each search result track to its cluster's consensus track
 export const getClusteredAndAlignedSearchMicroTracks =
 createSelectorFactory(memoizeArray)(
-  getMicroTracksState,
+  getSearchMicroTracks,
   getClusteredAndAlignedSelectedMicroTracks,
   fromParams.getAlignmentParams,
-  (state: State, {consensuses, tracks}, params: AlignmentParams):
-  (Track | ClusterMixin | AlignmentMixin)[] => {
+  (searchTracks: (Track | ClusterMixin)[], {consensuses, tracks},
+  params: AlignmentParams): (Track | ClusterMixin | AlignmentMixin)[] => {
     // get selected alignment algorithm
     const algorithm = ALIGNMENT_ALGORITHM_MAP[params.algorithm].algorithm;
     // creates an alignment mixin for the given track
@@ -220,7 +225,6 @@ createSelectorFactory(memoizeArray)(
         return accumulator;
       };
     // align the tracks
-    const searchTracks = Object.values(state.entities);
     const alignedTracks = searchTracks.reduce(reducer, []);
     return alignedTracks;
   },

@@ -7,7 +7,7 @@ import { distinct, filter, map, mergeAll, scan, startWith, switchMap }
 // store
 import { Store } from '@ngrx/store';
 import { GeneID, geneID } from '@gcv/gene/store/reducers/gene.reducer';
-import { partialMicroTrackID }
+import { microTrackID, partialMicroTrackID }
   from '@gcv/gene/store/reducers/micro-tracks.reducer';
 import * as layoutActions from '@gcv/gene/store/actions/layout.actions';
 import * as fromRoot from '@gcv/store/reducers';
@@ -289,7 +289,7 @@ export class ProcessService {
         const numTracks = tracks.length;
         let word: ProcessStatusWord;
         let description: string;
-        if (numClusters < numTracks) {
+        if (numClusters < numTracks || numTracks == 1) {
           word = 'process-success';
           description = `${numTracks} tracks grouped into ${numClusters} clusters`;
         } else {
@@ -373,6 +373,7 @@ export class ProcessService {
             description: `Searching <b>${source}</b> for similar tracks`,
           };
         }
+        // TODO: say how many similar tracks were found
         const loadedStrings = new Set(loaded.map((t) => partialMicroTrackID(t)));
         if (loadedStrings.has(idString)) {
           return {
@@ -462,8 +463,60 @@ export class ProcessService {
     );
   }
 
+  private _getTrackAlignmentProcessStatus(clusterID: number): ProcessStatusStream {
+    const defaultDescription = 'Waiting for search results';
+    const defaultStatus = this._defaultProcessStatusFactory(defaultDescription);
+    return combineLatest(
+      // TODO: should there be a "loaded" selector like there is for genes and
+      // chromosomes in case searches are successful but don't return any tracks?
+      this._store.select(fromMicroTracks.getSearchMicroTracks),
+      this._store.select(fromMicroTracks.getClusteredAndAlignedSearchMicroTracks),
+    ).pipe(
+      map(([tracks, alignedTracks]) => {
+        const filteredTracks = tracks.filter((t) => t.cluster == clusterID);
+        const filteredAlignedTracks =
+          alignedTracks.filter((t) => t.cluster == clusterID);
+        return [filteredTracks, filteredAlignedTracks];
+      }),
+      filter(([tracks, alignedTracks]) => tracks.length > 0),
+      map(([tracks, alignedTracks]): ProcessStatus => {
+        //const numTracks = tracks.length;
+        const numAligned = alignedTracks.length;
+        const trackIDs = new Set(tracks.map((t) => microTrackID(t)));
+        const alignmentIDs = new Set(alignedTracks.map((t) => microTrackID(t)));
+        let word: ProcessStatusWord;
+        let description: string;
+        if (trackIDs.size == alignmentIDs.size) {
+          word = 'process-success';
+          description = `${numAligned} alignments; one or more for every track`;
+        } else if (alignmentIDs.size == 0) {
+          word = 'process-info';
+          description = `${numAligned} alignments; some tracks don't have alignments`;
+        } else {
+          word = 'process-warning';
+          description = 'No alignments met the score requirements';
+        }
+        return {word, description};
+      }),
+      startWith(defaultStatus),
+    );
+  }
+
   getTrackAlignmentProcess(clusterID: number): ProcessStream {
-    return this._processFactory();
+    // emit a new process every time the micro-synteny, source, or alignment
+    // params change
+    return combineLatest(
+      this._store.select(fromParams.getQueryParams),
+      this._store.select(fromParams.getSourceParams),
+      this._store.select(fromParams.getAlignmentParams),
+    ).pipe(
+      map(([queryParams, sourceParams, alignment]) => {
+        return {
+          subprocesses: empty(),
+          status: this._getTrackAlignmentProcessStatus(clusterID),
+        };
+      }),
+    );
   }
 
   getTrackGeneProcess(clusterID: number): ProcessStream {
