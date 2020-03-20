@@ -175,8 +175,7 @@ createSelectorFactory(memoizeObject)(
         consensuses: new Array(Object.keys(clusters).length),
         tracks: []
       };
-    const alignedClusters =
-      Object.entries(clusters).reduce(aligner, clusteredAlignments);
+    Object.entries(clusters).reduce(aligner, clusteredAlignments);
     return clusteredAlignments;
   },
 );

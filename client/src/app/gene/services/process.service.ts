@@ -315,10 +315,42 @@ export class ProcessService {
     );
   }
 
+  private _getQueryAlignmentProcessStatus(): ProcessStatusStream {
+    const defaultDescription = 'Waiting for clustering';
+    const defaultStatus = this._defaultProcessStatusFactory(defaultDescription);
+    return combineLatest(
+      this._store.select(fromGenes.getSelectedGenesLoaded),
+      this._store.select(fromChromosome.getSelectedChromosomesLoaded),
+      this._store.select(fromMicroTracks.getClusteredAndAlignedSelectedMicroTracks),
+    ).pipe(
+      filter(([genesLoaded, chromosomesLoaded, {consensuses, tracks}]) => {
+        return genesLoaded && chromosomesLoaded;
+      }),
+      map(([genesLoaded, chromosomesLoaded, {consensuses, tracks}]):
+      ProcessStatus => {
+        // TODO: implement other, non-success statuses
+        return {
+          word: 'process-success',
+          description: 'Tracks successfully aligned',
+        };
+      }),
+      startWith(defaultStatus),
+    );
+  }
+
   getQueryAlignmentProcess(): ProcessStream {
-    // get clustered micro tracks
-    // get clustered and aligned micro tracks
-    return this._processFactory();
+    // emit a new process every time the set of query genes or clustering params
+    // changes (users don't control the multiple alignment params)
+    const selectedGeneIDs = this._store.select(fromGenes.getSelectedGeneIDs);
+    const clusteringParams = this._store.select(fromParams.getClusteringParams);
+    return combineLatest(selectedGeneIDs, clusteringParams).pipe(
+      map(([geneIDs, params]): Process => {
+        return {
+          subprocesses: empty(),
+          status: this._getQueryAlignmentProcessStatus(),
+        };
+      }),
+    );
   }
 
   // micro track
