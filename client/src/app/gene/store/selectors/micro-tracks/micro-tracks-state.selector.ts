@@ -18,3 +18,15 @@ export const getLoading = createSelectorFactory(memoizeArray)(
   getMicroTracksState,
   state => state.loading,
 );
+
+
+export const getFailed = createSelectorFactory(memoizeArray)(
+  getMicroTracksState,
+  state => state.failed,
+);
+
+
+export const getLoaded = createSelectorFactory(memoizeArray)(
+  getMicroTracksState,
+  state => state.loaded,
+);

@@ -7,6 +7,8 @@ import { distinct, filter, map, mergeAll, scan, startWith, switchMap }
 // store
 import { Store } from '@ngrx/store';
 import { GeneID, geneID } from '@gcv/gene/store/reducers/gene.reducer';
+import { partialMicroTrackID }
+  from '@gcv/gene/store/reducers/micro-tracks.reducer';
 import * as layoutActions from '@gcv/gene/store/actions/layout.actions';
 import * as fromRoot from '@gcv/store/reducers';
 import * as fromChromosome from '@gcv/gene/store/selectors/chromosome';
@@ -355,8 +357,109 @@ export class ProcessService {
 
   // micro track
 
+  private _getTrackSearchSubprocess(clusterID: number, source: string):
+  ProcessStatusStream {
+    const idString = partialMicroTrackID(clusterID, source);
+    return combineLatest(
+      this._store.select(fromMicroTracks.getLoading),
+      this._store.select(fromMicroTracks.getLoaded),
+      this._store.select(fromMicroTracks.getFailed),
+    ).pipe(
+      map(([loading, loaded, failed]) => {
+        const loadingStrings = new Set(loading.map((t) => partialMicroTrackID(t)));
+        if (loadingStrings.has(idString)) {
+          return {
+            word: 'process-running',
+            description: `Searching <b>${source}</b> for similar tracks`,
+          };
+        }
+        const loadedStrings = new Set(loaded.map((t) => partialMicroTrackID(t)));
+        if (loadedStrings.has(idString)) {
+          return {
+            word: 'process-success',
+            description: `The <b>${source}</b> search completed`,
+          };
+        }
+        const failedStrings = new Set(failed.map((t) => partialMicroTrackID(t)));
+        if (failedStrings.has(idString)) {
+          return {
+            word: 'process-error',
+            description: `The <b>${source}</b> search failed`,
+          };
+        }
+        return {
+          word: 'process-warning',
+          description: `No status for <b>${source}</b>`,
+        };
+      }),
+    );
+  }
+
+  private _getTrackSearchSubprocesses(clusterID: number, sources: string[]):
+  Observable<ProcessStatusStream> {
+    return Observable.create((observer) => {
+      sources.forEach((source) => {
+        const subproccess = this._getTrackSearchSubprocess(clusterID, source);
+        observer.next(subproccess);
+      });
+      observer.complete();
+    });
+  }
+
+  private _getTrackSearchProcessStatus(subprocesses: Observable<ProcessStatusStream>):
+  ProcessStatusStream {
+    return subprocesses.pipe(
+      // aggregate subprocesses into array
+      scan((accumulator, processStatus) => {
+        accumulator.push(processStatus);
+        return accumulator;
+      }, []),
+      // derive status from array
+      switchMap((subs): ProcessStatusStream => {
+        return combineLatest(...subs).pipe(
+          map((subStates): ProcessStatus => {
+            const words = new Set(subStates.map((status) => status.word));
+            let word: ProcessStatusWord;
+            let description: string;
+            if (words.has('process-running')) {
+              word = 'process-running';
+              description = 'Searching for similar tracks';
+            // all success
+            } else if (words.has('process-success') && words.size == 1) {
+              word = 'process-success';
+              description = 'All searches successfully completed';
+            // all error
+            } else if (words.has('process-error') && words.size == 1) {
+              word = 'process-error';
+              description = 'All searches failed';
+            // success and error
+            } else {
+              word = 'process-warning';
+              description = 'One or more searches failed';
+            }
+            return {word, description};
+          }),
+        );
+      }),
+    );
+  }
+
   getTrackSearchProcess(clusterID: number): ProcessStream {
-    return this._processFactory();
+    // emit a new process every time the micro-synteny or source params change
+    return combineLatest(
+      this._store.select(fromParams.getQueryParams),
+      this._store.select(fromParams.getSourceParams),
+    ).pipe(
+      map(([queryParams, sourceParams]) => {
+        const sources = sourceParams.sources;
+        const subprocesses =
+          this._getTrackSearchSubprocesses(clusterID, sources);
+        return {
+          subprocesses,
+          status: this._getTrackSearchProcessStatus(subprocesses),
+        };
+      }),
+    );
   }
 
   getTrackAlignmentProcess(clusterID: number): ProcessStream {
