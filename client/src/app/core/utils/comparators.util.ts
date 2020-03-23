@@ -1,8 +1,12 @@
+import { enumerableProperties } from './enumerable-properties.util';
+
+
 // determines if two elements are equal
 export const compare = (x: any, y: any) => {
   if (typeof x !== typeof y) return false;
   if (Array.isArray(x)) return arrayIsEqual(x, y);
   if (typeof x == 'object') return objectIsEqual(x, y);
+
   return x === y;
 };
 
@@ -22,8 +26,8 @@ export const objectIsEqual = (a: Object, b: Object) => {
   if (a === b) return true;
   if (a == null || b == null) return false;
 
-  const aKeys = Object.keys(a).sort();
-  const bKeys = Object.keys(b).sort();
+  const aKeys = enumerableProperties(a).sort();
+  const bKeys = enumerableProperties(b).sort();
   if(!arrayIsEqual(aKeys, bKeys)) return false;
 
   return aKeys.every((k) => compare(a[k], b[k]));

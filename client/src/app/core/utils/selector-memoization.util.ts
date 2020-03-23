@@ -8,7 +8,7 @@ type AnyFn = (...args: any[]) => any;
 
 
 export const selectorMemoizerFactory = (comparator: Function) => {
-  return function memoizeArray(t: AnyFn): MemoizedProjection {
+  return (t: AnyFn): MemoizedProjection => {
     let lastResult: any = null;
 
     function memoized(): any {
