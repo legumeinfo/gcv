@@ -17,6 +17,7 @@ import * as fromLayout from '@gcv/gene/store/selectors/layout';
 import * as fromMicroTracks from '@gcv/gene/store/selectors/micro-tracks';
 import * as fromParams from '@gcv/gene/store/selectors/params';
 // app
+import { arrayFlatten } from '@gcv/core/utils';
 import { Process, ProcessStatus, ProcessStatusStream, ProcessStatusWord,
   ProcessStream } from '@gcv/gene/models';
 import { TrackID, trackID } from '@gcv/gene/store/utils';
@@ -480,7 +481,6 @@ export class ProcessService {
       }),
       filter(([tracks, alignedTracks]) => tracks.length > 0),
       map(([tracks, alignedTracks]): ProcessStatus => {
-        //const numTracks = tracks.length;
         const numAligned = alignedTracks.length;
         const trackIDs = new Set(tracks.map((t) => microTrackID(t)));
         const alignmentIDs = new Set(alignedTracks.map((t) => microTrackID(t)));
@@ -490,11 +490,11 @@ export class ProcessService {
           word = 'process-success';
           description = `${numAligned} alignments; one or more for every track`;
         } else if (alignmentIDs.size == 0) {
-          word = 'process-info';
-          description = `${numAligned} alignments; some tracks don't have alignments`;
-        } else {
           word = 'process-warning';
           description = 'No alignments met the score requirements';
+        } else {
+          word = 'process-info';
+          description = `${numAligned} alignments; some tracks don't have alignments`;
         }
         return {word, description};
       }),
@@ -519,8 +519,149 @@ export class ProcessService {
     );
   }
 
+  private _getTrackGeneSubprocess(clusterID: number, source: string):
+  ProcessStatusStream {
+    return combineLatest(
+      // get all selected and search result tracks
+      this._store.select(fromMicroTracks.getSelectedMicroTracks),
+      this._store.select(fromMicroTracks.getSearchMicroTracks),
+      // get gene loading states
+      this._store.select(fromGenes.getLoading),
+      this._store.select(fromGenes.getLoaded),
+      this._store.select(fromGenes.getFailed),
+    ).pipe(
+      map(([selectedTracks, searchTracks, loading, loaded, failed]) => {
+        // keep tracks belonging to cluster and source and convert to gene array
+        const selectedGenes = arrayFlatten(
+            selectedTracks
+              .filter((t) => t.cluster == clusterID && t.source == source)
+              .map((t) => t.genes)
+          );
+        const searchGenes = arrayFlatten(
+            searchTracks
+              .filter((t) => t.cluster == clusterID && t.source == source)
+              .map((t) => t.genes)
+          );
+        const geneSet = new Set(selectedGenes.concat(searchGenes));
+        // filter loading states by gene name and source
+        const loadStateFilter = (id) => {
+            return geneSet.has(id.name) && id.source == source;
+          };
+        // generate the status based on the load states
+        const filteredLoading = loading.filter(loadStateFilter);
+        if (filteredLoading.length > 0) {
+          return {
+            word: 'process-running',
+            description: `Loading genes from <b>${source}</b>`,
+          };
+        }
+        const filteredLoaded = loaded.filter(loadStateFilter);
+        if (filteredLoaded.length == geneSet.size) {
+          return {
+            word: 'process-success',
+            description: `Successfully loaded all genes from <b>${source}</b>`,
+          };
+        }
+        const filteredFailed = failed.filter(loadStateFilter);
+        if (filteredFailed.length == geneSet.size) {
+          return {
+            word: 'process-error',
+            description: `Failed to load genes from <b>${source}</b>`,
+          };
+        }
+        return {
+          word: 'process-warning',
+          description: `Failed to load one or more genes from <b>${source}</b>`
+        };
+      }),
+    );
+  }
+
+  private _getTrackGeneSubprocesses(clusterID: number):
+  Observable<ProcessStatusStream> {
+    // get all selected and search result tracks
+    return combineLatest(
+      this._store.select(fromMicroTracks.getSelectedMicroTracks),
+      this._store.select(fromMicroTracks.getSearchMicroTracks),
+    ).pipe(
+      // keep tracks belonging to cluster and convert to source array
+      map(([selectedTracks, searchTracks]) => {
+        const selectedSources =
+            selectedTracks
+              .filter((t) => t.cluster == clusterID)
+              .map((t) => t.source);
+        const searchSources =
+            searchTracks
+              .filter((t) => t.cluster == clusterID)
+              .map((t) => t.source);
+        return selectedSources.concat(searchSources);
+      }),
+      // flatten the source array
+      mergeAll(),
+      // only allow one subprocess per source
+      distinct(),
+      // generate a subprocess for each source
+      map((source: string) => this._getTrackGeneSubprocess(clusterID, source)),
+    );
+  }
+
+  private _getTrackGeneProcessStatus(subprocesses: Observable<ProcessStatusStream>):
+  ProcessStatusStream {
+    const defaultDescription = 'Waiting for tracks';
+    const defaultStatus = this._defaultProcessStatusFactory(defaultDescription);
+    return subprocesses.pipe(
+      // aggregate subprocesses into array
+      scan((accumulator, processStatus) => {
+        accumulator.push(processStatus);
+        return accumulator;
+      }, []),
+      // derive status from array
+      switchMap((subs): ProcessStatusStream => {
+        return combineLatest(...subs).pipe(
+          map((subStates): ProcessStatus => {
+            const words = new Set(subStates.map((status) => status.word));
+            let word: ProcessStatusWord;
+            let description: string;
+            if (words.has('process-running')) {
+              word = 'process-running';
+              description = 'Loading track genes';
+            // all success
+            } else if (words.has('process-success') && words.size == 1) {
+              word = 'process-success';
+              description = 'All track genes successfully loaded';
+            // all error
+            } else if (words.has('process-error') && words.size == 1) {
+              word = 'process-error';
+              description = 'Failed to load track genes';
+            // success and error
+            } else {
+              word = 'process-warning';
+              description = 'Failed to load one or more track genes';
+            }
+            return {word, description};
+          }),
+        );
+      }),
+      startWith(defaultStatus),
+    );
+  }
+
   getTrackGeneProcess(clusterID: number): ProcessStream {
-    return this._processFactory();
+    // emit a new process every time the micro-synteny, source, or alignment
+    // params change
+    return combineLatest(
+      this._store.select(fromParams.getQueryParams),
+      this._store.select(fromParams.getSourceParams),
+      this._store.select(fromParams.getAlignmentParams),
+    ).pipe(
+      map(([queryParams, sourceParams, alignment]) => {
+        const subprocesses = this._getTrackGeneSubprocesses(clusterID);
+        return {
+          subprocesses,
+          status: this._getTrackGeneProcessStatus(subprocesses),
+        };
+      }),
+    );
   }
 
   // macro blocks

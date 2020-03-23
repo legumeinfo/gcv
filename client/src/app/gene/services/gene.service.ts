@@ -10,7 +10,6 @@ import * as fromRoot from '@gcv/store/reducers';
 import * as fromGene from '@gcv/gene/store/selectors/gene/';
 // app
 import { Gene, Track } from '@gcv/gene/models';
-import { ClusterMixin } from '@gcv/gene/models/mixins';
 import { HttpService } from '@gcv/core/services/http.service';
 
 
