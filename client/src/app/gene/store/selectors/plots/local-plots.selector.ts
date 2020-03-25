@@ -12,7 +12,7 @@ import { ClusterMixin } from '@gcv/gene/models/mixins';
 export const getLocalPlots = (track: (Track | ClusterMixin)) =>
 createSelectorFactory(memoizeArray)(
   getSelectedMicroTracksForCluster((track as ClusterMixin).cluster),
-  (tracks: (Track | ClusterMixin)[]): Plot[] => {
+  (tracks: (Track & ClusterMixin)[]): Plot[] => {
     const sequence = track as Track;
     const plots = tracks.map((t) => new Plot(t, sequence));
     return plots;

@@ -3,15 +3,17 @@ import { Track } from './track.model';
 import { ClusterMixin } from './mixins/cluster.model';
 
 
+// TODO: redefine as object type literal with factory for instantiation that
+// makes pairs and helper for source gene map
 export class Plot {
 
-  reference: (Track | ClusterMixin);
+  reference: (Track & ClusterMixin);
   sequence: Track;
   pairs: Pair[];
   omit: Set<string>
 
   constructor(
-    reference: (Track | ClusterMixin),
+    reference: (Track & ClusterMixin),
     sequence: Track,
     omit=new Set(['']))
   {
@@ -41,5 +43,20 @@ export class Plot {
         return accumulator;
       };
     this.pairs = (this.reference as Track).families.reduce(reducer, []);
+  }
+
+  sourceGeneMap(): {[key: string]: string[]} {
+    const sourceGeneMap: {[key: string]: string[]} = {};
+    const refSource = this.reference.source;
+    const seqSource = this.sequence.source;
+    sourceGeneMap[refSource] = [];
+    sourceGeneMap[seqSource] = [];
+    this.pairs.forEach((p) => {
+      const refGene = this.reference.genes[p.i];
+      sourceGeneMap[refSource].push(refGene);
+      const seqGene = this.sequence.genes[p.j];
+      sourceGeneMap[seqSource].push(seqGene);
+    });
+    return sourceGeneMap;
   }
 }

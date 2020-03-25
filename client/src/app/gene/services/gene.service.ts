@@ -32,10 +32,16 @@ export class GeneService extends HttpService {
     );
   }
 
+  getGenesForSource(names: string[], source: string): Observable<Gene[]> {
+    const action = new geneActions.Get({names, source});
+    this._store.dispatch(action);
+    return this._store.pipe(select(fromGene.getGenesForSource(names, source)));
+  }
+
   getGenesForTracks(tracks: Track[]): Observable<Gene[]> {
     const actions = geneActions.tracksToGetGeneActions(tracks);
     actions.forEach((a) => this._store.dispatch(a));
-    return this._store.pipe(select(fromGene.getGenes(tracks)));
+    return this._store.pipe(select(fromGene.getGenesForTracks(tracks)));
   }
 
   // returns all the genes from the URL

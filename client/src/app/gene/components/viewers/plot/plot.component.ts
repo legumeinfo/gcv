@@ -2,10 +2,10 @@
 import { AfterViewInit, Component, ElementRef, EventEmitter, Input, OnDestroy,
   OnInit, Output, ViewChild } from '@angular/core';
 import { Observable, Subject, combineLatest } from 'rxjs';
-import { filter, mergeAll, switchMap, takeUntil } from 'rxjs/operators';
+import { filter, map, mergeAll, switchMap, takeUntil } from 'rxjs/operators';
 // app
 import { GCV } from '@gcv-assets/js/gcv';
-import { saveFile } from '@gcv/core/utils';
+import { arrayFlatten, saveFile } from '@gcv/core/utils';
 import { Gene, Pipeline, Plot, Track } from '@gcv/gene/models';
 import { ClusterMixin } from '@gcv/gene/models/mixins';
 import { GeneService, PlotsService, ProcessService } from '@gcv/gene/services';
@@ -28,7 +28,7 @@ export class PlotComponent implements AfterViewInit, OnDestroy, OnInit {
 
   @Input() type: 'local' | 'global';
   @Input() reference: Track;
-  @Input() track: (Track | ClusterMixin);
+  @Input() track: (Track & ClusterMixin);
   @Input() options: any = {};
   @Output() plotClick = new EventEmitter();
   @Output() geneClick = new EventEmitter();
@@ -65,7 +65,10 @@ export class PlotComponent implements AfterViewInit, OnDestroy, OnInit {
   }
 
   ngAfterViewInit() {
-    const plotFilter = (plot) => plot.reference.name === this.reference.name;
+    const plotFilter = (plot) => {
+        return plot.reference.name === this.reference.name &&
+               plot.reference.source === this.reference.source;
+      };
     const plots = this.type == 'local' ?
       this._plotsService.getLocalPlots(this.track) :
       this._plotsService.getGlobalPlots(this.track);
@@ -74,10 +77,17 @@ export class PlotComponent implements AfterViewInit, OnDestroy, OnInit {
         mergeAll(),
         filter(plotFilter),
       );
+    // NOTE: this feels awkward too...
     const genes = plot.pipe(
         switchMap((p) => {
-          const tracks = [p.reference, p.sequence];
-          return this._geneService.getGenesForTracks(tracks);
+          const sourceGeneMap = p.sourceGeneMap();
+          const observables = Object.entries(sourceGeneMap)
+            .map(([source, names]: [string, string[]]): Observable<Gene[]> => {
+              return this._geneService.getGenesForSource(names, source);
+            });
+          return combineLatest(...observables).pipe(
+            map((geneArrays): Gene[] => arrayFlatten(geneArrays)),
+          );
         }),
       );
     combineLatest(plot, genes)

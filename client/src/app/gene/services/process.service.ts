@@ -5,7 +5,7 @@ import { Observable, combineLatest, empty, merge } from 'rxjs';
 import { distinct, filter, map, mergeAll, scan, startWith, switchMap }
   from 'rxjs/operators';
 // store
-import { Store } from '@ngrx/store';
+import { Store, select } from '@ngrx/store';
 import { GeneID, geneID } from '@gcv/gene/store/reducers/gene.reducer';
 import { microTrackID, partialMicroTrackID }
   from '@gcv/gene/store/reducers/micro-tracks.reducer';
@@ -16,10 +16,11 @@ import * as fromGenes from '@gcv/gene/store/selectors/gene';
 import * as fromLayout from '@gcv/gene/store/selectors/layout';
 import * as fromMicroTracks from '@gcv/gene/store/selectors/micro-tracks';
 import * as fromParams from '@gcv/gene/store/selectors/params';
+import * as fromPlots from '@gcv/gene/store/selectors/plots';
 // app
 import { arrayFlatten } from '@gcv/core/utils';
-import { Process, ProcessStatus, ProcessStatusStream, ProcessStatusWord,
-  ProcessStream } from '@gcv/gene/models';
+import { Plot, Process, ProcessStatus, ProcessStatusStream, ProcessStatusWord,
+  ProcessStream, Track } from '@gcv/gene/models';
 import { TrackID, trackID } from '@gcv/gene/store/utils';
 
 
@@ -27,6 +28,43 @@ import { TrackID, trackID } from '@gcv/gene/store/utils';
 export class ProcessService {
 
   constructor(private _store: Store<fromRoot.State>) { }
+
+  // private helpers
+
+  private _genesAndLoadStateToStatus(genes: string[], source: string,
+  loading: GeneID[], loaded: GeneID[], failed: GeneID[]): ProcessStatus {
+    const geneSet = new Set(genes);
+    // filter loading states by gene name and source
+    const loadStateFilter = (id) => {
+        return geneSet.has(id.name) && id.source == source;
+      };
+    // generate the status based on the load states
+    const filteredLoading = loading.filter(loadStateFilter);
+    if (filteredLoading.length > 0) {
+      return {
+        word: 'process-running',
+        description: `Loading genes from <b>${source}</b>`,
+      };
+    }
+    const filteredLoaded = loaded.filter(loadStateFilter);
+    if (filteredLoaded.length == geneSet.size) {
+      return {
+        word: 'process-success',
+        description: `Successfully loaded all genes from <b>${source}</b>`,
+      };
+    }
+    const filteredFailed = failed.filter(loadStateFilter);
+    if (filteredFailed.length == geneSet.size) {
+      return {
+        word: 'process-error',
+        description: `Failed to load genes from <b>${source}</b>`,
+      };
+    }
+    return {
+      word: 'process-warning',
+      description: `Failed to load one or more genes from <b>${source}</b>`
+    };
+  }
 
   private _defaultProcessStatusFactory(description): ProcessStatus {
     return {
@@ -532,47 +570,19 @@ export class ProcessService {
     ).pipe(
       map(([selectedTracks, searchTracks, loading, loaded, failed]) => {
         // keep tracks belonging to cluster and source and convert to gene array
-        const selectedGenes = arrayFlatten(
+        const selectedGenes: string[] = arrayFlatten(
             selectedTracks
               .filter((t) => t.cluster == clusterID && t.source == source)
               .map((t) => t.genes)
           );
-        const searchGenes = arrayFlatten(
+        const searchGenes: string[] = arrayFlatten(
             searchTracks
               .filter((t) => t.cluster == clusterID && t.source == source)
               .map((t) => t.genes)
           );
-        const geneSet = new Set(selectedGenes.concat(searchGenes));
-        // filter loading states by gene name and source
-        const loadStateFilter = (id) => {
-            return geneSet.has(id.name) && id.source == source;
-          };
-        // generate the status based on the load states
-        const filteredLoading = loading.filter(loadStateFilter);
-        if (filteredLoading.length > 0) {
-          return {
-            word: 'process-running',
-            description: `Loading genes from <b>${source}</b>`,
-          };
-        }
-        const filteredLoaded = loaded.filter(loadStateFilter);
-        if (filteredLoaded.length == geneSet.size) {
-          return {
-            word: 'process-success',
-            description: `Successfully loaded all genes from <b>${source}</b>`,
-          };
-        }
-        const filteredFailed = failed.filter(loadStateFilter);
-        if (filteredFailed.length == geneSet.size) {
-          return {
-            word: 'process-error',
-            description: `Failed to load genes from <b>${source}</b>`,
-          };
-        }
-        return {
-          word: 'process-warning',
-          description: `Failed to load one or more genes from <b>${source}</b>`
-        };
+        const genes = selectedGenes.concat(searchGenes);
+        return this._genesAndLoadStateToStatus(genes, source, loading, loaded,
+          failed);
       }),
     );
   }
@@ -682,8 +692,97 @@ export class ProcessService {
 
   // plots
 
-  getPlotGeneProcess(type, reference, track): ProcessStream {
-    return this._processFactory();
+  private _getPlotGeneSubprocess(source: string, genes: string[]):
+  ProcessStatusStream {
+    return combineLatest(
+      // get gene loading states
+      this._store.select(fromGenes.getLoading),
+      this._store.select(fromGenes.getLoaded),
+      this._store.select(fromGenes.getFailed),
+    ).pipe(
+      map(([loading, loaded, failed]) => {
+        return this._genesAndLoadStateToStatus(genes, source, loading, loaded,
+          failed);
+      }),
+    );
+  }
+
+  private _getPlotGeneSubprocesses(plot: Plot): Observable<ProcessStatusStream> {
+    // bin plot genes by source
+    const sourceGeneMap = plot.sourceGeneMap();
+    // emit a subprocess for each source
+    return Observable.create((observer) => {
+      Object.entries(sourceGeneMap)
+        .forEach(([source, genes]: [string, string[]]) => {
+          const subprocess = this._getPlotGeneSubprocess(source, genes);
+          observer.next(subprocess);
+        });
+      observer.complete();
+    });
+  }
+
+  private _getPlotGeneProcessStatus(subprocesses: Observable<ProcessStatusStream>):
+  ProcessStatusStream {
+    //const defaultDescription = 'Waiting for plot tracks';
+    //const defaultStatus = this._defaultProcessStatusFactory(defaultDescription);
+    return subprocesses.pipe(
+      // aggregate subprocesses into array
+      scan((accumulator, processStatus) => {
+        accumulator.push(processStatus);
+        return accumulator;
+      }, []),
+      // derive status from array
+      switchMap((subs): ProcessStatusStream => {
+        return combineLatest(...subs).pipe(
+          map((subStates): ProcessStatus => {
+            const words = new Set(subStates.map((status) => status.word));
+            let word: ProcessStatusWord;
+            let description: string;
+            if (words.has('process-running')) {
+              word = 'process-running';
+              description = 'Loading plot genes';
+            // all success
+            } else if (words.has('process-success') && words.size == 1) {
+              word = 'process-success';
+              description = 'All plot genes successfully loaded';
+            // all error
+            } else if (words.has('process-error') && words.size == 1) {
+              word = 'process-error';
+              description = 'Failed to load plot genes';
+            // success and error
+            } else {
+              word = 'process-warning';
+              description = 'Failed to load one or more plot genes';
+            }
+            return {word, description};
+          }),
+        );
+      }),
+      //startWith(defaultStatus),
+    );
+  }
+
+  getPlotGeneProcess(type: 'local' | 'global', reference: Track, track: Track):
+  ProcessStream {
+    // return a process every time the plots update
+    const plots = type == 'local' ?
+      this._store.pipe(select(fromPlots.getLocalPlots(track))) :
+      this._store.pipe(select(fromPlots.getGlobalPlots(track)));
+    return plots.pipe(
+      // NOTE: this is awkward; see plot component
+      mergeAll(),
+      filter((plot: Plot) => {
+        return plot.reference.name === reference.name &&
+               plot.reference.source === reference.source;
+      }),
+      map((plot) => {
+        const subprocesses = this._getPlotGeneSubprocesses(plot);
+        return {
+          subprocesses,
+          status: this._getPlotGeneProcessStatus(subprocesses),
+        };
+      }),
+    );
   }
 
 }
