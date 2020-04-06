@@ -18,3 +18,15 @@ export const getLoading = createSelectorFactory(memoizeArray)(
   getPairwiseBlocksState,
   state => state.loading,
 );
+
+
+export const getLoaded = createSelectorFactory(memoizeArray)(
+  getPairwiseBlocksState,
+  state => state.loaded,
+);
+
+
+export const getFailed = createSelectorFactory(memoizeArray)(
+  getPairwiseBlocksState,
+  state => state.failed,
+);

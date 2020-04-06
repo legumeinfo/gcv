@@ -70,10 +70,9 @@ export class MacroComponent implements AfterViewInit, OnDestroy, OnInit {
   ngOnInit() {
     const chromosomes = [{name: this.name, source: this.source}];
     this.pipeline = {
-        'Blocks': this._processService
-          .getMacroBlockProcess(this.clusterID, chromosomes),
+        'Blocks': this._processService.getMacroBlockProcess(chromosomes),
         'Positions': this._processService
-          .getMacroBlockPositionProcess(this.clusterID, chromosomes),
+          .getMacroBlockPositionProcess(chromosomes),
       };
   }
 

@@ -1,7 +1,7 @@
 // NgRx
 import { createSelectorFactory } from '@ngrx/store';
 // store
-import { State, singleID }
+import { State, partialPairwiseBlocksID, singleID }
   from '@gcv/gene/store/reducers/pairwise-blocks.reducer';
 import * as fromParams from '@gcv/gene/store/selectors/params';
 import { getPairwiseBlocksState } from './pairwise-blocks-state.selector';
@@ -12,48 +12,51 @@ import { MACRO_ORDER_ALGORITHMS } from '@gcv/gene/algorithms';
 import { macroRegexpFactory } from '@gcv/gene/algorithms/utils';
 
 
-const getTrackPairwiseBlocksFromState = (tracks: Track[], state: State):
-PairwiseBlocks[][] => {
-  const reducer = (accumulator, id) => {
-      const [referenceName, referenceSource, chromosomeName, chromosomeSource] =
-        id.split(':');
-      const referenceID = singleID(referenceName, referenceSource);
-      const chromosomeID = singleID(chromosomeName, chromosomeSource);
-      if (!(referenceID in accumulator)) {
-        accumulator[referenceID] = [];
-      }
-      accumulator[referenceID].push(chromosomeID);
-      return accumulator;
-    };
-  const ids = state.ids as string[];
-  const idMap = ids.reduce(reducer, {});
-  return tracks
-    .map((t): string => singleID(t.name, t.source))
-    .filter((referenceID: string) => referenceID in idMap)
-    .map((referenceID: string): PairwiseBlocks[] => {
-      return idMap[referenceID].map((chromosomeID) => {
-        const id = `${referenceID}:${chromosomeID}`;
-        return state.entities[id];
+export const getPairwiseBlocks = createSelectorFactory(memoizeArray)(
+  getPairwiseBlocksState,
+  (state: State): PairwiseBlocks[] => {
+    return Object.values(state.entities) as PairwiseBlocks[];
+  },
+);
+
+
+// TODO: update to accept any "track" that has the name and source attributes
+export const getPairwiseBlocksForTracks =
+(tracks: Track[], sources: string[]) => createSelectorFactory(memoizeArray)(
+  getPairwiseBlocks,
+  (blocks: PairwiseBlocks[]): PairwiseBlocks[] => {
+    const chromosomeIDs = new Set(arrayFlatten(
+        tracks.map((t) => {
+          return sources.map((s) => {
+            return partialPairwiseBlocksID(t.name, t.source, s);
+          });
+        })
+      ));
+    const filteredBlocks = blocks
+      .filter((b) => {
+        const partialID = partialPairwiseBlocksID(b);
+        return chromosomeIDs.has(partialID);
       });
-    });
-}
+    return filteredBlocks;
+  }
+);
+
 
 const orderAlgorithmMap = MACRO_ORDER_ALGORITHMS.reduce((map, a) => {
     map[a.id] = a;
     return map;
   }, {});
 
-export const getPairwiseBlocks =
+
+export const getFilteredAndOrderedPairwiseBlocksForTracks =
 (tracks: Track[], sources: string[]) => createSelectorFactory(memoizeArray)(
-  getPairwiseBlocksState,
+  getPairwiseBlocksForTracks(tracks, sources),
   fromParams.getMacroFilterParams,
   fromParams.getMacroOrderParams,
-  (state: State, {bregexp}, {border}) => {
+  (blocks, {bregexp}, {border}) => {
     const blocksFilter = macroRegexpFactory(bregexp).algorithm;
     const orderAlg = (border in orderAlgorithmMap) ?
       orderAlgorithmMap[border].algorithm : (t1, t2) => 0;
-    const trackBlocks = getTrackPairwiseBlocksFromState(tracks, state);
-    const flattenedBlocks = arrayFlatten(trackBlocks);
-    return blocksFilter(flattenedBlocks).sort(orderAlg);
-  }
+    return blocksFilter(blocks).sort(orderAlg);
+  },
 );

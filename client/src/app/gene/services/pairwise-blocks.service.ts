@@ -77,8 +77,12 @@ export class PairwiseBlocksService extends HttpService {
         });
       });
     trackActions.forEach((ta) => ta.forEach((a) => this._store.dispatch(a)));
-    return this._store
-      .pipe(select(fromPairwiseBlocks.getPairwiseBlocks(tracks, sources)));
+    return this._store.pipe(
+      select(
+        fromPairwiseBlocks
+          .getFilteredAndOrderedPairwiseBlocksForTracks(tracks, sources)
+      ),
+    );
   }
 
   updateParams(params: BlockParams): void {

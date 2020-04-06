@@ -66,9 +66,9 @@ export class MacroCircosComponent implements AfterViewInit, OnDestroy, OnInit {
 
   ngOnInit() {
     this.pipeline = {
-        'Blocks': this._processService.getMacroBlockProcess(this.clusterID),
+        'Blocks': this._processService.getCircosBlockProcess(this.clusterID),
         'Positions': this._processService
-          .getMacroBlockPositionProcess(this.clusterID),
+          .getCircosBlockPositionProcess(this.clusterID),
       };
   }
 

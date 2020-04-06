@@ -28,6 +28,28 @@ export const getSelectedChromosomeIDs = createSelectorFactory(memoizeArray)(
   },
 );
 
+
+export const getChromosomes = createSelectorFactory(memoizeArray)(
+  getChromosomeState,
+  (state: State): Track[] => {
+    return Object.values(state.entities) as Track[];
+  },
+);
+
+
+export const getChromosomesForIDs = (IDs: TrackID[]) =>
+createSelectorFactory(memoizeArray)(
+  getChromosomes,
+  (chromosomes: Track[]): Track[] => {
+    const idSet = new Set(IDs.map((id) => trackID(id)));
+    return chromosomes.filter((c) => {
+      const id = trackID(c);
+      return idSet.has(id);
+    });
+  },
+);
+
+
 export const getSelectedChromosomesLoaded = createSelectorFactory(memoizeValue)(
   getChromosomeState,
   getSelectedChromosomeIDs,
@@ -39,6 +61,7 @@ export const getSelectedChromosomesLoaded = createSelectorFactory(memoizeValue)(
     return selected.size == intersection.size && selected.size > 0;
   },
 );
+
 
 export const getSelectedChromosomes = createSelectorFactory(memoizeArray)(
   getChromosomeState,
@@ -55,6 +78,7 @@ export const getSelectedChromosomes = createSelectorFactory(memoizeArray)(
     return Object.values(selectedChromosomes);
   },
 );
+
 
 // derive selected tracks from Chromosome and Gene States
 export const getSelectedSlices = createSelectorFactory(memoizeArray)(

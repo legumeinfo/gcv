@@ -45,10 +45,15 @@ chromosome: string, chromosomeSource: string) => {
 export function partialPairwiseBlocksID(reference: string,
   referenceSource: string, source: string): string;
 export function partialPairwiseBlocksID({referenceName, referenceSource, source}): string;
+export function partialPairwiseBlocksID(blocks: PairwiseBlocks): string;
 export function partialPairwiseBlocksID(...args): string {
   if (typeof args[0] === 'object') {
     const id = args[0];
-    return partialPairwiseBlocksID(id.reference.name, id.reference.source, id.source);
+    // TODO: this is hacky; be consistent!
+    // is it a partial id or a id/block?
+    const name = (id.hasOwnProperty('reference')) ? id.reference : id.referenceName;
+    const source = (id.hasOwnProperty('source')) ? id.source : id.chromosomeSource;
+    return partialPairwiseBlocksID(name, id.referenceSource, source);
   }
   const [referenceName, referenceSource, source] = args;
   const referenceID = singleID(referenceName, referenceSource);
