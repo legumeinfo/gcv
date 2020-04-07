@@ -935,11 +935,32 @@ export class ProcessService {
   }
 
   getCircosBlockProcess(clusterID: number): ProcessStream {
-    return this._processFactory();
+    // emit a new process every time a new chromosome is emitted for the cluster
+    // TODO: not ideal...
+    return this._store.pipe(
+      select(fromChromosome.getSelectedChromosomesForCluster(clusterID))
+    ).pipe(
+      switchMap((chromosomes) => {
+        const IDs = chromosomes
+          .map(({name, source, ...attrs}) => ({name, source}));
+        return this.getMacroBlockProcess(IDs);
+      }),
+    );
   }
 
+
   getCircosBlockPositionProcess(clusterID: number): ProcessStream {
-    return this._processFactory();
+    // emit a new process every time a new chromosome is emitted for the cluster
+    // TODO: not ideal...
+    return this._store.pipe(
+      select(fromChromosome.getSelectedChromosomesForCluster(clusterID))
+    ).pipe(
+      switchMap((chromosomes) => {
+        const IDs = chromosomes
+          .map(({name, source, ...attrs}) => ({name, source}));
+        return this.getMacroBlockPositionProcess(IDs);
+      }),
+    );
   }
 
   // plots
