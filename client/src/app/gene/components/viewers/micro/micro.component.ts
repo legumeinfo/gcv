@@ -39,7 +39,7 @@ import { microShim } from './micro.shim';
       </ul>
       <pipeline [info]=info [pipeline]=pipeline navcenter></pipeline>
     </context-menu>
-    <div class="viewer" #container></div>
+    <div (onResize)="draw()" class="viewer" #container></div>
   `,
 })
 export class MicroComponent implements AfterViewInit, OnDestroy, OnInit {
@@ -56,6 +56,8 @@ export class MicroComponent implements AfterViewInit, OnDestroy, OnInit {
   @Output() reference = new EventEmitter();
 
   @ViewChild('container', {static: true}) container: ElementRef;
+
+  draw;
 
   private _destroy: Subject<boolean> = new Subject();
   private _viewer;
@@ -110,7 +112,8 @@ export class MicroComponent implements AfterViewInit, OnDestroy, OnInit {
     combineLatest(queryGenes, this.queryTracks, allTracks, genes)
       .pipe(takeUntil(this._destroy))
       .subscribe(([queryGenes, queryTracks, allTracks, genes]) => {
-        this._draw(queryGenes, queryTracks, allTracks, genes);
+        this._preDraw(queryGenes, queryTracks, allTracks, genes);
+        this.draw();
       });
   }
 
@@ -169,11 +172,11 @@ export class MicroComponent implements AfterViewInit, OnDestroy, OnInit {
   private _destroyViewer(): void {
     if (this._viewer !== undefined) {
       this._viewer.destroy();
+      this._viewer = undefined;
     }
   }
 
-  private _draw(queryGenes, queryTracks, tracks, genes): void {
-    this._destroyViewer();
+  private _preDraw(queryGenes, queryTracks, tracks, genes): void {
     const {data, bold, familySizes} =
       microShim(this.clusterID, queryTracks, tracks, genes);
     let options = {
@@ -185,11 +188,22 @@ export class MicroComponent implements AfterViewInit, OnDestroy, OnInit {
         geneOver: (e, t, g, i) => this.emitGeneOver(e, g.name, g.family, t.source),
         nameClick: (t, i) => this.emitNameClick(tracks[i])
       };
-    options = Object.assign(options, this.options);
-    this._viewer = new GCV.visualization.Micro(
-        this.container.nativeElement,
-        GCV.common.colors,
-        data,
-        options);
+    options = Object.assign(options, this.options, {autoResize: false});
+    this.draw = this._draw.bind(this, data, options);
+  }
+
+  private _draw(data, options) {
+    this._destroyViewer();
+    const dim = Math.min(
+        this.container.nativeElement.clientWidth,
+        this.container.nativeElement.clientHeight
+      );
+    if (dim > 0) {
+      this._viewer = new GCV.visualization.Micro(
+          this.container.nativeElement,
+          GCV.common.colors,
+          data,
+          options);
+    }
   }
 }

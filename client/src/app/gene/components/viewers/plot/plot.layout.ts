@@ -30,7 +30,7 @@ export function plotConfigFactory(
   const selected = (track as Track);
   const trackName = selected.name;
   const referenceName = reference.name;
-  const options = {autoResize: true};
+  const options = {};
   const id = `plot:${type}:${clusteredTrackID(track)}x${clusteredTrackID(reference)}`;
   let _outputs = {
       geneClick: (id, gene, family, source) => { /* no-op */ },

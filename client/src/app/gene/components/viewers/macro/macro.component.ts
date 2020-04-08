@@ -24,7 +24,7 @@ import { macroShim } from './macro.shim';
     <context-menu (saveImage)="saveImage()">
       <pipeline [info]=info [pipeline]=pipeline navcenter></pipeline>
     </context-menu>
-    <div class="viewer" #container></div>
+    <div (onResize)="draw()" class="viewer" #container></div>
   `,
 })
 export class MacroComponent implements AfterViewInit, OnDestroy, OnInit {
@@ -40,6 +40,8 @@ export class MacroComponent implements AfterViewInit, OnDestroy, OnInit {
   @ViewChild('container', {static: true}) container: ElementRef;
 
   // variables
+
+  draw;
 
   info = `<p>This is the macro synteny <i>pipeline</i>.
           It depicts the flow of data from one <i>process</i> to the next for
@@ -120,7 +122,8 @@ export class MacroComponent implements AfterViewInit, OnDestroy, OnInit {
     )
       .pipe(takeUntil(this._destroy))
       .subscribe(([chromosome, query, tracks, blocks, genes]) => {
-        this._draw(chromosome, query, tracks, blocks, genes);
+        this._preDraw(chromosome, query, tracks, blocks, genes);
+        this.draw();
       });
   }
 
@@ -135,11 +138,11 @@ export class MacroComponent implements AfterViewInit, OnDestroy, OnInit {
   private _destroyViewer(): void {
     if (this._viewer !== undefined) {
       this._viewer.destroy();
+      this._viewer = undefined;
     }
   }
 
-  private _draw(chromosome, query, tracks, blocks, genes): void {
-    this._destroyViewer();
+  private _preDraw(chromosome, query, tracks, blocks, genes): void {
     const {data, viewport, highlight} =
       macroShim(chromosome, query, tracks, blocks, genes);
     const colors = getMacroColors([chromosome]);
@@ -157,11 +160,22 @@ export class MacroComponent implements AfterViewInit, OnDestroy, OnInit {
           this.emitBlockOver(e, pairwiseBlocks, block);
         },
       };
-    options = Object.assign(options, this.options);
-    this._viewer = new GCV.visualization.Macro(
-      this.container.nativeElement,
-      data,
-      options);
+    options = Object.assign(options, this.options, {autoResize: false});
+    this.draw = this._draw.bind(this, data, options);
+  }
+
+  private _draw(data, options) {
+    this._destroyViewer();
+    const dim = Math.min(
+        this.container.nativeElement.clientWidth,
+        this.container.nativeElement.clientHeight
+      );
+    if (dim > 0) {
+      this._viewer = new GCV.visualization.Macro(
+        this.container.nativeElement,
+        data,
+        options);
+    }
   }
 
   // public

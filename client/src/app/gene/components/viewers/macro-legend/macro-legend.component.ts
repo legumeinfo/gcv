@@ -16,7 +16,7 @@ import { macroLegendShim } from './macro-legend.shim';
   styleUrls: ['../golden-viewer.scss'],
   template: `
     <context-menu (saveImage)="saveImage()"></context-menu>
-    <div class="viewer" #container></div>
+    <div (onResize)="draw()" class="viewer" #container></div>
   `,
 })
 export class MacroLegendComponent implements AfterViewInit, OnDestroy {
@@ -25,6 +25,8 @@ export class MacroLegendComponent implements AfterViewInit, OnDestroy {
   @Output() click = new EventEmitter();
 
   @ViewChild('container', {static: true}) container: ElementRef;
+
+  draw;
 
   private _destroy: Subject<boolean> = new Subject();
   private _viewer;
@@ -39,7 +41,10 @@ export class MacroLegendComponent implements AfterViewInit, OnDestroy {
     const tracks = this._microTracksService.getAllTracks();
     combineLatest(selectedTracks, tracks)
       .pipe(takeUntil(this._destroy))
-      .subscribe(([queries, tracks]) => this._draw(queries, tracks));
+      .subscribe(([queries, tracks]) => {
+        this._preDraw(queries, tracks);
+        this.draw();
+      });
   }
 
   ngOnDestroy() {
@@ -65,22 +70,33 @@ export class MacroLegendComponent implements AfterViewInit, OnDestroy {
   private _destroyViewer(): void {
     if (this._viewer !== undefined) {
       this._viewer.destroy();
+      this._viewer = undefined;
     }
   }
 
-  private _draw(queries, tracks): void {
-    this._destroyViewer();
+  private _preDraw(queries, tracks): void {
     const {data, highlight} = macroLegendShim(queries, tracks);
     let colors = getMacroColors(queries);
     if (colors === undefined) {
       colors = (organism) => '#000000';
     }
     let options = {highlight, selector: 'organism'};
-    options = Object.assign(options, this.options);
-    this._viewer = new GCV.visualization.Legend(
-        this.container.nativeElement,
-        colors,
-        data,
-        options);
+    options = Object.assign(options, this.options, {autoResize: false});
+    this.draw = this._draw.bind(this, colors, data, options);
+  }
+
+  private _draw(colors, data, options) {
+    this._destroyViewer();
+    const dim = Math.min(
+        this.container.nativeElement.clientWidth,
+        this.container.nativeElement.clientHeight
+      );
+    if (dim > 0) {
+      this._viewer = new GCV.visualization.Legend(
+          this.container.nativeElement,
+          colors,
+          data,
+          options);
+    }
   }
 }

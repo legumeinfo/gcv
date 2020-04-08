@@ -6,7 +6,7 @@ export const microLayoutComponent = {component: MicroComponent, name: 'micro'};
 
 export function microConfigFactory(clusterID: number, outputs: any={}) {
   const id = `micro${clusterID}`;
-  const options = {autoResize: true};
+  const options = {};
   let _outputs = {
       plotClick: (e, id, track, queryTracks) => { /* no-op */ },
       geneClick: (id, gene, family, source) => { /* no-op */ },

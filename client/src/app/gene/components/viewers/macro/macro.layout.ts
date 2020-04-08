@@ -12,7 +12,7 @@ export function macroConfigFactory(
 {
   // NOTE: should the id include end genes?
   const id = `macro:${name}:${source}`;
-  const options = {autoResize: true};
+  const options = {};
   let _outputs = {
       blockOver: (e, pairwiseBlocks, block) => { /* no-op */ },
     };

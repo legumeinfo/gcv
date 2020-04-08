@@ -19,7 +19,7 @@ import { plotShim } from './plot.shim';
     <context-menu (saveImage)="saveImage()">
       <pipeline [info]=info [pipeline]=pipeline navcenter></pipeline>
     </context-menu>
-    <div class="viewer" #container></div>
+    <div (onResize)="draw()" class="viewer" #container></div>
   `,
 })
 export class PlotComponent implements AfterViewInit, OnDestroy, OnInit {
@@ -37,6 +37,8 @@ export class PlotComponent implements AfterViewInit, OnDestroy, OnInit {
   @ViewChild('container', {static: true}) container: ElementRef;
 
   // variables
+
+  draw;
 
   info = `<p>This is the plot <i>pipeline</i>.
           It depicts the flow of data from one <i>process</i> to the next for
@@ -92,7 +94,10 @@ export class PlotComponent implements AfterViewInit, OnDestroy, OnInit {
       );
     combineLatest(plot, genes)
       .pipe(takeUntil(this._destroy))
-      .subscribe(([plot, genes]) => this._draw(plot, genes));
+      .subscribe(([plot, genes]) => {
+        this._preDraw(plot, genes);
+        this.draw();
+      });
   }
 
   ngOnDestroy() {
@@ -126,11 +131,11 @@ export class PlotComponent implements AfterViewInit, OnDestroy, OnInit {
   private _destroyViewers(): void {
     if (this._viewer !== undefined) {
       this._viewer.destroy();
+      this._viewer = undefined;
     }
   }
 
-  private _draw(plot: Plot, genes: Gene[]): void {
-    this._destroyViewers();
+  private _preDraw(plot: Plot, genes: Gene[]): void {
     const source = plot.sequence.source;
     const data = plotShim(plot, genes);
     let options = {
@@ -138,11 +143,22 @@ export class PlotComponent implements AfterViewInit, OnDestroy, OnInit {
         geneClick: (g, j) => this.emitGeneClick(g.name, g.family, source),
         geneOver: (e, g) => this.emitGeneOver(e, g.name, g.family, source),
       };
-    options = Object.assign(options, this.options);
-    this._viewer = new GCV.visualization.Plot(
-      this.container.nativeElement,
-      GCV.common.colors,
-      data,
-      options);
+    options = Object.assign(options, this.options, {autoResize: false});
+    this.draw = this._draw.bind(this, data, options);
+  }
+
+  private _draw(data, options) {
+    this._destroyViewers();
+    const dim = Math.min(
+        this.container.nativeElement.clientWidth,
+        this.container.nativeElement.clientHeight
+      );
+    if (dim > 0) {
+      this._viewer = new GCV.visualization.Plot(
+        this.container.nativeElement,
+        GCV.common.colors,
+        data,
+        options);
+    }
   }
 }

@@ -24,7 +24,7 @@ import { macroCircosShim } from './macro-circos.shim';
     <context-menu (saveImage)="saveImage()">
       <pipeline [info]=info [pipeline]=pipeline navcenter></pipeline>
     </context-menu>
-    <div class="viewer" #container></div>
+    <div (onResize)="draw()" class="viewer" #container></div>
   `,
 })
 export class MacroCircosComponent implements AfterViewInit, OnDestroy, OnInit {
@@ -37,6 +37,8 @@ export class MacroCircosComponent implements AfterViewInit, OnDestroy, OnInit {
   @ViewChild('container', {static: true}) container: ElementRef;
 
   // variables
+
+  draw;
 
   info = `<p>This is the circos <i>pipeline</i>.
           It depicts the flow of data from one <i>process</i> to the next for
@@ -107,7 +109,8 @@ export class MacroCircosComponent implements AfterViewInit, OnDestroy, OnInit {
     combineLatest(queryTracks, queryChromosomes, pairwiseBlocks, blockGenes)
       .pipe(takeUntil(this._destroy))
       .subscribe(([queries, chromosomes, blocks, genes]) => {
-        this._draw(queries, chromosomes, blocks, genes);
+        this._preDraw(queries, chromosomes, blocks, genes);
+        this.draw();
       });
   }
 
@@ -122,21 +125,32 @@ export class MacroCircosComponent implements AfterViewInit, OnDestroy, OnInit {
   private _destroyViewer(): void {
     if (this._viewer !== undefined) {
       this._viewer.destroy();
+      this._viewer = undefined;
     }
   }
 
-  private _draw(queries, chromosomes, blocks, genes): void {
-    this._destroyViewer();
+  private _preDraw(queries, chromosomes, blocks, genes): void {
     const {data, highlight} =
       macroCircosShim(queries, chromosomes, blocks, genes);
     const colors = getMacroColors(chromosomes);
     let options = {colors, highlight};
-    options = Object.assign(options, this.options);
-    this._viewer = new GCV.visualization.MultiMacro(
-      this.container.nativeElement,
-      data,
-      options,
-    );
+    options = Object.assign(options, this.options, {autoResize: false});
+    this.draw = this._draw.bind(this, data, options);
+  }
+
+  private _draw(data, options) {
+    this._destroyViewer();
+    const dim = Math.min(
+        this.container.nativeElement.clientWidth,
+        this.container.nativeElement.clientHeight
+      );
+    if (dim > 0) {
+      this._viewer = new GCV.visualization.MultiMacro(
+        this.container.nativeElement,
+        data,
+        options,
+      );
+    }
   }
 
   // public

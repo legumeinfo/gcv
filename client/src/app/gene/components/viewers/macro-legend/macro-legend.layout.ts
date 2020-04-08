@@ -7,7 +7,7 @@ export const macroLegendLayoutComponent =
 
 export function macroLegendConfigFactory(outputs: any={}) {
   const id = 'macrolegend';
-  const options = {autoResize: true};
+  const options = {};
   let _outputs = {click: (id, organism) => { /* no-op */ }};
   _outputs = Object.assign(_outputs, outputs);
   return  {

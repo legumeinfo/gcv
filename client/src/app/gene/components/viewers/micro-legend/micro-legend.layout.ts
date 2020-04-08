@@ -7,7 +7,7 @@ export const microLegendLayoutComponent =
 
 export function microLegendConfigFactory(outputs: any={}) {
   const id = 'microlegend';
-  const options = {autoResize: true};
+  const options = {};
   let _outputs = {click: (id, family) => { /* no-op */ }};
   _outputs = Object.assign(_outputs, outputs);
   return  {
