@@ -1,10 +1,12 @@
 // A PairwiseBlock is a syntenic block defined between two chromosomes. A
-// PairwiseBlocks is a collection of these blocks. This file contains an NgRx
-// reducer and selectors for storing and accessing PairwiseBlocks. Specifically,
-// syntenic blocks are loaded as PairwiseBlocks for each chromosome loaded for
-// the genes provided by the user (see ./chromosome.reducer.ts). These
-// PairwiseBlocks are stored by the pairwise-blocks reducer and made available
-// via selectors.
+// PairwiseBlocks is a collection of these blocks for the two chromosomes. This
+// file contains an NgRx reducer for storing and accessing PairwiseBlocks.
+// Specifically, syntenic blocks are loaded as PairwiseBlocks on demand from a
+// given source for a given reference chromosome and 0 or more target
+// chromosomes. These PairwiseBlocks are stored by the pairwise-blocks reducer
+// and made available via selectors. Note: If no (0) target chromosomes are
+// given, then only one loading/loaded/failed ID is created for the
+// corresponding requests and the "*" wildcard is used as the chromosome name.
 
 // NgRx
 import { createEntityAdapter, EntityState } from '@ngrx/entity';
@@ -14,63 +16,61 @@ import * as pairwiseBlocksActions from '@gcv/gene/store/actions/pairwise-blocks.
 import { PairwiseBlocks } from '@gcv/gene/models';
 import { ActionID } from '@gcv/gene/store/utils';
 
+
 declare var Object: any;  // because TypeScript doesn't support Object.values
+
 
 export const pairwiseBlocksFeatureKey = 'pairwiseblocks';
 
+
 export type PairwiseBlocksID = {
-  referenceName: string,
   referenceSource: string,
-  chromosomeName: string,
+  reference: string,
   chromosomeSource: string,
+  chromosome?: string,
 };
 
-export type PartialPairwiseBlocksID = {
-  referenceName: string,
-  referenceSource: string,
-  source: string,
-};
 
 export function singleID(name: string, source: string): string {
   return `${name}:${source}`;
 };
 
-const pairwiseBlocksID = (reference: string, referenceSource: string,
-chromosome: string, chromosomeSource: string) => {
+
+export function pairwiseBlocksID(referenceSource: string, reference: string,
+chromosomeSource: string, chromosome?: string): string;
+export function pairwiseBlocksID
+({referenceSource, reference, chromosomeSource, ...attrs}): string;
+export function pairwiseBlocksID(...args): string {
+  if (typeof args[0] === 'object') {
+    const {referenceSource, reference, chromosomeSource, ...attrs} =
+      args[0];
+    if (attrs.hasOwnProperty('chromosome')) {
+      return pairwiseBlocksID(
+        referenceSource,
+        reference,
+        chromosomeSource,
+        attrs.chromosome,
+      );
+    }
+    return pairwiseBlocksID(referenceSource, reference, chromosomeSource);
+  }
+  const [referenceSource, reference, chromosomeSource, ...attrs] = args;
+  const chromosome = (attrs.length > 0) ? attrs[0] : '*';
   const referenceID = singleID(reference, referenceSource);
   const chromosomeID = singleID(chromosome, chromosomeSource);
   return `${referenceID}:${chromosomeID}`;
-};
+}
 
-export function partialPairwiseBlocksID(reference: string,
-  referenceSource: string, source: string): string;
-export function partialPairwiseBlocksID({referenceName, referenceSource, source}): string;
-export function partialPairwiseBlocksID(blocks: PairwiseBlocks): string;
-export function partialPairwiseBlocksID(...args): string {
-  if (typeof args[0] === 'object') {
-    const id = args[0];
-    // TODO: this is hacky; be consistent!
-    // is it a partial id or a id/block?
-    const name = (id.hasOwnProperty('reference')) ? id.reference : id.referenceName;
-    const source = (id.hasOwnProperty('source')) ? id.source : id.chromosomeSource;
-    return partialPairwiseBlocksID(name, id.referenceSource, source);
-  }
-  const [referenceName, referenceSource, source] = args;
-  const referenceID = singleID(referenceName, referenceSource);
-  return `${referenceID}:${source}`;
-};
 
 const adapter = createEntityAdapter<PairwiseBlocks>({
-  selectId: (e) => pairwiseBlocksID(e.reference, e.referenceSource,
-    e.chromosome, e.chromosomeSource)
+  selectId: (e) => pairwiseBlocksID(e),
 });
 
-// TODO: is loaded even necessary or can it be derived from entity ids and
-// selectChromosomeIDs selector?
+
 export interface State extends EntityState<PairwiseBlocks> {
-  failed: PartialPairwiseBlocksID[];
-  loaded: PartialPairwiseBlocksID[];
-  loading: (PartialPairwiseBlocksID & ActionID)[];
+  failed: PairwiseBlocksID[];
+  loaded: PairwiseBlocksID[];
+  loading: (PairwiseBlocksID & ActionID)[];
 }
 
 export const initialState: State = adapter.getInitialState({
@@ -78,6 +78,31 @@ export const initialState: State = adapter.getInitialState({
   loaded: [],
   loading: [],
 });
+
+
+export function pairwiseBlocksActionID({action, ...pairwiseID}: PairwiseBlocksID & ActionID): string {
+  return `${pairwiseBlocksID(pairwiseID)}:${action}`;
+}
+
+
+// subtracts overlapping IDs from a1
+export function idArrayLeftDifference(a1, a2, checkAction=false) {
+  const id2string = (checkAction) ? pairwiseBlocksActionID : pairwiseBlocksID;
+  const a2IDs = new Set(a2.map(id2string));
+  return a1.filter((id) => {
+    const {chromosome, ...wildcardID} = id;
+    return !a2IDs.has(id2string(wildcardID)) &&
+           !a2IDs.has(id2string(id));
+  });
+}
+
+
+export function idArrayIntersection(a1, a2, checkAction=false) {
+  const id2string = (checkAction) ? pairwiseBlocksActionID : pairwiseBlocksID;
+  const a2IDs = new Set(a2.map(id2string));
+  return a1.filter((id) => a2IDs.has(id2string(id)));
+}
+
 
 export function reducer(
   state = initialState,
@@ -93,60 +118,74 @@ export function reducer(
         loading: [],
       });
     case pairwiseBlocksActions.GET:
-      const chromosome = action.payload.chromosome;
-      const source = action.payload.source;
+      const {chromosome, source, targets} = action.payload;
       const partialID = {
-          referenceName: chromosome.name,
           referenceSource: chromosome.source,
-          source,
+          reference: chromosome.name,
+          chromosomeSource: source,
           action: action.id,
         };
+      let targetIDs = (targets.length > 0) ?
+        targets.map((name) => ({...partialID, chromosome: name})) :
+        [partialID];  // will be given wildcard name
+      // filter targets (including *) by loading and loaded
+      targetIDs = idArrayLeftDifference(targetIDs, state.loading);
+      targetIDs = idArrayLeftDifference(targetIDs, state.loaded);
+      // add an ID for each target or *
+      const loading = state.loading.concat(targetIDs);
+      // remove IDs from failed
+      const failed = idArrayLeftDifference(state.failed, targetIDs);
       return {
         ...state,
-        loading: state.loading.concat([partialID]),
+        loading,
+        failed,
       };
     case pairwiseBlocksActions.GET_SUCCESS:
     {
-      const chromosome = action.payload.chromosome;
-      const source = action.payload.source;
-      const blocks = action.payload.blocks;
+      const {chromosome, source, targets, blocks} = action.payload;
       const partialID = {
-          referenceName: chromosome.name,
           referenceSource: chromosome.source,
-          source,
+          reference: chromosome.name,
+          chromosomeSource: source,
         };
+      let targetIDs = (targets.length > 0) ?
+        targets.map((name) => ({...partialID, chromosome: name})) :
+        [partialID];  // will be given wildcard name
+      // remove IDs from loading
+      const loading = idArrayLeftDifference(state.loading, targetIDs);
+      // add IDs to loaded
+      targetIDs = idArrayLeftDifference(targetIDs, state.loaded);
+      const loaded = state.loaded.concat(targetIDs);
+      // add an ID for each target or *
       return adapter.addMany(
         blocks,
         {
           ...state,
-          loaded: state.loaded.concat(partialID),
-          loading: state.loading.filter(
-          ({referenceName, referenceSource, source}) => {
-            return !(referenceName === partialID.referenceName &&
-                     referenceSource === partialID.referenceSource &&
-                     source === partialID.source);
-          }),
+          loading,
+          loaded,
         },
       );
     }
     case pairwiseBlocksActions.GET_FAILURE:
     {
-      const chromosome = action.payload.chromosome;
-      const source = action.payload.source;
+      const {chromosome, source, targets} = action.payload;
       const partialID = {
-          referenceName: chromosome.name,
           referenceSource: chromosome.source,
-          source,
+          reference: chromosome.name,
+          chromosomeSource: source,
         };
+      let targetIDs = (targets.length > 0) ?
+        targets.map((name) => ({...partialID, chromosome: name})) :
+        [partialID];  // will be given wildcard name
+      // remove IDs from loading
+      const loading = idArrayLeftDifference(state.loading, targetIDs);
+      // add IDs to failed
+      targetIDs = idArrayLeftDifference(targetIDs, state.failed);
+      const failed = state.failed.concat(targetIDs);
       return {
         ...state,
-        failed: state.failed.concat(partialID),
-        loading: state.loading.filter(
-        ({referenceName, referenceSource, source}) => {
-          return !(referenceName === partialID.referenceName &&
-                   referenceSource === partialID.referenceSource &&
-                   source === partialID.source);
-        }),
+        loading,
+        failed,
       };
     }
     default:

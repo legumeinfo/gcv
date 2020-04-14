@@ -22,12 +22,24 @@ export class Get implements Action {
 export class GetSuccess implements Action {
   readonly type = GET_SUCCESS;
   constructor(public payload:
-    {chromosome: Track, source: string, blocks: PairwiseBlocks[]}) { }
+    {
+      chromosome: Track,
+      source: string,
+      targets: string[],
+      blocks: PairwiseBlocks[],
+    }
+  ) { }
 }
 
 export class GetFailure implements Action {
   readonly type = GET_FAILURE;
-  constructor(public payload: {chromosome: Track, source: string}) { }
+  constructor(public payload:
+    {
+      chromosome: Track,
+      source: string,
+      targets: string[],
+    }
+  ) { }
 }
 
 export type Actions = Clear | Get | GetSuccess | GetFailure;

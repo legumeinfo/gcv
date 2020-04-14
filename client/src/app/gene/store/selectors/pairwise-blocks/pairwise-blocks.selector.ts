@@ -1,7 +1,7 @@
 // NgRx
 import { createSelectorFactory } from '@ngrx/store';
 // store
-import { State, partialPairwiseBlocksID, singleID }
+import { State, pairwiseBlocksID, singleID }
   from '@gcv/gene/store/reducers/pairwise-blocks.reducer';
 import * as fromParams from '@gcv/gene/store/selectors/params';
 import { getPairwiseBlocksState } from './pairwise-blocks-state.selector';
@@ -28,13 +28,14 @@ export const getPairwiseBlocksForTracks =
     const chromosomeIDs = new Set(arrayFlatten(
         tracks.map((t) => {
           return sources.map((s) => {
-            return partialPairwiseBlocksID(t.name, t.source, s);
+            return pairwiseBlocksID(t.source, t.name, s);
           });
         })
       ));
     const filteredBlocks = blocks
       .filter((b) => {
-        const partialID = partialPairwiseBlocksID(b);
+        const {chromosome, ...wildcard} = b;
+        const partialID = pairwiseBlocksID(wildcard);
         return chromosomeIDs.has(partialID);
       });
     return filteredBlocks;

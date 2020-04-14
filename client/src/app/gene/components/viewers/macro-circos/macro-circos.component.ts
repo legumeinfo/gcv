@@ -38,7 +38,7 @@ export class MacroCircosComponent implements AfterViewInit, OnDestroy, OnInit {
 
   // variables
 
-  draw;
+  draw = () => { /* no-op */ };
 
   info = `<p>This is the circos <i>pipeline</i>.
           It depicts the flow of data from one <i>process</i> to the next for
@@ -79,15 +79,22 @@ export class MacroCircosComponent implements AfterViewInit, OnDestroy, OnInit {
       .getSelectedClusterTracks(this.clusterID);
     const queryChromosomes = this._chromosomeService
       .getSelectedChromosomesForCluster(this.clusterID);
-    const sourceParams = this._paramsService.getSourceParams();
-    const blockParams = this._paramsService.getBlockParams();
     const pairwiseBlocks =
-      combineLatest(queryChromosomes, sourceParams, blockParams).pipe(
-        switchMap(([chromosomes, sources, params]) => {
-          const _sources = sources.sources;
+      combineLatest(
+        queryChromosomes,
+        this._paramsService.getSourceParams(),
+        this._paramsService.getBlockParams(),
+      ).pipe(
+        switchMap(([chromosomes, sourceParams, blockParams]) => {
+          const sources = sourceParams.sources;
           const targets = chromosomes.map((c) => c.name);
           return this._pairwiseBlocksService
-            .getPairwiseBlocksForTracks(chromosomes, _sources, params, targets);
+            .getPairwiseBlocksForTracks(
+              chromosomes,
+              sources,
+              blockParams,
+              targets,
+            );
         }),
       );
     const blockGenes =

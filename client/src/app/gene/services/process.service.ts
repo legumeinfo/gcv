@@ -9,7 +9,7 @@ import { Store, select } from '@ngrx/store';
 import { GeneID, geneID } from '@gcv/gene/store/reducers/gene.reducer';
 import { microTrackID, partialMicroTrackID }
   from '@gcv/gene/store/reducers/micro-tracks.reducer';
-import { partialPairwiseBlocksID }
+import { pairwiseBlocksID }
   from '@gcv/gene/store/reducers/pairwise-blocks.reducer';
 import * as layoutActions from '@gcv/gene/store/actions/layout.actions';
 import * as fromRoot from '@gcv/store/reducers';
@@ -681,13 +681,32 @@ export class ProcessService {
   // macro blocks
 
   private _getMacroBlockSubprocess(
+    chromosomes: {name: string, source: string}[],
     source: string,
-    chromosomes: {name: string, source: string}[]):
-  ProcessStatusStream {
-    const chromosomeIDs = new Set(chromosomes.map((c) => {
-        return partialPairwiseBlocksID(c.name, c.source, source);
-      }));
-    const chromosomeFilter = (blockID) => chromosomeIDs.has(blockID);
+    targets: string[],
+  ): ProcessStatusStream {
+    const targetIDs = arrayFlatten(
+      chromosomes.map((c) => {
+        const wildcardID = {
+            referenceSource: c.source,
+            reference: c.name,
+            chromosomeSource: source,
+          };
+        if (targets.length > 0) {
+          return targets.map((name) => {
+            return {...wildcardID, chromosome: name};
+          });
+        }
+        return [wildcardID];
+      })
+    );
+    const chromosomeFilter = (idSet) => {
+        return (blockID) => {
+          const {chromosome, ...wildcardID} = blockID;
+          return idSet.has(pairwiseBlocksID(blockID)) ||
+                 idSet.has(pairwiseBlocksID(wildcardID));
+        };
+      };
     return combineLatest(
       // get gene loading states
       this._store.select(fromPairwiseBlocks.getLoading),
@@ -695,28 +714,26 @@ export class ProcessService {
       this._store.select(fromPairwiseBlocks.getFailed),
     ).pipe(
       map(([loading, loaded, failed]) => {
-        const loadingIDs = new Set(loading
-          .map((b) => partialPairwiseBlocksID(b))
-          .filter(chromosomeFilter));
-        if (loadingIDs.size > 0) {
-          return {
-            word: 'process-running',
-            description: `Loading blocks from <b>${source}</b>`,
-          };
-        }
-        const loadedIDs = new Set(loaded
-          .map((b) => partialPairwiseBlocksID(b))
-          .filter(chromosomeFilter));
-        if (loadedIDs.size == chromosomeIDs.size) {
+        const loadedIDs = new Set(loaded.map(pairwiseBlocksID));
+        // filter targets (and containing wildcards) by loaded
+        const loadedTargets = targetIDs.filter(chromosomeFilter(loadedIDs));
+        if (loadedTargets.length == targetIDs.length) {
           return {
             word: 'process-success',
             description: `Successfully loaded blocks from <b>${source}</b>`,
           };
         }
-        const failedIDs = new Set(failed
-          .map((b) => partialPairwiseBlocksID(b))
-          .filter(chromosomeFilter));
-        if (failedIDs.size == chromosomeIDs.size) {
+        const loadingIDs = new Set(loading.map(pairwiseBlocksID));
+        const loadingTargets = targetIDs.filter(chromosomeFilter(loadingIDs));
+        if (loadingTargets.length > 0) {
+          return {
+            word: 'process-running',
+            description: `Loading blocks from <b>${source}</b>`,
+          };
+        }
+        const failedIDs = new Set(failed.map(pairwiseBlocksID))
+        const failedTargets = targetIDs.filter(chromosomeFilter(failedIDs));
+        if (failedTargets.length == targetIDs.length) {
           return {
             word: 'process-error',
             description: `Failed to load blocks from <b>${source}</b>`,
@@ -732,12 +749,14 @@ export class ProcessService {
 
   private _getMacroBlockSubprocesses(
     chromosomes: {name: string, source: string}[],
-    sources: string[]):
-  Observable<ProcessStatusStream> {
+    sources: string[],
+    targets: string[],
+  ): Observable<ProcessStatusStream> {
     // emit a subprocess for each source
     return Observable.create((observer) => {
       sources.forEach((source) => {
-        const subprocess = this._getMacroBlockSubprocess(source, chromosomes);
+        const subprocess =
+          this._getMacroBlockSubprocess(chromosomes, source, targets);
         observer.next(subprocess);
       });
       observer.complete();
@@ -782,8 +801,10 @@ export class ProcessService {
     );
   }
 
-  getMacroBlockProcess(chromosomes: {name: string, source: string}[]):
-  ProcessStream {
+  getMacroBlockProcess(
+    chromosomes: {name: string, source: string}[],
+    targets: string[]=[],
+  ): ProcessStream {
     // emit a new process every time the source or block params change
     return combineLatest(
       this._store.select(fromParams.getSourceParams),
@@ -792,7 +813,7 @@ export class ProcessService {
       map(([sourceParams, blockParams]) => {
         const sources = sourceParams.sources;
         const subprocesses
-          = this._getMacroBlockSubprocesses(chromosomes, sources);
+          = this._getMacroBlockSubprocesses(chromosomes, sources, targets);
         return {
           subprocesses,
           status: this._getMacroBlockProcessStatus(subprocesses),
@@ -804,21 +825,33 @@ export class ProcessService {
   private _getMacroBlockPositionSubprocess(
     chromosomes: {name: string, source: string}[],
     source: string,
+    targets: string[],
   ): ProcessStatusStream {
-    const chromosomeIDs = new Set(chromosomes.map((c) => {
-        return partialPairwiseBlocksID(c.name, c.source, source);
-      }));
+    const chromosomeIDs = new Set(arrayFlatten(
+        chromosomes.map((c) => {
+          const wildcardID = {
+              reference: c.name,
+              referenceSource: c.source,
+              chromosomeSource: source,
+            };
+          if (targets.length > 0) {
+            return targets.map((name) => {
+              return pairwiseBlocksID({...wildcardID, chromosome: name});
+            });
+          }
+          return [pairwiseBlocksID(wildcardID)];
+        })
+      ));
     return combineLatest(
       // get chromosomes and blocks
       this._store.select(fromChromosome.getChromosomesForIDs(chromosomes)),
       this._store.select(fromPairwiseBlocks.getPairwiseBlocks).pipe(
         map((blocks) => {
           return blocks.filter((b) => {
-            const id =
-              partialPairwiseBlocksID(
-                b.reference,
-                b.referenceSource,
-                b.chromosomeSource);
+            const {chromosome, ...wildcard} = b;
+            const id = (targets.length > 0) ?
+              pairwiseBlocksID(b) :
+              pairwiseBlocksID(wildcard);
             return chromosomeIDs.has(id);
           });
         }),
@@ -848,8 +881,26 @@ export class ProcessService {
   private _getMacroBlockPositionSubprocesses(
     chromosomes: {name: string, source: string}[],
     sources: string[],
+    targets: string[],
   ): Observable<ProcessStatusStream> {
-    const chromosomeIDs = new Set(chromosomes.map(trackID));
+    const chromosomeIDs = new Set(arrayFlatten(
+        chromosomes.map((c) => arrayFlatten(
+          sources.map((s) => {
+            const wildcardID = {
+                referenceSource: c.source,
+                reference: c.name,
+                chromosomeSource: s,
+              };
+            if (targets.length > 0) {
+              return targets.map((name) => {
+                const id = {...wildcardID, chromosome: name};
+                return pairwiseBlocksID(id);
+              });
+            }
+            return [pairwiseBlocksID(wildcardID)];
+          })
+        ))
+      ));
     // group blocks by source
     return this._store.select(fromPairwiseBlocks.getPairwiseBlocks)
     .pipe(
@@ -857,7 +908,9 @@ export class ProcessService {
       mergeAll(),
       // only keep blocks with one of the chromosomes as the reference
       filter((blocks: PairwiseBlocks) => {
-        const id = trackID(blocks.reference, blocks.referenceSource);
+        const {chromosome, ...wildcard} = blocks;
+        const id = (targets.length > 0) ?
+          pairwiseBlocksID(blocks) : pairwiseBlocksID(wildcard);
         return chromosomeIDs.has(id);
       }),
       // get sources from blocks that have loaded so we don't create a process
@@ -868,7 +921,11 @@ export class ProcessService {
       // create a subprocess for each source
       map((source) => {
         const sourceChromosomes = chromosomes.filter((c) => c.source == source);
-        return this._getMacroBlockPositionSubprocess(sourceChromosomes, source);
+        return this._getMacroBlockPositionSubprocess(
+          sourceChromosomes,
+          source,
+          targets,
+        );
       }),
     )
   }
@@ -915,8 +972,10 @@ export class ProcessService {
     );
   }
 
-  getMacroBlockPositionProcess(chromosomes: {name: string, source: string}[]):
-  ProcessStream {
+  getMacroBlockPositionProcess(
+    chromosomes: {name: string, source: string}[],
+    targets: string[]=[],
+  ): ProcessStream {
     // emit a new process every time the source or block params change
     return combineLatest(
       this._store.select(fromParams.getSourceParams),
@@ -925,7 +984,7 @@ export class ProcessService {
       map(([sourceParams, blocksParams]) => {
         const sources = sourceParams.sources;
         const subprocesses =
-          this._getMacroBlockPositionSubprocesses(chromosomes, sources);
+          this._getMacroBlockPositionSubprocesses(chromosomes, sources, targets);
         return {
           subprocesses,
           status: this._getMacroBlockPositionStatus(subprocesses),
@@ -943,7 +1002,8 @@ export class ProcessService {
       switchMap((chromosomes) => {
         const IDs = chromosomes
           .map(({name, source, ...attrs}) => ({name, source}));
-        return this.getMacroBlockProcess(IDs);
+        const targets = chromosomes.map((id) => id.name);
+        return this.getMacroBlockProcess(IDs, targets);
       }),
     );
   }
@@ -958,7 +1018,8 @@ export class ProcessService {
       switchMap((chromosomes) => {
         const IDs = chromosomes
           .map(({name, source, ...attrs}) => ({name, source}));
-        return this.getMacroBlockPositionProcess(IDs);
+        const targets = chromosomes.map((id) => id.name);
+        return this.getMacroBlockPositionProcess(IDs, targets);
       }),
     );
   }
