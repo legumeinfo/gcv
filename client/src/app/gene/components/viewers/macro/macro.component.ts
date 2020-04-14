@@ -41,7 +41,7 @@ export class MacroComponent implements AfterViewInit, OnDestroy, OnInit {
 
   // variables
 
-  draw;
+  draw = () => { /* no-op */ };
 
   info = `<p>This is the macro synteny <i>pipeline</i>.
           It depicts the flow of data from one <i>process</i> to the next for

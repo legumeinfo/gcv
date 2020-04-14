@@ -27,7 +27,7 @@ export class MicroLegendComponent implements AfterViewInit, OnDestroy {
 
   @ViewChild('container', {static: true}) container: ElementRef;
 
-  draw;
+  draw = () => { /* no-op */ };
 
   private _destroy: Subject<boolean> = new Subject();
   private _viewer;
