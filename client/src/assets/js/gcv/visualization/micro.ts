@@ -308,15 +308,17 @@ export class Micro extends Visualizer {
         return d3.symbol().type(d3.symbolTriangle).size(200)();
       })
       .attr("class", (g) => {
+        let c = "point";
         if (obj.options.highlight.indexOf(g.name) !== -1) {
-          return "point focus";
-        } else if (g.family === "") {
-          return "point no_fam";
+          c += " focus";
+        }
+        if (g.family === "") {
+          c += " no_fam";
         } else if (obj.options.selectiveColoring !== undefined &&
         obj.options.selectiveColoring[g.family] === 1) {
-          return "point single";
+          c += " single";
         }
-        return "point";
+        return c;
       })
       .attr("transform", (g) => {
         let sign = "";
