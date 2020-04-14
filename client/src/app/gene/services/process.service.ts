@@ -77,38 +77,6 @@ export class ProcessService {
     };
   }
 
-  private _statusFactory(): ProcessStatusStream {
-    return Observable.create((observer) => {
-      const status = {
-          word: 'process-success',
-          description: 'The process is processing',
-        };
-      observer.next(status);
-      //observer.complete();
-    });
-  }
-
-  private _subprocessFactory(): Observable<ProcessStatusStream> {
-    return Observable.create((observer) => {
-      const sub1 = this._statusFactory();
-      const sub2 = this._statusFactory();
-      observer.next(sub1);
-      observer.next(sub2);
-      //observer.complete();
-    });
-  }
-
-  private _processFactory(): ProcessStream {
-    return Observable.create((observer) => {
-      const process = {
-          status: this._statusFactory(),
-          subprocesses: this._subprocessFactory(),
-        };
-      observer.next(process);
-      //observer.complete();
-    });
-  }
-
   // top
 
   private _getQueryGeneSubprocess(id: GeneID): ProcessStatusStream {
