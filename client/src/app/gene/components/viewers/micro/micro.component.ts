@@ -76,7 +76,7 @@ export class MicroComponent implements AfterViewInit, OnDestroy, OnInit {
           </p>`;
   pipeline: Pipeline;
 
-  queryTracks: Observable<(Track | ClusterMixin | AlignmentMixin)[]>;
+  queryTracks: Observable<(Track & ClusterMixin & AlignmentMixin)[]>;
 
   constructor(private _geneService: GeneService,
               private _microTracksService: MicroTracksService,
@@ -101,11 +101,11 @@ export class MicroComponent implements AfterViewInit, OnDestroy, OnInit {
     const allTracks = this._microTracksService.getAllTracks();
     const genes = allTracks.pipe(
         map((tracks) => {
-          const filter = (t) => (t as ClusterMixin).cluster == this.clusterID;
+          const filter = (t) => t.cluster == this.clusterID;
           return tracks.filter(filter);
         }),
         switchMap((tracks) => {
-          return this._geneService.getGenesForTracks(tracks as Track[]);
+          return this._geneService.getGenesForTracks(tracks);
         }),
       );
     // fetch own data because injected components don't have change detection

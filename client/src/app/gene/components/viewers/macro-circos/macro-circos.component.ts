@@ -101,16 +101,16 @@ export class MacroCircosComponent implements AfterViewInit, OnDestroy, OnInit {
       combineLatest(queryTracks, queryChromosomes, pairwiseBlocks).pipe(
         map(([queries, chromosomes, blocks]) => {
           const chromosomeGeneIndexes = blockIndexMap(blocks);
-          // create chromosome copies that only contain index gene
+          // create chromosome copies that only contain index genes
           const geneChromosomes = chromosomes
             .map((c) => {
               const id = nameSourceID(c.name, c.source);
               return endpointGenes(c, chromosomeGeneIndexes[id]);
             });
-          return queries.concat(geneChromosomes);
+          return (queries as Track[]).concat(geneChromosomes);
         }),
         switchMap((tracks) => {
-          return this._geneService.getGenesForTracks(tracks as Track[]);
+          return this._geneService.getGenesForTracks(tracks);
         }),
       );
     combineLatest(queryTracks, queryChromosomes, pairwiseBlocks, blockGenes)

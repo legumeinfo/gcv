@@ -42,7 +42,7 @@ export class Plot {
         }
         return accumulator;
       };
-    this.pairs = (this.reference as Track).families.reduce(reducer, []);
+    this.pairs = this.reference.families.reduce(reducer, []);
   }
 
   sourceGeneMap(): {[key: string]: string[]} {

@@ -47,14 +47,13 @@ export type PartialMicroTrackID = {
 
 export function microTrackID(cluster: number, startGene: string,
 stopGene: string, source: string): string;
-export function microTrackID(track: (Track | ClusterMixin)): string;
+export function microTrackID(track: (Track & ClusterMixin)): string;
 export function microTrackID(...args): string {
   if (typeof args[0] === 'object') {
-    const track = args[0] as Track;
-    const cluster = (args[0] as ClusterMixin).cluster;
+    const track = args[0];
     const startGene = track.genes[0];
     const stopGene = track.genes[track.genes.length-1];
-    return microTrackID(cluster, startGene, stopGene, track.source);
+    return microTrackID(track.cluster, startGene, stopGene, track.source);
   }
   const [cluster, startGene, stopGene, source] = args;
   return `${cluster}:${startGene}:${stopGene}:${source}`;
@@ -71,12 +70,12 @@ export function partialMicroTrackID(...args): string {
   return `${cluster}:${source}`;
 };
 
-const adapter = createEntityAdapter<(Track | ClusterMixin)>({
+const adapter = createEntityAdapter<(Track & ClusterMixin)>({
   selectId: (e) => microTrackID(e)
 });
 
 // TODO: is loaded even necessary or can it be derived from entity ids?
-export interface State extends EntityState<(Track | ClusterMixin)> {
+export interface State extends EntityState<(Track & ClusterMixin)> {
   failed: PartialMicroTrackID[];
   loaded: PartialMicroTrackID[];
   loading: (PartialMicroTrackID & ActionID)[];

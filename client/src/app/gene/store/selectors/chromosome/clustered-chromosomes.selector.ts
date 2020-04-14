@@ -15,9 +15,8 @@ export const getSelectedChromosomesForCluster =
 (id: number) => createSelectorFactory(memoizeArray)(
   getSelectedChromosomes,
   getSelectedMicroTracksForCluster(id),
-  (chromosomes: Track[], tracks: (Track | ClusterMixin)[]): Track[] => {
-    const _tracks = tracks as Track[];
-    const trackIDs = _tracks.map((t) => trackID(t.name, t.source));
+  (chromosomes: Track[], tracks: (Track & ClusterMixin)[]): Track[] => {
+    const trackIDs = tracks.map((t) => trackID(t.name, t.source));
     const trackIDset = new Set(trackIDs);
     const clusterChromosomes = chromosomes
       .filter((c) => {

@@ -15,11 +15,11 @@ export class PlotsService {
 
   constructor(private _store: Store<fromRoot.State>) { }
 
-  getLocalPlots(track: (Track | ClusterMixin)): Observable<Plot[]> {
+  getLocalPlots(track: (Track & ClusterMixin)): Observable<Plot[]> {
     return this._store.pipe(select(fromPlots.getLocalPlots(track)));
   }
 
-  getGlobalPlots(track: (Track | ClusterMixin)): Observable<Plot[]> {
+  getGlobalPlots(track: (Track & ClusterMixin)): Observable<Plot[]> {
     return this._store.pipe(select(fromPlots.getGlobalPlots(track)));
   }
 

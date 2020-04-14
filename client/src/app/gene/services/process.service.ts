@@ -24,6 +24,7 @@ import * as fromPlots from '@gcv/gene/store/selectors/plots';
 import { arrayFlatten, setIntersection } from '@gcv/core/utils';
 import { PairwiseBlocks, Plot, Process, ProcessStatus, ProcessStatusStream,
   ProcessStatusWord, ProcessStream, Track } from '@gcv/gene/models';
+import { ClusterMixin } from '@gcv/gene/models/mixins';
 import { trackMap } from '@gcv/gene/models/shims';
 import { TrackID, trackID } from '@gcv/gene/store/utils';
 
@@ -1061,8 +1062,11 @@ export class ProcessService {
     );
   }
 
-  getPlotGeneProcess(type: 'local' | 'global', reference: Track, track: Track):
-  ProcessStream {
+  getPlotGeneProcess(
+    type: 'local' | 'global',
+    reference: Track & ClusterMixin,
+    track: Track & ClusterMixin,
+  ): ProcessStream {
     // return a process every time the plots update
     const plots = type == 'local' ?
       this._store.pipe(select(fromPlots.getLocalPlots(track))) :

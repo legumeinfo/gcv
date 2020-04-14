@@ -95,7 +95,7 @@ export class MicroTracksEffects {
       const clusterTracks = clusteredTracks.filter((t: ClusterMixin) => {
           return t.cluster === cluster;
         });
-      const mixin = (track: Track): (Track | ClusterMixin) => {
+      const mixin = (track: Track): (Track & ClusterMixin) => {
           track.source = source;
           const t = Object.create(track);
           t.cluster = cluster;
@@ -105,7 +105,7 @@ export class MicroTracksEffects {
       .pipe(
         takeUntil(this.actions$.pipe(ofType(microTracksActions.CLEAR))),
         map((tracks) => {
-          tracks = tracks.filter((t) => !this._tracksOverlap(t, clusterTracks as Track[]));
+          tracks = tracks.filter((t) => !this._tracksOverlap(t, clusterTracks));
           const payload = {cluster, source, tracks: tracks.map(mixin)};
           return new microTracksActions.SearchSuccess(payload);
         }),

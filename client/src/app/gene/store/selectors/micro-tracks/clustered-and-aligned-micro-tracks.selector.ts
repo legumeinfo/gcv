@@ -33,7 +33,7 @@ createSelectorFactory(memoizeArray)(
   getSelectedMicroTracks,
   fromParams.getClusteringParams,
   (genesLoaded: boolean, chromosomesLoaded: boolean, tracks: Track[],
-  params: ClusteringParams): (Track | ClusterMixin)[] => {
+  params: ClusteringParams): (Track & ClusterMixin)[] => {
     // TODO: should this also check that the selected IDs lists are non-empty?
     if (!genesLoaded || !chromosomesLoaded) {
       return [];
@@ -83,7 +83,7 @@ createSelectorFactory(memoizeArray)(
 export const getSelectedMicroTracksForCluster =
 (id: number) => createSelectorFactory(memoizeArray)(
   getClusteredSelectedMicroTracks,
-  (tracks: (Track | ClusterMixin)[]): (Track | ClusterMixin)[] => {
+  (tracks: (Track & ClusterMixin)[]): (Track & ClusterMixin)[] => {
     const filteredTracks = tracks.filter((t: ClusterMixin) => t.cluster === id);
     return filteredTracks;
   }
@@ -92,7 +92,7 @@ export const getSelectedMicroTracksForCluster =
 // NOTE: not memoized because successive distinct clusters could have same IDs
 export const getClusterIDs = createSelector(
   getClusteredSelectedMicroTracks,
-  (tracks: (Track | ClusterMixin)[]): number[] => {
+  (tracks: (Track & ClusterMixin)[]): number[] => {
     const IDs = tracks.map((t: ClusterMixin) => t.cluster);
     const uniqueIDs = new Set(IDs);
     return Array.from(uniqueIDs);
@@ -108,8 +108,8 @@ export const getClusterIDs = createSelector(
 export const getClusteredAndAlignedSelectedMicroTracks =
 createSelectorFactory(memoizeObject)(
   getClusteredSelectedMicroTracks,
-  (tracks: (Track | ClusterMixin)[]):
-  {consensuses: string[][], tracks: (Track | ClusterMixin | AlignmentMixin)[]} =>
+  (tracks: (Track & ClusterMixin)[]):
+  {consensuses: string[][], tracks: (Track & ClusterMixin & AlignmentMixin)[]} =>
   {
     // group tracks by cluster
     const clusterer = (accumulator, track) => {
@@ -182,7 +182,7 @@ createSelectorFactory(memoizeObject)(
 
 export const getSearchMicroTracks = createSelectorFactory(memoizeArray)(
   getMicroTracksState,
-  (state: State): (Track | ClusterMixin)[] => Object.values(state.entities),
+  (state: State): (Track & ClusterMixin)[] => Object.values(state.entities),
 );
 
 // pairwise aligns each search result track to its cluster's consensus track
@@ -191,8 +191,8 @@ createSelectorFactory(memoizeArray)(
   getSearchMicroTracks,
   getClusteredAndAlignedSelectedMicroTracks,
   fromParams.getAlignmentParams,
-  (searchTracks: (Track | ClusterMixin)[], {consensuses, tracks},
-  params: AlignmentParams): (Track | ClusterMixin | AlignmentMixin)[] => {
+  (searchTracks: (Track & ClusterMixin)[], {consensuses, tracks},
+  params: AlignmentParams): (Track & ClusterMixin & AlignmentMixin)[] => {
     // get selected alignment algorithm
     const algorithm = ALIGNMENT_ALGORITHM_MAP[params.algorithm].algorithm;
     // creates an alignment mixin for the given track
@@ -216,10 +216,8 @@ createSelectorFactory(memoizeArray)(
     // aligns each track to its cluster's consensus sequence, creates an
     // alignment mixin for each track's alignments, and return a flattened array
     const reducer = (accumulator, track, i) => {
-        const cluster = (track as ClusterMixin).cluster;
-        const consensus = consensuses[cluster];
-        const families = (track as Track).families;
-        const alignments = aligner(consensus, families);
+        const consensus = consensuses[track.cluster];
+        const alignments = aligner(consensus, track.families);
         const trackAlignments = alignments.map((a) => mixin(track, a));
         accumulator.push(...trackAlignments);
         return accumulator;
@@ -237,10 +235,10 @@ createSelectorFactory(memoizeArray)(
   fromParams.getMicroFilterParams,
   fromParams.getMicroOrderParams,
   ({consensuses, tracks}, searchTracks, {regexp}, {order}):
-  (Track | ClusterMixin | AlignmentMixin)[] => {
+  (Track & ClusterMixin & AlignmentMixin)[] => {
     const orderAlg = (order in MICRO_ORDER_ALGORITHM_MAP) ?
       MICRO_ORDER_ALGORITHM_MAP[order].algorithm as
-      (a: AlignmentMixin | ClusterMixin | Track, b: AlignmentMixin | ClusterMixin | Track) => number :
+      (a: AlignmentMixin & ClusterMixin & Track, b: AlignmentMixin & ClusterMixin & Track) => number :
       (t1, t2) => 0;
     const trackFilter = microRegexpFactory(regexp).algorithm;
     const sortedTracks = [...tracks].sort(orderAlg);

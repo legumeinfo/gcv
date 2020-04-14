@@ -27,7 +27,7 @@ export class PlotComponent implements AfterViewInit, OnDestroy, OnInit {
   // IO
 
   @Input() type: 'local' | 'global';
-  @Input() reference: Track;
+  @Input() reference: (Track & ClusterMixin);
   @Input() track: (Track & ClusterMixin);
   @Input() options: any = {};
   @Output() plotClick = new EventEmitter();

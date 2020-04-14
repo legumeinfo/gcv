@@ -21,8 +21,8 @@ export function trackID(track: Track): string {
 }
 
 
-export function clusteredTrackID(track: (Track | ClusterMixin)): string {
-  const cluster = (track as ClusterMixin).cluster;
-  const id = trackID(track as Track);
+export function clusteredTrackID(track: (Track & ClusterMixin)): string {
+  const cluster = track.cluster;
+  const id = trackID(track);
   return `${cluster}:${id}`;
 }

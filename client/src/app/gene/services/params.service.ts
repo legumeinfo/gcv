@@ -60,8 +60,8 @@ export class ParamsService extends HttpService {
   updateParams(params: Params): void {
     const path = [];
     const sources: any = {};
-    if ((params as SourceParams).sources !== undefined) {
-      sources['sources'] = (params as SourceParams).sources.join(',');
+    if (params['sources'] !== undefined) {
+      sources['sources'] = params['sources'].join(',');
     }
     const query = Object.assign({}, params, sources);
     this._store.dispatch(new routerActions.Go({path, query}));

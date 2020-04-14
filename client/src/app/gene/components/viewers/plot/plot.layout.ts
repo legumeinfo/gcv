@@ -6,10 +6,8 @@ import { PlotComponent } from './plot.component';
 export const plotLayoutComponent = {component: PlotComponent, name: 'plot'};
 
 
-export function plotStackConfigFactory(track: (Track | ClusterMixin)) {
-  const cluster = (track as ClusterMixin).cluster;
-  const selected = (track as Track);
-  const name = selected.name;
+export function plotStackConfigFactory(track: (Track & ClusterMixin)) {
+  const {cluster, name} = track;
   const id = `plots:${clusteredTrackID(track)}`;
   return {
     type: 'stack',
@@ -22,13 +20,11 @@ export function plotStackConfigFactory(track: (Track | ClusterMixin)) {
 
 export function plotConfigFactory(
   type: 'local' | 'global',
-  track: (Track | ClusterMixin),
-  reference: Track,
+  track: (Track & ClusterMixin),
+  reference: (Track & ClusterMixin),
   outputs: any={})
 {
-  const cluster = (track as ClusterMixin).cluster;
-  const selected = (track as Track);
-  const trackName = selected.name;
+  const {cluster, name} = track;
   const referenceName = reference.name;
   const options = {};
   const id = `plot:${type}:${clusteredTrackID(track)}x${clusteredTrackID(reference)}`;
@@ -41,7 +37,7 @@ export function plotConfigFactory(
     type: 'component',
     componentName: 'plot',
     id: id,
-    title: `${trackName} x ${referenceName} (${cluster}) ${type} plot`,
+    title: `${name} x ${referenceName} (${cluster}) ${type} plot`,
     componentState: {
       inputs: {type, reference, track, options},
       outputs: {

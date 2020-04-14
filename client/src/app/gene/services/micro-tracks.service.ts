@@ -56,7 +56,7 @@ export class MicroTracksService extends HttpService {
 
   // returns all the aligned micro-tracks (selected and search result) belonging
   // to the given cluster
-  getCluster(id: number): Observable<(Track | ClusterMixin | AlignmentMixin)[]>
+  getCluster(id: number): Observable<(Track & ClusterMixin & AlignmentMixin)[]>
   {
     return this._store.pipe(
       select(fromMicroTracks.getAlignedMicroTrackCluster(id))
@@ -64,13 +64,13 @@ export class MicroTracksService extends HttpService {
   }
 
   getSelectedClusterTracks(id: number):
-  Observable<(Track | ClusterMixin | AlignmentMixin)[]> {
+  Observable<(Track & ClusterMixin & AlignmentMixin)[]> {
     return this._store.pipe(
       select(fromMicroTracks.getSelectedMicroTracksForCluster(id))
     );
   }
 
-  getAllTracks(): Observable<(Track | ClusterMixin | AlignmentMixin)[]> {
+  getAllTracks(): Observable<(Track & ClusterMixin & AlignmentMixin)[]> {
     return this._store.select(
       fromMicroTracks.getAllClusteredAndAlignedMicroTracks
     );

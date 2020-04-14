@@ -22,7 +22,7 @@ export class Search implements Action {
 
 export class SearchSuccess implements Action {
   readonly type = SEARCH_SUCCESS;
-  constructor(public payload: {cluster: number, tracks: (Track | ClusterMixin)[],
+  constructor(public payload: {cluster: number, tracks: (Track & ClusterMixin)[],
     source: string}) { }
 }
 
