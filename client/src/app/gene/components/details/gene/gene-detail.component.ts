@@ -13,7 +13,7 @@ import { GeneService } from '@gcv/gene/services';
   template: `
     <h4>{{ gene }}</h4>
     <p *ngIf="familyTreeLink !== undefined">Family: <a href="{{ familyTreeLink }}">{{ family }}</a></p>
-    <p><a [routerLink]="['/search', source, name]" queryParamsHandling="merge">Search for similar contexts</a></p>
+    <p><a [routerLink]="['/search', source, gene]" queryParamsHandling="merge">Search for similar contexts</a></p>
     <ul>
       <li *ngFor="let link of links">
         <a href="{{ link.href }}">{{ link.text }}</a>
