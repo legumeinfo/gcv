@@ -75,7 +75,7 @@ export interface State extends EntityState<PairwiseBlocks> {
 
 export const initialState: State = adapter.getInitialState({
   failed: [],
-  loaded: [],
+  loaded: [],  // need loaded to track which blocks were loaded with wildcards
   loading: [],
 });
 

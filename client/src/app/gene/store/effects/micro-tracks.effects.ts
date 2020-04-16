@@ -3,7 +3,7 @@ import { Injectable } from '@angular/core';
 // store
 import { Store } from '@ngrx/store';
 import * as fromRoot from '@gcv/store/reducers';
-import { partialMicroTrackID }
+import { idArrayIntersection, partialMicroTrackID }
   from '@gcv/gene/store/reducers/micro-tracks.reducer';
 import * as fromGenes from '@gcv/gene/store/selectors/gene';
 import * as fromMicroTracks from '@gcv/gene/store/selectors/micro-tracks/';
@@ -41,7 +41,7 @@ export class MicroTracksEffects {
   clearTracks$ = combineLatest(
     this.store.select(fromGenes.getSelectedGeneIDs),
     this.store.select(fromParams.getQueryParams),
-    this.store.select(fromParams.getSourcesParam),
+    //this.store.select(fromParams.getSourcesParam),
     this.store.select(fromParams.getClusteringParams),
   ).pipe(
     map((...args) => new microTracksActions.Clear())
@@ -81,14 +81,11 @@ export class MicroTracksEffects {
     mergeMap(
     ([{cluster, families, source, params, action}, clusteredTracks, loading]) =>
     {
-      //get loaded/loading tracks
-      const actionSearchID = ({cluster, source, action}) => {
-          return `${partialMicroTrackID(name, source)}:${action}`;
-        };
-      const loadingIDs = new Set(loading.map(actionSearchID));
-      // only search if action is loading
-      const id = actionSearchID({action, cluster, source});
-      if (!loadingIDs.has(id)) {
+      let targetIDs = [{cluster, source, action}];
+      // only keep targets that the reducer says need to be loaded (no need to
+      // check loaded since the reducer already took that into consideration)
+      targetIDs = idArrayIntersection(targetIDs, loading, true);
+      if (targetIDs.length == 0) {
         return [];
       }
       // search

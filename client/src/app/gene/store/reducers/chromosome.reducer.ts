@@ -14,23 +14,51 @@ import { ActionID, TrackID, trackID } from '@gcv/gene/store/utils';
 // app
 import { Track } from '@gcv/gene/models';
 
+
 declare var Object: any;  // because TypeScript doesn't support Object.values
 
+
 export const chromosomeFeatureKey = 'chromosome';
+
 
 const adapter = createEntityAdapter<Track>({
   selectId: (e) => trackID(e.name, e.source)
 });
 
+
 export interface State extends EntityState<Track> {
   failed: TrackID[];
+  loaded: TrackID[];
   loading: (TrackID & ActionID)[];
 }
 
+
 const initialState: State = adapter.getInitialState({
   failed: [],
+  loaded: [],  // need for checking raw IDs
   loading: [],
 });
+
+
+export function chromosomeActionID({action, ...cID}: TrackID & ActionID): string {
+  return `${trackID(cID)}:${action}`;
+}
+
+
+// subtracts overlapping IDs from a1
+export function idArrayLeftDifference(a1, a2, checkAction=false) {
+  const id2string = (checkAction) ? chromosomeActionID : trackID;
+  const a2IDs = new Set(a2.map(id2string));
+  return a1.filter((id) => !a2IDs.has(id2string(id)));
+}
+
+
+export function idArrayIntersection(a1, a2, checkAction=false) {
+  const id2string = (checkAction) ? chromosomeActionID : trackID;
+  const a2IDs = new Set(a2.map(id2string));
+  return a1.filter((id) => a2IDs.has(id2string(id)));
+}
+
 
 export function reducer(
   state = initialState,
@@ -45,44 +73,51 @@ export function reducer(
         loading: [],
       });
     case chromosomeActions.GET:
-      const loadingIDs = new Set(state.loading.map(trackID));
-      const id = trackID(action.payload);
-      const loading = [];
-      if (!loadingIDs.has(id) && !(id in state.entities)) {
-        loading.push({action: action.id, ...action.payload});
-      }
-      const failed = state.failed.filter(({name, source}) => {
-          const fID = trackID(name, source);
-          return fID === id;
-        });
+      const {name, source} = action.payload;
+      let targetIDs = [{name, source, action: action.id}];
+      // filter targets by loading and loaded
+      targetIDs = idArrayLeftDifference(targetIDs, state.loading);
+      targetIDs = idArrayLeftDifference(targetIDs, state.loaded);
+      // add filtered target IDs to loading
+      const loading = state.loading.concat(targetIDs);
+      // remove filtered target IDs from failed
+      const failed = idArrayLeftDifference(state.failed, targetIDs);
       return {
         ...state,
-        loading: state.loading.concat(loading),
+        loading,
         failed,
       };
     case chromosomeActions.GET_SUCCESS:
     {
-      const chromosome = action.payload.chromosome;
-      const id = {name: chromosome.name, source: chromosome.source};
+      const {chromosome} = action.payload;
+      let targetIDs = [{name: chromosome.name, source: chromosome.source}];
+      // remove IDs from loading
+      const loading = idArrayLeftDifference(state.loading, targetIDs);
+      // add IDs to loaded
+      targetIDs = idArrayLeftDifference(targetIDs, state.loaded);
+      const loaded = state.loaded.concat(targetIDs);
       return adapter.addOne(
         chromosome,
         {
           ...state,
-          loading: state.loading.filter(({name, source}) => {
-            return !(name === id.name && source === id.source);
-          }),
+          loading,
+          loaded,
         },
       );
     }
     case chromosomeActions.GET_FAILURE:
     {
-      const id = action.payload;
+      const {name, source} = action.payload;
+      let targetIDs = [{name, source}];
+      // remove IDs from loading
+      const loading = idArrayLeftDifference(state.loading, targetIDs);
+      // add IDs to failed
+      targetIDs = idArrayLeftDifference(targetIDs, state.failed);
+      const failed = state.failed.concat(targetIDs);
       return {
         ...state,
-        failed: state.failed.concat(action.payload),
-        loading: state.loading.filter(({name, source}) => {
-          return !(name === id.name && source === id.source);
-        }),
+        loading,
+        failed,
       };
     }
     default:

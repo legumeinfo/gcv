@@ -12,11 +12,15 @@ import * as geneActions from '@gcv/gene/store/actions/gene.actions';
 import { Gene } from '@gcv/gene/models';
 import { ActionID } from '@gcv/gene/store/utils';
 
+
 declare var Object: any;  // because TypeScript doesn't support Object.values
+
 
 export const geneFeatureKey = 'gene';
 
+
 export type GeneID = {name: string, source: string};
+
 
 export function geneID(name: string, source: string): string;
 export function geneID({name, source}): string;
@@ -29,20 +33,46 @@ export function geneID(...args): string {
   return `${name}:${source}`;
 }
 
+
 const adapter = createEntityAdapter<Gene>({
   selectId: (e) => geneID(e.name, e.source)
 });
 
+
 // selectedGeneIDs selector?
 export interface State extends EntityState<Gene> {
   failed: GeneID[];
+  loaded: GeneID[];
   loading: (GeneID & ActionID)[];
 }
 
+
 const initialState: State = adapter.getInitialState({
   failed: [],
+  loaded: [],  // need for checking raw IDs
   loading: [],
 });
+
+
+export function geneActionID({action, ...gID}: GeneID & ActionID): string {
+  return `${geneID(gID)}:${action}`;
+}
+
+
+// subtracts overlapping IDs from a1
+export function idArrayLeftDifference(a1, a2, checkAction=false) {
+  const id2string = (checkAction) ? geneActionID : geneID;
+  const a2IDs = new Set(a2.map(id2string));
+  return a1.filter((id) => !a2IDs.has(id2string(id)));
+}
+
+
+export function idArrayIntersection(a1, a2, checkAction=false) {
+  const id2string = (checkAction) ? geneActionID : geneID;
+  const a2IDs = new Set(a2.map(id2string));
+  return a1.filter((id) => a2IDs.has(id2string(id)));
+}
+
 
 export function reducer(
   state = initialState,
@@ -57,59 +87,51 @@ export function reducer(
         loading: [],
       });
     case geneActions.GET:
-      const source = action.payload.source;
-      const loadingIDs = new Set(state.loading.map(geneID));
-      const loading = action.payload.names
-        .filter((name) => {
-          const id = geneID(name, source);
-          return !loadingIDs.has(id) && !(id in state.entities);
-        })
-        .map((name) => {
-          return {name, source, action: action.id};
-        });
-      const newLoadingIDs = new Set(loading.map(geneID));
-      const failed = state.failed.filter(({name, source}) => {
-          const id = geneID(name, source);
-          return !newLoadingIDs.has(id);
-        });
+      const {source, names} = action.payload;
+      let targetIDs = names.map((name) => ({name, source, action: action.id}));
+      // filter targets by loading and loaded
+      targetIDs = idArrayLeftDifference(targetIDs, state.loading);
+      targetIDs = idArrayLeftDifference(targetIDs, state.loaded);
+      // add filtered target IDs to loading
+      const loading = state.loading.concat(targetIDs);
+      // remove filtered target IDs from failed
+      const failed = idArrayLeftDifference(state.failed, targetIDs);
       return {
         ...state,
-        loading: state.loading.concat(loading),
+        loading,
         failed,
       };
     case geneActions.GET_SUCCESS:
     {
-      const genes = action.payload.genes;
-      const loaded = genes.map((g) => ({name: g.name, source: g.source}));
-      const loadedIDs = loaded.map(({name, source}) => geneID(name, source));
-      const loadedIDset = new Set(loadedIDs);
-      const loading = state.loading.filter(({name, source}) => {
-          const id = geneID(name, source);
-          return !loadedIDset.has(id);
-        });
+      const {genes} = action.payload;
+      let targetIDs = genes.map(({name, source}) => ({name, source}));
+      // remove IDs from loading
+      const loading = idArrayLeftDifference(state.loading, targetIDs);
+      // add IDs to loaded
+      targetIDs = idArrayLeftDifference(targetIDs, state.loaded);
+      const loaded = state.loaded.concat(targetIDs);
       return adapter.addMany(
         genes,
         {
           ...state,
           loading,
+          loaded,
         },
       );
     }
     case geneActions.GET_FAILURE:
     {
-      const names = action.payload.names;
-      const source = action.payload.source;
-      const failed = names.map((name) => ({name, source}));
-      const failedIDs = failed.map(({name, source}) => geneID(name, source));
-      const failedIDset = new Set(failedIDs);
-      const loading = state.loading.filter(({name, source}) => {
-          const id = geneID(name, source);
-          return !failedIDset.has(id);
-        });
+      const {source, names} = action.payload;
+      let targetIDs = names.map((name) => ({name, source}));
+      // remove IDs from loading
+      const loading = idArrayLeftDifference(state.loading, targetIDs);
+      // add IDs to failed
+      targetIDs = idArrayLeftDifference(targetIDs, state.failed);
+      const failed = state.failed.concat(targetIDs);
       return {
         ...state,
-        failed: state.failed.concat(failed),
         loading,
+        failed,
       };
     }
     default:

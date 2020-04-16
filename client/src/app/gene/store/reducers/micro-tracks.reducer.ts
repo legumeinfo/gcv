@@ -29,9 +29,12 @@ import { Track } from '@gcv/gene/models';
 import { ClusterMixin } from '@gcv/gene/models/mixins';
 import { ActionID } from '@gcv/gene/store/utils';
 
+
 declare var Object: any;  // because TypeScript doesn't support Object.values
 
+
 export const microTracksFeatureKey = 'microtracks';
+
 
 export type MicroTrackID = {
   cluster: number,
@@ -40,10 +43,12 @@ export type MicroTrackID = {
   source: string
 };
 
+
 export type PartialMicroTrackID = {
   cluster: number;
   source: string;
 };
+
 
 export function microTrackID(cluster: number, startGene: string,
 stopGene: string, source: string): string;
@@ -59,6 +64,7 @@ export function microTrackID(...args): string {
   return `${cluster}:${startGene}:${stopGene}:${source}`;
 };
 
+
 export function partialMicroTrackID(cluster: number, source: string): string;
 export function partialMicroTrackID({cluster, source}): string;
 export function partialMicroTrackID(...args): string {
@@ -70,9 +76,11 @@ export function partialMicroTrackID(...args): string {
   return `${cluster}:${source}`;
 };
 
+
 const adapter = createEntityAdapter<(Track & ClusterMixin)>({
   selectId: (e) => microTrackID(e)
 });
+
 
 // TODO: is loaded even necessary or can it be derived from entity ids?
 export interface State extends EntityState<(Track & ClusterMixin)> {
@@ -81,11 +89,38 @@ export interface State extends EntityState<(Track & ClusterMixin)> {
   loading: (PartialMicroTrackID & ActionID)[];
 }
 
+
 export const initialState: State = adapter.getInitialState({
   failed: [],
-  loaded: [],
+  loaded: [],  // need loaded because because actual IDs are too specific
   loading: [],
 });
+
+
+export function partialMicroTrackActionID({action, ...trackID}:
+PartialMicroTrackID & ActionID): string {
+  return `${partialMicroTrackID(trackID)}:${action}`;
+}
+
+
+// subtracts overlapping IDs from a1
+export function idArrayLeftDifference(a1, a2, checkAction=false) {
+  const id2string = (checkAction) ?
+    partialMicroTrackActionID :
+    partialMicroTrackID;
+  const a2IDs = new Set(a2.map(id2string));
+  return a1.filter((id) => !a2IDs.has(id2string(id)));
+}
+
+
+export function idArrayIntersection(a1, a2, checkAction=false) {
+  const id2string = (checkAction) ?
+    partialMicroTrackActionID :
+    partialMicroTrackID;
+  const a2IDs = new Set(a2.map(id2string));
+  return a1.filter((id) => a2IDs.has(id2string(id)));
+}
+
 
 export function reducer(
   state = initialState,
@@ -102,48 +137,52 @@ export function reducer(
       });
     case microTrackActions.SEARCH:
     {
-      const partialID = {
-          cluster: action.payload.cluster,
-          source: action.payload.source,
-          action: action.id,
-        };
+      const {cluster, source} = action.payload;
+      let targetIDs = [{cluster, source, action: action.id}];
+      // filter targets by loading and loaded
+      targetIDs = idArrayLeftDifference(targetIDs, state.loading);
+      targetIDs = idArrayLeftDifference(targetIDs, state.loaded);
+      // add filtered target IDs to loading
+      const loading = state.loading.concat(targetIDs);
+      // remove filtered target IDs from failed
+      const failed = idArrayLeftDifference(state.failed, targetIDs);
       return {
         ...state,
-        loading: state.loading.concat([partialID]),
+        loading,
+        failed,
       };
     }
     case microTrackActions.SEARCH_SUCCESS:
     {
-      const tracks = action.payload.tracks;
-      const partialID = {
-          cluster: action.payload.cluster,
-          source: action.payload.source,
-        };
+      const {cluster, source, tracks} = action.payload;
+      let targetIDs = [{cluster, source}];
+      // remove IDs from loading
+      const loading = idArrayLeftDifference(state.loading, targetIDs);
+      // add IDs to loaded
+      targetIDs = idArrayLeftDifference(targetIDs, state.loaded);
+      const loaded = state.loaded.concat(targetIDs);
       return adapter.addMany(
         tracks,
         {
           ...state,
-          loaded: state.loaded.concat(partialID),
-          loading: state.loading.filter(({cluster, source}) => {
-            return !(cluster === partialID.cluster &&
-                     source === partialID.source);
-          }),
+          loading,
+          loaded,
         },
       );
     }
     case microTrackActions.SEARCH_FAILURE:
     {
-      const partialID = {
-          cluster: action.payload.cluster,
-          source: action.payload.source,
-        };
+      const {cluster, source} = action.payload;
+      let targetIDs = [{cluster, source}];
+      // remove IDs from loading
+      const loading = idArrayLeftDifference(state.loading, targetIDs);
+      // add IDs to failed
+      targetIDs = idArrayLeftDifference(targetIDs, state.failed);
+      const failed = state.failed.concat(targetIDs);
       return {
         ...state,
-        failed: state.failed.concat(partialID),
-        loading: state.loading.filter(({cluster, source}) => {
-          return !(cluster === partialID.cluster &&
-                   source === partialID.source);
-        }),
+        loading,
+        failed,
       };
     }
     default:

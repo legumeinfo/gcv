@@ -46,12 +46,8 @@ export class PairwiseBlocksEffects {
     withLatestFrom(
       this.store.select(fromPairwiseBlocks.getLoading),
       this.store.select(fromPairwiseBlocks.getLoaded),
-      this.store.select(fromPairwiseBlocks.getFailed),
     ),
-    mergeMap(([
-      {chromosome, source, params, targets, action},
-      loading, loaded, failed
-    ]) => {
+    mergeMap(([{chromosome, source, params, targets, action}, loading]) => {
       const partialID = {
           referenceSource: chromosome.source,
           reference: chromosome.name,
@@ -61,8 +57,8 @@ export class PairwiseBlocksEffects {
       let targetIDs = (targets.length > 0) ?
         targets.map((name) => ({...partialID, chromosome: name})) :
         [partialID];  // will be given wildcard name
-      // filter targets by which are loading (already loaded are not in list
-      // thanks to reducer)
+      // only keep targets that the reducer says need to be loaded (no need to
+      // check loaded since the reducer already took that into consideration)
       targetIDs = idArrayIntersection(targetIDs, loading, true);
       if (targetIDs.length == 0) {
         return [];

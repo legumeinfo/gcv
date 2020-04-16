@@ -8,7 +8,8 @@ import { catchError, concatMap, filter, map, switchMap, takeUntil,
 import { Store } from '@ngrx/store';
 import * as geneActions from '@gcv/gene/store/actions/gene.actions';
 import * as fromRoot from '@gcv/store/reducers';
-import { geneID } from '@gcv/gene/store/reducers/gene.reducer';
+import { geneID, idArrayIntersection }
+  from '@gcv/gene/store/reducers/gene.reducer';
 import * as fromGene from '@gcv/gene/store/selectors/gene/';
 import * as fromMicroTracks from '@gcv/gene/store/selectors/micro-tracks/';
 // app
@@ -56,21 +57,19 @@ export class GeneEffects {
   getGenes$ = this.actions$.pipe(
     ofType(geneActions.GET),
     map((action: geneActions.Get) => ({action: action.id, ...action.payload})),
-    withLatestFrom(this.store.select(fromGene.getLoading), this.store.select(fromGene.getSelectedGeneIDs)),
-    concatMap(([{action, names, source}, loading, selectedIDs]) => {
-      // get loaded/loading genes
-      const actionGeneID =
-        ({name, source, action}) => `${geneID(name, source)}:${action}`;
-      const loadingIDs = new Set(loading.map(actionGeneID));
-      // only keep genes whose action is loading
-      const filteredNames = names.filter((name) => {
-          const id = actionGeneID({name, source, action});
-          return loadingIDs.has(id);
-        });
-      // get the genes
-      if (filteredNames.length == 0) {
+    withLatestFrom(
+      this.store.select(fromGene.getSelectedGeneIDs),
+      this.store.select(fromGene.getLoading),
+    ),
+    concatMap(([{action, names, source}, selectedIDs, loading]) => {
+      let targetIDs = names.map((name) => ({name, source, action}));
+      // only keep targets that the reducer says need to be loaded (no need to
+      // check loaded since the reducer already took that into consideration)
+      targetIDs = idArrayIntersection(targetIDs, loading, true);
+      if (targetIDs.length == 0) {
         return [];
       }
+      const filteredNames = targetIDs.map((id) => id.name);
       return this.geneService.getGenes(filteredNames, source).pipe(
         takeUntil(this.actions$.pipe(ofType(geneActions.CLEAR))),
         switchMap((genes: Gene[]) => {
