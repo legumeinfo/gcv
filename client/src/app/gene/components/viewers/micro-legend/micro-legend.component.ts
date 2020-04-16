@@ -82,7 +82,7 @@ export class MicroLegendComponent implements AfterViewInit, OnDestroy {
         blank: singletons,
         blankDashed: {name: "Orphans", id: ''},
         highlight: queryGenes.map((g) => g.family),
-        keyClick: (k) => this.emitClick(k.id),
+        keyClick: (k) => this.emitClick(k),
         selector: 'family',
       };
     options = Object.assign(options, this.options, {autoResize: false});
