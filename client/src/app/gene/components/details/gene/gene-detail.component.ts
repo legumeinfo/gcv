@@ -12,8 +12,8 @@ import { GeneService } from '@gcv/gene/services';
   styles: [ '' ],
   template: `
     <h4>{{ gene }}</h4>
+    <p><a [routerLink]="['/gene', singleGeneMatrix]" queryParamsHandling="merge">Search for similar contexts</a></p>
     <p *ngIf="familyTreeLink !== undefined">Family: <a href="{{ familyTreeLink }}">{{ family }}</a></p>
-    <p><a [routerLink]="['/search', source, gene]" queryParamsHandling="merge">Search for similar contexts</a></p>
     <ul>
       <li *ngFor="let link of links">
         <a href="{{ link.href }}">{{ link.text }}</a>
@@ -32,6 +32,7 @@ export class GeneDetailComponent implements OnDestroy, OnInit {
   private _destroy: Subject<boolean> = new Subject();
 
   links: any[] = [];
+  singleGeneMatrix = {};
   familyTreeLink: string = '';
 
   constructor(private _geneService: GeneService) { }
@@ -50,6 +51,7 @@ export class GeneDetailComponent implements OnDestroy, OnInit {
       if (server.hasOwnProperty('familyTreeLink')) {
         this.familyTreeLink = server.familyTreeLink.url + this.family;
       }
+      this.singleGeneMatrix[this.source] = this.gene;
     }
     this._geneService.getGeneDetails(this.gene, this.source)
       .pipe(
