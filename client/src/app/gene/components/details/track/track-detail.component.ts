@@ -9,21 +9,23 @@ import { ClusterMixin } from '@gcv/gene/models/mixins';
 
 @Component({
   selector: 'track-detail',
-  styles: [ '' ],
+  styleUrls: ['../details.scss'],
   template: `
-    <h4>{{ track.genus[0] }}.{{ track.species }} - {{ track.name }}</h4>
-    <p><a [routerLink]="['/search', track.source, focus]" queryParamsHandling="merge">Search for similar contexts</a></p>
-    <p>Genes:</p>
-    <ul>
-      <li *ngFor="let gene of track.genes; let i = index">
-        {{ gene }}
-        <ul *ngIf="familyTreeLink !== '' && track.families[i] !== ''">
-          <li>
-            Family: <a href="{{ familyTreeLink }}{{ track.families[i] }}">{{ track.families[i] }}</a>
-          </li>
-        </ul>
-      </li>
-    </ul>
+    <div class="details">
+      <h4>{{ track.genus[0] }}.{{ track.species }} - {{ track.name }}</h4>
+      <p><a [routerLink]="['/search', track.source, focus]" queryParamsHandling="merge">Search for similar contexts</a></p>
+      <p>Genes:</p>
+      <ul>
+        <li *ngFor="let gene of track.genes; let i = index">
+          {{ gene }}
+          <ul *ngIf="familyTreeLink !== '' && track.families[i] !== ''">
+            <li>
+              Family: <a href="{{ familyTreeLink }}{{ track.families[i] }}">{{ track.families[i] }}</a>
+            </li>
+          </ul>
+        </li>
+      </ul>
+    </div>
   `,
 })
 export class TrackDetailComponent implements OnInit {

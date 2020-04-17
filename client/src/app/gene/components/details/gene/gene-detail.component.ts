@@ -9,16 +9,18 @@ import { GeneService } from '@gcv/gene/services';
 
 @Component({
   selector: 'gene-detail',
-  styles: [ '' ],
+  styleUrls: ['../details.scss'],
   template: `
-    <h4>{{ gene }}</h4>
-    <p><a [routerLink]="['/gene', singleGeneMatrix]" queryParamsHandling="merge">Search for similar contexts</a></p>
-    <p *ngIf="familyTreeLink !== undefined">Family: <a href="{{ familyTreeLink }}">{{ family }}</a></p>
-    <ul>
-      <li *ngFor="let link of links">
-        <a href="{{ link.href }}">{{ link.text }}</a>
-      </li>
-    </ul>
+    <div class="details">
+      <h4>{{ gene }}</h4>
+      <p><a [routerLink]="['/gene', singleGeneMatrix]" queryParamsHandling="merge">Search for similar contexts</a></p>
+      <p *ngIf="familyTreeLink !== undefined">Family: <a href="{{ familyTreeLink }}">{{ family }}</a></p>
+      <ul>
+        <li *ngFor="let link of links">
+          <a href="{{ link.href }}">{{ link.text }}</a>
+        </li>
+      </ul>
+    </div>
   `,
 })
 
