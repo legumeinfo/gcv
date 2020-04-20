@@ -26,7 +26,7 @@ class Project(models.Model):
 
 class Dbxref(models.Model):
     dbxref_id = models.IntegerField(primary_key=True)
-    db = models.ForeignKey("Db", related_name="%(class)s_db" )
+    db = models.ForeignKey("Db", related_name="%(class)s_db", on_delete=models.PROTECT)
     accession = models.CharField(max_length=255)
     version = models.CharField(max_length=255)
     description = models.TextField(blank=True)
@@ -42,34 +42,34 @@ class Cv(models.Model):
 
 class Cvtermsynonym(models.Model):
     cvtermsynonym_id = models.IntegerField(primary_key=True)
-    cvterm = models.ForeignKey("Cvterm", related_name="%(class)s_cvterm" )
+    cvterm = models.ForeignKey("Cvterm", related_name="%(class)s_cvterm", on_delete=models.PROTECT)
     synonym = models.CharField(max_length=1024)
-    type = models.ForeignKey("Cvterm", null=True, blank=True)
+    type = models.ForeignKey("Cvterm", null=True, blank=True, on_delete=models.PROTECT)
     class Meta:
         db_table = u'cvtermsynonym'
 
 class CvtermRelationship(models.Model):
     cvterm_relationship_id = models.IntegerField(primary_key=True)
-    type = models.ForeignKey("Cvterm", related_name="%(class)s_type" )
-    subject = models.ForeignKey("Cvterm", related_name="%(class)s_subject" )
-    object = models.ForeignKey("Cvterm", related_name="%(class)s_object" )
+    type = models.ForeignKey("Cvterm", related_name="%(class)s_type", on_delete=models.PROTECT)
+    subject = models.ForeignKey("Cvterm", related_name="%(class)s_subject", on_delete=models.PROTECT)
+    object = models.ForeignKey("Cvterm", related_name="%(class)s_object", on_delete=models.PROTECT)
     class Meta:
         db_table = u'cvterm_relationship'
 
 class CvtermDbxref(models.Model):
     cvterm_dbxref_id = models.IntegerField(primary_key=True)
-    cvterm = models.ForeignKey("Cvterm", related_name="%(class)s_cvterm" )
-    dbxref = models.ForeignKey("Dbxref", related_name="%(class)s_dbxref" )
+    cvterm = models.ForeignKey("Cvterm", related_name="%(class)s_cvterm", on_delete=models.PROTECT)
+    dbxref = models.ForeignKey("Dbxref", related_name="%(class)s_dbxref", on_delete=models.PROTECT)
     is_for_definition = models.IntegerField()
     class Meta:
         db_table = u'cvterm_dbxref'
 
 class Cvtermpath(models.Model):
     cvtermpath_id = models.IntegerField(primary_key=True)
-    type = models.ForeignKey("Cvterm", null=True, blank=True)
-    subject = models.ForeignKey("Cvterm", related_name="%(class)s_subject" )
-    object = models.ForeignKey("Cvterm", related_name="%(class)s_object" )
-    cv = models.ForeignKey("Cv", related_name="%(class)s_cv" )
+    type = models.ForeignKey("Cvterm", null=True, blank=True, on_delete=models.PROTECT)
+    subject = models.ForeignKey("Cvterm", related_name="%(class)s_subject", on_delete=models.PROTECT)
+    object = models.ForeignKey("Cvterm", related_name="%(class)s_object", on_delete=models.PROTECT)
+    cv = models.ForeignKey("Cv", related_name="%(class)s_cv", on_delete=models.PROTECT)
     pathdistance = models.IntegerField(null=True, blank=True)
     class Meta:
         db_table = u'cvtermpath'
@@ -82,8 +82,8 @@ class CvRoot(models.Model):
 
 class Cvtermprop(models.Model):
     cvtermprop_id = models.IntegerField(primary_key=True)
-    cvterm = models.ForeignKey("Cvterm", related_name="%(class)s_cvterm" )
-    type = models.ForeignKey("Cvterm", related_name="%(class)s_type" )
+    cvterm = models.ForeignKey("Cvterm", related_name="%(class)s_cvterm", on_delete=models.PROTECT)
+    type = models.ForeignKey("Cvterm", related_name="%(class)s_type", on_delete=models.PROTECT)
     value = models.TextField()
     rank = models.IntegerField()
     class Meta:
@@ -97,8 +97,8 @@ class CvLeaf(models.Model):
 
 class Dbxrefprop(models.Model):
     dbxrefprop_id = models.IntegerField(primary_key=True)
-    dbxref = models.ForeignKey("Dbxref", related_name="%(class)s_dbxref" )
-    type = models.ForeignKey("Cvterm", related_name="%(class)s_type" )
+    dbxref = models.ForeignKey("Dbxref", related_name="%(class)s_dbxref", on_delete=models.PROTECT)
+    type = models.ForeignKey("Cvterm", related_name="%(class)s_type", on_delete=models.PROTECT)
     value = models.TextField()
     rank = models.IntegerField()
     class Meta:
@@ -163,23 +163,23 @@ class CvPathCount(models.Model):
 
 class PubDbxref(models.Model):
     pub_dbxref_id = models.IntegerField(primary_key=True)
-    pub = models.ForeignKey("Pub", related_name="%(class)s_pub" )
-    dbxref = models.ForeignKey("Dbxref", related_name="%(class)s_dbxref" )
+    pub = models.ForeignKey("Pub", related_name="%(class)s_pub", on_delete=models.PROTECT)
+    dbxref = models.ForeignKey("Dbxref", related_name="%(class)s_dbxref", on_delete=models.PROTECT)
     is_current = models.BooleanField()
     class Meta:
         db_table = u'pub_dbxref'
 
 class PubRelationship(models.Model):
     pub_relationship_id = models.IntegerField(primary_key=True)
-    subject = models.ForeignKey("Pub", related_name="%(class)s_subject" )
-    object = models.ForeignKey("Pub", related_name="%(class)s_object" )
-    type = models.ForeignKey("Cvterm", related_name="%(class)s_type" )
+    subject = models.ForeignKey("Pub", related_name="%(class)s_subject", on_delete=models.PROTECT)
+    object = models.ForeignKey("Pub", related_name="%(class)s_object", on_delete=models.PROTECT)
+    type = models.ForeignKey("Cvterm", related_name="%(class)s_type", on_delete=models.PROTECT)
     class Meta:
         db_table = u'pub_relationship'
 
 class Pubauthor(models.Model):
     pubauthor_id = models.IntegerField(primary_key=True)
-    pub = models.ForeignKey("Pub", related_name="%(class)s_pub" )
+    pub = models.ForeignKey("Pub", related_name="%(class)s_pub", on_delete=models.PROTECT)
     rank = models.IntegerField()
     editor = models.NullBooleanField(null=True, blank=True)
     surname = models.CharField(max_length=100)
@@ -190,8 +190,8 @@ class Pubauthor(models.Model):
 
 class Pubprop(models.Model):
     pubprop_id = models.IntegerField(primary_key=True)
-    pub = models.ForeignKey("Pub", related_name="%(class)s_pub" )
-    type = models.ForeignKey("Cvterm", related_name="%(class)s_type" )
+    pub = models.ForeignKey("Pub", related_name="%(class)s_pub", on_delete=models.PROTECT)
+    type = models.ForeignKey("Cvterm", related_name="%(class)s_type", on_delete=models.PROTECT)
     value = models.TextField()
     rank = models.IntegerField(null=True, blank=True)
     class Meta:
@@ -199,15 +199,15 @@ class Pubprop(models.Model):
 
 class OrganismDbxref(models.Model):
     organism_dbxref_id = models.IntegerField(primary_key=True)
-    organism = models.ForeignKey("Organism", related_name="%(class)s_organism" )
-    dbxref = models.ForeignKey("Dbxref", related_name="%(class)s_dbxref" )
+    organism = models.ForeignKey("Organism", related_name="%(class)s_organism", on_delete=models.PROTECT)
+    dbxref = models.ForeignKey("Dbxref", related_name="%(class)s_dbxref", on_delete=models.PROTECT)
     class Meta:
         db_table = u'organism_dbxref'
 
 class Organismprop(models.Model):
     organismprop_id = models.IntegerField(primary_key=True)
-    organism = models.ForeignKey("Organism", related_name="%(class)s_organism" )
-    type = models.ForeignKey("Cvterm", related_name="%(class)s_type" )
+    organism = models.ForeignKey("Organism", related_name="%(class)s_organism", on_delete=models.PROTECT)
+    type = models.ForeignKey("Cvterm", related_name="%(class)s_type", on_delete=models.PROTECT)
     value = models.TextField(blank=True)
     rank = models.IntegerField()
     class Meta:
@@ -215,8 +215,8 @@ class Organismprop(models.Model):
 
 class Featureloc(models.Model):
     featureloc_id = models.IntegerField(primary_key=True)
-    feature = models.ForeignKey("Feature", related_name="%(class)s_feature" )
-    srcfeature = models.ForeignKey("Feature", null=True, blank=True)
+    feature = models.ForeignKey("Feature", related_name="%(class)s_feature", on_delete=models.PROTECT)
+    srcfeature = models.ForeignKey("Feature", null=True, blank=True, on_delete=models.PROTECT)
     fmin = models.IntegerField(null=True, blank=True)
     is_fmin_partial = models.BooleanField()
     fmax = models.IntegerField(null=True, blank=True)
@@ -249,22 +249,22 @@ class Organism(models.Model):
 
 class FeaturelocPub(models.Model):
     featureloc_pub_id = models.IntegerField(primary_key=True)
-    featureloc = models.ForeignKey("Featureloc", related_name="%(class)s_featureloc" )
-    pub = models.ForeignKey("Pub", related_name="%(class)s_pub" )
+    featureloc = models.ForeignKey("Featureloc", related_name="%(class)s_featureloc", on_delete=models.PROTECT)
+    pub = models.ForeignKey("Pub", related_name="%(class)s_pub", on_delete=models.PROTECT)
     class Meta:
         db_table = u'featureloc_pub'
 
 class FeaturePub(models.Model):
     feature_pub_id = models.IntegerField(primary_key=True)
-    feature = models.ForeignKey("Feature", related_name="%(class)s_feature" )
-    pub = models.ForeignKey("Pub", related_name="%(class)s_pub" )
+    feature = models.ForeignKey("Feature", related_name="%(class)s_feature", on_delete=models.PROTECT)
+    pub = models.ForeignKey("Pub", related_name="%(class)s_pub", on_delete=models.PROTECT)
     class Meta:
         db_table = u'feature_pub'
 
 class FeaturePubprop(models.Model):
     feature_pubprop_id = models.IntegerField(primary_key=True)
-    feature_pub = models.ForeignKey("FeaturePub", related_name="%(class)s_pub" )
-    type = models.ForeignKey("Cvterm", related_name="%(class)s_type" )
+    feature_pub = models.ForeignKey("FeaturePub", related_name="%(class)s_pub", on_delete=models.PROTECT)
+    type = models.ForeignKey("Cvterm", related_name="%(class)s_type", on_delete=models.PROTECT)
     value = models.TextField(blank=True)
     rank = models.IntegerField()
     class Meta:
@@ -272,16 +272,16 @@ class FeaturePubprop(models.Model):
 
 class FeatureDbxref(models.Model):
     feature_dbxref_id = models.IntegerField(primary_key=True)
-    feature = models.ForeignKey("Feature", related_name="%(class)s_feature" )
-    dbxref = models.ForeignKey("Dbxref", related_name="%(class)s_dbxref" )
+    feature = models.ForeignKey("Feature", related_name="%(class)s_feature", on_delete=models.PROTECT)
+    dbxref = models.ForeignKey("Dbxref", related_name="%(class)s_dbxref", on_delete=models.PROTECT)
     is_current = models.BooleanField()
     class Meta:
         db_table = u'feature_dbxref'
 
 class Featureprop(models.Model):
     featureprop_id = models.IntegerField(primary_key=True)
-    feature = models.ForeignKey("Feature", related_name="%(class)s_feature" )
-    type = models.ForeignKey("Cvterm", related_name="%(class)s_type" )
+    feature = models.ForeignKey("Feature", related_name="%(class)s_feature", on_delete=models.PROTECT)
+    type = models.ForeignKey("Cvterm", related_name="%(class)s_type", on_delete=models.PROTECT)
     value = models.TextField(blank=True)
     rank = models.IntegerField()
     class Meta:
@@ -289,16 +289,16 @@ class Featureprop(models.Model):
 
 class FeaturepropPub(models.Model):
     featureprop_pub_id = models.IntegerField(primary_key=True)
-    featureprop = models.ForeignKey("Featureprop", related_name="%(class)s_featureprop" )
-    pub = models.ForeignKey("Pub", related_name="%(class)s_pub" )
+    featureprop = models.ForeignKey("Featureprop", related_name="%(class)s_featureprop", on_delete=models.PROTECT)
+    pub = models.ForeignKey("Pub", related_name="%(class)s_pub", on_delete=models.PROTECT)
     class Meta:
         db_table = u'featureprop_pub'
 
 class FeatureRelationship(models.Model):
     feature_relationship_id = models.IntegerField(primary_key=True)
-    subject = models.ForeignKey("Feature", related_name="%(class)s_subject" )
-    object = models.ForeignKey("Feature", related_name="%(class)s_object" )
-    type = models.ForeignKey("Cvterm", related_name="%(class)s_type" )
+    subject = models.ForeignKey("Feature", related_name="%(class)s_subject", on_delete=models.PROTECT)
+    object = models.ForeignKey("Feature", related_name="%(class)s_object", on_delete=models.PROTECT)
+    type = models.ForeignKey("Cvterm", related_name="%(class)s_type", on_delete=models.PROTECT)
     value = models.TextField(blank=True)
     rank = models.IntegerField()
     class Meta:
@@ -306,15 +306,15 @@ class FeatureRelationship(models.Model):
 
 class FeatureRelationshipPub(models.Model):
     feature_relationship_pub_id = models.IntegerField(primary_key=True)
-    feature_relationship = models.ForeignKey("FeatureRelationship", related_name="%(class)s_relationship" )
-    pub = models.ForeignKey("Pub", related_name="%(class)s_pub" )
+    feature_relationship = models.ForeignKey("FeatureRelationship", related_name="%(class)s_relationship", on_delete=models.PROTECT)
+    pub = models.ForeignKey("Pub", related_name="%(class)s_pub", on_delete=models.PROTECT)
     class Meta:
         db_table = u'feature_relationship_pub'
 
 class FeatureRelationshipprop(models.Model):
     feature_relationshipprop_id = models.IntegerField(primary_key=True)
-    feature_relationship = models.ForeignKey("FeatureRelationship", related_name="%(class)s_relationship" )
-    type = models.ForeignKey("Cvterm", related_name="%(class)s_type" )
+    feature_relationship = models.ForeignKey("FeatureRelationship", related_name="%(class)s_relationship", on_delete=models.PROTECT)
+    type = models.ForeignKey("Cvterm", related_name="%(class)s_type", on_delete=models.PROTECT)
     value = models.TextField(blank=True)
     rank = models.IntegerField()
     class Meta:
@@ -322,15 +322,15 @@ class FeatureRelationshipprop(models.Model):
 
 class FeatureRelationshippropPub(models.Model):
     feature_relationshipprop_pub_id = models.IntegerField(primary_key=True)
-    feature_relationshipprop = models.ForeignKey("FeatureRelationshipprop", related_name="%(class)s_relationshipprop" )
-    pub = models.ForeignKey("Pub", related_name="%(class)s_pub" )
+    feature_relationshipprop = models.ForeignKey("FeatureRelationshipprop", related_name="%(class)s_relationshipprop", on_delete=models.PROTECT)
+    pub = models.ForeignKey("Pub", related_name="%(class)s_pub", on_delete=models.PROTECT)
     class Meta:
         db_table = u'feature_relationshipprop_pub'
 
 class FeatureCvtermprop(models.Model):
     feature_cvtermprop_id = models.IntegerField(primary_key=True)
-    feature_cvterm = models.ForeignKey("FeatureCvterm", related_name="%(class)s_cvterm" )
-    type = models.ForeignKey("Cvterm", related_name="%(class)s_type" )
+    feature_cvterm = models.ForeignKey("FeatureCvterm", related_name="%(class)s_cvterm", on_delete=models.PROTECT)
+    type = models.ForeignKey("Cvterm", related_name="%(class)s_type", on_delete=models.PROTECT)
     value = models.TextField(blank=True)
     rank = models.IntegerField()
     class Meta:
@@ -338,17 +338,17 @@ class FeatureCvtermprop(models.Model):
 
 class FeatureCvtermDbxref(models.Model):
     feature_cvterm_dbxref_id = models.IntegerField(primary_key=True)
-    feature_cvterm = models.ForeignKey("FeatureCvterm", related_name="%(class)s_cvterm" )
-    dbxref = models.ForeignKey("Dbxref", related_name="%(class)s_dbxref" )
+    feature_cvterm = models.ForeignKey("FeatureCvterm", related_name="%(class)s_cvterm", on_delete=models.PROTECT)
+    dbxref = models.ForeignKey("Dbxref", related_name="%(class)s_dbxref", on_delete=models.PROTECT)
     class Meta:
         db_table = u'feature_cvterm_dbxref'
 
 class FeatureCvterm(models.Model):
     feature_cvterm_id = models.IntegerField(primary_key=True)
-    #feature = models.ForeignKey("Feature", related_name="banana" )
-    feature = models.ForeignKey("Feature", related_name="%(class)s_feature" )
-    cvterm = models.ForeignKey("Cvterm", related_name="%(class)s_cvterm" )
-    pub = models.ForeignKey("Pub", related_name="%(class)s_pub" )
+    #feature = models.ForeignKey("Feature", related_name="banana", on_delete=models.PROTECT)
+    feature = models.ForeignKey("Feature", related_name="%(class)s_feature", on_delete=models.PROTECT)
+    cvterm = models.ForeignKey("Cvterm", related_name="%(class)s_cvterm", on_delete=models.PROTECT)
+    pub = models.ForeignKey("Pub", related_name="%(class)s_pub", on_delete=models.PROTECT)
     is_not = models.BooleanField()
     rank = models.IntegerField()
     class Meta:
@@ -356,16 +356,16 @@ class FeatureCvterm(models.Model):
 
 class FeatureCvtermPub(models.Model):
     feature_cvterm_pub_id = models.IntegerField(primary_key=True)
-    feature_cvterm = models.ForeignKey("FeatureCvterm", related_name="%(class)s_cvterm" )
-    pub = models.ForeignKey("Pub", related_name="%(class)s_pub" )
+    feature_cvterm = models.ForeignKey("FeatureCvterm", related_name="%(class)s_cvterm", on_delete=models.PROTECT)
+    pub = models.ForeignKey("Pub", related_name="%(class)s_pub", on_delete=models.PROTECT)
     class Meta:
         db_table = u'feature_cvterm_pub'
 
 class FeatureSynonym(models.Model):
     feature_synonym_id = models.IntegerField(primary_key=True)
-    synonym = models.ForeignKey("Synonym", related_name="%(class)s_synonym" )
-    feature = models.ForeignKey("Feature", related_name="%(class)s_feature" )
-    pub = models.ForeignKey("Pub", related_name="%(class)s_pub" )
+    synonym = models.ForeignKey("Synonym", related_name="%(class)s_synonym", on_delete=models.PROTECT)
+    feature = models.ForeignKey("Feature", related_name="%(class)s_feature", on_delete=models.PROTECT)
+    pub = models.ForeignKey("Pub", related_name="%(class)s_pub", on_delete=models.PROTECT)
     is_current = models.BooleanField()
     is_internal = models.BooleanField()
     class Meta:
@@ -420,14 +420,14 @@ class IntronlocView(models.Model):
 
 class Feature(models.Model):
     feature_id = models.IntegerField(primary_key=True)
-    dbxref = models.ForeignKey("Dbxref", null=True, blank=True)
-    organism = models.ForeignKey("Organism", related_name="%(class)s_organism" )
+    dbxref = models.ForeignKey("Dbxref", null=True, blank=True, on_delete=models.PROTECT)
+    organism = models.ForeignKey("Organism", related_name="%(class)s_organism", on_delete=models.PROTECT)
     name = models.CharField(max_length=255, blank=True)
     uniquename = models.TextField()
     residues = models.TextField(blank=True)
     seqlen = models.IntegerField(null=True, blank=True)
     md5checksum = models.CharField(max_length=32, blank=True)
-    type = models.ForeignKey("Cvterm", related_name="%(class)s_type" )
+    type = models.ForeignKey("Cvterm", related_name="%(class)s_type", on_delete=models.PROTECT)
     is_analysis = models.BooleanField()
     is_obsolete = models.BooleanField()
     timeaccessioned = models.DateTimeField()
@@ -446,8 +446,8 @@ class Feature(models.Model):
 
 class Analysisprop(models.Model):
     analysisprop_id = models.IntegerField(primary_key=True)
-    analysis = models.ForeignKey("Analysis", related_name="%(class)s_analysis" )
-    type = models.ForeignKey("Cvterm", related_name="%(class)s_type" )
+    analysis = models.ForeignKey("Analysis", related_name="%(class)s_analysis", on_delete=models.PROTECT)
+    type = models.ForeignKey("Cvterm", related_name="%(class)s_type", on_delete=models.PROTECT)
     value = models.TextField(blank=True)
     rank = models.IntegerField()
     class Meta:
@@ -455,8 +455,8 @@ class Analysisprop(models.Model):
 
 class Analysisfeature(models.Model):
     analysisfeature_id = models.IntegerField(primary_key=True)
-    feature = models.ForeignKey("Feature", related_name="%(class)s_feature" )
-    analysis = models.ForeignKey("Analysis", related_name="%(class)s_analysis" )
+    feature = models.ForeignKey("Feature", related_name="%(class)s_feature", on_delete=models.PROTECT)
+    analysis = models.ForeignKey("Analysis", related_name="%(class)s_analysis", on_delete=models.PROTECT)
     rawscore = models.FloatField(null=True, blank=True)
     normscore = models.FloatField(null=True, blank=True)
     significance = models.FloatField(null=True, blank=True)
@@ -480,8 +480,8 @@ class Analysis(models.Model):
 
 class Analysisfeatureprop(models.Model):
     analysisfeatureprop_id = models.IntegerField(primary_key=True)
-    analysisfeature = models.ForeignKey("Analysisfeature", related_name="%(class)s_analysisfeature" )
-    type = models.ForeignKey("Cvterm", related_name="%(class)s_type" )
+    analysisfeature = models.ForeignKey("Analysisfeature", related_name="%(class)s_analysisfeature", on_delete=models.PROTECT)
+    type = models.ForeignKey("Cvterm", related_name="%(class)s_type", on_delete=models.PROTECT)
     value = models.TextField(blank=True)
     rank = models.IntegerField()
     class Meta:
@@ -497,28 +497,28 @@ class Genotype(models.Model):
 
 class PhenotypeCvterm(models.Model):
     phenotype_cvterm_id = models.IntegerField(primary_key=True)
-    phenotype = models.ForeignKey("Phenotype", related_name="%(class)s_phenotype" )
-    cvterm = models.ForeignKey("Cvterm", related_name="%(class)s_cvterm" )
+    phenotype = models.ForeignKey("Phenotype", related_name="%(class)s_phenotype", on_delete=models.PROTECT)
+    cvterm = models.ForeignKey("Cvterm", related_name="%(class)s_cvterm", on_delete=models.PROTECT)
     rank = models.IntegerField()
     class Meta:
         db_table = u'phenotype_cvterm'
 
 class FeaturePhenotype(models.Model):
     feature_phenotype_id = models.IntegerField(primary_key=True)
-    feature = models.ForeignKey("Feature", related_name="%(class)s_feature" )
-    phenotype = models.ForeignKey("Phenotype", related_name="%(class)s_phenotype" )
+    feature = models.ForeignKey("Feature", related_name="%(class)s_feature", on_delete=models.PROTECT)
+    phenotype = models.ForeignKey("Phenotype", related_name="%(class)s_phenotype", on_delete=models.PROTECT)
     class Meta:
         db_table = u'feature_phenotype'
 
 
 class FeatureGenotype(models.Model):
     feature_genotype_id = models.IntegerField(primary_key=True)
-    feature = models.ForeignKey("Feature", related_name="%(class)s_feature" )
-    genotype = models.ForeignKey("Genotype", related_name="%(class)s_genotype" )
-    chromosome = models.ForeignKey("Feature", null=True, blank=True)
+    feature = models.ForeignKey("Feature", related_name="%(class)s_feature", on_delete=models.PROTECT)
+    genotype = models.ForeignKey("Genotype", related_name="%(class)s_genotype", on_delete=models.PROTECT)
+    chromosome = models.ForeignKey("Feature", null=True, blank=True, on_delete=models.PROTECT)
     rank = models.IntegerField()
     cgroup = models.IntegerField()
-    cvterm = models.ForeignKey("Cvterm", related_name="%(class)s_cvterm" )
+    cvterm = models.ForeignKey("Cvterm", related_name="%(class)s_cvterm", on_delete=models.PROTECT)
     class Meta:
         db_table = u'feature_genotype'
 
@@ -531,52 +531,52 @@ class Environment(models.Model):
 
 class EnvironmentCvterm(models.Model):
     environment_cvterm_id = models.IntegerField(primary_key=True)
-    environment = models.ForeignKey("Environment", related_name="%(class)s_environment" )
-    cvterm = models.ForeignKey("Cvterm", related_name="%(class)s_cvterm" )
+    environment = models.ForeignKey("Environment", related_name="%(class)s_environment", on_delete=models.PROTECT)
+    cvterm = models.ForeignKey("Cvterm", related_name="%(class)s_cvterm", on_delete=models.PROTECT)
     class Meta:
         db_table = u'environment_cvterm'
 
 class Phenstatement(models.Model):
     phenstatement_id = models.IntegerField(primary_key=True)
-    genotype = models.ForeignKey("Genotype", related_name="%(class)s_genotype" )
-    environment = models.ForeignKey("Environment", related_name="%(class)s_environment" )
-    phenotype = models.ForeignKey("Phenotype", related_name="%(class)s_phenotype" )
-    type = models.ForeignKey("Cvterm", related_name="%(class)s_type" )
-    pub = models.ForeignKey("Pub", related_name="%(class)s_pub" )
+    genotype = models.ForeignKey("Genotype", related_name="%(class)s_genotype", on_delete=models.PROTECT)
+    environment = models.ForeignKey("Environment", related_name="%(class)s_environment", on_delete=models.PROTECT)
+    phenotype = models.ForeignKey("Phenotype", related_name="%(class)s_phenotype", on_delete=models.PROTECT)
+    type = models.ForeignKey("Cvterm", related_name="%(class)s_type", on_delete=models.PROTECT)
+    pub = models.ForeignKey("Pub", related_name="%(class)s_pub", on_delete=models.PROTECT)
     class Meta:
         db_table = u'phenstatement'
 
 class PhenotypeComparison(models.Model):
     phenotype_comparison_id = models.IntegerField(primary_key=True)
-    genotype1 = models.ForeignKey("Genotype", related_name="%(class)s_genotype1" )
-    environment1 = models.ForeignKey("Environment", related_name="%(class)s_environment1" )
-    genotype2 = models.ForeignKey("Genotype", related_name="%(class)s_genotype2" )
-    environment2 = models.ForeignKey("Environment", related_name="%(class)s_environment2" )
-    phenotype1 = models.ForeignKey("Phenotype", related_name="%(class)s_phenotype1" )
-    phenotype2 = models.ForeignKey("Phenotype", null=True, blank=True)
-    pub = models.ForeignKey("Pub", related_name="%(class)s_pub" )
-    organism = models.ForeignKey("Organism", related_name="%(class)s_organism" )
+    genotype1 = models.ForeignKey("Genotype", related_name="%(class)s_genotype1", on_delete=models.PROTECT)
+    environment1 = models.ForeignKey("Environment", related_name="%(class)s_environment1", on_delete=models.PROTECT)
+    genotype2 = models.ForeignKey("Genotype", related_name="%(class)s_genotype2", on_delete=models.PROTECT)
+    environment2 = models.ForeignKey("Environment", related_name="%(class)s_environment2", on_delete=models.PROTECT)
+    phenotype1 = models.ForeignKey("Phenotype", related_name="%(class)s_phenotype1", on_delete=models.PROTECT)
+    phenotype2 = models.ForeignKey("Phenotype", null=True, blank=True, on_delete=models.PROTECT)
+    pub = models.ForeignKey("Pub", related_name="%(class)s_pub", on_delete=models.PROTECT)
+    organism = models.ForeignKey("Organism", related_name="%(class)s_organism", on_delete=models.PROTECT)
     class Meta:
         db_table = u'phenotype_comparison'
 
 class Phenotype(models.Model):
     phenotype_id = models.IntegerField(primary_key=True)
     uniquename = models.TextField(unique=True)
-    observable = models.ForeignKey("Cvterm", related_name="%(class)s_observable", null=True, blank=True)
-    attr = models.ForeignKey("Cvterm", related_name="%(class)s_attr", null=True, blank=True)
+    observable = models.ForeignKey("Cvterm", related_name="%(class)s_observable", null=True, blank=True, on_delete=models.PROTECT)
+    attr = models.ForeignKey("Cvterm", related_name="%(class)s_attr", null=True, blank=True, on_delete=models.PROTECT)
     value = models.TextField(blank=True)
-    cvalue = models.ForeignKey("Cvterm",related_name="%(class)s_cvalue", null=True, blank=True)
-    assay = models.ForeignKey("Cvterm",related_name="%(class)s_assay", null=True, blank=True)
+    cvalue = models.ForeignKey("Cvterm",related_name="%(class)s_cvalue", null=True, blank=True, on_delete=models.PROTECT)
+    assay = models.ForeignKey("Cvterm",related_name="%(class)s_assay", null=True, blank=True, on_delete=models.PROTECT)
     class Meta:
         db_table = u'phenotype'
 
 class Phendesc(models.Model):
     phendesc_id = models.IntegerField(primary_key=True)
-    genotype = models.ForeignKey("Genotype", related_name="%(class)s_genotype" )
-    environment = models.ForeignKey("Environment", related_name="%(class)s_environment" )
+    genotype = models.ForeignKey("Genotype", related_name="%(class)s_genotype", on_delete=models.PROTECT)
+    environment = models.ForeignKey("Environment", related_name="%(class)s_environment", on_delete=models.PROTECT)
     description = models.TextField()
-    type = models.ForeignKey("Cvterm", related_name="%(class)s_type" )
-    pub = models.ForeignKey("Pub", related_name="%(class)s_pub" )
+    type = models.ForeignKey("Cvterm", related_name="%(class)s_type", on_delete=models.PROTECT)
+    pub = models.ForeignKey("Pub", related_name="%(class)s_pub", on_delete=models.PROTECT)
     class Meta:
         db_table = u'phendesc'
 
@@ -590,19 +590,19 @@ class SouthMigrationhistory(models.Model):
 
 class PhenotypeComparisonCvterm(models.Model):
     phenotype_comparison_cvterm_id = models.IntegerField(primary_key=True)
-    phenotype_comparison = models.ForeignKey("PhenotypeComparison", related_name="%(class)s_comparison" )
-    cvterm = models.ForeignKey("Cvterm", related_name="%(class)s_cvterm" )
-    pub = models.ForeignKey("Pub", related_name="%(class)s_pub" )
+    phenotype_comparison = models.ForeignKey("PhenotypeComparison", related_name="%(class)s_comparison", on_delete=models.PROTECT)
+    cvterm = models.ForeignKey("Cvterm", related_name="%(class)s_cvterm", on_delete=models.PROTECT)
+    pub = models.ForeignKey("Pub", related_name="%(class)s_pub", on_delete=models.PROTECT)
     rank = models.IntegerField()
     class Meta:
         db_table = u'phenotype_comparison_cvterm'
 
 class Cvterm(models.Model):
     cvterm_id = models.IntegerField(primary_key=True)
-    cv = models.ForeignKey("Cv", related_name="%(class)s_cv" )
+    cv = models.ForeignKey("Cv", related_name="%(class)s_cv", on_delete=models.PROTECT)
     name = models.CharField(max_length=1024)
     definition = models.TextField(blank=True)
-    dbxref = models.ForeignKey("Dbxref", unique=True)
+    dbxref = models.ForeignKey("Dbxref", unique=True, on_delete=models.PROTECT)
     is_obsolete = models.IntegerField()
     is_relationshiptype = models.IntegerField()
     class Meta:
@@ -612,7 +612,7 @@ class Featuremap(models.Model):
     featuremap_id = models.IntegerField(primary_key=True)
     name = models.CharField(max_length=255, unique=True, blank=True)
     description = models.TextField(blank=True)
-    unittype = models.ForeignKey("Cvterm", null=True, blank=True)
+    unittype = models.ForeignKey("Cvterm", null=True, blank=True, on_delete=models.PROTECT)
     class Meta:
         db_table = u'featuremap'
 
@@ -627,7 +627,7 @@ class Pub(models.Model):
     pages = models.CharField(max_length=255, blank=True)
     miniref = models.CharField(max_length=255, blank=True)
     uniquename = models.TextField(unique=True)
-    type = models.ForeignKey("Cvterm", related_name="%(class)s_type" )
+    type = models.ForeignKey("Cvterm", related_name="%(class)s_type", on_delete=models.PROTECT)
     is_obsolete = models.NullBooleanField(null=True, blank=True)
     publisher = models.CharField(max_length=255, blank=True)
     pubplace = models.CharField(max_length=255, blank=True)
@@ -636,64 +636,64 @@ class Pub(models.Model):
 
 class Featurerange(models.Model):
     featurerange_id = models.IntegerField(primary_key=True)
-    featuremap = models.ForeignKey("Featuremap", related_name="%(class)s_featuremap" )
-    feature = models.ForeignKey("Feature", related_name="%(class)s_feature" )
-    leftstartf = models.ForeignKey("Feature", related_name="%(class)s_leftstartf" )
-    leftendf = models.ForeignKey("Feature", related_name="%(class)s_leftendf", null=True, blank=True)
-    rightstartf = models.ForeignKey("Feature", related_name="%(class)s_rightstartf" , null=True, blank=True)
-    rightendf = models.ForeignKey("Feature", related_name="%(class)s_rightendf" )
+    featuremap = models.ForeignKey("Featuremap", related_name="%(class)s_featuremap", on_delete=models.PROTECT)
+    feature = models.ForeignKey("Feature", related_name="%(class)s_feature", on_delete=models.PROTECT)
+    leftstartf = models.ForeignKey("Feature", related_name="%(class)s_leftstartf", on_delete=models.PROTECT)
+    leftendf = models.ForeignKey("Feature", related_name="%(class)s_leftendf", null=True, blank=True, on_delete=models.PROTECT)
+    rightstartf = models.ForeignKey("Feature", related_name="%(class)s_rightstartf", null=True, blank=True, on_delete=models.PROTECT)
+    rightendf = models.ForeignKey("Feature", related_name="%(class)s_rightendf", on_delete=models.PROTECT)
     rangestr = models.CharField(max_length=255, blank=True)
     class Meta:
         db_table = u'featurerange'
 
 class Featurepos(models.Model):
     featurepos_id = models.IntegerField(primary_key=True)
-    featuremap = models.ForeignKey("Featuremap", related_name="%(class)s_featuremap" )
-    feature = models.ForeignKey("Feature", related_name="%(class)s_feature" )
-    map_feature = models.ForeignKey("Feature", related_name="%(class)s_map_feature" )
+    featuremap = models.ForeignKey("Featuremap", related_name="%(class)s_featuremap", on_delete=models.PROTECT)
+    feature = models.ForeignKey("Feature", related_name="%(class)s_feature", on_delete=models.PROTECT)
+    map_feature = models.ForeignKey("Feature", related_name="%(class)s_map_feature", on_delete=models.PROTECT)
     mappos = models.FloatField()
     class Meta:
         db_table = u'featurepos'
 
 class FeaturemapPub(models.Model):
     featuremap_pub_id = models.IntegerField(primary_key=True)
-    featuremap = models.ForeignKey("Featuremap", related_name="%(class)s_featuremap" )
-    pub = models.ForeignKey("Pub", related_name="%(class)s_pub" )
+    featuremap = models.ForeignKey("Featuremap", related_name="%(class)s_featuremap", on_delete=models.PROTECT)
+    pub = models.ForeignKey("Pub", related_name="%(class)s_pub", on_delete=models.PROTECT)
     class Meta:
         db_table = u'featuremap_pub'
 
 class PhylotreePub(models.Model):
     phylotree_pub_id = models.IntegerField(primary_key=True)
-    phylotree = models.ForeignKey("Phylotree", related_name="%(class)s_phylotree" )
-    pub = models.ForeignKey("Pub", related_name="%(class)s_pub" )
+    phylotree = models.ForeignKey("Phylotree", related_name="%(class)s_phylotree", on_delete=models.PROTECT)
+    pub = models.ForeignKey("Pub", related_name="%(class)s_pub", on_delete=models.PROTECT)
     class Meta:
         db_table = u'phylotree_pub'
 
 class PhylonodeDbxref(models.Model):
     phylonode_dbxref_id = models.IntegerField(primary_key=True)
-    phylonode = models.ForeignKey("Phylonode", related_name="%(class)s_phylonode" )
-    dbxref = models.ForeignKey("Dbxref", related_name="%(class)s_dbxref" )
+    phylonode = models.ForeignKey("Phylonode", related_name="%(class)s_phylonode", on_delete=models.PROTECT)
+    dbxref = models.ForeignKey("Dbxref", related_name="%(class)s_dbxref", on_delete=models.PROTECT)
     class Meta:
         db_table = u'phylonode_dbxref'
 
 class PhylonodePub(models.Model):
     phylonode_pub_id = models.IntegerField(primary_key=True)
-    phylonode = models.ForeignKey("Phylonode", related_name="%(class)s_phylonode" )
-    pub = models.ForeignKey("Pub", related_name="%(class)s_pub" )
+    phylonode = models.ForeignKey("Phylonode", related_name="%(class)s_phylonode", on_delete=models.PROTECT)
+    pub = models.ForeignKey("Pub", related_name="%(class)s_pub", on_delete=models.PROTECT)
     class Meta:
         db_table = u'phylonode_pub'
 
 class PhylonodeOrganism(models.Model):
     phylonode_organism_id = models.IntegerField(primary_key=True)
-    phylonode = models.ForeignKey("Phylonode", unique=True)
-    organism = models.ForeignKey("Organism", related_name="%(class)s_organism" )
+    phylonode = models.ForeignKey("Phylonode", unique=True, on_delete=models.PROTECT)
+    organism = models.ForeignKey("Organism", related_name="%(class)s_organism", on_delete=models.PROTECT)
     class Meta:
         db_table = u'phylonode_organism'
 
 class Phylonodeprop(models.Model):
     phylonodeprop_id = models.IntegerField(primary_key=True)
-    phylonode = models.ForeignKey("Phylonode", related_name="%(class)s_phylonode" )
-    type = models.ForeignKey("Cvterm", related_name="%(class)s_type" )
+    phylonode = models.ForeignKey("Phylonode", related_name="%(class)s_phylonode", on_delete=models.PROTECT)
+    type = models.ForeignKey("Cvterm", related_name="%(class)s_type", on_delete=models.PROTECT)
     value = models.TextField()
     rank = models.IntegerField()
     class Meta:
@@ -701,12 +701,12 @@ class Phylonodeprop(models.Model):
 
 class Phylonode(models.Model):
     phylonode_id = models.IntegerField(primary_key=True)
-    phylotree = models.ForeignKey("Phylotree", related_name="%(class)s_phylotree" )
-    parent_phylonode = models.ForeignKey('self', null=True, blank=True)
+    phylotree = models.ForeignKey("Phylotree", related_name="%(class)s_phylotree", on_delete=models.PROTECT)
+    parent_phylonode = models.ForeignKey('self', null=True, blank=True, on_delete=models.PROTECT)
     left_idx = models.IntegerField()
     right_idx = models.IntegerField()
-    type = models.ForeignKey("Cvterm", null=True, blank=True)
-    feature = models.ForeignKey("Feature", null=True, blank=True)
+    type = models.ForeignKey("Cvterm", null=True, blank=True, on_delete=models.PROTECT)
+    feature = models.ForeignKey("Feature", null=True, blank=True, on_delete=models.PROTECT)
     label = models.CharField(max_length=255, blank=True)
     distance = models.FloatField(null=True, blank=True)
     class Meta:
@@ -714,27 +714,27 @@ class Phylonode(models.Model):
 
 class Phylotree(models.Model):
     phylotree_id = models.IntegerField(primary_key=True)
-    dbxref = models.ForeignKey("Dbxref", related_name="%(class)s_dbxref" )
+    dbxref = models.ForeignKey("Dbxref", related_name="%(class)s_dbxref", on_delete=models.PROTECT)
     name = models.CharField(max_length=255, blank=True)
-    type = models.ForeignKey("Cvterm", null=True, blank=True)
-    analysis = models.ForeignKey("Analysis", null=True, blank=True)
+    type = models.ForeignKey("Cvterm", null=True, blank=True, on_delete=models.PROTECT)
+    analysis = models.ForeignKey("Analysis", null=True, blank=True, on_delete=models.PROTECT)
     comment = models.TextField(blank=True)
     class Meta:
         db_table = u'phylotree'
 
 class PhylonodeRelationship(models.Model):
     phylonode_relationship_id = models.IntegerField(primary_key=True)
-    subject = models.ForeignKey("phylonode", related_name="%(class)s_subject" )
-    object = models.ForeignKey("phylonode", related_name="%(class)s_object" )
-    type = models.ForeignKey("Cvterm", related_name="%(class)s_type" )
+    subject = models.ForeignKey("phylonode", related_name="%(class)s_subject", on_delete=models.PROTECT)
+    object = models.ForeignKey("phylonode", related_name="%(class)s_object", on_delete=models.PROTECT)
+    type = models.ForeignKey("Cvterm", related_name="%(class)s_type", on_delete=models.PROTECT)
     rank = models.IntegerField(null=True, blank=True)
-    phylotree = models.ForeignKey("phylotree", related_name="%(class)s_phylotree" )
+    phylotree = models.ForeignKey("phylotree", related_name="%(class)s_phylotree", on_delete=models.PROTECT)
     class Meta:
         db_table = u'phylonode_relationship'
 
 class Contact(models.Model):
     contact_id = models.IntegerField(primary_key=True)
-    type = models.ForeignKey("Cvterm", null=True, blank=True)
+    type = models.ForeignKey("Cvterm", null=True, blank=True, on_delete=models.PROTECT)
     name = models.CharField(max_length=255, unique=True)
     description = models.CharField(max_length=255, blank=True)
     class Meta:
@@ -742,32 +742,32 @@ class Contact(models.Model):
 
 class ContactRelationship(models.Model):
     contact_relationship_id = models.IntegerField(primary_key=True)
-    type = models.ForeignKey("Cvterm", related_name="%(class)s_type" )
-    subject = models.ForeignKey("Contact", related_name="%(class)s_subject" )
-    object = models.ForeignKey("Contact", related_name="%(class)s_object" )
+    type = models.ForeignKey("Cvterm", related_name="%(class)s_type", on_delete=models.PROTECT)
+    subject = models.ForeignKey("Contact", related_name="%(class)s_subject", on_delete=models.PROTECT)
+    object = models.ForeignKey("Contact", related_name="%(class)s_object", on_delete=models.PROTECT)
     class Meta:
         db_table = u'contact_relationship'
 
 class ExpressionPub(models.Model):
     expression_pub_id = models.IntegerField(primary_key=True)
-    expression = models.ForeignKey("Expression", related_name="%(class)s_expression" )
-    pub = models.ForeignKey("Pub", related_name="%(class)s_pub" )
+    expression = models.ForeignKey("Expression", related_name="%(class)s_expression", on_delete=models.PROTECT)
+    pub = models.ForeignKey("Pub", related_name="%(class)s_pub", on_delete=models.PROTECT)
     class Meta:
         db_table = u'expression_pub'
 
 class ExpressionCvterm(models.Model):
     expression_cvterm_id = models.IntegerField(primary_key=True)
-    expression = models.ForeignKey("Expression", related_name="%(class)s_expression" )
-    cvterm = models.ForeignKey("Cvterm", related_name="%(class)s_cvterm" )
+    expression = models.ForeignKey("Expression", related_name="%(class)s_expression", on_delete=models.PROTECT)
+    cvterm = models.ForeignKey("Cvterm", related_name="%(class)s_cvterm", on_delete=models.PROTECT)
     rank = models.IntegerField()
-    cvterm_type = models.ForeignKey("Cvterm", related_name="%(class)s_type" )
+    cvterm_type = models.ForeignKey("Cvterm", related_name="%(class)s_type", on_delete=models.PROTECT)
     class Meta:
         db_table = u'expression_cvterm'
 
 class ExpressionCvtermprop(models.Model):
     expression_cvtermprop_id = models.IntegerField(primary_key=True)
-    expression_cvterm = models.ForeignKey("ExpressionCvterm", related_name="%(class)s_cvterm" )
-    type = models.ForeignKey("Cvterm", related_name="%(class)s_type" )
+    expression_cvterm = models.ForeignKey("ExpressionCvterm", related_name="%(class)s_cvterm", on_delete=models.PROTECT)
+    type = models.ForeignKey("Cvterm", related_name="%(class)s_type", on_delete=models.PROTECT)
     value = models.TextField(blank=True)
     rank = models.IntegerField()
     class Meta:
@@ -775,8 +775,8 @@ class ExpressionCvtermprop(models.Model):
 
 class Expressionprop(models.Model):
     expressionprop_id = models.IntegerField(primary_key=True)
-    expression = models.ForeignKey("Expression", related_name="%(class)s_expression" )
-    type = models.ForeignKey("Cvterm", related_name="%(class)s_type" )
+    expression = models.ForeignKey("Expression", related_name="%(class)s_expression", on_delete=models.PROTECT)
+    type = models.ForeignKey("Cvterm", related_name="%(class)s_type", on_delete=models.PROTECT)
     value = models.TextField(blank=True)
     rank = models.IntegerField()
     class Meta:
@@ -784,16 +784,16 @@ class Expressionprop(models.Model):
 
 class FeatureExpression(models.Model):
     feature_expression_id = models.IntegerField(primary_key=True)
-    expression = models.ForeignKey("Expression", related_name="%(class)s_expression" )
-    feature = models.ForeignKey("Feature", related_name="%(class)s_feature" )
-    pub = models.ForeignKey("Pub", related_name="%(class)s_pub" )
+    expression = models.ForeignKey("Expression", related_name="%(class)s_expression", on_delete=models.PROTECT)
+    feature = models.ForeignKey("Feature", related_name="%(class)s_feature", on_delete=models.PROTECT)
+    pub = models.ForeignKey("Pub", related_name="%(class)s_pub", on_delete=models.PROTECT)
     class Meta:
         db_table = u'feature_expression'
 
 class FeatureExpressionprop(models.Model):
     feature_expressionprop_id = models.IntegerField(primary_key=True)
-    feature_expression = models.ForeignKey("FeatureExpression", related_name="%(class)s_expression" )
-    type = models.ForeignKey("Cvterm", related_name="%(class)s_type" )
+    feature_expression = models.ForeignKey("FeatureExpression", related_name="%(class)s_expression", on_delete=models.PROTECT)
+    type = models.ForeignKey("Cvterm", related_name="%(class)s_type", on_delete=models.PROTECT)
     value = models.TextField(blank=True)
     rank = models.IntegerField()
     class Meta:
@@ -817,8 +817,8 @@ class Eimage(models.Model):
 
 class ExpressionImage(models.Model):
     expression_image_id = models.IntegerField(primary_key=True)
-    expression = models.ForeignKey("Expression", related_name="%(class)s_expression" )
-    eimage = models.ForeignKey("Eimage", related_name="%(class)s_eimage" )
+    expression = models.ForeignKey("Expression", related_name="%(class)s_expression", on_delete=models.PROTECT)
+    eimage = models.ForeignKey("Eimage", related_name="%(class)s_eimage", on_delete=models.PROTECT)
     class Meta:
         db_table = u'expression_image'
 
@@ -831,8 +831,8 @@ class Mageml(models.Model):
 
 class Magedocumentation(models.Model):
     magedocumentation_id = models.IntegerField(primary_key=True)
-    mageml = models.ForeignKey("Mageml", related_name="%(class)s_mageml" )
-    tableinfo = models.ForeignKey("Tableinfo", related_name="%(class)s_tableinfo" )
+    mageml = models.ForeignKey("Mageml", related_name="%(class)s_mageml", on_delete=models.PROTECT)
+    tableinfo = models.ForeignKey("Tableinfo", related_name="%(class)s_tableinfo", on_delete=models.PROTECT)
     row_id = models.IntegerField()
     mageidentifier = models.TextField()
     class Meta:
@@ -847,10 +847,10 @@ class Channel(models.Model):
 
 class Protocolparam(models.Model):
     protocolparam_id = models.IntegerField(primary_key=True)
-    protocol = models.ForeignKey("Protocol", related_name="%(class)s_protocol" )
+    protocol = models.ForeignKey("Protocol", related_name="%(class)s_protocol", on_delete=models.PROTECT)
     name = models.TextField()
-    datatype = models.ForeignKey("Cvterm", related_name="%(class)s_datatype", null=True, blank=True)
-    unittype = models.ForeignKey("Cvterm", related_name="%(class)s_unittype", null=True, blank=True)
+    datatype = models.ForeignKey("Cvterm", related_name="%(class)s_datatype", null=True, blank=True, on_delete=models.PROTECT)
+    unittype = models.ForeignKey("Cvterm", related_name="%(class)s_unittype", null=True, blank=True, on_delete=models.PROTECT)
     value = models.TextField(blank=True)
     rank = models.IntegerField()
     class Meta:
@@ -870,11 +870,11 @@ class Tableinfo(models.Model):
 
 class Arraydesign(models.Model):
     arraydesign_id = models.IntegerField(primary_key=True)
-    manufacturer = models.ForeignKey("Contact", related_name="%(class)s_manufacturer" )
-    platformtype = models.ForeignKey("Cvterm", related_name="%(class)s_platformtype" )
-    substratetype = models.ForeignKey("Cvterm", null=True, blank=True)
-    protocol = models.ForeignKey("Protocol", null=True, blank=True)
-    dbxref = models.ForeignKey("Dbxref", null=True, blank=True)
+    manufacturer = models.ForeignKey("Contact", related_name="%(class)s_manufacturer", on_delete=models.PROTECT)
+    platformtype = models.ForeignKey("Cvterm", related_name="%(class)s_platformtype", on_delete=models.PROTECT)
+    substratetype = models.ForeignKey("Cvterm", null=True, blank=True, on_delete=models.PROTECT)
+    protocol = models.ForeignKey("Protocol", null=True, blank=True, on_delete=models.PROTECT)
+    dbxref = models.ForeignKey("Dbxref", null=True, blank=True, on_delete=models.PROTECT)
     name = models.TextField(unique=True)
     version = models.TextField(blank=True)
     description = models.TextField(blank=True)
@@ -892,8 +892,8 @@ class Arraydesign(models.Model):
 
 class Assayprop(models.Model):
     assayprop_id = models.IntegerField(primary_key=True)
-    assay = models.ForeignKey("Assay", related_name="%(class)s_assay" )
-    type = models.ForeignKey("Cvterm", related_name="%(class)s_type" )
+    assay = models.ForeignKey("Assay", related_name="%(class)s_assay", on_delete=models.PROTECT)
+    type = models.ForeignKey("Cvterm", related_name="%(class)s_type", on_delete=models.PROTECT)
     value = models.TextField(blank=True)
     rank = models.IntegerField()
     class Meta:
@@ -901,8 +901,8 @@ class Assayprop(models.Model):
 
 class Arraydesignprop(models.Model):
     arraydesignprop_id = models.IntegerField(primary_key=True)
-    arraydesign = models.ForeignKey("Arraydesign", related_name="%(class)s_arraydesign" )
-    type = models.ForeignKey("Cvterm", related_name="%(class)s_type" )
+    arraydesign = models.ForeignKey("Arraydesign", related_name="%(class)s_arraydesign", on_delete=models.PROTECT)
+    type = models.ForeignKey("Cvterm", related_name="%(class)s_type", on_delete=models.PROTECT)
     value = models.TextField(blank=True)
     rank = models.IntegerField()
     class Meta:
@@ -910,20 +910,20 @@ class Arraydesignprop(models.Model):
 
 class AssayProject(models.Model):
     assay_project_id = models.IntegerField(primary_key=True)
-    assay = models.ForeignKey("Assay", related_name="%(class)s_assay" )
-    project = models.ForeignKey("Project", related_name="%(class)s_project" )
+    assay = models.ForeignKey("Assay", related_name="%(class)s_assay", on_delete=models.PROTECT)
+    project = models.ForeignKey("Project", related_name="%(class)s_project", on_delete=models.PROTECT)
     class Meta:
         db_table = u'assay_project'
 
 class Assay(models.Model):
     assay_id = models.IntegerField(primary_key=True)
-    arraydesign = models.ForeignKey("Arraydesign", related_name="%(class)s_arraydesign" )
-    protocol = models.ForeignKey("Protocol", null=True, blank=True)
+    arraydesign = models.ForeignKey("Arraydesign", related_name="%(class)s_arraydesign", on_delete=models.PROTECT)
+    protocol = models.ForeignKey("Protocol", null=True, blank=True, on_delete=models.PROTECT)
     assaydate = models.DateTimeField(null=True, blank=True)
     arrayidentifier = models.TextField(blank=True)
     arraybatchidentifier = models.TextField(blank=True)
-    operator = models.ForeignKey("Contact", related_name="%(class)s_operator" )
-    dbxref = models.ForeignKey("Dbxref", null=True, blank=True)
+    operator = models.ForeignKey("Contact", related_name="%(class)s_operator", on_delete=models.PROTECT)
+    dbxref = models.ForeignKey("Dbxref", null=True, blank=True, on_delete=models.PROTECT)
     name = models.TextField(unique=True, blank=True)
     description = models.TextField(blank=True)
     class Meta:
@@ -931,24 +931,24 @@ class Assay(models.Model):
 
 class BiomaterialDbxref(models.Model):
     biomaterial_dbxref_id = models.IntegerField(primary_key=True)
-    biomaterial = models.ForeignKey("Biomaterial", related_name="%(class)s_biomaterial" )
-    dbxref = models.ForeignKey("Dbxref", related_name="%(class)s_dbxref" )
+    biomaterial = models.ForeignKey("Biomaterial", related_name="%(class)s_biomaterial", on_delete=models.PROTECT)
+    dbxref = models.ForeignKey("Dbxref", related_name="%(class)s_dbxref", on_delete=models.PROTECT)
     class Meta:
         db_table = u'biomaterial_dbxref'
 
 class BiomaterialRelationship(models.Model):
     biomaterial_relationship_id = models.IntegerField(primary_key=True)
-    subject = models.ForeignKey("Biomaterial", related_name="%(class)s_subject" )
-    type = models.ForeignKey("Cvterm", related_name="%(class)s_type" )
-    object = models.ForeignKey("Biomaterial", related_name="%(class)s_object" )
+    subject = models.ForeignKey("Biomaterial", related_name="%(class)s_subject", on_delete=models.PROTECT)
+    type = models.ForeignKey("Cvterm", related_name="%(class)s_type", on_delete=models.PROTECT)
+    object = models.ForeignKey("Biomaterial", related_name="%(class)s_object", on_delete=models.PROTECT)
     class Meta:
         db_table = u'biomaterial_relationship'
 
 class Biomaterial(models.Model):
     biomaterial_id = models.IntegerField(primary_key=True)
-    taxon = models.ForeignKey("Organism", null=True, blank=True)
-    biosourceprovider = models.ForeignKey("Contact", null=True, blank=True)
-    dbxref = models.ForeignKey("Dbxref", null=True, blank=True)
+    taxon = models.ForeignKey("Organism", null=True, blank=True, on_delete=models.PROTECT)
+    biosourceprovider = models.ForeignKey("Contact", null=True, blank=True, on_delete=models.PROTECT)
+    dbxref = models.ForeignKey("Dbxref", null=True, blank=True, on_delete=models.PROTECT)
     name = models.TextField(unique=True, blank=True)
     description = models.TextField(blank=True)
     class Meta:
@@ -956,8 +956,8 @@ class Biomaterial(models.Model):
 
 class Biomaterialprop(models.Model):
     biomaterialprop_id = models.IntegerField(primary_key=True)
-    biomaterial = models.ForeignKey("Biomaterial", related_name="%(class)s_biomaterial" )
-    type = models.ForeignKey("Cvterm", related_name="%(class)s_type" )
+    biomaterial = models.ForeignKey("Biomaterial", related_name="%(class)s_biomaterial", on_delete=models.PROTECT)
+    type = models.ForeignKey("Cvterm", related_name="%(class)s_type", on_delete=models.PROTECT)
     value = models.TextField(blank=True)
     rank = models.IntegerField()
     class Meta:
@@ -966,18 +966,18 @@ class Biomaterialprop(models.Model):
 class Treatment(models.Model):
     treatment_id = models.IntegerField(primary_key=True)
     rank = models.IntegerField()
-    biomaterial = models.ForeignKey("Biomaterial", related_name="%(class)s_biomaterial" )
-    type = models.ForeignKey("Cvterm", related_name="%(class)s_type" )
-    protocol = models.ForeignKey("Protocol", null=True, blank=True)
+    biomaterial = models.ForeignKey("Biomaterial", related_name="%(class)s_biomaterial", on_delete=models.PROTECT)
+    type = models.ForeignKey("Cvterm", related_name="%(class)s_type", on_delete=models.PROTECT)
+    protocol = models.ForeignKey("Protocol", null=True, blank=True, on_delete=models.PROTECT)
     name = models.TextField(blank=True)
     class Meta:
         db_table = u'treatment'
 
 class BiomaterialTreatment(models.Model):
     biomaterial_treatment_id = models.IntegerField(primary_key=True)
-    biomaterial = models.ForeignKey("Biomaterial", related_name="%(class)s_biomaterial" )
-    treatment = models.ForeignKey("Treatment", related_name="%(class)s_treatment" )
-    unittype = models.ForeignKey("Cvterm", null=True, blank=True)
+    biomaterial = models.ForeignKey("Biomaterial", related_name="%(class)s_biomaterial", on_delete=models.PROTECT)
+    treatment = models.ForeignKey("Treatment", related_name="%(class)s_treatment", on_delete=models.PROTECT)
+    unittype = models.ForeignKey("Cvterm", null=True, blank=True, on_delete=models.PROTECT)
     value = models.FloatField(null=True, blank=True)
     rank = models.IntegerField()
     class Meta:
@@ -985,8 +985,8 @@ class BiomaterialTreatment(models.Model):
 
 class Acquisitionprop(models.Model):
     acquisitionprop_id = models.IntegerField(primary_key=True)
-    acquisition = models.ForeignKey("Acquisition", related_name="%(class)s_acquisition" )
-    type = models.ForeignKey("Cvterm", related_name="%(class)s_type" )
+    acquisition = models.ForeignKey("Acquisition", related_name="%(class)s_acquisition", on_delete=models.PROTECT)
+    type = models.ForeignKey("Cvterm", related_name="%(class)s_type", on_delete=models.PROTECT)
     value = models.TextField(blank=True)
     rank = models.IntegerField()
     class Meta:
@@ -994,18 +994,18 @@ class Acquisitionprop(models.Model):
 
 class AssayBiomaterial(models.Model):
     assay_biomaterial_id = models.IntegerField(primary_key=True)
-    assay = models.ForeignKey("Assay", related_name="%(class)s_assay" )
-    biomaterial = models.ForeignKey("Biomaterial", related_name="%(class)s_biomaterial" )
-    channel = models.ForeignKey("Channel", null=True, blank=True)
+    assay = models.ForeignKey("Assay", related_name="%(class)s_assay", on_delete=models.PROTECT)
+    biomaterial = models.ForeignKey("Biomaterial", related_name="%(class)s_biomaterial", on_delete=models.PROTECT)
+    channel = models.ForeignKey("Channel", null=True, blank=True, on_delete=models.PROTECT)
     rank = models.IntegerField()
     class Meta:
         db_table = u'assay_biomaterial'
 
 class AcquisitionRelationship(models.Model):
     acquisition_relationship_id = models.IntegerField(primary_key=True)
-    subject = models.ForeignKey("Acquisition", related_name="%(class)s_subject" )
-    type = models.ForeignKey("Cvterm", related_name="%(class)s_type" )
-    object = models.ForeignKey("Acquisition", related_name="%(class)s_object" )
+    subject = models.ForeignKey("Acquisition", related_name="%(class)s_subject", on_delete=models.PROTECT)
+    type = models.ForeignKey("Cvterm", related_name="%(class)s_type", on_delete=models.PROTECT)
+    object = models.ForeignKey("Acquisition", related_name="%(class)s_object", on_delete=models.PROTECT)
     value = models.TextField(blank=True)
     rank = models.IntegerField()
     class Meta:
@@ -1013,9 +1013,9 @@ class AcquisitionRelationship(models.Model):
 
 class Acquisition(models.Model):
     acquisition_id = models.IntegerField(primary_key=True)
-    assay = models.ForeignKey("Assay", related_name="%(class)s_assay" )
-    protocol = models.ForeignKey("Protocol", null=True, blank=True)
-    channel = models.ForeignKey("Channel", null=True, blank=True)
+    assay = models.ForeignKey("Assay", related_name="%(class)s_assay", on_delete=models.PROTECT)
+    protocol = models.ForeignKey("Protocol", null=True, blank=True, on_delete=models.PROTECT)
+    channel = models.ForeignKey("Channel", null=True, blank=True, on_delete=models.PROTECT)
     acquisitiondate = models.DateTimeField(null=True, blank=True)
     name = models.TextField(unique=True, blank=True)
     uri = models.TextField(blank=True)
@@ -1024,9 +1024,9 @@ class Acquisition(models.Model):
 
 class Protocol(models.Model):
     protocol_id = models.IntegerField(primary_key=True)
-    type = models.ForeignKey("Cvterm", related_name="%(class)s_type" )
-    pub = models.ForeignKey("Pub", null=True, blank=True)
-    dbxref = models.ForeignKey("Dbxref", null=True, blank=True)
+    type = models.ForeignKey("Cvterm", related_name="%(class)s_type", on_delete=models.PROTECT)
+    pub = models.ForeignKey("Pub", null=True, blank=True, on_delete=models.PROTECT)
+    dbxref = models.ForeignKey("Dbxref", null=True, blank=True, on_delete=models.PROTECT)
     name = models.TextField(unique=True)
     uri = models.TextField(blank=True)
     protocoldescription = models.TextField(blank=True)
@@ -1037,8 +1037,8 @@ class Protocol(models.Model):
 
 class Quantificationprop(models.Model):
     quantificationprop_id = models.IntegerField(primary_key=True)
-    quantification = models.ForeignKey("Quantification", related_name="%(class)s_quantification" )
-    type = models.ForeignKey("Cvterm", related_name="%(class)s_type" )
+    quantification = models.ForeignKey("Quantification", related_name="%(class)s_quantification", on_delete=models.PROTECT)
+    type = models.ForeignKey("Cvterm", related_name="%(class)s_type", on_delete=models.PROTECT)
     value = models.TextField(blank=True)
     rank = models.IntegerField()
     class Meta:
@@ -1046,9 +1046,9 @@ class Quantificationprop(models.Model):
 
 class Control(models.Model):
     control_id = models.IntegerField(primary_key=True)
-    type = models.ForeignKey("Cvterm", related_name="%(class)s_type" )
-    assay = models.ForeignKey("Assay", related_name="%(class)s_assay" )
-    tableinfo = models.ForeignKey("Tableinfo", related_name="%(class)s_tableinfo" )
+    type = models.ForeignKey("Cvterm", related_name="%(class)s_type", on_delete=models.PROTECT)
+    assay = models.ForeignKey("Assay", related_name="%(class)s_assay", on_delete=models.PROTECT)
+    tableinfo = models.ForeignKey("Tableinfo", related_name="%(class)s_tableinfo", on_delete=models.PROTECT)
     row_id = models.IntegerField()
     name = models.TextField(blank=True)
     value = models.TextField(blank=True)
@@ -1058,27 +1058,27 @@ class Control(models.Model):
 
 class QuantificationRelationship(models.Model):
     quantification_relationship_id = models.IntegerField(primary_key=True)
-    subject = models.ForeignKey("Quantification", related_name="%(class)s_subject" )
-    type = models.ForeignKey("Cvterm", related_name="%(class)s_type" )
-    object = models.ForeignKey("Quantification", related_name="%(class)s_object" )
+    subject = models.ForeignKey("Quantification", related_name="%(class)s_subject", on_delete=models.PROTECT)
+    type = models.ForeignKey("Cvterm", related_name="%(class)s_type", on_delete=models.PROTECT)
+    object = models.ForeignKey("Quantification", related_name="%(class)s_object", on_delete=models.PROTECT)
     class Meta:
         db_table = u'quantification_relationship'
 
 class Element(models.Model):
     element_id = models.IntegerField(primary_key=True)
-    feature = models.ForeignKey("Feature", null=True, blank=True)
-    arraydesign = models.ForeignKey("Arraydesign", related_name="%(class)s_arraydesign" )
-    type = models.ForeignKey("Cvterm", null=True, blank=True)
-    dbxref = models.ForeignKey("Dbxref", null=True, blank=True)
+    feature = models.ForeignKey("Feature", null=True, blank=True, on_delete=models.PROTECT)
+    arraydesign = models.ForeignKey("Arraydesign", related_name="%(class)s_arraydesign", on_delete=models.PROTECT)
+    type = models.ForeignKey("Cvterm", null=True, blank=True, on_delete=models.PROTECT)
+    dbxref = models.ForeignKey("Dbxref", null=True, blank=True, on_delete=models.PROTECT)
     class Meta:
         db_table = u'element'
 
 class Quantification(models.Model):
     quantification_id = models.IntegerField(primary_key=True)
-    acquisition = models.ForeignKey("Acquisition", related_name="%(class)s_acquisition" )
-    operator = models.ForeignKey("Contact", null=True, blank=True)
-    protocol = models.ForeignKey("Protocol", null=True, blank=True)
-    analysis = models.ForeignKey("Analysis", related_name="%(class)s_analysis" )
+    acquisition = models.ForeignKey("Acquisition", related_name="%(class)s_acquisition", on_delete=models.PROTECT)
+    operator = models.ForeignKey("Contact", null=True, blank=True, on_delete=models.PROTECT)
+    protocol = models.ForeignKey("Protocol", null=True, blank=True, on_delete=models.PROTECT)
+    analysis = models.ForeignKey("Analysis", related_name="%(class)s_analysis", on_delete=models.PROTECT)
     quantificationdate = models.DateTimeField(null=True, blank=True)
     name = models.TextField(blank=True)
     uri = models.TextField(blank=True)
@@ -1087,9 +1087,9 @@ class Quantification(models.Model):
 
 class ElementRelationship(models.Model):
     element_relationship_id = models.IntegerField(primary_key=True)
-    subject = models.ForeignKey("Element", related_name="%(class)s_subject" )
-    type = models.ForeignKey("Cvterm", related_name="%(class)s_type" )
-    object = models.ForeignKey("Element", related_name="%(class)s_object" )
+    subject = models.ForeignKey("Element", related_name="%(class)s_subject", on_delete=models.PROTECT)
+    type = models.ForeignKey("Cvterm", related_name="%(class)s_type", on_delete=models.PROTECT)
+    object = models.ForeignKey("Element", related_name="%(class)s_object", on_delete=models.PROTECT)
     value = models.TextField(blank=True)
     rank = models.IntegerField()
     class Meta:
@@ -1097,24 +1097,24 @@ class ElementRelationship(models.Model):
 
 class StudyAssay(models.Model):
     study_assay_id = models.IntegerField(primary_key=True)
-    study = models.ForeignKey("Study", related_name="%(class)s_study" )
-    assay = models.ForeignKey("Assay", related_name="%(class)s_assay" )
+    study = models.ForeignKey("Study", related_name="%(class)s_study", on_delete=models.PROTECT)
+    assay = models.ForeignKey("Assay", related_name="%(class)s_assay", on_delete=models.PROTECT)
     class Meta:
         db_table = u'study_assay'
 
 class Elementresult(models.Model):
     elementresult_id = models.IntegerField(primary_key=True)
-    element = models.ForeignKey("Element", related_name="%(class)s_element" )
-    quantification = models.ForeignKey("Quantification", related_name="%(class)s_quantification" )
+    element = models.ForeignKey("Element", related_name="%(class)s_element", on_delete=models.PROTECT)
+    quantification = models.ForeignKey("Quantification", related_name="%(class)s_quantification", on_delete=models.PROTECT)
     signal = models.FloatField()
     class Meta:
         db_table = u'elementresult'
 
 class ElementresultRelationship(models.Model):
     elementresult_relationship_id = models.IntegerField(primary_key=True)
-    subject = models.ForeignKey("Elementresult", related_name="%(class)s_subject" )
-    type = models.ForeignKey("Cvterm", related_name="%(class)s_type" )
-    object = models.ForeignKey("Elementresult", related_name="%(class)s_object" )
+    subject = models.ForeignKey("Elementresult", related_name="%(class)s_subject", on_delete=models.PROTECT)
+    type = models.ForeignKey("Cvterm", related_name="%(class)s_type", on_delete=models.PROTECT)
+    object = models.ForeignKey("Elementresult", related_name="%(class)s_object", on_delete=models.PROTECT)
     value = models.TextField(blank=True)
     rank = models.IntegerField()
     class Meta:
@@ -1122,9 +1122,9 @@ class ElementresultRelationship(models.Model):
 
 class Study(models.Model):
     study_id = models.IntegerField(primary_key=True)
-    contact = models.ForeignKey("Contact", related_name="%(class)s_contact" )
-    pub = models.ForeignKey("Pub", null=True, blank=True)
-    dbxref = models.ForeignKey("Dbxref", null=True, blank=True)
+    contact = models.ForeignKey("Contact", related_name="%(class)s_contact", on_delete=models.PROTECT)
+    pub = models.ForeignKey("Pub", null=True, blank=True, on_delete=models.PROTECT)
+    dbxref = models.ForeignKey("Dbxref", null=True, blank=True, on_delete=models.PROTECT)
     name = models.TextField(unique=True)
     description = models.TextField(blank=True)
     class Meta:
@@ -1132,8 +1132,8 @@ class Study(models.Model):
 
 class Studydesignprop(models.Model):
     studydesignprop_id = models.IntegerField(primary_key=True)
-    studydesign = models.ForeignKey("Studydesign", related_name="%(class)s_studydesign" )
-    type = models.ForeignKey("Cvterm", related_name="%(class)s_type" )
+    studydesign = models.ForeignKey("Studydesign", related_name="%(class)s_studydesign", on_delete=models.PROTECT)
+    type = models.ForeignKey("Cvterm", related_name="%(class)s_type", on_delete=models.PROTECT)
     value = models.TextField(blank=True)
     rank = models.IntegerField()
     class Meta:
@@ -1141,15 +1141,15 @@ class Studydesignprop(models.Model):
 
 class Studydesign(models.Model):
     studydesign_id = models.IntegerField(primary_key=True)
-    study = models.ForeignKey("Study", related_name="%(class)s_study" )
+    study = models.ForeignKey("Study", related_name="%(class)s_study", on_delete=models.PROTECT)
     description = models.TextField(blank=True)
     class Meta:
         db_table = u'studydesign'
 
 class Studyfactor(models.Model):
     studyfactor_id = models.IntegerField(primary_key=True)
-    studydesign = models.ForeignKey("Studydesign", related_name="%(class)s_studydesign" )
-    type = models.ForeignKey("Cvterm", null=True, blank=True)
+    studydesign = models.ForeignKey("Studydesign", related_name="%(class)s_studydesign", on_delete=models.PROTECT)
+    type = models.ForeignKey("Cvterm", null=True, blank=True, on_delete=models.PROTECT)
     name = models.TextField()
     description = models.TextField(blank=True)
     class Meta:
@@ -1157,8 +1157,8 @@ class Studyfactor(models.Model):
 
 class Studyfactorvalue(models.Model):
     studyfactorvalue_id = models.IntegerField(primary_key=True)
-    studyfactor = models.ForeignKey("Studyfactor", related_name="%(class)s_studyfactor" )
-    assay = models.ForeignKey("Assay", related_name="%(class)s_assay" )
+    studyfactor = models.ForeignKey("Studyfactor", related_name="%(class)s_studyfactor", on_delete=models.PROTECT)
+    assay = models.ForeignKey("Assay", related_name="%(class)s_assay", on_delete=models.PROTECT)
     factorvalue = models.TextField(blank=True)
     name = models.TextField(blank=True)
     rank = models.IntegerField()
@@ -1167,8 +1167,8 @@ class Studyfactorvalue(models.Model):
 
 class Studyprop(models.Model):
     studyprop_id = models.IntegerField(primary_key=True)
-    study = models.ForeignKey("Study", related_name="%(class)s_study" )
-    type = models.ForeignKey("Cvterm", related_name="%(class)s_type" )
+    study = models.ForeignKey("Study", related_name="%(class)s_study", on_delete=models.PROTECT)
+    type = models.ForeignKey("Cvterm", related_name="%(class)s_type", on_delete=models.PROTECT)
     value = models.TextField(blank=True)
     rank = models.IntegerField()
     class Meta:
@@ -1176,30 +1176,30 @@ class Studyprop(models.Model):
 
 class StudypropFeature(models.Model):
     studyprop_feature_id = models.IntegerField(primary_key=True)
-    studyprop = models.ForeignKey("Studyprop", related_name="%(class)s_studyprop" )
-    feature = models.ForeignKey("Feature", related_name="%(class)s_feature" )
-    type = models.ForeignKey("Cvterm", null=True, blank=True)
+    studyprop = models.ForeignKey("Studyprop", related_name="%(class)s_studyprop", on_delete=models.PROTECT)
+    feature = models.ForeignKey("Feature", related_name="%(class)s_feature", on_delete=models.PROTECT)
+    type = models.ForeignKey("Cvterm", null=True, blank=True, on_delete=models.PROTECT)
     class Meta:
         db_table = u'studyprop_feature'
 
 class StockpropPub(models.Model):
     stockprop_pub_id = models.IntegerField(primary_key=True)
-    stockprop = models.ForeignKey("Stockprop", related_name="%(class)s_stockprop" )
-    pub = models.ForeignKey("Pub", related_name="%(class)s_pub" )
+    stockprop = models.ForeignKey("Stockprop", related_name="%(class)s_stockprop", on_delete=models.PROTECT)
+    pub = models.ForeignKey("Pub", related_name="%(class)s_pub", on_delete=models.PROTECT)
     class Meta:
         db_table = u'stockprop_pub'
 
 class StockPub(models.Model):
     stock_pub_id = models.IntegerField(primary_key=True)
-    stock = models.ForeignKey("Stock", related_name="%(class)s_stock" )
-    pub = models.ForeignKey("Pub", related_name="%(class)s_pub" )
+    stock = models.ForeignKey("Stock", related_name="%(class)s_stock", on_delete=models.PROTECT)
+    pub = models.ForeignKey("Pub", related_name="%(class)s_pub", on_delete=models.PROTECT)
     class Meta:
         db_table = u'stock_pub'
 
 class Stockprop(models.Model):
     stockprop_id = models.IntegerField(primary_key=True)
-    stock = models.ForeignKey("Stock", related_name="%(class)s_stock" )
-    type = models.ForeignKey("Cvterm", related_name="%(class)s_type" )
+    stock = models.ForeignKey("Stock", related_name="%(class)s_stock", on_delete=models.PROTECT)
+    type = models.ForeignKey("Cvterm", related_name="%(class)s_type", on_delete=models.PROTECT)
     value = models.TextField(blank=True)
     rank = models.IntegerField()
     class Meta:
@@ -1207,9 +1207,9 @@ class Stockprop(models.Model):
 
 class StockRelationship(models.Model):
     stock_relationship_id = models.IntegerField(primary_key=True)
-    subject = models.ForeignKey("Stock", related_name="%(class)s_subject" )
-    object = models.ForeignKey("Stock", related_name="%(class)s_object" )
-    type = models.ForeignKey("Cvterm", related_name="%(class)s_type" )
+    subject = models.ForeignKey("Stock", related_name="%(class)s_subject", on_delete=models.PROTECT)
+    object = models.ForeignKey("Stock", related_name="%(class)s_object", on_delete=models.PROTECT)
+    type = models.ForeignKey("Cvterm", related_name="%(class)s_type", on_delete=models.PROTECT)
     value = models.TextField(blank=True)
     rank = models.IntegerField()
     class Meta:
@@ -1217,43 +1217,43 @@ class StockRelationship(models.Model):
 
 class StockRelationshipPub(models.Model):
     stock_relationship_pub_id = models.IntegerField(primary_key=True)
-    stock_relationship = models.ForeignKey("StockRelationship", related_name="%(class)s_relationship" )
-    pub = models.ForeignKey("Pub", related_name="%(class)s_pub" )
+    stock_relationship = models.ForeignKey("StockRelationship", related_name="%(class)s_relationship", on_delete=models.PROTECT)
+    pub = models.ForeignKey("Pub", related_name="%(class)s_pub", on_delete=models.PROTECT)
     class Meta:
         db_table = u'stock_relationship_pub'
 
 class Stock(models.Model):
     stock_id = models.IntegerField(primary_key=True)
-    dbxref = models.ForeignKey("Dbxref", null=True, blank=True)
-    organism = models.ForeignKey("Organism", related_name="%(class)s_organism" )
+    dbxref = models.ForeignKey("Dbxref", null=True, blank=True, on_delete=models.PROTECT)
+    organism = models.ForeignKey("Organism", related_name="%(class)s_organism", on_delete=models.PROTECT)
     name = models.CharField(max_length=255, blank=True)
     uniquename = models.TextField()
     description = models.TextField(blank=True)
-    type = models.ForeignKey("Cvterm", related_name="%(class)s_type" )
+    type = models.ForeignKey("Cvterm", related_name="%(class)s_type", on_delete=models.PROTECT)
     is_obsolete = models.BooleanField()
     class Meta:
         db_table = u'stock'
 
 class StockDbxref(models.Model):
     stock_dbxref_id = models.IntegerField(primary_key=True)
-    stock = models.ForeignKey("Stock", related_name="%(class)s_stock" )
-    dbxref = models.ForeignKey("Dbxref", related_name="%(class)s_dbxref" )
+    stock = models.ForeignKey("Stock", related_name="%(class)s_stock", on_delete=models.PROTECT)
+    dbxref = models.ForeignKey("Dbxref", related_name="%(class)s_dbxref", on_delete=models.PROTECT)
     is_current = models.BooleanField()
     class Meta:
         db_table = u'stock_dbxref'
 
 class StockCvterm(models.Model):
     stock_cvterm_id = models.IntegerField(primary_key=True)
-    stock = models.ForeignKey("Stock", related_name="%(class)s_stock" )
-    cvterm = models.ForeignKey("Cvterm", related_name="%(class)s_cvterm" )
-    pub = models.ForeignKey("Pub", related_name="%(class)s_pub" )
+    stock = models.ForeignKey("Stock", related_name="%(class)s_stock", on_delete=models.PROTECT)
+    cvterm = models.ForeignKey("Cvterm", related_name="%(class)s_cvterm", on_delete=models.PROTECT)
+    pub = models.ForeignKey("Pub", related_name="%(class)s_pub", on_delete=models.PROTECT)
     class Meta:
         db_table = u'stock_cvterm'
 
 class Stockcollection(models.Model):
     stockcollection_id = models.IntegerField(primary_key=True)
-    type = models.ForeignKey("Cvterm", related_name="%(class)s_type" )
-    contact = models.ForeignKey("Contact", null=True, blank=True)
+    type = models.ForeignKey("Cvterm", related_name="%(class)s_type", on_delete=models.PROTECT)
+    contact = models.ForeignKey("Contact", null=True, blank=True, on_delete=models.PROTECT)
     name = models.CharField(max_length=255, blank=True)
     uniquename = models.TextField()
     class Meta:
@@ -1261,15 +1261,15 @@ class Stockcollection(models.Model):
 
 class StockGenotype(models.Model):
     stock_genotype_id = models.IntegerField(primary_key=True)
-    stock = models.ForeignKey("Stock", related_name="%(class)s_stock" )
-    genotype = models.ForeignKey("Genotype", related_name="%(class)s_genotype" )
+    stock = models.ForeignKey("Stock", related_name="%(class)s_stock", on_delete=models.PROTECT)
+    genotype = models.ForeignKey("Genotype", related_name="%(class)s_genotype", on_delete=models.PROTECT)
     class Meta:
         db_table = u'stock_genotype'
 
 class Stockcollectionprop(models.Model):
     stockcollectionprop_id = models.IntegerField(primary_key=True)
-    stockcollection = models.ForeignKey("Stockcollection", related_name="%(class)s_stockcollection" )
-    type = models.ForeignKey("Cvterm", related_name="%(class)s_type" )
+    stockcollection = models.ForeignKey("Stockcollection", related_name="%(class)s_stockcollection", on_delete=models.PROTECT)
+    type = models.ForeignKey("Cvterm", related_name="%(class)s_type", on_delete=models.PROTECT)
     value = models.TextField(blank=True)
     rank = models.IntegerField()
     class Meta:
@@ -1277,16 +1277,16 @@ class Stockcollectionprop(models.Model):
 
 class StockcollectionStock(models.Model):
     stockcollection_stock_id = models.IntegerField(primary_key=True)
-    stockcollection = models.ForeignKey("Stockcollection", related_name="%(class)s_stockcollection" )
-    stock = models.ForeignKey("Stock", related_name="%(class)s_stock" )
+    stockcollection = models.ForeignKey("Stockcollection", related_name="%(class)s_stockcollection", on_delete=models.PROTECT)
+    stock = models.ForeignKey("Stock", related_name="%(class)s_stock", on_delete=models.PROTECT)
     class Meta:
         db_table = u'stockcollection_stock'
 
 class LibrarySynonym(models.Model):
     library_synonym_id = models.IntegerField(primary_key=True)
-    synonym = models.ForeignKey("Synonym", related_name="%(class)s_synonym" )
-    library = models.ForeignKey("Library", related_name="%(class)s_library" )
-    pub = models.ForeignKey("Pub", related_name="%(class)s_pub" )
+    synonym = models.ForeignKey("Synonym", related_name="%(class)s_synonym", on_delete=models.PROTECT)
+    library = models.ForeignKey("Library", related_name="%(class)s_library", on_delete=models.PROTECT)
+    pub = models.ForeignKey("Pub", related_name="%(class)s_pub", on_delete=models.PROTECT)
     is_current = models.BooleanField()
     is_internal = models.BooleanField()
     class Meta:
@@ -1294,8 +1294,8 @@ class LibrarySynonym(models.Model):
 
 class Libraryprop(models.Model):
     libraryprop_id = models.IntegerField(primary_key=True)
-    library = models.ForeignKey("Library", related_name="%(class)s_library" )
-    type = models.ForeignKey("Cvterm", related_name="%(class)s_type" )
+    library = models.ForeignKey("Library", related_name="%(class)s_library", on_delete=models.PROTECT)
+    type = models.ForeignKey("Cvterm", related_name="%(class)s_type", on_delete=models.PROTECT)
     value = models.TextField(blank=True)
     rank = models.IntegerField()
     class Meta:
@@ -1303,40 +1303,40 @@ class Libraryprop(models.Model):
 
 class LibraryPub(models.Model):
     library_pub_id = models.IntegerField(primary_key=True)
-    library = models.ForeignKey("Library", related_name="%(class)s_library" )
-    pub = models.ForeignKey("Pub", related_name="%(class)s_pub" )
+    library = models.ForeignKey("Library", related_name="%(class)s_library", on_delete=models.PROTECT)
+    pub = models.ForeignKey("Pub", related_name="%(class)s_pub", on_delete=models.PROTECT)
     class Meta:
         db_table = u'library_pub'
 
 class LibrarypropPub(models.Model):
     libraryprop_pub_id = models.IntegerField(primary_key=True)
-    libraryprop = models.ForeignKey("Libraryprop", related_name="%(class)s_libraryprop" )
-    pub = models.ForeignKey("Pub", related_name="%(class)s_pub" )
+    libraryprop = models.ForeignKey("Libraryprop", related_name="%(class)s_libraryprop", on_delete=models.PROTECT)
+    pub = models.ForeignKey("Pub", related_name="%(class)s_pub", on_delete=models.PROTECT)
     class Meta:
         db_table = u'libraryprop_pub'
 
 class LibraryCvterm(models.Model):
     library_cvterm_id = models.IntegerField(primary_key=True)
-    library = models.ForeignKey("Library", related_name="%(class)s_library" )
-    cvterm = models.ForeignKey("Cvterm", related_name="%(class)s_cvterm" )
-    pub = models.ForeignKey("Pub", related_name="%(class)s_pub" )
+    library = models.ForeignKey("Library", related_name="%(class)s_library", on_delete=models.PROTECT)
+    cvterm = models.ForeignKey("Cvterm", related_name="%(class)s_cvterm", on_delete=models.PROTECT)
+    pub = models.ForeignKey("Pub", related_name="%(class)s_pub", on_delete=models.PROTECT)
     class Meta:
         db_table = u'library_cvterm'
 
 class Synonym(models.Model):
     synonym_id = models.IntegerField(primary_key=True)
     name = models.CharField(max_length=255)
-    type = models.ForeignKey("Cvterm", related_name="%(class)s_type" )
+    type = models.ForeignKey("Cvterm", related_name="%(class)s_type", on_delete=models.PROTECT)
     synonym_sgml = models.CharField(max_length=255)
     class Meta:
         db_table = u'synonym'
 
 class Library(models.Model):
     library_id = models.IntegerField(primary_key=True)
-    organism = models.ForeignKey("Organism", related_name="%(class)s_organism" )
+    organism = models.ForeignKey("Organism", related_name="%(class)s_organism", on_delete=models.PROTECT)
     name = models.CharField(max_length=255, blank=True)
     uniquename = models.TextField()
-    type = models.ForeignKey("Cvterm", related_name="%(class)s_type" )
+    type = models.ForeignKey("Cvterm", related_name="%(class)s_type", on_delete=models.PROTECT)
     is_obsolete = models.IntegerField()
     timeaccessioned = models.DateTimeField()
     timelastmodified = models.DateTimeField()
@@ -1345,24 +1345,24 @@ class Library(models.Model):
 
 class LibraryFeature(models.Model):
     library_feature_id = models.IntegerField(primary_key=True)
-    library = models.ForeignKey("Library", related_name="%(class)s_library" )
-    feature = models.ForeignKey("Feature", related_name="%(class)s_feature" )
+    library = models.ForeignKey("Library", related_name="%(class)s_library", on_delete=models.PROTECT)
+    feature = models.ForeignKey("Feature", related_name="%(class)s_feature", on_delete=models.PROTECT)
     class Meta:
         db_table = u'library_feature'
 
 class LibraryDbxref(models.Model):
     library_dbxref_id = models.IntegerField(primary_key=True)
-    library = models.ForeignKey("Library", related_name="%(class)s_library" )
-    dbxref = models.ForeignKey("Dbxref", related_name="%(class)s_dbxref" )
+    library = models.ForeignKey("Library", related_name="%(class)s_library", on_delete=models.PROTECT)
+    dbxref = models.ForeignKey("Dbxref", related_name="%(class)s_dbxref", on_delete=models.PROTECT)
     is_current = models.BooleanField()
     class Meta:
         db_table = u'library_dbxref'
 
 class CellLineSynonym(models.Model):
     cell_line_synonym_id = models.IntegerField(primary_key=True)
-    cell_line = models.ForeignKey("CellLine", related_name="%(class)s_line" )
-    synonym = models.ForeignKey("Synonym", related_name="%(class)s_synonym" )
-    pub = models.ForeignKey("Pub", related_name="%(class)s_pub" )
+    cell_line = models.ForeignKey("CellLine", related_name="%(class)s_line", on_delete=models.PROTECT)
+    synonym = models.ForeignKey("Synonym", related_name="%(class)s_synonym", on_delete=models.PROTECT)
+    pub = models.ForeignKey("Pub", related_name="%(class)s_pub", on_delete=models.PROTECT)
     is_current = models.BooleanField()
     is_internal = models.BooleanField()
     class Meta:
@@ -1370,26 +1370,26 @@ class CellLineSynonym(models.Model):
 
 class CellLineCvterm(models.Model):
     cell_line_cvterm_id = models.IntegerField(primary_key=True)
-    cell_line = models.ForeignKey("CellLine", related_name="%(class)s_line" )
-    cvterm = models.ForeignKey("Cvterm", related_name="%(class)s_cvterm" )
-    pub = models.ForeignKey("Pub", related_name="%(class)s_pub" )
+    cell_line = models.ForeignKey("CellLine", related_name="%(class)s_line", on_delete=models.PROTECT)
+    cvterm = models.ForeignKey("Cvterm", related_name="%(class)s_cvterm", on_delete=models.PROTECT)
+    pub = models.ForeignKey("Pub", related_name="%(class)s_pub", on_delete=models.PROTECT)
     rank = models.IntegerField()
     class Meta:
         db_table = u'cell_line_cvterm'
 
 class CellLineDbxref(models.Model):
     cell_line_dbxref_id = models.IntegerField(primary_key=True)
-    cell_line = models.ForeignKey("CellLine", related_name="%(class)s_line" )
-    dbxref = models.ForeignKey("Dbxref", related_name="%(class)s_dbxref" )
+    cell_line = models.ForeignKey("CellLine", related_name="%(class)s_line", on_delete=models.PROTECT)
+    dbxref = models.ForeignKey("Dbxref", related_name="%(class)s_dbxref", on_delete=models.PROTECT)
     is_current = models.BooleanField()
     class Meta:
         db_table = u'cell_line_dbxref'
 
 class CellLineRelationship(models.Model):
     cell_line_relationship_id = models.IntegerField(primary_key=True)
-    subject = models.ForeignKey("CellLine", related_name="%(class)s_subject" )
-    object = models.ForeignKey("CellLine", related_name="%(class)s_object" )
-    type = models.ForeignKey("Cvterm", related_name="%(class)s_type" )
+    subject = models.ForeignKey("CellLine", related_name="%(class)s_subject", on_delete=models.PROTECT)
+    object = models.ForeignKey("CellLine", related_name="%(class)s_object", on_delete=models.PROTECT)
+    type = models.ForeignKey("Cvterm", related_name="%(class)s_type", on_delete=models.PROTECT)
     class Meta:
         db_table = u'cell_line_relationship'
 
@@ -1397,7 +1397,7 @@ class CellLine(models.Model):
     cell_line_id = models.IntegerField(primary_key=True)
     name = models.CharField(max_length=255, blank=True)
     uniquename = models.CharField(max_length=255)
-    organism = models.ForeignKey("Organism", related_name="%(class)s_organism" )
+    organism = models.ForeignKey("Organism", related_name="%(class)s_organism", on_delete=models.PROTECT)
     timeaccessioned = models.DateTimeField()
     timelastmodified = models.DateTimeField()
     class Meta:
@@ -1405,8 +1405,8 @@ class CellLine(models.Model):
 
 class CellLineprop(models.Model):
     cell_lineprop_id = models.IntegerField(primary_key=True)
-    cell_line = models.ForeignKey("CellLine", related_name="%(class)s_line" )
-    type = models.ForeignKey("Cvterm", related_name="%(class)s_type" )
+    cell_line = models.ForeignKey("CellLine", related_name="%(class)s_line", on_delete=models.PROTECT)
+    type = models.ForeignKey("Cvterm", related_name="%(class)s_type", on_delete=models.PROTECT)
     value = models.TextField(blank=True)
     rank = models.IntegerField()
     class Meta:
@@ -1414,8 +1414,8 @@ class CellLineprop(models.Model):
 
 class CellLinepropPub(models.Model):
     cell_lineprop_pub_id = models.IntegerField(primary_key=True)
-    cell_lineprop = models.ForeignKey("CellLineprop", related_name="%(class)s_lineprop" )
-    pub = models.ForeignKey("Pub", related_name="%(class)s_pub" )
+    cell_lineprop = models.ForeignKey("CellLineprop", related_name="%(class)s_lineprop", on_delete=models.PROTECT)
+    pub = models.ForeignKey("Pub", related_name="%(class)s_pub", on_delete=models.PROTECT)
     class Meta:
         db_table = u'cell_lineprop_pub'
 
@@ -1428,9 +1428,9 @@ class FpKey(models.Model):
 
 class CellLineLibrary(models.Model):
     cell_line_library_id = models.IntegerField(primary_key=True)
-    cell_line = models.ForeignKey("CellLine", related_name="%(class)s_line" )
-    library = models.ForeignKey("Library", related_name="%(class)s_library" )
-    pub = models.ForeignKey("Pub", related_name="%(class)s_pub" )
+    cell_line = models.ForeignKey("CellLine", related_name="%(class)s_line", on_delete=models.PROTECT)
+    library = models.ForeignKey("Library", related_name="%(class)s_library", on_delete=models.PROTECT)
+    pub = models.ForeignKey("Pub", related_name="%(class)s_pub", on_delete=models.PROTECT)
     class Meta:
         db_table = u'cell_line_library'
 
@@ -1450,9 +1450,9 @@ class Gff3Atts(models.Model):
 
 class CellLineFeature(models.Model):
     cell_line_feature_id = models.IntegerField(primary_key=True)
-    cell_line = models.ForeignKey("CellLine", related_name="%(class)s_line" )
-    feature = models.ForeignKey("Feature", related_name="%(class)s_feature" )
-    pub = models.ForeignKey("Pub", related_name="%(class)s_pub" )
+    cell_line = models.ForeignKey("CellLine", related_name="%(class)s_line", on_delete=models.PROTECT)
+    feature = models.ForeignKey("Feature", related_name="%(class)s_feature", on_delete=models.PROTECT)
+    pub = models.ForeignKey("Pub", related_name="%(class)s_pub", on_delete=models.PROTECT)
     class Meta:
         db_table = u'cell_line_feature'
 
@@ -1481,8 +1481,8 @@ class AllFeatureNames(models.Model):
 
 class CellLineCvtermprop(models.Model):
     cell_line_cvtermprop_id = models.IntegerField(primary_key=True)
-    cell_line_cvterm = models.ForeignKey("CellLineCvterm", related_name="%(class)s_cvterm" )
-    type = models.ForeignKey("Cvterm", related_name="%(class)s_type" )
+    cell_line_cvterm = models.ForeignKey("CellLineCvterm", related_name="%(class)s_cvterm", on_delete=models.PROTECT)
+    type = models.ForeignKey("Cvterm", related_name="%(class)s_type", on_delete=models.PROTECT)
     value = models.TextField(blank=True)
     rank = models.IntegerField()
     class Meta:
@@ -1520,8 +1520,8 @@ class FType(models.Model):
 
 class CellLinePub(models.Model):
     cell_line_pub_id = models.IntegerField(primary_key=True)
-    cell_line = models.ForeignKey("CellLine", related_name="%(class)s_line" )
-    pub = models.ForeignKey("Pub", related_name="%(class)s_pub" )
+    cell_line = models.ForeignKey("CellLine", related_name="%(class)s_line", on_delete=models.PROTECT)
+    pub = models.ForeignKey("Pub", related_name="%(class)s_pub", on_delete=models.PROTECT)
     class Meta:
         db_table = u'cell_line_pub'
 
@@ -1623,15 +1623,15 @@ class FeaturesetMeets(models.Model):
 
 class GeneOrder(models.Model):
     gene_order_id = models.IntegerField(primary_key=True)
-    chromosome = models.ForeignKey("Feature", related_name="%(class)s_chromosome")
-    gene = models.ForeignKey("Feature", related_name="%(class)s_gene")
+    chromosome = models.ForeignKey("Feature", related_name="%(class)s_chromosome", on_delete=models.PROTECT)
+    gene = models.ForeignKey("Feature", related_name="%(class)s_gene", on_delete=models.PROTECT)
     number = models.IntegerField(null=True, blank=True)
     class Meta:
         db_table = u'gene_order'
 
 class GeneFamilyAssignment(models.Model):
     gene_family_assignment_id = models.IntegerField(primary_key=True)
-    gene = models.ForeignKey("Feature", related_name="%(class)s_gene")
+    gene = models.ForeignKey("Feature", related_name="%(class)s_gene", on_delete=models.PROTECT)
     family_label = models.TextField(blank=False)
     class Meta:
         db_table = u'gene_family_assignment'

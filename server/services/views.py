@@ -17,6 +17,7 @@ import math
 import operator
 import time
 from collections     import defaultdict, OrderedDict
+from functools       import reduce
 from itertools       import chain
 from multiprocessing import Pool as ThreadPool
 
@@ -33,7 +34,7 @@ CHROMOSOMES_AS_GENE_IDS = None
 def db_ready_handler(sender, **kwargs):
     global CHROMOSOME_FAMILY_COUNTS, CHROMOSOME_MAP, CHROMOSOMES_AS_FAMILIES,\
         CHROMOSOMES_AS_GENE_IDS
-    print 'Pre-loading macro-synteny data...'
+    print('Pre-loading macro-synteny data...')
 
     # get family assignment and number on chromosome for each gene
     families        = GeneFamilyAssignment.objects.all().iterator()
@@ -177,7 +178,7 @@ def v1_micro_synteny_basic(request):
         gene_pool = list(GeneOrder.objects.filter(
             reduce(operator.or_, gene_queries.values())
         ))
-        gene_pool_ids = map(lambda g: g.gene_id, gene_pool)
+        gene_pool_ids = list(map(lambda g: g.gene_id, gene_pool))
         group_by_chromosome = {}
         for g in gene_pool:
             if g.chromosome_id not in group_by_chromosome:
@@ -497,7 +498,7 @@ def v1_micro_synteny_search(request):
         # construct tracks for each chromosome
         tracks = {}
         gene_queries = []
-        for chromosome_id, genes in chromosome_genes_map.iteritems():
+        for chromosome_id, genes in chromosome_genes_map.items():
             if len(genes) < 2:
                 continue
             # put the genes in order
@@ -545,7 +546,7 @@ def v1_micro_synteny_search(request):
             # get the track genes
             gene_pool = list(GeneOrder.objects\
                 .filter(reduce(operator.or_, gene_queries)))
-            gene_ids = map(lambda x: x.gene_id, gene_pool)
+            gene_ids = list(map(lambda x: x.gene_id, gene_pool))
 
             # get the track gene families
             track_gene_families = list(GeneFamilyAssignment.objects.only(
@@ -581,10 +582,10 @@ def v1_micro_synteny_search(request):
                     if o.chromosome_id == chromosome_id and o.number >= lower_bound\
                     and o.number <= upper_bound:
                         tracks[key].append(o)
-                tracks[key] = map(
+                tracks[key] = list(map(
                     lambda x: x.gene_id,
                     sorted(tracks[key], key=lambda o: o.number)
-                )
+                ))
 
         # jsonify the tracks... that's right, jsonify
         groups = []
@@ -724,7 +725,7 @@ def v1_macro_synteny(request):
             .only('feature', 'fmin', 'fmax', 'strand')\
             .filter(srcfeature=chromosome, feature__type=synteny_type, rank=0))
         # get the chromosome each region belongs to
-        region_ids = map(lambda b: b.feature_id, blocks)
+        region_ids = list(map(lambda b: b.feature_id, blocks))
         regions = None
         if 'results' in POST:
             regions = list(Featureloc.objects\
@@ -761,7 +762,7 @@ def v1_macro_synteny(request):
                 )
         # generate the json
         tracks = []
-        for (name, species, genus), blocks in feature_locs.iteritems():
+        for (name, species, genus), blocks in feature_locs.items():
             tracks.append({
                 'chromosome': name,
                 'species': species,
@@ -932,8 +933,11 @@ def macro_synteny_traceback(path_ends, pointers, scores, minsize):
         yield (begin, end)
 
 
-def macro_synteny_paths(((c_id, chromosome), (family_num_map, trivial_blocks, maxinsert,
-minsize, familymask, chromosome_as_genes, family_counts))):
+def macro_synteny_paths(params):
+  (target_chromosome, args) = params
+  (c_id, chromosome) = target_chromosome
+  (family_num_map, trivial_blocks, maxinsert, minsize, familymask,
+  chromosome_as_genes, family_counts) = args
   # generate number pairs ORDERED BY CHROMOSOME GENE NUMBER THEN QUERY
   # GENE NUMBER - this is a topological sorting
   pairs = []
@@ -1092,14 +1096,14 @@ def v1_1_macro_synteny(request):
             for f in flocs)
 
         # get the organism of each chromosome that has blocks
-        organism_ids = map(lambda c: CHROMOSOME_MAP[c].organism_id, paths.keys())
+        organism_ids = list(map(lambda c: CHROMOSOME_MAP[c].organism_id, paths.keys()))
         organisms = list(Organism.objects.only('genus', 'species')
             .filter(pk__in=organism_ids))
         organism_map = dict((o.pk, o) for o in organisms)
 
         # generate the JSON
         tracks = []
-        for c_id, c_paths in paths.iteritems():
+        for c_id, c_paths in paths.items():
             blocks = []
             for begin, end in c_paths:
                 begin_gene = CHROMOSOMES_AS_GENE_IDS[c_id][begin[0]]
@@ -1212,7 +1216,7 @@ def v2_genes(request):
     if request.method == 'POST' and 'genes' in POST:
         # get the focus gene of the query track
         genes = list(Feature.objects.filter(name__in=POST['genes']))
-        gene_ids = map(lambda g: g.feature_id, genes)
+        gene_ids = list(map(lambda g: g.feature_id, genes))
         # get the gene family type
         gene_family_type = list(
             Cvterm.objects.only('pk').filter(name='gene family')
@@ -1242,7 +1246,7 @@ def v2_genes(request):
             'strand'
         ).filter(feature__in=gene_ids))
         floc_map = dict((o.feature_id, o) for o in flocs)
-        chromosome_ids = map(lambda f: f.srcfeature_id, flocs)
+        chromosome_ids = list(map(lambda f: f.srcfeature_id, flocs))
         # get the track chromosome
         chromosomes = list(Feature.objects.only('name')\
             .filter(pk__in=chromosome_ids))
@@ -1431,14 +1435,14 @@ def v2_pairwise_blocks(request):
             for f in flocs)
 
         # get the organism of each chromosome that has blocks
-        organism_ids = map(lambda c: CHROMOSOME_MAP[c].organism_id, paths.keys())
+        organism_ids = list(map(lambda c: CHROMOSOME_MAP[c].organism_id, paths.keys()))
         organisms = list(Organism.objects.only('genus', 'species')
             .filter(pk__in=organism_ids))
         organism_map = dict((o.pk, o) for o in organisms)
 
         # generate the JSON
         tracks = []
-        for c_id, c_paths in paths.iteritems():
+        for c_id, c_paths in paths.items():
             blocks = []
             for begin, end in c_paths:
                 begin_gene = CHROMOSOMES_AS_GENE_IDS[c_id][begin[0]]
@@ -1559,7 +1563,7 @@ def v2_micro_synteny_search(request):
         # construct tracks for each chromosome
         tracks = {}
         gene_queries = []
-        for chromosome_id, genes in chromosome_genes_map.iteritems():
+        for chromosome_id, genes in chromosome_genes_map.items():
             if len(genes) < 2:
                 continue
             # put the genes in order
@@ -1607,7 +1611,7 @@ def v2_micro_synteny_search(request):
             # get the track genes
             gene_pool = list(GeneOrder.objects\
                 .filter(reduce(operator.or_, gene_queries)))
-            gene_ids = map(lambda x: x.gene_id, gene_pool)
+            gene_ids = list(map(lambda x: x.gene_id, gene_pool))
 
             # get the track gene families
             track_gene_families = list(GeneFamilyAssignment.objects.only(
@@ -1634,10 +1638,10 @@ def v2_micro_synteny_search(request):
                     if o.chromosome_id == chromosome_id and o.number >= lower_bound\
                     and o.number <= upper_bound:
                         tracks[key].append(o)
-                tracks[key] = map(
+                tracks[key] = list(map(
                     lambda x: x.gene_id,
                     sorted(tracks[key], key=lambda o: o.number)
-                )
+                ))
 
         # jsonify the tracks... that's right, jsonify
         groups = []
