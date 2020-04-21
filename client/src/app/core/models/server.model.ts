@@ -9,13 +9,10 @@ export class Request {
 export class Server {
   id: string;  // unique & url friendly
   name: string;
-  microMulti: Request;
+  genes: Request;
+  chromosome: Request;
   microSearch: Request;
-  microQuery: Request;
-  macro: Request;
+  blocks: Request;
   geneLinks: Request;
   familyTreeLink: Request;
-  nearestGene: Request;
-  chromosome: Request;
-  spanToSearch: Request;
 }

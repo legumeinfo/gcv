@@ -36,8 +36,8 @@ export abstract class HttpService {
     }
     const request = source[requestType];
     const url = makeUrl(request.url);
-    const params = new HttpParams({fromObject: body});
     if (request.type === GET) {
+      const params = new HttpParams({fromObject: body});
       const requestObservable = this.http.get<T>(url, {params}).pipe(share());
       this.requestsSubject.next([args, requestObservable]);
       return requestObservable;
