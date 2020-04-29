@@ -206,10 +206,11 @@ createSelectorFactory(memoizeArray)(
     // the given sequence relative to the given reference
     const aligner = (reference, sequence) => {
         const options = {
-            omit: new Set(''),
+            omit: new Set(['']),
             scores: Object.assign({}, params),
+            carryover: false,
           };
-        const alignments = algorithm(reference, sequence);
+        const alignments = algorithm(reference, sequence, options);
         // TODO: combine repeat tracks
         return alignments;
       };
@@ -218,7 +219,9 @@ createSelectorFactory(memoizeArray)(
     const reducer = (accumulator, track, i) => {
         const consensus = consensuses[track.cluster];
         const alignments = aligner(consensus, track.families);
-        const trackAlignments = alignments.map((a) => mixin(track, a));
+        const trackAlignments = alignments
+          .map((a) => mixin(track, a))
+          .filter((t) => t.score >= params.score);
         accumulator.push(...trackAlignments);
         return accumulator;
       };

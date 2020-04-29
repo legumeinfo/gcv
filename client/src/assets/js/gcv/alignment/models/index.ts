@@ -1,5 +1,5 @@
-export { Alignment } from "./alignment";
-export { InternalAlignment } from "./internal-alignment";
-export { Interval } from "./interval";
-export { Scores } from "./scores";
-export { Traceback } from "./traceback";
+export * from "./alignment";
+export * from "./internal-alignment";
+export * from "./interval";
+export * from "./scores";
+export * from "./traceback";

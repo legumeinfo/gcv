@@ -17,12 +17,17 @@ import { computeScore, mergeAlignments } from "./utils";
  * containing a pointer to the cell in the preceding column that the value was
  * derived from.
  */
-function computeFirstCellOfColumn(m: number[][], i: number, threshold: number):
+function computeFirstCellOfColumn(m: number[][], i: number, threshold: number,
+carryover: boolean):
 [number, [number, number]] {
-  const values = m[i-1].map((s) => s-threshold);
+  const t = (carryover) ? threshold : 0;
+  const values = m[i-1].map((s) => Math.max(0, s-t));
   values[0] = m[i-1][0];
-  const v = Math.max(...values);
+  let v = Math.max(...values);
   const k = values.indexOf(v);
+  if (!carryover) {
+    v = 0;
+  }
   return [v, [i-1, k]];
 }
 
@@ -60,7 +65,8 @@ function align<T>(
   seq: T[],
   ref: T[],
   scores: Scores,
-  omit: Set<T>=new Set): InternalAlignment[]
+  omit: Set<T>=new Set,
+  carryover: boolean=true): InternalAlignment[]
 {
 
   // construct score and traceback matrices
@@ -70,7 +76,8 @@ function align<T>(
   const t = matrix(cols, rows, [0, 0]);  // traceback
   for (let i = 1; i < cols; i++) {
     // handle unmatched regions and ends of matches
-    [m[i][0], t[i][0]] = computeFirstCellOfColumn(m, i, scores.threshold);
+    [m[i][0], t[i][0]] =
+      computeFirstCellOfColumn(m, i, scores.threshold, carryover);
     // handle starts of matches and extensions
     for (let j = 1; j < rows; j++) {
       const choices = [
@@ -101,7 +108,8 @@ function align<T>(
   const alignments: InternalAlignment[] = [];
   let a = {coordinates: [], scores: []};
   let insertion = 0;
-  let [, [i, j]] = computeFirstCellOfColumn(m, cols, scores.threshold);
+  let [, [i, j]] =
+    computeFirstCellOfColumn(m, cols, scores.threshold, carryover);
   while (!(i === 0 && j === 0)) {
     let [i2, j2] = t[i][j];
     // start new alignment
@@ -170,19 +178,20 @@ export function repeat<T>(
   setOption(options.scores, "match", 5);
   setOption(options.scores, "mismatch", 0);
   setOption(options.scores, "gap", -1);
-  setOption(options.scores, "threshold", 10);
+  setOption(options.scores, "threshold", 0);
   setOption(options, "omit", new Set());
   setOption(options, "reversals", true);
-  setOption(options, "inversions", true);
+  setOption(options, "inversions", 2);
+  setOption(options, "carryover", true);
 
   // perform forward and reverse alignments
   const forward = sequence;
   const forwardAlignments =
-    align(reference, forward, options.scores, options.omit);
+    align(reference, forward, options.scores, options.omit, options.carryover);
   const reverse = (options.reversals || options.inversions) ?
     [...forward].reverse() : [];
   const reverseAlignments =
-    align(reference, reverse, options.scores, options.omit);
+    align(reference, reverse, options.scores, options.omit, options.carryover);
   // reverse the reverse alignment orderings and the alignments themselves
   reverseAlignments
     .reverse()
@@ -193,10 +202,13 @@ export function repeat<T>(
 
   // merge alignments
   const alignments = mergeAlignments(
-      forwardAlignments,
-      reverseAlignments,
+      // reverse alignment orders because the dynamic program returns them in
+      // backwards order relative to the input sequences
+      forwardAlignments.reverse(),
+      reverseAlignments.reverse(),
       options.reversals,
-      options.inversions)
+      options.inversions,
+      options.scores.threshold)
     .map((a) => ({alignment: a.coordinates, score: sum(a.scores)}));
 
   return alignments;

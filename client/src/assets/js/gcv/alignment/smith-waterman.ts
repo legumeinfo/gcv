@@ -132,9 +132,10 @@ export function smithWaterman<T>(
   setOption(options.scores, "match", 5);
   setOption(options.scores, "mismatch", 0);
   setOption(options.scores, "gap", -1);
+  setOption(options.scores, "threshold", 0);
   setOption(options, "omit", new Set());
   setOption(options, "reverse", true);
-  setOption(options, "inversions", true);
+  setOption(options, "inversions", 2);
 
   // perform forward and reverse alignments
   const forward = sequence;
@@ -163,7 +164,8 @@ export function smithWaterman<T>(
       [forwardAlignment],
       [reverseAlignment],
       options.reversals,
-      options.inversions)
+      options.inversions,
+      options.scores.threshold)
     .map(toAlignment);
   return alignments;
 }
