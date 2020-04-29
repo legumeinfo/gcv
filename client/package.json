@@ -33,7 +33,7 @@
     "bootstrap-tour": "git+https://github.com/sorich87/bootstrap-tour.git",
     "circos": "^2.1.0",
     "d3": "^5.14.1",
-    "jquery": "^3.4.1",
+    "jquery": "^3.5.0",
     "popper.js": "^1.16.0",
     "rxjs": "^6.5.3",
     "split.js": "^1.5.11",
