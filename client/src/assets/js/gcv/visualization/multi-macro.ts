@@ -31,6 +31,7 @@ export class MultiMacro {
     if (this.options.colors === undefined) {
       this.options.colors = ((s) => "#cfcfcf");
     }
+    this.options.IRIprefix = this.options.IRIprefix || '';
   }
 
   private parseData(multiMacroTracks) {
@@ -261,6 +262,15 @@ export class MultiMacro {
       .attr("data-reference-locus", (d) => d.start + ":" + d.end)
       .attr("data-orientation", (d) => d.orientation)
       .attr("data-organism", (d) => d && this.data.genusSpecies[d.id]);
+
+    // HACK: allows users to add an IRI prefix since CircosJS only uses relative
+    // paths (i.e. just the reference element selector)
+    this.data.chromosomes.forEach(({id}) => {
+      const textPath = this.circos.svg.select(`g[class='${id}'] textPath`);
+      const pathRef = this.options.IRIprefix + textPath.attr('href');
+      textPath.attr('href', pathRef);
+      console.log(id);
+    });
   }
 
   // TODO: clearTimeout doesn't appear to be working due to a scoping issue

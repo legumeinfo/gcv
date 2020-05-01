@@ -1,4 +1,5 @@
 // Angular
+import { Location } from '@angular/common';
 import { AfterViewInit, Component, ElementRef, Input, OnDestroy, OnInit,
   ViewChild } from '@angular/core';
 import { Subject, combineLatest } from 'rxjs';
@@ -59,6 +60,7 @@ export class MacroCircosComponent implements AfterViewInit, OnDestroy, OnInit {
 
   constructor(private _chromosomeService: ChromosomeService,
               private _geneService: GeneService,
+              private _location: Location,
               private _microTracksService: MicroTracksService,
               private _pairwiseBlocksService: PairwiseBlocksService,
               private _paramsService: ParamsService,
@@ -140,7 +142,8 @@ export class MacroCircosComponent implements AfterViewInit, OnDestroy, OnInit {
     const {data, highlight} =
       macroCircosShim(queries, chromosomes, blocks, genes);
     const colors = getMacroColors(chromosomes);
-    let options = {colors, highlight};
+    const absolutePath = this._location.prepareExternalUrl(this._location.path());
+    let options = {colors, highlight, IRIprefix: absolutePath};
     options = Object.assign(options, this.options, {autoResize: false});
     this.draw = this._draw.bind(this, data, options);
   }
