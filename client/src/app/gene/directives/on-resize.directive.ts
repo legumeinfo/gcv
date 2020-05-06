@@ -21,7 +21,9 @@ export class OnResizeDirective implements OnDestroy, OnInit {
   // Angular hooks
 
   ngOnDestroy() {
-    this._resizeObserver.disconnect();
+    if (this._resizeObserver != undefined) {
+      this._resizeObserver.disconnect();
+    }
   }
 
   ngOnInit() {
