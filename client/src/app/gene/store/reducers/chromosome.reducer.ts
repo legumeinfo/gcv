@@ -70,6 +70,7 @@ export function reducer(
       return adapter.removeAll({
         ...state,
         failed: [],
+        loaded: [],
         loading: [],
       });
     case chromosomeActions.GET:
