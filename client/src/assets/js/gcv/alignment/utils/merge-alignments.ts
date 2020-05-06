@@ -175,7 +175,10 @@ function cutPointsToWeightedIntervals(
  * @return{Array<number>} - The indices of the intervals in the input array that
  * are in the solution.
  */
-function weightedIntervalScheduling(intervals: WeightedInterval[]): number[] {
+function weightedIntervalScheduling(
+  intervals: WeightedInterval[],
+  breakpoint: number=0
+): number[] {
   // augment each interval with its original index then sort by finish position
   const compare = (a, b) => a[1]-b[1] || a[0]-b[0] || a[2]-b[2];
   const sortedIntervals = intervals
@@ -188,11 +191,24 @@ function weightedIntervalScheduling(intervals: WeightedInterval[]): number[] {
   // for each interval, the index of the closest preceding interval it doesn't
   // overlap with
   const p = [0].concat(sortedIntervals.map(([begin, end, weight, i], j) => {
+      let K = 0;
+      let Kend = 0;
+      let Ki = -1;
       // TODO: this is worst case n^2; can be done in n log n with binary search
       for (let k = j-1; k > 0; k--) {
         const [begin2, end2, weight2, i2] = sortedIntervals[k-1];
         if (end2 < begin) {  // strictly less than because intervals are inclusive
-          return k;
+          // use breakpoint to prefer predecessors from same partition
+          if (K != 0 && end2 != Kend) {
+            return K;
+          }
+          if (K == 0 ||
+             (i >= breakpoint && i2 >= breakpoint && Ki < breakpoint) ||
+             (i < breakpoint && i2 < breakpoint && Ki > breakpoint)) {
+            K = k;
+            Kend = end2;
+            Ki = i2;
+          }
         }
       }
       return 0;
@@ -257,16 +273,17 @@ function reversalsAndInversions(
 
   // use weighted interval scheduling dynamic program to find a set of cut
   // intervals that generates the highest scoring alignment
+  const breakpoint = weightedForwardIntervals.length;
   const weightedIntervals =
     weightedForwardIntervals.concat(weightedReverseIntervals);
-  const optimalIntervals = weightedIntervalScheduling(weightedIntervals);
+  const optimalIntervals = weightedIntervalScheduling(weightedIntervals, breakpoint);
   const alignmentIndexedOptimalIntervals = optimalIntervals
     .map((i): [number, number, number] => {
-      if (i < weightedForwardIntervals.length) {
+      if (i < breakpoint) {
         const [begin, end, weight] = weightedForwardIntervals[i];
         return [begin, end, 0];
       }
-      i = i-weightedForwardIntervals.length;
+      i = i-breakpoint;
       const [begin, end, weight] = weightedReverseIntervals[i];
       return [begin, end, 1];
     });
