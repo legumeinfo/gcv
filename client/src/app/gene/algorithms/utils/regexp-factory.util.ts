@@ -4,7 +4,12 @@ import { trackName } from './track-name.util';
 
 
 function trackFilter(regexp, toString, tracks) {
-  const r = new RegExp(regexp);
+  let r;
+  try {
+    r = new RegExp(regexp);
+  } catch (e) {
+    r = new RegExp('');
+  }
   return tracks.filter((t) => r.test(toString(t)));
 }
 

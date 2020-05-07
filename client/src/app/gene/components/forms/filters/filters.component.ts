@@ -26,18 +26,18 @@ export class FiltersComponent {
   macroOrderAlgorithms = MACRO_ORDER_ALGORITHMS;
   currentMacroRegexp: Observable<string>;
   selectedMacroOrderAlgorithm: Observable<Algorithm>;
+  badMacroRegexp = false;
 
   microOrderAlgorithms = MICRO_ORDER_ALGORITHMS;
   currentMicroRegexp: Observable<string>;
   selectedMicroOrderAlgorithm: Observable<Algorithm>;
+  badMicroRegexp = false;
 
   macroHelp = false;
   microHelp = false;
 
   private _macroOrderMap = MACRO_ORDER_ALGORITHM_MAP;
   private _microOrderMap = MICRO_ORDER_ALGORITHM_MAP;
-  private _typingTimer;
-  private _doneTypingInterval = 1000;  // 1 seconds
   private _destroy: Subject<boolean> = new Subject();
 
   // constructor
@@ -56,10 +56,13 @@ export class FiltersComponent {
   // public
 
   updateMacroRegexp(bregexp: string): void {
-    clearTimeout(this._typingTimer);
-    this._typingTimer = setTimeout(() => {
+    try {
+      new RegExp(bregexp);
+      this.badMacroRegexp = false;
       this._paramsService.updateParams({bregexp});
-    }, this._doneTypingInterval);
+    } catch (e) {
+      this.badMacroRegexp = true;
+    }
   }
 
   updateMacroOrder(border: string): void {
@@ -67,10 +70,13 @@ export class FiltersComponent {
   }
 
   updateMicroRegexp(regexp: string): void {
-    clearTimeout(this._typingTimer);
-    this._typingTimer = setTimeout(() => {
+    try {
+      new RegExp(regexp);
+      this.badMicroRegexp = false;
       this._paramsService.updateParams({regexp});
-    }, this._doneTypingInterval);
+    } catch (e) {
+      this.badMicroRegexp = true;
+    }
   }
 
   updateMicroOrder(order: string): void {

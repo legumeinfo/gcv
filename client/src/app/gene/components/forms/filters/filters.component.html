@@ -1,14 +1,21 @@
-<form id="search-parameters" (ngSubmit)="submit()">
+
   <fieldset id="macro-filters">
     <legend>Macro-Synteny<a id="macro-help" class="float-right" (click)="macroHelp=!macroHelp"><span class="fa fa-question-circle"></span></a></legend>
-    <div class="form-group">
-      <label for="macro-regexp">Filter by name</label>
-      <input class="form-control" type="text" id="macro-regexp" name="macro-regexp"
-        (input)="updateMacroRegexp($event.target.value)"
-        [ngModel]="currentMacroRegexp|async">
-      <small class="form-text text-muted">A regular expression</small>
-      <p class="help-block" *ngIf="macroHelp">A regular expression used to filter the macro-synteny tracks by name.</p>
-    </div>
+    <form #macroFilterForm="ngForm" (ngSubmit)="updateMacroRegexp(macroFilterForm.value.macroregexp)" novalidate>
+      <div class="form-group">
+        <label for="macro-regexp">Filter by name</label>
+        <div class="input-group">
+          <input class="form-control" type="text" id="macro-regexp" name="macroregexp"
+            [ngModel]="currentMacroRegexp|async"
+            [ngClass]="{'is-invalid': badMacroRegexp}">
+          <div class="input-group-append">
+            <button type="submit" class="btn btn-dark">Submit</button>
+          </div>
+        </div>
+        <small class="form-text text-muted">A regular expression</small>
+        <p class="help-block" *ngIf="macroHelp">A regular expression used to filter the macro-synteny tracks by name.</p>
+      </div>
+    </form>
     <div class="form-group">
       <label for="macro-order">Track order</label>
       <select class="form-control" id="macro-order" name="macro-order"
@@ -21,14 +28,21 @@
   </fieldset>
   <fieldset id="micro-filters">
     <legend>Micro-Synteny<a id="micro-help" class="float-right" (click)="microHelp=!microHelp"><span class="fa fa-question-circle"></span></a></legend>
-    <div class="form-group">
-      <label for="micro-regexp">Filter by name</label>
-      <input class="form-control" type="text" id="micro-regexp" name="micro-regexp"
-        (input)="updateMicroRegexp($event.target.value)"
-        [ngModel]="currentMicroRegexp|async">
-      <small class="form-text text-muted">A regular expression</small>
-      <p class="help-block" *ngIf="microHelp">A regular expression used to filter the micro-synteny tracks by name.</p>
-    </div>
+    <form #microFilterForm="ngForm" (ngSubmit)="updateMicroRegexp(microFilterForm.value.microregexp)" novalidate>
+      <div class="form-group">
+        <label for="micro-regexp">Filter by name</label>
+        <div class="input-group">
+          <input class="form-control" type="text" id="micro-regexp" name="microregexp"
+            [ngModel]="currentMicroRegexp|async"
+            [ngClass]="{'is-invalid': badMicroRegexp}">
+          <div class="input-group-append">
+            <button type="submit" class="btn btn-dark">Submit</button>
+          </div>
+        </div>
+        <small class="form-text text-muted">A regular expression</small>
+        <p class="help-block" *ngIf="microHelp">A regular expression used to filter the micro-synteny tracks by name.</p>
+      </div>
+    </form>
     <div class="form-group">
       <label for="micro-order">Track order</label>
       <select class="form-control" id="micro-order" name="micro-order"
@@ -39,4 +53,3 @@
       <p class="help-block" *ngIf="microHelp">What order the micro-synteny tracks should be displayed in.</p>
     </div>
   </fieldset>
-</form>
