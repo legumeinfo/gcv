@@ -212,6 +212,15 @@ export class Plot {
       .call(yAxis);
     yAxisLabels(yAxisCall);
 
+    plot.append("text")
+      .attr("class", "label plot-label")
+      .style("text-anchor", "end")
+      .style("dominant-baseline", "hanging")
+      .attr("x", 0)
+      .attr("y", 8)
+      .attr("transform", "rotate(-90)")
+      .text(this.data.reference_name);
+
     scatter.append("g")
       .attr("class", "brush")
       .call(brush);
