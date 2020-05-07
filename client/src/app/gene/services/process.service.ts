@@ -481,7 +481,7 @@ export class ProcessService {
     return combineLatest(
       // TODO: should there be a "loaded" selector like there is for genes and
       // chromosomes in case searches are successful but don't return any tracks?
-      this._store.select(fromMicroTracks.getSearchMicroTracks),
+      this._store.select(fromMicroTracks.getActiveSearchMicroTracks),
       this._store.select(fromMicroTracks.getClusteredAndAlignedSearchMicroTracks),
     ).pipe(
       map(([tracks, alignedTracks]) => {
@@ -535,7 +535,7 @@ export class ProcessService {
     return combineLatest(
       // get all selected and search result tracks
       this._store.select(fromMicroTracks.getSelectedMicroTracks),
-      this._store.select(fromMicroTracks.getSearchMicroTracks),
+      this._store.select(fromMicroTracks.getActiveSearchMicroTracks),
       // get gene loading states
       this._store.select(fromGenes.getLoading),
       this._store.select(fromGenes.getLoaded),
@@ -565,7 +565,7 @@ export class ProcessService {
     // get all selected and search result tracks
     return combineLatest(
       this._store.select(fromMicroTracks.getSelectedMicroTracks),
-      this._store.select(fromMicroTracks.getSearchMicroTracks),
+      this._store.select(fromMicroTracks.getActiveSearchMicroTracks),
     ).pipe(
       // keep tracks belonging to cluster and convert to source array
       map(([selectedTracks, searchTracks]) => {

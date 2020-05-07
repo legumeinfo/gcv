@@ -185,10 +185,19 @@ export const getSearchMicroTracks = createSelectorFactory(memoizeArray)(
   (state: State): (Track & ClusterMixin)[] => Object.values(state.entities),
 );
 
+// only returns the search micro-tracks for the currently selected sources
+export const getActiveSearchMicroTracks = createSelectorFactory(memoizeArray)(
+  getSearchMicroTracks,
+  fromParams.getSourceParams,
+  (tracks: (Track & ClusterMixin)[], {sources}): (Track & ClusterMixin)[] => {
+    return tracks.filter((t) => sources.indexOf(t.source) != -1);
+  }
+);
+
 // pairwise aligns each search result track to its cluster's consensus track
 export const getClusteredAndAlignedSearchMicroTracks =
 createSelectorFactory(memoizeArray)(
-  getSearchMicroTracks,
+  getActiveSearchMicroTracks,
   getClusteredAndAlignedSelectedMicroTracks,
   fromParams.getAlignmentParams,
   (searchTracks: (Track & ClusterMixin)[], {consensuses, tracks},
