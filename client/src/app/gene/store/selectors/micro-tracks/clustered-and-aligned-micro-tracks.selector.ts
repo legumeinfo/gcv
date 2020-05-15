@@ -9,7 +9,7 @@ import { getSelectedGenesLoaded } from '@gcv/gene/store/selectors/gene';
 import { getMicroTracksState } from './micro-tracks-state.selector';
 import { getSelectedMicroTracks } from './selected-micro-tracks.selector';
 // app
-import * as clusterfck from '@gcv-assets/js/clusterfck';
+import * as clustering from '@gcv-assets/js/clustering';
 import { GCV } from '@gcv-assets/js/gcv';
 import { arrayFlatten, memoizeArray, memoizeObject } from '@gcv/core/utils';
 import { ALIGNMENT_ALGORITHM_MAP, MICRO_ORDER_ALGORITHM_MAP }
@@ -47,7 +47,7 @@ createSelectorFactory(memoizeArray)(
         return Math.min(d1, d2);
       };
     const clusters =
-      clusterfck.hcluster(tracks, metric, params.linkage, params.cthreshold);
+      clustering.hcluster(tracks, metric, params.linkage, params.cthreshold);
     const recurrence = (cluster) => {
         const elements = [];
         if ('left' in cluster && 'right' in cluster) {
