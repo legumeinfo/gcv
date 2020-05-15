@@ -1,47 +1,119 @@
 import { geneMap } from '@gcv/gene/models/shims';
 
 
-// use the "breakpoint reversal sort" technique to identify segments
-// (inversions and rearrangements) and their orientations
-function _coordinatesToSegments(a: any[]) {
-  const indexes = a.map((e, i) => i);
-  indexes.sort((i, j) => a[j]-a[i]);
-  let segment = indexes[0];
-  const segments = {
-      indexSegments: {},
-      segmentOrientations: {}
-    };
-  segments.indexSegments[indexes[0]] = segment;
-  const setSegmentOrientation = (i) => {
-      const diff = indexes[i-1]-segment;
-      segments.segmentOrientations[segment] = (diff < 0) ? '-' : '+';
-    };
-  for (let i = 1; i < indexes.length; i++) {
-    let diff = indexes[i]-indexes[i-1];
-    // a breakpoint
-    if (diff !== 1 && diff !== -1) {
-      setSegmentOrientation(i);
-      segment = indexes[i];
+// takes an array of alignment segment identifiers and returns an array of
+// intervals corresponding to the non-null contiguous segments in the array.
+function _segmentIntervals(segments: (number|null)[]): Array<[number, number]> {
+  const intervals = [];
+  let prev = null;
+  let interval = null;
+  segments.forEach((s, i) => {
+    // end an interval
+    if (s != prev && prev != null) {
+      interval.push(i-1);
+      intervals.push(interval);
+      interval = null;
     }
-    segments.indexSegments[indexes[i]] = segment;
+    // begin a new interval
+    if (s != null && prev != s) {
+      interval = [i];
+    }
+    prev = s;
+  });
+  // end case
+  if (interval != null) {
+    interval.push(segments.length-1);
+    intervals.push(interval);
   }
-  setSegmentOrientation(indexes.length);
-  return segments;
+  return intervals;
+}
+
+
+// packs the given intervals into one or more schedules such that all intervals
+// are in one and only one schedule, no two intervals in a schedule overlap, the
+// number of intervals in each schedule is maximized, and, therefore, the number
+// of schedules is minimized.
+// assumes intervals are sorted by finish time
+function _greedyIntervalScheduling<T>(intervals: ({begin: number, end: number} & T)[]):
+({begin: number, end: number} & T)[][] {
+  const schedules = [];
+  intervals.forEach((o) => {
+    // add to an existing schedule
+    for (let j = 0; j < schedules.length; j++) {
+      const schedule = schedules[j];
+      const o2 = schedule[schedule.length-1];
+      if (o2.end < o.begin) {
+        schedule.push(o);
+        return;
+      }
+    }
+    // create a new schedule
+    const schedule = [o];
+    schedules.push(schedule);
+  });
+  return schedules;
 }
 
 
 function _tracksToData(tracks, genes) {
   const map = geneMap(genes);
   return tracks.map((t, j) => {
-      // make track
+
+      // assign y values based on orientation, segment, and coordinates
+
+      const forwardSegments =
+        t.segments.map((s, i) => (t.orientations[i] == 1) ? s : null);
+      const forwardIntervals = _segmentIntervals(forwardSegments);
+      const forwardIntervalObjects = forwardIntervals
+        .map(([i, j]) => {
+          return {
+            i,
+            j,
+            begin: t.alignment[i],
+            end: t.alignment[j],
+          };
+        })
+        .sort((o1, o2) => o1.end-o2.end);
+      const forwardSchedules = _greedyIntervalScheduling(forwardIntervalObjects);
+
+      const reverseSegments =
+        t.segments.map((s, i) => (t.orientations[i] == -1) ? s : null);
+      const reverseIntervals = _segmentIntervals(reverseSegments);
+      const reverseIntervalObjects = reverseIntervals
+        .map(([i, j]) => {
+          return {
+            i,
+            j,
+            begin: t.alignment[j],  // swapped because reverse coordinates descend
+            end: t.alignment[i],
+          };
+        })
+        .sort((o1, o2) => o1.end-o2.end);
+      const reverseSchedules = _greedyIntervalScheduling(reverseIntervalObjects)
+        .map((schedule) => schedule.reverse());
+
+
+      const schedules = forwardSchedules.concat(reverseSchedules)
+        .sort((schedule1, schedule2) => schedule1[0].i-schedule2[0].i);
+      const ys = Array(t.genes.length).fill(null);
+      schedules.forEach((schedule, y) => {
+        schedule.forEach((o) => {
+          for (let i = o.i; i <= o.j; i++) {
+            ys[i] = y;
+          }
+        });
+      });
+
+      // make the track
       const track = {
           source: t.source,
           genus: t.genus,
           species: t.species,
           chromosome_name: t.name,
-          genes: []
+          genes: [],
         };
-      // make track genes
+
+      // make the track's genes
       t.genes.forEach((name, i) => {
         const x = t.alignment[i];
         if (x !== null) {
@@ -49,32 +121,21 @@ function _tracksToData(tracks, genes) {
               name: name,
               family: t.families[i],
               x: x,
+              y: ys[i],
               fmin: 0,
-              fmax: 0
+              fmax: 0,
+              strand: undefined,
             };
           if (name in map) {
             Object.assign(gene, map[name]);
           }
+          if (gene.strand != undefined) {
+            gene.strand *= t.orientations[i];
+          }
           track.genes.push(gene);
         }
       });
-      // use track segments to assign y values and reverse strands
-      const segments = _coordinatesToSegments(track.genes.map((g) => g.x));
-      let prevSegment = -1;
-      let y = -1;
-      track.genes.forEach((g, i) => {
-        const segment = segments.indexSegments[i];
-        const orientation = segments.segmentOrientations[segment];
-        if (segment !== prevSegment) {
-          y += 1;
-        }
-        g.y = y%2;
-        g.segment = segment;
-        if (g.strand !== undefined && orientation ===  '-') {
-          g.strand *= -1;
-        }
-        prevSegment = segment;
-      });
+
       return track;
     });
 }

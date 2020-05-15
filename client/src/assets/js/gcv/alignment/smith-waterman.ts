@@ -98,7 +98,10 @@ function align<T>(
     alignment.coordinates.unshift(...fill);
     alignment.scores.unshift(...fill);
   } else {
-    return null;
+    return {
+      coordinates: Array(ref.length-i).fill(null),
+      scores: Array(ref.length-i).fill(null)
+    };
   }
 
   return alignment;
@@ -152,20 +155,20 @@ export function smithWaterman<T>(
   }
 
   // merge alignments
-  const toAlignment = (a) => ({alignment: a.coordinates, score: sum(a.scores)});
-  if (forwardAlignment === null && reverseAlignment === null) {
-    return [];
-  } else if (forwardAlignment !== null && reverseAlignment === null) {
-    return [toAlignment(forwardAlignment)];
-  } else if (forwardAlignment === null && reverseAlignment !== null) {
-    return [toAlignment(reverseAlignment)];
-  }
   const alignments = mergeAlignments(
+      sequence,
       [forwardAlignment],
       [reverseAlignment],
       options.reversals,
       options.inversions,
       options.scores.threshold)
-    .map(toAlignment);
+    .map((a) => {
+      return {
+        alignment: a.coordinates,
+        orientations: a.orientations,
+        segments: a.segments,
+        score: sum(a.scores),
+      };
+    });
   return alignments;
 }

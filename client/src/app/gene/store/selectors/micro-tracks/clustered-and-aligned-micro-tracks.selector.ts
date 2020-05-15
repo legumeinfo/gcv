@@ -139,9 +139,7 @@ createSelectorFactory(memoizeObject)(
         });
         // construct and train the model
         const mixinFactory = (alignments) => (t, i) => {
-            const t2 = Object.create(t);
-            t2.alignment = alignments[i];
-            return t2;
+            return Object.assign(Object.create(t), alignments[i]);
           };
         // msa via hmm
         if (characters.size > 0 && tracks.length > 1) {
@@ -157,7 +155,12 @@ createSelectorFactory(memoizeObject)(
         // edge case where all families are orphans or singletons
         } else {
           const alignments = trackFamilies.map((families) => {
-              return families.map((f, i) => i);
+              return {
+                alignment: families.map((f, i) => i),
+                orientations: Array(families.length).fill(1),
+                segments: Array(families.length).fill(0),
+                score: 0,
+              };
             });
           const alignedTracks = tracks.map(mixinFactory(alignments));
           // TODO: is this really the best way to handle 1 track vs poorly
@@ -206,10 +209,7 @@ createSelectorFactory(memoizeArray)(
     const algorithm = ALIGNMENT_ALGORITHM_MAP[params.algorithm].algorithm;
     // creates an alignment mixin for the given track
     const mixin = (track, alignment) => {
-        const t = Object.create(track);
-        t.alignment = alignment.alignment;
-        t.score = alignment.score;
-        return t;
+        return Object.assign(Object.create(track), alignment);
       };
     // returns one or more alignments (depending on the alignment algorithm) for
     // the given sequence relative to the given reference

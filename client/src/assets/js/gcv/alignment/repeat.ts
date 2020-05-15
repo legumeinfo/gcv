@@ -18,15 +18,18 @@ import { computeScore, mergeAlignments } from "./utils";
  * derived from.
  */
 function computeFirstCellOfColumn(m: number[][], i: number, threshold: number,
-carryover: boolean):
+carryover: boolean, matches: Set<number>):
 [number, [number, number]] {
   const t = (carryover) ? threshold : 0;
   const values = m[i-1].map((s) => Math.max(0, s-t));
   values[0] = m[i-1][0];
   let v = Math.max(...values);
-  const k = values.indexOf(v);
+  let k = values.indexOf(v);
   if (!carryover) {
     v = 0;
+    if (!matches.has(k)) {
+      k = 0;
+    }
   }
   return [v, [i-1, k]];
 }
@@ -74,15 +77,18 @@ function align<T>(
   const rows = seq.length + 1;  // ditto
   const m = matrix(cols, rows, 0);  // scores
   const t = matrix(cols, rows, [0, 0]);  // traceback
+  let matches = new Set<number>();
   for (let i = 1; i < cols; i++) {
     // handle unmatched regions and ends of matches
     [m[i][0], t[i][0]] =
-      computeFirstCellOfColumn(m, i, scores.threshold, carryover);
+      computeFirstCellOfColumn(m, i, scores.threshold, carryover, matches);
+    matches = new Set<number>();
     // handle starts of matches and extensions
     for (let j = 1; j < rows; j++) {
+      const score = computeScore(ref[i-1], seq[j-1], scores, omit);
       const choices = [
           m[i][0],
-          m[i-1][j-1] + computeScore(ref[i-1], seq[j-1], scores, omit),
+          m[i-1][j-1] + score,
           m[i-1][j] + scores.gap,
           m[i][j-1] + scores.gap
         ];
@@ -93,6 +99,9 @@ function align<T>(
           break;
         case Traceback.DIAGONAL:
           t[i][j] = [i-1, j-1];
+          if (score == scores.match) {
+            matches.add(j);
+          }
           break;
         case Traceback.LEFT:
           t[i][j] = [i-1, j];
@@ -109,7 +118,7 @@ function align<T>(
   let a = {coordinates: [], scores: []};
   let insertion = 0;
   let [, [i, j]] =
-    computeFirstCellOfColumn(m, cols, scores.threshold, carryover);
+    computeFirstCellOfColumn(m, cols, scores.threshold, carryover, matches);
   while (!(i === 0 && j === 0)) {
     let [i2, j2] = t[i][j];
     // start new alignment
@@ -202,6 +211,7 @@ export function repeat<T>(
 
   // merge alignments
   const alignments = mergeAlignments(
+      sequence,
       // reverse alignment orders because the dynamic program returns them in
       // backwards order relative to the input sequences
       forwardAlignments.reverse(),
@@ -209,7 +219,14 @@ export function repeat<T>(
       options.reversals,
       options.inversions,
       options.scores.threshold)
-    .map((a) => ({alignment: a.coordinates, score: sum(a.scores)}));
+    .map((a) => {
+      return {
+        alignment: a.coordinates,
+        orientations: a.orientations,
+        segments: a.segments,
+        score: sum(a.scores),
+      };
+    });
 
   return alignments;
 }

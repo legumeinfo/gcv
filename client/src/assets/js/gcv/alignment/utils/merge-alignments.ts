@@ -1,5 +1,6 @@
 import { filterByIndex, sum } from "../../common";
-import { InternalAlignment, Interval, WeightedInterval } from "../models";
+import { InternalAlignment, Interval, MergedInternalAlignment, WeightedInterval }
+  from "../models";
 import { alignmentInterval } from "./alignment-interval";
 import { intervalsToSets } from "./intervals-to-sets";
 
@@ -24,6 +25,8 @@ function combineAlignments(
 }
 
 
+// assumes intervals are non-overlapping and sorted by start position, and if
+// there's a gap at least one alignment covers it
 function combineAlignmentIntervals(
   alignments: InternalAlignment[],
   intervals: Array<[number, number, number]>): InternalAlignment
@@ -31,13 +34,53 @@ function combineAlignmentIntervals(
   const l = alignments[0].coordinates.length;
   const alignment = {
       coordinates: Array(l).fill(null),
+      orientations: Array(l).fill(null),
+      segments: Array(l).fill(null),
       scores: Array(l).fill(null)
     };
+  let segment = 0;
+  const spliceAlignment = (begin, end, i) => {
+      const coordinates = alignments[i].coordinates.slice(begin, end+1);
+      const orientation = (i == 0) ? 1 : -1;
+      const orientations = Array(end+1-begin).fill(orientation);
+      const segments = Array(end+1-begin).fill(segment++);
+      const scores = alignments[i].scores.slice(begin, end+1);
+      alignment.coordinates.splice(begin, end+1-begin, ...coordinates);
+      alignment.orientations.splice(begin, end+1-begin, ...orientations);
+      alignment.segments.splice(begin, end+1-begin, ...segments);
+      alignment.scores.splice(begin, end+1-begin, ...scores);
+    };
+  let gapBegin = intervals[0][0];
+  let prevI = -1;
   intervals.forEach(([begin, end, i]) => {
-    const coordinates = alignments[i].coordinates.slice(begin, end+1);
-    const scores = alignments[i].scores.slice(begin, end+1);
-    alignment.coordinates.splice(begin, end+1-begin, ...coordinates);
-    alignment.scores.splice(begin, end+1-begin, ...scores);
+    // fill the gap
+    // TODO: can gaps be prevented at cut time?
+    if (gapBegin != begin) {
+      const gapEnd = begin-1;
+      const alignmentGapScores = alignments
+        .map((a, j): [(number|null)[], number] => {
+          return [a.scores.slice(gapBegin, gapEnd+1), j];
+        });
+      // if the flanks are from the same alignment, fill from there if possible
+      if (prevI == i && alignmentGapScores[i].every((s) => s != null)) {
+        spliceAlignment(gapBegin, gapEnd, i);
+      // otherwise pick the highest scoring fill
+      // TODO: should this consider inversion size?
+      } else {
+        const alignmentGapWeights = alignmentGapScores
+          .filter(([scores, j]) => scores.every((s) => s != null))
+          .map(([scores, j]) => [sum(scores), j]);
+        const weights = alignmentGapWeights.map(([weight, j]) => weight);
+        const indexes = alignmentGapWeights.map(([weight, j]) => j);
+        let j = weights.indexOf(Math.max(...weights));
+        spliceAlignment(gapBegin, gapEnd, indexes[j]);
+      }
+    }
+    // save the current interval
+    spliceAlignment(begin, end, i);
+    // prepare for next iteration
+    gapBegin = end+1;
+    prevI = i;
   });
   return alignment;
 }
@@ -54,7 +97,8 @@ function combineAlignmentIntervals(
  * groups of potential cut points, one group for every sub-alignment in an
  * alignment.
  */
-function potentialCutPoints(
+function potentialCutPoints<T>(
+  sequence: T[],
   forwardAlignment: InternalAlignment,
   reverseAlignment: InternalAlignment,
 ): [Array<Array<number>>, Array<Array<number>>] {
@@ -64,7 +108,7 @@ function potentialCutPoints(
   const reverseCuts = [];
 
   // general function for adding cut points to forward/reverse cut arrays
-  const addPoint = (p, aBegin, aBreak, aEnd, aCuts, aCut, bNoCut, bCut) => {
+  const addPoint = (p, aBegin, aBreak, aEnd, aCuts, aCut, bNoCut, bCut, duplicate) => {
       if (aBegin || aBreak || aEnd) {
         if (aBegin) {
           aCut = [p];
@@ -76,7 +120,7 @@ function potentialCutPoints(
           }
         }
         // add the point to bCut if b isn't going to add it
-        if (bNoCut) {
+        if (bNoCut && !aBreak && !duplicate) {
           bCut.push(p);
         }
       }
@@ -90,7 +134,8 @@ function potentialCutPoints(
   let rCut = null;
   let prevFscore = null;
   let prevRscore = null;
-  for (let i = 0; i < forwardScores.length; i++) {
+  const l = forwardScores.length;
+  for (let i = 0; i < l; i++) {
 
     const fScore = forwardScores[i];
     const rScore = reverseScores[i];
@@ -98,23 +143,24 @@ function potentialCutPoints(
     // determine which type of cut points (if any) are being saved
     // only one of fBegin, fEnd, fBreak, and fNoCut will be true at a time,
     // though all can be false; ditto for r
+    const duplicate = sequence[i] == sequence[i-1];
     const fBegin = prevFscore == null && fScore != null;
     const rBegin = prevRscore == null && rScore != null;
     const fEnd = prevFscore != null && fScore == null;
     const rEnd = prevRscore != null && rScore == null;
     const fBreak = !fBegin && !fEnd &&
       ((fScore > 0 && prevFscore <= 0) || (fScore <= 0 && prevFscore > 0)) &&
-      rScore != null;
+      rScore != null && !duplicate;
     const rBreak = !rBegin && !rEnd &&
       ((rScore > 0 && prevRscore <= 0) || (rScore <= 0 && prevRscore > 0)) &&
-      fScore != null;
+      fScore != null && !duplicate;
     const fNull = prevFscore == null && fScore == null;
     const rNull = prevRscore == null && rScore == null;
     const fNoCut = !fBegin && !fEnd && !fBreak && fScore != null;
     const rNoCut = !rBegin && !rEnd && !rBreak && rScore != null;
 
-    fCut = addPoint(i, fBegin, fBreak, fEnd, forwardCuts, fCut, rNoCut, rCut);
-    rCut = addPoint(i, rBegin, rBreak, rEnd, reverseCuts, rCut, fNoCut, fCut);
+    fCut = addPoint(i, fBegin, fBreak, fEnd, forwardCuts, fCut, rNoCut, rCut, duplicate);
+    rCut = addPoint(i, rBegin, rBreak, rEnd, reverseCuts, rCut, fNoCut, fCut, duplicate);
 
     prevFscore = fScore;
     prevRscore = rScore;
@@ -141,22 +187,20 @@ function cutPointsToWeightedIntervals(
   alignment: InternalAlignment,
   cutPoints: Array<Array<number>>,
   minsize: number,
-  threshold: number): Array<[number, number, number]>
+  threshold: number): Array<WeightedInterval>
 {
   const intervals = [];
-  // for each alignment
+  // for each sub-alignment
   cutPoints.forEach((points) => {
     // iterate all valid pairs of cut points
     for (let i = 0; i < points.length-1; i++) {
       const begin = points[i];
       for (let j = i+1; j < points.length; j++) {
         const end = points[j];
+        const weight = sum(alignment.scores.slice(begin, end));
         // save intervals that meet the minsize and threshold constraints
-        if (end-begin >= minsize) {
-          const weight = sum(alignment.scores.slice(begin, end));
-          if (weight >= threshold) {
-            intervals.push([begin, end-1, weight]);
-          }
+        if (end-begin+1 >= minsize && weight >= threshold) {
+          intervals.push([begin, end-1, weight]);
         }
       }
     }
@@ -177,9 +221,11 @@ function cutPointsToWeightedIntervals(
  */
 function weightedIntervalScheduling(
   intervals: WeightedInterval[],
-  breakpoint: number=0
+  breakpoint: number=0,
 ): number[] {
-  // augment each interval with its original index then sort by finish position
+  // augment each interval with its original index and sort by finish position,
+  // start position, and weight (palindromes that align the same in both
+  // orientations will be next to each other)
   const compare = (a, b) => a[1]-b[1] || a[0]-b[0] || a[2]-b[2];
   const sortedIntervals = intervals
     .map((interval, i) => [...interval, i])
@@ -191,24 +237,11 @@ function weightedIntervalScheduling(
   // for each interval, the index of the closest preceding interval it doesn't
   // overlap with
   const p = [0].concat(sortedIntervals.map(([begin, end, weight, i], j) => {
-      let K = 0;
-      let Kend = 0;
-      let Ki = -1;
       // TODO: this is worst case n^2; can be done in n log n with binary search
-      for (let k = j-1; k > 0; k--) {
-        const [begin2, end2, weight2, i2] = sortedIntervals[k-1];
+      for (let k = j-1; k >= 0; k--) {
+        const [begin2, end2, weight2, i2] = sortedIntervals[k];
         if (end2 < begin) {  // strictly less than because intervals are inclusive
-          // use breakpoint to prefer predecessors from same partition
-          if (K != 0 && end2 != Kend) {
-            return K;
-          }
-          if (K == 0 ||
-             (i >= breakpoint && i2 >= breakpoint && Ki < breakpoint) ||
-             (i < breakpoint && i2 < breakpoint && Ki > breakpoint)) {
-            K = k;
-            Kend = end2;
-            Ki = i2;
-          }
+          return k+1;
         }
       }
       return 0;
@@ -220,13 +253,39 @@ function weightedIntervalScheduling(
   }
   // traceback the solution
   const indices = [];
+  let lastI = null;
   for (let j = m.length-1; j > 0;) {
-    if (w[j]+m[p[j]] >= m[j-1]) {
-      const i = sortedIntervals[j-1][3];
+    const pointer = w[j] + m[p[j]];
+    const prev = m[j-1];
+    const i = sortedIntervals[j-1][3];
+    // avoid gratuitous inversions of palindromes in the case of a tie
+    if (pointer > prev || (pointer == prev && (lastI == null ||
+        ((lastI >= breakpoint && i >= breakpoint) ||
+         (lastI < breakpoint && i < breakpoint))))) {
       indices.push(i);
+      lastI = i;
       j = p[j];
     } else {
       j = j-1;
+    }
+  }
+  // edge case where first interval is a gratuitous inversion
+  if (indices.length > 1) {
+    const j = m.length-1;
+    const pointer = w[j] + m[p[j]];
+    const pointerI = sortedIntervals[j-1][3];
+    const prev = m[j-1];
+    const prevI = sortedIntervals[j-2][3];
+    if (pointer == prev) {
+      if (indices[0] == pointerI && (
+          (pointerI < breakpoint && indices[1] >= breakpoint) ||
+          (pointerI >= breakpoint && indices[1] < breakpoint))) {
+        indices[0] = prevI;
+      } else if (indices[0] == prevI && (
+          (prevI < breakpoint && indices[1] >= breakpoint) ||
+          (prevI >= breakpoint && indices[1] < breakpoint))) {
+        indices[0] = pointerI;
+      }
     }
   }
   return indices;
@@ -249,7 +308,8 @@ function weightedIntervalScheduling(
  * computed alignment.
  * @return{Array<InternalAlignment>} - The merged alignments.
  */
-function reversalsAndInversions(
+function reversalsAndInversions<T>(
+  sequence: T[],
   forwardAlignments: InternalAlignment[],
   forwardIntervals: Interval[],
   reverseAlignments: InternalAlignment[],
@@ -263,7 +323,7 @@ function reversalsAndInversions(
 
   // identify potential cut points
   const [forwardCutPoints, reverseCutPoints] =
-    potentialCutPoints(flatForward, flatReverse);
+    potentialCutPoints(sequence, flatForward, flatReverse);
 
   // convert potential cut points into valid weighted intervals
   const weightedForwardIntervals =
@@ -277,6 +337,7 @@ function reversalsAndInversions(
   const weightedIntervals =
     weightedForwardIntervals.concat(weightedReverseIntervals);
   const optimalIntervals = weightedIntervalScheduling(weightedIntervals, breakpoint);
+  const compare = (a, b) => a[0]-b[0] || a[1]-b[1] || a[2]-b[2];
   const alignmentIndexedOptimalIntervals = optimalIntervals
     .map((i): [number, number, number] => {
       if (i < breakpoint) {
@@ -286,7 +347,8 @@ function reversalsAndInversions(
       i = i-breakpoint;
       const [begin, end, weight] = weightedReverseIntervals[i];
       return [begin, end, 1];
-    });
+    })
+    .sort(compare);
   const alignments = [flatForward, flatReverse];
   const alignment =
     combineAlignmentIntervals(alignments, alignmentIndexedOptimalIntervals);
@@ -295,7 +357,8 @@ function reversalsAndInversions(
 }
 
 
-function reversalsOnly(
+function reversalsOnly<T>(
+  sequence: T[],
   forwardAlignments: InternalAlignment[],
   forwardIntervals: Interval[],
   reverseAlignments: InternalAlignment[],
@@ -305,6 +368,7 @@ function reversalsOnly(
 {
   // TODO: implement w/ weighted interval scheduling dynamic program
   return reversalsAndInversions(
+    sequence,
     forwardAlignments,
     forwardIntervals,
     reverseAlignments,
@@ -314,7 +378,8 @@ function reversalsOnly(
 }
 
 
-function inversionsOnly(
+function inversionsOnly<T>(
+  sequence: T[],
   forwardAlignments: InternalAlignment[],
   forwardIntervals: Interval[],
   reverseAlignments: InternalAlignment[],
@@ -324,6 +389,7 @@ function inversionsOnly(
 {
   // TODO: implement
   return reversalsAndInversions(
+    sequence,
     forwardAlignments,
     forwardIntervals,
     reverseAlignments,
@@ -347,21 +413,27 @@ function inversionsOnly(
  * computed alignment
  * @return{Array<InternalAlignment>} - The merged alignments.
  */
-export function mergeAlignments(
+export function mergeAlignments<T>(
+  sequence: T[],
   forwardAlignments: InternalAlignment[],
   reverseAlignments: InternalAlignment[],
   reversals: boolean,
   inversions: number,
-  threshold: number): InternalAlignment[]
+  threshold: number): MergedInternalAlignment[]
 {
 
+  // filter alignments by size and score
+  const alignmentFilter = (a) => {
+      const scores = a.scores.filter((s) => s != null);
+      return scores.length >= inversions && sum(scores) >= threshold;
+    };
+  const filteredForwardAlignments = forwardAlignments.filter(alignmentFilter);
+  const filteredReverseAlignments = reverseAlignments.filter(alignmentFilter);
+
   // make a sequence coordinate interval for each alignment
-  const forwardIntervals = forwardAlignments.map((a): Interval => {
-      return alignmentInterval(a.coordinates);
-    });
-  const reverseIntervals = reverseAlignments.map((a): Interval => {
-      return alignmentInterval(a.coordinates);
-    });
+  const alignmentToInterval = (a) => alignmentInterval(a.coordinates);
+  const forwardIntervals = filteredForwardAlignments.map(alignmentToInterval);
+  const reverseIntervals = filteredReverseAlignments.map(alignmentToInterval);
 
   // find sets of overlapping intervals
   const overlaps =
@@ -370,24 +442,42 @@ export function mergeAlignments(
   // convert each set of overlapping intervals into an alignment
   const alignments = [];
   overlaps.forEach(({forward, reverse}) => {
-    const overlapForwardAlignments = filterByIndex(forwardAlignments, forward);
-    const overlapReverseAlignments = filterByIndex(reverseAlignments, reverse);
+    const overlapForwardAlignments =
+      filterByIndex(filteredForwardAlignments, forward);
+    const overlapForwardIntervals = filterByIndex(forwardIntervals, forward);
+    const overlapReverseAlignments =
+      filterByIndex(filteredReverseAlignments, reverse);
+    const overlapReverseIntervals = filterByIndex(reverseIntervals, reverse);
     // just save the forward alignments
     if (forward.length !== 0 && (reverse.length === 0 ||
         (!reversals && !inversions))) {
-      alignments.push(...overlapForwardAlignments);
+      const segmentAlignments = overlapForwardAlignments.map((a, i) => {
+          const [begin, end] = overlapForwardIntervals[i];
+          const orientations = Array(a.coordinates.length).fill(null);
+          orientations.splice(begin, end+1, ...Array(end+1-begin).fill(1));
+          const segments = Array(a.coordinates.length).fill(null);
+          segments.splice(begin, end+1, ...Array(end+1-begin).fill(i));
+          return {...a, orientations, segments};
+        });
+      alignments.push(...segmentAlignments);
     // just save the reverse alignments
     } else if (forward.length === 0 && reverse.length !== 0) {
       if (reversals) {
-        alignments.push(...overlapReverseAlignments);
+        const segmentAlignments = overlapReverseAlignments.map((a, i) => {
+            const [begin, end] = overlapReverseIntervals[i];
+            const orientations = Array(a.coordinates.length).fill(null);
+            orientations.splice(begin, end+1, ...Array(end+1-begin).fill(-1));
+            const segments = Array(a.coordinates.length).fill(null);
+            segments.splice(begin, end+1, ...Array(end+1-begin).fill(i));
+            return {...a, orientations, segments};
+          });
+        alignments.push(...segmentAlignments);
       }
+    // create alignment from overlapping segments
     } else {
-      const overlapForwardIntervals = filterByIndex(forwardIntervals, forward);
-      const overlapReverseIntervals = filterByIndex(reverseIntervals, reverse);
-
-      const args: [InternalAlignment[], Interval[], InternalAlignment[],
+      const args: [T[], InternalAlignment[], Interval[], InternalAlignment[],
       Interval[], number, number] =
-        [overlapForwardAlignments, overlapForwardIntervals,
+        [sequence, overlapForwardAlignments, overlapForwardIntervals,
         overlapReverseAlignments, overlapReverseIntervals, inversions, threshold];
       let alignment;
       // combine all alignments such that the score is maximized

@@ -700,9 +700,10 @@ export class MSAHMM extends Directed {
    * insertion state in the model it aligned to.
    * @param{Array} sequence - The sequence to be aligned.
    * @param{Object} options - Optional alignment parameters.
-   * return {Array} - The array representing the alignment, where the elements
-   * are the indices of the elements in the original array. null values denote
-   * deletions and nested arrays denote insertions.
+   * return {Object} - The object representing the alignment, where the elements
+   * are an alignment array containing the indices of the elements in the
+   * original array and a segments array containing the segment each element
+   * belongs to. null values denote deletions and decimals denote insertions.
    * Ex: [0, 1, 2, 4, 5]  // alignment with deletion
    *     [0, 0.5, 1, 3, 4]  // with insertion and deletion
    *     [0, 1, 4, 3, 2]  // with inversion
@@ -744,9 +745,21 @@ export class MSAHMM extends Directed {
     }
 
     // convert path to hmm state independent alignment
-    let alignment = this.pathToAlignment(alignmentPath);
+    const alignment = {
+        alignment: this.pathToAlignment(alignmentPath),
+        orientations: [],
+        segments: [],
+        score: 0,
+      };
     if (reversed) {
-      alignment.reverse();
+      alignment.alignment.reverse();
+      alignment.orientations = Array(alignment.alignment.length).fill(-1);
+      alignment.segments = Array(alignment.alignment.length).fill(1);
+      alignment.score = reversePath.probability;
+    } else {
+      alignment.segments = Array(alignment.alignment.length).fill(0);
+      alignment.orientations = Array(alignment.alignment.length).fill(1);
+      alignment.score = forwardPath.probability;
     }
 
     return alignment;
