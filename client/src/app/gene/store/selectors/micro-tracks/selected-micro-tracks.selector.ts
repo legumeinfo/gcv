@@ -7,7 +7,7 @@ import { getSelectedGenes }
   from '@gcv/gene/store/selectors/gene/selected-genes.selector';
 import * as fromParams from '@gcv/gene/store/selectors/params';
 // app
-import { memoizeArray } from '@gcv/core/utils';
+import { arrayFlatten, memoizeArray } from '@gcv/core/utils';
 import { Gene, Track } from '@gcv/gene/models';
 
 
@@ -23,6 +23,7 @@ export const getSelectedMicroTracks = createSelectorFactory(memoizeArray)(
       const id = `${c.name}:${c.source}`;
       chromosomeMap[id] = c;
     });
+    // generate track intervals for each chromosome
     const reducer = (accumulator, gene) => {
         const id = `${gene.chromosome}:${gene.source}`;
         if (id in chromosomeMap) {
@@ -31,17 +32,53 @@ export const getSelectedMicroTracks = createSelectorFactory(memoizeArray)(
           if (i > -1) {
             const begin = Math.max(0, i-neighbors);
             const end = Math.min(chromosome.genes.length, i+neighbors+1);
-            const track = {
-                ...chromosome,
-                genes: chromosome.genes.slice(begin, end),
-                families: chromosome.families.slice(begin, end),
-              };
-            accumulator.push(track);
+            if (!(id in accumulator)) {
+              accumulator[id] = [];
+            }
+            accumulator[id].push([begin, end]);
           }
         }
         return accumulator;
       };
-    const tracks = genes.reduce(reducer, []);
+    const selectedIntervals = genes.reduce(reducer, {});
+    // combine overlapping intervals and convert result into to tracks
+    const tracks = arrayFlatten(
+        Object.entries(selectedIntervals)
+          .map(([id, intervals]: [string, Array<[number, number]>]) => {
+            intervals.sort(([beginA, endA], [beginB, endB]) => {
+              if (beginA < beginB) {
+                return -1;
+              } else if (beginA > beginB) {
+                return 1;
+              } else if (endA < endB) {
+                return -1;
+              } else if (endA > endB) {
+                return 1;
+              }
+              return 0;
+            });
+            const trackIntervals = [];
+            let prevEnd = -1;
+            intervals.forEach(([begin, end]) => {
+              // continue previous track
+              if (begin <= prevEnd) {
+                trackIntervals[trackIntervals.length-1].end = end;
+              // begin new track
+              } else {
+                trackIntervals.push({begin, end});
+              }
+              prevEnd = end;
+            });
+            const chromosome = chromosomeMap[id];
+            return trackIntervals.map(({begin, end}) => {
+              return {
+                ...chromosome,
+                genes: chromosome.genes.slice(begin, end),
+                families: chromosome.families.slice(begin, end),
+              };
+            });
+          })
+      );
     return tracks;
   }
 );
