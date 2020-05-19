@@ -20,14 +20,12 @@ import { AppConfig } from '@gcv/app.config';
           [(ngModel)]="model.query" name="query"
           #search="ngModel"
           placeholder="{{placeholder}}" >
-        <span class="input-group-btn">
-          <select class="select form-control" [(ngModel)]="model.source" name="source">
-            <option *ngFor="let s of servers" [ngValue]="s">{{s.name}}</option>
-          </select>
-        </span>
-        <span class="input-group-btn">
-          <button class="btn btn-default" type="submit">Search</button>
-        </span>
+        <select class="custom-select" [(ngModel)]="model.source" name="source">
+          <option *ngFor="let s of servers" [ngValue]="s">{{s.name}}</option>
+        </select>
+        <div class="input-group-append">
+          <button class="btn btn-primary" type="submit">Search</button>
+        </div>
       </div>
     </form>
   `,

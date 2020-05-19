@@ -1,93 +1,111 @@
 <main id="top">
   <header></header>
 
-  <section class="jumbotron text-center">
+  <!-- lead -->
+  <section class="py-5">
     <div class="container">
-      <h1 class="jumbotron-heading">Genome Context Viewer</h1>
-      <p class="lead text-muted">A web-app that visualizes genomic context data provided by third party services in a single, federated interface by using gene-family assignment as a unit of search and comparison.</p>
-      <p>
-        <a href="#" class="btn btn-primary my-2" (click)="scrollTo($event, '#features')">Get started</a>
-        <a href="https://academic.oup.com/bioinformatics/article/34/9/1562/4673199" target="_blank" class="btn btn-outline-primary my-2">Read the paper</a>
-        <a href="https://github.com/legumeinfo/lis_context_viewer" target="_blank" class="btn btn-secondary my-2"><span class="fa fa-github"></span> GitHub</a>
-      </p>
+      <!-- lead banner -->
+      <div class="row lead-banner">
+        <div class="col-md-6">
+          <h1 class="display-4">Genome Context Viewer</h1>
+          <p class="lead">A web-app that visualizes genomic context data provided by third party services in a single, federated interface by using functional annotations as a unit of search and comparison.</p>
+          <p>
+            <a href="#" class="btn btn-primary mr-2" (click)="scrollTo($event, '#features')">Get started</a>
+            <a href="https://academic.oup.com/bioinformatics/article/34/9/1562/4673199" target="_blank" class="btn btn-outline-primary mr-2">Read the paper</a>
+            <a href="https://github.com/legumeinfo/lis_context_viewer" target="_blank" class="btn btn-dark mr-2"><span class="fa fa-github"></span> GitHub</a>
+          </p>
+        </div>
+        <div class="col-md-6 flex-shrink-1">
+          <img #searchScreenshot class="shadow img-fluid mx-auto" src="{{dashboard.search.img}}" alt="Search view screenshot">
+        </div>
+      </div>
+      <!-- search -->
+      <div class="row py-5 text-center">
+        <div class="col-md-12">
+          <h1>Search Now!</h1>
+          <p>To get started, enter the name of a gene and select the server that provides it. A genomic context will be made from the gene and the genes that flank it, then similar contexts will be found and aligned.</p>
+          <div class="w-50 mx-auto">
+            <app-search-bar></app-search-bar>
+          </div>
+        </div>
+      </div>
+      <!-- lead silos -->
+      <div class="row pt-5 d-flex align-items-stretch text-center">
+        <div id="tour" class="col-lg-4 d-flex flex-column">
+          <h2><span class="fa fa-play"></span> Take the Tour</h2>
+          <div class="flex-grow-1">
+          <p>Take an interactive tour and learn about each of the GCV views and the components that compose them.</p>
+          </div>
+          <p><a class="btn btn-outline-primary" href="#" role="button" (click)="startTour($event)">Begin tour &raquo;</a></p>
+        </div>
+        <div class="col-lg-4 d-flex flex-column">
+          <h2><span class="fas fa-book"></span> Read the Docs</h2>
+          <div class="flex-grow-1">
+            <p>Documentation describing GCV features and use cases in detail are available online.</p>
+          </div>
+          <p><a class="btn btn-outline-primary" href="https://github.com/legumeinfo/lis_context_viewer/wiki" target="_blank" role="button">Start reading &raquo;</a></p>
+        </div>
+        <div class="col-lg-4 d-flex flex-column">
+          <h2><span class="fas fa-code"></span> Developer Zone</h2>
+          <div class="flex-grow-1">
+            <p>Learn how to setup your own GCV data services and configure the user interface.</p>
+          </div>
+          <p><a class="btn btn-outline-primary" href="https://github.com/legumeinfo/lis_context_viewer/wiki" target="_blank" role="button">View details &raquo;</a></p>
+        </div>
+      </div>
     </div>
   </section>
 
-  <div class="container">
-
-    <div class="row featurette" *ngIf="dashboard.examples.length > 0">
-      <div class="col-md-12">
-        <h2 class="featurette-heading"><span class="fa fa-search"></span> Search Now!<!-- <span class="text-muted">Checkmate.</span>--></h2>
-        <p>To get started, enter the name of a gene and select the server that provides it. A genomic context will be made from the gene and the genes that flank it, then similar contexts will be searched for.</p>
-        <app-search-bar></app-search-bar>
+  <!-- examples -->
+  <section class="border-top py-5 bg-light">
+    <div class="container">
+      <!-- examples -->
+      <div class="row" *ngIf="dashboard.examples.length > 0">
+        <div class="col-md-12">
+          <h2>{{brand.name}} Examples<!-- <span class="text-muted">Checkmate.</span>--></h2>
+          <ul>
+            <li *ngFor="let example of dashboard.examples" [innerHTML]="example"></li>
+          </ul>
+        </div>
       </div>
     </div>
+  </section>
 
-    <hr class="featurette-divider">
+  <!-- features -->
+  <section class="border-top py-5">
+    <div class="container">
 
-    <div class="row">
-      <div id="tour" class="col-lg-4">
-        <h2><span class="fa fa-play"></span> Take the Tour</h2>
-        <p>Take an interactive tour and learn about each of the GCV views and the components that compose them.</p>
-        <p><a class="btn btn-secondary" href="#" role="button" (click)="startTour($event)">Begin tour &raquo;</a></p>
-      </div>
-      <div class="col-lg-4">
-        <h2><span class="fa fa-book"></span> Read the Docs</h2>
-        <p>Documentation describing GCV features and use cases in detail are available online.</p>
-        <p><a class="btn btn-secondary" href="https://github.com/legumeinfo/lis_context_viewer/wiki" target="_blank" role="button">Start reading &raquo;</a></p>
-      </div>
-      <div class="col-lg-4">
-        <h2><span class="fa fa-code"></span> Developer Zone</h2>
-        <p>GCV is a federated tool that can consume data from a variety of data providers. Learn how to setup your own GCV data services and configure the user interface.</p>
-        <p><a class="btn btn-secondary" href="https://github.com/legumeinfo/lis_context_viewer/wiki" target="_blank" role="button">View details &raquo;</a></p>
-      </div>
-    </div>
-
-    <hr id="features" class="featurette-divider">
-
-    <div class="row featurette">
+    <div class="row mb-5">
       <div class="col-md-5 flex-shrink-1">
-        <h2 class="featurette-heading">Search View<!-- <span class="text-muted">It'll blow your mind.</span>--></h2>
+        <h2>Search View<!-- <span class="text-muted">It'll blow your mind.</span>--></h2>
         <p class="lead">Search across multiple data providers for genomic contexts similar to your query and align the results to the query in a manner that emphasizes structural variation.</p>
         <p class="lead">Put the results into context with chromosome-scale synteny blocks computed on-demand across data providers.</p>
         <p class="lead">And better understand local and global strucuture with pairwise gene-loci dot plots.</p>
       </div>
       <div class="col-md-7 flex-shrink-1">
-        <img #searchScreenshot class="featurette-image img-fluid mx-auto" src="{{dashboard.search.img}}" alt="Search view screenshot">
+        <img #searchScreenshot class="img-fluid mx-auto" src="{{dashboard.search.img}}" alt="Search view screenshot">
       </div>
       <div id="container"></div>
     </div>
 
-    <hr class="featurette-divider">
-
-    <div class="row featurette">
+    <div class="row">
       <div class="col-md-5 order-md-2">
-        <h2 class="featurette-heading">Multi View<!-- <span class="text-muted">See for yourself.</span>--></h2>
+        <h2>Multi View<!-- <span class="text-muted">See for yourself.</span>--></h2>
         <p class="lead">Retrieve multiple genomic contexts from different data providers, group them based on shared gene-family content, and perform a multiple sequence alignment of each group that emphasizes structural variation.</p>
         <p class="lead">Put the results into context with chromosome-scale synteny blocks computed on-demand across data providers and displayed in a Circos-style viewer.</p>
       </div>
       <div class="col-md-7 order-md-1">
-        <img #multiScreenshot class="featurette-image img-fluid mx-auto" src="{{dashboard.multi.img}}" alt="Multi view screenshot">
+        <img #multiScreenshot class="img-fluid mx-auto" src="{{dashboard.multi.img}}" alt="Multi view screenshot">
       </div>
     </div>
-
-    <hr class="featurette-divider" *ngIf="dashboard.examples.length > 0">
-
-    <div class="row featurette" *ngIf="dashboard.examples.length > 0">
-      <div class="col-md-12">
-        <h2 class="featurette-heading">{{brand.name}} Examples<!-- <span class="text-muted">Checkmate.</span>--></h2>
-        <ul>
-          <li *ngFor="let example of dashboard.examples" [innerHTML]="example"></li>
-        </ul>
-      </div>
-    </div>
-
-    <hr class="featurette-divider">
 
   </div>
+  </section>
 
-  <footer class="container">
-    <p class="float-right"><a href="#" (click)="scrollTo($event, '#top')">Back to top</a></p>
-    <p><span class="fa fa-copyright"></span> {{ copyrightYear }} <a href="https://legumeinfo.org/" target="_blank">Legume Information System</a> &middot; <span class="fa fa-osi"></span>&nbsp;<a href="https://github.com/legumeinfo/lis_context_viewer/blob/master/LICENSE" target="_blank">License</a></p>
+  <footer class="border-top py-3">
+    <div class="container">
+      <p class="float-right m-0"><a href="#" (click)="scrollTo($event, '#top')">Back to top</a></p>
+      <p class="m-0"><span class="far fa-copyright"></span> {{ copyrightYear }} <a href="https://legumeinfo.org/" target="_blank">Legume Information System</a> &middot; <span class="fab fa-osi"></span>&nbsp;<a href="https://github.com/legumeinfo/lis_context_viewer/blob/master/LICENSE" target="_blank">License</a></p>
+    </div>
   </footer>
 </main>

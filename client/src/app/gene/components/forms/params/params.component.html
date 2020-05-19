@@ -45,7 +45,7 @@
     <legend>Micro-Synteny Clustering<a id="align-params-help" class="float-right" (click)="clusteringHelp=!clusteringHelp"><span class="fa fa-question-circle"></span></a></legend>
     <div class="form-group" [ngClass]="{'has-error': !clusteringGroup.controls.linkage.valid}">
       <label for="linkage">Linkage</label>
-      <select class="form-control" formControlName="linkage" >
+      <select class="form-control custom-select" formControlName="linkage" >
         <option *ngFor="let link of linkages" [value]="link.id">{{link.name}}</option>
       </select>
       <small class="form-text text-muted">Select one</small>
