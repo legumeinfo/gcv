@@ -19,7 +19,7 @@ import { AppConfig } from '@gcv/app.config';
         <input type="text" class="form-control" id="query-search"
           [(ngModel)]="model.query" name="query"
           #search="ngModel"
-          placeholder="{{placeholder}}" >
+          placeholder="Enter a gene name" >
         <select class="custom-select" [(ngModel)]="model.source" name="source">
           <option *ngFor="let s of servers" [ngValue]="s">{{s.name}}</option>
         </select>
@@ -27,6 +27,7 @@ import { AppConfig } from '@gcv/app.config';
           <button class="btn btn-primary" type="submit">Search</button>
         </div>
       </div>
+      <small class="form-text text-muted" *ngIf="helpText" [innerHTML]="helpText"></small>
     </form>
   `,
 })
@@ -34,7 +35,7 @@ export class SearchBarComponent {
 
   servers: any[] = AppConfig.SERVERS;
   model: any = {source: this.servers[0], query: ''};
-  placeholder: string = AppConfig.MISCELLANEOUS.searchPlaceholder;
+  helpText: string = AppConfig.MISCELLANEOUS.searchHelpText;
 
   constructor(private router: Router) { }
 

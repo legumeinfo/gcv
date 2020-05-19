@@ -23,7 +23,7 @@
     ]
   },
   "miscellaneous": {
-    "searchPlaceholder": "e.g. phavu.Phvul.002G100400"
+    "searchHelpText": "Try <b>phavu.Phvul.002G100400</b> or <b>glyma.Glyma.15G255600</b>"
   },
   "servers": [
     {

@@ -26,7 +26,7 @@ export class Dashboard {
 }
 
 export class Miscellaneous {
-  searchPlaceholder?: string;
+  searchHelpText?: string;
 }
 
 export class Tour {
