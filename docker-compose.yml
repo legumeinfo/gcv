@@ -1,0 +1,28 @@
+version: '3'
+
+services:
+  server:
+    build: server
+    environment:
+      ALLOWED_HOSTS: '*'
+      DEBUG: '1'
+      PGDATABASE: postgres
+      PGHOST: db
+      PGNAME: postgres
+      PGPASSWORD: postgres
+      PGPORT: 5432
+      PGUSER: postgres
+      SECRET_KEY: secret_key
+#     STATIC_URL: /static/
+    depends_on:
+      - db
+    ports:
+      - "8000:8000"
+    command: ["sh", "-c", "sleep 30 && python3 manage.py runserver 0.0.0.0:8000"]
+
+  db:
+    image: postgres:12.3-alpine
+    environment:
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - ./docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d

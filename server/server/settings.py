@@ -39,18 +39,11 @@ CORS_ALLOW_HEADERS = (
 )
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.environ['DEBUG'] == '1'
 
 SITE_ID = 1
 
-ALLOWED_HOSTS = []
-import socket
-if socket.gethostname()[0:4] == 'lis-':
-    ALLOWED_HOSTS = [socket.gethostname(), 'localhost']
-else:
-    #ALLOWED_HOSTS = [socket.gethostname(), 'legumeinfo.org']
-    ALLOWED_HOSTS = [socket.gethostname(), 'legumeinfo.org', 'localhost']
-
+ALLOWED_HOSTS = os.environ["ALLOWED_HOSTS"].split()
 
 # Application definition
 
