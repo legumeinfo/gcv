@@ -17,7 +17,7 @@
           </p>
         </div>
         <div class="col-md-6 flex-shrink-1">
-          <img #searchScreenshot class="shadow img-fluid mx-auto" src="{{dashboard.search.img}}" alt="Search view screenshot">
+          <img class="shadow img-fluid mx-auto" src="{{dashboard.gcvScreenshot.img}}" alt="GCV screenshot">
         </div>
       </div>
       <!-- search -->
@@ -83,8 +83,12 @@
       </div>
       <div class="col-md-7 flex-shrink-1">
         <figure class="figure">
-          <img #searchScreenshot class="figure-img img-fluid mx-auto" src="{{dashboard.search.img}}" alt="Search view screenshot">
-          <figcaption class="figure-caption">A caption for the above image.</figcaption>
+          <img class="figure-img img-fluid mx-auto" src="{{dashboard.trackScreenshot.img}}" alt="The anatomy of a query track">
+          <figcaption class="figure-caption">{{dashboard.trackScreenshot.caption}}</figcaption>
+        </figure>
+        <figure class="figure">
+          <img class="shadow-sm figure-img img-fluid mx-auto" src="{{dashboard.microsyntenyScreenshot.img}}" alt="The micro-synteny viewer">
+          <figcaption class="figure-caption">{{dashboard.microsyntenyScreenshot.caption}}</figcaption>
         </figure>
       </div>
     </div>
@@ -92,8 +96,8 @@
     <div class="row mb-5">
       <div class="col-md-7 flex-shrink-1">
         <figure class="figure">
-          <img class="figure-img img-fluid mx-auto" src="{{dashboard.search.img}}" alt="Search view screenshot">
-          <figcaption class="figure-caption">A caption for the above image.</figcaption>
+          <img class="shadow-sm figure-img img-fluid mx-auto" src="{{dashboard.dotplotsScreenshot.img}}" alt="Local and gloabl dot plots">
+          <figcaption class="figure-caption">{{dashboard.dotplotsScreenshot.caption}}</figcaption>
         </figure>
       </div>
       <div class="col-md-5 flex-shrink-1">
@@ -113,8 +117,8 @@
       </div>
       <div class="col-md-7">
         <figure class="figure">
-          <img #multiScreenshot class="img-fluid mx-auto" src="{{dashboard.multi.img}}" alt="Multi view screenshot">
-          <figcaption class="figure-caption">A caption for the above image.</figcaption>
+          <img class="shadow-sm img-fluid mx-auto" src="{{dashboard.macrosyntenyScreenshot.img}}" alt="Multi view screenshot">
+          <figcaption class="figure-caption">{{dashboard.macrosyntenyScreenshot.caption}}</figcaption>
         </figure>
       </div>
     </div>

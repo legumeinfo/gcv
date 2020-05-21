@@ -117,11 +117,25 @@ export class AppConfig {
   }
 
   private _loadDashboard(dashboard: any): void {
-    if (dashboard.search.img === undefined) {
-      dashboard.search.img = require('@gcv-assets/img/search.png');
+    dashboard.gcvScreenshot = dashboard.gcvScreenshot || {};
+    if (dashboard.gcvScreenshot.img == undefined) {
+      dashboard.gcvScreenshot.img = '/config/img/instructions-gcv.png';
     }
-    if (dashboard.multi.img === undefined) {
-      dashboard.multi.img = require('@gcv-assets/img/multi.png');
+    dashboard.trackScreenshot = dashboard.trackScreenshot || {};
+    if (dashboard.trackScreenshot.img == undefined) {
+      dashboard.trackScreenshot.img = '/config/img/instructions-track.png';
+    }
+    dashboard.microsyntenyScreenshot = dashboard.microsyntenyScreenshot || {};
+    if (dashboard.microsyntenyScreenshot.img == undefined) {
+      dashboard.microsyntenyScreenshot.img = '/config/img/instructions-microsynteny.png';
+    }
+    dashboard.dotplotsScreenshot = dashboard.dotplotsScreenshot || {};
+    if (dashboard.dotplotsScreenshot.img == undefined) {
+      dashboard.dotplotsScreenshot.img = '/config/img/instructions-dotplots.png';
+    }
+    dashboard.macrosyntenyScreenshot = dashboard.macrosyntenyScreenshot || {};
+    if (dashboard.macrosyntenyScreenshot.img == undefined) {
+      dashboard.macrosyntenyScreenshot.img = '/config/img/instructions-macrosynteny.png';
     }
     AppConfig.DASHBOARD = dashboard;
     Object.freeze(AppConfig.DASHBOARD);
