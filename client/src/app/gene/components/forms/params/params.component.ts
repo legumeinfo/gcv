@@ -31,7 +31,7 @@ export class ParamsComponent implements OnDestroy, OnInit {
   // UI state
   blockHelp = false;
   queryHelp = false;
-  clusteringHelp: false;
+  clusteringHelp = false;
   alignmentHelp = false;
   sourcesHelp = false;
 
