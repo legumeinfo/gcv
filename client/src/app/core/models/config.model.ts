@@ -20,8 +20,11 @@ export class DashboardView {
 }
 
 export class Dashboard {
-  search?: DashboardView;
-  multi?: DashboardView;
+  gcvScreenshot?: DashboardView;
+  trackScreenshot?: DashboardView;
+  microsyntenyScreenshot?: DashboardView;
+  dotplotsScreenshot?: DashboardView;
+  macrosyntenyScreenshot?: DashboardView;
   examples?: string[];  // each string should contain HTML with a description and link to an example
 }
 
