@@ -31,9 +31,9 @@
       "caption": "A reference macro-synteny view (left) and a circos macro-synteny view (right). The reference view contains blocks from the other query track chromosomes as well as from chromosomes provided by the sources. The circos view contains all-pairs blocks among the query track chromosomes."
     },
     "examples": [
-      "Common bean gene <a href='/search/lis/phavu.Phvul.002G085200?neighbors=10&matched=4&intermediate=5&algorithm=repeat&match=10&mismatch=-1&gap=-1&score=30&threshold=25&regexp=&order=distance&sources=lis'>phavu.Phvul.002G085200</a> highly conserved across syntenic contexts among legumes (with inversion in soybean)",
-      "\"Search\" (<b>reference-aligned</b>) view of <a href='/search/lis/medtr.Medtr3g110360?neighbors=8&sources=lis&regexp=&matched=4&intermediate=5&algorithm=repeat&match=10&mismatch=-1&gap=-1&score=30&threshold=25&order=distance'>Medicago truncatula gene medtr.Medtr3g110360</a> (try the Dotplots tab on this too)",
-      "\"Multi\" (<b>within-cluster multiple alignment</b>) view of <a href='/multi/lotja.Lj0g3v0166889,cicar.Ca_05015_gene,glyma.Glyma.06G088000,glyma.Glyma.04G086500,araip.Araip.Z4RG3,vigra.Vradi05g08580,araip.Araip.0T13B,medtr.Medtr3g110360,cajca.C.cajan_36467_gene,phavu.Phvul.009G111700,aradu.Aradu.M206V?neighbors=8&sources=lis&regexp='>a set of genes from the tryptophan-tRNA ligase family</a>."
+      "Common bean gene <a href='/gene;lis=phavu.Phvul.002G085200?neighbors=10&matched=4&intermediate=5&algorithm=repeat&match=10&mismatch=-1&gap=-1&score=30&threshold=25&regexp=&order=distance&sources=lis'>phavu.Phvul.002G085200</a> highly conserved across syntenic contexts among legumes (with inversion in soybean)",
+      "Single query track (<b>reference-aligned</b>) view of <a href='/gene;lis=medtr.Medtr3g110360?neighbors=8&sources=lis&regexp=&matched=4&intermediate=5&algorithm=repeat&match=10&mismatch=-1&gap=-1&score=30&threshold=25&order=distance'>Medicago truncatula gene medtr.Medtr3g110360</a> (try the Dotplots on this too)",
+      "Multiple query tracks (<b>within-cluster multiple alignment</b>) view of <a href='/gene;lis=lotja.Lj0g3v0166889,cicar.Ca_05015_gene,glyma.Glyma.06G088000,glyma.Glyma.04G086500,araip.Araip.Z4RG3,vigra.Vradi05g08580,araip.Araip.0T13B,medtr.Medtr3g110360,cajca.C.cajan_36467_gene,phavu.Phvul.009G111700,aradu.Aradu.M206V?neighbors=8&sources=lis&regexp='>a set of genes from the tryptophan-tRNA ligase family</a>."
     ]
   },
   "miscellaneous": {
