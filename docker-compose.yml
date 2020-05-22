@@ -1,6 +1,11 @@
 version: '3'
 
 services:
+  client:
+    build: client
+    ports:
+      - "4200:4200"
+
   server:
     build: server
     environment:
@@ -13,7 +18,6 @@ services:
       PGPORT: 5432
       PGUSER: postgres
       SECRET_KEY: secret_key
-#     STATIC_URL: /static/
     depends_on:
       - db
     ports:
