@@ -12,7 +12,7 @@
   "dashboard": {
     "gcvScreenshot": {
       "img": "/config/img/screenshots/instructions-gcv.png",
-      "caption": "A Search view using a genomic context from Phaseolus vulgaris (common bean) Chromosome II as the query. Note, the result genomic context from Glycine max (soybean) Chromosome I contains an inversion. Also, the Global dot plot of Arachis hypogaea (peanut) reveals an inversion not present in the Micro-Synteny viewer. Lastly, the Macro-Synteny viewer reveals that some of the result genomic contexts belong to larger syntenic structures."
+      "caption": "A set of genomic contexts with query tracks from three species (soybean=glyma, cowpea=vigun, common bean=phavu) showing the effects of an ancient whole genome duplication (WGD) common to all the papilionoid legumes with an additional more recent WGD in soybean resulting in its having four homeologous regions to the other species' two homeologous regions. Note that patterns of greater gene content similarity suggest the evolutionary relatedness of these segments; note too, that soybean's chromosome 12 contains two regions homeologous to each other due to structural rearrangements following WGD. Segments from a couple of lupin species have been brought in through the tool's capability to search for related tracks; one of these shows a partial inversion relative to the others."
     },
     "trackScreenshot": {
       "img": "/config/img/screenshots/instructions-track.png",
@@ -24,7 +24,7 @@
     },
     "dotplotsScreenshot": {
       "img": "/config/img/screenshots/instructions-dotplots.png",
-      "caption": "A local dot plot (left) and a global dot plot (right). The local dot plot highlights copy-number variation of a tandem duplication and a palindromic sequence. The global dot plot shows a self-syntenic chromosome due to an ancient duplication. The duplicatoin has apparently been subjected to rearrangement."
+      "caption": "A local dot plot (left) and a global dot plot (right). The local dot plot highlights copy-number variation of a tandem duplication and a palindromic sequence. The global dot plot shows a self-syntenic chromosome due to an ancient duplication. The duplication has apparently been subjected to rearrangement."
     },
     "macrosyntenyScreenshot": {
       "img": "/config/img/screenshots/instructions-macrosynteny.png",
