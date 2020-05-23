@@ -2,9 +2,13 @@ version: '2.4'
 
 services:
   client:
-    build: client
+    build: 
+      context: client
+      target: dev
     ports:
       - "4200:4200"
+    volumes:
+      - ./client/src:/client/src
 
   server:
     build: server

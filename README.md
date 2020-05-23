@@ -70,6 +70,30 @@ See the [Django docs](https://docs.djangoproject.com/es/3.0/howto/deployment/) f
 By default, GCV is configured to retrieve data from the [Legume Information System](http://legumeinfo.org/home).
 See the [wiki](https://github.com/legumeinfo/lis_context_viewer/wiki/Client-Configuration) for information on how to retrieve data from your own instance of the server.
 
+## Running GCV (Docker)
+
+Two Docker Compose files allow GCV to be built and run in developer mode (`docker-compose.yml`) or production mode (`docker-compose.prod.yml`).
+
+Both modes assume a suitable PostgreSQL dump (optionally compressed) containing a Chado schema has been places in docker-entrypoint-initdb.d/.
+
+### Developer mode
+
+```
+docker-compose up -d
+```
+`client/src` is bind mounted in the client container and served from http://localhost:4200 via `ng serve`.
+Changes to files in `client/src` will be reflected immediately.
+
+The service API is accessible from http://localhost:8000/services
+
+### Production mode
+
+```
+SECRET_KEY=[STRING] docker-compose -f docker-compose.prod.yml up -d
+```
+
+The client UI is available at http://localhost:8080, while the services API can be accessed at http://localhost:8080/services
+
 ## Citation
 If you used an instance of GCV in your work or deployed it as part of you site, please consider citing the manuscript to help support maintenance and further development:
 
