@@ -1,0 +1,48 @@
+# Usage:
+#     SECRET_KEY='mysecretkey' docker-compose -f docker-compose.prod.yml up --build -d
+version: '2.4'
+
+services:
+  nginx:
+    image: nginx:1.17-alpine
+    ports:
+      - "8080:80"
+    volumes:
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - client
+      - server
+
+  client:
+    build: client
+    ports:
+      - "4200:4200"
+
+  server:
+    build: server
+    environment:
+      ALLOWED_HOSTS: '*'
+      DEBUG: '0'
+      PGDATABASE: postgres
+      PGHOST: db
+      PGNAME: postgres
+      PGPASSWORD: postgres
+      PGPORT: 5432
+      PGUSER: postgres
+      SECRET_KEY:
+    depends_on:
+      db:
+        condition: service_healthy
+    expose:
+      - "8000"
+    command: ["gunicorn", "--bind", "0.0.0.0:8000", "server.wsgi"]
+
+  db:
+    image: postgres:12.3-alpine
+    environment:
+      POSTGRES_PASSWORD: postgres
+    healthcheck:
+      test: "nc -z localhost 5432"
+      start_period: 30s
+    volumes:
+      - ./docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d:ro
