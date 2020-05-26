@@ -269,7 +269,6 @@ export class MultiMacro {
       const textPath = this.circos.svg.select(`g[class='${id}'] textPath`);
       const pathRef = this.options.IRIprefix + textPath.attr('href');
       textPath.attr('href', pathRef);
-      console.log(id);
     });
   }
 

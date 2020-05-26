@@ -16,7 +16,7 @@ import { statusToClass, statusToIcon } from './pipeline.shim';
   styleUrls: ['./pipeline.component.scss'],
   templateUrl: 'pipeline.component.html',
 })
-export class PipelineComponent {
+export class PipelineComponent { 
 
   @ViewChild(TooltipFactoryDirective, {static: true}) tooltipFactoryDirective;
 
