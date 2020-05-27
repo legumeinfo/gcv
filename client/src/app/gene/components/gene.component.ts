@@ -48,7 +48,16 @@ export class GeneComponent implements AfterViewInit, OnDestroy {
 
   ngAfterViewInit(): void {
     this._tipOptions = {
-      boundary: this.goldenLayoutDirective._el.nativeElement,
+      popperOptions: {
+        modifiers: [
+          {
+            name: 'preventOverflow',
+            options: {
+              rootBoundary: this.goldenLayoutDirective._el.nativeElement,
+            },
+          },
+        ],
+      },
     }
     this._microTracksService.getClusterIDs()
       .pipe(takeUntil(this._destroy))
