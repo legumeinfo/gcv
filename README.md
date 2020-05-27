@@ -32,6 +32,10 @@ To run GCV, locally or as part of a website, you must first build the program us
     $ cd client
     client/ $ npm install
     client/ $ npm run build --prod
+
+If you're going to be serving the client over HTTPS then we suggest compressing the build with [Brotli](https://github.com/google/brotli) for faster load times:
+
+    client/ $ for i in dist/*; do brotli $i; done
     
 This will create an `index.html` file in the `client/dist/` directory.
 Now you can run GCV locally using a command-line HTTP server, such as [angular-http-server](https://www.npmjs.com/package/angular-http-server), or you can integrate GCV into a website by configuring an HTTP server, such as Apache or NGINX, to serve `index.html` as a static page.
