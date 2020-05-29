@@ -21,6 +21,18 @@ import { InterAppCommunicationService } from '@gcv/gene/services';
           <inter-app-communication></inter-app-communication>
         </div>
       </li>
+      <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown"  data-display="static" data-boundary="viewport" aria-haspopup="true" aria-expanded="false">
+          Help
+        </a>
+        <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdown">
+          <a class="dropdown-item" [routerLink]="['/instructions']" target="_blank">Instructions</a>
+          <a class="dropdown-item" href="https://github.com/legumeinfo/lis_context_viewer/wiki" target="_blank">Documentation</a>
+          <a class="dropdown-item" href="https://doi.org/10.1093/bioinformatics/btx757" target="_blank">Manuscript</a>
+          <div class="dropdown-divider"></div>
+          <a class="dropdown-item" href="https://github.com/legumeinfo/lis_context_viewer/issues" target="_blank">Contact developers</a>
+        </div>
+      </li>
     </ul>
   `,
 })
