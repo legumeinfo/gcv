@@ -34,9 +34,8 @@ export class Plot {
     this.options.autoResize = this.options.autoResize || false;
     this.options.resizeDelay = this.options.resizeDelay || 250;
     this.options.selectiveColoring = this.options.selectiveColoring;
-    this.options.geneClick = this.options.geneClick || ((selection) => {
-        // noop
-      });
+    this.options.geneClick = this.options.geneClick || ((g, i) => { /* noop */ });
+    this.options.geneOpen = this.options.geneOver || ((e, g, i) => { /* noop */ });
     this.options.plotClick = this.options.plotClick || ((plot) => {
         // noop
       });
@@ -64,9 +63,10 @@ export class Plot {
     this.eventBus = eventBus.subscribe(this.eventHandler.bind(this));
 
     const margin = { top: 20, right: 20, bottom: 30, left: 30 };
-    const dim = Math.max(this.container.clientWidth, this.container.clientHeight);
-    const width = dim - margin.left - margin.right;
-    const height = dim - margin.top - margin.bottom;
+    const dim =
+      Math.min(this.container.clientWidth, this.container.clientHeight);
+    const width = Math.max(dim - margin.left - margin.right, 0);
+    const height = Math.max(dim - margin.top - margin.bottom, 0);
     const radius = 4;
 
     this.scale.x.range([radius + 1, width - radius - 1]);
@@ -169,9 +169,12 @@ export class Plot {
       .attr("data-gene", (g) => g.name)
       .attr("data-family", (g) => g.family)
       .style("cursor", "pointer")
-      .on("mouseover", (g) => publishGeneEvent("select", g))
+      .on("mouseover", (g) => {
+        publishGeneEvent("select", g);
+        this.options.geneOver(d3.event, g);
+      })
       .on("mouseout", (g) => publishGeneEvent("deselect", g))
-      .on("click", (g) => this.options.geneClick(g, this.data));;
+      .on("click", (g, i) => this.options.geneClick(g, i));;
 
     const points = genes.append("circle")
       .attr("r", radius)
@@ -209,6 +212,15 @@ export class Plot {
       .call(yAxis);
     yAxisLabels(yAxisCall);
 
+    plot.append("text")
+      .attr("class", "label plot-label")
+      .style("text-anchor", "end")
+      .style("dominant-baseline", "hanging")
+      .attr("x", 0)
+      .attr("y", 8)
+      .attr("transform", "rotate(-90)")
+      .text(this.data.reference_name);
+
     scatter.append("g")
       .attr("class", "brush")
       .call(brush);
@@ -241,8 +253,8 @@ export class Plot {
 
   // TODO: clearTimeout doesn't appear to be working due to a scoping issue
   // NOTE: is there a more efficient way to resize other than redrawing?
+  // NOTE: does the observer need to be disconnected?
   private autoResize() {
-    const scope = this;
     const ro = new ResizeObserver((entries) => {
       clearTimeout(this.resizeTimer);
       const id = this.resizeTimer = setTimeout(() => {
@@ -295,7 +307,7 @@ export class Plot {
     if (this.eventBus !== undefined) {
       this.eventBus.unsubscribe();
     }
-    this.container.removeChild(this.viewer.node());
+    this.viewer.node().remove();
   }
 
   /** Generates the raw SVG xml. */

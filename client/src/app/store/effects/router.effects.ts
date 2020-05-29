@@ -1,11 +1,11 @@
 // Angular
-import { Injectable } from "@angular/core";
-import { Router } from "@angular/router";
-import { Location } from "@angular/common";
+import { Injectable } from '@angular/core';
+import { Router } from '@angular/router';
+import { Location } from '@angular/common';
 // store
-import { Effect, Actions, ofType } from "@ngrx/effects";
-import { map, scan, tap } from "rxjs/operators";
-import * as routerActions from "../actions/router.actions";
+import { Effect, Actions, ofType } from '@ngrx/effects';
+import { map, scan, tap } from 'rxjs/operators';
+import * as routerActions from '@gcv/store/actions/router.actions';
 
 @Injectable()
 export class RouterEffects {
@@ -27,7 +27,7 @@ export class RouterEffects {
     tap(({path, query: queryParams, extras}) => {
       this.router.navigate(path, {
         queryParams,
-        queryParamsHandling: "merge",
+        queryParamsHandling: 'merge',
         ...extras,
       });
     })

@@ -22,12 +22,7 @@ export class Micro extends Visualizer {
   /** Resizes the viewer and x scale. Will be decorated by other components. */
   protected resize() {
     const w = this.container.clientWidth;
-    const doublePad = 2 * this.PAD;
-    const halfGlyph = this.GLYPH_SIZE / 2;
-    const r1 = this.left + halfGlyph;
-    const r2 = w - (this.right + halfGlyph);
     this.viewer.attr("width", w);
-    this.x.range([r1, r2]);
   }
 
   /** Handles events that come from the GCV eventBus.
@@ -89,17 +84,18 @@ export class Micro extends Visualizer {
     this.GLYPH_SIZE = 30;
     // parse optional parameters
     this.options = Object.assign({}, options);
-    this.options.boldFirst = this.options.boldFirst || false;
+    this.options.bold = this.options.bold || [];
     this.options.highlight = this.options.highlight || [];
     this.options.selectiveColoring = this.options.selectiveColoring;
-    this.options.nameClick = this.options.nameClick || ((c) => { /* noop */ });
-    this.options.geneClick = this.options.geneClick || ((b) => { /* noop */ });
+    this.options.nameClick = this.options.nameClick || ((t, i) => { /* noop */ });
+    this.options.geneClick = this.options.geneClick || ((t, g, i) => { /* noop */ });
+    this.options.geneOver = this.options.geneOver || ((e, t, g, i) => { /* noop */ });
     this.options.plotClick = this.options.plotClick;
     this.options.autoResize = this.options.autoResize || false;
     this.options.hoverDelay = this.options.hoverDelay || 500;
     this.options.prefix = this.options.prefix || ((t) => "");
     // create the viewer
-    const levels = data.groups.map((group) => {
+    const levels = data.map((group) => {
       return Math.max.apply(null, group.genes.map((gene) => gene.y)) + 1;
     });
     const numLevels = levels.reduce((a, b) => a + b, 0);
@@ -117,8 +113,8 @@ export class Micro extends Visualizer {
     this.ticks = [];
     let tick = 0;
     this.distances = [];
-    for (let i = 0; i < this.data.groups.length; i++) {
-      const group = this.data.groups[i];
+    for (let i = 0; i < this.data.length; i++) {
+      const group = this.data[i];
       let fminI = Infinity;
       let fmaxI = -Infinity;
       this.ticks.push(tick);
@@ -167,23 +163,38 @@ export class Micro extends Visualizer {
   protected draw() {
     // draw the y-axes
     const yAxis = this.drawYAxis();
-    this.left = yAxis.node().getBBox().width + this.PAD;
-    yAxis.attr("transform", "translate(" + this.left + ", 0)");
-    this.left += this.PAD;
+    const resizeYaxis = () => {
+      this.left = yAxis.node().getBBox().width + this.PAD;
+      yAxis.attr("transform", "translate(" + this.left + ", 0)");
+      this.left += this.PAD;
+    };
+    resizeYaxis();
+    this.decorateResize(resizeYaxis);
+    const setRight = () => this.right = this.PAD;
+    setRight();
+    this.decorateResize(setRight);
     if (this.options.plotClick !== undefined) {
       const plotAxis = this.drawPlotAxis();
-      this.right += plotAxis.node().getBBox().width + this.PAD;
-      const obj = this;
       const resizePlotYAxis = () => {
-        const x = obj.viewer.attr("width") - obj.right + obj.PAD;
+        this.right += plotAxis.node().getBBox().width + this.PAD;
+        const x = this.viewer.attr("width") - this.right + this.PAD;
         plotAxis.attr("transform", "translate(" + x + ", 0)");
       };
+      resizePlotYAxis();
       this.decorateResize(resizePlotYAxis);
     }
-    this.resize();
     // draw the tracks
+    const setXrange = () => {
+      const w = this.container.clientWidth;
+      const halfGlyph = this.GLYPH_SIZE / 2;
+      const r1 = this.left + halfGlyph;
+      const r2 = w - (this.right + halfGlyph);
+      this.x.range([r1, r2]);
+    };
+    setXrange();
+    this.decorateResize(setXrange);
     const tracks = [];
-    for (let i = 0; i < this.data.groups.length; i++) {
+    for (let i = 0; i < this.data.length; i++) {
       // make the track and save it for the resize call
       tracks.push(this.drawTrack(i).moveToBack());
     }
@@ -193,14 +204,12 @@ export class Micro extends Visualizer {
         t.resize();
       });
     };
+    resizeTracks();
     this.decorateResize(resizeTracks);
-    // create an auto resize iframe, if necessary
+    // create an auto resize listener, if necessary
     if (this.options.autoResize) {
-      this.resizer = this.autoResize(this.container, (e) => {
-        this.resize();
-      });
+      this.autoResize();
     }
-    this.resize();
   }
 
   // Public
@@ -219,7 +228,7 @@ export class Micro extends Visualizer {
    */
   private drawTrack(i) {
     const obj = this;
-    const t = this.data.groups[i];
+    const t = this.data[i];
     const y = this.ticks[i];
     // make svg group for the track
     const track = this.viewer.append("g")
@@ -279,29 +288,37 @@ export class Micro extends Visualizer {
         return "translate(" + obj.x(g.x) + ", " + obj.y(y + g.y) + ")";
       })
       .style("cursor", "pointer")
-      .on("mouseover", (g) => this.setTimeout(publishGeneEvent("select", g)))
+      .on("mouseover", (g, i) => {
+        const event = d3.event;
+        this.setTimeout(() => {
+          publishGeneEvent("select", g)();
+          this.options.geneOver(event, t, g, i);
+        });
+      })
       .on("mouseout", (g) => this.clearTimeout(publishGeneEvent("deselect", g)))
-      .on("click", (g) => obj.options.geneClick(g, t))
-      // add optional HTML attributes to gene elelements
+      .on("click", (g, i) => obj.options.geneClick(t, g, i))
+      // add optional HTML attributes to gene elements
       .addHTMLAttributes();
     // add genes to the gene groups
     const genes = geneGroups.append("path")
       .attr("d", (g) => {
-        if (g.glyph === "circle") {
+        if (g.glyph === "circle" || g.strand === undefined) {
           return d3.symbol().type(d3.symbolCircle).size(50)();
         }
         return d3.symbol().type(d3.symbolTriangle).size(200)();
       })
       .attr("class", (g) => {
+        let c = "point";
         if (obj.options.highlight.indexOf(g.name) !== -1) {
-          return "point focus";
-        } else if (g.family === "") {
-          return "point no_fam";
+          c += " focus";
+        }
+        if (g.family === "") {
+          c += " no_fam";
         } else if (obj.options.selectiveColoring !== undefined &&
         obj.options.selectiveColoring[g.family] === 1) {
-          return "point single";
+          c += " single";
         }
-        return "point";
+        return c;
       })
       .attr("transform", (g) => {
         let sign = "";
@@ -320,11 +337,7 @@ export class Micro extends Visualizer {
       });
     // draw the background highlight
     if (i % 2) {
-      const highY = obj.y(y) + genes.node().getBBox().y;
-      const height = track.node().getBBox().height - highY;
       track.highlight = track.append("rect")
-        .attr("y", highY)
-        .attr("height", height)
         .attr("fill", "#e7e7e7")
         .moveToBack();
     }
@@ -341,7 +354,12 @@ export class Micro extends Visualizer {
       });
       lines.attr("x2", (n) => Math.abs(obj.x(n.a.x) - obj.x(n.b.x)));
       if (track.highlight !== undefined) {
-        track.highlight.attr("width", this.viewer.attr("width"));
+        const highY = obj.y(y) + geneGroups.node().getBBox().y;
+        const height = track.node().getBBox().height;
+        track.highlight
+          .attr("width", obj.viewer.attr("width"))
+          .attr("y", highY)
+          .attr("height", height);
       }
     }.bind(this, geneGroups, lineGroups, lines);
     return track;
@@ -362,7 +380,7 @@ export class Micro extends Visualizer {
       .attr("class", "axis")
       .call(axis);
     const publishTrackEvent = (type, i) => {
-      const track = this.data.groups[i];
+      const track = this.data[i];
       const interval = this.intervals[i];
       return () => eventBus.publish({
         type,
@@ -374,16 +392,28 @@ export class Micro extends Visualizer {
         }
       });
     };
+    const obj = this;
     yAxis.selectAll("text")
-      .attr("class", (y, i) => (i === 0 && this.options.boldFirst) ? "query " : "")
+      .attr("class", (y, i) => {
+        if (this.options.bold.indexOf(this.data[i]) !== -1) {
+          return "query";
+        }
+        return "";
+      })
       .attr("data-micro-track", (y, i) => i.toString())
       .attr("data-extent", (y, i) => this.intervals[i].join(":"))
-      .attr("data-chromosome", (y, i) => this.data.groups[i].chromosome_name)
-      .attr("data-organism", (y, i) => this.data.groups[i].genus + " " + this.data.groups[i].species)
+      .attr("data-chromosome", (y, i) => this.data[i].chromosome_name)
+      .attr("data-organism", (y, i) => this.data[i].genus + " " + this.data[i].species)
       .style("cursor", "pointer")
       .on("mouseover", (y, i) => this.setTimeout(publishTrackEvent("select", i)))
       .on("mouseout", (y, i) => this.clearTimeout(publishTrackEvent("deselect", i)))
-      .on("click", (y, i) => this.options.nameClick(this.data.groups[i]));
+      .on("click", (y, i) => this.options.nameClick(this.data[i], i))
+      // add optional HTML attributes to gene elements
+      //.addHTMLAttributes();
+      .each(function(y, i) {
+        const selection = d3.select(this);
+        selection.addHTMLAttributes(obj.data[i]);
+      });
     return yAxis;
   }
 
@@ -404,7 +434,7 @@ export class Micro extends Visualizer {
     plotYAxis.selectAll("text")
       .attr("class", "micro-plot-link")
       .style("cursor", "pointer")
-      .on("click", (y, i) => this.options.plotClick(this.data.groups[i]));
+      .on("click", (y, i) => this.options.plotClick(d3.event, this.data[i], i));
     return plotYAxis;
   }
 }

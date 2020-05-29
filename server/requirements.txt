@@ -1,4 +1,6 @@
-Django==1.11.26
-django-cors-headers==3.0.2
-psycopg2==2.8.4
+asgiref==3.2.7
+Django==3.0.5
+django-cors-headers==3.2.1
+psycopg2==2.8.5
 pytz==2019.3
+sqlparse==0.3.1

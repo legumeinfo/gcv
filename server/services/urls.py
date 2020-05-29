@@ -41,4 +41,10 @@ urlpatterns = [
     url(r'^v1_1/macro-synteny/$', views.v1_1_macro_synteny),
     # genomic location to nearest gene
     url(r'^v1_1/span-to-context/$', views.v1_1_span_to_context),
+
+    # v2
+    url(r'^v2/genes/$', views.v2_genes),
+    url(r'^v2/chromosome/$', views.v2_chromosome),
+    url(r'^v2/micro-synteny-search/$', views.v2_micro_synteny_search),
+    url(r'^v2/pairwise-blocks/$', views.v2_pairwise_blocks),
 ]

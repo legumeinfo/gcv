@@ -1,52 +1,50 @@
 // Angular
-import { NgModule } from "@angular/core";
-import { RouterModule, Routes } from "@angular/router";
+import { NgModule } from '@angular/core';
+import { RouterModule, Routes } from '@angular/router';
 // app
-import { InstructionsComponent, MultiComponent, SearchComponent } from "./components";
-import { DefaultSearchGuard, MultiGuard, SearchGuard, SpanSearchGuard } from "./guards";
+import { LegacyMultiRouteGuard, LegacySearchRouteGuard } from '@gcv/guards';
+
 
 const routes: Routes = [
   {
-    path: "",
-    pathMatch: "full",
-    redirectTo: "/instructions",
+    path: '',
+    pathMatch: 'full',
+    redirectTo: '/instructions',
+  },
+  // modules
+  {
+    path: 'instructions',
+    loadChildren: () => import('@gcv/instructions/instructions.module').then(m => m.InstructionsModule),
   },
   {
-    canActivate: [MultiGuard],
-    canDeactivate: [MultiGuard],
-    component: MultiComponent,
-    path: "multi/:genes",
+    path: 'gene',
+    loadChildren: () => import('@gcv/gene/gene.module').then(m => m.GeneModule),
+  },
+  // legacy URLs
+  {
+    canActivate: [LegacySearchRouteGuard],
+    path: 'search/:gene',
+    children: [],
   },
   {
-    path: "basic/:genes",
-    pathMatch: "full",
-    redirectTo: "multi/:genes",
+    canActivate: [LegacySearchRouteGuard],
+    path: 'search/:source/:gene',
+    children: [],
   },
   {
-    component: InstructionsComponent,
-    path: "instructions",
+    canActivate: [LegacyMultiRouteGuard],
+    path: 'basic/:genes',
+    children: [],
   },
   {
-    canActivate: [DefaultSearchGuard],  // use guard to redirect to default server in AppConfig
-    path: "search/:gene",
-    pathMatch: "full",
-    component: SearchComponent,
-  },
-  {
-    canActivate: [SearchGuard],
-    canDeactivate: [SearchGuard],
-    component: SearchComponent,
-    path: "search/:source/:gene",
-  },
-  {
-    canActivate: [SpanSearchGuard],
-    component: SearchComponent,
-    path: "search/:source/:chromosome/:span",
+    canActivate: [LegacyMultiRouteGuard],
+    path: 'multi/:genes',
+    children: [],
   },
 ];
 
 @NgModule({
-  exports: [ RouterModule ],
-  imports: [ RouterModule.forRoot(routes) ],
+  imports: [RouterModule.forRoot(routes)],
+  exports: [RouterModule],
 })
 export class AppRoutingModule { }

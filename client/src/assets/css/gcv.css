@@ -15,13 +15,15 @@
     stroke: #000;
     stroke-width: 3;
 }
+.GCV .focus.no_fam {
+    stroke: #000;
+    stroke-dasharray: 3 2;
+}
 .GCV .single {
     stroke: #000;
-    stroke-width: 1;
 }
 .GCV .no_fam {
     stroke: #000;
-    stroke-width: 1;
     stroke-dasharray: 1 2;
 }
 .GCV .line {
@@ -81,13 +83,6 @@
 }
 .GCV.hovering .active .synteny-tip {
   display: block;
-}
-iframe.GCV-resizer {
-  width: 100%;
-  height: 0;
-  position: absolute;
-  border: none;
-  background-color: transparent;
 }
 .GCV .viewport {
   stroke: #000000;

@@ -87,9 +87,7 @@ export class Legend extends Visualizer {
     this.viewer.attr("height", lBox.y + lBox.height + (2 * this.PAD));
     // create an auto resize iframe, if necessary
     if (this.options.autoResize) {
-      this.resizer = this.autoResize(this.container, (e) => {
-        this.resize();
-      });
+      this.autoResize();
     }
     this.resize();
   }
