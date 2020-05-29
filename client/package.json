@@ -34,6 +34,7 @@
     "circos": "^2.1.0",
     "d3": "^5.16.0",
     "golden-layout": "^1.5.9",
+    "intersection-observer": "^0.10.0",
     "jquery": "^3.5.1",
     "mnemonist": "^0.36.1",
     "resize-observer-polyfill": "^1.5.1",
