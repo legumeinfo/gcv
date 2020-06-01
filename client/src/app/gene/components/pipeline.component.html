@@ -4,7 +4,7 @@
     <ng-container *ngIf="getProcess(name)|async; let p">
       <ng-container *ngIf="p.status|async; let status">
         <a (click)="processTooltip($event, p)" class="btn pipeline-arrow flex-fill {{ statusToClass(status) }}">
-          <i class="fas {{ statusToIcon(status) }}"></i> {{ name }}
+          <i class="{{ statusToIcon(status) }}"></i> {{ name }}
         </a>
       </ng-container>
     </ng-container>

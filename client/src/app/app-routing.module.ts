@@ -14,11 +14,11 @@ const routes: Routes = [
   // modules
   {
     path: 'instructions',
-    loadChildren: '@gcv/instructions/instructions.module#InstructionsModule',
+    loadChildren: () => import('@gcv/instructions/instructions.module').then(m => m.InstructionsModule),
   },
   {
     path: 'gene',
-    loadChildren: '@gcv/gene/gene.module#GeneModule',
+    loadChildren: () => import('@gcv/gene/gene.module').then(m => m.GeneModule),
   },
   // legacy URLs
   {

@@ -141,32 +141,31 @@ if( !$cv_id ) {
     $cv_id = $conn->selectrow_array("SELECT cv_id FROM cv WHERE name='GCV_properties' LIMIT 1;");
 }
 
-# just use the "null entry for getting around not-null constraints" dbxref that 
-# comes as part of stock chado 
-my $dbxref_id = $conn->selectrow_array("SELECT dbxref_id FROM dbxref WHERE accession='local:null' LIMIT 1;");
-# does it exist?
-if( !$dbxref_id ) {
-    # does the db entry for ncgr exist?
-    my $db_id = $conn->selectrow_array("SELECT db_id FROM db WHERE name ilike 'null' LIMIT 1;");
-    #recreate if necessary
-    if( !$db_id ) {
-        $query_string = "INSERT INTO db (name, description) VALUES ('null', 'a fake database for local items');";
-        if ( !$conn->do($query_string) ) {
-            Retreat("Failed to add an entry into the db table for the null db\n");
-        }
-        $db_id = $conn->selectrow_array("SELECT db_id FROM db WHERE name='null' LIMIT 1;");
-    }
-    $query_string = "INSERT INTO dbxref (db_id, accession) VALUES ($db_id, 'local:null');";
+# does the db entry for local exist?
+my $db_id = $conn->selectrow_array("SELECT db_id FROM db WHERE name ilike 'null' LIMIT 1;");
+#recreate if necessary
+if( !$db_id ) {
+    $query_string = "INSERT INTO db (name, description) VALUES ('null', 'a fake database for local items');";
     if ( !$conn->do($query_string) ) {
-        Retreat("Failed to add an entry into the dbxref table for local:null\n");
+        Retreat("Failed to add an entry into the db table for the null db\n");
     }
-    $dbxref_id = $conn->selectrow_array("SELECT dbxref_id FROM dbxref WHERE accession='local:null' LIMIT 1;");
+    $db_id = $conn->selectrow_array("SELECT db_id FROM db WHERE name='null' LIMIT 1;");
 }
+
 
 # check to see if there's a cvterm for gene families in the database
 my $gene_family_id = $conn->selectrow_array("SELECT cvterm_id FROM cvterm WHERE name='gene family' LIMIT 1;");
 # does it exist?
 if ( !$gene_family_id ) {
+    my $dbxref_id = $conn->selectrow_array("SELECT dbxref_id FROM dbxref WHERE accession='gcv:gene_family' LIMIT 1;");
+    # does it exist?
+    if( !$dbxref_id ) {
+        $query_string = "INSERT INTO dbxref (db_id, accession) VALUES ($db_id, 'gcv:gene_family');";
+        if ( !$conn->do($query_string) ) {
+            Retreat("Failed to add an entry into the dbxref table for gcv:gene_family\n");
+        }
+        $dbxref_id = $conn->selectrow_array("SELECT dbxref_id FROM dbxref WHERE accession='gcv:gene_family' LIMIT 1;");
+    }
     $query_string = "INSERT INTO cvterm (cv_id, name, definition, dbxref_id) VALUES ($cv_id, 'gene family', 'a group of genes presumed to be related by common ancestry', $dbxref_id);";
     if ( !$conn->do($query_string) ) {
         Retreat("Failed to add cvterm to database\n");
@@ -177,6 +176,15 @@ if ( !$gene_family_id ) {
 my $family_representative_id = $conn->selectrow_array("SELECT cvterm_id FROM cvterm WHERE name='family representative' LIMIT 1;");
 # does it exist?
 if ( !$family_representative_id ) {
+    my $dbxref_id = $conn->selectrow_array("SELECT dbxref_id FROM dbxref WHERE accession='gcv:family_representative' LIMIT 1;");
+    # does it exist?
+    if( !$dbxref_id ) {
+        $query_string = "INSERT INTO dbxref (db_id, accession) VALUES ($db_id, 'gcv:family_representative');";
+        if ( !$conn->do($query_string) ) {
+            Retreat("Failed to add an entry into the dbxref table for gcv:family_representative\n");
+        }
+        $dbxref_id = $conn->selectrow_array("SELECT dbxref_id FROM dbxref WHERE accession='gcv:family_representative' LIMIT 1;");
+    }
     $query_string = "INSERT INTO cvterm (cv_id, name, definition, dbxref_id) VALUES ($cv_id, 'family representative', 'indicates which of the derived entities (choice of isoform or polypeptide) represents the gene in the context of the tree', $dbxref_id);";
     if ( !$conn->do($query_string) ) {
         Retreat("Failed to add cvterm to database\n");

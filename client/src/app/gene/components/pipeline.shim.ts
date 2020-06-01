@@ -20,12 +20,12 @@ export const statusToClass = (status: ProcessStatus): string => {
 
 
 export const statusIcons = {
-  'process-waiting': 'fa-ban',
-  'process-running': 'fa-circle-notch fa-spin',
-  'process-success': 'fa-check-circle',
-  'process-error': 'fa-times-circle',
-  'process-warning': 'fa-exclamation-circle',
-  'process-info': 'fa-info-circle',
+  'process-waiting': 'fas fa-ban',
+  'process-running': 'fas fa-circle-notch fa-spin',
+  'process-success': 'fas fa-check-circle',
+  'process-error': 'fas fa-times-circle',
+  'process-warning': 'fas fa-exclamation-circle',
+  'process-info': 'fas fa-info-circle',
 };
 
 
@@ -33,5 +33,5 @@ export const statusToIcon = (status: ProcessStatus): string => {
   if (status.word in statusIcons) {
     return statusIcons[status.word];
   }
-  return 'fa-circle-notch fa-spin';
+  return 'fas fa-circle-notch fa-spin';
 };

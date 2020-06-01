@@ -1,6 +1,6 @@
 
   <fieldset id="macro-filters">
-    <legend>Macro-Synteny<a id="macro-help" class="float-right" (click)="macroHelp=!macroHelp"><span class="fa fa-question-circle"></span></a></legend>
+    <legend>Macro-Synteny<a id="macro-help" class="float-right" (click)="macroHelp=!macroHelp" role="button"><i class="fas fa-question-circle"></i></a></legend>
     <form #macroFilterForm="ngForm" (ngSubmit)="updateMacroRegexp(macroFilterForm.value.macroregexp)" novalidate>
       <div class="form-group">
         <label for="macro-regexp">Filter by name</label>
@@ -27,7 +27,7 @@
     </div>
   </fieldset>
   <fieldset id="micro-filters">
-    <legend>Micro-Synteny<a id="micro-help" class="float-right" (click)="microHelp=!microHelp"><span class="fa fa-question-circle"></span></a></legend>
+    <legend>Micro-Synteny<a id="micro-help" class="float-right" (click)="microHelp=!microHelp" role="button"><i class="fas fa-question-circle"></i></a></legend>
     <form #microFilterForm="ngForm" (ngSubmit)="updateMicroRegexp(microFilterForm.value.microregexp)" novalidate>
       <div class="form-group">
         <label for="micro-regexp">Filter by name</label>

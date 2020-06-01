@@ -12,7 +12,7 @@ export class ContextMenuComponent implements AfterViewInit {
   @Output() saveData = new EventEmitter();
   @Output() saveImage = new EventEmitter();
 
-  @ViewChild('dropdown', {static: false}) el: ElementRef;
+  @ViewChild('dropdown') el: ElementRef;
 
   constructor(private changeDetector: ChangeDetectorRef) { }
 

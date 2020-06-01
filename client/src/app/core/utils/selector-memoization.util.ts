@@ -10,8 +10,12 @@ type AnyFn = (...args: any[]) => any;
 export const selectorMemoizerFactory = (comparator: Function) => {
   return (t: AnyFn): MemoizedProjection => {
     let lastResult: any = null;
+    let overrideResult: any;
 
     function memoized(): any {
+      if (overrideResult !== undefined) {
+        return overrideResult.result;
+      }
       const result = t.apply(null, arguments);
       if (lastResult === null || !comparator(result, lastResult)) {
         lastResult = result;
@@ -22,13 +26,18 @@ export const selectorMemoizerFactory = (comparator: Function) => {
 
     function reset() {
       lastResult = null;
+      overrideResult = null;
     }
 
-    function setResult(result?: any) {
-      lastResult = result;
+    function setResult(result: any = undefined) {
+      lastResult = {result};
     };
 
-    return {memoized, reset, setResult};
+    function clearResult() {
+      overrideResult = undefined;
+    }
+
+    return {memoized, reset, setResult, clearResult};
   }
 };
 
