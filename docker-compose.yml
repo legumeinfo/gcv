@@ -8,6 +8,7 @@ services:
     ports:
       - "4200:4200"
     volumes:
+      - /client/node_modules
       - ./client/src:/client/src
 
   server:
