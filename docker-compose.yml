@@ -37,4 +37,4 @@ services:
       test: "nc -z localhost 5432"
       start_period: 30s
     volumes:
-      - ./docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d:ro
+      - ./db/docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d:ro

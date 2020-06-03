@@ -1,14 +1,13 @@
-# Usage:
-#     SECRET_KEY='mysecretkey' docker-compose -f docker-compose.prod.yml up --build -d
 version: '2.4'
 
 services:
   client:
     build: client
     ports:
-      - "8080:80"
+      - "80:80"
     depends_on:
       - server
+    restart: on-failure
 
   server:
     build: server
@@ -18,23 +17,25 @@ services:
       PGDATABASE: postgres
       PGHOST: db
       PGNAME: postgres
-      PGPASSWORD: postgres
+      PGPASSWORD: "${POSTGRES_PASSWORD}"
       PGPORT: 5432
       PGUSER: postgres
       SECRET_KEY:
     depends_on:
       db:
         condition: service_healthy
+    restart: on-failure
     expose:
       - "8000"
     command: ["gunicorn", "--bind", "0.0.0.0:8000", "server.wsgi"]
 
   db:
-    image: postgres:12.3-alpine
+    build: db
     environment:
-      POSTGRES_PASSWORD: postgres
+      POSTGRES_PASSWORD:
     healthcheck:
       test: "nc -z localhost 5432"
       start_period: 30s
-    volumes:
-      - ./docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d:ro
+    restart: on-failure
+    expose:
+      - "5432"
