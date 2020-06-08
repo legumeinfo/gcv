@@ -48,7 +48,7 @@ The example server is implemented in Python 3 with [Django 3](https://www.django
 The easiest way to run the server locally is with a [Python Virtual Environment](http://docs.python-guide.org/en/latest/dev/virtualenvs/).
 Once Python virtual environments is installed, you can create a virtual environment as follows
 
-    $ virtualenv -p /usr/bin/python2.7 venv
+    $ virtualenv venv
 
 You can then activate the environment
 
