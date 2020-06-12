@@ -1,9 +1,10 @@
+#!/usr/bin/env python
+
 import argparse
-import psycopg2
-import redis
 import redisearch
 import sys
 from collections import defaultdict
+from database import connectToChado, connectToRedis
 
 
 def parseArgs():
@@ -28,41 +29,6 @@ def parseArgs():
   parser.add_argument('--rchunksize', type=int, default=100, help='The chunk size to be used for Redis batch processing.')
 
   return parser.parse_args()
-
-
-def connectToChado(database, user, password=None, host=None, port=None):
-  msg = 'Connecting to PostgreSQL... {}'
-  print(msg.format(''))
-  db_string = 'dbname=' + database + ' user=' + user
-  if password is not None:
-    db_string += ' password=' + password
-  if host is not None:
-    db_string += ' host=' + host
-  if port is not None:
-    db_string += ' port=' + str(port)
-  connection = None
-  try:
-    connection = psycopg2.connect(db_string)
-  except Exception as e:
-    _replacePreviousPrintLine(msg.format('failed'))
-    exit(e)
-  _replacePreviousPrintLine(msg.format('done'))
-  return connection
-
-
-def connectToRedis(host='localhost', port=6379, db=0, password=''):
-  msg = 'Connecting to Redis... {}'
-  print(msg.format(''))
-  connection = None
-  try:
-    pool = redis.ConnectionPool(host=host, port=port, db=db, password=password)
-    connection = redis.Redis(connection_pool=pool)
-    connection.ping()
-  except Exception as e:
-    _replacePreviousPrintLine(msg.format('failed'))
-    exit(e)
-  _replacePreviousPrintLine(msg.format('done'))
-  return connection
 
 
 def _getCvterm(c, name):
@@ -131,8 +97,24 @@ def transferData(postgres_connection, redis_connection, chunk_size):
 if __name__ == '__main__':
   args = parseArgs()
   # connect to the databases
-  postgres_connection = connectToChado(args.pdb, args.puser, args.ppassword, args.phost, args.pport)
-  redis_connection = connectToRedis(args.rhost, args.rport, args.rdb, args.rpassword)
+  postgres_connection = None
+  redis_connection = None
+  msg = 'Connecting to PostgreSQL... {}'
+  print(msg.format(''))
+  try:
+    postgres_connection = connectToChado(args.pdb, args.puser, args.ppassword, args.phost, args.pport)
+  except Exception as e:
+    _replacePreviousPrintLine(msg.format('failed'))
+    exit(e)
+  _replacePreviousPrintLine(msg.format('done'))
+  msg = 'Connecting to Redis... {}'
+  print(msg.format(''))
+  try:
+    redis_connection = connectToRedis(args.rhost, args.rport, args.rdb, args.rpassword)
+  except Exception as e:
+    _replacePreviousPrintLine(msg.format('failed'))
+    exit(e)
+  _replacePreviousPrintLine(msg.format('done'))
   # transfer the relevant data from Chado to Redis
   try:
     transferData(postgres_connection, redis_connection, args.rchunksize)
