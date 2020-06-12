@@ -18,9 +18,6 @@ export class InstructionsComponent {
   dashboard = AppConfig.DASHBOARD;
   copyrightYear = (new Date()).getFullYear();
 
-  private searchPopover = false;
-  private multiPopover = false;
-
   scrollTo(event, selector): void {
     event.preventDefault();
     scrollToSelector('html, body', selector);

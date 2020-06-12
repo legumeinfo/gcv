@@ -17,7 +17,7 @@ import { InstructionsRoutingModule }
   imports: [
     CommonModule,
     CoreModule,
-    InstructionsRoutingModule
+    InstructionsRoutingModule,
   ]
 })
 export class InstructionsModule { }
