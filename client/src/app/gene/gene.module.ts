@@ -23,7 +23,6 @@ import * as fromGene from './store';
 import { GeneRoutingModule } from '@gcv/gene/gene-routing.module';
 
 
-
 @NgModule({
   declarations: [
     ...fromComponents.components,

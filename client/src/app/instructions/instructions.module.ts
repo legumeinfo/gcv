@@ -7,6 +7,7 @@ import * as fromDirectives from '@gcv/instructions/directives';
 import { CoreModule } from '@gcv/core/core.module';
 import { InstructionsRoutingModule }
   from '@gcv/instructions/instructions-routing.module';
+import { SearchModule } from '@gcv/search/search.module';
 
 
 @NgModule({
@@ -16,8 +17,8 @@ import { InstructionsRoutingModule }
   ],
   imports: [
     CommonModule,
-    CoreModule,
     InstructionsRoutingModule,
+    SearchModule,
   ]
 })
 export class InstructionsModule { }

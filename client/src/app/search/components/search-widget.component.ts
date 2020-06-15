@@ -5,7 +5,7 @@ import { Router } from '@angular/router';
 import { AppConfig } from '@gcv/app.config';
 
 @Component({
-  selector: 'app-search-bar',
+  selector: 'gcv-search-widget',
   styles: [`
     .select {
       width: auto;
@@ -31,7 +31,7 @@ import { AppConfig } from '@gcv/app.config';
     </form>
   `,
 })
-export class SearchBarComponent {
+export class SearchWidgetComponent {
 
   servers: any[] = AppConfig.SERVERS;
   model: any = {source: this.servers[0], query: ''};
