@@ -3,7 +3,7 @@ import { Component, Input } from '@angular/core';
 
 
 @Component({
-  selector: 'html-tooltip',
+  selector: 'gcv-html-tooltip',
   template: `<div [innerHTML]="html"></div>`,
 })
 export class HtmlTooltipComponent {

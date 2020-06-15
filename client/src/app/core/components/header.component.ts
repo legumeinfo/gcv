@@ -5,7 +5,7 @@ import * as $ from 'jquery';
 import { AppConfig } from '@gcv/app.config';
 
 @Component({
-  selector: 'gcvheader',
+  selector: 'gcv-header',
   styleUrls: [ './header.component.scss' ],
   templateUrl: './header.component.html',
 })

@@ -15,8 +15,8 @@
   <!-- scrollable content -->
   <div class="left-slider-content">
     <div [ngSwitch]="content|async">
-      <params *ngSwitchCase="'parameters'" (valid)="close()" (invalid)="open()"></params>
-      <filters *ngSwitchCase="'filters'"></filters>
+      <gcv-params *ngSwitchCase="'parameters'" (valid)="close()" (invalid)="open()"></gcv-params>
+      <gcv-filters *ngSwitchCase="'filters'"></gcv-filters>
       <div *ngSwitchDefault>No content selected</div>
     </div>
   </div>

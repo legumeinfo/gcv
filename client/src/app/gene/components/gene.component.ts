@@ -14,7 +14,7 @@ import tippy from 'tippy.js';
 
 
 @Component({
-  selector: 'gene',
+  selector: 'gcv-gene',
   styleUrls: ['./gene.component.scss'],
   templateUrl: './gene.component.html',
 })

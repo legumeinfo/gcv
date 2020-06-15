@@ -9,7 +9,7 @@ import { LayoutService } from '@gcv/gene/services';
 
 @Component({
   animations: [ toggleSlider ],
-  selector: 'left-slider',
+  selector: 'gcv-left-slider',
   styleUrls: [ './left-slider.component.scss' ],
   templateUrl: './left-slider.component.html',
 })

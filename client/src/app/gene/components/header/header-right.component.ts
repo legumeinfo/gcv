@@ -9,7 +9,7 @@ import { InterAppCommunicationService } from '@gcv/gene/services';
 
 
 @Component({
-  selector: 'header-right',
+  selector: 'gcv-header-right',
   styles: [],
   template: `
     <ul class="navbar-nav mr-auto">
@@ -18,7 +18,7 @@ import { InterAppCommunicationService } from '@gcv/gene/services';
           <i class="fas fa-broadcast-tower"></i>
         </a>
         <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdown">
-          <inter-app-communication></inter-app-communication>
+          <gcv-inter-app-communication></gcv-inter-app-communication>
         </div>
       </li>
       <li class="nav-item dropdown">

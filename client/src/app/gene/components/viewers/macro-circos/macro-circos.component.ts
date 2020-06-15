@@ -19,13 +19,13 @@ import { macroCircosShim } from './macro-circos.shim';
 
 
 @Component({
-  selector: 'macro-circos',
+  selector: 'gcv-macro-circos',
   styleUrls: ['../golden-viewer.scss'],
   template: `
-    <context-menu (saveImage)="saveImage()">
-      <pipeline [info]=info [pipeline]=pipeline navcenter></pipeline>
-    </context-menu>
-    <div (onResize)="draw()" class="viewer" #container></div>
+    <gcv-context-menu (saveImage)="saveImage()">
+      <gcv-pipeline [info]=info [pipeline]=pipeline navcenter></gcv-pipeline>
+    </gcv-context-menu>
+    <div (gcvOnResize)="draw()" class="viewer" #container></div>
   `,
 })
 export class MacroCircosComponent implements AfterViewInit, OnDestroy, OnInit {

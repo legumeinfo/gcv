@@ -16,7 +16,7 @@ import { ParamsService } from '@gcv/gene/services';
 
 
 @Component({
-  selector: 'filters',
+  selector: 'gcv-filters',
   templateUrl: './filters.component.html',
 })
 export class FiltersComponent {

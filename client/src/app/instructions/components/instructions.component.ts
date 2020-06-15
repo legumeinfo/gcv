@@ -8,7 +8,7 @@ declare var scrollToSelector: any;  // src/assets/js/utils
 
 
 @Component({
-  selector: 'instructions',
+  selector: 'gcv-instructions',
   styleUrls: [ './instructions.component.scss' ],
   templateUrl: './instructions.component.html',
 })

@@ -3,7 +3,7 @@ import { Component } from '@angular/core';
 
 
 @Component({
-  selector: 'search',
+  selector: 'gcv-search',
   styles: [''],
   template: '',
 })

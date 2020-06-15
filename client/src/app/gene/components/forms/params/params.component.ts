@@ -19,7 +19,7 @@ import { ParamsService } from '@gcv/gene/services';
 
 
 @Component({
-  selector: 'params',
+  selector: 'gcv-params',
   templateUrl: './params.component.html',
 })
 export class ParamsComponent implements OnDestroy, OnInit {

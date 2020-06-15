@@ -6,11 +6,11 @@ import ResizeObserver from "resize-observer-polyfill";
 
 
 @Directive({
-  selector: '[onResize]'
+  selector: '[gcvOnResize]'
 })
 export class OnResizeDirective implements OnDestroy, OnInit {
 
-  @Output() onResize = new EventEmitter();
+  @Output() gcvOnResize = new EventEmitter();
 
   // variables
 
@@ -28,7 +28,7 @@ export class OnResizeDirective implements OnDestroy, OnInit {
 
   ngOnInit() {
     this._resizeObserver = new ResizeObserver((entries) => {
-      this.onResize.emit(entries);
+      this.gcvOnResize.emit(entries);
     });
     this._resizeObserver.observe(this._el.nativeElement);
   }

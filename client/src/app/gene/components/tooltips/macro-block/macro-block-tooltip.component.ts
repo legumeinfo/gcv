@@ -10,7 +10,7 @@ import { ChromosomeService, GeneService } from '@gcv/gene/services';
 
 
 @Component({
-  selector: 'macro-block-tooltip',
+  selector: 'gcv-macro-block-tooltip',
   template: `
     <!--
     <b>{{ pairwiseBlocks.reference }}</b> ({{ pairwiseBlocks.referenceSource }})

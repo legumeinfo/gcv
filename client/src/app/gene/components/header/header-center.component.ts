@@ -6,10 +6,10 @@ import { ProcessService } from '@gcv/gene/services';
 
 
 @Component({
-  selector: 'header-center',
+  selector: 'gcv-header-center',
   styles: [],
   template: `
-    <pipeline [info]=info [pipeline]=pipeline></pipeline>
+    <gcv-pipeline [info]=info [pipeline]=pipeline></gcv-pipeline>
   `,
 })
 export class HeaderCenterComponent {
