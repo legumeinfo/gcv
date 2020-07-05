@@ -34,7 +34,7 @@ services:
     environment:
       POSTGRES_PASSWORD:
     healthcheck:
-      test: "nc -z localhost 5432"
+      test: "pg_isready -h 127.0.0.1 || exit 1"
       start_period: 30s
     restart: on-failure
     expose:
