@@ -291,7 +291,7 @@ def v1_micro_synteny_basic(request):
 
         # write the contents of the file
         view_json = {
-          "families": families.values(),
+          "families": list(families.values()),
           "groups": groups
         }
 
@@ -314,7 +314,7 @@ def v1_gene_to_query_track(request):
         # get the gene type
         sequence_cv = Cv.objects.only('pk').filter(name='sequence')
         gene_type = list(
-            Cvterm.objects.only('pk').filter(name='gene', cv_id=sequence_cv)
+            Cvterm.objects.only('pk').filter(name='gene', cv_id=sequence_cv[0])
         )
         if len(gene_type) == 0:
             raise Http404
