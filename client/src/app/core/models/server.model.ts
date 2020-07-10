@@ -15,4 +15,5 @@ export class Server {
   blocks: Request;
   geneLinks: Request;
   familyTreeLink: Request;
+  search: Request;
 }

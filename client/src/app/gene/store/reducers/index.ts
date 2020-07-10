@@ -1,9 +1,5 @@
-// app
-import { environment } from '@gcv-environments/environment';
 // store
-import { Action, ActionReducerMap, combineReducers, createFeatureSelector }
-  from '@ngrx/store';
-import { storeFreeze } from 'ngrx-store-freeze';
+import { Action, combineReducers, createFeatureSelector } from '@ngrx/store';
 // reducers
 import * as fromRoot from '@gcv/store/reducers';
 import * as fromPairwiseBlocks from './pairwise-blocks.reducer';

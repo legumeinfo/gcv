@@ -5,7 +5,9 @@ import { RouterModule } from '@angular/router';
 // app
 import * as fromComponents from '@gcv/core/components';
 import * as fromContainers from '@gcv/core/containers';
+import * as fromGuards from '@gcv/core/guards';
 import * as fromServices from '@gcv/core/services';
+import { WidgetsModule } from '@gcv/widgets/widgets.module';
 
 
 @NgModule({
@@ -15,9 +17,13 @@ import * as fromServices from '@gcv/core/services';
   ],
   imports: [
     CommonModule,
-    RouterModule
+    RouterModule,
+    WidgetsModule,
   ],
   exports: [...fromComponents.components],
-  providers: [...fromServices.services]
+  providers: [
+    ...fromGuards.guards,
+    ...fromServices.services,
+  ]
 })
 export class CoreModule { }

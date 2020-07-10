@@ -1,0 +1,28 @@
+<main>
+  <section class="py-5">
+    <div class="container">
+      <div class="row">
+        <p>Showing results for <b>"{{ query|async }}"</b></p>
+      </div>
+      <div class="row">
+        {{ (resultGenes|async).length }} genes returned
+        <table class="table table-striped">
+          <thead>
+            <tr>
+              <th scope="col">Gene Name</th>
+              <th scope="col">Source</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let gene of resultGenes|async">
+              <td>
+                <a [routerLink]="['/gene', resultGeneToRouterGeneMatrix(gene)]" [queryParams]="{}">{{ gene.name }}</a>
+              </td>
+              <td>{{ getServerName(gene.source) }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+</main>

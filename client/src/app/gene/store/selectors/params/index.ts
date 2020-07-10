@@ -4,9 +4,10 @@ import { createSelector, createSelectorFactory } from '@ngrx/store';
 import { selectQueryParams } from '@gcv/store/selectors/router';
 import { initialState } from '@gcv/gene/store/reducers/params.reducer';
 // app
+import { parseParams } from '@gcv/core/models/params';
 import { memoizeObject, pick } from '@gcv/core/utils';
 import {
-  Params, paramMembers, paramParser,
+  Params, paramMembers, paramParsers,
   AlignmentParams, alignmentParamMembers,
   BlockParams, blockParamMembers,
   ClusteringParams, clusteringParamMembers,
@@ -23,7 +24,8 @@ export const getParams = createSelectorFactory(memoizeObject)(
   selectQueryParams,
   (queryParams): Params => {
     // assumes params from URL are valid (see QueryParamsGuard)
-    const urlParams = paramParser(pick(paramMembers, queryParams));
+    const geneParams = pick(paramMembers, queryParams);
+    const urlParams = parseParams(geneParams, paramParsers);
     return Object.assign({}, initialState, urlParams);
   },
 );

@@ -10,12 +10,12 @@
 import { createEntityAdapter, EntityState } from '@ngrx/entity';
 // store
 import * as chromosomeActions from '@gcv/gene/store/actions/chromosome.actions';
-import { ActionID, TrackID, trackID } from '@gcv/gene/store/utils';
+import { TrackID, trackID } from '@gcv/gene/store/utils';
+import { ActionID } from '@gcv/store/utils';
 // app
+import { idArrayLeftDifferenceFactory, idArrayIntersectionFactory }
+  from '@gcv/core/utils/id-array.util';
 import { Track } from '@gcv/gene/models';
-
-
-declare var Object: any;  // because TypeScript doesn't support Object.values
 
 
 export const chromosomeFeatureKey = 'chromosome';
@@ -45,19 +45,12 @@ export function chromosomeActionID({action, ...cID}: TrackID & ActionID): string
 }
 
 
-// subtracts overlapping IDs from a1
-export function idArrayLeftDifference(a1, a2, checkAction=false) {
-  const id2string = (checkAction) ? chromosomeActionID : trackID;
-  const a2IDs = new Set(a2.map(id2string));
-  return a1.filter((id) => !a2IDs.has(id2string(id)));
-}
+export const idArrayLeftDifference =
+  idArrayLeftDifferenceFactory(chromosomeActionID, trackID);
 
 
-export function idArrayIntersection(a1, a2, checkAction=false) {
-  const id2string = (checkAction) ? chromosomeActionID : trackID;
-  const a2IDs = new Set(a2.map(id2string));
-  return a1.filter((id) => a2IDs.has(id2string(id)));
-}
+export const idArrayIntersection =
+  idArrayIntersectionFactory(chromosomeActionID, trackID);
 
 
 export function reducer(

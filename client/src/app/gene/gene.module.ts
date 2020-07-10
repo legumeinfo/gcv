@@ -13,8 +13,6 @@ import * as fromTooltips from './components/tooltips';
 import * as fromViewers from './components/viewers';
 // directives
 import * as fromDirectives from './directives';
-// guards
-import * as fromGuards from './guards';
 // services
 import * as fromServices from './services';
 // store
@@ -44,7 +42,6 @@ import { GeneRoutingModule } from '@gcv/gene/gene-routing.module';
   ],
   providers: [
     ...fromServices.services,
-    ...fromGuards.guards,
   ]
 })
 export class GeneModule { }

@@ -9,8 +9,10 @@ import { createEntityAdapter, EntityState } from '@ngrx/entity';
 // store
 import * as geneActions from '@gcv/gene/store/actions/gene.actions';
 // app
+import { idArrayLeftDifferenceFactory, idArrayIntersectionFactory }
+  from '@gcv/core/utils/id-array.util';
 import { Gene } from '@gcv/gene/models';
-import { ActionID } from '@gcv/gene/store/utils';
+import { ActionID } from '@gcv/store/utils';
 
 
 declare var Object: any;  // because TypeScript doesn't support Object.values
@@ -39,7 +41,6 @@ const adapter = createEntityAdapter<Gene>({
 });
 
 
-// selectedGeneIDs selector?
 export interface State extends EntityState<Gene> {
   failed: GeneID[];
   loaded: GeneID[];
@@ -59,19 +60,12 @@ export function geneActionID({action, ...gID}: GeneID & ActionID): string {
 }
 
 
-// subtracts overlapping IDs from a1
-export function idArrayLeftDifference(a1, a2, checkAction=false) {
-  const id2string = (checkAction) ? geneActionID : geneID;
-  const a2IDs = new Set(a2.map(id2string));
-  return a1.filter((id) => !a2IDs.has(id2string(id)));
-}
+export const idArrayLeftDifference =
+  idArrayLeftDifferenceFactory(geneActionID, geneID);
 
 
-export function idArrayIntersection(a1, a2, checkAction=false) {
-  const id2string = (checkAction) ? geneActionID : geneID;
-  const a2IDs = new Set(a2.map(id2string));
-  return a1.filter((id) => a2IDs.has(id2string(id)));
-}
+export const idArrayIntersection =
+  idArrayIntersectionFactory(geneActionID, geneID);
 
 
 export function reducer(

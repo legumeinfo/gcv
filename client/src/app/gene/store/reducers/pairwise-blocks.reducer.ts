@@ -14,7 +14,7 @@ import { createEntityAdapter, EntityState } from '@ngrx/entity';
 import * as pairwiseBlocksActions from '@gcv/gene/store/actions/pairwise-blocks.actions';
 // app
 import { PairwiseBlocks } from '@gcv/gene/models';
-import { ActionID } from '@gcv/gene/store/utils';
+import { ActionID } from '@gcv/store/utils';
 
 
 declare var Object: any;  // because TypeScript doesn't support Object.values
