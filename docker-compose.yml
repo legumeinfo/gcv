@@ -9,10 +9,12 @@ services:
       - "4200:4200"
     volumes:
       - /client/node_modules
-      - ./client/src:/client/src
+      - ./client/src:/client/src:ro
 
   server:
-    build: server
+    build:
+      context: server
+      target: dev
     environment:
       ALLOWED_HOSTS: '*'
       DEBUG: '1'
@@ -28,13 +30,15 @@ services:
         condition: service_healthy
     ports:
       - "8000:8000"
+    volumes:
+      - ./server:/app:ro
 
   db:
     image: postgres:12.3-alpine
     environment:
       POSTGRES_PASSWORD: postgres
     healthcheck:
-      test: "nc -z localhost 5432"
-      start_period: 30s
+      test: "pg_isready -U postgres -h 127.0.0.1 || exit 1"
+      retries: 10
     volumes:
       - ./db/docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d:ro

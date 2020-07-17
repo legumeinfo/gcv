@@ -4,10 +4,10 @@ services:
   client:
     build: client
     ports:
-      - "80:80"
+      - "8080:80"
     depends_on:
       - server
-    restart: on-failure
+    restart: always
 
   server:
     build: server
@@ -24,7 +24,7 @@ services:
     depends_on:
       db:
         condition: service_healthy
-    restart: on-failure
+    restart: always
     expose:
       - "8000"
     command: ["gunicorn", "--bind", "0.0.0.0:8000", "server.wsgi"]
@@ -34,8 +34,8 @@ services:
     environment:
       POSTGRES_PASSWORD:
     healthcheck:
-      test: "pg_isready -h 127.0.0.1 || exit 1"
-      start_period: 30s
-    restart: on-failure
+      test: "pg_isready -U postgres -h 127.0.0.1 || exit 1"
+      retries: 10
+    restart: always
     expose:
       - "5432"

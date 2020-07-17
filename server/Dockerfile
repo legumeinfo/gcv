@@ -1,23 +1,27 @@
-FROM alpine:3.11
+FROM python:3.8.4-alpine3.12 AS dev
 
-RUN apk add --no-cache \
-  python3 \
-  py3-gunicorn \
-  py3-psycopg2
-
-COPY ./requirements.txt /tmp
-
-RUN grep -v '^psycopg2' /tmp/requirements.txt > /tmp/requirements-mod.txt \
-  && pip3 install --no-cache-dir -r /tmp/requirements-mod.txt
+# easier to install psycopg2 via package
+RUN apk add --no-cache py3-psycopg2
+ENV PYTHONPATH=/usr/lib/python3.8/site-packages
 
 WORKDIR /app
 
-COPY . .
+COPY requirements.txt .
+
+RUN grep -v '^psycopg2' requirements.txt | pip3 install --no-cache-dir -r /dev/stdin
 
 ENV PYTHONUNBUFFERED=1
-USER daemon
 
+CMD ["python3", "manage.py", "runserver", "0.0.0.0:8000"]
 EXPOSE 8000
 
-# development
-CMD ["python3", "manage.py", "runserver", "0.0.0.0:8000"]
+########################################
+
+FROM dev AS prod
+
+RUN pip install --no-cache-dir gunicorn==20.0.4
+
+COPY . .
+
+USER daemon
+CMD ["gunicorn", "--bind", "0.0.0.0:8000", "server.wsgi"]

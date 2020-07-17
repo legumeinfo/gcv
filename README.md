@@ -85,9 +85,10 @@ Both modes assume a suitable PostgreSQL dump (optionally compressed) containing 
     docker-compose up --build --detach
 
 `client/src` is bind mounted in the client container and served from http://localhost:4200 via `ng serve`.
-Changes to files in `client/src` will be reflected immediately.
 
-The service API is accessible from http://localhost:8000/services
+`server/` is bind mounted in the server container, and the service API is accessible from http://localhost:8000/services.
+
+Changes to files in `client/src` and `server/` will be reflected immediately.
 
 ### Production mode
 
