@@ -38,3 +38,24 @@ services:
       retries: 10
     volumes:
       - ./db/docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d:ro
+
+  redisearch:
+    image: redislabs/redisearch:1.6.13
+    healthcheck:
+      test: "redis-cli ping"
+    volumes:
+      - /data
+
+  chado_to_redisearch:
+    build: search/database 
+    depends_on:
+      db:
+        condition: service_healthy
+      redisearch:
+        condition: service_healthy
+    command:
+      - --pdb=postgres
+      - --puser=postgres
+      - --ppassword=postgres
+      - --phost=db
+      - --rhost=redisearch
