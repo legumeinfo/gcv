@@ -34,7 +34,7 @@ services:
     environment:
       POSTGRES_PASSWORD: postgres
     healthcheck:
-      test: "nc -z localhost 5432"
-      start_period: 30s
+      test: "pg_isready -U postgres -h 127.0.0.1 || exit 1"
+      retries: 10
     volumes:
       - ./db/docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d:ro
