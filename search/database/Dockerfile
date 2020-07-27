@@ -1,13 +1,19 @@
-FROM python:3.8-alpine3.12
+FROM python:3.8-alpine3.12 AS builder
 
 RUN apk add --no-cache \
-  py3-hiredis \
-  py3-psycopg2 \
-  py3-redis
+  gcc \
+  musl-dev \
+  postgresql-dev
 
-ENV PYTHONPATH=/usr/lib/python3.8/site-packages
+COPY requirements.txt .
 
-RUN pip install --no-cache-dir redisearch==1.0.0
+RUN pip3 install --no-cache-dir -r requirements.txt
+
+FROM python:3.8-alpine3.12
+
+RUN apk add --no-cache libpq
+
+COPY --from=builder /usr/local/lib/python3.8/site-packages/ /usr/local/lib/python3.8/site-packages/
 
 WORKDIR /app
 

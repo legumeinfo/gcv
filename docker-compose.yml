@@ -43,8 +43,6 @@ services:
     image: redislabs/redisearch:1.6.13
     healthcheck:
       test: "redis-cli ping"
-    volumes:
-      - /data
 
   chado_to_redisearch:
     build: search/database 
@@ -58,4 +56,15 @@ services:
       - --puser=postgres
       - --ppassword=postgres
       - --phost=db
+      - --rhost=redisearch
+
+  gene_search:
+    build: search/microservices/gene_search
+    depends_on:
+      redisearch:
+        condition: service_healthy
+    ports:
+      - "8080:8080"
+    command:
+      - --hhost=0.0.0.0
       - --rhost=redisearch
