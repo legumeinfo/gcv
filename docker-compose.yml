@@ -68,3 +68,14 @@ services:
     command:
       - --hhost=0.0.0.0
       - --rhost=redisearch
+
+  search:
+    build: search/microservices/search
+    depends_on:
+      - gene_search
+    ports:
+      - "9000:8080"
+    command:
+      - --ghost=0.0.0.0
+      - --hhost=0.0.0.0
+      - --geneaddr=gene_search
