@@ -3,6 +3,7 @@
 # Python
 import argparse
 import asyncio
+import uvloop
 # module
 from grpc_client import GENE_SEARCH_ADDR
 from grpc_server import run_grpc_server
@@ -47,6 +48,7 @@ if __name__ == '__main__':
     exit('--no-http and --no-grpc can\'t both be given')
   query_parser = makeQueryParser(args.chars)
   handler = RequestHandler(query_parser, args.geneaddr)
+  uvloop.install()
   loop = asyncio.get_event_loop()
   if not args.nohttp:
     loop.create_task(run_http_server(args.hhost, args.hport, handler))

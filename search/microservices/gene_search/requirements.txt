@@ -13,4 +13,5 @@ redis==3.5.3
 redisearch==1.0.0
 rmtest==0.7.0
 six==1.15.0
+uvloop==0.14.0
 yarl==1.4.2

@@ -3,6 +3,7 @@
 # Python
 import argparse
 import asyncio
+import uvloop
 # module
 from database import connectToRedis
 from grpc_server import run_grpc_server
@@ -45,6 +46,7 @@ if __name__ == '__main__':
     exit('--no-http and --no-grpc can\'t both be given')
   redis_connection = connectToRedis(args.rhost, args.rport, args.rdb, args.rpassword)
   handler = RequestHandler(redis_connection)
+  uvloop.install()
   loop = asyncio.get_event_loop()
   if not args.nohttp:
     loop.create_task(run_http_server(args.hhost, args.hport, handler))
