@@ -53,16 +53,19 @@ def _replacePreviousPrintLine(newline):
   print(newline)
 
 
-def transferData(postgres_connection, redis_connection, chunk_size, noreload):
+def transferGenes(postgres_connection, redis_connection, chunk_size, noreload):
 
+  print('Loading genes...')
   # prepare RediSearch
-  gene_index = redisearch.Client('geneIdx', conn=redis_connection)
+  indexName = 'geneIdx'
+  gene_index = redisearch.Client(indexName, conn=redis_connection)
   # TODO: there should be an extend argparse flag that prevents deletion
   try:
     gene_index.info()
     if noreload:  # previous line will error if index doesn't exist
-      exit('"geneIdx" already exists in RediSearch')
-    msg = 'Clearing index... {}'
+      print(f'\t"{indexName}" already exists in RediSearch')
+      return
+    msg = '\tClearing index... {}'
     print(msg.format(''))
     gene_index.drop_index()
     _replacePreviousPrintLine(msg.format('done'))
@@ -72,7 +75,6 @@ def transferData(postgres_connection, redis_connection, chunk_size, noreload):
   gene_index.create_index(fields)
   indexer = gene_index.batch_indexer(chunk_size=chunk_size)
 
-  print('Transferring data...')
   with postgres_connection.cursor() as c:
 
     # get cvterms
@@ -97,6 +99,62 @@ def transferData(postgres_connection, redis_connection, chunk_size, noreload):
       i += 1
     indexer.commit()
     _replacePreviousPrintLine(msg.format('done'))
+
+
+def transferChromosomes(postgres_connection, redis_connection, chunk_size, noreload):
+
+  print('Loading chromosomes...')
+  # prepare RediSearch
+  indexName = 'chromosomeIdx'
+  chromosome_index = redisearch.Client(indexName, conn=redis_connection)
+  # TODO: there should be an extend argparse flag that prevents deletion
+  try:
+    chromosome_index.info()
+    if noreload:  # previous line will error if index doesn't exist
+      print(f'\t"{chromosomeIdx}" already exists in RediSearch')
+      return
+    msg = '\tClearing index... {}'
+    print(msg.format(''))
+    chromosome_index.drop_index()
+    _replacePreviousPrintLine(msg.format('done'))
+  except Exception as e:
+    print(e)
+  fields = [redisearch.TextField('name')]
+  chromosome_index.create_index(fields)
+  indexer = chromosome_index.batch_indexer(chunk_size=chunk_size)
+
+  with postgres_connection.cursor() as c:
+
+    # get cvterms
+    msg = '\tLoading cvterms... {}'
+    print(msg.format(''))
+    chromosome_id = _getCvterm(c, 'chromosome')
+    supercontig_id = _getCvterm(c, 'supercontig')
+    _replacePreviousPrintLine(msg.format('done'))
+
+    # get all the genes and index them
+    msg = '\tLoading chromosomes... {}'
+    print(msg.format(''))
+    i = 0
+    query = ('SELECT name '
+             'FROM feature '
+             'WHERE type_id=' + str(chromosome_id) + ' '
+             'OR type_id=' + str(supercontig_id) + ';')
+    c.execute(query)
+    _replacePreviousPrintLine(msg.format('done'))
+    msg = '\tIndexing chromosomes... {}'
+    print(msg.format(''))
+    for (name,) in c:
+      indexer.add_document('doc' + str(i), name=name)
+      i += 1
+    indexer.commit()
+    _replacePreviousPrintLine(msg.format('done'))
+
+
+def transferData(postgres_connection, redis_connection, chunk_size, noreload):
+
+  transferGenes(postgres_connection, redis_connection, chunk_size, noreload)
+  transferChromosomes(postgres_connection, redis_connection, chunk_size, noreload)
 
 
 if __name__ == '__main__':
