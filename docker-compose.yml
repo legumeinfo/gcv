@@ -75,7 +75,11 @@ services:
       - gene_search
     ports:
       - "9000:8080"
+#   environment:
+#     GRPC_VERBOSITY: 'debug'
+#     GRPC_TRACE: 'all'
     command:
-      - --ghost=0.0.0.0
+#     - --ghost=0.0.0.0
+      - --no-grpc
       - --hhost=0.0.0.0
-      - --geneaddr=gene_search
+      - --geneaddr=gene_search:8081
