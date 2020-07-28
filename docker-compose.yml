@@ -61,8 +61,7 @@ services:
   gene_search:
     build: search/microservices/gene_search
     depends_on:
-      redisearch:
-        condition: service_healthy
+      - chado_to_redisearch
     ports:
       - "8080:8080"
     command:
