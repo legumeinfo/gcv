@@ -27,6 +27,8 @@ def parseArgs():
   parser.add_argument('--rhost', type=str, default='localhost', help='The Redis host.')
   parser.add_argument('--rport', type=int, default=6379, help='The Redis port.')
   parser.add_argument('--rchunksize', type=int, default=100, help='The chunk size to be used for Redis batch processing.')
+  parser.add_argument('--no-reload', dest='noreload', action='store_true', help='Don\'t load a search index if it already exists.')
+  parser.set_defaults(noreload=False)
 
   return parser.parse_args()
 
@@ -51,12 +53,15 @@ def _replacePreviousPrintLine(newline):
   print(newline)
 
 
-def transferData(postgres_connection, redis_connection, chunk_size):
+def transferData(postgres_connection, redis_connection, chunk_size, noreload):
 
   # prepare RediSearch
   gene_index = redisearch.Client('geneIdx', conn=redis_connection)
   # TODO: there should be an extend argparse flag that prevents deletion
   try:
+    gene_index.info()
+    if noreload:  # previous line will error if index doesn't exist
+      exit('"geneIdx" already exists in RediSearch')
     msg = 'Clearing index... {}'
     print(msg.format(''))
     gene_index.drop_index()
@@ -117,7 +122,7 @@ if __name__ == '__main__':
   _replacePreviousPrintLine(msg.format('done'))
   # transfer the relevant data from Chado to Redis
   try:
-    transferData(postgres_connection, redis_connection, args.rchunksize)
+    transferData(postgres_connection, redis_connection, args.rchunksize, args.noreload)
   except Exception as e:
     print(e)
   # disconnect from the database

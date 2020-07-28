@@ -19,14 +19,14 @@ def parseArgs():
     formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
   # Async HTTP args
-  parser.add_argument('--no-http', dest='http', action='store_false', help='Don\'t run the HTTP server.')
-  parser.set_defaults(http=True)
+  parser.add_argument('--no-http', dest='nohttp', action='store_true', help='Don\'t run the HTTP server.')
+  parser.set_defaults(nohttp=False)
   parser.add_argument('--hhost', type=str, default='localhost', help='The HTTP server host.')
   parser.add_argument('--hport', type=str, default='8080', help='The HTTP server port.')
 
   # gRPC args
-  parser.add_argument('--no-grpc', dest='grpc', action='store_false', help='Don\'t run the gRPC server.')
-  parser.set_defaults(http=True)
+  parser.add_argument('--no-grpc', dest='nogrpc', action='store_true', help='Don\'t run the gRPC server.')
+  parser.set_defaults(nohttp=False)
   parser.add_argument('--ghost', type=str, default='localhost', help='The gRPC server host.')
   parser.add_argument('--gport', type=str, default='8081', help='The gRPC server port.')
 
@@ -43,13 +43,13 @@ def parseArgs():
 
 if __name__ == '__main__':
   args = parseArgs()
-  if not args.http and not args.grpc:
-    exit('--http or --grpc must be True')
+  if args.nohttp and args.nogrpc:
+    exit('--no-http and --no-grpc can\'t both be given')
   query_parser = makeQueryParser(args.chars)
   handler = RequestHandler(query_parser, args.geneaddr)
   loop = asyncio.get_event_loop()
-  if args.http:
+  if not args.nohttp:
     loop.create_task(run_http_server(args.hhost, args.hport, handler))
-  if args.grpc:
+  if not args.nogrpc:
     loop.create_task(run_grpc_server(args.ghost, args.gport, handler))
   loop.run_forever()
