@@ -63,9 +63,10 @@ services:
     build: search/microservices/gene_search
     depends_on:
       - chado_to_redisearch
-    ports:
-      - "8080:8080"
+    expose:
+      - "8081"
     command:
+      - --no-http
       - --hhost=0.0.0.0
       - --rhost=redisearch
 
@@ -74,7 +75,7 @@ services:
     depends_on:
       - gene_search
     ports:
-      - "9000:8080"
+      - "8080:8080"
 #   environment:
 #     GRPC_VERBOSITY: 'debug'
 #     GRPC_TRACE: 'all'
