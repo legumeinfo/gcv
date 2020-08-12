@@ -16,7 +16,7 @@ def parseArgs():
 
   # create the parser
   parser = argparse.ArgumentParser(
-    description='A microservice for finding chromosome names similar to the given query.',
+    description='A microservice for retrieving a region from a given chromosome.',
     formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
   # Async HTTP args

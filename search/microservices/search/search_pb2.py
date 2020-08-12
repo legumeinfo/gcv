@@ -19,7 +19,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   syntax='proto3',
   serialized_options=b'\n\016lis.gcv.searchB\013SearchProtoP\001\242\002\001S',
   create_key=_descriptor._internal_create_key,
-  serialized_pb=b'\n\x0csearch.proto\x12\x06search\"\x1e\n\rSearchRequest\x12\r\n\x05query\x18\x01 \x01(\t\"\x1c\n\x0bSearchReply\x12\r\n\x05genes\x18\x01 \x03(\t2@\n\x06Search\x12\x36\n\x06Search\x12\x15.search.SearchRequest\x1a\x13.search.SearchReply\"\x00\x42#\n\x0elis.gcv.searchB\x0bSearchProtoP\x01\xa2\x02\x01Sb\x06proto3'
+  serialized_pb=b'\n\x0csearch.proto\x12\x06search\"\x1e\n\rSearchRequest\x12\r\n\x05query\x18\x01 \x01(\t\"=\n\x0bSearchReply\x12\r\n\x05genes\x18\x01 \x03(\t\x12\x1f\n\x07regions\x18\x02 \x03(\x0b\x32\x0e.search.Region\")\n\x06Region\x12\x0c\n\x04gene\x18\x01 \x01(\t\x12\x11\n\tneighbors\x18\x02 \x01(\r2@\n\x06Search\x12\x36\n\x06Search\x12\x15.search.SearchRequest\x1a\x13.search.SearchReply\"\x00\x42#\n\x0elis.gcv.searchB\x0bSearchProtoP\x01\xa2\x02\x01Sb\x06proto3'
 )
 
 
@@ -72,6 +72,13 @@ _SEARCHREPLY = _descriptor.Descriptor(
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='regions', full_name='search.SearchReply.regions', index=1,
+      number=2, type=11, cpp_type=10, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
   ],
   extensions=[
   ],
@@ -85,11 +92,52 @@ _SEARCHREPLY = _descriptor.Descriptor(
   oneofs=[
   ],
   serialized_start=56,
-  serialized_end=84,
+  serialized_end=117,
 )
 
+
+_REGION = _descriptor.Descriptor(
+  name='Region',
+  full_name='search.Region',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  create_key=_descriptor._internal_create_key,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='gene', full_name='search.Region.gene', index=0,
+      number=1, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=b"".decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='neighbors', full_name='search.Region.neighbors', index=1,
+      number=2, type=13, cpp_type=3, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=119,
+  serialized_end=160,
+)
+
+_SEARCHREPLY.fields_by_name['regions'].message_type = _REGION
 DESCRIPTOR.message_types_by_name['SearchRequest'] = _SEARCHREQUEST
 DESCRIPTOR.message_types_by_name['SearchReply'] = _SEARCHREPLY
+DESCRIPTOR.message_types_by_name['Region'] = _REGION
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
 
 SearchRequest = _reflection.GeneratedProtocolMessageType('SearchRequest', (_message.Message,), {
@@ -106,6 +154,13 @@ SearchReply = _reflection.GeneratedProtocolMessageType('SearchReply', (_message.
   })
 _sym_db.RegisterMessage(SearchReply)
 
+Region = _reflection.GeneratedProtocolMessageType('Region', (_message.Message,), {
+  'DESCRIPTOR' : _REGION,
+  '__module__' : 'search_pb2'
+  # @@protoc_insertion_point(class_scope:search.Region)
+  })
+_sym_db.RegisterMessage(Region)
+
 
 DESCRIPTOR._options = None
 
@@ -116,8 +171,8 @@ _SEARCH = _descriptor.ServiceDescriptor(
   index=0,
   serialized_options=None,
   create_key=_descriptor._internal_create_key,
-  serialized_start=86,
-  serialized_end=150,
+  serialized_start=162,
+  serialized_end=226,
   methods=[
   _descriptor.MethodDescriptor(
     name='Search',

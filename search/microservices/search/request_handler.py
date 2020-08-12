@@ -1,18 +1,21 @@
+# Python
+import asyncio
 # module
-from grpc_client import gene_search, chromosome_search
+from grpc_client import gene_search, chromosome_search, chromosome_region
 from query_parser import makeQueryParser
 
 
 class RequestHandler:
 
-  def __init__(self, parser, gene_address, chromosome_address):
+  def __init__(self, parser, gene_address, chromosome_address, region_address):
     self.parser = parser
     self.gene_address = gene_address
     self.chromosome_address = chromosome_address
+    self.region_address = region_address
 
   async def process(self, query):
     # parser the query and search the indexes
-    search_results = {'genes': []}
+    search_results = {'genes': [], 'regions': []}
     for results, start, end in self.parser.scanString(query):
       if 'genes' in results:
         for name, in results['genes']:
@@ -21,4 +24,10 @@ class RequestHandler:
       if 'regions' in results:
         for name, start, stop in results['regions']:
           chromosomes = await chromosome_search(name, self.chromosome_address)
+          regions = await asyncio.gather(*[
+              chromosome_region(chromosome, start, stop, self.region_address)
+              for chromosome in chromosomes
+            ])
+          for region in regions:
+            search_results['regions'].extend(regions)
     return search_results

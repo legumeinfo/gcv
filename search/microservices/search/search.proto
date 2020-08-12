@@ -20,4 +20,10 @@ message SearchRequest {
 
 message SearchReply {
   repeated string genes = 1;
+  repeated Region regions = 2;
+}
+
+message Region {
+  string gene = 1;
+  uint32 neighbors = 2;
 }
