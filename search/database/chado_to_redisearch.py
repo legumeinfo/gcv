@@ -53,54 +53,6 @@ def _replacePreviousPrintLine(newline):
   print(newline)
 
 
-def transferGenes(postgres_connection, redis_connection, chunk_size, noreload):
-
-  print('Loading genes...')
-  # prepare RediSearch
-  indexName = 'geneIdx'
-  gene_index = redisearch.Client(indexName, conn=redis_connection)
-  # TODO: there should be an extend argparse flag that prevents deletion
-  try:
-    gene_index.info()
-    if noreload:  # previous line will error if index doesn't exist
-      print(f'\t"{indexName}" already exists in RediSearch')
-      return
-    msg = '\tClearing index... {}'
-    print(msg.format(''))
-    gene_index.drop_index()
-    _replacePreviousPrintLine(msg.format('done'))
-  except Exception as e:
-    print(e)
-  fields = [redisearch.TextField('name')]
-  gene_index.create_index(fields)
-  indexer = gene_index.batch_indexer(chunk_size=chunk_size)
-
-  with postgres_connection.cursor() as c:
-
-    # get cvterms
-    msg = '\tLoading cvterms... {}'
-    print(msg.format(''))
-    gene_id = _getCvterm(c, 'gene')
-    _replacePreviousPrintLine(msg.format('done'))
-
-    # get all the genes and index them
-    msg = '\tLoading genes... {}'
-    print(msg.format(''))
-    i = 0
-    query = ('SELECT name '
-             'FROM feature '
-             'WHERE type_id=' + str(gene_id) + ';')
-    c.execute(query)
-    _replacePreviousPrintLine(msg.format('done'))
-    msg = '\tIndexing genes... {}'
-    print(msg.format(''))
-    for (name,) in c:
-      indexer.add_document(f'{indexName}_{i}', name=name)
-      i += 1
-    indexer.commit()
-    _replacePreviousPrintLine(msg.format('done'))
-
-
 def transferChromosomes(postgres_connection, redis_connection, chunk_size, noreload):
 
   print('Loading chromosomes...')
@@ -132,30 +84,36 @@ def transferChromosomes(postgres_connection, redis_connection, chunk_size, norel
     supercontig_id = _getCvterm(c, 'supercontig')
     _replacePreviousPrintLine(msg.format('done'))
 
-    # get all the genes and index them
+    # get all the chromosomes
     msg = '\tLoading chromosomes... {}'
     print(msg.format(''))
     i = 0
-    query = ('SELECT name '
+    query = ('SELECT feature_id, name '
              'FROM feature '
              'WHERE type_id=' + str(chromosome_id) + ' '
              'OR type_id=' + str(supercontig_id) + ';')
     c.execute(query)
     _replacePreviousPrintLine(msg.format('done'))
+
+    # index the chromosomes
     msg = '\tIndexing chromosomes... {}'
     print(msg.format(''))
-    for (name,) in c:
-      indexer.add_document(f'{indexName}_{i}', name=name)
+    chromosome_id_name_map = {}
+    for (chr_id, chr_name,) in c:
+      chromosome_id_name_map[chr_id] = chr_name
+      indexer.add_document(f'{indexName}_{i}', name=chr_name)
       i += 1
     indexer.commit()
     _replacePreviousPrintLine(msg.format('done'))
 
+    return chromosome_id_name_map
 
-def transferChromosomeGeneIntervals(postgres_connection, redis_connection, chunk_size, noreload):
 
-  print('Loading chromosome gene intervals...')
+def transferGenes(postgres_connection, redis_connection, chunk_size, noreload, chromosome_id_name_map):
+
+  print('Loading genes...')
   # prepare RediSearch
-  indexName = 'chromosomeGeneIntervalIdx'
+  indexName = 'geneIdx'
   interval_index = redisearch.Client(indexName, conn=redis_connection)
   # TODO: there should be an extend argparse flag that prevents deletion
   try:
@@ -171,7 +129,7 @@ def transferChromosomeGeneIntervals(postgres_connection, redis_connection, chunk
     print(e)
   fields = [
       redisearch.TextField('chromosome'),
-      redisearch.TextField('gene'),
+      redisearch.TextField('name'),
       redisearch.NumericField('fmin'),
       redisearch.NumericField('fmax'),
     ]
@@ -183,29 +141,22 @@ def transferChromosomeGeneIntervals(postgres_connection, redis_connection, chunk
     # get cvterms
     msg = '\tLoading cvterms... {}'
     print(msg.format(''))
-    chromosome_id = _getCvterm(c, 'chromosome')
-    supercontig_id = _getCvterm(c, 'supercontig')
     gene_id = _getCvterm(c, 'gene')
     _replacePreviousPrintLine(msg.format('done'))
 
-    # get all the genes and index them
-    msg = '\tLoading chromosomes... {}'
-    print(msg.format(''))
-    query = ('SELECT feature_id, name '
-             'FROM feature '
-             'WHERE type_id=' + str(chromosome_id) + ' '
-             'OR type_id=' + str(supercontig_id) + ';')
-    c.execute(query)
-    chromosome_id_name_map = {chr_id: chr_name for (chr_id, chr_name,) in c}
-    _replacePreviousPrintLine(msg.format('done'))
-
-    msg = '\tIndexing chromosome gene intervals... {}'
+    # get all the genes
+    msg = '\tLoading genes... {}'
     print(msg.format(''))
     query = ('SELECT fl.srcfeature_id, f.name, fl.fmin, fl.fmax '
              'FROM featureloc fl, feature f '
              'WHERE fl.feature_id=f.feature_id '
              'AND f.type_id=' + str(gene_id) + ';')
     c.execute(query)
+    _replacePreviousPrintLine(msg.format('done'))
+
+    # index the genes
+    msg = '\tIndexing genes... {}'
+    print(msg.format(''))
     i = 0
     for (chr_id, g_name, g_fmin, g_fmax,) in c:
       if chr_id in chromosome_id_name_map:
@@ -224,9 +175,8 @@ def transferChromosomeGeneIntervals(postgres_connection, redis_connection, chunk
 
 def transferData(postgres_connection, redis_connection, chunk_size, noreload):
 
-  transferGenes(postgres_connection, redis_connection, chunk_size, noreload)
-  transferChromosomes(postgres_connection, redis_connection, chunk_size, noreload)
-  transferChromosomeGeneIntervals(postgres_connection, redis_connection, chunk_size, noreload)
+  chromosome_id_name_map = transferChromosomes(postgres_connection, redis_connection, chunk_size, noreload)
+  transferGenes(postgres_connection, redis_connection, chunk_size, noreload, chromosome_id_name_map)
 
 
 if __name__ == '__main__':

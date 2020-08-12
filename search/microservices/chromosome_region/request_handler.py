@@ -11,7 +11,7 @@ class RequestHandler:
   # https://redislabs.com/blog/beyond-the-cache-with-python/
   async def process(self, chromosome, start, stop):
     # connect to the index
-    interval_index = Client('chromosomeGeneIntervalIdx', conn=self.redis_connection)
+    gene_index = Client('geneIdx', conn=self.redis_connection)
     # count how many genes fall into the chromosome interval
     query = Query(chromosome)\
               .limit_fields('chromosome')\
@@ -19,7 +19,7 @@ class RequestHandler:
               .add_filter(NumericFilter('fmin', start, stop))\
               .add_filter(NumericFilter('fmax', start, stop))\
               .paging(0, 0)
-    result = interval_index.search(query)
+    result = gene_index.search(query)
     if result.total == 0:
       return {}
     # compute the number of flanking genes and retrieve only the center gene
@@ -30,7 +30,8 @@ class RequestHandler:
               .add_filter(NumericFilter('fmin', start, stop))\
               .add_filter(NumericFilter('fmax', start, stop))\
               .sort_by('fmin')\
+              .return_fields('name')\
               .paging(neighbors, 1)
-    result = interval_index.search(query)
+    result = gene_index.search(query)
     gene = result.docs[0].name
     return {'gene': gene, 'neighbors': neighbors}
