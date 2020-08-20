@@ -1,4 +1,5 @@
 # dependencies
+import grpc
 from grpc.experimental import aio
 # module
 import chromosomeregion_pb2
@@ -12,7 +13,10 @@ class ChromosomeRegion(chromosomeregion_pb2_grpc.ChromosomeRegionServicer):
 
   async def GetRegion(self, request, context):
     region = await self.handler.process(request.chromosome, request.start, request.stop)
-    return chromosomeregion_pb2.RegionReply(gene=region['gene'], neighbors=region['neighbors'])
+    if region is None:
+      await context.abort(grpc.StatusCode.NOT_FOUND, 'Region not found')
+    region_reply = chromosomeregion_pb2.RegionReply(gene=region['gene'], neighbors=region['neighbors'])
+    return region_reply
 
 
 async def run_grpc_server(host, port, handler):

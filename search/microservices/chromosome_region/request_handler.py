@@ -21,7 +21,7 @@ class RequestHandler:
               .paging(0, 0)
     result = gene_index.search(query)
     if result.total == 0:
-      return {}
+      return None
     # compute the number of flanking genes and retrieve only the center gene
     neighbors = result.total//2
     query = Query(chromosome)\

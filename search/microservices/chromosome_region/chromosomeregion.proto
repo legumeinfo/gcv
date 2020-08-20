@@ -19,7 +19,6 @@ message RegionRequest {
   uint32 stop = 3;
 }
 
-
 message RegionReply {
   string gene = 1;
   int32 neighbors = 2;

@@ -24,10 +24,10 @@ class RequestHandler:
       if 'regions' in results:
         for name, start, stop in results['regions']:
           chromosomes = await chromosome_search(name, self.chromosome_address)
-          regions = await asyncio.gather(*[
+          chromosome_regions = await asyncio.gather(*[
               chromosome_region(chromosome, start, stop, self.region_address)
               for chromosome in chromosomes
             ])
-          for region in regions:
+          for regions in chromosome_regions:
             search_results['regions'].extend(regions)
     return search_results

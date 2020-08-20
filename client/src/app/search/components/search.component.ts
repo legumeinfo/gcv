@@ -15,6 +15,7 @@ export class SearchComponent implements OnInit {
 
   public query: Observable<string>;
   public resultGenes: Observable<{source: string, name: string}[]>;
+  public resultRegions: Observable<{source: string, gene: string, neighbors: number}[]>;
   private _sourceNameMap = AppConfig.SERVERS.reduce(
     (accumulator, server) => {
       accumulator[server.id] = server.name;
@@ -28,6 +29,7 @@ export class SearchComponent implements OnInit {
   ngOnInit() {
     this.query = this._searchService.getSearchQuery();
     this.resultGenes = this._searchService.getSearchResultGenes();
+    this.resultRegions = this._searchService.getSearchResultRegions();
   }
 
   getServerName(id: string): string {
@@ -37,10 +39,10 @@ export class SearchComponent implements OnInit {
     return '';
   }
 
-  resultGeneToRouterGeneMatrix(gene: {name: string, source: string}):
+  geneSourceToRouterGeneMatrix(gene: string, source: string):
   {[key: string]: string} {
     const geneMatrix = {};
-    geneMatrix[gene.source] = gene.name;
+    geneMatrix[source] = gene;
     return geneMatrix;
   }
 

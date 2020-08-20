@@ -21,6 +21,8 @@ async def http_get_handler(request):
     start, stop = stop, start
   handler = request.app['handler']
   region = await handler.process(chromosome, start, stop)
+  if region is None:
+    return web.HTTPNotFound(text='Region not found')
   return web.json_response(region)
 
 
