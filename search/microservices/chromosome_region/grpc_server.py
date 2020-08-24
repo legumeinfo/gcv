@@ -14,6 +14,7 @@ class ChromosomeRegion(chromosomeregion_pb2_grpc.ChromosomeRegionServicer):
   async def GetRegion(self, request, context):
     region = await self.handler.process(request.chromosome, request.start, request.stop)
     if region is None:
+      # raise a gRPC NOT FOUND error
       await context.abort(grpc.StatusCode.NOT_FOUND, 'Region not found')
     region_reply = chromosomeregion_pb2.RegionReply(gene=region['gene'], neighbors=region['neighbors'])
     return region_reply

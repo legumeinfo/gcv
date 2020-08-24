@@ -5,7 +5,7 @@ from aiohttp import web
 
 def parseInt(int_str):
   try:
-    i = int(int_str)
+    i = int(float(int_str))
     assert(i >= 0)
     return i
   except:
@@ -23,7 +23,7 @@ async def http_get_handler(request):
   region = await handler.process(chromosome, start, stop)
   if region is None:
     return web.HTTPNotFound(text='Region not found')
-  return web.json_response(region)
+  return web.json_response({'region': region})
 
 
 async def run_http_server(host, port, handler):

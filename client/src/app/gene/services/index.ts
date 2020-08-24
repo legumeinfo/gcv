@@ -8,6 +8,7 @@ import { PairwiseBlocksService} from './pairwise-blocks.service';
 import { ParamsService } from './params.service';
 import { PlotsService } from './plots.service';
 import { ProcessService } from './process.service';
+import { RegionService } from './region.service';
 
 export const services: any[] = [
   ChromosomeService,
@@ -20,6 +21,7 @@ export const services: any[] = [
   ParamsService,
   PlotsService,
   ProcessService,
+  RegionService,
 ];
 
 export * from './chromosome.service';
@@ -32,3 +34,4 @@ export * from './pairwise-blocks.service';
 export * from './params.service';
 export * from './plots.service';
 export * from './process.service';
+export * from './region.service';
