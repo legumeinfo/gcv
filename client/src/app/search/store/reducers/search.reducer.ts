@@ -29,6 +29,7 @@ export interface State {
   loaded: SearchID[];
   failed: SearchID[];
   genes: {source: string, name: string}[];
+  regions: {source: string, gene: string, neighbors: number}[];
 }
 
 
@@ -37,6 +38,7 @@ const initialState: State = {
   loaded: [],
   failed: [],
   genes: [],
+  regions: [],
 };
 
 
@@ -66,6 +68,7 @@ export const reducer = (
         loaded: [],
         failed: [],
         genes: [],
+        regions: [],
       };
     }
     case searchActions.SEARCH:
@@ -94,14 +97,17 @@ export const reducer = (
       // add IDs to loaded
       targetIDs = idArrayLeftDifference(targetIDs, state.loaded);
       const loaded = state.loaded.concat(targetIDs);
-      // TODO: check if result has genes attribute
+      // update results
       const resultGenes = result.genes.map((name) => ({source, name}));
       const genes = state.genes.concat(resultGenes);
+      const resultRegions = result.regions.map((region) => ({source, ...region}));
+      const regions = state.regions.concat(resultRegions);
       return {
         ...state,
         loading,
         loaded,
         genes,
+        regions,
       };
     }
     case searchActions.SEARCH_FAILURE:

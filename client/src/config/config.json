@@ -76,6 +76,10 @@
       "search": {
         "type": "GET",
         "url": "http://localhost:8080/search"
+      },
+      "region": {
+        "type": "GET",
+        "url": "http://localhost:8080/chromosome-region"
       }
     }
   ]

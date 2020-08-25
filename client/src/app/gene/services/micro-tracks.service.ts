@@ -36,16 +36,6 @@ export class MicroTracksService extends HttpService {
         catchError((error) => throwError(error)));
   }
 
-  spanSearch(chromosome: string, low: number, high: number): void {
-    // search the default (first) server for now
-    const source = AppConfig.SERVERS[0].id;
-    const url = '/search' +
-          '/' + source +
-          '/' + chromosome +
-          '/' + low + '-' + high;
-    this._store.dispatch(new routerActions.Go({path: [url, { routeParam: 1 }]}));
-  }
-
   getSelectedTracks(): Observable<Track[]> {
     return this._store.select(fromMicroTracks.getSelectedMicroTracks);
   }

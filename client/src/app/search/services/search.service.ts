@@ -34,4 +34,9 @@ export class SearchService extends HttpService {
     return this._store.select(fromSearch.getResultGenes);
   }
 
+  getSearchResultRegions():
+  Observable<{source: string, gene: string, neighbors: number}[]> {
+    return this._store.select(fromSearch.getResultRegions);
+  }
+
 }

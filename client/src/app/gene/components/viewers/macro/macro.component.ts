@@ -10,7 +10,7 @@ import { Pipeline } from '@gcv/gene/models';
 import { blockIndexMap, endpointGenes, nameSourceID }
   from '@gcv/gene/models/shims';
 import { ChromosomeService, GeneService, MicroTracksService,
-  PairwiseBlocksService, ParamsService, ProcessService }
+  PairwiseBlocksService, ParamsService, ProcessService, RegionService }
   from '@gcv/gene/services';
 import { getMacroColors } from '@gcv/gene/utils';
 // component
@@ -65,7 +65,8 @@ export class MacroComponent implements AfterViewInit, OnDestroy, OnInit {
               private _microTracksService: MicroTracksService,
               private _pairwiseBlocksService: PairwiseBlocksService,
               private _paramsService: ParamsService,
-              private _processService: ProcessService) { }
+              private _processService: ProcessService,
+              private _regionService: RegionService) { }
 
   // Angular hooks
 
@@ -135,6 +136,10 @@ export class MacroComponent implements AfterViewInit, OnDestroy, OnInit {
 
   // private
 
+  private _viewportDrag(start, stop) {
+    this._regionService.regionSearch(this.name, start, stop, this.source);
+  }
+
   private _destroyViewer(): void {
     if (this._viewer !== undefined) {
       this._viewer.destroy();
@@ -159,6 +164,7 @@ export class MacroComponent implements AfterViewInit, OnDestroy, OnInit {
             });
           this.emitBlockOver(e, pairwiseBlocks, block);
         },
+        viewportDrag: (e, start, stop) => this._viewportDrag(start, stop),
       };
     options = Object.assign(options, this.options, {autoResize: false});
     this.draw = this._draw.bind(this, data, options);

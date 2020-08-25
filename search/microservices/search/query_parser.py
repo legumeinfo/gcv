@@ -2,7 +2,7 @@ from pyparsing import Group, Optional, Suppress, Word, ZeroOrMore, alphanums, nu
 
 
 def makeQueryParser(name_special_characters=''):
-  uint = Word(nums)
+  uint = Word(nums).setParseAction(lambda toks: int(toks[0]))
   name = Word(alphanums + name_special_characters)
   interval = uint + Suppress('-') + uint
   gene = Group(Suppress(Optional('gene:')) + name)\

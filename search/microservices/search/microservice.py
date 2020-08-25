@@ -5,7 +5,7 @@ import argparse
 import asyncio
 import uvloop
 # module
-from grpc_client import GENE_SEARCH_ADDR, CHROMOSOME_SEARCH_ADDR
+from grpc_client import GENE_SEARCH_ADDR, CHROMOSOME_SEARCH_ADDR, CHROMOSOME_REGION_ADDR
 from grpc_server import run_grpc_server
 from http_server import run_http_server
 from query_parser import makeQueryParser
@@ -34,7 +34,7 @@ def parseArgs():
   # Inter-microservice communication args
   parser.add_argument('--geneaddr', type=str, default=GENE_SEARCH_ADDR, help='The address of the gene search microservice (supports environment variables prefixed with "$").')
   parser.add_argument('--chromosomeaddr', type=str, default=CHROMOSOME_SEARCH_ADDR, help='The address of the chromosome search microservice (supports environment variables prefixed with "$").')
-  #parser.add_argument('--regionaddr', type=str, default=CHROMOSOME_REGION_ADDR, help='The address of the chromosome region microservice (supports environment variables prefixed with "$").')
+  parser.add_argument('--regionaddr', type=str, default=CHROMOSOME_REGION_ADDR, help='The address of the chromosome region microservice (supports environment variables prefixed with "$").')
 
   # query parser args
   parser.add_argument('--chars', type=str, default='._-', help='Special characters allowed in gene and chromosome names.')
@@ -47,7 +47,7 @@ if __name__ == '__main__':
   if args.nohttp and args.nogrpc:
     exit('--no-http and --no-grpc can\'t both be given')
   query_parser = makeQueryParser(args.chars)
-  handler = RequestHandler(query_parser, args.geneaddr, args.chromosomeaddr)
+  handler = RequestHandler(query_parser, args.geneaddr, args.chromosomeaddr, args.regionaddr)
   uvloop.install()
   loop = asyncio.get_event_loop()
   if not args.nohttp:

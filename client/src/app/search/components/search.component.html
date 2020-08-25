@@ -16,9 +16,28 @@
           <tbody>
             <tr *ngFor="let gene of resultGenes|async">
               <td>
-                <a [routerLink]="['/gene', resultGeneToRouterGeneMatrix(gene)]" [queryParams]="{}">{{ gene.name }}</a>
+                <a [routerLink]="['/gene', geneSourceToRouterGeneMatrix(gene.name, gene.source)]" [queryParams]="{}">{{ gene.name }}</a>
               </td>
               <td>{{ getServerName(gene.source) }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="row">
+        {{ (resultRegions|async).length }} regions returned
+        <table class="table table-striped">
+          <thead>
+            <tr>
+              <th scope="col">Focus Gene Name (Neighbors)</th>
+              <th scope="col">Source</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let region of resultRegions|async">
+              <td>
+                <a [routerLink]="['/gene', geneSourceToRouterGeneMatrix(region.gene, region.source)]" [queryParams]="{neighbors: region.neighbors}">{{ region.gene }} ({{ region.neighbors }})</a>
+              </td>
+              <td>{{ getServerName(region.source) }}</td>
             </tr>
           </tbody>
         </table>
