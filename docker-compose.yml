@@ -70,13 +70,41 @@ services:
       - --hhost=0.0.0.0
       - --rhost=redisearch
 
+
+  chromosome_search:
+    build: search/microservices/chromosome_search
+    depends_on:
+      - chado_to_redisearch
+    expose:
+      - "8082"
+    command:
+      - --no-http
+      - --ghost=0.0.0.0
+      - --gport=8082
+      - --rhost=redisearch
+
+
+  chromosome_region:
+    build: search/microservices/chromosome_region
+    depends_on:
+      - chado_to_redisearch
+    ports:
+      - "8083:8080"
+    command:
+      - --hhost=0.0.0.0
+      - --rhost=redisearch
+      - --ghost=0.0.0.0
+      - --gport=8084
+
   search:
     build: search/microservices/search
     depends_on:
       - gene_search
+      - chromosome_search
+      - chromosome_region
     ports:
       - "8080:8080"
-#   environment:
+    environment:
 #     GRPC_VERBOSITY: 'debug'
 #     GRPC_TRACE: 'all'
     command:
@@ -84,13 +112,6 @@ services:
       - --no-grpc
       - --hhost=0.0.0.0
       - --geneaddr=gene_search:8081
+      - --chromosomeaddr=chromosome_search:8082
+      - --regionaddr=chromosome_region:8084
 
-  chromosome_search:
-    build: search/microservices/chromosome_search
-    depends_on:
-      - chado_to_redisearch
-    ports:
-      - "8082:8080"
-    command:
-      - --hhost=0.0.0.0
-      - --rhost=redisearch

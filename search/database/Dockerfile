@@ -17,6 +17,6 @@ COPY --from=builder /usr/local/lib/python3.8/site-packages/ /usr/local/lib/pytho
 
 WORKDIR /app
 
-COPY *.py .
+COPY *.py ./
 
 ENTRYPOINT ["python3", "chado_to_redisearch.py"]
