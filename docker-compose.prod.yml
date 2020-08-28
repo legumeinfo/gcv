@@ -75,12 +75,12 @@ services:
     build: search/microservices/chromosome_search
     depends_on:
       - chado_to_redisearch
+    restart: always
     expose:
-      - "8082"
+      - "8081"
     command:
       - --no-http
       - --ghost=0.0.0.0
-      - --gport=8082
       - --rhost=redisearch
 
 
@@ -90,12 +90,12 @@ services:
       - chado_to_redisearch
     restart: always
     expose:
-      - "8084"
+      - "8080"
+      - "8081"
     command:
-      - --no-http
+      - --hhost=0.0.0.0
       - --rhost=redisearch
       - --ghost=0.0.0.0
-      - --gport=8084
 
   search:
     build: search/microservices/search
@@ -114,6 +114,6 @@ services:
       - --no-grpc
       - --hhost=0.0.0.0
       - --geneaddr=gene_search:8081
-      - --chromosomeaddr=chromosome_search:8082
-      - --regionaddr=chromosome_region:8084
+      - --chromosomeaddr=chromosome_search:8081
+      - --regionaddr=chromosome_region:8081
 

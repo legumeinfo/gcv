@@ -79,7 +79,7 @@
       },
       "region": {
         "type": "GET",
-        "url": "http://localhost:8080/chromosome-region"
+        "url": "http://localhost:8083/chromosome-region"
       }
     }
   ]
