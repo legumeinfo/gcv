@@ -43,7 +43,7 @@ def parseArgs():
   phost_envvar = 'POSTGRES_HOST'
   parser.add_argument('--phost', action=EnvArg, envvar=phost_envvar, type=str, default='localhost', help=f'The PostgreSQL host (can also be specified using the {phost_envvar} environment variable).')
   pport_envvar = 'POSTGRES_PORT'
-  parser.add_argument('--pport', action=EnvArg, envvar=phost_envvar, type=int, default=5432, help=f'The PostgreSQL port (can also be specified using the {pport_envvar} environment variable).')
+  parser.add_argument('--pport', action=EnvArg, envvar=pport_envvar, type=int, default=5432, help=f'The PostgreSQL port (can also be specified using the {pport_envvar} environment variable).')
 
   # Redis args
   rdb_envvar = 'REDIS_DB'
