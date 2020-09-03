@@ -43,7 +43,7 @@ export class MacroCircosComponent implements AfterViewInit, OnDestroy, OnInit {
 
   info = `<p>This is the circos <i>pipeline</i>.
           It depicts the flow of data from one <i>process</i> to the next for
-          this circos viewer.</p>
+          <u>this</u> circos viewer.</p>
           <p class="mb-0">
           <b>Blocks</b> computes pairwise macro synteny blocks between this
           viewer's chromosomes.
