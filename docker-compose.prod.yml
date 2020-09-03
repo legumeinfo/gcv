@@ -51,12 +51,13 @@ services:
         condition: service_healthy
     # load redisearch from chado only once
     restart: on-failure
+    environment:
+      POSTGRES_DB: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_HOST: db
+      REDIS_HOST: redisearch
     command:
-      - --pdb=postgres
-      - --puser=postgres
-      - --ppassword=${POSTGRES_PASSWORD}
-      - --phost=db
-      - --rhost=redisearch
       - --no-reload
 
   gene_search:
@@ -64,11 +65,12 @@ services:
     depends_on:
       - chado_to_redisearch
     restart: always
+    environment:
+      REDIS_HOST: redisearch
     expose:
       - "8081"
     command:
       - --no-http
-      - --rhost=redisearch
 
 
   chromosome_search:
@@ -76,12 +78,13 @@ services:
     depends_on:
       - chado_to_redisearch
     restart: always
+    environment:
+      REDIS_HOST: redisearch
+      GRPC_HOST: "0.0.0.0"
     expose:
       - "8081"
     command:
       - --no-http
-      - --ghost=0.0.0.0
-      - --rhost=redisearch
 
 
   chromosome_region:
@@ -89,13 +92,13 @@ services:
     depends_on:
       - chado_to_redisearch
     restart: always
+    environment:
+      HTTP_HOST: "0.0.0.0"
+      REDIS_HOST: redisearch
+      GRPC_HOST: "0.0.0.0"
     expose:
       - "8080"
       - "8081"
-    command:
-      - --hhost=0.0.0.0
-      - --rhost=redisearch
-      - --ghost=0.0.0.0
 
   search:
     build: search/microservices/search
@@ -106,14 +109,12 @@ services:
     restart: always
     expose:
       - "8080"
-#   environment:
-#     GRPC_VERBOSITY: #'debug'
-#     GRPC_TRACE: #'all'
+    environment:
+#     GRPC_VERBOSITY: 'debug'
+#     GRPC_TRACE: 'all'
+      HTTP_HOST: "0.0.0.0"
+      GENE_SEARCH_ADDR: gene_search:8081
+      CHROMOSOME_SEARCH_ADDR: chromosome_search:8081
+      CHROMOSOME_REGION_ADDR: chromosome_region:8081
     command:
-#     - --ghost=0.0.0.0
       - --no-grpc
-      - --hhost=0.0.0.0
-      - --geneaddr=gene_search:8081
-      - --chromosomeaddr=chromosome_search:8081
-      - --regionaddr=chromosome_region:8081
-
