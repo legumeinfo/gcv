@@ -1,32 +1,61 @@
 #!/usr/bin/env python
 
+# Python
 import argparse
-import redisearch
+import os
 import sys
 from collections import defaultdict
+# dependencies
+import redisearch
+# module
 from database import connectToChado, connectToRedis
+
+
+# a class that loads argument values from command line variables, resulting in a
+# value priority: command line > environment variable > default value
+class EnvArg(argparse.Action):
+
+  def __init__(self, envvar, required=False, default=None, **kwargs):
+    if envvar in os.environ:
+      default = os.environ[envvar]
+    if required and default is not None:
+      required = False
+    super(EnvArg, self).__init__(default=default, required=required, **kwargs)
+
+  def __call__(self, parser, namespace, values, option_string=None):
+    setattr(namespace, self.dest, values)
 
 
 def parseArgs():
 
   # create the parser
   parser = argparse.ArgumentParser(
-    description='Loads data from a Chado (PostreSQL) database into a RediSearch index.',
+    description='Loads data from a Chado (PostreSQL) database into a RediSearch index for use by the GCV search microservices.',
     formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
   # PostgreSQL args
-  parser.add_argument('--pdb', type=str, default='chado', help='The PostgreSQL database.')
-  parser.add_argument('--puser', type=str, default='chado', help='The PostgreSQL username.')
-  parser.add_argument('--ppassword', type=str, default=None, help='The PostgreSQL password.')
-  parser.add_argument('--phost', type=str, default='localhost', help='The PostgreSQL host.')
-  parser.add_argument('--pport', type=int, default=5432, help='The PostgreSQL port.')
+  pdb_envvar = 'POSTGRES_DB'
+  parser.add_argument('--pdb', action=EnvArg, envvar=pdb_envvar, type=str, default='chado', help=f'The PostgreSQL database (can also be specified using the {pdb_envvar} environment variable).')
+  puser_envvar = 'POSTGRES_USER'
+  parser.add_argument('--puser', action=EnvArg, envvar=puser_envvar, type=str, default='chado', help=f'The PostgreSQL username (can also be specified using the {puser_envvar} environment variable).')
+  ppassword_envvar = 'POSTGRES_PASSWORD'
+  parser.add_argument('--ppassword', action=EnvArg, envvar=ppassword_envvar, type=str, default=None, help=f'The PostgreSQL password (can also be specified using the {ppassword_envvar} environment variable).')
+  phost_envvar = 'POSTGRES_HOST'
+  parser.add_argument('--phost', action=EnvArg, envvar=phost_envvar, type=str, default='localhost', help=f'The PostgreSQL host (can also be specified using the {phost_envvar} environment variable).')
+  pport_envvar = 'POSTGRES_PORT'
+  parser.add_argument('--pport', action=EnvArg, envvar=phost_envvar, type=int, default=5432, help=f'The PostgreSQL port (can also be specified using the {pport_envvar} environment variable).')
 
   # Redis args
-  parser.add_argument('--rdb', type=int, default=0, help='The Redis database.')
-  parser.add_argument('--rpassword', type=str, default='', help='The Redis password.')
-  parser.add_argument('--rhost', type=str, default='localhost', help='The Redis host.')
-  parser.add_argument('--rport', type=int, default=6379, help='The Redis port.')
-  parser.add_argument('--rchunksize', type=int, default=100, help='The chunk size to be used for Redis batch processing.')
+  rdb_envvar = 'REDIS_DB'
+  parser.add_argument('--rdb', action=EnvArg, envvar=rdb_envvar, type=int, default=0, help=f'The Redis database (can also be specified using the {rdb_envvar} environment variable).')
+  rpassword_envvar = 'REDIS_PASSWORD'
+  parser.add_argument('--rpassword', action=EnvArg, envvar=rpassword_envvar, type=str, default='', help=f'The Redis password (can also be specified using the {rpassword_envvar} environment variable).')
+  rhost_envvar = 'REDIS_HOST'
+  parser.add_argument('--rhost', action=EnvArg, envvar=rhost_envvar, type=str, default='localhost', help=f'The Redis host (can also be specified using the {rhost_envvar} environment variable).')
+  rport_envvar = 'REDIS_PORT'
+  parser.add_argument('--rport', action=EnvArg, envvar=rport_envvar, type=int, default=6379, help=f'The Redis port (can also be specified using the {rport_envvar} environment variable).')
+  rchunksize_envvar = 'REDIS_CHUNK_SIZE'
+  parser.add_argument('--rchunksize', action=EnvArg, envvar=rchunksize_envvar, type=int, default=100, help=f'The chunk size to be used for Redis batch processing (can also be specified using the {rchunksize_envvar} environment variable).')
   parser.add_argument('--no-reload', dest='noreload', action='store_true', help='Don\'t load a search index if it already exists.')
   parser.set_defaults(noreload=False)
 
