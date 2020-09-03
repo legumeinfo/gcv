@@ -38,7 +38,7 @@
     "jquery": "^3.5.1",
     "mnemonist": "^0.36.1",
     "resize-observer-polyfill": "^1.5.1",
-    "rxjs": "^6.5.5",
+    "rxjs": "^6.6.2",
     "tippy.js": "^6.2.3",
     "tslib": "^1.13.0",
     "zone.js": "~0.10.2"
