@@ -20,7 +20,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # See https://docs.djangoproject.com/en/1.9/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.environ['SECRET_KEY']
+SECRET_KEY = os.environ.get('SECRET_KEY', None)
 
 # allow cross origin requests
 CORS_ORIGIN_ALLOW_ALL = True
@@ -39,11 +39,11 @@ CORS_ALLOW_HEADERS = (
 )
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.environ['DEBUG'] == '1'
+DEBUG = os.environ.get('DEBUG', '1') == '1'
 
 SITE_ID = 1
 
-ALLOWED_HOSTS = os.environ["ALLOWED_HOSTS"].split()
+ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'localhost').split()
 
 # Application definition
 
@@ -94,11 +94,11 @@ DATABASES = {
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.environ['PGNAME'],
-        'USER': os.environ['PGUSER'],
-        'PASSWORD': os.environ['PGPASSWORD'],
-        'HOST': os.environ['PGHOST'],
-        'PORT': os.environ['PGPORT'],
+        'NAME': os.environ.get('PGNAME', 'chado'),
+        'USER': os.environ.get('PGUSER', 'chado'),
+        'PASSWORD': os.environ.get('PGPASSWORD', ''),
+        'HOST': os.environ.get('PGHOST', 'localhost'),
+        'PORT': os.environ.get('PGPORT', '5432'),
     }
 }
 

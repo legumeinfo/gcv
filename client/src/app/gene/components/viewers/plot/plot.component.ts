@@ -42,7 +42,7 @@ export class PlotComponent implements AfterViewInit, OnDestroy, OnInit {
 
   info = `<p>This is the plot <i>pipeline</i>.
           It depicts the flow of data from one <i>process</i> to the next for
-          this plot.</p>
+          <u>this</u> plot.</p>
           <p class="mb-0">
           <b>Genes</b> fetches the genes for all the points in the plot.
           </p>`

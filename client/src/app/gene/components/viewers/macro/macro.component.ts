@@ -45,7 +45,7 @@ export class MacroComponent implements AfterViewInit, OnDestroy, OnInit {
 
   info = `<p>This is the macro synteny <i>pipeline</i>.
           It depicts the flow of data from one <i>process</i> to the next for
-          this macro synteny viewer.</p>
+          <u>this</u> macro synteny viewer.</p>
           <p class="mb-0">
           <b>Blocks</b> computes pairwise macro synteny blocks between this
           viewer's chromosome and other chromosomes in the database.
