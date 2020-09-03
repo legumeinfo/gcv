@@ -32,7 +32,7 @@ services:
     environment:
       POSTGRES_PASSWORD:
     healthcheck:
-      test: "pg_isready -h 127.0.0.1 || exit 1"
+      test: "pg_isready -U postgres -h 127.0.0.1 || exit 1"
       retries: 10
     restart: always
 
