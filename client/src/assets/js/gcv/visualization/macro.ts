@@ -224,7 +224,7 @@ export class Macro extends Visualizer {
           const x2 = x1 + parseFloat(viewport.attr("width"));
           const d1 = this.scale.invert(x1);
           const d2 = this.scale.invert(x2);
-          this.options.viewportDrag(d1, d2);
+          this.options.viewportDrag(d3.event, d1, d2);
         }));
     }
     // how the viewport is resized

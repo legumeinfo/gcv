@@ -5,4 +5,5 @@ export * from './pairwise-block.model';
 export * from './pairwise-blocks.model';
 export * from './plot.model';
 export * from './process.model';
+export * from './region.model';
 export * from './track.model';

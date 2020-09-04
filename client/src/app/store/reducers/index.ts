@@ -24,5 +24,6 @@ export const reducers: ActionReducerMap<State> = {
 export const getRouter = createFeatureSelector<fromRouter.State>('routerReducer');
 
 
+// add environment-specific meta reducers here
 export const metaReducers: Array<MetaReducer<State>> =
   environment.production ? [storeFreeze] : [];

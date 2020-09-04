@@ -13,11 +13,11 @@ import { microLegendShim } from './micro-legend.shim';
 
 
 @Component({
-  selector: 'micro-legend',
+  selector: 'gcv-micro-legend',
   styleUrls: ['../golden-viewer.scss'],
   template: `
-    <context-menu (saveImage)="saveImage()"></context-menu>
-    <div (onResize)="draw()" class="viewer" #container></div>
+    <gcv-context-menu (saveImage)="saveImage()"></gcv-context-menu>
+    <div (gcvOnResize)="draw()" class="viewer" #container></div>
   `,
 })
 export class MicroLegendComponent implements AfterViewInit, OnDestroy {

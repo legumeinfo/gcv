@@ -19,13 +19,13 @@ import { macroCircosShim } from './macro-circos.shim';
 
 
 @Component({
-  selector: 'macro-circos',
+  selector: 'gcv-macro-circos',
   styleUrls: ['../golden-viewer.scss'],
   template: `
-    <context-menu (saveImage)="saveImage()">
-      <pipeline [info]=info [pipeline]=pipeline navcenter></pipeline>
-    </context-menu>
-    <div (onResize)="draw()" class="viewer" #container></div>
+    <gcv-context-menu (saveImage)="saveImage()">
+      <gcv-pipeline [info]=info [pipeline]=pipeline navcenter></gcv-pipeline>
+    </gcv-context-menu>
+    <div (gcvOnResize)="draw()" class="viewer" #container></div>
   `,
 })
 export class MacroCircosComponent implements AfterViewInit, OnDestroy, OnInit {
@@ -43,7 +43,7 @@ export class MacroCircosComponent implements AfterViewInit, OnDestroy, OnInit {
 
   info = `<p>This is the circos <i>pipeline</i>.
           It depicts the flow of data from one <i>process</i> to the next for
-          this circos viewer.</p>
+          <u>this</u> circos viewer.</p>
           <p class="mb-0">
           <b>Blocks</b> computes pairwise macro synteny blocks between this
           viewer's chromosomes.

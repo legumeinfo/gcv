@@ -13,13 +13,13 @@ import { plotShim } from './plot.shim';
 
 
 @Component({
-  selector: 'plot',
+  selector: 'gcv-plot',
   styleUrls: ['../golden-viewer.scss'],
   template: `
-    <context-menu (saveImage)="saveImage()">
-      <pipeline [info]=info [pipeline]=pipeline navcenter></pipeline>
-    </context-menu>
-    <div (onResize)="draw()" class="viewer" #container></div>
+    <gcv-context-menu (saveImage)="saveImage()">
+      <gcv-pipeline [info]=info [pipeline]=pipeline navcenter></gcv-pipeline>
+    </gcv-context-menu>
+    <div (gcvOnResize)="draw()" class="viewer" #container></div>
   `,
 })
 export class PlotComponent implements AfterViewInit, OnDestroy, OnInit {
@@ -42,7 +42,7 @@ export class PlotComponent implements AfterViewInit, OnDestroy, OnInit {
 
   info = `<p>This is the plot <i>pipeline</i>.
           It depicts the flow of data from one <i>process</i> to the next for
-          this plot.</p>
+          <u>this</u> plot.</p>
           <p class="mb-0">
           <b>Genes</b> fetches the genes for all the points in the plot.
           </p>`

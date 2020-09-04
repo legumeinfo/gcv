@@ -15,6 +15,9 @@
     <ng-content select="[left]"></ng-content>
     <div class="flex-grow-1 flex-fill">
       <div class="navbar-right">
+        <gcv-expand-search-widget></gcv-expand-search-widget>
+      </div>
+      <div class="navbar-right">
         <router-outlet name="header-right"></router-outlet>
         <ng-content select="[right]"></ng-content>
       </div>

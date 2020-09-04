@@ -8,7 +8,7 @@ import { ClusterMixin } from '@gcv/gene/models/mixins';
 
 
 @Component({
-  selector: 'track-detail',
+  selector: 'gcv-track-detail',
   styleUrls: ['../details.scss'],
   template: `
     <div class="details">

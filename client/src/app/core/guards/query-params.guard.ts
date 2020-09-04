@@ -1,17 +1,15 @@
 // Angular
 import { Injectable } from '@angular/core';
-import { FormBuilder, FormGroup } from '@angular/forms';
-import { ActivatedRouteSnapshot, CanActivate, NavigationExtras, Router,
-  UrlTree } from '@angular/router';
+import { FormBuilder } from '@angular/forms';
+import { PRIMARY_OUTLET, ActivatedRouteSnapshot, CanActivate, NavigationExtras,
+  Router, RouterStateSnapshot, UrlTree } from '@angular/router';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 // store
 import { Store } from '@ngrx/store';
 import * as fromRoot from '@gcv/store/reducers';
-import * as fromParams from '@gcv/gene/store/selectors/params';
 // app
-import { Params, formControlConfigFactory, paramMembers, paramParser,
-  paramValidators }from '@gcv/gene/models/params';
+import { formControlConfigFactory, parseParams } from '@gcv/core/models/params';
 
 
 @Injectable()
@@ -23,19 +21,26 @@ export class QueryParamsGuard implements CanActivate {
     private _store: Store<fromRoot.State>,
   ) { }
 
-  canActivate(route: ActivatedRouteSnapshot): Observable<UrlTree|boolean> {
+  canActivate(route: ActivatedRouteSnapshot, state: RouterStateSnapshot):
+  Observable<UrlTree|boolean> {
     // parse query param strings to correct types
-    const routeParams = paramParser(route.queryParams);
+    // TODO: can this be done without using route data?
+    const {paramMembers, paramParsers, paramValidators, paramsSelector} = route.data;
+    const routeParams = parseParams(route.queryParams, paramParsers);
     // validate query params
     const controls =
       formControlConfigFactory(paramMembers, routeParams, paramValidators);
     const paramsGroup = this._fb.group(controls);
     paramsGroup.markAsDirty();
-    return this._store.select(fromParams.getParams).pipe(
-      map((params: Params): UrlTree|boolean => {
+    return this._store.select(paramsSelector).pipe(
+      map((params): UrlTree|boolean => {
         if (paramsGroup.valid) {
           return true;
         }
+        const tree = this._router.parseUrl(state.url);
+        const rootSegmentGroup = tree.root.children[PRIMARY_OUTLET];
+        // TODO: is there a better way to generate the path string?
+        const path = rootSegmentGroup.segments.map((s) => s.path).join('/');
         // replace invalid/missing params with those already in the store
         paramMembers.forEach((key) => {
           const errors = paramsGroup.get(key).errors;
@@ -44,13 +49,12 @@ export class QueryParamsGuard implements CanActivate {
           }
         });
         const queryParams = Object.assign({}, params, routeParams);
-        // TODO: don't hard-code the path
-        const path = ['gene', route.params];
+        const commands = [path, route.params];
         const extras: NavigationExtras = {
             queryParams,
             queryParamsHandling: 'merge',
           };
-        return this._router.createUrlTree(path, extras);
+        return this._router.createUrlTree(commands, extras);
       }),
     );
   }

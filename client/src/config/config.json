@@ -72,6 +72,14 @@
       "blocks": {
         "type": "POST",
         "url": "http://localhost:8000/services/v2/pairwise-blocks/"
+      },
+      "search": {
+        "type": "GET",
+        "url": "http://localhost:8080/search"
+      },
+      "region": {
+        "type": "GET",
+        "url": "http://localhost:8083/chromosome-region"
       }
     }
   ]

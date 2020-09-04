@@ -3,7 +3,7 @@ import { AfterViewInit, ChangeDetectorRef, Component, ElementRef, EventEmitter,
   Input, Output, ViewChild } from '@angular/core';
 
 @Component({
-  selector: 'context-menu',
+  selector: 'gcv-context-menu',
   styleUrls: ['./context-menu.component.scss'],
   templateUrl: './context-menu.component.html',
 })

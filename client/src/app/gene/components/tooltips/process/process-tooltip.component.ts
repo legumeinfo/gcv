@@ -7,7 +7,7 @@ import { statusToClass, statusToIcon } from '@gcv/gene/components/pipeline.shim'
 
 
 @Component({
-  selector: 'process-tooltip',
+  selector: 'gcv-process-tooltip',
   template: `
     <ng-container *ngIf="process.status|async; let processStatus">
       <ul class="list-group list-group-flush">

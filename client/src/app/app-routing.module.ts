@@ -20,6 +20,10 @@ const routes: Routes = [
     path: 'gene',
     loadChildren: () => import('@gcv/gene/gene.module').then(m => m.GeneModule),
   },
+  {
+    path: 'search',
+    loadChildren: () => import('@gcv/search/search.module').then(m => m.SearchModule),
+  },
   // legacy URLs
   {
     canActivate: [LegacySearchRouteGuard],

@@ -22,7 +22,7 @@ EXPOSE 4200
 FROM dev AS builder
 
 COPY . /client
-RUN sed -i'' 's#http://localhost:8000##' src/config/config.json
+RUN sed -i'' 's#http://localhost[:0-9]*##' src/config/config.json
 RUN ng build --prod --build-optimizer
 
 FROM nginx:1.18-alpine AS prod

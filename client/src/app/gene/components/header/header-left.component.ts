@@ -6,7 +6,7 @@ import { LayoutService } from '@gcv/gene/services';
 
 
 @Component({
-  selector: 'header-left',
+  selector: 'gcv-header-left',
   styles: [`
     a {
       cursor: pointer;

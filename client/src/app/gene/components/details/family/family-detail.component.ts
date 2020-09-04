@@ -10,7 +10,7 @@ import { MicroTracksService } from '@gcv/gene/services';
 
 
 @Component({
-  selector: 'family-detail',
+  selector: 'gcv-family-detail',
   styleUrls: ['../details.scss'],
   template: `
     <div class="details">

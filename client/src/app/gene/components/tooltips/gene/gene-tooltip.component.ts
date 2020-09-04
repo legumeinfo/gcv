@@ -8,7 +8,7 @@ import { GeneService } from '@gcv/gene/services';
 
 
 @Component({
-  selector: 'gene-tooltip',
+  selector: 'gcv-gene-tooltip',
   template: `
     <b>{{ gene }}</b> ({{ source }})
     <div *ngIf="instance|async; else loading; let g">

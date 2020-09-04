@@ -8,7 +8,7 @@ import { Server } from '@gcv/core/models';
 import { GeneService } from '@gcv/gene/services';
 
 @Component({
-  selector: 'gene-detail',
+  selector: 'gcv-gene-detail',
   styleUrls: ['../details.scss'],
   template: `
     <div class="details">

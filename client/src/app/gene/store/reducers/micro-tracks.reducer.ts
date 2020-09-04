@@ -25,9 +25,11 @@ import { createEntityAdapter, EntityState } from '@ngrx/entity';
 // store
 import * as microTrackActions from '@gcv/gene/store/actions/micro-tracks.actions';
 // app
+import { idArrayLeftDifferenceFactory, idArrayIntersectionFactory }
+  from '@gcv/core/utils/id-array.util';
 import { Track } from '@gcv/gene/models';
 import { ClusterMixin } from '@gcv/gene/models/mixins';
-import { ActionID } from '@gcv/gene/store/utils';
+import { ActionID } from '@gcv/store/utils';
 
 
 declare var Object: any;  // because TypeScript doesn't support Object.values
@@ -103,23 +105,12 @@ PartialMicroTrackID & ActionID): string {
 }
 
 
-// subtracts overlapping IDs from a1
-export function idArrayLeftDifference(a1, a2, checkAction=false) {
-  const id2string = (checkAction) ?
-    partialMicroTrackActionID :
-    partialMicroTrackID;
-  const a2IDs = new Set(a2.map(id2string));
-  return a1.filter((id) => !a2IDs.has(id2string(id)));
-}
+export const idArrayLeftDifference =
+  idArrayLeftDifferenceFactory(partialMicroTrackActionID, partialMicroTrackID);
 
 
-export function idArrayIntersection(a1, a2, checkAction=false) {
-  const id2string = (checkAction) ?
-    partialMicroTrackActionID :
-    partialMicroTrackID;
-  const a2IDs = new Set(a2.map(id2string));
-  return a1.filter((id) => a2IDs.has(id2string(id)));
-}
+export const idArrayIntersection =
+  idArrayIntersectionFactory(partialMicroTrackActionID, partialMicroTrackID);
 
 
 export function reducer(

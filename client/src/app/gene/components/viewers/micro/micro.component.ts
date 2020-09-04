@@ -15,10 +15,10 @@ import { microShim } from './micro.shim';
 
 
 @Component({
-  selector: 'micro',
+  selector: 'gcv-micro',
   styleUrls: ['../golden-viewer.scss'],
   template: `
-    <context-menu (saveImage)="saveImage()">
+    <gcv-context-menu (saveImage)="saveImage()">
       <ul class="navbar-nav mr-auto">
         <li *ngIf="showMacro()" class="nav-item dropdown">
           <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
@@ -37,9 +37,9 @@ import { microShim } from './micro.shim';
           </div>
         </li>
       </ul>
-      <pipeline [info]=info [pipeline]=pipeline navcenter></pipeline>
-    </context-menu>
-    <div (onResize)="draw()" class="viewer" #container></div>
+      <gcv-pipeline [info]=info [pipeline]=pipeline navcenter></gcv-pipeline>
+    </gcv-context-menu>
+    <div (gcvOnResize)="draw()" class="viewer" #container></div>
   `,
 })
 export class MicroComponent implements AfterViewInit, OnDestroy, OnInit {

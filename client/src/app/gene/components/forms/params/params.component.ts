@@ -5,10 +5,10 @@ import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 // app
 import { AppConfig } from '@gcv/app.config';
+import { formControlConfigFactory } from '@gcv/core/models/params';
 import { ALIGNMENT_ALGORITHMS } from '@gcv/gene/algorithms';
 import { LINKAGES } from '@gcv/gene/constants';
 import {
-  formControlConfigFactory,
   AlignmentParams, alignmentParamMembers, alignmentParamValidators,
   BlockParams, blockParamMembers, blockParamValidators,
   ClusteringParams, clusteringParamMembers, clusteringParamValidators,
@@ -19,7 +19,7 @@ import { ParamsService } from '@gcv/gene/services';
 
 
 @Component({
-  selector: 'params',
+  selector: 'gcv-params',
   templateUrl: './params.component.html',
 })
 export class ParamsComponent implements OnDestroy, OnInit {
