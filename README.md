@@ -92,7 +92,7 @@ Changes to files in `client/src` and `server/` will be reflected immediately.
 
 ### Production mode
 
-First set the environment variables `SECRET_KEY` and `POSTGRES_PASSWORD` (and optionally `GCV_SUB_URI` to serve the client from a URL path other than the default "/"; e.g., "/gcv/") either in a [.env file](https://docs.docker.com/compose/environment-variables/#the-env-file), or in the environment in which the `docker-compose` command is run.
+First set the environment variables `SECRET_KEY` and `POSTGRES_PASSWORD` (and optionally `GCV_PORT` to have the client service listen on a port other than 80, and `GCV_SUB_URI` to serve the client from a URL path other than the default "/"; e.g., "/gcv/") either in a [.env file](https://docs.docker.com/compose/environment-variables/#the-env-file), or in the environment in which the `docker-compose` command is run.
 
     docker-compose -f docker-compose.prod.yml up --build --detach
 
