@@ -1,7 +1,7 @@
 # Genome Context Viewer client
 
 The GCV user interface (client) is implemented as a federated single page [Angular](https://angular.io/) web app.
-The client is federated because it does not necessarily consume data from the same server that hosts it, but rather, the client can be configured to consume data from multiple arbitrary hosts that provide access to their data via the GCV [service API](https://github.com/legumeinfo/lis_context_viewer/wiki/Services-API-v2).
+The client is federated because it does not necessarily consume data from the same server that hosts it, but rather, the client can be configured to consume data from multiple arbitrary hosts that provide access to their data via the GCV [services API](https://github.com/legumeinfo/lis_context_viewer/wiki/Services-API-v2).
 
 ## Setup
 

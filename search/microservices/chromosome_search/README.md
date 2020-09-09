@@ -26,11 +26,11 @@ The RediSearch database credentials can be provided via the `REDIS_DB`, `REDIS_P
 The HTTP server credentials can be provided via the `HTTP_HOST` and `HTTP_PORT` environment variables.
 And the gRPC server credentials can be provided via the `GRPC_HOST` and `GRPC_PORT` environment variables.
 
-Run the microservice as follows:
+Run the microservice as follows
 
     (venv) $ ./microservice.py
 
-For more information about the microservice, run:
+For more information about the microservice, run
 
     (venv) $ ./microservice.py --help
 
@@ -38,7 +38,7 @@ For more information about the microservice, run:
 
 The microservice can be queried via HTTP GET or gRPC.
 
-The following is an example HTTP GET URL:
+The following is an example HTTP GET URL
 
     localhost:8080/chromosome-search?q=somechromosomenamequery
 

@@ -1,7 +1,7 @@
 # Genome Context Viewer search microservice
 
 This directory contains the search microservice.
-This microservice takes a query and returns gene and chromosome regions that are similar to the given query.
+This microservice takes a query and returns gene names and chromosome regions that are similar to the given query.
 
 ## Setup
 
@@ -22,7 +22,7 @@ See the `../gene_search/`, `../chromosome_search/`, and `../chromosome_region/` 
 ## Running
 
 The microservice hosts an HTTP and a gRPC server.
-The credentials for the microservice can be set via command line flags or via environment variables.
+The credentials for the servers can be set via command line flags or via environment variables.
 The HTTP server credentials can be provided via the `HTTP_HOST` and `HTTP_PORT` environment variables.
 And the gRPC server credentials can be provided via the `GRPC_HOST` and `GRPC_PORT` environment variables.
 
@@ -30,28 +30,28 @@ Additionally, the microservice relies on the gene search, chromosome search, and
 These credentials can also be set via command line flags or via environment variables.
 The credentials for the gene search microservice can be set via the `GENEADDR` environment variable.
 The credentials for the chromosome search microservice can be set via the `CHROMOSOMEADDR` environment variable.
-The credentials for the chromosome region microservice can be set via the `REGIONADDR` environment variable.
+And the credentials for the chromosome region microservice can be set via the `REGIONADDR` environment variable.
 
-Run the microservice as follows:
+Run the microservice as follows
 
     (venv) $ ./microservice.py
 
-For more information about the microservice, run:
+For more information about the microservice, run
 
     (venv) $ ./microservice.py --help
 
 ## Use
 
 The microservice can be queried via HTTP GET or gRPC.
-The query can contain one or more space separated genes that meet the following regular expression:
+The query is a string that can contain one or more space separated genes that meet the following regular expression
 
     [gene:]<GENE_NAME>
 
-and/or one or more space separated regions that meet the following regular expression:
+and/or one or more space separated regions that meet the following regular expression
 
     [region:]<CHROMOSOME_NAME>(':'|' ')<START_POSITION>('-'|'..')<END_POSITION>
 
-The following is an example HTTP GET URL:
+The following is an example HTTP GET URL
 
     localhost:8080/search?q=genename%20chromosomename:423487..9873246
 

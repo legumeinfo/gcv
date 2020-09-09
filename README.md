@@ -34,7 +34,7 @@ We recommend running these programs via Docker.
 Use the instructions below to run all three parts via Docker compose.
 If you wish to run a subset of the programs, we advise either modifying the Docker compose files or running the programs via their individual Docker files located in their respective directories.
 
-If you would rather install and run the programs yourself, visit each program's directory for instructions on to do so.
+If you would rather install and run the programs yourself, visit each program's directory for instructions on how to do so.
 
 ### Docker
 
