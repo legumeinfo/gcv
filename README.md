@@ -6,13 +6,13 @@ The Genome Context Viewer (GCV) is a web-app that visualizes genomic context dat
 Specifically, it uses functional annotations as a unit of search and comparison.
 By adopting a common set of annotations, data-store operators can deploy federated instances of GCV, allowing users to compare genomes from different providers in a single interface.
 
-This repository contains GCV itself (the client) and a server that can be used to provide data to the client, though the client can consume data form any server that implements the GCV [services API](https://github.com/legumeinfo/lis_context_viewer/wiki/Services-API-v2).
+This repository contains GCV itself (the client) and a server that can be used to provide data to the client, though the client can consume data form any server that implements the GCV [services API](https://github.com/legumeinfo/gcv/wiki/Services-API-v2).
 GCV is developed as part of the [Legume Information System](https://legumeinfo.org/) and [Legume Federation](https://www.legumefederation.org/) projects.
-As such, it is [configured](https://github.com/legumeinfo/lis_context_viewer/wiki/Client-Configuration) by default to consume genomes from these providers.
+As such, it is [configured](https://github.com/legumeinfo/gcv/wiki/Client-Configuration) by default to consume genomes from these providers.
 
-**User docs, developer docs, and non-legume examples are available in the [wiki](https://github.com/legumeinfo/lis_context_viewer/wiki).**
+**User docs, developer docs, and non-legume examples are available in the [wiki](https://github.com/legumeinfo/gcv/wiki).**
 
-**See the Legume Information System's instance of the GCV for a live example:** [https://legumeinfo.org/lis_context_viewer](https://legumeinfo.org/lis_context_viewer)
+**See the Legume Information System's instance of the GCV for a live example:** [https://legumeinfo.org/gcv2](https://legumeinfo.org/gcv2)
 
 
 ## GCV Features
@@ -32,8 +32,8 @@ See the [wiki](https://github.com/legumeinfo/lis_context_viewer/wiki/User-Help) 
 GCV is composed a three major parts: the user interface (`client/`), the original server (`server/`), and a new microservices architecture (`search/`) we are in the process of transitioning the server to.
 Note, since we are in the process of transitioning the server to the microservices architecture, currently both the server and the microservices must be run together to fully support the client.
 We recommend running these programs via Docker.
-Use the instructions below to run all three parts via Docker compose.
-If you wish to run a subset of the programs, we advise either modifying the Docker compose files or running the programs via their individual Docker files located in their respective directories.
+Use the instructions below to run all three parts via Docker Compose.
+If you wish to run a subset of the programs, we advise either modifying the Docker Compose files or running the programs via their individual Docker files located in their respective directories.
 
 If you would rather install and run the programs yourself, visit each program's directory for instructions on how to do so.
 
@@ -42,19 +42,22 @@ If you would rather install and run the programs yourself, visit each program's 
 The easiest way to run GCV (and its server) is via [Docker](https://www.docker.com/), as documented below.
 See the `client/`, `server/`, and `search/` directories for instructions on installing and running GCV without containers.
 
-Two Docker Compose files allow GCV to be built and run in developer mode (`docker-compose.yml`) or production mode (`docker-compose.prod.yml`).
+Two Docker Compose files allow GCV to be built and run in local developer mode (`docker-compose.yml`) on the same host as the [Docker daemon](https://docs.docker.com/get-started/overview/#the-docker-daemon), or production mode (`docker-compose.prod.yml`) on a possibly-remote host (configured via a [Docker context](https://docs.docker.com/engine/context/working-with-contexts/)).
 
-Both modes assume a suitable PostgreSQL dump (optionally compressed) containing a Chado schema has been places in the directory `./db/docker-entrypoint-initdb.d/`.
+Both modes assume a suitable PostgreSQL dump (file named with the extension `.sql`, or optionally compressed and ending with the extension `.sql.gz`, `.sql.bz2`, or `.sql.xz`) containing a Chado schema has been placed in the directory `./db/docker-entrypoint-initdb.d/`.
 
 #### Developer mode
 
     docker-compose up --build --detach
 
-`client/src` is bind mounted in the client container and served from http://localhost:4200 via `ng serve`.
+`client/src` is bind mounted in the client container and served from http://localhost:4200 via `ng serve`, accessible via web browser.
 
 `server/` is bind mounted in the server container, and the service API is accessible from http://localhost:8000/services.
 
 Changes to files in `client/src` and `server/` will be reflected immediately.
+
+Microservices defined in `search/microservices` can be accessed directly on TCP ports defined in `docker-compose.yml`.
+Currently, changes to microservices require their respective images to be rebuilt (e.g., `docker-compose up -d --build <service>`) before they are reflected in the service.
 
 #### Production mode
 
@@ -62,7 +65,7 @@ First set the environment variables `SECRET_KEY` and `POSTGRES_PASSWORD` (and op
 
     docker-compose -f docker-compose.prod.yml up --build --detach
 
-From the host running the Docker Engine, the client UI is available at http://localhost (or http://localhost${GCV_SUB_URI}), while the services API can be accessed at http://localhost/services (or http://localhost${GCV_SUB_URI}services)
+From the host running the Docker Engine, the client UI is available at http://localhost (or http://localhost${GCV_SUB_URI}), the services API can be accessed at http://localhost/services (or http://localhost${GCV_SUB_URI}services), and microservices are accessible at http://localhost/search (or http://localhost${GCV_SUB_URI}search).
 
 ## Citation
 If you used an instance of GCV in your work or deployed it as part of you site, please consider citing the manuscript to help support maintenance and further development:
