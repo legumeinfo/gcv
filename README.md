@@ -1,6 +1,7 @@
+# GCV: Genome Context Viewer
+
 ![Genome Context Viewer screenshot](/doc/img/screenshot.png)
 
-# Genome Context Viewer
 The Genome Context Viewer (GCV) is a web-app that visualizes genomic context data provided by third party services.
 Specifically, it uses functional annotations as a unit of search and comparison.
 By adopting a common set of annotations, data-store operators can deploy federated instances of GCV, allowing users to compare genomes from different providers in a single interface.
