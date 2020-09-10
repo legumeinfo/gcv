@@ -24,7 +24,6 @@ services:
       PGPASSWORD: "${POSTGRES_PASSWORD}"
       PGPORT: 5432
       PGUSER: postgres
-      SECRET_KEY:
     depends_on:
       db:
         condition: service_healthy
