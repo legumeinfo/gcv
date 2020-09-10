@@ -2,9 +2,12 @@ version: '2.4'
 
 services:
   client:
-    build: client
+    build:
+      context: client
+      args:
+        GCV_SUB_URI: '${GCV_SUB_URI:-/}'
     ports:
-      - "80:80"
+      - "${GCV_PORT:-80}:80"
     depends_on:
       - server
     restart: always
@@ -14,6 +17,7 @@ services:
     environment:
       ALLOWED_HOSTS: '*'
       DEBUG: '0'
+      GCV_SUB_URI: '/'
       PGDATABASE: postgres
       PGHOST: db
       PGNAME: postgres
