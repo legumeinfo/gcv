@@ -75,11 +75,11 @@
       },
       "search": {
         "type": "GET",
-        "url": "http://localhost:8080/search"
+        "url": "http://localhost:8080/rest_services/search"
       },
       "region": {
         "type": "GET",
-        "url": "http://localhost:8083/chromosome-region"
+        "url": "http://localhost:8083/rest_services/chromosome-region"
       }
     }
   ]
