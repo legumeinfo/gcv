@@ -64,7 +64,7 @@ export class AppConfig {
   }
 
   // add JavaScript to document head
-  private _loadScript(src: string): Promise<any> {
+  private _loadScript(src: string): Promise<void> {
     return new Promise((resolve, reject) => {
       // load script
       const script = document.createElement('script');
