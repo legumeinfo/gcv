@@ -6,9 +6,8 @@ The Genome Context Viewer (GCV) is a web-app that visualizes genomic context dat
 Specifically, it uses functional annotations as a unit of search and comparison.
 By adopting a common set of annotations, data-store operators can deploy federated instances of GCV, allowing users to compare genomes from different providers in a single interface.
 
-This repository contains GCV itself (the client) and a server that can be used to provide data to the client, though the client can consume data form any server that implements the GCV [services API](https://github.com/legumeinfo/gcv/wiki/Services-API-v2).
-GCV is developed as part of the [Legume Information System](https://legumeinfo.org/) and [Legume Federation](https://www.legumefederation.org/) projects.
-As such, it is [configured](https://github.com/legumeinfo/gcv/wiki/Client-Configuration) by default to consume genomes from these providers.
+This repository contains GCV itself -- the user interface implemented as a web-app.
+The backend is implemented as microservices, which are available via the Legume Information System's [microservices repository](https://github.com/legumeinfo/microservices).
 
 **User docs, developer docs, and non-legume examples are available in the [wiki](https://github.com/legumeinfo/gcv/wiki).**
 
@@ -24,48 +23,57 @@ Like micro-synteny tracks, macro-synteny blocks are computed on demand with an [
 These blocks can be drawn in a reference style viewer or an all-pairs Circos style viewer.
 
 In general, GCV is intended for comparative and pangenomic analyses.
-See the [wiki](https://github.com/legumeinfo/lis_context_viewer/wiki/User-Help) for a thorough description of the GCV features, algorithms, and parameters.
+See the [wiki](https://github.com/legumeinfo/lis_context_viewer/wiki/User-Help) for a thorough description of GCV features, algorithms, and parameters.
 
 
 ## Running GCV
 
-GCV is composed a three major parts: the user interface (`client/`), the original server (`server/`), and a new microservices architecture (`search/`) we are in the process of transitioning the server to.
-Note, since we are in the process of transitioning the server to the microservices architecture, currently both the server and the microservices must be run together to fully support the client.
-We recommend running these programs via Docker.
-Use the instructions below to run all three parts via Docker Compose.
-If you wish to run a subset of the programs, we advise either modifying the Docker Compose files or running the programs via their individual Docker files located in their respective directories.
+Due to the complexity of the microservices implementation, we recommend running the backend via the Docker Compose files: `docker-compose[.prod].yml`.
+Not only will this ensure that the microservices and their environment are properly configured, it will also ensure that the correct versions of the microservices are running.
+Users that wish to run the microservices manually should refer to the services' respective directories in the Legume Information System's [microservices repository](https://github.com/legumeinfo/microservices).
 
-If you would rather install and run the programs yourself, visit each program's directory for instructions on how to do so.
+The following instructions describe how to run GCV itself via Docker or locally for development.
+GCV is developed as part of the [Legume Information System](https://legumeinfo.org/) and [Legume Federation](https://www.legumefederation.org/) projects.
+As such, it is [configured](https://github.com/legumeinfo/gcv/wiki/Client-Configuration) by default to consume genomes from these providers.
+See the Configuration section for instructions on how to tune GCV for your site.
 
 ### Docker
 
-The easiest way to run GCV (and its server) is via [Docker](https://www.docker.com/), as documented below.
-See the `client/`, `server/`, and `search/` directories for instructions on installing and running GCV without containers.
+### Locally
 
-Two Docker Compose files allow GCV to be built and run in local developer mode (`docker-compose.yml`) on the same host as the [Docker daemon](https://docs.docker.com/get-started/overview/#the-docker-daemon), or production mode (`docker-compose.prod.yml`) on a possibly-remote host (configured via a [Docker context](https://docs.docker.com/engine/context/working-with-contexts/)).
+#### Setup
 
-Both modes assume a suitable PostgreSQL dump (file named with the extension `.sql`, or optionally compressed and ending with the extension `.sql.gz`, `.sql.bz2`, or `.sql.xz`) containing a Chado schema has been placed in the directory `./db/docker-entrypoint-initdb.d/`.
+The client's dependencies can be installed via [npm](https://www.npmjs.com/):
 
-#### Developer mode
+    $ npm install
+    $ npm install --save-dev
 
-    docker-compose up --build --detach
+#### Development server
 
-`client/src` is bind mounted in the client container and served from http://localhost:4200 via `ng serve`, accessible via web browser.
+For local development and testing, the client can be run via a dev server as follows
 
-`server/` is bind mounted in the server container, and the service API is accessible from http://localhost:8000/services.
+    $ ng serve
 
-Changes to files in `client/src` and `server/` will be reflected immediately.
+The client can then be reached at [http://localhost:4200/](http://localhost:4200/).
+When running the dev server, the app will automatically reload if you change any of the source files.
 
-Microservices defined in `search/microservices` can be accessed directly on TCP ports defined in `docker-compose.yml`.
-Currently, changes to microservices require their respective images to be rebuilt (e.g., `docker-compose up -d --build <service>`) before they are reflected in the service.
+#### Build
 
-#### Production mode
+To host the client as part of a website, it must first be built
 
-First set the environment variable `POSTGRES_PASSWORD` (and optionally `GCV_PORT` to have the client service listen on a port other than 80, and `GCV_SUB_URI` to serve the client from a URL path other than the default "/"; e.g., "/gcv/") either in a [.env file](https://docs.docker.com/compose/environment-variables/#the-env-file), or in the environment in which the `docker-compose` command is run.
+    $ ng build
 
-    docker-compose -f docker-compose.prod.yml up --build --detach
+The build artifacts will be stored in the `dist/` directory.
+Use the `--prod` flag for a production build.
 
-From the host running the Docker Engine, the client UI is available at http://localhost (or http://localhost${GCV_SUB_URI}), the services API can be accessed at http://localhost/services (or http://localhost${GCV_SUB_URI}services), and microservices are accessible at http://localhost/search (or http://localhost${GCV_SUB_URI}search).
+You can verify the build by running it locally via the [angular-http-server](https://www.npmjs.com/package/angular-http-server).
+See the Angular docs for a discussion on production deployment options: [https://angular.io/guide/deployment](https://angular.io/guide/deployment).
+
+#### Configuration
+
+The client can be extensively configured via the `src/config/config.json` file (`dist/config/config.json` for production).
+This file is loaded dynamically when the client starts, meaning the client does not have to be recompiled when changes are made to the file; the app simply has to be reloaded in your web browser.
+See the [Wiki](https://github.com/legumeinfo/lis_context_viewer/wiki/Client-Configuration) for details about the contents of the client configuration file.
 
 ## Citation
 If you used an instance of GCV in your work or deployed it as part of you site, please consider citing the manuscript to help support maintenance and further development:
