@@ -1,8 +1,9 @@
 // Angular
 import { Component, Input } from '@angular/core';
+import { Observable } from 'rxjs';
 import { scan } from 'rxjs/operators';
 // app
-import { Process, ProcessStatus } from '@gcv/gene/models';
+import { Process, ProcessStatus, ProcessStatusStream } from '@gcv/gene/models';
 import { statusToClass, statusToIcon } from '@gcv/gene/components/pipeline.shim';
 
 
@@ -30,11 +31,12 @@ export class ProcessTooltipComponent {
   // IO
 
   @Input() process: Process;
+
   // aggregate subprocesses into array for iteration in template
-  get subprocesses() {
+  get subprocesses(): Observable<ProcessStatusStream[]> {
     return this.process.subprocesses.pipe(
-      scan((accumulator, processStatus) => {
-        accumulator.push(processStatus);
+      scan((accumulator, stream): ProcessStatusStream[] => {
+        accumulator.push(stream);
         return accumulator;
       }, [])
     );

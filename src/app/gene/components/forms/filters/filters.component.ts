@@ -55,6 +55,10 @@ export class FiltersComponent {
 
   // public
 
+  getEventValue(event: Event): string {
+    return (event.target as HTMLSelectElement).value;
+  }
+
   updateMacroRegexp(bregexp: string): void {
     try {
       new RegExp(bregexp);

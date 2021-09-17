@@ -1,4 +1,4 @@
-const d3 = require("d3");
+import * as d3 from 'd3';
 
 // a helper function that moves things to the back of an svg element
 d3.selection.prototype.moveToBack = function() {

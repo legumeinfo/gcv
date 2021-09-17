@@ -266,10 +266,9 @@ export class Macro extends Visualizer {
     // how the axis is resized
     xAxis.resize = function() {
       // update the axis
-      const axis = d3.axisTop()
-        .scale(this.scale)
+      const axis = d3.axisTop(this.scale)
         .tickValues(this.scale.domain())
-        .tickFormat((x, i) => x);
+        .tickFormat((x, i) => x.toString());
       xAxis.call(axis)
         .selectAll("text")
         .style("text-anchor", (t, i) => {
@@ -465,8 +464,7 @@ export class Macro extends Visualizer {
    */
   private drawYAxis(ticks, t, b) {
     // construct the y-axes
-    const axis = d3.axisLeft()
-      .scale(d3.scaleLinear().domain([t, b]).range([t, b]))
+    const axis = d3.axisLeft(d3.scaleLinear().domain([t, b]).range([t, b]))
       .tickValues(ticks)
       .tickFormat((y, i) => {
         return this.data.tracks[i].chromosome;

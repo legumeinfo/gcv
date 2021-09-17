@@ -4,7 +4,6 @@ import { InjectionToken } from '@angular/core';
 import * as fromRouterStore from '@ngrx/router-store';
 import { Action, ActionReducerMap, MetaReducer, createFeatureSelector }
   from '@ngrx/store';
-import { storeFreeze } from 'ngrx-store-freeze';
 // store
 import * as fromRouter from './router.reducer';
 // app
@@ -26,4 +25,4 @@ export const getRouter = createFeatureSelector<fromRouter.State>('routerReducer'
 
 // add environment-specific meta reducers here
 export const metaReducers: Array<MetaReducer<State>> =
-  environment.production ? [storeFreeze] : [];
+  environment.production ? [] : [];

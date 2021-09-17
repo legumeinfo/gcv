@@ -1,7 +1,7 @@
 import { d3 } from "./d3";
 import * as Circos from "circos";
 import { eventBus } from "../common"
-import ResizeObserver from "resize-observer-polyfill";
+
 
 export class MultiMacro {
 

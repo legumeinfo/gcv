@@ -38,6 +38,8 @@ import { RouterEffects } from '@gcv/store/effects';
         strictActionImmutability: true,
         strictStateSerializability: false,  // classes are not serializable...
         strictActionSerializability: false,  // breaks router store serializer
+        strictActionWithinNgZone: true,
+        strictActionTypeUniqueness: true,
       },
       initialState: {
         routerReducer: fromRouter.initialState,

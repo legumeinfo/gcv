@@ -7,7 +7,7 @@ import { ComponentService } from '@gcv/gene/services';
 
 declare var GoldenLayout: any;
 
- 
+
 @Directive({
   selector: '[gcvGoldenLayout]',
 })

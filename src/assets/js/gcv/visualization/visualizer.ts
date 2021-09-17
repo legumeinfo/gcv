@@ -1,5 +1,5 @@
 import { d3 } from "./d3";
-import ResizeObserver from "resize-observer-polyfill";
+
 
 export abstract class Visualizer {
   // private

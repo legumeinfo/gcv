@@ -19,7 +19,7 @@
     <div class="form-group">
       <label for="macro-order">Track order</label>
       <select class="form-control" id="macro-order" name="macro-order"
-          (change)="updateMacroOrder($event.target.value)"
+          (change)="updateMacroOrder(getEventValue($event))"
           [ngModel]="(selectedMacroOrderAlgorithm|async).id">
         <option *ngFor="let alg of macroOrderAlgorithms" [value]="alg.id">{{alg.name}}</option>
       </select>
@@ -46,7 +46,7 @@
     <div class="form-group">
       <label for="micro-order">Track order</label>
       <select class="form-control" id="micro-order" name="micro-order"
-          (change)="updateMicroOrder($event.target.value)"
+          (change)="updateMicroOrder(getEventValue($event))"
           [ngModel]="(selectedMicroOrderAlgorithm|async).id">
         <option *ngFor="let alg of microOrderAlgorithms" [value]="alg.id">{{alg.name}}</option>
       </select>

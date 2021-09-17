@@ -51,7 +51,7 @@
       },
       "microSearch": {
         "type": "POST",
-        "url": "http://localhost:8000/services/v2/micro-synteny-search/"
+        "url": "http://localhost/gcv/micro-synteny-search"
       },
       "geneLinks": {
         "type": "GET",
@@ -62,24 +62,24 @@
         "url": "http://legumeinfo.org/chado_gene_phylotree_v2?family="
       },
       "chromosome": {
-        "type": "POST",
-        "url": "http://localhost:8000/services/v2/chromosome/"
+        "type": "GET",
+        "url": "http://localhost/gcv/chromosome"
       },
       "genes": {
         "type": "POST",
-        "url": "http://localhost:8000/services/v2/genes/"
+        "url": "http://localhost/gcv/genes"
       },
       "blocks": {
         "type": "POST",
-        "url": "http://localhost:8000/services/v2/pairwise-blocks/"
+        "url": "http://localhost/gcv/macro-synteny-blocks"
       },
       "search": {
         "type": "GET",
-        "url": "http://localhost:8080/rest_services/search"
+        "url": "http://localhost/gcv/search"
       },
       "region": {
         "type": "GET",
-        "url": "http://localhost:8083/rest_services/chromosome-region"
+        "url": "http://localhost/gcv/chromosome-region"
       }
     }
   ]

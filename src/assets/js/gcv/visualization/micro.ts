@@ -411,7 +411,7 @@ export class Micro extends Visualizer {
       // add optional HTML attributes to gene elements
       //.addHTMLAttributes();
       .each(function(y, i) {
-        const selection = d3.select(this);
+        const selection: any = d3.select(this);
         selection.addHTMLAttributes(obj.data[i]);
       });
     return yAxis;
@@ -426,7 +426,7 @@ export class Micro extends Visualizer {
     const axis = d3.axisRight(this.y)
       //.orient("right")
       .tickValues(this.ticks)
-      .tickFormat("plot");
+      .tickFormat((y, i) => "plot");
     // draw the axes of the graph
     const plotYAxis = this.viewer.append("g")
       .attr("class", "axis plot-axis")

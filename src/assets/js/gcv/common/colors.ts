@@ -1,4 +1,4 @@
-const d3 = require("d3");
+import * as d3 from 'd3';
 
 // 100 maximally distinct colors
 const colors = d3.scaleOrdinal().range([

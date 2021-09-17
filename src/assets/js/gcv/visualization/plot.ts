@@ -1,6 +1,6 @@
 import { d3 } from "./d3";
 import { eventBus } from "../common"
-import ResizeObserver from "resize-observer-polyfill";
+
 
 /** The dot plot viewer. */
 export class Plot {
@@ -50,8 +50,8 @@ export class Plot {
   private parseData(plot) {
     this.data = plot;
     this.extent = {
-      x: d3.extent(this.data.genes, (d) => d.x),
-      y: d3.extent(this.data.genes, (d) => d.y),
+      x: d3.extent(this.data.genes, (d: any) => d.x),
+      y: d3.extent(this.data.genes, (d: any) => d.y),
     };
     this.scale = {
       x: d3.scaleLinear().domain(this.extent.x),
@@ -93,7 +93,8 @@ export class Plot {
       const s = d3.event.selection;
       if (!s) {
         if (!idleTimeout) {
-          return idleTimeout = setTimeout(idled, idleDelay);
+          idleTimeout = setTimeout(idled, idleDelay);
+          return;
         }
         this.scale.x.domain(this.extent.x);
         this.scale.y.domain(this.extent.y);

@@ -1,8 +1,6 @@
 // Angular
 import { Directive, ElementRef, EventEmitter, OnDestroy, OnInit, Output }
   from '@angular/core';
-// dependencies
-import ResizeObserver from "resize-observer-polyfill";
 
 
 @Directive({
