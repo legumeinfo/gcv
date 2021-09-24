@@ -11,7 +11,8 @@
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
-    "lint": "ng lint"
+    "lint": "ng lint",
+    "preinstall": "./scripts/build-dependencies.js"
   },
   "private": true,
   "dependencies": {
@@ -36,6 +37,7 @@
     "d3": "^5.16.0",
     "golden-layout": "^1.5.9",
     "jquery": "^3.6.0",
+    "legumeinfo-microservices": "file:dep/legumeinfo-microservices",
     "mnemonist": "^0.38.3",
     "rxjs": "~6.6.0",
     "tippy.js": "^6.3.1",
