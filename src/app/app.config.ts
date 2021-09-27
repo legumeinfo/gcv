@@ -4,10 +4,20 @@ import { Inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { concatMap, mergeMap, tap } from 'rxjs/operators';
 // app
-import { Brand, Communication, Config, Dashboard, Miscellaneous, Server } from
-  '@gcv/core/models';  // ditto
+import { Brand, Communication, Config, Dashboard, Miscellaneous, Request,
+  Server } from '@gcv/core/models';
+
 
 declare var document: any;
+
+
+export class ConfigError extends Error {
+  constructor(message) {
+    super(message);
+    this.name = 'ConfigError';
+  }
+}
+
 
 @Injectable()
 export class AppConfig {
@@ -37,6 +47,20 @@ export class AppConfig {
       }
     });
     return server;
+  }
+
+  public static getServerRequest(serverID: string, requestType: string): Request {
+    let server: Server;
+    const i = AppConfig.SERVERS.map((s) => s.id).indexOf(serverID);
+    if (i > -1) {
+      server = AppConfig.SERVERS[i];
+    } else {
+      throw new ConfigError('\'' + serverID + '\' is not a valid server ID');
+    }
+    if (!server.hasOwnProperty(requestType)) {
+      throw new ConfigError('\'' + serverID + '\' does not support requests of type \'' + requestType + '\'');
+    }
+    return server[requestType];
   }
 
   public load(): Promise<any> {

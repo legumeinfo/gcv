@@ -1,7 +1,7 @@
 // Angular
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, throwError } from 'rxjs';
+import { Observable, from, throwError } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 // store
 import { Store, select } from '@ngrx/store';
@@ -11,9 +11,15 @@ import * as routerActions from '@gcv/store/actions/router.actions';
 import * as fromRoot from '@gcv/store/reducers';
 import * as fromPairwiseBlocks from '@gcv/gene/store/selectors/pairwise-blocks/';
 // app
+import { AppConfig, ConfigError } from '@gcv/app.config';
+import { GET, POST, GRPC } from '@gcv/core/models';
+import { HttpService } from '@gcv/core/services/http.service';
 import { PairwiseBlocks, PairwiseBlock, Track } from '@gcv/gene/models';
 import { BlockParams } from '@gcv/gene/models/params';
-import { HttpService } from '@gcv/core/services/http.service';
+import { grpcBlocksToModel } from './shims';
+// api
+import { MacroSyntenyBlocksComputeReply, MacroSyntenyBlocksComputeRequest,
+  MacroSyntenyBlocksPromiseClient } from 'legumeinfo-microservices/dist/macrosyntenyblocks_service/v1';
 
 
 type RawPairwiseBlocks = {
@@ -37,30 +43,52 @@ export class PairwiseBlocksService extends HttpService {
     serverID: string,
     targets: string[] = []):
   Observable<PairwiseBlocks[]> {
-    const body = {
-      chromosome: chromosome.families,
-      intermediate: blockParams.bintermediate,
-      mask: blockParams.bmask,
-      matched: blockParams.bmatched,
-      targets,
-    };
-    return this._makeRequest<{blocks: RawPairwiseBlocks[]}>(serverID, 'blocks', body).pipe(
-      map((result) => {
-        const blocks = result.blocks.map((block) => {
-          return {
-            reference: chromosome.name,
-            referenceSource: chromosome.source,
-            chromosome: block.chromosome,
-            chromosomeSource: serverID,
-            chromosomeGenus: block.genus,
-            chromosomeSpecies: block.species,
-            blocks: block.blocks,
-          };
-        });
-        return blocks;
-      }),
-      catchError((error) => throwError(error)),
-    );
+    const request = AppConfig.getServerRequest(serverID, 'blocks');
+    if (request.type === GET || request.type === POST) {
+      const body = {
+        chromosome: chromosome.families,
+        intermediate: blockParams.bintermediate,
+        mask: blockParams.bmask,
+        matched: blockParams.bmatched,
+        targets
+      };
+      return this._makeHttpRequest<{blocks: RawPairwiseBlocks[]}>(request, body).pipe(
+        map((result) => {
+          const blocks = result.blocks.map((block) => {
+            return {
+              reference: chromosome.name,
+              referenceSource: chromosome.source,
+              chromosome: block.chromosome,
+              chromosomeSource: serverID,
+              chromosomeGenus: block.genus,
+              chromosomeSpecies: block.species,
+              blocks: block.blocks,
+            };
+          });
+          return blocks;
+        }),
+        catchError((error) => throwError(error)),
+      );
+    } else if (request.type === GRPC) {
+      const client = new MacroSyntenyBlocksPromiseClient(request.url);
+      const grpcRequest = new MacroSyntenyBlocksComputeRequest();
+      grpcRequest.setChromosomeList(chromosome.families);
+      grpcRequest.setMatched(blockParams.bmatched);
+      grpcRequest.setIntermediate(blockParams.bintermediate);
+      grpcRequest.setMask(blockParams.bmask);
+      const clientRequest = client.compute(grpcRequest, {});
+      return from(clientRequest).pipe(
+        map((result: MacroSyntenyBlocksComputeReply) => {
+          const blocks = result.getBlocksList().map((b) => {
+              return grpcBlocksToModel(b, chromosome, serverID);
+            });
+          return blocks;
+        }),
+        catchError((error) => throwError(error)),
+      );
+    }
+    const error = new ConfigError('Unsupported request type \'' + request.type + '\'');
+    return throwError(error);
   }
 
   getPairwiseBlocksForTracks(

@@ -3,49 +3,27 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { BehaviorSubject, Observable, throwError } from 'rxjs';
 import { filter, share } from 'rxjs/operators';
 // app
-import { AppConfig } from '@gcv/app.config';
-import { GET, POST, Server } from '@gcv/core/models';
+import { ConfigError } from '@gcv/app.config';
+import { GET, POST, Request } from '@gcv/core/models';
 
 export abstract class HttpService {
-  requests: Observable<[any, Observable<any>]>;
-  private requestsSubject = new BehaviorSubject<[any, Observable<any>]>(undefined);
 
-  constructor(private http: HttpClient) {
-    this.requests = this.requestsSubject.asObservable().pipe(
-      filter((request) => request !== undefined)
-    );
-  }
+  constructor(private http: HttpClient) {}
 
   // encapsulates HTTP request boilerplate
-  protected _makeRequest<T>(
-    serverID: string,
-    requestType: string,
+  protected _makeHttpRequest<T>(
+    request: Request,
     body: any = {},
     makeUrl = ((url: string) => url),
   ): Observable<T> {
-    const args = {serverID, requestType, body};
-    let source: Server;
-    const i = AppConfig.SERVERS.map((s) => s.id).indexOf(serverID);
-    if (i > -1) {
-      source = AppConfig.SERVERS[i];
-    } else {
-      return throwError('\'' + serverID + '\' is not a valid server ID');
-    }
-    if (!source.hasOwnProperty(requestType)) {
-      return throwError('\'' + serverID + '\' does not support requests of type \'' + requestType + '\'');
-    }
-    const request = source[requestType];
     const url = makeUrl(request.url);
     if (request.type === GET) {
       const params = new HttpParams({fromObject: body});
-      const requestObservable = this.http.get<T>(url, {params}).pipe(share());
-      this.requestsSubject.next([args, requestObservable]);
-      return requestObservable;
+      return this.http.get<T>(url, {params}).pipe(share());
     } else if (request.type === POST) {
-      const requestObservable = this.http.post<T>(url, body).pipe(share());
-      this.requestsSubject.next([args, requestObservable]);
-      return requestObservable;
+      return this.http.post<T>(url, body).pipe(share());
     }
-    return throwError('\'' + serverID + '\' requests of type \'' + requestType + '\' does not support HTTP GET or POST methods');
+    const error = new ConfigError('\'' + request.url + '\' is not configured to receive HTTP GET or POST requests');
+    return throwError(error);
   }
 }
