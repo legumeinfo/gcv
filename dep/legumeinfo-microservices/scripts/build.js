@@ -15,7 +15,7 @@ const commands = [
   // build protos in ./src for proper index generation and TypeScript compiling
   './scripts/build-proto.js ./src',
   // create ./src/**/index.ts files (uses legumeinfo-microservices/.ctirc)
-  'npx cti create ./src',
+  './scripts/create-indexes.js',
   // compile from ./src into ./dist
   'tsc',
   // build protos again in ./dist to override TypeScript's crap .d.ts files
