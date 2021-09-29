@@ -1,8 +1,7 @@
 // Angular
 import { Component, Input, OnInit } from '@angular/core';
 // App
-import { AppConfig } from '@gcv/app.config';
-import { Server } from '@gcv/core/models';
+import { AppConfig, Server } from '@gcv/core/models';
 import { Gene, Track } from '@gcv/gene/models';
 import { ClusterMixin } from '@gcv/gene/models/mixins';
 
@@ -32,23 +31,23 @@ export class TrackDetailComponent implements OnInit {
 
   @Input() track: Track;
 
-  private _serverIDs = AppConfig.SERVERS.map(s => s.id);
+  private _serverIDs: string[];
 
   focus: string;
   familyTreeLink: string = '';
+
+  constructor(private _appConfig: AppConfig) {
+    this._serverIDs = _appConfig.getServerIDs();
+  }
 
   // Angular hooks
 
   ngOnInit() {
     const i = Math.floor(this.track.genes.length / 2);
     this.focus = this.track.genes[i];
-
-    const idx = this._serverIDs.indexOf(this.track.source);
-    if (idx != -1) {
-      const server: Server = AppConfig.SERVERS[idx];
-      if (server.hasOwnProperty('familyTreeLink')) {
-        this.familyTreeLink = server.familyTreeLink.url;
-      }
+    const server = this._appConfig.getServer(this.track.source);
+    if (server !== undefined && server.hasOwnProperty('familyTreeLink')) {
+      this.familyTreeLink = server.familyTreeLink.url;
     }
   }
 }

@@ -4,7 +4,7 @@ import { Injectable } from '@angular/core';
 import { Observable, Subject } from 'rxjs';
 import { filter } from 'rxjs/operators';
 // app
-import { AppConfig } from '@gcv/app.config';
+import { AppConfig } from '@gcv/core/models';
 
 @Injectable()
 export class InterAppCommunicationService {
@@ -14,9 +14,9 @@ export class InterAppCommunicationService {
   private _communicate: boolean;
   private _messages = new Subject<any>();
 
-  constructor() {
-    this.setChannel(AppConfig.COMMUNICATION.channel);
-    this.setCommunicate(AppConfig.COMMUNICATION.communicate);
+  constructor(private _appConfig: AppConfig) {
+    this.setChannel(_appConfig.communication.channel);
+    this.setCommunicate(_appConfig.communication.communicate);
   }
 
   // private

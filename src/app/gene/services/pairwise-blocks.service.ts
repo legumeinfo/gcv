@@ -1,8 +1,8 @@
 // Angular
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, from, throwError } from 'rxjs';
-import { catchError, map } from 'rxjs/operators';
+import { Observable, from, of, throwError } from 'rxjs';
+import { catchError, endWith, map } from 'rxjs/operators';
 // store
 import { Store, select } from '@ngrx/store';
 import * as pairwiseBlocksActions
@@ -11,9 +11,9 @@ import * as routerActions from '@gcv/store/actions/router.actions';
 import * as fromRoot from '@gcv/store/reducers';
 import * as fromPairwiseBlocks from '@gcv/gene/store/selectors/pairwise-blocks/';
 // app
-import { AppConfig, ConfigError } from '@gcv/app.config';
-import { GET, POST, GRPC } from '@gcv/core/models';
-import { HttpService } from '@gcv/core/services/http.service';
+import { AppConfig, ConfigError, GET, POST, GRPC } from '@gcv/core/models';
+import { HttpService, ScriptService } from '@gcv/core/services';
+import { executeFunctionByName } from '@gcv/core/utils';
 import { PairwiseBlocks, PairwiseBlock, Track } from '@gcv/gene/models';
 import { BlockParams } from '@gcv/gene/models/params';
 import { grpcBlocksToModel } from './shims';
@@ -33,7 +33,10 @@ type RawPairwiseBlocks = {
 @Injectable()
 export class PairwiseBlocksService extends HttpService {
 
-  constructor(private _http: HttpClient, private _store: Store<fromRoot.State>) {
+  constructor(private _appConfig: AppConfig,
+              private _http: HttpClient,
+              private _scriptService: ScriptService,
+              private _store: Store<fromRoot.State>) {
     super(_http);
   }
 
@@ -43,7 +46,7 @@ export class PairwiseBlocksService extends HttpService {
     serverID: string,
     targets: string[] = []):
   Observable<PairwiseBlocks[]> {
-    const request = AppConfig.getServerRequest(serverID, 'blocks');
+    const request = this._appConfig.getServerRequest(serverID, 'blocks');
     if (request.type === GET || request.type === POST) {
       const body = {
         chromosome: chromosome.families,
@@ -125,5 +128,20 @@ export class PairwiseBlocksService extends HttpService {
     const path = [];
     const query = Object.assign({}, params);
     this._store.dispatch(new routerActions.Go({path, query}));
+  }
+
+  getMacroColors(chromosomes: Track[]): Observable<Function|undefined> {
+    if (chromosomes.length == 0) {
+      return of(undefined);
+    }
+    const s: any = this._appConfig.getServer(chromosomes[0].source);
+    if (s !== undefined && s.macroColors !== undefined) {
+      let func: Function = (args) => {
+          return executeFunctionByName(s.macroColors.functionName, window, args);
+        };
+      return this._scriptService.loadScript(s.macroColors.scriptUrl)
+        .pipe(endWith(func));
+    }
+    return of(undefined);
   }
 }

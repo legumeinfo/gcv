@@ -1,5 +1,5 @@
 // Angular
-import { HttpClientModule } from '@angular/common/http';
+import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { APP_INITIALIZER, NgModule, NO_ERRORS_SCHEMA } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
@@ -9,7 +9,8 @@ import { RouterStateSerializer, StoreRouterConnectingModule }
   from '@ngrx/router-store';
 import { StoreModule } from '@ngrx/store';
 // config
-import { AppConfig } from '@gcv/app.config';
+import { AppConfig } from '@gcv/core/models';
+import { AppConfigService } from '@gcv/core/services';
 // modules
 import { CoreModule } from '@gcv/core/core.module';
 // routing
@@ -50,12 +51,18 @@ import { RouterEffects } from '@gcv/store/effects';
     CoreModule,
   ],
   providers: [
-    AppConfig,
     {
-      deps: [AppConfig],
-      multi: true,
+      provide: AppConfig,
+      deps: [HttpClient],
+      useExisting: AppConfigService,
+    },
+    {
       provide: APP_INITIALIZER,
-      useFactory: (config: AppConfig) => () => config.load(),
+      multi: true,
+      deps: [AppConfigService],
+      useFactory: (appConfigService: AppConfigService) => {
+        return () => appConfigService.load();
+      },
     },
     {
       provide: RouterStateSerializer,

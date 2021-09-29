@@ -1,7 +1,7 @@
 // Angular
 import { AbstractControl, Validators } from '@angular/forms';
 // App
-import { AppConfig } from '@gcv/app.config';
+import { AppConfig } from '@gcv/core/models';
 
 
 export type SourceParams = {
@@ -18,7 +18,7 @@ export const sourcesValidator = (sources: AbstractControl): {[key: string]: any}
   if (!sources || !sources.value || !sources.value.length) {
     return {invalidSources: {}};
   }
-  const sourceIDs = AppConfig.SERVERS.map((s) => s.id);
+  const sourceIDs = AppConfig.getServerIDs();
   if (sources.value.every((s) => sourceIDs.indexOf(s.id))) {
     return null;
   }

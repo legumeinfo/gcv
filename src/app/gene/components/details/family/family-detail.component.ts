@@ -3,8 +3,7 @@ import { Component, Input, OnDestroy, OnInit } from '@angular/core';
 import { Observable, Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 // App
-import { AppConfig } from '@gcv/app.config';
-import { Server } from '@gcv/core/models';
+import { AppConfig, Server } from '@gcv/core/models';
 import { Track } from '@gcv/gene/models';
 import { MicroTracksService } from '@gcv/gene/services';
 
@@ -33,14 +32,19 @@ export class FamilyDetailComponent implements OnDestroy, OnInit {
 
   @Input() family: {id: string, name: string};
 
-  private _serverIDs = AppConfig.SERVERS.map(s => s.id);
+  private _serverIDs: string[];
   private _destroy: Subject<boolean> = new Subject();
 
   genes: string[] = [];
   geneMatrix = {};
   familyTreeLinks: any[] = [];
 
-  constructor(private _microTracksService: MicroTracksService) { }
+  constructor(
+    private _appConfig: AppConfig,
+    private _microTracksService: MicroTracksService,
+  ) {
+    this._serverIDs = _appConfig.getServerIDs();
+  }
 
   // Angular hooks
 
@@ -82,16 +86,13 @@ export class FamilyDetailComponent implements OnDestroy, OnInit {
     if (id.split(',').length === 1 && id !== '') {
       const geneString = this.genes.join(',');
       Object.keys(this.geneMatrix).forEach((s) => {
-        const idx = this._serverIDs.indexOf(s);
-        if (idx !== -1) {
-          const server: Server = AppConfig.SERVERS[idx];
-          if (server.hasOwnProperty('familyTreeLink')) {
-            const familyTreeLink = {
-              url: server.familyTreeLink.url + id + '&gene_name=' + geneString,
-              text: server.name,
-            };
-            this.familyTreeLinks.push(familyTreeLink);
-          }
+        const server = this._appConfig.getServer(s);
+        if (server !== undefined && server.hasOwnProperty('familyTreeLink')) {
+          const familyTreeLink = {
+            url: server.familyTreeLink.url + id + '&gene_name=' + geneString,
+            text: server.name,
+          };
+          this.familyTreeLinks.push(familyTreeLink);
         }
       });
     }

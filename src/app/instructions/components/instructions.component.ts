@@ -1,7 +1,7 @@
 // Angular
 import { Component } from '@angular/core';
-// App
-import { AppConfig } from '@gcv/app.config';
+// app
+import { AppConfig, Brand, Dashboard } from '@gcv/core/models';
 
 
 declare var scrollToSelector: any;  // src/assets/js/utils
@@ -14,9 +14,14 @@ declare var scrollToSelector: any;  // src/assets/js/utils
 })
 export class InstructionsComponent {
 
-  brand = AppConfig.BRAND;
-  dashboard = AppConfig.DASHBOARD;
+  brand: Brand;
+  dashboard: Dashboard;
   copyrightYear = (new Date()).getFullYear();
+
+  constructor(private _appConfig: AppConfig) {
+    this.brand = _appConfig.brand;
+    this.dashboard = _appConfig.dashboard;
+  }
 
   scrollTo(event, selector): void {
     event.preventDefault();

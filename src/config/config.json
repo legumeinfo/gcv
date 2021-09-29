@@ -66,8 +66,8 @@
         "url": "http://localhost/gcv/chromosome/grpc-web"
       },
       "genes": {
-        "type": "GRPC",
-        "url": "http://localhost/gcv/genes/grpc-web"
+        "type": "POST",
+        "url": "http://localhost/gcv/genes"
       },
       "blocks": {
         "type": "GRPC",

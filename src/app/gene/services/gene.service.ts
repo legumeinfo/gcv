@@ -9,8 +9,7 @@ import * as geneActions from '@gcv/gene/store/actions/gene.actions';
 import * as fromRoot from '@gcv/store/reducers';
 import * as fromGene from '@gcv/gene/store/selectors/gene/';
 // app
-import { AppConfig, ConfigError } from '@gcv/app.config';
-import { GET, POST, GRPC } from '@gcv/core/models';
+import { AppConfig, ConfigError, GET, POST, GRPC } from '@gcv/core/models';
 import { HttpService } from '@gcv/core/services/http.service';
 import { Gene, Track } from '@gcv/gene/models';
 // api
@@ -21,14 +20,16 @@ import { GenesGetReply, GenesGetRequest, GenesPromiseClient }
 @Injectable()
 export class GeneService extends HttpService {
 
-  constructor(private _http: HttpClient, private _store: Store<fromRoot.State>) {
+  constructor(private _appConfig: AppConfig,
+              private _http: HttpClient,
+              private _store: Store<fromRoot.State>) {
     super(_http);
   }
 
   // fetches genes for the given gene ids from the given source
   getGenes(genes: string[], serverID: string): Observable<Gene[]> {
     // TODO: try/catch?
-    const request = AppConfig.getServerRequest(serverID, 'genes');
+    const request = this._appConfig.getServerRequest(serverID, 'genes');
     if (request.type === GET || request.type === POST) {
       const body = {genes};
       return this._makeHttpRequest<{genes: Gene[]}>(request, body).pipe(
@@ -75,7 +76,7 @@ export class GeneService extends HttpService {
 
   // fetches source specific details for the given gene
   getGeneDetails(gene: string, source: string): Observable<any> {
-    const request = AppConfig.getServerRequest(source, 'geneLinks');
+    const request = this._appConfig.getServerRequest(source, 'geneLinks');
     const makeUrl = (url: string) => url + gene + '/json';
     return this._makeHttpRequest<any>(request, {}, makeUrl);
   }

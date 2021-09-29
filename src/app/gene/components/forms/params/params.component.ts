@@ -4,7 +4,7 @@ import { FormBuilder, FormGroup } from '@angular/forms';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 // app
-import { AppConfig } from '@gcv/app.config';
+import { AppConfig, Server } from '@gcv/core/models';
 import { formControlConfigFactory } from '@gcv/core/models/params';
 import { ALIGNMENT_ALGORITHMS } from '@gcv/gene/algorithms';
 import { LINKAGES } from '@gcv/gene/constants';
@@ -44,15 +44,17 @@ export class ParamsComponent implements OnDestroy, OnInit {
 
   // form data
   linkages = LINKAGES;
-  sources = AppConfig.SERVERS.filter((s) => s.hasOwnProperty('microSearch'));
+  sources: Server[];
   algorithms = ALIGNMENT_ALGORITHMS;
 
   // emits when the component is destroyed
   private _destroy: Subject<boolean> = new Subject();
 
   // constructor
-  constructor(private _paramsService: ParamsService,
+  constructor(private _appConfig: AppConfig,
+              private _paramsService: ParamsService,
               private _fb: FormBuilder) {
+    this.sources = _appConfig.servers.filter((s) => s.hasOwnProperty('microSearch'));
     // initialize form groups
     this.blockGroup =
       this._initializeGroup(blockParamMembers, blockParamValidators);

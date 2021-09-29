@@ -3,7 +3,7 @@ import { Location } from '@angular/common';
 import { AfterViewInit, Component, ElementRef, Input, OnDestroy, OnInit,
   ViewChild } from '@angular/core';
 import { Subject, combineLatest } from 'rxjs';
-import { map, switchMap, takeUntil } from 'rxjs/operators';
+import { map, mergeMap, switchMap, takeUntil } from 'rxjs/operators';
 // app
 import { GCV } from '@gcv-assets/js/gcv';
 import { saveFile } from '@gcv/core/utils';
@@ -13,7 +13,6 @@ import { blockIndexMap, endpointGenes, nameSourceID }
 import { ChromosomeService, GeneService, MicroTracksService,
   PairwiseBlocksService, ParamsService, ProcessService }
   from '@gcv/gene/services';
-import { getMacroColors } from '@gcv/gene/utils';
 // component
 import { macroCircosShim } from './macro-circos.shim';
 
@@ -81,6 +80,12 @@ export class MacroCircosComponent implements AfterViewInit, OnDestroy, OnInit {
       .getSelectedClusterTracks(this.clusterID);
     const queryChromosomes = this._chromosomeService
       .getSelectedChromosomesForCluster(this.clusterID);
+    const colors = queryChromosomes
+      .pipe(
+        mergeMap((chromosomes) => {
+          return this._pairwiseBlocksService.getMacroColors(chromosomes);
+        })
+      );
     const pairwiseBlocks =
       combineLatest(
         queryChromosomes,
@@ -115,10 +120,16 @@ export class MacroCircosComponent implements AfterViewInit, OnDestroy, OnInit {
           return this._geneService.getGenesForTracks(tracks);
         }),
       );
-    combineLatest(queryTracks, queryChromosomes, pairwiseBlocks, blockGenes)
+    combineLatest(
+      queryTracks,
+      queryChromosomes,
+      pairwiseBlocks,
+      blockGenes,
+      colors,
+    )
       .pipe(takeUntil(this._destroy))
-      .subscribe(([queries, chromosomes, blocks, genes]) => {
-        this._preDraw(queries, chromosomes, blocks, genes);
+      .subscribe(([queries, chromosomes, blocks, genes, colors]) => {
+        this._preDraw(queries, chromosomes, blocks, genes, colors);
         this.draw();
       });
   }
@@ -138,10 +149,12 @@ export class MacroCircosComponent implements AfterViewInit, OnDestroy, OnInit {
     }
   }
 
-  private _preDraw(queries, chromosomes, blocks, genes): void {
+  private _preDraw(queries, chromosomes, blocks, genes, colors): void {
     const {data, highlight} =
       macroCircosShim(queries, chromosomes, blocks, genes);
-    const colors = getMacroColors(chromosomes);
+    if (colors === undefined) {
+      colors = (organism) => '#000000';
+    }
     const absolutePath = this._location.prepareExternalUrl(this._location.path());
     let options = {colors, highlight, IRIprefix: absolutePath};
     options = Object.assign(options, this.options, {autoResize: false});

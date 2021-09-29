@@ -1,4 +1,4 @@
-import { AppConfig } from '@gcv/app.config';
+import { AppConfig } from '@gcv/core/models';
 import { Params } from '@gcv/gene/models/params';
 
 
@@ -22,7 +22,7 @@ export const initialState: Params = {
   matched: 4,
   intermediate: 5,
   // sources
-  sources: AppConfig.SERVERS.map((s) => s.id),
+  sources: AppConfig.getServerIDs(),
   // macro filters
   bregexp: '',
   border: 'chromosome',

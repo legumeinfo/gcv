@@ -4,7 +4,7 @@ import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 // app
 import { GCV } from '@gcv-assets/js/gcv';
-import { AppConfig } from '@gcv/app.config';
+import { AppConfig } from '@gcv/core/models';
 import { InterAppCommunicationService } from '@gcv/gene/services';
 
 
@@ -38,12 +38,14 @@ import { InterAppCommunicationService } from '@gcv/gene/services';
 })
 export class HeaderRightComponent implements OnDestroy {
 
-  communicate: boolean = AppConfig.COMMUNICATION.channel !== undefined;
+  communicate: boolean;
 
   private _destroy: Subject<boolean> = new Subject();
   private _eventBus;
 
-  constructor(private _communicationService: InterAppCommunicationService) {
+  constructor(private _appConfig: AppConfig,
+              private _communicationService: InterAppCommunicationService) {
+    this.communicate = _appConfig.communication.channel !== undefined;
     if (this.communicate) {
       this._setupCommunication();
     }

@@ -8,8 +8,7 @@ import { Store } from '@ngrx/store';
 import * as fromRoot from '@gcv/store/reducers';
 import * as fromSearch from '@gcv/search/store/selectors/search/';
 // app
-import { AppConfig, ConfigError } from '@gcv/app.config';
-import { GET, POST, GRPC } from '@gcv/core/models';
+import { AppConfig, ConfigError, GET, POST, GRPC } from '@gcv/core/models';
 import { Result } from '@gcv/search/models';
 import { HttpService } from '@gcv/core/services/http.service';
 // api
@@ -20,13 +19,14 @@ import { SearchPromiseClient, SearchReply, SearchRequest }
 @Injectable()
 export class SearchService extends HttpService {
 
-  constructor(private _http: HttpClient,
+  constructor(private _appConfig: AppConfig,
+              private _http: HttpClient,
               private _store: Store<fromRoot.State>) {
     super(_http);
   }
 
   search(query: string, serverID: string): Observable<Result> {
-    const request = AppConfig.getServerRequest(serverID, 'search');
+    const request = this._appConfig.getServerRequest(serverID, 'search');
     if (request.type === GET || request.type === POST) {
       const body = {q: query};
       return this._makeHttpRequest<Result>(request, body)

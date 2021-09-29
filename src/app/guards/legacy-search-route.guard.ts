@@ -3,20 +3,20 @@ import { Injectable } from '@angular/core';
 import { ActivatedRouteSnapshot, CanActivate, NavigationExtras, Router,
   UrlTree } from '@angular/router';
 // app
-import { AppConfig } from '@gcv/app.config';
+import { AppConfig } from '@gcv/core/models';
 
 
 @Injectable()
 export class LegacySearchRouteGuard implements CanActivate {
 
-  constructor(private _router: Router) { }
+  constructor(private _appConfig: AppConfig, private _router: Router) { }
 
   canActivate(route: ActivatedRouteSnapshot): UrlTree {
     let url = '/';
     const params = {};
     if ('gene' in route.params) {
       url += 'gene';
-      const source = route.params.source || AppConfig.getDefaultServer().id;
+      const source = route.params.source || this._appConfig.getDefaultServer().id;
       const gene = route.params.gene;
       params[source] = gene;
     }

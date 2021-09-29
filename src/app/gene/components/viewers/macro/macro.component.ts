@@ -2,7 +2,8 @@
 import { AfterViewInit, Component, ElementRef, EventEmitter, Input, OnDestroy,
   OnInit, Output, ViewChild } from '@angular/core';
 import { Subject, combineLatest } from 'rxjs';
-import { filter, map, mergeAll, switchMap, takeUntil } from 'rxjs/operators';
+import { filter, map, mergeAll, mergeMap, switchMap, takeUntil }
+  from 'rxjs/operators';
 // app
 import { GCV } from '@gcv-assets/js/gcv';
 import { saveFile } from '@gcv/core/utils';
@@ -12,7 +13,6 @@ import { blockIndexMap, endpointGenes, nameSourceID }
 import { ChromosomeService, GeneService, MicroTracksService,
   PairwiseBlocksService, ParamsService, ProcessService, RegionService }
   from '@gcv/gene/services';
-import { getMacroColors } from '@gcv/gene/utils';
 // component
 import { macroShim } from './macro.shim';
 
@@ -90,6 +90,12 @@ export class MacroComponent implements AfterViewInit, OnDestroy, OnInit {
       .pipe(
         mergeAll(),
         filter((c) => nameSourceID(c.name, c.source) == queryID));
+    const colors = queryChromosome
+      .pipe(
+        mergeMap((chromosome) => {
+          return this._pairwiseBlocksService.getMacroColors([chromosome]);
+        })
+      );
     const sourceParams = this._paramsService.getSourceParams();
     const blockParams = this._paramsService.getBlockParams();
     const pairwiseBlocks =
@@ -119,11 +125,12 @@ export class MacroComponent implements AfterViewInit, OnDestroy, OnInit {
       queryTrack,
       clusterTracks,
       pairwiseBlocks,
-      blockGenes
+      blockGenes,
+      colors,
     )
       .pipe(takeUntil(this._destroy))
-      .subscribe(([chromosome, query, tracks, blocks, genes]) => {
-        this._preDraw(chromosome, query, tracks, blocks, genes);
+      .subscribe(([chromosome, query, tracks, blocks, genes, colors]) => {
+        this._preDraw(chromosome, query, tracks, blocks, genes, colors);
         this.draw();
       });
   }
@@ -147,10 +154,12 @@ export class MacroComponent implements AfterViewInit, OnDestroy, OnInit {
     }
   }
 
-  private _preDraw(chromosome, query, tracks, blocks, genes): void {
+  private _preDraw(chromosome, query, tracks, blocks, genes, colors): void {
     const {data, viewport, highlight} =
       macroShim(chromosome, query, tracks, blocks, genes);
-    const colors = getMacroColors([chromosome]);
+    if (colors === undefined) {
+      colors = (organism) => '#000000';
+    }
     let options = {
         colors,
         viewport,

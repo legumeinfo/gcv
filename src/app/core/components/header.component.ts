@@ -2,7 +2,7 @@
 import { Component, AfterViewInit } from '@angular/core';
 import * as $ from 'jquery';
 // App
-import { AppConfig } from '@gcv/app.config';
+import { AppConfig, Brand } from '@gcv/core/models';
 
 @Component({
   selector: 'gcv-header',
@@ -11,7 +11,11 @@ import { AppConfig } from '@gcv/app.config';
 })
 export class HeaderComponent implements AfterViewInit {
 
-  brand = AppConfig.BRAND;
+  brand: Brand;
+
+  constructor(private _appConfig: AppConfig) {
+    this.brand = _appConfig.brand;
+  }
 
   ngAfterViewInit(): void {
     this.toggleBrand();

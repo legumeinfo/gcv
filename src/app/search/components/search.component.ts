@@ -3,7 +3,7 @@ import { OnInit, Component } from '@angular/core';
 import { Router } from '@angular/router';
 import { Observable } from 'rxjs';
 // App
-import { AppConfig } from '@gcv/app.config';
+import { AppConfig, Server } from '@gcv/core/models';
 import { SearchService } from '@gcv/search/services';
 
 
@@ -14,27 +14,33 @@ import { SearchService } from '@gcv/search/services';
 })
 export class SearchComponent implements OnInit {
 
-  model: any = {
-    neighbors: '',
-    sources: AppConfig.SERVERS
-               .filter((s) => s.hasOwnProperty('search'))
-               .map((s) => s.id),
-    selectedGenes: {},
-  };
-  sources = AppConfig.SERVERS.filter((s) => s.hasOwnProperty('search'));
+  model: any;
+  sources: Server[];
 
   query: Observable<string>;
   resultGenes: Observable<{source: string, name: string}[]>;
   resultRegions: Observable<{source: string, gene: string, neighbors: number}[]>;
-  private _sourceNameMap = AppConfig.SERVERS.reduce(
-    (accumulator, server) => {
-      accumulator[server.id] = server.name;
-      return accumulator;
-    },
-    {}
-  );
+  private _sourceNameMap: any;
 
-  constructor(private _router: Router, private _searchService: SearchService) { }
+  constructor(private _appConfig: AppConfig,
+              private _router: Router,
+              private _searchService: SearchService) {
+    this.model = {
+      neighbors: '',
+      sources: _appConfig.servers
+                 .filter((s) => s.hasOwnProperty('search'))
+                 .map((s) => s.id),
+      selectedGenes: {},
+    };
+    this.sources = _appConfig.servers.filter((s) => s.hasOwnProperty('search'));
+    this._sourceNameMap = _appConfig.servers.reduce(
+      (accumulator, server) => {
+        accumulator[server.id] = server.name;
+        return accumulator;
+      },
+      {}
+    );
+  }
 
   ngOnInit() {
     this.query = this._searchService.getSearchQuery();

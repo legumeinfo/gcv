@@ -3,8 +3,7 @@ import { Component, Input, OnDestroy, OnInit } from '@angular/core';
 import { Subject } from 'rxjs';
 import { take, takeUntil } from 'rxjs/operators';
 // App
-import { AppConfig } from '@gcv/app.config';
-import { Server } from '@gcv/core/models';
+import { AppConfig, Server } from '@gcv/core/models';
 import { GeneService } from '@gcv/gene/services';
 
 @Component({
@@ -30,14 +29,16 @@ export class GeneDetailComponent implements OnDestroy, OnInit {
   @Input() family: string;
   @Input() source: string
 
-  private _serverIDs = AppConfig.SERVERS.map(s => s.id);
+  private _serverIDs: string[];
   private _destroy: Subject<boolean> = new Subject();
 
   links: any[] = [];
   singleGeneMatrix = {};
   familyTreeLink: string = '';
 
-  constructor(private _geneService: GeneService) { }
+  constructor(private _appConfig: AppConfig, private _geneService: GeneService) {
+    this._serverIDs = _appConfig.getServerIDs();
+  }
 
   // Angular hooks
 
@@ -47,9 +48,8 @@ export class GeneDetailComponent implements OnDestroy, OnInit {
   }
 
   ngOnInit(): void {
-    const idx = this._serverIDs.indexOf(this.source);
-    if (idx !== -1) {
-      const server: Server = AppConfig.SERVERS[idx];
+    const server = this._appConfig.getServer(this.source);
+    if (server !== undefined) {
       if (server.hasOwnProperty('familyTreeLink')) {
         this.familyTreeLink = server.familyTreeLink.url + this.family;
       }

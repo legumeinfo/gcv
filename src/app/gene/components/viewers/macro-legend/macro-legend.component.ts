@@ -2,12 +2,11 @@
 import { AfterViewInit, Component, ElementRef, EventEmitter, Input, OnDestroy,
   Output, ViewChild } from '@angular/core';
 import { Subject, combineLatest } from 'rxjs';
-import { takeUntil } from 'rxjs/operators';
+import { mergeMap, takeUntil } from 'rxjs/operators';
 // app
 import { GCV } from '@gcv-assets/js/gcv';
 import { saveFile } from '@gcv/core/utils';
-import { MicroTracksService } from '@gcv/gene/services';
-import { getMacroColors } from '@gcv/gene/utils';
+import { MicroTracksService, PairwiseBlocksService } from '@gcv/gene/services';
 import { macroLegendShim } from './macro-legend.shim';
 
 
@@ -31,7 +30,8 @@ export class MacroLegendComponent implements AfterViewInit, OnDestroy {
   private _destroy: Subject<boolean> = new Subject();
   private _viewer;
 
-  constructor(private _microTracksService: MicroTracksService) { }
+  constructor(private _microTracksService: MicroTracksService,
+              private _pairwiseBlocksService: PairwiseBlocksService) { }
 
   // Angular hooks
 
@@ -39,10 +39,16 @@ export class MacroLegendComponent implements AfterViewInit, OnDestroy {
     // fetch own data because injected components don't have change detection
     const selectedTracks = this._microTracksService.getSelectedTracks();
     const tracks = this._microTracksService.getAllTracks();
-    combineLatest(selectedTracks, tracks)
+    const colors = selectedTracks
+      .pipe(
+        mergeMap((queries) => {
+          return this._pairwiseBlocksService.getMacroColors(queries);
+        })
+      );
+    combineLatest(selectedTracks, tracks, colors)
       .pipe(takeUntil(this._destroy))
-      .subscribe(([queries, tracks]) => {
-        this._preDraw(queries, tracks);
+      .subscribe(([queries, tracks, colors]) => {
+        this._preDraw(queries, tracks, colors);
         this.draw();
       });
   }
@@ -74,9 +80,8 @@ export class MacroLegendComponent implements AfterViewInit, OnDestroy {
     }
   }
 
-  private _preDraw(queries, tracks): void {
+  private _preDraw(queries, tracks, colors): void {
     const {data, highlight} = macroLegendShim(queries, tracks);
-    let colors = getMacroColors(queries);
     if (colors === undefined) {
       colors = (organism) => '#000000';
     }

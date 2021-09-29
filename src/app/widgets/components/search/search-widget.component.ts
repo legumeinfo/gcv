@@ -1,9 +1,10 @@
 // Angular
 import { Component } from '@angular/core';
+import { Router } from '@angular/router';
 // App
 import { AbstractSearchWidgetComponent }
   from './abstract-search-widget.component';
-import { AppConfig } from '@gcv/app.config';
+import { AppConfig } from '@gcv/core/models';
 
 
 @Component({
@@ -13,6 +14,11 @@ import { AppConfig } from '@gcv/app.config';
 })
 export class SearchWidgetComponent extends AbstractSearchWidgetComponent {
 
-  helpText: string = AppConfig.MISCELLANEOUS.searchHelpText;
+  helpText: string;
+
+  constructor(protected _appConfig: AppConfig, protected router: Router) {
+    super(_appConfig, router);
+    this.helpText = _appConfig.miscellaneous.searchHelpText;
+  }
 
 }

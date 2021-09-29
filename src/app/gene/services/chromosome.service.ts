@@ -8,8 +8,7 @@ import { Store, select } from '@ngrx/store';
 import * as fromRoot from '@gcv/store/reducers';
 import * as fromChromosome from '@gcv/gene/store/selectors/chromosome/';
 // app
-import { AppConfig, ConfigError } from '@gcv/app.config';
-import { GET, POST, GRPC } from '@gcv/core/models';
+import { AppConfig, ConfigError, GET, POST, GRPC } from '@gcv/core/models';
 import { HttpService } from '@gcv/core/services/http.service';
 import { Track } from '@gcv/gene/models';
 import { grpcTrackToModel } from './shims';
@@ -21,7 +20,8 @@ import { ChromosomeGetReply, ChromosomeGetRequest, ChromosomePromiseClient }
 @Injectable()
 export class ChromosomeService extends HttpService {
 
-  constructor(private _http: HttpClient,
+  constructor(private _appConfig: AppConfig,
+              private _http: HttpClient,
               private _store: Store<fromRoot.State>) {
     super(_http);
   }
@@ -29,7 +29,7 @@ export class ChromosomeService extends HttpService {
   // fetches chromosome for the given chromosome id from the given source
   getChromosome(name: string, serverID: string):
   Observable<Track> {
-    const request = AppConfig.getServerRequest(serverID, 'chromosome');
+    const request = this._appConfig.getServerRequest(serverID, 'chromosome');
     if (request.type === GET || request.type === POST) {
       const body = {chromosome: name};
       return this._makeHttpRequest<{chromosome: Track}>

@@ -3,7 +3,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { BehaviorSubject, Observable, throwError } from 'rxjs';
 import { filter, share } from 'rxjs/operators';
 // app
-import { ConfigError } from '@gcv/app.config';
+import { ConfigError } from '@gcv/core/models';
 import { GET, POST, Request } from '@gcv/core/models';
 
 export abstract class HttpService {

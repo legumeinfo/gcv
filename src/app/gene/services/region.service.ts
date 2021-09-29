@@ -8,8 +8,7 @@ import { Store } from '@ngrx/store';
 import * as regionActions from '@gcv/gene/store/actions/region.actions';
 import * as fromRoot from '@gcv/store/reducers';
 // app
-import { AppConfig, ConfigError } from '@gcv/app.config';
-import { GET, POST, GRPC } from '@gcv/core/models';
+import { AppConfig, ConfigError, GET, POST, GRPC } from '@gcv/core/models';
 import { Region } from '@gcv/gene/models';
 import { HttpService } from '@gcv/core/services/http.service';
 import { grpcRegionToModel } from './shims';
@@ -21,7 +20,9 @@ import { ChromosomeRegionGetReply, ChromosomeRegionGetRequest,
 @Injectable()
 export class RegionService extends HttpService {
 
-  constructor(private _http: HttpClient, private _store: Store<fromRoot.State>) {
+  constructor(private _appConfig: AppConfig,
+              private _http: HttpClient,
+              private _store: Store<fromRoot.State>) {
     super(_http);
   }
 
@@ -29,7 +30,7 @@ export class RegionService extends HttpService {
   Observable<Region> {
     start = Math.floor(start);
     stop = Math.ceil(stop);
-    const request = AppConfig.getServerRequest(serverID, 'region');
+    const request = this._appConfig.getServerRequest(serverID, 'region');
     if (request.type === GET || request.type === POST) {
       const body = {chromosome, start, stop};
       return this._makeHttpRequest<{region: Region}>(request, body)

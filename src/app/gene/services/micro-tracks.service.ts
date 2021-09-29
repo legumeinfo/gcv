@@ -9,11 +9,10 @@ import * as routerActions from '@gcv/store/actions/router.actions';
 import * as fromRoot from '@gcv/store/reducers';
 import * as fromMicroTracks from '@gcv/gene/store/selectors/micro-tracks/';
 // app
-import { AppConfig, ConfigError } from '@gcv/app.config';
 import { Track } from '@gcv/gene/models';
 import { QueryParams } from '@gcv/gene/models/params';
 import { AlignmentMixin, ClusterMixin } from '@gcv/gene/models/mixins';
-import { GET, POST, GRPC } from '@gcv/core/models';
+import { AppConfig, ConfigError, GET, POST, GRPC } from '@gcv/core/models';
 import { HttpService } from '@gcv/core/services/http.service';
 import { grpcTrackToModel } from './shims';
 // api
@@ -24,13 +23,15 @@ import { MicroSyntenySearchReply, MicroSyntenySearchRequest,
 @Injectable()
 export class MicroTracksService extends HttpService {
 
-  constructor(private _http: HttpClient, private _store: Store<fromRoot.State>) {
+  constructor(private _appConfig: AppConfig,
+              private _http: HttpClient,
+              private _store: Store<fromRoot.State>) {
     super(_http);
   }
 
   microTracksSearch(families: string[], params: QueryParams, serverID: string):
   Observable<Track[]> {
-    const request = AppConfig.getServerRequest(serverID, 'microSearch');
+    const request = this._appConfig.getServerRequest(serverID, 'microSearch');
     if (request.type === GET || request.type === POST) {
       const body = {
         intermediate: String(params.intermediate),

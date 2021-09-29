@@ -5,7 +5,7 @@ import { geneID, GeneID, State } from '@gcv/gene/store/reducers/gene.reducer';
 import { selectRouteParams } from '@gcv/store/selectors/router';
 import { getGeneState } from './gene-state.selector';
 // app
-import { AppConfig } from '@gcv/app.config';
+import { AppConfig } from '@gcv/core/models';
 import { arrayFlatten, memoizeArray, memoizeValue, setIntersection }
   from '@gcv/core/utils';
 import { Gene } from '@gcv/gene/models';
@@ -15,7 +15,7 @@ export const getSelectedGeneIDs = createSelectorFactory(memoizeArray)(
   selectRouteParams,
   (params): GeneID[] => {
     // assumes is defined (see QueryParamsGuard)
-    const sources = AppConfig.SERVERS.map((s) => s.id);
+    const sources = AppConfig.getServerIDs();
     const selectedGenes = sources
       .filter((source) => source in params)
       .map((source) => {

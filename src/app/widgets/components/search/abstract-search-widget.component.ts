@@ -1,22 +1,25 @@
 // Angular
 import { Component } from '@angular/core';
 import { Router } from '@angular/router';
-// App
-import { AppConfig } from '@gcv/app.config';
+// app
+import { AppConfig, Server } from '@gcv/core/models';
 
 
 @Component({template: ''})
 export class AbstractSearchWidgetComponent {
 
-  model: any = {
-    query: '',
-    sources: AppConfig.SERVERS
-               .filter((s) => s.hasOwnProperty('search'))
-               .map((s) => s.id),
-  };
-  sources = AppConfig.SERVERS.filter((s) => s.hasOwnProperty('search'));
+  model: any;
+  sources: Server[];
 
-  constructor(private router: Router) { }
+  constructor(protected _appConfig: AppConfig, protected router: Router) {
+    this.model = {
+      query: '',
+      sources: _appConfig.servers
+                 .filter((s) => s.hasOwnProperty('search'))
+                 .map((s) => s.id),
+    };
+    this.sources = _appConfig.servers.filter((s) => s.hasOwnProperty('search'));
+  }
 
   submit(): void {
     if (this.model.query != '') {
