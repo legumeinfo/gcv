@@ -1,4 +1,9 @@
-FROM node:14.18.1-alpine AS dev
+FROM alpine:3.14 AS dev
+
+RUN apk add --no-cache \
+  git \
+  libc6-compat \
+  npm
 
 WORKDIR /client
 
@@ -10,18 +15,16 @@ COPY dep/ dep/
 
 RUN npm ci
 
-COPY . .
-
 ENTRYPOINT ["npx", "ng", "serve", "--host", "0.0.0.0"]
 
 EXPOSE 4200
 
 FROM dev AS builder
 
-COPY . /client
+COPY . .
 ARG GCV_SUB_URI='/'
 RUN sed -i'' "s#http://localhost[:0-9]*/#${GCV_SUB_URI}#" src/config/config.json
-RUN ng build --base-href "${GCV_SUB_URI}" --prod --build-optimizer
+RUN npx ng build --base-href "${GCV_SUB_URI}" --prod --build-optimizer
 
 FROM nginx:1.20.1-alpine AS prod
 

@@ -29,7 +29,7 @@ const microservices = [
 const destination = path.resolve('./proto');
 
 // degit options
-const options = {cache: true, force: true, verbose: false};
+const options = {cache: false, force: true, verbose: false};
 
 microservices.forEach((src) => {
   const emitter = degit(src, options);

@@ -1,0 +1,11 @@
+services:
+  client:
+    build:
+      context: .
+      target: dev
+    ports:
+      - "4200:4200"
+    volumes:
+      - .:/client
+      - /client/node_modules
+      - /client/dep

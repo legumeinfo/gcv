@@ -39,6 +39,8 @@ See the Configuration section for instructions on how to tune GCV for your site.
 
 ### Docker
 
+Issue the command `docker compose up -d` to start a [development server](#development-server).
+
 ### Locally
 
 #### Setup
