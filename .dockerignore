@@ -1,4 +1,5 @@
-.git
+*.md
+*.yml
+.*
 Dockerfile
-README.md
-compose.yml
+doc/

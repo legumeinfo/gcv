@@ -28,7 +28,7 @@ See the [wiki](https://github.com/legumeinfo/lis_context_viewer/wiki/User-Help) 
 
 ## Running GCV
 
-Due to the complexity of the microservices implementation, we recommend running the backend via the Docker Compose files: `docker-compose[.prod].yml`.
+Due to the complexity of the microservices implementation, we recommend running the backend via the Docker Compose files: `compose[.prod].yml`.
 Not only will this ensure that the microservices and their environment are properly configured, it will also ensure that the correct versions of the microservices are running.
 Users that wish to run the microservices manually should refer to the services' respective directories in the Legume Information System's [microservices repository](https://github.com/legumeinfo/microservices).
 
@@ -40,6 +40,21 @@ See the Configuration section for instructions on how to tune GCV for your site.
 ### Docker
 
 Issue the command `docker compose up -d` to start a [development server](#development-server).
+
+For a production deployment, optionally create a `.env` file that sets the following environment variables:
+
+```
+# sub-URI that GCV client will be accessible from defaults to "/"
+CLIENT_SUB_URI=/gcv-client/
+# TCP port that the GCV client HTTP server will be exposed on
+CLIENT_PORT=8080            # defaults to 80
+# defaults to http://localhost/gcv/
+MICROSERVICES_BASE_URL=http://localhost:9999/gcv/
+```
+
+Then issue the command `docker compose -f compose.prod.yml up -d`.
+
+In the example above, the GCV client application would be accessible from http://<hostname>/gcv-client/ (including http://localhost/gcv-client/), while [GCV microservices](https://github.com/legumeinfo/microservices) backend is to be accessible from http://localhost:9999/gcv/.
 
 ### Locally
 
@@ -66,7 +81,6 @@ To host the client as part of a website, it must first be built
     $ ng build
 
 The build artifacts will be stored in the `dist/` directory.
-Use the `--prod` flag for a production build.
 
 You can verify the build by running it locally via the [angular-http-server](https://www.npmjs.com/package/angular-http-server).
 See the Angular docs for a discussion on production deployment options: [https://angular.io/guide/deployment](https://angular.io/guide/deployment).
