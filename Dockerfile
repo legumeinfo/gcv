@@ -23,8 +23,6 @@ FROM dev AS builder
 
 COPY . .
 ARG CLIENT_SUB_URI='/'
-ARG MICROSERVICES_BASE_URL='http://localhost/gcv/'
-RUN sed -i'' "s#http://localhost/gcv/#${MICROSERVICES_BASE_URL}#" src/config/config.json
 RUN npx ng build --base-href "${CLIENT_SUB_URI}" --build-optimizer
 
 FROM nginx:1.20.1-alpine AS prod

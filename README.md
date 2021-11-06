@@ -41,15 +41,13 @@ See the Configuration section for instructions on how to tune GCV for your site.
 
 Issue the command `docker compose up -d` to start a [development server](#development-server).
 
-For a production deployment, optionally create a `.env` file that sets the following environment variables:
+For a production deployment, update the microservice URLs (servers.*.url) in src/config/config.json to point to production instances, and optionally create a `.env` file that sets the following environment variables:
 
 ```
 # sub-URI that GCV client will be accessible from defaults to "/"
 CLIENT_SUB_URI=/gcv-client/
 # TCP port that the GCV client HTTP server will be exposed on
 CLIENT_PORT=8080            # defaults to 80
-# defaults to http://localhost/gcv/
-MICROSERVICES_BASE_URL=http://localhost:9999/gcv/
 ```
 
 Then issue the command `docker compose -f compose.prod.yml up -d`.
