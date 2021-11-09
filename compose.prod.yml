@@ -4,7 +4,6 @@ services:
       context: .
       args:
         CLIENT_SUB_URI: "${CLIENT_SUB_URI:-/}"
-        MICROSERVICES_SUB_URI: "${MICROSERVICES_SUB_URI:-http://localhost/gcv/}"
     ports:
       - "${CLIENT_PORT:-80}:80"
     restart: always
