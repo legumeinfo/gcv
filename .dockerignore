@@ -1,5 +1,12 @@
-*.md
-*.yml
-.*
+.git
+dist
+doc
+e2e
+node_modules
+.dockerignore
+.editorconfig
+.gitignore
+CODE_OF_CONDUCT.md
 Dockerfile
-doc/
+README.md
+compose.yml

@@ -14,15 +14,15 @@ const repo = 'legumeinfo/microservices'
 // each microservice's .proto files are fetched individually
 const microservices = [
   // user/repo/subdirectory#(branch|release tag|commit hash)
-  `${repo}/chromosome/proto`,
-  `${repo}/chromosome_region/proto`,
-  `${repo}/chromosome_search/proto`,
-  `${repo}/genes/proto`,
-  `${repo}/gene_search/proto`,
-  `${repo}/macro_synteny_blocks/proto`,
-  `${repo}/micro_synteny_search/proto`,
-  `${repo}/pairwise_macro_synteny_blocks/proto`,
-  `${repo}/search/proto`,
+  `${repo}/chromosome/proto#main`,
+  `${repo}/chromosome_region/proto#main`,
+  `${repo}/chromosome_search/proto#main`,
+  `${repo}/genes/proto#main`,
+  `${repo}/gene_search/proto#main`,
+  `${repo}/macro_synteny_blocks/proto#main`,
+  `${repo}/micro_synteny_search/proto#main`,
+  `${repo}/pairwise_macro_synteny_blocks/proto#main`,
+  `${repo}/search/proto#main`,
 ];
 
 // where the files will be saved
