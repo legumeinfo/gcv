@@ -39,7 +39,7 @@ See [Configuration](#configuration) for instructions on how to tune GCV for your
 
 ### Docker
 
-The GCV `Dockerfile` is a multi-stage build with four stages: `base`, `dev, `build`, and `prod`.
+The GCV `Dockerfile` is a multi-stage build with four stages: `base`, `dev`, `build`, and `prod`.
 `base` installs the libraries and dependencies necessary for building GCV and running the development server.
 `dev` continues from the `base` stage and starts a development server, which runs on port 4200 by default.
 `build` continues from the `base` stage and builds the app for use in production.
