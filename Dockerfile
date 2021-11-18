@@ -36,14 +36,20 @@ EXPOSE 4200
 # build stage builds the project for production
 FROM base as build
 
+# allow people building manually to pass arguments to angular
+ARG ANGULAR_BUILD_OPTIONS=''
+
 # build the project
-RUN npx ng build --prod
+RUN npx ng build --prod $ANGULAR_BUILD_OPTIONS
 
 
 # prod stage deploys the project with NGINX
 FROM nginx:1.21-alpine as prod
 
+# copy the nginx configuration
+COPY nginx/default.conf /etc/nginx/conf.d/
+
 # put the build artifacts where nginx can find them
 COPY --from=build /gcv/dist /usr/share/nginx/html
 
-# the nginx image automatically runs the nginx daemon and exposes port 80
+# the nginx image automatically runs nginx and exposes port 80

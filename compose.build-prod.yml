@@ -1,0 +1,10 @@
+services:
+  gcv:
+    build:
+      context: .
+      target: prod
+    volumes:
+      - .:/gcv
+      - /gcv/dep
+      - /gcv/scripts
+    restart: always

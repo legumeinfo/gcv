@@ -28,31 +28,106 @@ See the [wiki](https://github.com/legumeinfo/lis_context_viewer/wiki/User-Help) 
 
 ## Running GCV
 
-Due to the complexity of the microservices implementation, we recommend running the backend via the Docker Compose files: `compose[.prod].yml`.
+Due to the complexity of the microservices implementation, we recommend running the backend via the provided Docker Compose files: `microservices/compose[.prod].yml`.
 Not only will this ensure that the microservices and their environment are properly configured, it will also ensure that the correct versions of the microservices are running.
 Users that wish to run the microservices manually should refer to the services' respective directories in the Legume Information System's [microservices repository](https://github.com/legumeinfo/microservices).
 
-The following instructions describe how to run GCV itself via Docker or locally for development.
+The following instructions describe how to run GCV itself via Docker or locally.
 GCV is developed as part of the [Legume Information System](https://legumeinfo.org/) and [Legume Federation](https://www.legumefederation.org/) projects.
 As such, it is [configured](https://github.com/legumeinfo/gcv/wiki/Client-Configuration) by default to consume genomes from these providers.
-See the Configuration section for instructions on how to tune GCV for your site.
+See [Configuration](#configuration) for instructions on how to tune GCV for your site.
 
 ### Docker
 
-Issue the command `docker compose up -d` to start a [development server](#development-server).
+The GCV `Dockerfile` is a multi-stage build with four stages: `base`, `dev, `build`, and `prod`.
+`base` installs the libraries and dependencies necessary for building GCV and running the development server.
+`dev` continues from the `base` stage and starts a development server, which runs on port 4200 by default.
+`build` continues from the `base` stage and builds the app for use in production.
+And `prod` continues from the `build` stage and starts a production server, which runs on port 80 by default.
+We recommend using the provided `compose.(dev|build-prod|prod).yml` files, as described below.
 
-For a production deployment, update the microservice URLs (servers.*.url) in src/config/config.json to point to production instances, and optionally create a `.env` file that sets the following environment variables:
-
+`compose.dev.yml` is intended for local development:
+```bash
+$ docker compose -f compose.dev.yml up -d
 ```
-# sub-URI that GCV client will be accessible from defaults to "/"
-CLIENT_SUB_URI=/gcv-client/
-# TCP port that the GCV client HTTP server will be exposed on
-CLIENT_PORT=8080            # defaults to 80
+It builds a Docker image using the `dev` stage of the `Dockerfile` and starts a container that runs the [Angular development server](#development-server).
+The `src/` directory is mounted as a volumn in the container so any changes to the code on the host machine will be noticed by the development server running in the container.
+Command-line aguments can be passed to the Angular development server using the `command` property of the `gcv` service in `compose.dev.yml`.
+For example, the Angular development server runs on port 4200 by default.
+This can be changed using the command property (exposing the new port is also required):
+```yml
+  gcv:
+    ...
+    command: --port 1234
+    ports:
+      - "1234:1234"
+    expose:
+      - 1234
+    ...
 ```
 
-Then issue the command `docker compose -f compose.prod.yml up -d`.
+`compose.build-prod.yml` is intended for building a local copy of GCV for production:
+```bash
+$ docker compose -f compose.build-prod.yml up -d
+```
+It builds a Docker image using the `prod` stage of the `Dockerfile` and starts a container that serves GCV using [NGINX](https://www.nginx.com/).
+The `src/` directory is mounted as a volumn in the container so any local changes to the code will be included when the image is built.
+Command-line aguments can be passed to the Angular build process when the Docker image is built using the `ANGULAR_BUILD_OPTIONS` variable in the `args` property of the `gcv` service in `compose.build-prod.yml`.
+For example, more verbose logging by Angular can be enabled as follows:
+```yml
+  gcv:
+    ...
+    args:
+      ANGULAR_BUILD_OPTIONS --verbose
+    ...
+```
+Note, the Angular [base tag](https://angular.io/guide/deployment#the-base-tag) can be set using this method.
+However, building the Docker image is not necessary to change this value, as described below.
 
-In the example above, the GCV client application would be accessible from http://<hostname>/gcv-client/ (including http://localhost/gcv-client/), while [GCV microservices](https://github.com/legumeinfo/microservices) backend is to be accessible from http://localhost:9999/gcv/.
+`compose.prod.yml` is intended for running a pre-built GCV image in production:
+```bash
+$ docker compose -f compose.prod.yml up -d
+```
+It downloads a pre-built Docker image (built using the `prod` stage of the `Dockerfile`) and starts a container that serves GCV using NGINX.
+Although the image is pre-built, the GCV app and how it is served are still configurable to some extent.
+
+GCV can be configured at run-time using a `config.json` file (see [Configuration](#configuration) for details).
+The `config.json` file provided with the source code is included with the pre-build image, however, it can be overridden by mounting it as a volume in the container:
+```yml
+  gcv:
+    ...
+    volumes:
+      - ./config.json:/usr/share/nginx/html/config/config.json
+    ...
+```
+The NGINX server can be configured using a `*.config` file.
+The `nginx/default.config` file provided with the source code is included with the pre-built image.
+As with the `config.json` file, the `nginx/default.config` file can be overridden by mounting it as a volume in the container:
+```yml
+  gcv:
+    ...
+    volumes:
+      - ./nginx/default.config:/etc/nginx/conf.d/default.config
+    ...
+```
+The official NGINX Docker image that the GCV `Dockerfile` uses as a base image for the `prod` build stage comes loaded with the [`ngx_http_sub_module`](https://nginx.org/en/docs/http/ngx_http_sub_module.html) module.
+This means that the `nginx/default.config` file may be configured to replace strings in responses sent by NGINX.
+For example, the `build` stage in the `Dockerfile` uses the default Angular base tag -- `/` -- but the `nginx/default.config` file that the `prod` stage loads changes this to `/gcv` at run-time using `ngx_http_sub_module`:
+```conf
+server {
+
+    ...
+
+    location / {
+        ...
+        sub_filter '<base href="/">' '<base href="/gcv">';
+        sub_filter_once on;
+        ...
+    }
+
+}
+```
+
 
 ### Locally
 

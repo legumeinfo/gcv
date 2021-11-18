@@ -1,6 +1,4 @@
 services:
   gcv:
-    build:
-      context: .
-      target: prod
+    image: gcv:latest
     restart: always
