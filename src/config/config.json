@@ -51,7 +51,7 @@
       },
       "microSearch": {
         "type": "GRPC",
-        "url": "http://localhost/gcv/micro-synteny-search/grpc-web"
+        "url": "http://localhost/gcv/microservices/micro-synteny-search/grpc-web"
       },
       "geneLinks": {
         "type": "GET",
@@ -63,23 +63,23 @@
       },
       "chromosome": {
         "type": "GRPC",
-        "url": "http://localhost/gcv/chromosome/grpc-web"
+        "url": "http://localhost/gcv/microservices/chromosome/grpc-web"
       },
       "genes": {
         "type": "POST",
-        "url": "http://localhost/gcv/genes"
+        "url": "http://localhost/gcv/microservices/genes"
       },
       "blocks": {
         "type": "GRPC",
-        "url": "http://localhost/gcv/macro-synteny-blocks/grpc-web"
+        "url": "http://localhost/gcv/microservices/macro-synteny-blocks/grpc-web"
       },
       "search": {
         "type": "GRPC",
-        "url": "http://localhost/gcv/search/grpc-web"
+        "url": "http://localhost/gcv/microservices/search/grpc-web"
       },
       "region": {
         "type": "GRPC",
-        "url": "http://localhost/gcv/chromosome-region/grpc-web"
+        "url": "http://localhost/gcv/microservices/chromosome-region/grpc-web"
       }
     }
   ]
