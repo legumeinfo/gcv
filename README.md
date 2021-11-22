@@ -51,7 +51,7 @@ We recommend using the provided `compose.(dev|build-prod|prod).yml` files, as de
 $ docker compose -f compose.dev.yml up -d
 ```
 It builds a Docker image using the `dev` stage of the `Dockerfile` and starts a container that runs the [Angular development server](#development-server).
-The `src/` directory is mounted as a volumn in the container so any changes to the code on the host machine will be noticed by the development server running in the container.
+The `src/` directory is mounted as a volume in the container so any changes to the code on the host machine will be noticed by the development server running in the container.
 Command-line aguments can be passed to the Angular development server using the `command` property of the `gcv` service in `compose.dev.yml`.
 For example, the Angular development server runs on port 4200 by default.
 This can be changed using the command property (exposing the new port is also required):
@@ -78,7 +78,7 @@ For example, more verbose logging by Angular can be enabled as follows:
   gcv:
     ...
     args:
-      ANGULAR_BUILD_OPTIONS --verbose
+      ANGULAR_BUILD_OPTIONS: --verbose
     ...
 ```
 Note, the Angular [base tag](https://angular.io/guide/deployment#the-base-tag) can be set using this method.
