@@ -31,14 +31,21 @@ const destination = path.resolve('./proto');
 // degit options
 const options = {cache: false, force: true, verbose: false};
 
+let promise = Promise.resolve();
 microservices.forEach((src) => {
-  const emitter = degit(src, options);
-  
-  emitter.on('info', info => {
-  	console.log(info.message);
+  // chain async .clone requests so they are made synchronously
+  promise = promise.then(() => {
+    const emitter = degit(src, options);
+
+    emitter.on('info', info => {
+      console.log(info.message);
+    });
+
+    emitter.clone(destination).then(() => {
+      console.log('done');
+    });
+
+    return emitter.clone(destination);
   });
-  
-  emitter.clone(destination).then(() => {
-  	console.log('done');
-  });
+
 });
