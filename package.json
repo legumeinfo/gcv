@@ -4,7 +4,7 @@
   "repository": "https://github.com/legumeinfo/lis_context_viewer",
   "version": "2.1.0",
   "author": "Alan Cleary",
-  "license": "GPL-3.0",
+  "license": "Apache-2.0",
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
