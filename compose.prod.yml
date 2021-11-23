@@ -1,6 +1,6 @@
 services:
   gcv:
-    image: gcv:latest
+    image: ghcr.io/legumeinfo/microservices-chromosome:2.2.0
     ports:
       - "4200:80"
     restart: always
