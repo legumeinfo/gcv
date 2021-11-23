@@ -1,4 +1,6 @@
 services:
   gcv:
     image: gcv:latest
+    ports:
+      - "4200:80"
     restart: always

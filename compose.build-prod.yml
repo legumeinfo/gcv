@@ -3,6 +3,8 @@ services:
     build:
       context: .
       target: prod
+    ports:
+      - "4200:80"
     volumes:
       - .:/gcv
       - /gcv/dep
