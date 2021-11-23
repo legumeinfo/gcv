@@ -11,18 +11,17 @@ const path = require('path');
 // the microservices live in a monorepo
 const repo = 'legumeinfo/microservices'
 
-// each microservice's .proto files are fetched individually
+// each microservice's subdirectory name and version required by GCV
 const microservices = [
-  // user/repo/subdirectory#(branch|release tag|commit hash)
-  `${repo}/chromosome/proto#chromosome@v1.0.0`,
-  `${repo}/chromosome_region/proto#chromosome_region@v1.0.0`,
-  `${repo}/chromosome_search/proto#chromosome_search@v1.0.0`,
-  `${repo}/genes/proto#genes@v1.0.0`,
-  `${repo}/gene_search/proto#gene_search@v1.0.0`,
-  `${repo}/macro_synteny_blocks/proto#macro_synteny_blocks@v1.0.0`,
-  `${repo}/micro_synteny_search/proto#micro_synteny_search@v1.0.0`,
-  `${repo}/pairwise_macro_synteny_blocks/proto#pairwise_macro_synteny_blocks@v1.0.0`,
-  `${repo}/search/proto#search@v1.0.0`,
+  {name: 'chromosome', version: '1.0.0'},
+  {name: 'chromosome_region', version: '1.0.0'},
+  {name: 'chromosome_search', version: '1.0.0'},
+  {name: 'genes', version: '1.0.0'},
+  {name: 'gene_search', version: '1.0.0'},
+  {name: 'macro_synteny_blocks', version: '1.0.0'},
+  {name: 'micro_synteny_search', version: '1.0.0'},
+  {name: 'pairwise_macro_synteny_blocks', version: '1.0.0'},
+  {name: 'search', version: '1.0.0'},
 ];
 
 // where the files will be saved
@@ -31,21 +30,23 @@ const destination = path.resolve('./proto');
 // degit options
 const options = {cache: false, force: true, verbose: false};
 
-let promise = Promise.resolve();
-microservices.forEach((src) => {
-  // chain async .clone requests so they are made synchronously
-  promise = promise.then(() => {
-    const emitter = degit(src, options);
+// fetch each microservice's .proto files individually
+const promises = microservices.map(({name, version}) => {
 
-    emitter.on('info', info => {
-      console.log(info.message);
-    });
+  // user/repo/subdirectory#(branch|release tag|commit hash)
+  const src = `${repo}/${name}/proto#${name}@v${version}`;
 
-    emitter.clone(destination).then(() => {
-      console.log('done');
-    });
+  const emitter = degit(src, options);
 
-    return emitter.clone(destination);
+  emitter.on('info', info => {
+    console.log(info.message);
   });
 
+  return emitter.clone(destination);
+
+});
+
+// report when all the files have loaded
+Promise.all(promises).then(() => {
+  console.log('done');
 });
