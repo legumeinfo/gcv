@@ -100,14 +100,14 @@ The `config.json` file provided with the source code is included with the pre-bu
       - ./config.json:/usr/share/nginx/html/config/config.json
     ...
 ```
-The NGINX server can be configured using a `*.config` file.
-The `nginx/default.config` file provided with the source code is included with the pre-built image.
-As with the `config.json` file, the `nginx/default.config` file can be overridden by mounting it as a volume in the container:
+The NGINX server can be configured using a `*.conf` file.
+The `nginx/default.conf` file provided with the source code is included with the pre-built image.
+As with the `config.json` file, the `nginx/default.conf` file can be overridden by mounting it as a volume in the container:
 ```yml
   gcv:
     ...
     volumes:
-      - ./nginx/default.config:/etc/nginx/conf.d/default.config
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
     ...
 ```
 The official NGINX Docker image that the GCV `Dockerfile` uses as a base image for the `prod` build stage comes loaded with the [`ngx_http_sub_module`](https://nginx.org/en/docs/http/ngx_http_sub_module.html) module.
