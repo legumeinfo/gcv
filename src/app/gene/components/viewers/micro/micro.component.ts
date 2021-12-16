@@ -193,17 +193,20 @@ export class MicroComponent implements AfterViewInit, OnDestroy, OnInit {
   }
 
   private _draw(data, options) {
-    this._destroyViewer();
+    let tempViewer: any;
     const dim = Math.min(
         this.container.nativeElement.clientWidth,
         this.container.nativeElement.clientHeight
       );
+    // draw the new viewer before destroying the old to preserve scroll position
     if (dim > 0) {
-      this._viewer = new GCV.visualization.Micro(
+      tempViewer = new GCV.visualization.Micro(
           this.container.nativeElement,
           GCV.common.colors,
           data,
           options);
     }
+    this._destroyViewer();
+    this._viewer = tempViewer;
   }
 }

@@ -180,17 +180,20 @@ export class MacroComponent implements AfterViewInit, OnDestroy, OnInit {
   }
 
   private _draw(data, options) {
-    this._destroyViewer();
+    let tempViewer: any;
     const dim = Math.min(
         this.container.nativeElement.clientWidth,
         this.container.nativeElement.clientHeight
       );
+    // draw the new viewer before destroying the old to preserve scroll position
     if (dim > 0) {
-      this._viewer = new GCV.visualization.Macro(
+      tempViewer = new GCV.visualization.Macro(
         this.container.nativeElement,
         data,
         options);
     }
+    this._destroyViewer();
+    this._viewer = tempViewer;
   }
 
   // public
