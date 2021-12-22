@@ -1,29 +1,32 @@
 <nav class="navbar navbar-expand-lg navbar-light bg-light border-bottom">
-  <a *ngIf="brand !== undefined" class="navbar-brand" href="{{brand.url}}">
-    <img src="{{brand.img}}" class="d-inline-block align-top" alt="" (mouseenter)="toggleBrand()" (mouseleave)="toggleBrand()">
-    <ng-template [ngIf]="brand.slogan === undefined">
-      <span>{{brand.name}}</span>
-    </ng-template>
-    <ng-template [ngIf]="brand.slogan !== undefined">
-      <div>
-        {{brand.name}} <small>{{brand.slogan}}</small>
-      </div>
-    </ng-template>
-  </a>
-  <div class="collapse navbar-collapse">
-    <router-outlet name="header-left"></router-outlet>
-    <ng-content select="[left]"></ng-content>
-    <div class="flex-grow-1 flex-fill">
-      <div class="navbar-right">
-        <gcv-expand-search-widget></gcv-expand-search-widget>
-      </div>
-      <div class="navbar-right">
-        <router-outlet name="header-right"></router-outlet>
-        <ng-content select="[right]"></ng-content>
-      </div>
+  <div class="container-fluid">
+    <a *ngIf="brand !== undefined" class="navbar-brand" href="{{brand.url}}" (mouseenter)="toggleBrand()" (mouseleave)="toggleBrand()">
+      <img src="{{brand.img}}" class="d-inline-block align-text-top" alt="">
+    </a>
+    <a class="navbar-brand brand-name" href="{{brand.url}}">
+      <ng-template [ngIf]="brand.slogan === undefined">
+        {{brand.name}}
+      </ng-template>
+      <ng-template [ngIf]="brand.slogan !== undefined">
+        <span>{{brand.name}}</span>
+        <small>{{brand.slogan}}</small>
+      </ng-template>
+    </a>
+    <div class="collapse navbar-collapse">
+      <router-outlet name="header-left"></router-outlet>
+      <ng-content select="[left]"></ng-content>
       <div class="flex-grow-1 flex-fill">
-        <router-outlet name="header-center"></router-outlet>
-        <ng-content select="[center]"></ng-content>
+        <div class="navbar-right">
+          <gcv-expand-search-widget></gcv-expand-search-widget>
+        </div>
+        <div class="navbar-right">
+          <router-outlet name="header-right"></router-outlet>
+          <ng-content select="[right]"></ng-content>
+        </div>
+        <div class="flex-grow-1 flex-fill">
+          <router-outlet name="header-center"></router-outlet>
+          <ng-content select="[center]"></ng-content>
+        </div>
       </div>
     </div>
   </div>

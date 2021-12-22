@@ -12,20 +12,20 @@ import { InterAppCommunicationService } from '@gcv/gene/services';
   selector: 'gcv-header-right',
   styles: [],
   template: `
-    <ul class="navbar-nav mr-auto">
+    <ul class="navbar-nav me-auto">
       <li *ngIf="communicate" class="nav-item dropdown">
-        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
           <i class="fas fa-broadcast-tower"></i>
         </a>
-        <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdown">
+        <div class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownMenuLink">
           <gcv-inter-app-communication></gcv-inter-app-communication>
         </div>
       </li>
       <li class="nav-item dropdown">
-        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown"  data-display="static" data-boundary="viewport" aria-haspopup="true" aria-expanded="false">
+        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
           Help
         </a>
-        <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdown">
+        <div class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownMenuLink">
           <a class="dropdown-item" [routerLink]="['/instructions']" target="_blank">Instructions</a>
           <a class="dropdown-item" href="https://github.com/legumeinfo/lis_context_viewer/wiki" target="_blank">Documentation</a>
           <a class="dropdown-item" href="https://doi.org/10.1093/bioinformatics/btx757" target="_blank">Manuscript</a>

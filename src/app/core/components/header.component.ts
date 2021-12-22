@@ -24,7 +24,7 @@ export class HeaderComponent implements AfterViewInit {
   toggleBrand(): void {
     if (this.brand.hide) {
       // TODO: replace with Angular animation or CSS transition
-      $('.navbar-brand span, .navbar-brand div').animate({width: 'toggle'}, 150);
+      $('.navbar-brand.brand-name').animate({width: 'toggle'}, 150);
     }
   }
 }

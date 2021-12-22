@@ -2,20 +2,15 @@
   width: 30px;
   height: 30px;
 }
-.navbar-brand span,
-.navbar-brand div {
-  margin-left: 0.3125rem;
-}
-.navbar-brand div {
-  display: inline-block;
-  height: 30px;
-  font-size: 1rem;
-  line-height: 1rem;
-}
-.navbar-brand div small {
+.navbar-brand.brand-name span {
   display: block;
-  font-size: .75rem;
-  line-height: .75rem;
+  font-size: 20px;
+  line-height: 1em;
+}
+.navbar-brand.brand-name small {
+  display: block;
+  font-size: 10px;
+  line-height: 1em;
 }
 .navbar-right {
   float: right;

@@ -1,38 +1,40 @@
 /* adapted from https://bootsnipp.com/snippets/y4Qa */
 @use 'sass:math';
 
-$bootstrap-primary: #007bff;
-$bootstrap-primary-hover: #0069d9;
+$bootstrap-primary: #0d6efd;
+$bootstrap-primary-hover: #0b5ed7;
 $bootstrap-secondary: #6c757d;
-$bootstrap-secondary-hover: #5a6268;
-$bootstrap-success: #28a745;
-$bootstrap-success-hover: #218838;
+$bootstrap-secondary-hover: #5c636a;
+$bootstrap-success: #198754;
+$bootstrap-success-hover: #157347;
 $bootstrap-danger: #dc3545;
-$bootstrap-danger-hover: #c82333;
+$bootstrap-danger-hover: #bb2d3b;
 $bootstrap-warning: #ffc107;
-$bootstrap-warning-hover: #e0a800;
-$bootstrap-info: #17a2b8;
-$bootstrap-info-hover: #138496;
+$bootstrap-warning-hover: #ffca2c;
+$bootstrap-info: #0dcaf0;
+$bootstrap-info-hover: #31d2f2;
 $bootstrap-light: #f8f9fa;
-$bootstrap-light-hover: #e2e6ea;
-$bootstrap-dark: #343a40;
-$bootstrap-dark-hover: #23272b;
+$bootstrap-light-hover: #f9fafb;
+$bootstrap-dark: #212529;
+$bootstrap-dark-hover: #1c1f23;
 
 $bootstrap-alert-primary: #cce5ff;
 $bootstrap-alert-secondary: #e2e3e5;
-$bootstrap-alert-success: #d4edda;
+$bootstrap-alert-success: #d1e7dd;
 $bootstrap-alert-danger: #f8d7da;
 $bootstrap-alert-warning: #fff3cd;
-$bootstrap-alert-info: #d1ecf1;
+$bootstrap-alert-info: #cff4fc;
 $bootstrap-alert-light: #fefefe;
-$bootstrap-alert-dark: #d6d8d9;
+$bootstrap-alert-dark: #d3d3d4;
 
 $bootstrap-btn-text-light: #fff;
-$bootstrap-btn-text-dark: #212529;
+$bootstrap-btn-text-dark: #000;
 
 $bootstrap-btn-border-size: 1px;
 $bootstrap-btn-padding: 0.375rem;
 $bootstrap-btn-line-height: 1.5;
+
+$bootstrap-btn-transition: color .15s ease-in-out, background-color .15s ease-in-out, border-color .15s ease-in-out, box-shadow .15s ease-in-out !default;
 
 $arrow-border-size: $bootstrap-btn-padding + math.div($bootstrap-btn-line-height, 2);
 
@@ -49,7 +51,7 @@ $arrow-border-size: $bootstrap-btn-padding + math.div($bootstrap-btn-line-height
   border-bottom: $arrow-border-size solid transparent;
   border-left: $arrow-border-size solid white;
   z-index: 3;
-  transition: color 0.15s ease-in-out, border-color 0.15s ease-in-out;
+  transition: $bootstrap-btn-transition
 }
 /* arrow border */
 .pipeline .btn.pipeline-arrow:not(:last-child):before {

@@ -19,12 +19,12 @@ import { microShim } from './micro.shim';
   styleUrls: ['../golden-viewer.scss'],
   template: `
     <gcv-context-menu (saveImage)="saveImage()">
-      <ul class="navbar-nav mr-auto">
+      <ul class="navbar-nav me-auto">
         <li *ngIf="showMacro()" class="nav-item dropdown">
-          <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+          <a class="btn btn-outline-dark dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
             Macro Viewers
           </a>
-          <div *ngIf="queryTracks|async as tracks" class="dropdown-menu" aria-labelledby="navbarDropdown">
+          <div *ngIf="queryTracks|async as tracks" class="dropdown-menu" aria-labelledby="dropdownMenuLink">
             <div *ngIf="showCircos()">
               <h6 class="dropdown-header">Multi</h6>
               <a [routerLink]="" queryParamsHandling="preserve" class="dropdown-item" (click)="emitCircos(tracks)">Circos</a>

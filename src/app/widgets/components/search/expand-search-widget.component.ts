@@ -7,10 +7,7 @@ import { AbstractSearchWidgetComponent }
 
 @Component({
   selector: 'gcv-expand-search-widget',
-  styleUrls: [
-    './search-widget.component.scss',
-    './expand-search-widget.component.scss',
-  ],
+  styleUrls: ['./expand-search-widget.component.scss'],
   templateUrl: './expand-search-widget.component.html',
 })
 export class ExpandSearchWidgetComponent extends AbstractSearchWidgetComponent {

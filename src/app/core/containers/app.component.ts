@@ -13,20 +13,7 @@ declare var window: any;
 @Component({
   selector: 'gcv',
   template: `
-    <gcv-header>
-      <nav class="navbar navbar-light bg-light">
-        <a class="navbar-brand" href="#">
-          <!-- TODO: load image, title, and subtitle from config -->
-          <img src="https://getbootstrap.com/docs/4.3/assets/brand/bootstrap-solid.svg" width="30" height="30" class="d-inline-block align-top" alt="">
-          LIS - Legume Information System
-          <!-- TODO: subtitle -->
-        </a>
-        <form class="form-inline my-2 my-lg-0">
-          <input class="form-control mr-sm-2" type="search" placeholder="Search" aria-label="Search">
-          <button class="btn btn-outline-dark my-2 my-sm-0" type="submit">Search</button>
-        </form>
-      </nav>
-    </gcv-header>
+    <gcv-header></gcv-header>
     <router-outlet></router-outlet>
   `,
 })

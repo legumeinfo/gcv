@@ -7,12 +7,12 @@
       <div class="row lead-banner">
         <div class="col-md-6">
           <h3 class="text-muted">{{brand.name}}</h3>
-          <h1 class="display-4">Genome Context Viewer</h1>
+          <h1 class="display-5 fw-bold">Genome Context Viewer</h1>
           <p class="lead">A web-app that visualizes genomic context data provided by third party services in a single, federated interface by using functional annotations as a unit of search and comparison.</p>
           <p>
-            <a href="#" class="btn btn-primary mr-2" (click)="scrollTo($event, '#description')">Get started</a>
-            <a href="https://academic.oup.com/bioinformatics/article/34/9/1562/4673199" target="_blank" class="btn btn-outline-primary mr-2">Read the paper</a>
-            <a href="https://github.com/legumeinfo/lis_context_viewer" target="_blank" class="btn btn-dark mr-2"><i class="fab fa-github"></i> GitHub</a>
+            <a href="#" class="btn btn-primary me-2" (click)="scrollTo($event, '#description')">Get started</a>
+            <a href="https://academic.oup.com/bioinformatics/article/34/9/1562/4673199" target="_blank" class="btn btn-outline-primary me-2">Read the paper</a>
+            <a href="https://github.com/legumeinfo/lis_context_viewer" target="_blank" class="btn btn-dark me-2"><i class="fab fa-github"></i> GitHub</a>
           </p>
         </div>
         <div class="col-md-6 flex-shrink-1">
@@ -69,7 +69,7 @@
     <div class="container">
 
     <div class="row mb-5">
-      <h1 class="display-4 mx-auto">How it Works</h1>
+      <h1 class="display-4 text-center">How it Works</h1>
       <p class="lead text-center">The Genome Context Viewer is a micro-synteny viewer that can load data from multiple sources simultaneously, enabling the comparative analysis of data curated by independent data providers. Though there are other visualizations, such as dot plots and macro-synteny blocks, they're intended to supplement the micro-synteny visualization from which their content is derived.</p>
     </div>
 
@@ -131,7 +131,7 @@
 
   <footer class="border-top py-3">
     <div class="container">
-      <p class="float-right m-0"><a href="#" (click)="scrollTo($event, '#top')">Back to top</a></p>
+      <p class="float-end m-0"><a href="#" (click)="scrollTo($event, '#top')">Back to top</a></p>
       <p class="m-0"><i class="far fa-copyright"></i> {{ copyrightYear }} <a href="https://legumeinfo.org/" target="_blank">Legume Information System</a> &middot; <i class="fab fa-osi"></i>&nbsp;<a href="https://github.com/legumeinfo/lis_context_viewer/blob/master/LICENSE" target="_blank">License</a></p>
     </div>
   </footer>

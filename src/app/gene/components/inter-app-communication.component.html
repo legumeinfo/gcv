@@ -4,21 +4,21 @@
 </div>
 
 <form class="px-4 py-3">
-  <div class="form-group">
+  <div class="mb-3">
     <div class="form-check">
       <input type="checkbox" class="form-check-input" name="communicate"
         [ngModel]="getCommunicate()"
         (ngModelChange)="setCommunicate($event)"
         [disabled]="getChannel() === ''">
-      <label class="form-check-label" for="dropdownCheck">
+      <label class="form-check-label" for="communicate">
         Connect
       </label>
     </div>
   </div>
-  <div class="form-group">
-    <label for="communicationChannel">Channel</label>
-    <input type="text" class="form-control" name="channel"
+  <div class="form-floating mb-3">
+    <input type="text" class="form-control" id="channel"
       [ngModel]="getChannel()"
       (ngModelChange)="setChannel($event)">
+    <label for="channel">Channel</label>
   </div>
 </form>

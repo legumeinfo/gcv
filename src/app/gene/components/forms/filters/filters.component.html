@@ -1,24 +1,22 @@
 
   <fieldset id="macro-filters">
-    <legend>Macro-Synteny<a id="macro-help" class="float-right" (click)="macroHelp=!macroHelp" role="button"><i class="fas fa-question-circle"></i></a></legend>
+    <legend>Macro-Synteny<a id="macro-help" class="float-end" (click)="macroHelp=!macroHelp" role="button"><i class="fas fa-question-circle"></i></a></legend>
     <form #macroFilterForm="ngForm" (ngSubmit)="updateMacroRegexp(macroFilterForm.value.macroregexp)" novalidate>
-      <div class="form-group">
-        <label for="macro-regexp">Filter by name</label>
+      <div class="mb-3">
+        <label class="form-label" for="macro-regexp">Filter by name</label>
         <div class="input-group">
           <input class="form-control" type="text" id="macro-regexp" name="macroregexp"
             [ngModel]="currentMacroRegexp|async"
             [ngClass]="{'is-invalid': badMacroRegexp}">
-          <div class="input-group-append">
-            <button type="submit" class="btn btn-dark">Submit</button>
-          </div>
+          <button type="submit" class="btn btn-dark">Submit</button>
         </div>
         <small class="form-text text-muted">A regular expression</small>
         <p class="help-block" *ngIf="macroHelp">A regular expression used to filter the macro-synteny tracks by name.</p>
       </div>
     </form>
-    <div class="form-group">
-      <label for="macro-order">Track order</label>
-      <select class="form-control" id="macro-order" name="macro-order"
+    <div class="mb-3">
+      <label class="form-label" for="macro-order">Track order</label>
+      <select class="form-select" id="macro-order" name="macro-order"
           (change)="updateMacroOrder(getEventValue($event))"
           [ngModel]="(selectedMacroOrderAlgorithm|async).id">
         <option *ngFor="let alg of macroOrderAlgorithms" [value]="alg.id">{{alg.name}}</option>
@@ -27,25 +25,23 @@
     </div>
   </fieldset>
   <fieldset id="micro-filters">
-    <legend>Micro-Synteny<a id="micro-help" class="float-right" (click)="microHelp=!microHelp" role="button"><i class="fas fa-question-circle"></i></a></legend>
+    <legend>Micro-Synteny<a id="micro-help" class="float-end" (click)="microHelp=!microHelp" role="button"><i class="fas fa-question-circle"></i></a></legend>
     <form #microFilterForm="ngForm" (ngSubmit)="updateMicroRegexp(microFilterForm.value.microregexp)" novalidate>
-      <div class="form-group">
-        <label for="micro-regexp">Filter by name</label>
+      <div class="mb-3">
+        <label class="form-label" for="micro-regexp">Filter by name</label>
         <div class="input-group">
           <input class="form-control" type="text" id="micro-regexp" name="microregexp"
             [ngModel]="currentMicroRegexp|async"
             [ngClass]="{'is-invalid': badMicroRegexp}">
-          <div class="input-group-append">
-            <button type="submit" class="btn btn-dark">Submit</button>
-          </div>
+          <button type="submit" class="btn btn-dark">Submit</button>
         </div>
         <small class="form-text text-muted">A regular expression</small>
         <p class="help-block" *ngIf="microHelp">A regular expression used to filter the micro-synteny tracks by name.</p>
       </div>
     </form>
-    <div class="form-group">
-      <label for="micro-order">Track order</label>
-      <select class="form-control" id="micro-order" name="micro-order"
+    <div class="mb-3">
+      <label class="form-label" for="micro-order">Track order</label>
+      <select class="form-select" id="micro-order" name="micro-order"
           (change)="updateMicroOrder(getEventValue($event))"
           [ngModel]="(selectedMicroOrderAlgorithm|async).id">
         <option *ngFor="let alg of microOrderAlgorithms" [value]="alg.id">{{alg.name}}</option>

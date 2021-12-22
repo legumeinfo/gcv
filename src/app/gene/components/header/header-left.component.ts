@@ -16,9 +16,9 @@ import { LayoutService } from '@gcv/gene/services';
     }
   `],
   template: `
-    <ul class="navbar-nav mr-auto">
+    <ul class="navbar-nav me-auto">
       <li>
-        <a [class.active]="(visible|async)&&(content|async)=='parameters'" class="btn btn-outline-dark mr-sm-2" role="button" (click)="toggleParameters()">Parameters</a>
+        <a [class.active]="(visible|async)&&(content|async)=='parameters'" class="btn btn-outline-dark me-sm-2" role="button" (click)="toggleParameters()">Parameters</a>
       </li>
       <li>
         <a [class.active]="(visible|async)&&(content|async)=='filters'" class="btn btn-outline-dark" role="button" (click)="toggleFilters()">Filters</a>
