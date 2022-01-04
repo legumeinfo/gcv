@@ -1,7 +1,7 @@
 // Angular
 import { Injectable } from '@angular/core';
 // store
-import { Effect, Actions, ofType } from '@ngrx/effects';
+import { createEffect, Actions, ofType } from '@ngrx/effects';
 import { Observable, of } from 'rxjs';
 import { catchError, filter, map, mergeMap, switchMap, takeUntil,
   withLatestFrom } from 'rxjs/operators';
@@ -23,23 +23,23 @@ export class ChromosomeEffects {
               private store: Store<fromRoot.State>) { }
 
   // clear the store every time the set of selected genes changes
-  @Effect()
-  clearChromosomes$ = this.store.select(fromGene.getSelectedGeneIDs).pipe(
+  clearChromosomes$ = createEffect(() => this.store.select(fromGene.getSelectedGeneIDs).pipe(
     map((...args) => new chromosomeActions.Clear()),
-  );
+  ));
 
   // emits a get action for each selected chromosome that's not loaded or
   // loading
-  @Effect()
-  getSelected$ = this.store
-  .select(fromChromosome.getSelectedChromosomeIDs).pipe(
+  getSelected$ = createEffect(() => this.store
+  .select(fromChromosome.getSelectedChromosomeIDs)
+  .pipe(
     filter((ids) => ids.length > 0),
-    mergeMap((ids) => ids.map((id) => new chromosomeActions.Get(id))),
-  );
+    mergeMap((ids): chromosomeActions.Get[] => {
+      return ids.map((id) => new chromosomeActions.Get(id));
+    }),
+  ));
 
   // get chromosome via the chromosome service
-  @Effect()
-  getChromosome$ = this.actions$.pipe(
+  getChromosome$ = createEffect(() => this.actions$.pipe(
     ofType(chromosomeActions.GET),
     map((action: chromosomeActions.Get) => {
       return {action: action.id, ...action.payload};
@@ -59,6 +59,6 @@ export class ChromosomeEffects {
         catchError((e) => of(new chromosomeActions.GetFailure({name, source}))),
       );
     })
-  );
+  ));
 
 }

@@ -27,12 +27,12 @@ import { microShim } from './micro.shim';
           <div *ngIf="queryTracks|async as tracks" class="dropdown-menu" aria-labelledby="dropdownMenuLink">
             <div *ngIf="showCircos()">
               <h6 class="dropdown-header">Multi</h6>
-              <a [routerLink]="" queryParamsHandling="preserve" class="dropdown-item" (click)="emitCircos(tracks)">Circos</a>
+              <a [routerLink]="[]" queryParamsHandling="preserve" class="dropdown-item" (click)="emitCircos(tracks)">Circos</a>
             </div>
             <div *ngIf="showCircos() && showReference()" class="dropdown-divider"></div>
             <div *ngIf="showReference()">
               <h6 class="dropdown-header">Reference</h6>
-              <a [routerLink]="" queryParamsHandling="preserve" *ngFor="let track of tracks" class="dropdown-item" (click)="emitReference(track)">{{ track.name }}</a>
+              <a [routerLink]="[]" queryParamsHandling="preserve" *ngFor="let track of tracks" class="dropdown-item" (click)="emitReference(track)">{{ track.name }}</a>
             </div>
           </div>
         </li>

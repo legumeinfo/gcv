@@ -142,7 +142,9 @@ export class ProcessService {
       switchMap((subs): ProcessStatusStream => {
         return combineLatest(...subs).pipe(
           map((subStates): ProcessStatus => {
-            const words = new Set(subStates.map((status) => status.word));
+            const words = new Set(
+                subStates.map((status: ProcessStatus) => status.word)
+              );
             let word: ProcessStatusWord;
             let description: string;
             if (words.has('process-running')) {
@@ -244,7 +246,9 @@ export class ProcessService {
       switchMap((subs): ProcessStatusStream => {
         return combineLatest(...subs).pipe(
           map((subStates): ProcessStatus => {
-            const words = new Set(subStates.map((status) => status.word));
+            const words = new Set(
+                subStates.map((status: ProcessStatus) => status.word)
+              );
             let word: ProcessStatusWord;
             let description: string;
             if (words.has('process-running')) {
@@ -431,7 +435,9 @@ export class ProcessService {
       switchMap((subs): ProcessStatusStream => {
         return combineLatest(...subs).pipe(
           map((subStates): ProcessStatus => {
-            const words = new Set(subStates.map((status) => status.word));
+            const words = new Set(
+                subStates.map((status: ProcessStatus) => status.word)
+              );
             let word: ProcessStatusWord;
             let description: string;
             if (words.has('process-running')) {
@@ -602,7 +608,9 @@ export class ProcessService {
       switchMap((subs): ProcessStatusStream => {
         return combineLatest(...subs).pipe(
           map((subStates): ProcessStatus => {
-            const words = new Set(subStates.map((status) => status.word));
+            const words = new Set(
+                subStates.map((status: ProcessStatus) => status.word)
+              );
             let word: ProcessStatusWord;
             let description: string;
             if (words.has('process-running')) {
@@ -744,7 +752,9 @@ export class ProcessService {
       switchMap((subs): ProcessStatusStream => {
         return combineLatest(...subs).pipe(
           map((subStates): ProcessStatus => {
-            const words = new Set(subStates.map((status) => status.word));
+            const words = new Set(
+                subStates.map((status: ProcessStatus) => status.word)
+              );
             let word: ProcessStatusWord;
             let description: string;
             if (words.has('process-running')) {
@@ -914,7 +924,9 @@ export class ProcessService {
       switchMap((subs): ProcessStatusStream => {
         return combineLatest(...subs).pipe(
           map((subStates): ProcessStatus => {
-            const words = new Set(subStates.map((status) => status.word));
+            const words = new Set(
+                subStates.map((status: ProcessStatus) => status.word)
+              );
             let word: ProcessStatusWord;
             let description: string;
             if (words.has('process-running')) {
@@ -1036,7 +1048,9 @@ export class ProcessService {
       switchMap((subs): ProcessStatusStream => {
         return combineLatest(...subs).pipe(
           map((subStates): ProcessStatus => {
-            const words = new Set(subStates.map((status) => status.word));
+            const words = new Set(
+                subStates.map((status: ProcessStatus) => status.word)
+              );
             let word: ProcessStatusWord;
             let description: string;
             if (words.has('process-running')) {

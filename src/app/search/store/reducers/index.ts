@@ -25,5 +25,5 @@ export function reducers(state: SearchState | undefined, action: Action) {
 }
 
 // select the module's state
-export const getSearchModuleState = createFeatureSelector<State, SearchState>
+export const getSearchModuleState = createFeatureSelector<SearchState>
   (searchFeatureKey);

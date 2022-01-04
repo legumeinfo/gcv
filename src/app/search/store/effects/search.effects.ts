@@ -6,7 +6,7 @@ import * as fromRoot from '@gcv/store/reducers';
 import { idArrayIntersection } from '@gcv/search/store/reducers/search.reducer';
 import * as fromSearch from '@gcv/search/store/selectors/search/';
 import * as fromParams from '@gcv/search/store/selectors/params';
-import { Effect, Actions, ofType } from '@ngrx/effects';
+import { createEffect, Actions, ofType } from '@ngrx/effects';
 import { Observable, combineLatest, of } from 'rxjs';
 import { catchError, map, mergeMap, switchMap, takeUntil, withLatestFrom }
   from 'rxjs/operators';
@@ -27,15 +27,13 @@ export class SearchEffects {
   // public
 
   // clear the store every time a new query occurs
-  @Effect()
-  clearResults = this.store.select(fromSearch.getQuery)
+  clearResults = createEffect(() => this.store.select(fromSearch.getQuery)
   .pipe(
     map((...args) => new searchActions.Clear())
-  );
+  ));
 
   // initializes a search whenever new aligned clusters are generated
-  @Effect()
-  initializeSearch$ = combineLatest(
+  initializeSearch$ = createEffect(() => combineLatest(
     this.store.select(fromSearch.getQuery),
     this.store.select(fromParams.getSourceParams)
   ).pipe(
@@ -49,11 +47,10 @@ export class SearchEffects {
       });
       return actions;
     }),
-  );
+  ));
 
   // perform the search
-  @Effect()
-  search$ = this.actions$.pipe(
+  search$ = createEffect(() => this.actions$.pipe(
     ofType(searchActions.SEARCH),
     map((action: searchActions.Search) => {
       return {action: action.id, ...action.payload};
@@ -84,6 +81,6 @@ export class SearchEffects {
         }),
       );
     })
-  );
+  ));
 
 }

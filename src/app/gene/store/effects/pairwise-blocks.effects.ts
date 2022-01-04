@@ -1,7 +1,7 @@
 // Angular
 import { Injectable } from '@angular/core';
 // store
-import { Effect, Actions, ofType } from '@ngrx/effects';
+import { createEffect, Actions, ofType } from '@ngrx/effects';
 import { combineLatest, of, zip } from 'rxjs';
 import { catchError, filter, map, mergeMap, switchMap, takeUntil,
   withLatestFrom } from 'rxjs/operators';
@@ -27,18 +27,16 @@ export class PairwiseBlocksEffects {
               private store: Store<fromRoot.State>) { }
 
   // clear the store every time new query genes or parameters are emitted
-  @Effect()
-  clearPairwiseBlocks$ = combineLatest(
+  clearPairwiseBlocks$ = createEffect(() => combineLatest(
     this.store.select(fromGenes.getSelectedGeneIDs),
     this.store.select(fromParams.getBlockParams),
     this.store.select(fromParams.getSourceParams),
   ).pipe(
     map((...args) => new pairwiseBlocksActions.Clear()),
-  );
+  ));
 
   // get pairwise blocks via the pairwise blocks service
-  @Effect()
-  getPairwiseBlocks$ = this.actions$.pipe(
+  getPairwiseBlocks$ = createEffect(() => this.actions$.pipe(
     ofType(pairwiseBlocksActions.GET),
     map((action: pairwiseBlocksActions.Get) => {
       return {action: action.id, ...action.payload};
@@ -80,6 +78,6 @@ export class PairwiseBlocksEffects {
         })
       );
     })
-  );
+  ));
 
 }
