@@ -4,29 +4,29 @@ import { Params } from '@gcv/gene/models/params';
 
 export const initialState: Params = {
   // alignment
-  algorithm:  'repeat',
-  match: 10,
-  mismatch: -1,
-  gap: -1,
-  score: 30,
-  threshold: 25,
+  algorithm:  AppConfig.defaultParameters.gene.microSyntenyAlignment.algorithm,
+  match: AppConfig.defaultParameters.gene.microSyntenyAlignment.match,
+  mismatch: AppConfig.defaultParameters.gene.microSyntenyAlignment.mismatch,
+  gap: AppConfig.defaultParameters.gene.microSyntenyAlignment.gap,
+  score: AppConfig.defaultParameters.gene.microSyntenyAlignment.score,
+  threshold: AppConfig.defaultParameters.gene.microSyntenyAlignment.threshold,
   // block
-  bmatched: 20,
-  bintermediate: 10,
-  bmask: 10,
+  bmatched: AppConfig.defaultParameters.gene.macroSynteny.matched,
+  bintermediate: AppConfig.defaultParameters.gene.macroSynteny.intermediate,
+  bmask: AppConfig.defaultParameters.gene.macroSynteny.mask,
   // clustering
-  linkage: 'average',  // TODO: remove magic string
-  cthreshold: 20,
+  linkage: AppConfig.defaultParameters.gene.microSyntenyClustering.linkage,
+  cthreshold: AppConfig.defaultParameters.gene.microSyntenyClustering.cthreshold,
   // query
-  neighbors: 10,
-  matched: 4,
-  intermediate: 5,
+  neighbors: AppConfig.defaultParameters.gene.microSynteny.neighbors,
+  matched: AppConfig.defaultParameters.gene.microSynteny.matched,
+  intermediate: AppConfig.defaultParameters.gene.microSynteny.intermediate,
   // sources
   sources: AppConfig.getServerIDs(),
   // macro filters
   bregexp: '',
-  border: 'chromosome',
+  border: AppConfig.defaultParameters.gene.macroSyntenyOrder,
   // micro filters
   regexp: '',
-  order: 'distance',
+  order: AppConfig.defaultParameters.gene.microSyntenyOrder,
 };

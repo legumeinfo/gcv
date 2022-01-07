@@ -6,10 +6,12 @@ import { AppConfig, ConfigError,
   Brand, isBrand,
   Communication, isCommunication,
   Dashboard, isDashboard,
+  DefaultParameters, isDefaultParameters,
   Miscellaneous, isMiscellaneous,
   Server, isServer,
   Tour, isTour,
   Request } from '@gcv/core/models';
+import { objectMergeDeep } from '@gcv/core/utils';
 
 
 const defaultConfig = {
@@ -35,6 +37,34 @@ const defaultConfig = {
     },
     examples: [],
   },
+  defaultParameters: {
+    gene: {
+      macroSynteny: {
+        matched: 20,
+        intermediate: 10,
+        mask: 10,
+      },
+      macroSyntenyOrder: 'chromosome',
+      microSynteny: {
+        neighbors: 10,
+        matched: 4,
+        intermediate: 5,
+      },
+      microSyntenyAlignment: {
+        algorithm:  'repeat',
+        match: 10,
+        mismatch: -1,
+        gap: -1,
+        score: 30,
+        threshold: 25,
+      },
+      microSyntenyClustering: {
+        linkage: 'average',
+        cthreshold: 20,
+      },
+      microSyntenyOrder: 'distance',
+    },
+  },
   miscellaneous: {},
   tours: [],
 };
@@ -55,6 +85,7 @@ export class AppConfigService extends AppConfig {
         this.brand = this._parseBrand(config);
         this.communication = this._parseCommunication(config);
         this.dashboard = this._parseDashboard(config);
+        this.defaultParameters = this._parseDefaultParameters(config);
         this.miscellaneous = this._parseMiscellaneous(config);
         this.tours = this._parseTours(config);
         this.servers = this._parseServers(config);
@@ -62,6 +93,7 @@ export class AppConfigService extends AppConfig {
         this._freezeObject(this.brand);
         this._freezeObject(this.communication);
         this._freezeObject(this.dashboard);
+        this._freezeObject(this.defaultParameters);
         this._freezeObject(this.miscellaneous);
         this._freezeObject(this.tours);
         this._freezeObject(this.servers);
@@ -69,12 +101,19 @@ export class AppConfigService extends AppConfig {
       });
   }
 
+  // helpers
+
   private _parseError(entry: string): void {
     throw new ConfigError(`Config "${entry}" entry is invalid`);
   }
 
+  // parsers
+
   private _parseBrand(config: AppConfig): Brand {
-    const brand = {...(defaultConfig.brand || {}), ...(config.brand || {})};
+    const brand = objectMergeDeep({},
+        defaultConfig.brand || {},
+        config.brand || {},
+      );
     if (!isBrand(brand)) {
       this._parseError('brand');
     }
@@ -83,10 +122,10 @@ export class AppConfigService extends AppConfig {
   }
 
   private _parseCommunication(config: AppConfig): Communication {
-    const communication = {
-        ...(defaultConfig.communication),
-        ...(config.communication || {}),
-      };
+    const communication = objectMergeDeep({},
+        defaultConfig.communication || {},
+        config.communication || {},
+      );
     if (!isCommunication(communication)) {
       this._parseError('communication');
     }
@@ -94,21 +133,11 @@ export class AppConfigService extends AppConfig {
     return {communicate, channel} as Communication;
   }
 
-  private _parseDashboardView(dashboard: Dashboard, view: string): void {
-    const dashboardView = {
-        ...(defaultConfig.dashboard[view] || {}),
-        ...(dashboard[view] || {}),
-      };
-    dashboard[view] = dashboardView;
-  }
-
   private _parseDashboard(config: AppConfig): Dashboard {
-    const dashboard = config.dashboard || {};
-    this._parseDashboardView(dashboard, 'gcvScreenshot'); 
-    this._parseDashboardView(dashboard, 'trackScreenshot');
-    this._parseDashboardView(dashboard, 'microsyntenyScreenshot');
-    this._parseDashboardView(dashboard, 'dotplotScreenshot');
-    this._parseDashboardView(dashboard, 'macrosyntenyScreenshot');
+    const dashboard = objectMergeDeep({},
+        defaultConfig.dashboard || {},
+        config.dashboard || {},
+      );
     if (!isDashboard(config.dashboard)) {
       this._parseError('dashboard');
     }
@@ -132,11 +161,23 @@ export class AppConfigService extends AppConfig {
     } as Dashboard;
   }
 
+  private _parseDefaultParameters(config: AppConfig): DefaultParameters {
+    const defaultParameters = objectMergeDeep({},
+        defaultConfig.defaultParameters || {},
+        config.defaultParameters || {},
+      );
+    if (!isDefaultParameters(defaultParameters)) {
+      this._parseError('defaultParameters');
+    }
+    const {gene, ...rest} = defaultParameters;
+    return {gene} as DefaultParameters;
+  }
+
   private _parseMiscellaneous(config: AppConfig): Miscellaneous {
-    const miscellaneous = {
-        ...(defaultConfig.miscellaneous || {}),
-        ...(config.miscellaneous || {}),
-      };
+    const miscellaneous = objectMergeDeep({},
+        defaultConfig.miscellaneous || {},
+        config.miscellaneous || {},
+      );
     if (!isMiscellaneous(miscellaneous)) {
       this._parseError('miscellaneous');
     }

@@ -4,6 +4,7 @@ export * from './counter.util';
 export * from './element-is-visible.util';
 export * from './enumerable-properties.util';
 export * from './execute-function-by-name.util';
+export * from './object-merge.util';
 export * from './pick.util';
 export * from './save-file.util';
 export * from './selector-memoization.util';

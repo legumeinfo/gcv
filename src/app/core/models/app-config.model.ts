@@ -73,6 +73,67 @@ export function isDashboard(instance: any): instance is Dashboard {
 }
 
 
+// replicates models in @gcv/gene/models/params so gene module isn't prematurely
+// loaded
+export type DefaultParameters = {
+  gene: {
+    macroSynteny: {
+      matched: number;
+      intermediate: number;
+      mask: number;
+    };
+    macroSyntenyOrder: string;
+    microSynteny: {
+      neighbors: number;
+      matched: number;
+      intermediate: number;
+    };
+    microSyntenyAlignment: {
+      algorithm:  string;
+      match: number;
+      mismatch: number;
+      gap: number;
+      score: number;
+      threshold: number;
+    };
+    microSyntenyClustering: {
+      linkage: string;
+      cthreshold: number;
+    };
+    microSyntenyOrder: string;
+  };
+}
+
+
+// only validates types; invalid values will be handled by the gene module
+export function isDefaultParameters(instance: any): instance is DefaultParameters {
+  const defaultParameters = <DefaultParameters>instance;
+  return defaultParameters !== null &&
+    typeof defaultParameters.gene === 'object' &&
+      typeof defaultParameters.gene.macroSynteny === 'object' &&
+        typeof defaultParameters.gene.macroSynteny.matched === 'number' &&
+        typeof defaultParameters.gene.macroSynteny.intermediate === 'number' &&
+        typeof defaultParameters.gene.macroSynteny.mask === 'number' &&
+      typeof defaultParameters.gene.macroSyntenyOrder === 'string' &&
+      typeof defaultParameters.gene.microSyntenyOrder === 'string' &&
+      typeof defaultParameters.gene.microSynteny === 'object' &&
+        typeof defaultParameters.gene.microSynteny.neighbors === 'number' &&
+        typeof defaultParameters.gene.microSynteny.matched === 'number' &&
+        typeof defaultParameters.gene.microSynteny.intermediate === 'number' &&
+      typeof defaultParameters.gene.microSyntenyAlignment === 'object' &&
+        typeof defaultParameters.gene.microSyntenyAlignment.algorithm === 'string' &&
+        typeof defaultParameters.gene.microSyntenyAlignment.match === 'number' &&
+        typeof defaultParameters.gene.microSyntenyAlignment.mismatch === 'number' &&
+        typeof defaultParameters.gene.microSyntenyAlignment.gap === 'number' &&
+        typeof defaultParameters.gene.microSyntenyAlignment.score === 'number' &&
+        typeof defaultParameters.gene.microSyntenyAlignment.threshold === 'number' &&
+      typeof defaultParameters.gene.microSyntenyClustering === 'object' &&
+        typeof defaultParameters.gene.microSyntenyClustering.linkage === 'string' &&
+        typeof defaultParameters.gene.microSyntenyClustering.cthreshold === 'number' &&
+      typeof defaultParameters.gene.microSyntenyOrder === 'string';
+}
+
+
 export class Miscellaneous {
   searchHelpText?: string;
 }
@@ -108,6 +169,7 @@ export class AppConfig {
   brand?: Brand;
   communication?: Communication;
   dashboard?: Dashboard;
+  defaultParameters: DefaultParameters;
   miscellaneous?: Miscellaneous;
   tours?: Tour[];
   servers: Server[];
@@ -121,7 +183,8 @@ export class AppConfig {
     AppConfig._instance = this;
   }
 
-  // getters/setters
+  // reflect instance attributes with static getters so they can be used without
+  // dependency injection or retrieving the singleton instance
 
   public static get instance(): AppConfig {
     return this._instance;
@@ -134,6 +197,9 @@ export class AppConfig {
   }
   public static get dashboard(): Dashboard {
     return this._instance.dashboard;
+  }
+  public static get defaultParameters(): DefaultParameters {
+    return this._instance.defaultParameters;
   }
   public static get miscellaneous(): Miscellaneous {
     return this._instance.miscellaneous;
