@@ -214,3 +214,12 @@ services:
       - "traefik.http.middlewares.search-stripprefix.stripprefix.prefixes=/gcv/microservices/search"
       - "traefik.http.routers.search.middlewares=search-stripprefix@docker"
       - "traefik.http.routers.search.entrypoints=web"
+
+  redis_loader:
+    image: ghcr.io/legumeinfo/microservices-redis_loader:1.0.0
+    depends_on:
+      redisearch:
+        condition: service_healthy
+    environment:
+      REDIS_HOST: redisearch
+    profiles: [redis_loader]
