@@ -54,11 +54,11 @@ export class MicroTracksEffects {
     // TODO: This code is copied from the selector that's commented out above
     // because the selector won't compile... Fix it!
     this.store.select(fromParams.getSourceParams)
-      .pipe(map((params: SourceParams): string[] => params.sources))
+      .pipe(map((params: SourceParams): string[] => params.sources)),
+    this.store.select(fromParams.getQueryParams),
   ).pipe(
-    withLatestFrom(this.store.select(fromParams.getQueryParams)),
     switchMap(
-    ([[{consensuses, tracks}, sources], params]) => {
+    ([{consensuses, tracks}, sources, params]) => {
       const actions: microTracksActions.Actions[] = [];
       consensuses.forEach((families, cluster) => {
         sources.forEach((source) => {
