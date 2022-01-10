@@ -47,13 +47,15 @@ export class PairwiseBlocksService extends HttpService {
     targets: string[] = []):
   Observable<PairwiseBlocks[]> {
     const request = this._appConfig.getServerRequest(serverID, 'blocks');
+    const optionalMetrics = ['jaccard:2:1'];  // jaccard, 2-grams, 1 => compute reversals
     if (request.type === GET || request.type === POST) {
       const body = {
         chromosome: chromosome.families,
         intermediate: blockParams.bintermediate,
         mask: blockParams.bmask,
         matched: blockParams.bmatched,
-        targets
+        targets,
+        optionalMetrics,
       };
       return this._makeHttpRequest<{blocks: RawPairwiseBlocks[]}>(request, body).pipe(
         map((result) => {
@@ -79,6 +81,8 @@ export class PairwiseBlocksService extends HttpService {
       grpcRequest.setMatched(blockParams.bmatched);
       grpcRequest.setIntermediate(blockParams.bintermediate);
       grpcRequest.setMask(blockParams.bmask);
+      grpcRequest.setTargetsList(targets);
+      grpcRequest.setOptionalmetricsList(optionalMetrics);
       const clientRequest = client.compute(grpcRequest, {});
       return from(clientRequest).pipe(
         map((result: MacroSyntenyBlocksComputeReply) => {
