@@ -9,3 +9,4 @@ services:
       - .:/gcv
       - /gcv/dep
       - /gcv/scripts
+      - /gcv/node_modules
