@@ -47,7 +47,7 @@ export class PairwiseBlocksService extends HttpService {
     targets: string[] = []):
   Observable<PairwiseBlocks[]> {
     const request = this._appConfig.getServerRequest(serverID, 'blocks');
-    const optionalMetrics = ['jaccard:2:1'];  // jaccard, 2-grams, 1 => compute reversals
+    const optionalMetrics = ['jaccard:2:1:1'];  // jaccard, 2-grams, 1 => compute reversals, multiSet True
     if (request.type === GET || request.type === POST) {
       const body = {
         chromosome: chromosome.families,
