@@ -33,13 +33,17 @@ services:
       - "traefik.http.routers.envoy.entrypoints=web"
 
   redisearch:
-    image: redislabs/redisearch:2.0.5
+    image: redislabs/redisearch:2.0.15
     healthcheck:
-      test: "redis-cli ping"
+      test: "redis-cli ping | grep -q PONG"
     expose:
       - "6379"
     volumes:
       - ./data/redis:/data:rw
+    command:
+      - --loadmodule /usr/lib/redis/modules/redisearch.so
+      - --save ''
+      
 
   chromosome:
     image: ghcr.io/legumeinfo/microservices-chromosome:1.0.0
