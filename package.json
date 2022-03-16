@@ -37,7 +37,7 @@
     "golden-layout": "^1.5.9",
     "jquery": "^3.6.0",
     "legumeinfo-microservices": "file:dep/legumeinfo-microservices",
-    "mnemonist": "^0.38.3",
+    "mnemonist": "^0.39.0",
     "rxjs": "^7.5.5",
     "tippy.js": "^6.3.1",
     "tslib": "^2.3.0",
