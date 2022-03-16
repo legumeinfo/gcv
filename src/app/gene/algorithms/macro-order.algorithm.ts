@@ -29,6 +29,32 @@ export const MACRO_ORDER_ALGORITHMS: Algorithm[] = [
       return t1Start-t2Start;
     },
   },
+  {
+    id: 'distance',
+    name: 'Distance',
+    algorithm: (t1, t2) => {
+      if (t1.blocks.length == 0 && t2.blocks.length == 0) {
+        return 0;
+      } else if (t1.blocks.length == 0) {
+        return 1;
+      } else if (t2.blocks.length == 0) {
+        return -1;
+      }
+      const distanceToReference = (blocks) => {
+          let coveredGenes = 0;
+          let averageDistance = 0;
+          blocks.forEach((b) => {
+            coveredGenes += b.j-b.i+1;
+            averageDistance += b.optionalMetrics[0];
+          });
+          averageDistance /= blocks.length;
+          return coveredGenes*(1-averageDistance);
+        };
+      const t1distance = distanceToReference(t1.blocks);
+      const t2distance = distanceToReference(t2.blocks);
+      return t2distance-t1distance;
+    },
+  },
 ];
 
 
