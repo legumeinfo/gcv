@@ -44,7 +44,7 @@ const defaultConfig = {
         intermediate: 10,
         mask: 10,
       },
-      macroSyntenyOrder: 'chromosome',
+      macroSyntenyOrder: 'distance',
       microSynteny: {
         neighbors: 10,
         matched: 4,
