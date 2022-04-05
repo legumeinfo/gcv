@@ -3,11 +3,10 @@ import { createSelector, createSelectorFactory } from '@ngrx/store';
 // store
 import { State } from '@gcv/gene/store/reducers/micro-tracks.reducer';
 import * as fromParams from '@gcv/gene/store/selectors/params';
-import { getSelectedChromosomesLoaded }
-  from '@gcv/gene/store/selectors/chromosome/selected-chromosomes.selector';
 import { getSelectedGenesLoaded } from '@gcv/gene/store/selectors/gene';
 import { getMicroTracksState } from './micro-tracks-state.selector';
-import { getSelectedMicroTracks } from './selected-micro-tracks.selector';
+import { getSelectedMicroTracks, getSelectedMicroTracksLoaded }
+  from './selected-micro-tracks.selector';
 // app
 import * as clustering from '@gcv-assets/js/clustering';
 import { GCV } from '@gcv-assets/js/gcv';
@@ -29,13 +28,13 @@ import { familyCountMap } from '@gcv/gene/models/shims';
 export const getClusteredSelectedMicroTracks =
 createSelectorFactory(memoizeArray)(
   getSelectedGenesLoaded,
-  getSelectedChromosomesLoaded,
+  getSelectedMicroTracksLoaded,
   getSelectedMicroTracks,
   fromParams.getClusteringParams,
-  (genesLoaded: boolean, chromosomesLoaded: boolean, tracks: Track[],
+  (genesLoaded: boolean, tracksLoaded: boolean, tracks: Track[],
   params: ClusteringParams): (Track & ClusterMixin)[] => {
     // TODO: should this also check that the selected IDs lists are non-empty?
-    if (!genesLoaded || !chromosomesLoaded) {
+    if (!genesLoaded || !tracksLoaded) {
       return [];
     }
     const metric = (a: Track, b: Track): number => {
@@ -149,7 +148,57 @@ createSelectorFactory(memoizeObject)(
           const alignments = trackFamilies.map((f,i) => {
               return hmm.align(f, {inversions: false});
             });
+          // get HMM columns that nothing aligned to
+          const columns = [...Array(hmm.numColumns).keys()];
+          const alignedColumns = new Set(
+              [].concat.apply([],
+                // remove alignments between columns
+                alignments.map((a) => {
+                  return a.alignment.filter((c) => Number.isInteger(c))
+                })
+              )
+            );
+          const unalignedColumns = columns.filter((c) => !alignedColumns.has(c));
+          if (unalignedColumns.length) {
+            // adjust the alignments to remove gaps left by unaligned columns
+            alignments.forEach((a) => {
+              // adjust the forward segments
+              let i = 0;
+              let j = 0;
+              while (i < a.alignment.length) {
+                if (a.orientations[i] == 1) {
+                  if (j >= unalignedColumns.length || a.alignment[i] < unalignedColumns[j]) {
+                    a.alignment[i] -= j;
+                    i += 1;
+                  } else {
+                    j += 1;
+                  }
+                } else {
+                  i += 1;
+                }
+              }
+              // adjust the reverse segments
+              i = a.alignment.length-1;
+              j = 0;
+              while (i >= 0) {
+                if (a.orientations[i] == -1) {
+                  if (j >= unalignedColumns.length || a.alignment[i] < unalignedColumns[j]) {
+                    a.alignment[i] -= j;
+                    i -= 1;
+                  } else {
+                    j += 1;
+                  }
+                } else {
+                  i -= 1;
+                }
+              }
+            });
+            // remove the unaligned columns from the hmm
+            hmm.deleteColumns(unalignedColumns);
+          }
+          // add the alignments to the tracks
           const alignedTracks = tracks.map(mixinFactory(alignments));
+          // generate the consensus sequence from the HMM
           accumulator.consensuses[i] = hmm.consensus();
           accumulator.tracks.push(...alignedTracks);
         // edge case where all families are orphans or singletons

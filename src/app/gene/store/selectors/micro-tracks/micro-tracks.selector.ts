@@ -24,5 +24,3 @@ export const getAllMicroTracks = createSelectorFactory(memoizeArray)(
     return selectedTracks.concat(loadedTracks);
   }
 );
-
-//export const selectedLoaded = fromChromosome.selectedLoaded;

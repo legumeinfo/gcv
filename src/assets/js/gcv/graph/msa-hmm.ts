@@ -766,6 +766,62 @@ export class MSAHMM extends Directed {
   }
 
   /**
+   * Deletes the given columns from the HMM. Note: This may invalidate existing
+   * alignments/paths.
+   * @param{Array} columns - The columns to remove from the HMM.
+   * numbering is continuous (default: true).
+   * return {void}
+   */
+  deleteColumns(columns: number[]) {
+    // only keep the columns that exist in the HMM
+    const validColumns = [...new Set(
+        columns.filter((c) => c >= 0 && c < this.numColumns)
+      )].sort()
+
+    // exit if no valid columns were provided
+    if (!validColumns.length) {
+      return;
+    }
+
+    // "remove" the valid columns by shifting the columns that will remain
+    validColumns.push(-1);
+    let j = 0;
+    let c = validColumns[j];
+    let i = c;
+    while (i < this.numColumns) {
+      // the current column should be removed
+      if (i == c) {
+        c = validColumns[++j];
+      // this column stays but needs to be shifted
+      } else {
+        this.updateNode("d"+(i-j), this.getNode("d"+i).attr);
+        this.updateNode("i"+(i-j), this.getNode("i"+i).attr);
+        this.updateNode("m"+(i-j), this.getNode("m"+i).attr);
+      }
+      i += 1;
+    }
+
+    // shift the last insertion state
+    this.updateNode("i"+(i-j), this.getNode("i"+i).attr);
+
+    // update the number of columns
+    this._numColumns -= validColumns.length-1;
+
+    // add new end state transitions
+    this.addEdge("m" + this._numColumns, "z");
+    this.addEdge("i" + (this._numColumns+1), "z");
+    this.addEdge("d" + this._numColumns, "z");
+
+    // remove the remaining columns that were invalidated by the shifting
+    for (i = 0; i < validColumns.length-1; i++) {
+      let c = this._numColumns+i;
+      this.removeNode("m" + c);
+      this.removeNode("i" + (c+1));
+      this.removeNode("d" + c);
+    }
+  }
+
+  /**
    * Returns the most probable sequence according to the emission probabilities
    * of the match states.
    * return {Array} - An array with an entry for each match state where the

@@ -1,7 +1,7 @@
 // NgRx
 import { createSelectorFactory } from '@ngrx/store';
 // store
-import { getSelectedChromosomes }
+import { getSelectedChromosomes, getSelectedChromosomesLoaded }
   from '@gcv/gene/store/selectors/chromosome/selected-chromosomes.selector';
 import { getSelectedGenes }
   from '@gcv/gene/store/selectors/gene/selected-genes.selector';
@@ -82,3 +82,5 @@ export const getSelectedMicroTracks = createSelectorFactory(memoizeArray)(
     return tracks;
   }
 );
+
+export const getSelectedMicroTracksLoaded = getSelectedChromosomesLoaded;
