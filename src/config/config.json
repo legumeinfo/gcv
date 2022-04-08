@@ -16,7 +16,7 @@
     },
     "trackScreenshot": {
       "img": "config/img/screenshots/instructions-track.gif",
-      "caption": "The anatomy of a micro-synteny query track. The gene in the center with the bold outline is the track's query gene. The genes flanking the query gene are its neighbors. The thickness of the lines between genes indicates inter-genic distance. The track's label (left) indicates the chromosome and genomic interval of the track."
+      "caption": "The anatomy of a micro-synteny query track. The gene in the center with the bold outline is the track's query gene. The genes flanking the query gene are its neighbors. The thickness of the lines between genes indicates inter-genic distance. The track's label (left) indicates the chromosome and genomic interval of the track. Query track labels are bold, whereas the labels of tracks found via micro-synteny search are not."
     },
     "microsyntenyScreenshot": {
       "img": "config/img/screenshots/instructions-microsynteny.gif",

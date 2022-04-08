@@ -1,0 +1,53 @@
+.screenshot {
+  cursor: pointer;
+  text-align: center;
+}
+
+.screenshot .card-img-overlay {
+  background-color: rgb(248, 249, 250);
+  opacity: 0;
+  transition: opacity 0.25s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  vertical-align: middle;
+}
+
+.screenshot .card-img-overlay:hover {
+  opacity: 0.6;
+}
+
+.modal.show {
+  display: flex !important;
+  box-sizing: border-box;
+  max-width: 100%;
+  max-height: 100%;
+}
+
+.modal-dialog {
+  max-width: calc(100% - 3.5rem) !important;  // override Bootstrap
+  min-height: 0;  // override Bootstrap
+  max-height: calc(100% - 3.5rem) !important;
+}
+
+.modal-dialog .modal-content {
+  flex-direction: column;
+  max-height: 100%;
+}
+
+.modal-dialog .modal-content .modal-header,
+.modal-dialog .modal-content .modal-footer {
+  flex: 0 1 auto;
+}
+
+.modal-dialog .modal-content .modal-body {
+  display: flex;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.modal-dialog .modal-content .modal-body img {
+  object-fit: scale-down;
+  max-height: 100%;
+  max-width: 100%;
+}

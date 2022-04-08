@@ -16,7 +16,7 @@
           </p>
         </div>
         <div class="col-md-6 flex-shrink-1">
-          <img class="shadow img-fluid mx-auto" src="assets/img/placeholder.png" alt="GCV screenshot" title="{{dashboard.gcvScreenshot.caption}}" [gcvLazyLoad]="dashboard.gcvScreenshot.img">
+          <gcv-screenshot [screenshot]="dashboard.gcvScreenshot" [alt]="'GCV screenshot'"></gcv-screenshot>
         </div>
       </div>
       <!-- search -->
@@ -82,13 +82,11 @@
       </div>
       <div class="col-md-7 flex-shrink-1">
         <figure class="figure">
-          <img class="figure-img img-fluid mx-auto" src="assets/img/placeholder.png" alt="The anatomy of a query track"
-            [gcvLazyLoad]="dashboard.trackScreenshot.img">
+          <gcv-screenshot [screenshot]="dashboard.trackScreenshot" [alt]="'The anatomy of a query track'"></gcv-screenshot>
           <figcaption class="figure-caption">{{dashboard.trackScreenshot.caption}}</figcaption>
         </figure>
         <figure class="figure">
-          <img class="shadow-sm figure-img img-fluid mx-auto" src="assets/img/placeholder.png" alt="The micro-synteny viewer"
-            [gcvLazyLoad]="dashboard.microsyntenyScreenshot.img">
+          <gcv-screenshot [screenshot]="dashboard.microsyntenyScreenshot" [alt]="'The micro-synteny viewer'"></gcv-screenshot>
           <figcaption class="figure-caption">{{dashboard.microsyntenyScreenshot.caption}}</figcaption>
         </figure>
       </div>
@@ -97,8 +95,7 @@
     <div class="row mb-5">
       <div class="col-md-7 flex-shrink-1">
         <figure class="figure">
-          <img class="shadow-sm figure-img img-fluid mx-auto" src="assets/img/placeholder.png" alt="Local and gloabl dot plots"
-            [gcvLazyLoad]="dashboard.dotplotsScreenshot.img">
+          <gcv-screenshot [screenshot]="dashboard.dotplotsScreenshot" [alt]="'Local and gloabl dot plots'"></gcv-screenshot>
           <figcaption class="figure-caption">{{dashboard.dotplotsScreenshot.caption}}</figcaption>
         </figure>
       </div>
@@ -119,8 +116,7 @@
       </div>
       <div class="col-md-7">
         <figure class="figure">
-          <img class="shadow-sm figure-img img-fluid mx-auto" src="assets/img/placeholder.png" alt="Multi view screenshot"
-            [gcvLazyLoad]="dashboard.macrosyntenyScreenshot.img">
+          <gcv-screenshot [screenshot]="dashboard.macrosyntenyScreenshot" [alt]="'Multi view screenshot'"></gcv-screenshot>
           <figcaption class="figure-caption">{{dashboard.macrosyntenyScreenshot.caption}}</figcaption>
         </figure>
       </div>
