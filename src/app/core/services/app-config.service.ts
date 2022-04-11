@@ -197,7 +197,7 @@ export class AppConfigService extends AppConfig {
   }
 
   private _parseServers(config: AppConfig): Server[] {
-    if (config.servers === undefined ||
+    if (config.servers === undefined || !Array.isArray(config.servers) ||
         !config.servers.every((s) => isServer(s))) {
       this._parseError('servers');
     }

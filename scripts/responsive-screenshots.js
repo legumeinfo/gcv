@@ -97,9 +97,8 @@ Add the following to your GCV config.json file to use them (be sure to update th
   "dashboard" {
     "...": {
       "img": "${img}",
-      "responsive": ${responsive_json},
-      "title": "...",
-      "caption": "..."
+      "caption": "...",
+      "responsive": ${responsive_json}
     }
   },
   ...

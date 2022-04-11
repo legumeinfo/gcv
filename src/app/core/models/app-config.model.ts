@@ -1,3 +1,8 @@
+/* This file contains the models that constitute the AppConfig type as well as
+ * functions for checking if objects are instances of these types. NOTE: These
+ * functions are only for type checking; validation (i.e. verify values are
+ * valid) should be handled by the modules that actually use the types.
+ */
 import { Request, Server, isServer } from './server.model';
 
 
@@ -38,16 +43,18 @@ export function isCommunication(instance: any): instance is Communication {
 
 
 export class DashboardView {
-  img?: string;  // URL to example screenshot
-  caption?: string;
+  img: string;  // URL to example screenshot
+  caption: string;
+  responsive?: string[];  // ["<image URL> <intrinsic image width>w", ...]
 }
 
 
 export function isDashboardView(instance: any): instance is DashboardView {
   const view = <DashboardView>instance;
   return view !== null &&
-  (view.img === undefined || typeof view.img === 'string') &&
-  (view.caption === undefined || typeof view.caption === 'string');
+  (typeof view.img === 'string') &&
+  (typeof view.caption === 'string') &&
+  (view.responsive === undefined || (Array.isArray(view.responsive) && view.responsive.every((e) => typeof e === 'string')));
 }
 
 
