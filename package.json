@@ -42,6 +42,7 @@
     "rxjs": "^7.5.5",
     "tippy.js": "^6.3.7",
     "tslib": "^2.3.0",
+    "vanilla-lazyload": "^17.7.0",
     "zone.js": "^0.11.5"
   },
   "devDependencies": {

@@ -1,11 +1,16 @@
-<div class="card screenshot border-0" (click)="toggleModal($event)">
-  <img class="shadow-sm img-fluid mx-auto" src="assets/img/placeholder.png" alt="{{ alt }}" [gcvLazyLoad]="screenshot.img">
+<div class="card screenshot border-0" (click)="toggleModal($event)" #screenshotElement>
+  <ng-container *ngIf="screenshot.responsive; else notResponsive">
+  <img class="shadow-sm img-fluid mx-auto" [attr.data-srcset]="screenshot.responsive" [attr.data-sizes]="inlineSizes(screenshot.responsive)" alt="{{ alt }}">
+  </ng-container>
+  <ng-template #notResponsive>
+  <img class="shadow-sm img-fluid mx-auto" [attr.data-src]="screenshot.img" alt="{{ alt }}">
+  </ng-template>
   <div class="card-img-overlay">
-      <h1 class="display-1 m-0"><i class="fa-solid fa-expand"></i></h1>
+    <h1 class="display-1 m-0"><i class="fa-solid fa-expand"></i></h1>
   </div>
 </div>
 
-<div class="modal fade" tabindex="-1" role="dialog" aria-labelledby="screenshot-modal" aria-hidden="true" #modal>
+<div class="modal fade" tabindex="-1" role="dialog" aria-labelledby="screenshot-modal" aria-hidden="true" #modalElement>
   <div class="modal-dialog modal-dialog-centered" role="document">
     <div class="modal-content">
       <div class="modal-header">
@@ -13,7 +18,12 @@
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body p-0">
-        <img src="assets/img/placeholder.png" alt="{{ alt }}" [gcvLazyLoad]="screenshot.img">
+        <ng-container *ngIf="screenshot.responsive; else notResponsive">
+        <img [attr.data-srcset]="screenshot.responsive" [attr.data-sizes]="modalSizes(screenshot.responsive)" alt="{{ alt }}">
+        </ng-container>
+        <ng-template #notResponsive>
+        <img data-src="{{ screenshot.img }}" alt="{{ alt }}">
+        </ng-template>
       </div>
       <div class="modal-footer">
         {{ screenshot.caption }}
