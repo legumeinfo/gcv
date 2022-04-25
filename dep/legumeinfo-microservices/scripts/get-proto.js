@@ -18,9 +18,9 @@ const microservices = [
   {name: 'chromosome_search', version: '1.0.0'},
   {name: 'genes', version: '1.0.0'},
   {name: 'gene_search', version: '1.0.0'},
-  {name: 'macro_synteny_blocks', version: '1.0.0'},
+  {name: 'macro_synteny_blocks', version: '1.1.0'},
   {name: 'micro_synteny_search', version: '1.0.0'},
-  {name: 'pairwise_macro_synteny_blocks', version: '1.0.0'},
+  {name: 'pairwise_macro_synteny_blocks', version: '1.1.0'},
   {name: 'search', version: '1.0.0'},
 ];
 
