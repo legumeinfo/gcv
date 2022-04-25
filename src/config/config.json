@@ -11,23 +11,28 @@
   },
   "dashboard": {
     "gcvScreenshot": {
-      "img": "config/img/screenshots/instructions-gcv.gif",
+      "img": "config/img/screenshots/instructions-gcv-360w.png",
+      "responsive": ["config/img/screenshots/instructions-gcv-360w.png 360w", "config/img/screenshots/instructions-gcv-480w.png 480w", "config/img/screenshots/instructions-gcv-570w.png 570w", "config/img/screenshots/instructions-gcv-660w.png 660w", "config/img/screenshots/instructions-gcv-1434w.png 1434w"],
       "caption": "A set of genomic contexts with query tracks from three species (soybean=glyma, cowpea=vigun, common bean=phavu) showing the effects of an ancient whole genome duplication (WGD) common to all the papilionoid legumes with an additional more recent WGD in soybean resulting in its having four homeologous regions to the other species' two homeologous regions. Note that patterns of greater gene content similarity suggest the evolutionary relatedness of these segments; note too, that soybean's chromosome 12 contains two regions homeologous to each other due to structural rearrangements following WGD. Segments from a couple of lupin species have been brought in through the tool's capability to search for related tracks; one of these shows a partial inversion relative to the others."
     },
     "trackScreenshot": {
-      "img": "config/img/screenshots/instructions-track.gif",
+      "img": "config/img/screenshots/instructions-track-360w.png",
+      "responsive": ["config/img/screenshots/instructions-track-360w.png 360w", "config/img/screenshots/instructions-track-480w.png 480w", "config/img/screenshots/instructions-track-570w.png 570w", "config/img/screenshots/instructions-track-660w.png 660w", "config/img/screenshots/instructions-track-2786w.png 2786w"],
       "caption": "The anatomy of a micro-synteny query track. The gene in the center with the bold outline is the track's query gene. The genes flanking the query gene are its neighbors. The thickness of the lines between genes indicates inter-genic distance. The track's label (left) indicates the chromosome and genomic interval of the track. Query track labels are bold, whereas the labels of tracks found via micro-synteny search are not."
     },
     "microsyntenyScreenshot": {
-      "img": "config/img/screenshots/instructions-microsynteny.gif",
+      "img": "config/img/screenshots/instructions-microsynteny-360w.png",
+      "responsive": ["config/img/screenshots/instructions-microsynteny-360w.png 360w", "config/img/screenshots/instructions-microsynteny-480w.png 480w", "config/img/screenshots/instructions-microsynteny-570w.png 570w", "config/img/screenshots/instructions-microsynteny-660w.png 660w", "config/img/screenshots/instructions-microsynteny-1434w.png 1434w"],
       "caption": "A micro-synteny view. The tracks on top with the bold labels are query tracks that have been multiple aligned. The tracks on bottom with regular labels are similar tracks that were found during the search. There is a variety of preservation and variation of structure in the view. Notably, there is gene presence/absence, copy-number variation, and an inversion."
     },
     "dotplotsScreenshot": {
-      "img": "config/img/screenshots/instructions-dotplots.gif",
+      "img": "config/img/screenshots/instructions-dotplots-360w.png",
+      "responsive": ["config/img/screenshots/instructions-dotplots-360w.png 360w", "config/img/screenshots/instructions-dotplots-480w.png 480w", "config/img/screenshots/instructions-dotplots-570w.png 570w", "config/img/screenshots/instructions-dotplots-660w.png 660w", "config/img/screenshots/instructions-dotplots-1970w.png 1970w"],
       "caption": "A local dot plot (left) and a global dot plot (right). The local dot plot highlights copy-number variation of a tandem duplication and a palindromic sequence. The global dot plot shows a self-syntenic chromosome due to an ancient duplication. The duplication has apparently been subjected to rearrangement."
     },
     "macrosyntenyScreenshot": {
-      "img": "config/img/screenshots/instructions-macrosynteny.gif",
+      "img": "config/img/screenshots/instructions-macrosynteny-360w.png",
+      "responsive": ["config/img/screenshots/instructions-macrosynteny-360w.png 360w", "config/img/screenshots/instructions-macrosynteny-480w.png 480w", "config/img/screenshots/instructions-macrosynteny-570w.png 570w", "config/img/screenshots/instructions-macrosynteny-660w.png 660w", "config/img/screenshots/instructions-macrosynteny-2576w.png 2576w"],
       "caption": "A reference macro-synteny view (left) and a circos macro-synteny view (right). The reference view contains blocks from the other query track chromosomes as well as from chromosomes provided by the sources. The circos view contains all-pairs blocks among the query track chromosomes."
     },
     "examples": [
