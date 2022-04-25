@@ -79,7 +79,9 @@ async function scaleImage(resize_widths) {
 
 }
 
-const resize_widths = [320, 640, 960, 1280, 1920, 2560];
+// 1/2 of each Bootstrap .container responsive breakpoint in px (because of how
+// the instructions page is laid out)
+const resize_widths = [360, 480, 570, 660, Infinity];
 
 scaleImage(resize_widths).then((responsive) => {
 
