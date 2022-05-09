@@ -8,7 +8,7 @@ import { GCV } from '@gcv-assets/js/gcv';
 import { saveFile } from '@gcv/core/utils';
 import { Gene, Track, Pipeline } from '@gcv/gene/models';
 import { AlignmentMixin, ClusterMixin } from '@gcv/gene/models/mixins';
-import { GeneService, MicroTracksService, ProcessService }
+import { FamilyService, GeneService, MicroTracksService, ProcessService }
   from '@gcv/gene/services';
 // component
 import { microShim } from './micro.shim';
@@ -78,7 +78,8 @@ export class MicroComponent implements AfterViewInit, OnDestroy, OnInit {
 
   queryTracks: Observable<(Track & ClusterMixin & AlignmentMixin)[]>;
 
-  constructor(private _geneService: GeneService,
+  constructor(private _familyService: FamilyService,
+              private _geneService: GeneService,
               private _microTracksService: MicroTracksService,
               private _processService: ProcessService) { }
 
@@ -108,11 +109,12 @@ export class MicroComponent implements AfterViewInit, OnDestroy, OnInit {
           return this._geneService.getGenesForTracks(tracks);
         }),
       );
+    const omittedFamilies = this._familyService.getOmittedFamilies();
     // fetch own data because injected components don't have change detection
-    combineLatest(queryGenes, this.queryTracks, allTracks, genes)
+    combineLatest(queryGenes, this.queryTracks, allTracks, genes, omittedFamilies)
       .pipe(takeUntil(this._destroy))
-      .subscribe(([queryGenes, queryTracks, allTracks, genes]) => {
-        this._preDraw(queryGenes, queryTracks, allTracks, genes);
+      .subscribe(([queryGenes, queryTracks, allTracks, genes, omittedFamilies]) => {
+        this._preDraw(queryGenes, queryTracks, allTracks, genes, omittedFamilies);
         this.draw();
       });
   }
@@ -176,9 +178,9 @@ export class MicroComponent implements AfterViewInit, OnDestroy, OnInit {
     }
   }
 
-  private _preDraw(queryGenes, queryTracks, tracks, genes): void {
+  private _preDraw(queryGenes, queryTracks, tracks, genes, omittedFamilies): void {
     const {data, bold, familySizes} =
-      microShim(this.clusterID, queryTracks, tracks, genes);
+      microShim(this.clusterID, queryTracks, tracks, genes, omittedFamilies);
     let options = {
         bold: bold,
         highlight: queryGenes.map((g) => g.name),

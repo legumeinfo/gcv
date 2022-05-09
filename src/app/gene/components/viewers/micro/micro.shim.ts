@@ -55,8 +55,9 @@ function _greedyIntervalScheduling<T>(intervals: ({begin: number, end: number} &
 }
 
 
-function _tracksToData(tracks, genes) {
+function _tracksToData(tracks, genes, omittedFamilies) {
   const map = geneMap(genes);
+  const omittedFamilySet = new Set(omittedFamilies);
   return tracks.map((t, j) => {
 
       // assign y values based on orientation, segment, and coordinates
@@ -132,6 +133,9 @@ function _tracksToData(tracks, genes) {
           if (gene.strand != undefined) {
             gene.strand *= t.orientations[i];
           }
+          if (omittedFamilySet.has(gene.family)) {
+            gene['glyph'] = 'circle';
+          }
           track.genes.push(gene);
         }
       });
@@ -142,10 +146,10 @@ function _tracksToData(tracks, genes) {
 
 
 // convert track and gene data into a visualization friendly format
-export function microShim(clusterID, queryTracks, tracks, genes) {
+export function microShim(clusterID, queryTracks, tracks, genes, omittedFamilies) {
   // create data
   const filteredTracks = tracks.filter((t) => t.cluster == clusterID);
-  const data = _tracksToData(filteredTracks, genes);
+  const data = _tracksToData(filteredTracks, genes, omittedFamilies);
   // identify bold tracks
   const bold = [];
   filteredTracks.forEach((t, i) => {
