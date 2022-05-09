@@ -13,7 +13,7 @@ export function microLegendShim(tracks) {
   const familyMembers = tracks.reduce(reducer, {});
   const orphans = {name: 'Orphans', id: '', genes: []};
   if ('' in familyMembers) {
-    orphans['genes'] = familyMembers[''].members;
+    orphans.genes = familyMembers[''];
     delete familyMembers[''];
   }
   const singletonIDs =

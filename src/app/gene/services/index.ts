@@ -1,5 +1,6 @@
 import { ChromosomeService } from './chromosome.service';
 import { ComponentService } from './component.service';
+import { FamilyService } from './family.service';
 import { GeneService } from './gene.service';
 import { InterAppCommunicationService } from './inter-app-communication.service';
 import { LayoutService } from './layout.service';
@@ -13,6 +14,7 @@ import { RegionService } from './region.service';
 export const services: any[] = [
   ChromosomeService,
   ComponentService,
+  FamilyService,
   GeneService,
   InterAppCommunicationService,
   LayoutService,
@@ -26,6 +28,7 @@ export const services: any[] = [
 
 export * from './chromosome.service';
 export * from './component.service';
+export * from './family.service';
 export * from './gene.service';
 export * from './inter-app-communication.service';
 export * from './layout.service';

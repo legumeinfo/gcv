@@ -63,7 +63,6 @@ export class Legend extends Visualizer {
     // parse optional parameters
     this.options = Object.assign({}, options);
     this.options.highlight = this.options.highlight || [];
-    this.options.checkboxes = this.options.checkboxes || [];
     this.options.checkboxCallback = this.options.checkboxCallback || ((id, checked) => { /* noop */ });
     this.options.selectiveColoring = this.options.selectiveColoring;
     this.options.keyClick = this.options.keyClick || ((k) => { /* noop */ });
@@ -161,7 +160,7 @@ export class Legend extends Visualizer {
       .text(() => f.name);
     // add optional key checkbox
     let foreigner = undefined;
-    if (this.options.checkboxes.indexOf(f.id) !== -1) {
+    if ('checkbox' in f) {
       foreigner = row.append("foreignObject")
           .attr("width", this.RECT_SIZE)
           .attr("height", this.RECT_SIZE);
@@ -171,7 +170,7 @@ export class Legend extends Visualizer {
           .attr("line-height", this.RECT_SIZE)
           .append("input")
           .attr("type", "checkbox");
-      if (f.checked === undefined || f.checked) {
+      if (f.checkbox) {
         checkbox.attr("checked", true);
       }
       checkbox

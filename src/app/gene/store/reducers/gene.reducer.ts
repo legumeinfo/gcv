@@ -15,9 +15,6 @@ import { Gene } from '@gcv/gene/models';
 import { ActionID } from '@gcv/store/utils';
 
 
-declare var Object: any;  // because TypeScript doesn't support Object.values
-
-
 export const geneFeatureKey = 'gene';
 
 
