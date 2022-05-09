@@ -20,12 +20,13 @@ export class Legend extends Visualizer {
    */
   protected eventHandler(event) {
     // select the relevant elements in the viewer
+    const selector = this.options.selector;
     let selection;
-    if (event.targets.hasOwnProperty(this.options.selector)) {
+    if (event.targets.hasOwnProperty(selector)) {
       const selectors = [];
-      event.targets[this.options.selector].split(",").forEach((f) => {
-        selectors.push("[data-" + this.options.selector + "='" + f + "']");  // orphans
-        selectors.push("[data-" + this.options.selector + "*='" + f + "']");  // singletons
+      event.targets[selector].split(",").forEach((f) => {
+        selectors.push("[data-" + selector + "='" + f + "']");  // orphans
+        selectors.push("[data-" + selector + "*='" + f + "']");  // singletons
       });
       selection = this.viewer.selectAll(selectors.join(", "));
     }
@@ -69,6 +70,7 @@ export class Legend extends Visualizer {
     this.options.autoResize = this.options.autoResize || false;
     this.options.hoverDelay = this.options.hoverDelay || 0;
     this.options.selector = this.options.selector || "";
+    this.options.membersSelector = this.options.membersSelector || undefined;
     this.options.blank = this.options.blank || undefined;
     this.options.blankDashed = this.options.blankDashed || undefined;
     this.options.multiDelimiter = this.options.multiDelimiter || undefined;
@@ -100,21 +102,29 @@ export class Legend extends Visualizer {
    */
   private drawKey(legend, f) {
     const obj = this;
+    const selector = obj.options.selector;
+    const membersSelector = obj.options.membersSelector;
     const row = legend.append("g");
     // create the key group
     const publishKeyEvent = (type) => {
       const event = {type, targets: {}};
-      event.targets[obj.options.selector] = f.id;
+      event.targets[selector] = f.id;
+      if (membersSelector !== undefined) {
+        event.targets[membersSelector] = f[membersSelector];
+      }
       return () => eventBus.publish(event);
     };
     // add a key gorup to handle mouse events
     const key = row.append("g")
       .attr("class", "legend")
-      .attr("data-" + this.options.selector, f.id)
+      .attr("data-" + selector, f.id)
       .style("cursor", "pointer")
       .on("mouseover", () => this.setTimeout(publishKeyEvent("select")))
       .on("mouseout", () => this.clearTimeout(publishKeyEvent("deselect")))
       .on("click", () => this.options.keyClick(f));
+    if (membersSelector !== undefined) {
+      key.attr("data-" + membersSelector, f[membersSelector]);
+    }
     // add the colored rectangles
     let shape;
     if (f.glyph === "circle") {

@@ -77,13 +77,14 @@ export class MicroLegendComponent implements AfterViewInit, OnDestroy {
   }
 
   private _preDraw(tracks, queryGenes): void {
-    const {data, singletons} = microLegendShim(tracks);
+    const {data, singletons, orphans} = microLegendShim(tracks);
     let options = {
         blank: singletons,
-        blankDashed: {name: "Orphans", id: ''},
+        blankDashed: orphans,
         highlight: queryGenes.map((g) => g.family),
         keyClick: (k) => this.emitClick(k),
         selector: 'family',
+        membersSelector: 'genes',
       };
     options = Object.assign(options, this.options, {autoResize: false});
     this.draw = this._draw.bind(this, data, options);
