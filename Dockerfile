@@ -46,8 +46,10 @@ RUN npx ng build --prod $ANGULAR_BUILD_OPTIONS
 # prod stage deploys the project with NGINX
 FROM nginx:1.21-alpine as prod
 
-# copy the nginx configuration
-COPY nginx/default.conf /etc/nginx/conf.d/
+# copy the nginx configuration template
+COPY nginx/templates/default.conf.template /etc/nginx/templates/
+# set the default values for the variables used in the template
+ENV GCV_PATH=/gcv
 
 # put the build artifacts where nginx can find them
 COPY --from=build /gcv/dist /usr/share/nginx/html

@@ -7,7 +7,7 @@ server {
         alias   /usr/share/nginx/html/;
         index  index.html;
         try_files $uri $uri/ /index.html;
-        sub_filter '<base href="/">' '<base href="/gcv">';
+        sub_filter '<base href="/">' '<base href="${GCV_PATH}">';
         sub_filter_once on;
     }
 
