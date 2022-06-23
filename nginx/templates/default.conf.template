@@ -3,12 +3,15 @@ server {
     listen 80;
     root   /usr/share/nginx/html;
 
+    # gcv app
     location / {
         alias   /usr/share/nginx/html/;
-        index  index.html;
-        try_files $uri $uri/ /index.html;
+        #index  index.html;
         sub_filter '<base href="/">' '<base href="${GCV_PATH}">';
         sub_filter_once on;
+        rewrite ^${GCV_PATH}(config\/config.json)$ /$1 last;
+        rewrite ^${GCV_PATH}(.*\.(js|css|png|gif|svg|ttf|eot|woff|woff2))$ /$1 last;
+        try_files $uri $uri/ /index.html;
     }
 
 }
