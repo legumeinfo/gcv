@@ -6,7 +6,7 @@ server {
     # gcv app
     location / {
         alias   /usr/share/nginx/html/;
-        #index  index.html;
+        index  index.html;
         sub_filter '<base href="/">' '<base href="${GCV_PATH}">';
         sub_filter_once on;
         rewrite ^${GCV_PATH}(config\/config.json)$ /$1 last;
