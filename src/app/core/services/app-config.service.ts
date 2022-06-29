@@ -43,6 +43,8 @@ const defaultConfig = {
         matched: 20,
         intermediate: 10,
         mask: 10,
+        minChromosomeGenes: 1,
+        minChromosomeLength: 100000,
       },
       macroSyntenyOrder: 'distance',
       microSynteny: {

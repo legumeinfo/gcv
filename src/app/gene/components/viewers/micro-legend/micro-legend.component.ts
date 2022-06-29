@@ -1,6 +1,6 @@
 // Angular + dependencies
-import { AfterViewInit, Component, ElementRef, EventEmitter, Input, NgZone,
-  OnDestroy, Output, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, EventEmitter, Input, OnDestroy,
+  Output, ViewChild } from '@angular/core';
 import { Observable, Subject, combineLatest } from 'rxjs';
 import { map, takeUntil } from 'rxjs/operators';
 // app
@@ -8,8 +8,7 @@ import { GCV } from '@gcv-assets/js/gcv';
 import { saveFile } from '@gcv/core/utils';
 import { Gene, Track } from '@gcv/gene/models';
 import { AlignmentMixin, ClusterMixin } from '@gcv/gene/models/mixins';
-import { FamilyService, GeneService, MicroTracksService }
-  from '@gcv/gene/services';
+import { GeneService, MicroTracksService } from '@gcv/gene/services';
 import { microLegendShim } from './micro-legend.shim';
 
 
@@ -33,10 +32,8 @@ export class MicroLegendComponent implements AfterViewInit, OnDestroy {
   private _destroy: Subject<boolean> = new Subject();
   private _viewer;
 
-  constructor(private _familyService: FamilyService,
-              private _geneService: GeneService,
-              private _microTracksService: MicroTracksService,
-              private _zone: NgZone) { }
+  constructor(private _geneService: GeneService,
+              private _microTracksService: MicroTracksService) { }
 
   // Angular hooks
 
@@ -44,11 +41,10 @@ export class MicroLegendComponent implements AfterViewInit, OnDestroy {
     // fetch own data because injected components don't have change detection
     const queryGenes = this._geneService.getQueryGenes();
     const tracks = this._microTracksService.getAllTracks();
-    const omittedFamilies = this._familyService.getOmittedFamilies();
-    combineLatest(tracks, queryGenes, omittedFamilies)
+    combineLatest(tracks, queryGenes)
       .pipe(takeUntil(this._destroy))
-      .subscribe(([tracks, queryGenes, omittedFamilies]) => {
-        this._preDraw(tracks, queryGenes, omittedFamilies);
+      .subscribe(([tracks, queryGenes]) => {
+        this._preDraw(tracks, queryGenes);
         this.draw();
       });
   }
@@ -80,25 +76,14 @@ export class MicroLegendComponent implements AfterViewInit, OnDestroy {
     }
   }
 
-  private _preDraw(tracks, queryGenes, omittedFamilies): void {
-    const {data, singletons, orphans} = microLegendShim(tracks);
-    orphans['checkbox'] = (omittedFamilies.indexOf(orphans.id) === -1);
+  private _preDraw(tracks, queryGenes): void {
+    const {data, singletons} = microLegendShim(tracks);
     let options = {
         blank: singletons,
-        blankDashed: orphans,
-        checkboxCallback: (id, checked) => {
-          this._zone.run(() => {
-            if (checked) {
-              this._familyService.includeFamilies([id]);
-            } else {
-              this._familyService.omitFamilies([id]);
-            }
-          });
-        },
+        blankDashed: {name: "Orphans", id: ''},
         highlight: queryGenes.map((g) => g.family),
         keyClick: (k) => this.emitClick(k),
         selector: 'family',
-        membersSelector: 'genes',
       };
     options = Object.assign(options, this.options, {autoResize: false});
     this.draw = this._draw.bind(this, data, options);

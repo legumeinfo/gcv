@@ -47,9 +47,11 @@ implements AfterViewInit, OnChanges, OnDestroy {
     this._initImgLoader(this.screenshotElement.nativeElement);
     // setup the modal lazy loader
     $(this.modalElement.nativeElement).on('show.bs.modal', (e) => {
+      console.log('modal init');
       this._initImgLoader(this.modalElement.nativeElement);
     })
     $(this.modalElement.nativeElement).on('hidden.bs.modal', (e) => {
+      console.log('modal destroy');
       this._destroyImgLoader(this._modalLoader);
     })
   }

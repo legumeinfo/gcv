@@ -51,12 +51,6 @@ export class TooltipFactoryDirective {
         onHidden: (instance) => {
           instance.destroy();
         },
-        onMount(instance) {
-          // destroy the tip if its target no longer exists
-          if (!document.body.contains(target)) {
-            instance.destroy();
-          }
-        },
         plugins: [sticky],
       };
     _options = Object.assign(_options, options);

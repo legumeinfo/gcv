@@ -20,13 +20,12 @@ export class Legend extends Visualizer {
    */
   protected eventHandler(event) {
     // select the relevant elements in the viewer
-    const selector = this.options.selector;
     let selection;
-    if (event.targets.hasOwnProperty(selector)) {
+    if (event.targets.hasOwnProperty(this.options.selector)) {
       const selectors = [];
-      event.targets[selector].split(",").forEach((f) => {
-        selectors.push("[data-" + selector + "='" + f + "']");  // orphans
-        selectors.push("[data-" + selector + "*='" + f + "']");  // singletons
+      event.targets[this.options.selector].split(",").forEach((f) => {
+        selectors.push("[data-" + this.options.selector + "='" + f + "']");  // orphans
+        selectors.push("[data-" + this.options.selector + "*='" + f + "']");  // singletons
       });
       selection = this.viewer.selectAll(selectors.join(", "));
     }
@@ -63,13 +62,13 @@ export class Legend extends Visualizer {
     // parse optional parameters
     this.options = Object.assign({}, options);
     this.options.highlight = this.options.highlight || [];
+    this.options.checkboxes = this.options.checkboxes || [];
     this.options.checkboxCallback = this.options.checkboxCallback || ((id, checked) => { /* noop */ });
     this.options.selectiveColoring = this.options.selectiveColoring;
     this.options.keyClick = this.options.keyClick || ((k) => { /* noop */ });
     this.options.autoResize = this.options.autoResize || false;
     this.options.hoverDelay = this.options.hoverDelay || 0;
     this.options.selector = this.options.selector || "";
-    this.options.membersSelector = this.options.membersSelector || undefined;
     this.options.blank = this.options.blank || undefined;
     this.options.blankDashed = this.options.blankDashed || undefined;
     this.options.multiDelimiter = this.options.multiDelimiter || undefined;
@@ -101,29 +100,21 @@ export class Legend extends Visualizer {
    */
   private drawKey(legend, f) {
     const obj = this;
-    const selector = obj.options.selector;
-    const membersSelector = obj.options.membersSelector;
     const row = legend.append("g");
     // create the key group
     const publishKeyEvent = (type) => {
       const event = {type, targets: {}};
-      event.targets[selector] = f.id;
-      if (membersSelector !== undefined) {
-        event.targets[membersSelector] = f[membersSelector];
-      }
+      event.targets[obj.options.selector] = f.id;
       return () => eventBus.publish(event);
     };
     // add a key gorup to handle mouse events
     const key = row.append("g")
       .attr("class", "legend")
-      .attr("data-" + selector, f.id)
+      .attr("data-" + this.options.selector, f.id)
       .style("cursor", "pointer")
       .on("mouseover", () => this.setTimeout(publishKeyEvent("select")))
       .on("mouseout", () => this.clearTimeout(publishKeyEvent("deselect")))
       .on("click", () => this.options.keyClick(f));
-    if (membersSelector !== undefined) {
-      key.attr("data-" + membersSelector, f[membersSelector]);
-    }
     // add the colored rectangles
     let shape;
     if (f.glyph === "circle") {
@@ -160,7 +151,7 @@ export class Legend extends Visualizer {
       .text(() => f.name);
     // add optional key checkbox
     let foreigner = undefined;
-    if ('checkbox' in f) {
+    if (this.options.checkboxes.indexOf(f.id) !== -1) {
       foreigner = row.append("foreignObject")
           .attr("width", this.RECT_SIZE)
           .attr("height", this.RECT_SIZE);
@@ -170,7 +161,7 @@ export class Legend extends Visualizer {
           .attr("line-height", this.RECT_SIZE)
           .append("input")
           .attr("type", "checkbox");
-      if (f.checkbox) {
+      if (f.checked === undefined || f.checked) {
         checkbox.attr("checked", true);
       }
       checkbox

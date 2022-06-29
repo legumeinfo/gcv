@@ -88,6 +88,8 @@ export type DefaultParameters = {
       matched: number;
       intermediate: number;
       mask: number;
+      minChromosomeGenes: number;
+      minChromosomeLength: number;
     };
     macroSyntenyOrder: string;
     microSynteny: {
@@ -121,6 +123,8 @@ export function isDefaultParameters(instance: any): instance is DefaultParameter
         typeof defaultParameters.gene.macroSynteny.matched === 'number' &&
         typeof defaultParameters.gene.macroSynteny.intermediate === 'number' &&
         typeof defaultParameters.gene.macroSynteny.mask === 'number' &&
+        typeof defaultParameters.gene.macroSynteny.minChromosomeGenes === 'number' &&
+        typeof defaultParameters.gene.macroSynteny.minChromosomeLength === 'number' &&
       typeof defaultParameters.gene.macroSyntenyOrder === 'string' &&
       typeof defaultParameters.gene.microSyntenyOrder === 'string' &&
       typeof defaultParameters.gene.microSynteny === 'object' &&

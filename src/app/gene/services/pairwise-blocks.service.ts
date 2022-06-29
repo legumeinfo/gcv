@@ -54,6 +54,8 @@ export class PairwiseBlocksService extends HttpService {
         intermediate: blockParams.bintermediate,
         mask: blockParams.bmask,
         matched: blockParams.bmatched,
+        minChromosomeGenes: blockParams.bminChromosomeGenes,
+        minChromosomeLength: blockParams.bminChromosomeLength,
         targets,
         optionalMetrics,
       };
@@ -81,6 +83,8 @@ export class PairwiseBlocksService extends HttpService {
       grpcRequest.setMatched(blockParams.bmatched);
       grpcRequest.setIntermediate(blockParams.bintermediate);
       grpcRequest.setMask(blockParams.bmask);
+      grpcRequest.setOptionalchromosomegenes(blockParams.bminChromosomeGenes);
+      grpcRequest.setOptionalchromosomelength(blockParams.bminChromosomeLength);
       grpcRequest.setTargetsList(targets);
       grpcRequest.setOptionalmetricsList(optionalMetrics);
       const clientRequest = client.compute(grpcRequest, {});

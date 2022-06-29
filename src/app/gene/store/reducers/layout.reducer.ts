@@ -1,14 +1,9 @@
-// This reduce stores state related to the layout of the Gene application.
-
-
 // NgRx
 import { createReducer, on } from '@ngrx/store';
 // store
-import * as layoutActions from '@gcv/gene/store/actions/layout.actions';
-
+import * as LayoutActions from '@gcv/gene/store/actions/layout.actions';
 
 export const layoutFeatureKey = 'layout';
-
 
 export interface State {
   showLeftSlider: boolean;
@@ -22,25 +17,25 @@ const initialState: State = {
 
 export const reducer = createReducer(
   initialState,
-  on(layoutActions.CloseLeftSlider, (state) => {
+  on(LayoutActions.CloseLeftSlider, (state) => {
     return {
       ...state,
       showLeftSlider: false,
     };
   }),
-  on(layoutActions.OpenLeftSlider, (state) => {
+  on(LayoutActions.OpenLeftSlider, (state) => {
     return {
       ...state,
       showLeftSlider: true,
     };
   }),
-  on(layoutActions.ToggleLeftSlider, (state) => {
+  on(LayoutActions.ToggleLeftSlider, (state) => {
     return {
       ...state,
       showLeftSlider: !state.showLeftSlider,
     };
   }),
-  on(layoutActions.ToggleLeftSliderContent, (state, {content}) => {
+  on(LayoutActions.ToggleLeftSliderContent, (state, {content}) => {
     return {
       ...state,
       showLeftSlider: (state.leftSliderContent !== content) || !state.showLeftSlider,
