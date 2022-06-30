@@ -14,8 +14,8 @@ export const initialState: Params = {
   bmatched: AppConfig.defaultParameters.gene.macroSynteny.matched,
   bintermediate: AppConfig.defaultParameters.gene.macroSynteny.intermediate,
   bmask: AppConfig.defaultParameters.gene.macroSynteny.mask,
-  bminChromosomeGenes: AppConfig.defaultParameters.gene.macroSynteny.minChromosomeGenes,
-  bminChromosomeLength: AppConfig.defaultParameters.gene.macroSynteny.minChromosomeLength,
+  bchrgenes: AppConfig.defaultParameters.gene.macroSynteny.minChromosomeGenes,
+  bchrlength: AppConfig.defaultParameters.gene.macroSynteny.minChromosomeLength,
   // clustering
   linkage: AppConfig.defaultParameters.gene.microSyntenyClustering.linkage,
   cthreshold: AppConfig.defaultParameters.gene.microSyntenyClustering.cthreshold,
