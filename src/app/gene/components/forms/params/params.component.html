@@ -19,6 +19,18 @@
       <small class="form-text text-muted">Positive integer (&ge;1)</small>
       <p class="help-block" *ngIf="blockHelp">The maximum number of instances of a family that can occur on a chromosome before it's omitted from block computations.</p>
     </div>
+    <div class="mb-3" [ngClass]="{'has-error': !blockGroup.controls.bminChromosomeGenes.valid}">
+      <label class="form-label" for="bminChromosomeGenes">Min Chromosome Genes</label>
+      <input type="number" class="form-control" formControlName="bminChromosomeGenes" >
+      <small class="form-text text-muted">Positive integer (&ge;1)</small>
+      <p class="help-block" *ngIf="blockHelp">Exclude chromosomes that have less than the specified number of genes from being used when computing macro-synteny blocks.</p>
+    </div>
+    <div class="mb-3" [ngClass]="{'has-error': !blockGroup.controls.bminChromosomeLength.valid}">
+      <label class="form-label" for="bminChromosomeLength">Min Chromosome Length (bp)</label>
+      <input type="number" class="form-control" formControlName="bminChromosomeLength" >
+      <small class="form-text text-muted">Positive integer (&ge;1)</small>
+      <p class="help-block" *ngIf="blockHelp">Exclude chromosomes with physical length less than the specified number of base-pairs from being used when computing macro-synteny blocks.</p>
+    </div>
   </fieldset>
   <fieldset id="query-parameters" [formGroup]="queryGroup">
     <legend>Micro-Synteny<a id="query-params-help" class="float-end" (click)="queryHelp=!queryHelp" role="button"><i class="fas fa-question-circle"></i></a></legend>

@@ -8,6 +8,8 @@ export type BlockParams = {
   bmatched: number,
   bintermediate: number,
   bmask: number,
+  bminChromosomeGenes: number,
+  bminChromosomeLength: number,
 };
 
 
@@ -15,6 +17,8 @@ export const blockParamMembers = [
   'bmatched',
   'bintermediate',
   'bmask',
+  'bminChromosomeGenes',
+  'bminChromosomeLength',
 ];
 
 
@@ -31,6 +35,12 @@ export const blockParamValidators = {
     Validators.required,
     Validators.pattern(Regex.POSITIVE_INT),
   ]),
+  bminChromosomeGenes: Validators.compose([
+    Validators.pattern(Regex.POSITIVE_INT),
+  ]),
+  bminChromosomeLength: Validators.compose([
+    Validators.pattern(Regex.POSITIVE_INT),
+  ]),
 };
 
 
@@ -38,4 +48,6 @@ export const blockParamParsers = {
   bintermediate: parseInt,
   bmask: parseInt,
   bmatched: parseInt,
+  bminChromosomeGenes: parseInt,
+  bminChromosomeLength: parseInt,
 };
