@@ -71,8 +71,8 @@
         "url": "http://localhost/gcv/microservices/chromosome/grpc-web"
       },
       "genes": {
-        "type": "POST",
-        "url": "http://localhost/gcv/microservices/genes"
+        "type": "GRPC",
+        "url": "http://localhost/gcv/microservices/genes/grpc-web"
       },
       "blocks": {
         "type": "GRPC",

@@ -52,12 +52,12 @@ export class PairwiseBlocksService extends HttpService {
       const body = {
         chromosome: chromosome.families,
         intermediate: blockParams.bintermediate,
-        mask: blockParams.bmask,
         matched: blockParams.bmatched,
+        targets,
+        mask: blockParams.bmask,
+        optionalMetrics,
         chromosomeGenes: blockParams.bchrgenes,
         chromosomeLength: blockParams.bchrlength,
-        targets,
-        optionalMetrics,
       };
       return this._makeHttpRequest<{blocks: RawPairwiseBlocks[]}>(request, body).pipe(
         map((result) => {
@@ -82,11 +82,11 @@ export class PairwiseBlocksService extends HttpService {
       grpcRequest.setChromosomeList(chromosome.families);
       grpcRequest.setMatched(blockParams.bmatched);
       grpcRequest.setIntermediate(blockParams.bintermediate);
+      grpcRequest.setTargetsList(targets);
       grpcRequest.setMask(blockParams.bmask);
+      grpcRequest.setOptionalmetricsList(optionalMetrics);
       grpcRequest.setChromosomegenes(blockParams.bchrgenes);
       grpcRequest.setChromosomelength(blockParams.bchrlength);
-      grpcRequest.setTargetsList(targets);
-      grpcRequest.setOptionalmetricsList(optionalMetrics);
       const clientRequest = client.compute(grpcRequest, {});
       return from(clientRequest).pipe(
         map((result: MacroSyntenyBlocksComputeReply) => {
