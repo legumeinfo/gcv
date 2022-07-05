@@ -13,23 +13,28 @@
       <small class="form-text text-muted">Non-negative integer (&ge;0)</small>
       <p class="help-block" *ngIf="blockHelp">The maximum number of non-matching genes between successive matching genes in a block.</p>
     </div>
-    <div class="mb-3" [ngClass]="{'has-error': !blockGroup.controls.bmask.valid}">
-      <label class="form-label" for="bmask">Max Family Size</label>
-      <input type="number" class="form-control" formControlName="bmask" >
-      <small class="form-text text-muted">Positive integer (&ge;1)</small>
-      <p class="help-block" *ngIf="blockHelp">The maximum number of instances of a family that can occur on a chromosome before it's omitted from block computations.</p>
-    </div>
-    <div class="mb-3" [ngClass]="{'has-error': !blockGroup.controls.bchrgenes.valid}">
-      <label class="form-label" for="bchrgenes">Min Chromosome Genes</label>
-      <input type="number" class="form-control" formControlName="bchrgenes" >
-      <small class="form-text text-muted">Positive integer (&ge;1)</small>
-      <p class="help-block" *ngIf="blockHelp">Exclude chromosomes that have less than the specified number of genes from being used when computing macro-synteny blocks.</p>
-    </div>
-    <div class="mb-3" [ngClass]="{'has-error': !blockGroup.controls.bchrlength.valid}">
-      <label class="form-label" for="bchrlength">Min Chromosome Length (bp)</label>
-      <input type="number" class="form-control" formControlName="bchrlength" >
-      <small class="form-text text-muted">Positive integer (&ge;1)</small>
-      <p class="help-block" *ngIf="blockHelp">Exclude chromosomes with physical length less than the specified number of base-pairs from being used when computing macro-synteny blocks.</p>
+    <label class="form-label">
+      <a data-bs-toggle="collapse" class="dropdown-toggle" href="#macro-advanced" aria-expanded="false" aria-controls="macro-advanced">Advanced options</a>
+    </label>
+    <div class="collapse" id="macro-advanced">
+      <div class="mb-3" [ngClass]="{'has-error': !blockGroup.controls.bmask.valid}">
+        <label class="form-label" for="bmask">Max Family Size</label>
+        <input type="number" class="form-control" formControlName="bmask" >
+        <small class="form-text text-muted">Positive integer (&ge;1)</small>
+        <p class="help-block" *ngIf="blockHelp">The maximum number of instances of a family that can occur on a chromosome before it's omitted from block computations.</p>
+      </div>
+      <div class="mb-3" [ngClass]="{'has-error': !blockGroup.controls.bchrgenes.valid}">
+        <label class="form-label" for="bchrgenes">Min Chromosome Genes</label>
+        <input type="number" class="form-control" formControlName="bchrgenes" >
+        <small class="form-text text-muted">Positive integer (&ge;1)</small>
+        <p class="help-block" *ngIf="blockHelp">Exclude chromosomes that have less than the specified number of genes from being used when computing macro-synteny blocks.</p>
+      </div>
+      <div class="mb-3" [ngClass]="{'has-error': !blockGroup.controls.bchrlength.valid}">
+        <label class="form-label" for="bchrlength">Min Chromosome Length (bp)</label>
+        <input type="number" class="form-control" formControlName="bchrlength" >
+        <small class="form-text text-muted">Positive integer (&ge;1)</small>
+        <p class="help-block" *ngIf="blockHelp">Exclude chromosomes with physical length less than the specified number of base-pairs from being used when computing macro-synteny blocks.</p>
+      </div>
     </div>
   </fieldset>
   <fieldset id="query-parameters" [formGroup]="queryGroup">
