@@ -1,6 +1,6 @@
 // Angular
 import { Component, EventEmitter, OnDestroy, OnInit, Output } from '@angular/core';
-import { FormBuilder, FormGroup } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 // app
@@ -36,11 +36,11 @@ export class ParamsComponent implements OnDestroy, OnInit {
   sourcesHelp = false;
 
   // form groups
-  blockGroup: FormGroup;
-  queryGroup: FormGroup;
-  clusteringGroup: FormGroup;
-  alignmentGroup: FormGroup;
-  sourcesGroup: FormGroup;
+  blockGroup: UntypedFormGroup;
+  queryGroup: UntypedFormGroup;
+  clusteringGroup: UntypedFormGroup;
+  alignmentGroup: UntypedFormGroup;
+  sourcesGroup: UntypedFormGroup;
 
   // form data
   linkages = LINKAGES;
@@ -53,7 +53,7 @@ export class ParamsComponent implements OnDestroy, OnInit {
   // constructor
   constructor(private _appConfig: AppConfig,
               private _paramsService: ParamsService,
-              private _fb: FormBuilder) {
+              private _fb: UntypedFormBuilder) {
     this.sources = _appConfig.servers.filter((s) => s.hasOwnProperty('microSearch'));
     // initialize form groups
     this.blockGroup =
@@ -106,7 +106,7 @@ export class ParamsComponent implements OnDestroy, OnInit {
 
   // private
 
-  private _initializeGroup(members, validators): FormGroup {
+  private _initializeGroup(members, validators): UntypedFormGroup {
     const controls = formControlConfigFactory(members, {}, validators);
     return this._fb.group(controls);
   }

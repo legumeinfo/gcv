@@ -1,6 +1,6 @@
 // Angular
 import { Injectable } from '@angular/core';
-import { FormBuilder } from '@angular/forms';
+import { UntypedFormBuilder } from '@angular/forms';
 import { PRIMARY_OUTLET, ActivatedRouteSnapshot, CanActivate, NavigationExtras,
   Router, RouterStateSnapshot, UrlTree } from '@angular/router';
 import { Observable } from 'rxjs';
@@ -16,7 +16,7 @@ import { formControlConfigFactory, parseParams } from '@gcv/core/models/params';
 export class QueryParamsGuard implements CanActivate {
 
   constructor(
-    private _fb: FormBuilder,
+    private _fb: UntypedFormBuilder,
     private _router: Router,
     private _store: Store<fromRoot.State>,
   ) { }
