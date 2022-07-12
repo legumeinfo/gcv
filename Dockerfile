@@ -40,7 +40,7 @@ FROM base as build
 ARG ANGULAR_BUILD_OPTIONS=''
 
 # build the project
-RUN npx ng build --prod $ANGULAR_BUILD_OPTIONS
+RUN npx ng build --configuration production $ANGULAR_BUILD_OPTIONS
 
 
 # prod stage deploys the project with NGINX
