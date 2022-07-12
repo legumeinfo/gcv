@@ -1,0 +1,22 @@
+version: 2
+updates:
+  - package-ecosystem: 'npm'
+    directory: '/'
+    schedule:
+      interval: 'daily'
+    ignore:
+      - dependency-name: "d3"
+      - dependency-name: "@types/d3"
+      - dependency-name: "golden-layout"
+  - package-ecosystem: 'npm'
+    directory: '/dep/legumeinfo-microservices'
+    schedule:
+      interval: 'daily'
+    ignore:
+      - dependency-name: "d3"
+      - dependency-name: "@types/d3"
+      - dependency-name: "golden-layout"
+  - package-ecosystem: "docker"
+    directory: "/"
+    schedule:
+      interval: "daily"
