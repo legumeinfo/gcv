@@ -58,7 +58,7 @@
     "@types/node": "^18.0.3",
     "@typescript-eslint/eslint-plugin": "^5.15.0",
     "@typescript-eslint/parser": "^5.15.0",
-    "eslint": "^8.11.0",
+    "eslint": "^8.20.0",
     "eslint-plugin-ngrx": "^2.0.4",
     "jasmine-core": "~4.2.0",
     "karma": "~6.4.0",
