@@ -10,12 +10,14 @@ updates:
       - dependency-name: 'd3'
       - dependency-name: '@types/d3'
       - dependency-name: 'golden-layout'
+    open-pull-requests-limit: 15
 
   # microservice protobuf pseudo-package
   - package-ecosystem: 'npm'
     directory: '/dep/legumeinfo-microservices'
     schedule:
       interval: 'daily'
+    open-pull-requests-limit: 15
 
   # Dockerfile
   - package-ecosystem: 'docker'
