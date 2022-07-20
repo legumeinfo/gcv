@@ -184,6 +184,21 @@ $arrow-border-size: $bootstrap-btn-padding + math.div($bootstrap-btn-line-height
   border-left-color: $bootstrap-dark-hover;
 }
 
+/* alert */
+$prefix: bs-;
+.pipeline .btn.pipeline-arrow.alert-primary,
+.pipeline .btn.pipeline-arrow.alert-secondary,
+.pipeline .btn.pipeline-arrow.alert-success,
+.pipeline .btn.pipeline-arrow.alert-danger,
+.pipeline .btn.pipeline-arrow.alert-warning,
+.pipeline .btn.pipeline-arrow.alert-info,
+.pipeline .btn.pipeline-arrow.alert-light,
+.pipeline .btn.pipeline-arrow.alert-dark {
+  color: var(--#{$prefix}alert-color);
+  background-color: var(--#{$prefix}alert-bg);
+}
+
+
 /* primary alert */
 .pipeline .btn.pipeline-arrow.alert-primary:not(:last-child) {
   border-right-color: $bootstrap-alert-primary;
