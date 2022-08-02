@@ -11,6 +11,7 @@ import * as routerActions from '@gcv/store/actions/router.actions';
 import * as fromRoot from '@gcv/store/reducers';
 import * as fromPairwiseBlocks from '@gcv/gene/store/selectors/pairwise-blocks/';
 // app
+import { GCV } from '@gcv-assets/js/gcv';
 import { AppConfig, ConfigError, GET, POST, GRPC } from '@gcv/core/models';
 import { HttpService, ScriptService } from '@gcv/core/services';
 import { executeFunctionByName } from '@gcv/core/utils';
@@ -138,18 +139,18 @@ export class PairwiseBlocksService extends HttpService {
     this._store.dispatch(new routerActions.Go({path, query}));
   }
 
-  getMacroColors(chromosomes: Track[]): Observable<Function|undefined> {
-    if (chromosomes.length == 0) {
-      return of(undefined);
-    }
-    const s: any = this._appConfig.getServer(chromosomes[0].source);
-    if (s !== undefined && s.macroColors !== undefined) {
+  getMacroColors(): Observable<Function|undefined> {
+    // use colors from config file
+    const macroConfig: any = this._appConfig.macroLegend;
+    console.log(macroConfig);
+    if (macroConfig !== undefined && macroConfig.colors !== undefined) {
       let func: Function = (args) => {
-          return executeFunctionByName(s.macroColors.functionName, window, args);
+          return executeFunctionByName(macroConfig.colors.functionName, window, args);
         };
-      return this._scriptService.loadScript(s.macroColors.scriptUrl)
+      return this._scriptService.loadScript(macroConfig.colors.scriptUrl)
         .pipe(endWith(func));
     }
-    return of(undefined);
+    // use GCV colors by default
+    return of(GCV.common.colors);
   }
 }

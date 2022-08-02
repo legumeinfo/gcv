@@ -50,10 +50,6 @@
       "name": "Legume Information System",
       "description": "Info about legume traits for crop improvement.",
       "website": "https://legumeinfo.org/",
-      "macroColors": {
-        "scriptUrl": "https://cdn.rawgit.com/legumeinfo/lis-taxon-symbology/01e02d99/dist/bundle.js",
-        "functionName": "taxonChroma.get"
-      },
       "microSearch": {
         "type": "GRPC",
         "url": "http://localhost/gcv/microservices/micro-synteny-search/grpc-web"
@@ -87,5 +83,11 @@
         "url": "http://localhost/gcv/microservices/chromosome-region/grpc-web"
       }
     }
-  ]
+  ],
+  "macroLegend": {
+    "colors": {
+      "scriptUrl": "https://cdn.rawgit.com/legumeinfo/lis-taxon-symbology/01e02d99/dist/bundle.js",
+      "functionName": "taxonChroma.get"
+    }
+  }
 }

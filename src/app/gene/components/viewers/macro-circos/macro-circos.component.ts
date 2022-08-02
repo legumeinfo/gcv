@@ -83,7 +83,7 @@ export class MacroCircosComponent implements AfterViewInit, OnDestroy, OnInit {
     const colors = queryChromosomes
       .pipe(
         mergeMap((chromosomes) => {
-          return this._pairwiseBlocksService.getMacroColors(chromosomes);
+          return this._pairwiseBlocksService.getMacroColors();
         })
       );
     const pairwiseBlocks =
@@ -152,9 +152,6 @@ export class MacroCircosComponent implements AfterViewInit, OnDestroy, OnInit {
   private _preDraw(queries, chromosomes, blocks, genes, colors): void {
     const {data, highlight} =
       macroCircosShim(queries, chromosomes, blocks, genes);
-    if (colors === undefined) {
-      colors = (organism) => '#000000';
-    }
     const absolutePath = this._location.prepareExternalUrl(this._location.path());
     let options = {colors, highlight, IRIprefix: absolutePath};
     options = Object.assign(options, this.options, {autoResize: false});

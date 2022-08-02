@@ -3,6 +3,7 @@
  * functions are only for type checking; validation (i.e. verify values are
  * valid) should be handled by the modules that actually use the types.
  */
+import { Script, isScript } from './script.model';
 import { Request, Server, isServer } from './server.model';
 
 
@@ -145,6 +146,17 @@ export function isDefaultParameters(instance: any): instance is DefaultParameter
 }
 
 
+export class MacroLegend {
+  colors?: Script;
+}
+
+export function isMacroLegend(instance: any): instance is MacroLegend {
+  const macroLegend = <MacroLegend>instance;
+  return macroLegend !== null &&
+  (macroLegend.colors === undefined || isScript(macroLegend.colors));
+}
+
+
 export class Miscellaneous {
   searchHelpText?: string;
 }
@@ -181,6 +193,7 @@ export class AppConfig {
   communication?: Communication;
   dashboard?: Dashboard;
   defaultParameters: DefaultParameters;
+  macroLegend?: MacroLegend;
   miscellaneous?: Miscellaneous;
   tours?: Tour[];
   servers: Server[];
@@ -211,6 +224,9 @@ export class AppConfig {
   }
   public static get defaultParameters(): DefaultParameters {
     return this._instance.defaultParameters;
+  }
+  public static get macroLegend(): MacroLegend {
+    return this._instance.macroLegend;
   }
   public static get miscellaneous(): Miscellaneous {
     return this._instance.miscellaneous;

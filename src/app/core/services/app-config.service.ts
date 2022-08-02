@@ -7,6 +7,7 @@ import { AppConfig, ConfigError,
   Communication, isCommunication,
   Dashboard, isDashboard,
   DefaultParameters, isDefaultParameters,
+  MacroLegend, isMacroLegend,
   Miscellaneous, isMiscellaneous,
   Server, isServer,
   Tour, isTour,
@@ -88,6 +89,7 @@ export class AppConfigService extends AppConfig {
         this.communication = this._parseCommunication(config);
         this.dashboard = this._parseDashboard(config);
         this.defaultParameters = this._parseDefaultParameters(config);
+        this.macroLegend = this._parseMacroLegend(config);
         this.miscellaneous = this._parseMiscellaneous(config);
         this.tours = this._parseTours(config);
         this.servers = this._parseServers(config);
@@ -175,6 +177,18 @@ export class AppConfigService extends AppConfig {
     return {gene} as DefaultParameters;
   }
 
+  private _parseMacroLegend(config: AppConfig): MacroLegend {
+    const macroLegend = objectMergeDeep({},
+        config.macroLegend || {},
+      );
+    if (!isMacroLegend(macroLegend)) {
+      this._parseError('macroLegend');
+    }
+    const {colors, ...rest} = macroLegend;
+    return {colors} as MacroLegend;
+
+  }
+
   private _parseMiscellaneous(config: AppConfig): Miscellaneous {
     const miscellaneous = objectMergeDeep({},
         defaultConfig.miscellaneous || {},
@@ -215,7 +229,6 @@ export class AppConfigService extends AppConfig {
             region,
             geneLinks,
             familyTreeLink,
-            macroColors,
             ...rest
           } = s;
         return {
@@ -229,7 +242,6 @@ export class AppConfigService extends AppConfig {
           region,
           geneLinks,
           familyTreeLink,
-          macroColors,
         } as Server;
       });
     return servers;

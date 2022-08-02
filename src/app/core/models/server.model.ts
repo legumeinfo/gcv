@@ -18,20 +18,6 @@ export function isRequest(instance: any): instance is Request {
 }
 
 
-export class Script {
-  scriptUrl: string;
-  functionName: string;
-}
-
-
-export function isScript(instance: any): instance is Script {
-  const script = <Script>instance;
-  return script !== null &&
-  script.scriptUrl !== undefined && typeof script.scriptUrl === 'string' &&
-  script.functionName !== undefined && typeof script.functionName === 'string';
-}
-
-
 export class Server {
   id: string;  // unique & url friendly
   name: string;
@@ -43,7 +29,6 @@ export class Server {
   region: Request;
   geneLinks?: Request;
   familyTreeLink?: Request;
-  macroColors?: Script;
 }
 
 
@@ -58,6 +43,5 @@ export function isServer(instance: any): instance is Server {
   server.search !== undefined && isRequest(server.search) &&
   server.region !== undefined && isRequest(server.region) &&
   (server.geneLinks === undefined || isRequest(server.geneLinks)) &&
-  (server.familyTreeLink === undefined || isRequest(server.familyTreeLink)) &&
-  (server.macroColors === undefined || isScript(server.macroColors));
+  (server.familyTreeLink === undefined || isRequest(server.familyTreeLink));
 }
