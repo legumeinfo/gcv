@@ -93,7 +93,7 @@ export class MacroComponent implements AfterViewInit, OnDestroy, OnInit {
     const colors = queryChromosome
       .pipe(
         mergeMap((chromosome) => {
-          return this._pairwiseBlocksService.getMacroColors([chromosome]);
+          return this._pairwiseBlocksService.getMacroColors();
         })
       );
     const sourceParams = this._paramsService.getSourceParams();
@@ -157,9 +157,6 @@ export class MacroComponent implements AfterViewInit, OnDestroy, OnInit {
   private _preDraw(chromosome, query, tracks, blocks, genes, colors): void {
     const {data, viewport, highlight} =
       macroShim(chromosome, query, tracks, blocks, genes);
-    if (colors === undefined) {
-      colors = (organism) => '#000000';
-    }
     let options = {
         colors,
         viewport,

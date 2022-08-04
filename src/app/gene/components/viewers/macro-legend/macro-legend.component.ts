@@ -42,7 +42,7 @@ export class MacroLegendComponent implements AfterViewInit, OnDestroy {
     const colors = selectedTracks
       .pipe(
         mergeMap((queries) => {
-          return this._pairwiseBlocksService.getMacroColors(queries);
+          return this._pairwiseBlocksService.getMacroColors();
         })
       );
     combineLatest(selectedTracks, tracks, colors)
@@ -81,11 +81,8 @@ export class MacroLegendComponent implements AfterViewInit, OnDestroy {
   }
 
   private _preDraw(queries, tracks, colors): void {
-    const {data, highlight} = macroLegendShim(queries, tracks);
-    if (colors === undefined) {
-      colors = (organism) => '#000000';
-    }
-    let options = {highlight, selector: 'organism'};
+    const {data, highlight, selector} = macroLegendShim(queries, tracks);
+    let options = {highlight, selector};
     options = Object.assign(options, this.options, {autoResize: false});
     this.draw = this._draw.bind(this, colors, data, options);
   }
