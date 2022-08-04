@@ -38,6 +38,9 @@ const defaultConfig = {
     },
     examples: [],
   },
+  macroLegend: {
+    format: '{GENUS} {SPECIES}',
+  },
   defaultParameters: {
     gene: {
       macroSynteny: {
@@ -179,13 +182,14 @@ export class AppConfigService extends AppConfig {
 
   private _parseMacroLegend(config: AppConfig): MacroLegend {
     const macroLegend = objectMergeDeep({},
+        defaultConfig.macroLegend || {},
         config.macroLegend || {},
       );
     if (!isMacroLegend(macroLegend)) {
       this._parseError('macroLegend');
     }
-    const {colors, ...rest} = macroLegend;
-    return {colors} as MacroLegend;
+    const {format, colors, ...rest} = macroLegend;
+    return {format, colors} as MacroLegend;
 
   }
 

@@ -147,12 +147,14 @@ export function isDefaultParameters(instance: any): instance is DefaultParameter
 
 
 export class MacroLegend {
+  format?: string;
   colors?: Script;
 }
 
 export function isMacroLegend(instance: any): instance is MacroLegend {
   const macroLegend = <MacroLegend>instance;
   return macroLegend !== null &&
+  (macroLegend.format === undefined || typeof macroLegend.format === 'string') &&
   (macroLegend.colors === undefined || isScript(macroLegend.colors));
 }
 

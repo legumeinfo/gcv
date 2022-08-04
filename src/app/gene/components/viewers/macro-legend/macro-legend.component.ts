@@ -81,8 +81,8 @@ export class MacroLegendComponent implements AfterViewInit, OnDestroy {
   }
 
   private _preDraw(queries, tracks, colors): void {
-    const {data, highlight} = macroLegendShim(queries, tracks);
-    let options = {highlight, selector: 'organism'};
+    const {data, highlight, selector} = macroLegendShim(queries, tracks);
+    let options = {highlight, selector};
     options = Object.assign(options, this.options, {autoResize: false});
     this.draw = this._draw.bind(this, colors, data, options);
   }

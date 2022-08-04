@@ -142,7 +142,6 @@ export class PairwiseBlocksService extends HttpService {
   getMacroColors(): Observable<Function|undefined> {
     // use colors from config file
     const macroConfig: any = this._appConfig.macroLegend;
-    console.log(macroConfig);
     if (macroConfig !== undefined && macroConfig.colors !== undefined) {
       let func: Function = (args) => {
           return executeFunctionByName(macroConfig.colors.functionName, window, args);

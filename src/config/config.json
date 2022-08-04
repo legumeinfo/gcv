@@ -85,6 +85,7 @@
     }
   ],
   "macroLegend": {
+    "format": "{GENUS} {SPECIES}",
     "colors": {
       "scriptUrl": "https://cdn.rawgit.com/legumeinfo/lis-taxon-symbology/01e02d99/dist/bundle.js",
       "functionName": "taxonChroma.get"

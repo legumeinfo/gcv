@@ -330,7 +330,8 @@ export class Macro extends Visualizer {
     const obj = this;
     const datum = this.data.tracks[i];
     const name = datum.genus + " " + datum.species;
-    const c = this.options.colors(name);
+    const id = datum.id;
+    const c = this.options.colors(id);
     // create the track"s rows of blocks
     const blockData = datum.blocks.map((b) => Object.create(b));
     this.blocksToRows(blockData);

@@ -66,12 +66,13 @@ export class MultiMacro {
       const macroTracks = multiMacroTracks[i];
       const name = macroTracks.genus + " " + macroTracks.species;
       const target_id = macroTracks.chromosome;
-      this.data.colors[target_id] = this.options.colors(name);
+      const id = macroTracks.id;
+      this.data.colors[target_id] = this.options.colors(id);
       // parse the chromosome
       this.data.chromosomes.push({
         id: target_id,
         label: target_id,
-        color: this.options.colors(name),
+        color: this.options.colors(id),
         len: macroTracks.length,
       });
       // parse each track's blocks
