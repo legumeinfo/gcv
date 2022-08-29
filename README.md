@@ -85,7 +85,7 @@ docker run -v nginx/templates/default.conf.template:/etc/nginx/template/ gcv
 Note that the provided template file that the image is built with uses a `GCV_PATH` environment variable to set the path GCV is served at.
 This means you can change the path GCV is served at at run-time as follows:
 ```console
-docker run -e GCV_APTH=/my/gcv/path/ gcv
+docker run -e GCV_PATH=/my/gcv/path/ gcv
 ```
 Note: a trailing slash is required if the path has more than one part.
 
