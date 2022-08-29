@@ -36,7 +36,7 @@
     "circos": "^2.1.0",
     "d3": "^5.16.0",
     "golden-layout": "^1.5.9",
-    "jquery": "^3.6.0",
+    "jquery": "^3.6.1",
     "legumeinfo-microservices": "file:dep/legumeinfo-microservices",
     "mnemonist": "^0.39.0",
     "rxjs": "^7.5.5",
