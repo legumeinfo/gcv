@@ -232,6 +232,7 @@ export class AppConfigService extends AppConfig {
             search,
             region,
             geneLinks,
+            regionLinks,
             familyTreeLink,
             ...rest
           } = s;
@@ -245,6 +246,7 @@ export class AppConfigService extends AppConfig {
           search,
           region,
           geneLinks,
+          regionLinks,
           familyTreeLink,
         } as Server;
       });

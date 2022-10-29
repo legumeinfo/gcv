@@ -28,6 +28,7 @@ export class Server {
   search: Request;
   region: Request;
   geneLinks?: Request;
+  regionLinks?: Request;
   familyTreeLink?: Request;
 }
 
@@ -43,5 +44,6 @@ export function isServer(instance: any): instance is Server {
   server.search !== undefined && isRequest(server.search) &&
   server.region !== undefined && isRequest(server.region) &&
   (server.geneLinks === undefined || isRequest(server.geneLinks)) &&
+  (server.regionLinks === undefined || isRequest(server.regionLinks)) &&
   (server.familyTreeLink === undefined || isRequest(server.familyTreeLink));
 }

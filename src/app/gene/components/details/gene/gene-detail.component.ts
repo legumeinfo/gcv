@@ -1,10 +1,11 @@
 // Angular
 import { Component, Input, OnDestroy, OnInit } from '@angular/core';
-import { Subject } from 'rxjs';
-import { take, takeUntil } from 'rxjs/operators';
+import { Observable, Subject } from 'rxjs';
+import { map, take, takeUntil } from 'rxjs/operators';
 // App
 import { AppConfig, Server } from '@gcv/core/models';
 import { GeneService } from '@gcv/gene/services';
+import { Gene } from '@gcv/gene/models';
 
 @Component({
   selector: 'gcv-gene-detail',
@@ -15,7 +16,10 @@ import { GeneService } from '@gcv/gene/services';
       <p><a [routerLink]="['/gene', singleGeneMatrix]" queryParamsHandling="merge">Search for similar contexts</a></p>
       <p *ngIf="familyTreeLink !== undefined">Family: <a href="{{ familyTreeLink }}">{{ family }}</a></p>
       <ul>
-        <li *ngFor="let link of links">
+        <li *ngFor="let link of geneLinks">
+          <a href="{{ link.href }}">{{ link.text }}</a>
+        </li>
+        <li *ngFor="let link of regionLinks">
           <a href="{{ link.href }}">{{ link.text }}</a>
         </li>
       </ul>
@@ -32,7 +36,8 @@ export class GeneDetailComponent implements OnDestroy, OnInit {
   private _serverIDs: string[];
   private _destroy: Subject<boolean> = new Subject();
 
-  links: any[] = [];
+  geneLinks: any[] = [];
+  regionLinks: any[] = [];
   singleGeneMatrix = {};
   familyTreeLink: string = '';
 
@@ -49,6 +54,10 @@ export class GeneDetailComponent implements OnDestroy, OnInit {
 
   ngOnInit(): void {
     const server = this._appConfig.getServer(this.source);
+    //get gene details to convert to region
+    this._geneService.getGenes([this.gene], this.source)
+      .pipe(map((genes) => genes[0]))
+      .subscribe((geneInstance) => this._processInstance(geneInstance));
     if (server !== undefined) {
       if (server.hasOwnProperty('familyTreeLink')) {
         this.familyTreeLink = server.familyTreeLink.url + this.family;
@@ -59,12 +68,23 @@ export class GeneDetailComponent implements OnDestroy, OnInit {
       .pipe(
         takeUntil(this._destroy),
         take(1))
-      .subscribe((links) => this._process(links));
+      .subscribe((geneLinks) => this._process(geneLinks));
   }
 
   // private
 
   private _process(links: any[]) {
-    this.links = links;
+    this.geneLinks = links;
+  }
+  private _processRegion(links: any[]) {
+    this.regionLinks = links;
+  }
+
+  private _processInstance(instance: Gene) {
+    this._geneService.getGeneRegionDetails(instance, this.source)
+      .pipe(
+        takeUntil(this._destroy),
+        take(1))
+      .subscribe((regionLinks) => this._processRegion(regionLinks));
   }
 }
