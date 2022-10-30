@@ -61,4 +61,11 @@ export class RegionService extends HttpService {
     this._store.dispatch(new regionActions.Get({chromosome, start, stop, source}));
   }
 
+  // fetches source specific details for the given region
+  getRegionDetails(chromosome: string, start: number, end: number, source: string): Observable<any> {
+    const request = this._appConfig.getServerRequest(source, 'regionLinks');
+    const makeUrl = (url: string) => url + chromosome + '&start=' + start + '&end=' + end ;
+    return this._makeHttpRequest<any>(request, {}, makeUrl);
+  }
+
 }
