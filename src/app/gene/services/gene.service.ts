@@ -80,4 +80,5 @@ export class GeneService extends HttpService {
     const makeUrl = (url: string) => url + gene + '/json';
     return this._makeHttpRequest<any>(request, {}, makeUrl);
   }
+
 }
