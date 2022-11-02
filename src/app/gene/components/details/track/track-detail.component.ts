@@ -15,9 +15,11 @@ import { Track } from '@gcv/gene/models';
     <div class="details">
       <h4>{{ track.genus[0] }}.{{ track.species }} - {{ track.name }}</h4>
       <p><a [routerLink]="['/search', track.source, focus]" queryParamsHandling="merge">Search for similar contexts</a></p>
-      <li *ngFor="let link of regionLinks">
-        <a href="{{ link.href }}">{{ link.text }}</a>
-      </li>
+      <ul>
+        <li *ngFor="let link of regionLinks">
+          <a href="{{ link.href }}">{{ link.text }}</a>
+        </li>
+      </ul>
       <p>Genes:</p>
       <ul>
         <li *ngFor="let gene of track.genes; let i = index">
@@ -82,7 +84,7 @@ export class TrackDetailComponent implements OnDestroy, OnInit {
         }),
         takeUntil(this._destroy),
         take(1))
-      .subscribe(this._processRegionLinks);
+      .subscribe((links) => this._processRegionLinks(links));
   }
 
   private _processRegionLinks(links: any[]) {

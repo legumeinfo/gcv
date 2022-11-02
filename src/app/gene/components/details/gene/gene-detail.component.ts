@@ -71,7 +71,7 @@ export class GeneDetailComponent implements OnDestroy, OnInit {
       .pipe(
         takeUntil(this._destroy),
         take(1))
-      .subscribe(this._processGeneLinks);
+      .subscribe((links) => this._processGeneLinks(links));
 
     // get gene region details
     this._geneService.getGenes([this.gene], this.source)
@@ -89,7 +89,7 @@ export class GeneDetailComponent implements OnDestroy, OnInit {
         }),
         takeUntil(this._destroy),
         take(1))
-      .subscribe(this._processRegionLinks);
+      .subscribe((links) => this._processRegionLinks(links));
   }
 
   // private
