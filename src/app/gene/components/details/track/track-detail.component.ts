@@ -1,12 +1,11 @@
 // Angular
 import { Component, Input, OnDestroy, OnInit } from '@angular/core';
-import { Observable, Subject } from 'rxjs';
-import { map, take, takeUntil } from 'rxjs/operators';
+import { Subject } from 'rxjs';
+import { filter, switchMap, take, takeUntil } from 'rxjs/operators';
 // App
-import { AppConfig, Server } from '@gcv/core/models';
+import { AppConfig } from '@gcv/core/models';
 import { RegionService, GeneService } from '@gcv/gene/services';
-import { Gene, Track } from '@gcv/gene/models';
-import { ClusterMixin } from '@gcv/gene/models/mixins';
+import { Track } from '@gcv/gene/models';
 
 
 @Component({
@@ -43,10 +42,12 @@ export class TrackDetailComponent implements OnDestroy, OnInit {
   focus: string;
   familyTreeLink: string = '';
   regionLinks: any[] = [];
-  fmin: number;
-  fmax: number;
 
-  constructor(private _appConfig: AppConfig, private _regionService: RegionService, private _geneService: GeneService) {
+  constructor(
+    private _appConfig: AppConfig,
+    private _geneService: GeneService,
+    private _regionService: RegionService,
+  ) {
     this._serverIDs = _appConfig.getServerIDs();
   }
 
@@ -61,36 +62,31 @@ export class TrackDetailComponent implements OnDestroy, OnInit {
     const i = Math.floor(this.track.genes.length / 2);
     this.focus = this.track.genes[i];
     const server = this._appConfig.getServer(this.track.source);
+
+    // set the tree link
     if (server !== undefined && server.hasOwnProperty('familyTreeLink')) {
       this.familyTreeLink = server.familyTreeLink.url;
     }
+
+    // get region details
     const first = this.track.genes[0];
     const last = this.track.genes[this.track.genes.length-1];
     this._geneService.getGenes([first, last], this.track.source)
       .pipe(
+        filter((genes) => genes.length >= 2),
+        switchMap((genes) => {
+          const fmin = Math.min(genes[0].fmin, genes[1].fmin);
+          const fmax = Math.max(genes[0].fmax, genes[1].fmax);
+          return this._regionService
+            .getRegionDetails(this.track.name, fmin, fmax, this.track.source);
+        }),
         takeUntil(this._destroy),
         take(1))
-      .subscribe(([firstGene, lastGene]) => this._setBounds(firstGene,lastGene));
+      .subscribe(this._processRegionLinks);
   }
 
-  private _process(links: any[]) {
+  private _processRegionLinks(links: any[]) {
     this.regionLinks = links;
-  }
-
-  private _setBounds(first: Gene, last: Gene) {
-    if (first.fmin < last.fmin) {
-        this.fmin = first.fmin;
-        this.fmax = last.fmax;
-    }
-    else {
-        this.fmin = last.fmin;
-        this.fmax = first.fmax;
-    }
-    this._regionService.getRegionDetails(this.track.name, this.fmin, this.fmax, this.track.source)
-      .pipe(
-        takeUntil(this._destroy),
-        take(1))
-      .subscribe((regionLinks) => this._process(regionLinks));
   }
 
 }

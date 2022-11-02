@@ -1,11 +1,11 @@
 // Angular
 import { Component, Input, OnDestroy, OnInit } from '@angular/core';
-import { Observable, Subject } from 'rxjs';
-import { map, take, takeUntil } from 'rxjs/operators';
+import { Subject } from 'rxjs';
+import { filter, map, switchMap, take, takeUntil } from 'rxjs/operators';
 // App
-import { AppConfig, Server } from '@gcv/core/models';
-import { GeneService } from '@gcv/gene/services';
-import { Gene } from '@gcv/gene/models';
+import { AppConfig } from '@gcv/core/models';
+import { GeneService, RegionService } from '@gcv/gene/services';
+
 
 @Component({
   selector: 'gcv-gene-detail',
@@ -26,7 +26,6 @@ import { Gene } from '@gcv/gene/models';
     </div>
   `,
 })
-
 export class GeneDetailComponent implements OnDestroy, OnInit {
 
   @Input() gene: string;
@@ -41,7 +40,11 @@ export class GeneDetailComponent implements OnDestroy, OnInit {
   singleGeneMatrix = {};
   familyTreeLink: string = '';
 
-  constructor(private _appConfig: AppConfig, private _geneService: GeneService) {
+  constructor(
+    private _appConfig: AppConfig,
+    private _geneService: GeneService,
+    private _regionService: RegionService,
+  ) {
     this._serverIDs = _appConfig.getServerIDs();
   }
 
@@ -54,37 +57,49 @@ export class GeneDetailComponent implements OnDestroy, OnInit {
 
   ngOnInit(): void {
     const server = this._appConfig.getServer(this.source);
-    //get gene details to convert to region
-    this._geneService.getGenes([this.gene], this.source)
-      .pipe(map((genes) => genes[0]))
-      .subscribe((geneInstance) => this._processInstance(geneInstance));
+
+    // set the tree link
     if (server !== undefined) {
       if (server.hasOwnProperty('familyTreeLink')) {
         this.familyTreeLink = server.familyTreeLink.url + this.family;
       }
       this.singleGeneMatrix[this.source] = this.gene;
     }
+
+    // get gene details
     this._geneService.getGeneDetails(this.gene, this.source)
       .pipe(
         takeUntil(this._destroy),
         take(1))
-      .subscribe((geneLinks) => this._process(geneLinks));
+      .subscribe(this._processGeneLinks);
+
+    // get gene region details
+    this._geneService.getGenes([this.gene], this.source)
+      .pipe(
+        filter((genes) => genes.length > 0),
+        map((genes) => genes[0]),
+        switchMap((gene) => {
+          return this._regionService
+            .getRegionDetails(
+              gene.chromosome,
+              gene.fmin,
+              gene.fmax,
+              this.source,
+            );
+        }),
+        takeUntil(this._destroy),
+        take(1))
+      .subscribe(this._processRegionLinks);
   }
 
   // private
 
-  private _process(links: any[]) {
+  private _processGeneLinks(links: any[]) {
     this.geneLinks = links;
   }
-  private _processRegion(links: any[]) {
+
+  private _processRegionLinks(links: any[]) {
     this.regionLinks = links;
   }
 
-  private _processInstance(instance: Gene) {
-    this._geneService.getGeneRegionDetails(instance, this.source)
-      .pipe(
-        takeUntil(this._destroy),
-        take(1))
-      .subscribe((regionLinks) => this._processRegion(regionLinks));
-  }
 }

@@ -6,7 +6,7 @@ export const trackDetailLayoutComponent =
   {component: TrackDetailComponent, name: 'track'};
 
 
-export function trackDetailConfigFactory(track, source) {
+export function trackDetailConfigFactory(track) {
   const first = track.genes[0];
   const last = track.genes[track.genes.length-1];
   const id = `track:${clusteredTrackID(track)}`;

@@ -81,10 +81,4 @@ export class GeneService extends HttpService {
     return this._makeHttpRequest<any>(request, {}, makeUrl);
   }
 
-  // fetches source specific details for the given gene region
-  getGeneRegionDetails(gene: Gene, source: string): Observable<any> {
-    const request = this._appConfig.getServerRequest(source, 'regionLinks');
-    const makeUrl = (url: string) => url + gene.chromosome + '&start=' + gene.fmin + '&end=' + gene.fmax ;
-    return this._makeHttpRequest<any>(request, {}, makeUrl);
-  }
 }
