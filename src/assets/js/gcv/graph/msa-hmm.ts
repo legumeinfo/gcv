@@ -673,7 +673,7 @@ export class MSAHMM extends Directed {
     for (let i = 1; i < path.length; i++) {
       const n = path[i];
       let index = parseInt(n.substr(1));
-      if (index === NaN) {
+      if (Number.isNaN(index)) {
         index = this.numColumns;
       }
       if (insertion > 0 &&
