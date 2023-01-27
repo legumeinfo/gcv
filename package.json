@@ -41,7 +41,7 @@
     "mnemonist": "^0.39.5",
     "rxjs": "~7.8.0",
     "tippy.js": "^6.3.7",
-    "tslib": "^2.3.0",
+    "tslib": "^2.5.0",
     "vanilla-lazyload": "^17.8.3",
     "zone.js": "~0.12.0"
   },
