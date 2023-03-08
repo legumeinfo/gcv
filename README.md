@@ -11,7 +11,9 @@ The backend is implemented as microservices, which are available via the Legume 
 
 **User docs, developer docs, and non-legume examples are available in the [Wiki](https://github.com/legumeinfo/gcv/wiki).**
 
-**See the Legume Information System's instance of the GCV for a live example:** [https://gcv.legumeinfo.org/](https://gcv.legumeinfo.org/)
+**See a live example of GCV on the [Legume Information System](https://gcv.legumeinfo.org/).**
+
+**Watch a video explaining GCV on [YouTube](https://www.youtube.com/watch?v=ATPzVIrTW0s&t=1359s).**
 
 
 ## GCV Features
