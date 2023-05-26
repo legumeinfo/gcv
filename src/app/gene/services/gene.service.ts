@@ -77,7 +77,8 @@ export class GeneService extends HttpService {
   // fetches source specific details for the given gene
   getGeneDetails(gene: string, source: string): Observable<any> {
     const request = this._appConfig.getServerRequest(source, 'geneLinks');
-    const makeUrl = (url: string) => url + gene + '/json';
+    //TODO: make this more configurable via template substitution
+    const makeUrl = (url: string) => url + gene;
     return this._makeHttpRequest<any>(request, {}, makeUrl);
   }
 

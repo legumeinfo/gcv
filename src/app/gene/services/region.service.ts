@@ -64,7 +64,8 @@ export class RegionService extends HttpService {
   // fetches source specific details for the given region
   getRegionDetails(chromosome: string, start: number, end: number, source: string): Observable<any> {
     const request = this._appConfig.getServerRequest(source, 'regionLinks');
-    const makeUrl = (url: string) => url + chromosome + '&start=' + start + '&end=' + end ;
+    //TODO: make this more configurable via template-based substitution
+    const makeUrl = (url: string) => url + chromosome + ':' + start + '-' + end ;
     return this._makeHttpRequest<any>(request, {}, makeUrl);
   }
 
