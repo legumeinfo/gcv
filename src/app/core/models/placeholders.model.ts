@@ -3,8 +3,13 @@ export enum OrganismPlaceholders {
   Species = 'SPECIES',
   Chromosome = 'CHROMOSOME',
 }
+
 export enum GenePlaceholders {
-  GeneID = 'GENE_ID',
-  Species = 'SPECIES',
+  Gene = 'GENE',
+}
+
+export enum RegionPlaceholders {
   Chromosome = 'CHROMOSOME',
+  Start = 'START',
+  Stop = 'STOP',
 }

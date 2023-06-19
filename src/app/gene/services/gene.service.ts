@@ -76,19 +76,16 @@ export class GeneService extends HttpService {
   }
 
   //fill in templated geneLinksURL
-  //TODO: should different servers be able to specify their own geneLinks?
-  export function geneToGeneLinksURL(gene) {
-    let name = AppConfig.geneLinks.url;
+  geneToGeneLinksURL(urlTemplate: string, gene: string): string {
     const placeholders = {};
-    placeholders[GenePlaceholders.GeneID] = gene;
-    return placeholderReplace(name, placeholders);
-  };
+    placeholders[GenePlaceholders.Gene] = gene;
+    return placeholderReplace(urlTemplate, placeholders);
+  }
 
   // fetches source specific details for the given gene
   getGeneDetails(gene: string, source: string): Observable<any> {
     const request = this._appConfig.getServerRequest(source, 'geneLinks');
-    //TODO: make this more configurable via template substitution
-    const makeUrl = (url: string) => geneToGeneLinksURL(gene);
+    const makeUrl = (url: string) => this.geneToGeneLinksURL(request.url, gene);
     return this._makeHttpRequest<any>(request, {}, makeUrl);
   }
 

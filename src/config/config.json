@@ -56,15 +56,15 @@
       },
       "geneLinks": {
         "type": "GET",
-        "url": "https://services.lis.ncgr.org/gene_linkouts?genes={GENE_ID}"
+        "url": "https://services.lis.ncgr.org/gene_linkouts?genes={GENE}"
       },
       "regionLinks": {
         "type": "GET",
-        "url": "https://services.lis.ncgr.org/linkouts/genomic_region_linkouts?"
+        "url": "https://services.lis.ncgr.org/genomic_region_linkouts?genomic_regions={CHROMOSOME}:{START}-{STOP}"
       },
       "familyTreeLink": {
         "type": "GET",
-        "url": "http://legumeinfo.org/chado_gene_phylotree_v2?family="
+        "url": "https://funnotate.legumeinfo.org/?family="
       },
       "chromosome": {
         "type": "GRPC",
