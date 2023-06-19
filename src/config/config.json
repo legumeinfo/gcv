@@ -56,7 +56,11 @@
       },
       "geneLinks": {
         "type": "GET",
-        "url": "https://legumeinfo.org/gene_links/"
+        "url": "https://services.lis.ncgr.org/gene_linkouts?genes={GENE_ID}"
+      },
+      "regionLinks": {
+        "type": "GET",
+        "url": "https://services.lis.ncgr.org/linkouts/genomic_region_linkouts?"
       },
       "familyTreeLink": {
         "type": "GET",
