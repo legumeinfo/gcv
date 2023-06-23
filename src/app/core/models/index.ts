@@ -15,6 +15,7 @@ export const models: any[] = [
   Tour,
   OrganismPlaceholders,
   GenePlaceholders,
+  RegionPlaceholders,
   GET,
   POST,
   Request,
