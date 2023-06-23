@@ -9,9 +9,10 @@ import * as geneActions from '@gcv/gene/store/actions/gene.actions';
 import * as fromRoot from '@gcv/store/reducers';
 import * as fromGene from '@gcv/gene/store/selectors/gene/';
 // app
-import { AppConfig, ConfigError, GET, POST, GRPC } from '@gcv/core/models';
+import { AppConfig, GenePlaceholders, ConfigError, GET, POST, GRPC } from '@gcv/core/models';
 import { HttpService } from '@gcv/core/services/http.service';
 import { Gene, Track } from '@gcv/gene/models';
+import { placeholderReplace } from '@gcv/core/utils';
 // api
 import { GenesGetReply, GenesGetRequest, GenesPromiseClient }
   from 'legumeinfo-microservices/dist/genes_service/v1';
@@ -74,10 +75,17 @@ export class GeneService extends HttpService {
     return this._store.select(fromGene.getSelectedGenes);
   }
 
+  //fill in templated geneLinksURL
+  private geneToGeneLinksURL(urlTemplate: string, gene: string): string {
+    const placeholders = {};
+    placeholders[GenePlaceholders.Gene] = gene;
+    return placeholderReplace(urlTemplate, placeholders);
+  }
+
   // fetches source specific details for the given gene
   getGeneDetails(gene: string, source: string): Observable<any> {
     const request = this._appConfig.getServerRequest(source, 'geneLinks');
-    const makeUrl = (url: string) => url + gene + '/json';
+    const makeUrl = (url: string) => this.geneToGeneLinksURL(request.url, gene);
     return this._makeHttpRequest<any>(request, {}, makeUrl);
   }
 

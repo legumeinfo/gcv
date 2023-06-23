@@ -8,10 +8,11 @@ import { Store } from '@ngrx/store';
 import * as regionActions from '@gcv/gene/store/actions/region.actions';
 import * as fromRoot from '@gcv/store/reducers';
 // app
-import { AppConfig, ConfigError, GET, POST, GRPC } from '@gcv/core/models';
+import { AppConfig, RegionPlaceholders, ConfigError, GET, POST, GRPC } from '@gcv/core/models';
 import { Region } from '@gcv/gene/models';
 import { HttpService } from '@gcv/core/services/http.service';
 import { grpcRegionToModel } from './shims';
+import { placeholderReplace } from '@gcv/core/utils';
 // api
 import { ChromosomeRegionGetReply, ChromosomeRegionGetRequest,
   ChromosomeRegionPromiseClient, } from 'legumeinfo-microservices/dist/chromosomeregion_service/v1';
@@ -61,10 +62,19 @@ export class RegionService extends HttpService {
     this._store.dispatch(new regionActions.Get({chromosome, start, stop, source}));
   }
 
+  //fill in templated regionLinksURL
+  private regionToRegionLinksURL(urlTemplate: string, chromosome: string, start: number, stop: number): string {
+    const placeholders = {};
+    placeholders[RegionPlaceholders.Chromosome] = chromosome;
+    placeholders[RegionPlaceholders.Start] = start.toString();
+    placeholders[RegionPlaceholders.Stop] = stop.toString();
+    return placeholderReplace(urlTemplate, placeholders);
+  }
+
   // fetches source specific details for the given region
   getRegionDetails(chromosome: string, start: number, end: number, source: string): Observable<any> {
     const request = this._appConfig.getServerRequest(source, 'regionLinks');
-    const makeUrl = (url: string) => url + chromosome + '&start=' + start + '&end=' + end ;
+    const makeUrl = (url: string) => this.regionToRegionLinksURL(request.url, chromosome, start, end);
     return this._makeHttpRequest<any>(request, {}, makeUrl);
   }
 
