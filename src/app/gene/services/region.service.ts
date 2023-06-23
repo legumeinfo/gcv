@@ -63,7 +63,7 @@ export class RegionService extends HttpService {
   }
 
   //fill in templated regionLinksURL
-  regionToRegionLinksURL(urlTemplate: string, chromosome: string, start: number, stop: number): string {
+  private regionToRegionLinksURL(urlTemplate: string, chromosome: string, start: number, stop: number): string {
     const placeholders = {};
     placeholders[RegionPlaceholders.Chromosome] = chromosome;
     placeholders[RegionPlaceholders.Start] = start.toString();

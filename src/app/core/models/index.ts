@@ -1,6 +1,6 @@
 import { AppConfig, Brand, Communication, DashboardView, Dashboard,
   Miscellaneous, Tour } from './app-config.model';
-import { OrganismPlaceholders, GenePlaceholders } from './placeholders.model';
+import { OrganismPlaceholders, GenePlaceholders, RegionPlaceholders } from './placeholders.model';
 import { Script, isScript } from './script.model';
 import { GET, POST, Request, Server } from './server.model';
 

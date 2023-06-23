@@ -76,7 +76,7 @@ export class GeneService extends HttpService {
   }
 
   //fill in templated geneLinksURL
-  geneToGeneLinksURL(urlTemplate: string, gene: string): string {
+  private geneToGeneLinksURL(urlTemplate: string, gene: string): string {
     const placeholders = {};
     placeholders[GenePlaceholders.Gene] = gene;
     return placeholderReplace(urlTemplate, placeholders);
