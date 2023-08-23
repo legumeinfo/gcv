@@ -15,8 +15,8 @@
   },
   "devDependencies": {
     "create-ts-index": "^1.14.0",
-    "grpc-tools": "^1.12.3",
-    "protoc-gen-grpc-web": "^1.4.1",
+    "grpc-tools": "^1.12.4",
+    "protoc-gen-grpc-web": "^1.4.2",
     "replace-in-file": "^6.3.5",
     "tiged": "^2.12.3",
     "typescript": "^5.1.6"
