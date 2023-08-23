@@ -23,9 +23,10 @@ export class InstructionsComponent {
     this.dashboard = _appConfig.dashboard;
   }
 
-  scrollTo(event, selector): void {
+  scrollTo(event): void {
     event.preventDefault();
-    scrollToSelector('html, body', selector);
+    const selector = event.target.hash;
+    scrollToSelector(selector);
   }
 
 }

@@ -8,7 +8,7 @@ import { arrayIsEqual } from '@gcv/core/utils';
 import LazyLoad from "vanilla-lazyload";
 
 
-declare var $: any;  // jQuery
+declare var bootstrap: any;
 
 
 @Component({
@@ -23,6 +23,7 @@ implements AfterViewInit, OnChanges, OnDestroy {
 
   private _screenshotLoader: any;
   private _modalLoader: any;
+  private _modal: any;
 
   private _breakpoints = [  // Bootstrap .container responsive breakpoints in px
       //540,  // small; image is given own row at this size
@@ -43,13 +44,15 @@ implements AfterViewInit, OnChanges, OnDestroy {
   // Angular hooks
 
   ngAfterViewInit() {
+    // setup the modal
+    this._modal = new bootstrap.Modal(this.modalElement.nativeElement);
     // setup the screenshot lazy loader
     this._initImgLoader(this.screenshotElement.nativeElement);
     // setup the modal lazy loader
-    $(this.modalElement.nativeElement).on('show.bs.modal', (e) => {
+    this.modalElement.nativeElement.addEventListener('show.bs.modal', (e) => {
       this._initImgLoader(this.modalElement.nativeElement);
     })
-    $(this.modalElement.nativeElement).on('hidden.bs.modal', (e) => {
+    this.modalElement.nativeElement.addEventListener('hidden.bs.modal', (e) => {
       this._destroyImgLoader(this._modalLoader);
     })
   }
@@ -65,6 +68,7 @@ implements AfterViewInit, OnChanges, OnDestroy {
   ngOnDestroy() {
     this._destroyImgLoader(this._screenshotLoader);
     this._destroyImgLoader(this._modalLoader);
+    this._modal.dispose();
   }
 
   // private
@@ -193,7 +197,7 @@ implements AfterViewInit, OnChanges, OnDestroy {
   }
 
   toggleModal(event): void {
-    $(this.modalElement.nativeElement).modal('toggle');
+    this._modal.show();
   }
 
 }
