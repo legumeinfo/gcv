@@ -5,8 +5,6 @@ import { NavigationStart, PRIMARY_OUTLET, Router } from '@angular/router';
 import { Store } from '@ngrx/store';
 import * as routerActions from '@gcv/store/actions/router.actions';
 import * as fromRoot from '@gcv/store/reducers';
-// App
-import { TourService } from '@gcv/core/services';
 
 declare var window: any;
 
@@ -21,7 +19,6 @@ export class AppComponent implements OnInit {
 
   constructor(private router: Router,
               private store: Store<fromRoot.State>,
-              private tourService: TourService,  // resume tours from anywhere
               private zone: NgZone) {
     // make the app's single page navigation available outside of Angular, but
     // ensure that the function always executes in the AppComponent context by

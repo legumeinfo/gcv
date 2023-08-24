@@ -4,9 +4,6 @@ import { Component } from '@angular/core';
 import { AppConfig, Brand, Dashboard } from '@gcv/core/models';
 
 
-declare var scrollToSelector: any;  // src/assets/js/utils
-
-
 @Component({
   selector: 'gcv-instructions',
   styleUrls: [ './instructions.component.scss' ],
@@ -26,7 +23,11 @@ export class InstructionsComponent {
   scrollTo(event): void {
     event.preventDefault();
     const selector = event.target.hash;
-    scrollToSelector(selector);
+    const element = document.querySelector(selector);
+    if (element != null) {
+      const options = {behavior: "smooth", block: "start", inline: "nearest"};
+      element.scrollIntoView(options);
+    }
   }
 
 }

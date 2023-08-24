@@ -10,7 +10,6 @@ import { AppConfig, ConfigError,
   MacroLegend, isMacroLegend,
   Miscellaneous, isMiscellaneous,
   Server, isServer,
-  Tour, isTour,
   Request } from '@gcv/core/models';
 import { objectMergeDeep } from '@gcv/core/utils';
 
@@ -72,7 +71,6 @@ const defaultConfig = {
     },
   },
   miscellaneous: {},
-  tours: [],
 };
 
 
@@ -94,7 +92,6 @@ export class AppConfigService extends AppConfig {
         this.defaultParameters = this._parseDefaultParameters(config);
         this.macroLegend = this._parseMacroLegend(config);
         this.miscellaneous = this._parseMiscellaneous(config);
-        this.tours = this._parseTours(config);
         this.servers = this._parseServers(config);
         // recursively freeze all configurations
         this._freezeObject(this.brand);
@@ -102,7 +99,6 @@ export class AppConfigService extends AppConfig {
         this._freezeObject(this.dashboard);
         this._freezeObject(this.defaultParameters);
         this._freezeObject(this.miscellaneous);
-        this._freezeObject(this.tours);
         this._freezeObject(this.servers);
         Object.freeze(this);
       });
@@ -203,17 +199,6 @@ export class AppConfigService extends AppConfig {
     }
     const {searchHelpText, ...rest} = miscellaneous;
     return {searchHelpText} as Miscellaneous;
-  }
-
-  private _parseTours(config: AppConfig): Tour[] {
-    const tours = (defaultConfig.tours || []) || (config.tours || []);
-    if (!tours.every((t) => isTour(t))) {
-      this._parseError('tours');
-    }
-    return tours.map((t): Tour => {
-      const {script, name, ...rest} = t;
-      return {script, name} as Tour;
-    });
   }
 
   private _parseServers(config: AppConfig): Server[] {
