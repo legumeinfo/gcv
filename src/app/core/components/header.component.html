@@ -3,7 +3,7 @@
     <a *ngIf="brand !== undefined" class="navbar-brand" href="{{brand.url}}" (mouseenter)="toggleBrand()" (mouseleave)="toggleBrand()">
       <img src="{{brand.img}}" class="d-inline-block align-text-top" alt="">
     </a>
-    <a class="navbar-brand brand-name" href="{{brand.url}}">
+    <a class="navbar-brand brand-name collapse collapse-horizontal" href="{{brand.url}}" #brandText>
       <ng-template [ngIf]="brand.slogan === undefined">
         {{brand.name}}
       </ng-template>

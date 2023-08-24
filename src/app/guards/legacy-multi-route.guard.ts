@@ -1,12 +1,11 @@
 // Angular
 import { Injectable } from '@angular/core';
-import { ActivatedRouteSnapshot, CanActivate, NavigationExtras, Router,
-  UrlTree } from '@angular/router';
+import { ActivatedRouteSnapshot, NavigationExtras, Router, UrlTree } from '@angular/router';
 import { AppConfig } from '@gcv/core/models';
 
 
 @Injectable()
-export class LegacyMultiRouteGuard implements CanActivate {
+export class LegacyMultiRouteGuard  {
 
   private _sourceIDs: string[];
 
