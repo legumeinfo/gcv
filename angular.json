@@ -42,7 +42,6 @@
               "node_modules/@popperjs/core/dist/umd/popper.min.js",
               "node_modules/bootstrap/dist/js/bootstrap.min.js",
               "node_modules/golden-layout/dist/goldenlayout.min.js",
-              "src/assets/js/utils.js",
             ]
           },
           "configurations": {
@@ -110,7 +109,6 @@
               "node_modules/@popperjs/core/dist/umd/popper.min.js",
               "node_modules/bootstrap/dist/js/bootstrap.min.js",
               "node_modules/golden-layout/dist/goldenlayout.min.js",
-              "src/assets/js/utils.js",
             ]
           }
         },
