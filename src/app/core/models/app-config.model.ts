@@ -171,20 +171,6 @@ export function isMiscellaneous(instance: any): instance is Miscellaneous {
 }
 
 
-export class Tour {
-  script: string;
-  name: string;
-}
-
-
-export function isTour(instance: any): instance is Tour {
-  const tour = <Tour>instance;
-  return tour !== null &&
-  tour.script !== undefined && typeof tour.script === 'string' &&
-  tour.name !== undefined && typeof tour.name === 'string';
-}
-
-
 export class AppConfig {
 
   // attributes
@@ -197,7 +183,6 @@ export class AppConfig {
   defaultParameters: DefaultParameters;
   macroLegend?: MacroLegend;
   miscellaneous?: Miscellaneous;
-  tours?: Tour[];
   servers: Server[];
 
   // constructor
@@ -232,9 +217,6 @@ export class AppConfig {
   }
   public static get miscellaneous(): Miscellaneous {
     return this._instance.miscellaneous;
-  }
-  public static get tours(): Tour[] {
-    return this._instance.tours;
   }
   public static get servers(): Server[] {
     return this._instance.servers;

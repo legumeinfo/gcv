@@ -1,5 +1,5 @@
 import { AppConfig, Brand, Communication, DashboardView, Dashboard,
-  Miscellaneous, Tour } from './app-config.model';
+  Miscellaneous } from './app-config.model';
 import { OrganismPlaceholders, GenePlaceholders, RegionPlaceholders } from './placeholders.model';
 import { Script, isScript } from './script.model';
 import { GET, POST, Request, Server } from './server.model';
@@ -12,7 +12,6 @@ export const models: any[] = [
   DashboardView,
   Dashboard,
   Miscellaneous,
-  Tour,
   OrganismPlaceholders,
   GenePlaceholders,
   RegionPlaceholders,
