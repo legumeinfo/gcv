@@ -24,7 +24,7 @@
     "@angular/forms": "^16.2.2",
     "@angular/platform-browser": "^16.2.2",
     "@angular/platform-browser-dynamic": "^16.2.2",
-    "@angular/router": "^16.2.2",
+    "@angular/router": "^16.2.6",
     "@fortawesome/fontawesome-free": "^6.4.2",
     "@ngrx/effects": "^16.2.0",
     "@ngrx/entity": "^16.2.0",
