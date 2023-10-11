@@ -22,7 +22,7 @@
     "@angular/compiler": "^16.2.2",
     "@angular/core": "^16.2.2",
     "@angular/forms": "^16.2.2",
-    "@angular/platform-browser": "^16.2.2",
+    "@angular/platform-browser": "^16.2.9",
     "@angular/platform-browser-dynamic": "^16.2.2",
     "@angular/router": "^16.2.2",
     "@fortawesome/fontawesome-free": "^6.4.2",
