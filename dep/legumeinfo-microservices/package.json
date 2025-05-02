@@ -14,7 +14,7 @@
     "protoc-gen-grpc-web": "^1.5.0",
     "replace-in-file": "^8.3.0",
     "tiged": "^2.12.7",
-    "typescript": "^5.1.6"
+    "typescript": "^5.8.3"
   },
   "dependencies": {
     "@types/google-protobuf": "^3.15.12",
