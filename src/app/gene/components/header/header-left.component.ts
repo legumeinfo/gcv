@@ -6,8 +6,8 @@ import { LayoutService } from '@gcv/gene/services';
 
 
 @Component({
-  selector: 'gcv-header-left',
-  styles: [`
+    selector: 'gcv-header-left',
+    styles: [`
     a {
       cursor: pointer;
     }
@@ -15,7 +15,7 @@ import { LayoutService } from '@gcv/gene/services';
       color: #fff !important;
     }
   `],
-  template: `
+    template: `
     <ul class="navbar-nav me-auto">
       <li>
         <a [class.active]="(visible|async)&&(content|async)=='parameters'" class="btn btn-outline-dark me-sm-2" role="button" (click)="toggleParameters()">Parameters</a>
@@ -25,6 +25,7 @@ import { LayoutService } from '@gcv/gene/services';
       </li>
     </ul>
   `,
+    standalone: false
 })
 export class HeaderLeftComponent {
 

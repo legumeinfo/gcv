@@ -9,9 +9,9 @@ import { InterAppCommunicationService } from '@gcv/gene/services';
 
 
 @Component({
-  selector: 'gcv-header-right',
-  styles: [],
-  template: `
+    selector: 'gcv-header-right',
+    styles: [],
+    template: `
     <ul class="navbar-nav me-auto">
       <li *ngIf="communicate" class="nav-item dropdown">
         <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
@@ -23,6 +23,7 @@ import { InterAppCommunicationService } from '@gcv/gene/services';
       </li>
     </ul>
   `,
+    standalone: false
 })
 export class HeaderRightComponent implements OnDestroy {
 

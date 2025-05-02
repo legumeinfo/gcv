@@ -8,8 +8,8 @@ import { GeneService } from '@gcv/gene/services';
 
 
 @Component({
-  selector: 'gcv-gene-tooltip',
-  template: `
+    selector: 'gcv-gene-tooltip',
+    template: `
     <b>{{ gene }}</b> ({{ source }})
     <div *ngIf="instance|async; else loading; let g">
       {{ g.fmin }}-{{ g.fmax }}
@@ -20,6 +20,7 @@ import { GeneService } from '@gcv/gene/services';
       </div>
     </ng-template>
   `,
+    standalone: false
 })
 export class GeneTooltipComponent implements OnInit {
 

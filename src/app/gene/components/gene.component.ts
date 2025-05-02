@@ -14,9 +14,10 @@ import tippy from 'tippy.js';
 
 
 @Component({
-  selector: 'gcv-gene',
-  styleUrls: ['./gene.component.scss'],
-  templateUrl: './gene.component.html',
+    selector: 'gcv-gene',
+    styleUrls: ['./gene.component.scss'],
+    templateUrl: './gene.component.html',
+    standalone: false
 })
 export class GeneComponent implements AfterViewInit, OnDestroy {
 

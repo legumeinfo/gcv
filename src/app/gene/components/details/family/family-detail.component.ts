@@ -9,9 +9,9 @@ import { MicroTracksService } from '@gcv/gene/services';
 
 
 @Component({
-  selector: 'gcv-family-detail',
-  styleUrls: ['../details.scss'],
-  template: `
+    selector: 'gcv-family-detail',
+    styleUrls: ['../details.scss'],
+    template: `
     <div class="details">
       <h4>{{family.name}}</h4>
       <p><a [routerLink]="['/gene', geneMatrix]" queryParamsHandling="merge">View genes in multi-alignment view</a></p>
@@ -27,6 +27,7 @@ import { MicroTracksService } from '@gcv/gene/services';
       </ul>
     </div>
   `,
+    standalone: false
 })
 export class FamilyDetailComponent implements OnDestroy, OnInit {
 

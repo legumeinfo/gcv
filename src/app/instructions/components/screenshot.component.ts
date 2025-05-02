@@ -12,9 +12,10 @@ declare var bootstrap: any;
 
 
 @Component({
-  selector: 'gcv-screenshot',
-  styleUrls: [ './screenshot.component.scss' ],
-  templateUrl: './screenshot.component.html',
+    selector: 'gcv-screenshot',
+    styleUrls: ['./screenshot.component.scss'],
+    templateUrl: './screenshot.component.html',
+    standalone: false
 })
 export class ScreenshotComponent
 implements AfterViewInit, OnChanges, OnDestroy {

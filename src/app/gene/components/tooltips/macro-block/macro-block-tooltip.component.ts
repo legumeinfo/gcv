@@ -10,8 +10,8 @@ import { ChromosomeService, GeneService } from '@gcv/gene/services';
 
 
 @Component({
-  selector: 'gcv-macro-block-tooltip',
-  template: `
+    selector: 'gcv-macro-block-tooltip',
+    template: `
     <!--
     <b>{{ pairwiseBlocks.reference }}</b> ({{ pairwiseBlocks.referenceSource }})
     <div *ngIf="referenceInterval|async; let interval">
@@ -23,6 +23,7 @@ import { ChromosomeService, GeneService } from '@gcv/gene/services';
       {{ block.fmin }}-{{ block.fmax }}
     </div>
   `,
+    standalone: false
 })
 export class MacroBlockTooltipComponent implements OnInit {
 

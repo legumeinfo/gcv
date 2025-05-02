@@ -9,7 +9,8 @@ declare var GoldenLayout: any;
 
 
 @Directive({
-  selector: '[gcvGoldenLayout]',
+    selector: '[gcvGoldenLayout]',
+    standalone: false
 })
 export class GoldenLayoutDirective implements AfterContentInit, OnDestroy {
 

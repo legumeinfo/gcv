@@ -4,7 +4,8 @@ import { Directive, HostListener, Input } from '@angular/core';
 import { SidebarDirective } from './sidebar.directive';
  
 @Directive({
-  selector: '[gcvSidebarToggle]'
+    selector: '[gcvSidebarToggle]',
+    standalone: false
 })
 export class SidebarToggleDirective {
   @Input('gcvSidebarToggle') sidebar: SidebarDirective;

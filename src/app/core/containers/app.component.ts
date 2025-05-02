@@ -9,11 +9,12 @@ import * as fromRoot from '@gcv/store/reducers';
 declare var window: any;
 
 @Component({
-  selector: 'gcv',
-  template: `
+    selector: 'gcv',
+    template: `
     <gcv-header></gcv-header>
     <router-outlet></router-outlet>
   `,
+    standalone: false
 })
 export class AppComponent implements OnInit {
 

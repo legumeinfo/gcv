@@ -3,9 +3,10 @@ import { AfterViewInit, ChangeDetectorRef, Component, ElementRef, EventEmitter,
   Input, Output, ViewChild } from '@angular/core';
 
 @Component({
-  selector: 'gcv-context-menu',
-  styleUrls: ['./context-menu.component.scss'],
-  templateUrl: './context-menu.component.html',
+    selector: 'gcv-context-menu',
+    styleUrls: ['./context-menu.component.scss'],
+    templateUrl: './context-menu.component.html',
+    standalone: false
 })
 export class ContextMenuComponent implements AfterViewInit {
 

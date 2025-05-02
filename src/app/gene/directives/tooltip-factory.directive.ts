@@ -7,7 +7,8 @@ import tippy, { sticky } from 'tippy.js';
 
 
 @Directive({
-  selector: '[gcvTooltipFactory]',
+    selector: '[gcvTooltipFactory]',
+    standalone: false
 })
 export class TooltipFactoryDirective {
 

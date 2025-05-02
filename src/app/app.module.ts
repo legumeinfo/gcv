@@ -1,6 +1,6 @@
 // Angular
 import { HttpClient, provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
-import { APP_INITIALIZER, NgModule, NO_ERRORS_SCHEMA } from '@angular/core';
+import { NgModule, NO_ERRORS_SCHEMA, inject, provideAppInitializer } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 // NgRx
@@ -53,14 +53,12 @@ import { RouterEffects } from '@gcv/store/effects';
             deps: [HttpClient],
             useExisting: AppConfigService,
         },
-        {
-            provide: APP_INITIALIZER,
-            multi: true,
-            deps: [AppConfigService],
-            useFactory: (appConfigService: AppConfigService) => {
+        provideAppInitializer(() => {
+        const initializerFn = ((appConfigService: AppConfigService) => {
                 return () => appConfigService.load();
-            },
-        },
+            })(inject(AppConfigService));
+        return initializerFn();
+      }),
         {
             provide: RouterStateSerializer,
             useClass: CustomRouterStateSerializer,

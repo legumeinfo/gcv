@@ -8,9 +8,10 @@ import { SearchService } from '@gcv/search/services';
 
 
 @Component({
-  selector: 'gcv-search',
-  styleUrls: ['search.component.scss'],
-  templateUrl: 'search.component.html',
+    selector: 'gcv-search',
+    styleUrls: ['search.component.scss'],
+    templateUrl: 'search.component.html',
+    standalone: false
 })
 export class SearchComponent implements OnInit {
 
