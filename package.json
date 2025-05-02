@@ -32,7 +32,7 @@
     "@ngrx/router-store": "^19.1.0",
     "@ngrx/store": "^19.1.0",
     "@types/d3": "^5.16.4",
-    "bootstrap": "^5.3.1",
+    "bootstrap": "^5.3.5",
     "circos": "^2.1.0",
     "d3": "^5.16.0",
     "golden-layout": "^1.5.9",
