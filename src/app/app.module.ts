@@ -1,5 +1,5 @@
 // Angular
-import { HttpClient, HttpClientModule } from '@angular/common/http';
+import { HttpClient, provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 import { APP_INITIALIZER, NgModule, NO_ERRORS_SCHEMA } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
@@ -26,51 +26,46 @@ import * as fromRouter from '@gcv/store/reducers/router.reducer';
 import { RouterEffects } from '@gcv/store/effects';
 
 
-@NgModule({
-  imports: [
-    AppRoutingModule,
-    BrowserAnimationsModule,
-    BrowserModule,
-    HttpClientModule,
-    StoreModule.forRoot(reducers, {
-      metaReducers,
-      runtimeChecks: {
-        strictStateImmutability: true,
-        strictActionImmutability: true,
-        strictStateSerializability: false,  // classes are not serializable...
-        strictActionSerializability: false,  // breaks router store serializer
-        strictActionWithinNgZone: true,
-        strictActionTypeUniqueness: true,
-      },
-      initialState: {
-        routerReducer: fromRouter.initialState,
-      },
-    }),
-    StoreRouterConnectingModule.forRoot(),
-    EffectsModule.forRoot([RouterEffects]),
-    CoreModule,
-  ],
-  providers: [
-    {
-      provide: AppConfig,
-      deps: [HttpClient],
-      useExisting: AppConfigService,
-    },
-    {
-      provide: APP_INITIALIZER,
-      multi: true,
-      deps: [AppConfigService],
-      useFactory: (appConfigService: AppConfigService) => {
-        return () => appConfigService.load();
-      },
-    },
-    {
-      provide: RouterStateSerializer,
-      useClass: CustomRouterStateSerializer,
-    },
-    ...fromGuards.guards,
-  ],
-  //schemas: [NO_ERRORS_SCHEMA],
-  bootstrap: [AppComponent],
-})
+@NgModule({ 
+    //schemas: [NO_ERRORS_SCHEMA],
+    bootstrap: [AppComponent], imports: [AppRoutingModule,
+        BrowserAnimationsModule,
+        BrowserModule,
+        StoreModule.forRoot(reducers, {
+            metaReducers,
+            runtimeChecks: {
+                strictStateImmutability: true,
+                strictActionImmutability: true,
+                strictStateSerializability: false, // classes are not serializable...
+                strictActionSerializability: false, // breaks router store serializer
+                strictActionWithinNgZone: true,
+                strictActionTypeUniqueness: true,
+            },
+            initialState: {
+                routerReducer: fromRouter.initialState,
+            },
+        }),
+        StoreRouterConnectingModule.forRoot(),
+        EffectsModule.forRoot([RouterEffects]),
+        CoreModule], providers: [
+        {
+            provide: AppConfig,
+            deps: [HttpClient],
+            useExisting: AppConfigService,
+        },
+        {
+            provide: APP_INITIALIZER,
+            multi: true,
+            deps: [AppConfigService],
+            useFactory: (appConfigService: AppConfigService) => {
+                return () => appConfigService.load();
+            },
+        },
+        {
+            provide: RouterStateSerializer,
+            useClass: CustomRouterStateSerializer,
+        },
+        ...fromGuards.guards,
+        provideHttpClient(withInterceptorsFromDi()),
+    ] })
 export class AppModule { }
