@@ -1,5 +1,5 @@
 # base stage installs the project dependencies
-FROM node:19-alpine3.16 as base
+FROM node:22.15.0-alpine3.21 as base
 
 # install non-npm build dependencies
 RUN apk add --no-cache \
@@ -44,7 +44,7 @@ RUN npx ng build --configuration production $ANGULAR_BUILD_OPTIONS
 
 
 # prod stage deploys the project with NGINX
-FROM nginx:1.23-alpine as prod
+FROM nginx:1.28-alpine as prod
 
 # copy the nginx configuration template
 COPY nginx/templates/default.conf.template /etc/nginx/templates/
