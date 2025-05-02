@@ -12,7 +12,7 @@
     "create-ts-index": "^1.14.0",
     "grpc-tools": "^1.13.0",
     "protoc-gen-grpc-web": "^1.5.0",
-    "replace-in-file": "^7.0.1",
+    "replace-in-file": "^8.3.0",
     "tiged": "^2.12.5",
     "typescript": "^5.1.6"
   },
