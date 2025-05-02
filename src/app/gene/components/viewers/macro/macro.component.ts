@@ -18,14 +18,15 @@ import { macroShim } from './macro.shim';
 
 
 @Component({
-  selector: 'gcv-macro',
-  styleUrls: ['../golden-viewer.scss'],
-  template: `
+    selector: 'gcv-macro',
+    styleUrls: ['../golden-viewer.scss'],
+    template: `
     <gcv-context-menu (saveImage)="saveImage()">
       <gcv-pipeline [info]=info [pipeline]=pipeline navcenter></gcv-pipeline>
     </gcv-context-menu>
     <div (gcvOnResize)="draw()" class="viewer" #container></div>
   `,
+    standalone: false
 })
 export class MacroComponent implements AfterViewInit, OnDestroy, OnInit {
 

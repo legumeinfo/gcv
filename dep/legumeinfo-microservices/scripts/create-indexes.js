@@ -6,7 +6,7 @@
 'use strict';
 
 const execSync = require('child_process').execSync;
-const replaceSync = require('replace-in-file').sync;
+const replaceSync = require('replace-in-file').replaceInFileSync;
 
 const output_dir = './src';
 

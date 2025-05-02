@@ -8,8 +8,8 @@ import { statusToClass, statusToIcon } from '@gcv/gene/components/pipeline.shim'
 
 
 @Component({
-  selector: 'gcv-process-tooltip',
-  template: `
+    selector: 'gcv-process-tooltip',
+    template: `
     <ng-container *ngIf="process.status|async; let processStatus">
       <ul class="list-group list-group-flush">
         <li class="list-group-item fw-bold {{ statusToClass(processStatus) }}">
@@ -25,6 +25,7 @@ import { statusToClass, statusToIcon } from '@gcv/gene/components/pipeline.shim'
       </ul>
     </ng-container>
   `,
+    standalone: false
 })
 export class ProcessTooltipComponent {
 

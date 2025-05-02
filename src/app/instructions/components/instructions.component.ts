@@ -5,9 +5,10 @@ import { AppConfig, Brand, Dashboard } from '@gcv/core/models';
 
 
 @Component({
-  selector: 'gcv-instructions',
-  styleUrls: [ './instructions.component.scss' ],
-  templateUrl: './instructions.component.html',
+    selector: 'gcv-instructions',
+    styleUrls: ['./instructions.component.scss'],
+    templateUrl: './instructions.component.html',
+    standalone: false
 })
 export class InstructionsComponent {
 

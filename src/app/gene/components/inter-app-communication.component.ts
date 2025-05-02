@@ -4,8 +4,9 @@ import { Component } from '@angular/core';
 import { InterAppCommunicationService } from '@gcv/gene/services';
 
 @Component({
-  selector: 'gcv-inter-app-communication',
-  templateUrl: './inter-app-communication.component.html',
+    selector: 'gcv-inter-app-communication',
+    templateUrl: './inter-app-communication.component.html',
+    standalone: false
 })
 export class InterAppCommunicationComponent {
 

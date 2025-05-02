@@ -7,7 +7,10 @@ import { filter, map } from 'rxjs/operators';
 import { AppConfig, Server } from '@gcv/core/models';
 
 
-@Component({template: ''})
+@Component({
+    template: '',
+    standalone: false
+})
 export class AbstractSearchWidgetComponent implements OnInit {
 
   model: any;

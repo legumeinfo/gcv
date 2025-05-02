@@ -8,9 +8,9 @@ import { GeneService, RegionService } from '@gcv/gene/services';
 
 
 @Component({
-  selector: 'gcv-gene-detail',
-  styleUrls: ['../details.scss'],
-  template: `
+    selector: 'gcv-gene-detail',
+    styleUrls: ['../details.scss'],
+    template: `
     <div class="details">
       <h4>{{ gene }}</h4>
       <p><a [routerLink]="['/gene', singleGeneMatrix]" queryParamsHandling="merge">Search for similar contexts</a></p>
@@ -25,6 +25,7 @@ import { GeneService, RegionService } from '@gcv/gene/services';
       </ul>
     </div>
   `,
+    standalone: false
 })
 export class GeneDetailComponent implements OnDestroy, OnInit {
 

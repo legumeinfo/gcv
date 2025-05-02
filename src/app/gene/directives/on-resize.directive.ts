@@ -4,7 +4,8 @@ import { Directive, ElementRef, EventEmitter, OnDestroy, OnInit, Output }
 
 
 @Directive({
-  selector: '[gcvOnResize]'
+    selector: '[gcvOnResize]',
+    standalone: false
 })
 export class OnResizeDirective implements OnDestroy, OnInit {
 

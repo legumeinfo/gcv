@@ -8,9 +8,10 @@ declare var bootstrap: any;
 
 
 @Component({
-  selector: 'gcv-header',
-  styleUrls: [ './header.component.scss' ],
-  templateUrl: './header.component.html',
+    selector: 'gcv-header',
+    styleUrls: ['./header.component.scss'],
+    templateUrl: './header.component.html',
+    standalone: false
 })
 export class HeaderComponent implements AfterViewInit {
 

@@ -7,8 +7,9 @@ import { AppConfig } from '@gcv/core/models';
 
 
 @Component({
-  selector: 'gcv-search-widget',
-  templateUrl: './search-widget.component.html',
+    selector: 'gcv-search-widget',
+    templateUrl: './search-widget.component.html',
+    standalone: false
 })
 export class SearchWidgetComponent extends AbstractSearchWidgetComponent {
 

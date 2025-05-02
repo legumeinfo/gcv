@@ -4,8 +4,9 @@ import { animate, style, AnimationBuilder, AnimationFactory, AnimationPlayer }
 import { Directive, ElementRef } from '@angular/core';
  
 @Directive({
-  selector: '[gcvSidebar]',
-  exportAs: 'sidebar',
+    selector: '[gcvSidebar]',
+    exportAs: 'sidebar',
+    standalone: false
 })
 export class SidebarDirective {
 

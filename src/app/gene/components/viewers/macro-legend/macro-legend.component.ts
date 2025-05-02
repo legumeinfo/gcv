@@ -11,12 +11,13 @@ import { macroLegendShim } from './macro-legend.shim';
 
 
 @Component({
-  selector: 'gcv-macro-legend',
-  styleUrls: ['../golden-viewer.scss'],
-  template: `
+    selector: 'gcv-macro-legend',
+    styleUrls: ['../golden-viewer.scss'],
+    template: `
     <gcv-context-menu (saveImage)="saveImage()"></gcv-context-menu>
     <div (gcvOnResize)="draw()" class="viewer" #container></div>
   `,
+    standalone: false
 })
 export class MacroLegendComponent implements AfterViewInit, OnDestroy {
 

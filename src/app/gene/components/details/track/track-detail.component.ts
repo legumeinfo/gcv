@@ -9,9 +9,9 @@ import { Track } from '@gcv/gene/models';
 
 
 @Component({
-  selector: 'gcv-track-detail',
-  styleUrls: ['../details.scss'],
-  template: `
+    selector: 'gcv-track-detail',
+    styleUrls: ['../details.scss'],
+    template: `
     <div class="details">
       <h4>{{ track.genus[0] }}.{{ track.species }} - {{ track.name }}</h4>
       <p><a [routerLink]="['/search', track.source, focus]" queryParamsHandling="merge">Search for similar contexts</a></p>
@@ -33,6 +33,7 @@ import { Track } from '@gcv/gene/models';
       </ul>
     </div>
   `,
+    standalone: false
 })
 export class TrackDetailComponent implements OnDestroy, OnInit {
 

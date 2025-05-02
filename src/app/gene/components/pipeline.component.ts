@@ -12,9 +12,10 @@ import { statusToClass, statusToIcon } from './pipeline.shim';
 
 
 @Component({
-  selector: 'gcv-pipeline',
-  styleUrls: ['./pipeline.component.scss'],
-  templateUrl: 'pipeline.component.html',
+    selector: 'gcv-pipeline',
+    styleUrls: ['./pipeline.component.scss'],
+    templateUrl: 'pipeline.component.html',
+    standalone: false
 })
 export class PipelineComponent { 
 
