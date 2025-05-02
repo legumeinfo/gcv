@@ -12,7 +12,7 @@ assignees: ''
   - [ ] Update Angular dependencies using the Angular CLI following the [Angular Update Guide](https://angular.dev/update-guide)
   - [ ] Update the dependencies in the microservices pseudo-package (`dep/legumeinfo-microservices`)
   - [ ] Make sure transitive dependencies are updated with `npm audit`
-- [ ] Update the base image version in the `Dockerfile` if necessary.
+- [ ] Update the base image version in the `Dockerfile` if necessary (only LTS versions should be used).
 - [ ] Do a test build and run of the Docker image on you local machine so you know if something is going to go off the rails before the automated build action on GitHub.
 - [ ] Bump the `"version"` number in `package.json` and reinstall the dependencies so the correct version number is in `package-lock.json`.
 - [ ] Open a PR that merges the release branch into main.
