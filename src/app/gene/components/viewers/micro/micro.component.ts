@@ -20,27 +20,39 @@ import { microShim } from './micro.shim';
     template: `
     <gcv-context-menu (saveImage)="saveImage()">
       <ul class="navbar-nav me-auto">
-        <li *ngIf="showMacro()" class="nav-item dropdown">
-          <a class="btn btn-outline-dark dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-            Macro Viewers
-          </a>
-          <div *ngIf="queryTracks|async as tracks" class="dropdown-menu" aria-labelledby="dropdownMenuLink">
-            <div *ngIf="showCircos()">
-              <h6 class="dropdown-header">Multi</h6>
-              <a [routerLink]="[]" queryParamsHandling="preserve" class="dropdown-item" (click)="emitCircos(tracks)">Circos</a>
-            </div>
-            <div *ngIf="showCircos() && showReference()" class="dropdown-divider"></div>
-            <div *ngIf="showReference()">
-              <h6 class="dropdown-header">Reference</h6>
-              <a [routerLink]="[]" queryParamsHandling="preserve" *ngFor="let track of tracks" class="dropdown-item" (click)="emitReference(track)">{{ track.name }}</a>
-            </div>
-          </div>
-        </li>
+        @if (showMacro()) {
+          <li class="nav-item dropdown">
+            <a class="btn btn-outline-dark dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+              Macro Viewers
+            </a>
+            @if (queryTracks|async; as tracks) {
+              <div class="dropdown-menu" aria-labelledby="dropdownMenuLink">
+                @if (showCircos()) {
+                  <div>
+                    <h6 class="dropdown-header">Multi</h6>
+                    <a [routerLink]="[]" queryParamsHandling="preserve" class="dropdown-item" (click)="emitCircos(tracks)">Circos</a>
+                  </div>
+                }
+                @if (showCircos() && showReference()) {
+                  <div class="dropdown-divider"></div>
+                }
+                @if (showReference()) {
+                  <div>
+                    <h6 class="dropdown-header">Reference</h6>
+                    @for (track of tracks; track track) {
+                      <a [routerLink]="[]" queryParamsHandling="preserve" class="dropdown-item" (click)="emitReference(track)">{{ track.name }}</a>
+                    }
+                  </div>
+                }
+              </div>
+            }
+          </li>
+        }
       </ul>
       <gcv-pipeline [info]=info [pipeline]=pipeline navcenter></gcv-pipeline>
     </gcv-context-menu>
     <div (gcvOnResize)="draw()" class="viewer" #container></div>
-  `,
+    `,
     standalone: false
 })
 export class MicroComponent implements AfterViewInit, OnDestroy, OnInit {

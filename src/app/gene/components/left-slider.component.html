@@ -16,10 +16,18 @@
   </nav>
   <!-- scrollable content -->
   <div class="left-slider-content">
-    <div [ngSwitch]="content|async">
-      <gcv-params *ngSwitchCase="'parameters'" (valid)="close()" (invalid)="open()"></gcv-params>
-      <gcv-filters *ngSwitchCase="'filters'"></gcv-filters>
-      <div *ngSwitchDefault>No content selected</div>
+    <div>
+      @switch (content|async) {
+        @case ('parameters') {
+          <gcv-params (valid)="close()" (invalid)="open()"></gcv-params>
+        }
+        @case ('filters') {
+          <gcv-filters></gcv-filters>
+        }
+        @default {
+          <div>No content selected</div>
+        }
+      }
     </div>
   </div>
 </div>

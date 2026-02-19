@@ -22,7 +22,9 @@
           <select class="dropdown-menu dropdown-menu-end" multiple name="sources"
             (click)="$event.stopPropagation()"
             [(ngModel)]="model.sources">
-            <option *ngFor="let src of sources" [value]="src.id">{{src.name}}</option>
+            @for (src of sources; track src) {
+              <option [value]="src.id">{{src.name}}</option>
+            }
           </select>
         </div>
         <div class="col-auto ps-0">
@@ -31,7 +33,9 @@
       </form>
 
       <div class="row">
-        <p class="p-0">{{ (resultGenes|async).length }} gene<ng-container *ngIf="(resultGenes|async).length != 1">s</ng-container> returned</p>
+        <p class="p-0">{{ (resultGenes|async).length }} gene@if ((resultGenes|async).length != 1) {
+          s
+        } returned</p>
         <table class="table table-striped">
           <thead>
             <tr>
@@ -41,23 +45,27 @@
             </tr>
           </thead>
           <tbody>
-            <tr *ngFor="let gene of resultGenes|async">
-              <td>
-                <div class="form-check">
-                  <input type="checkbox" class="form-check-input" (change)="toggleGene($event, gene.name, gene.source)">
-                </div>
-              </td>
-              <td>
-                <a [routerLink]="['/gene', geneSourceToRouterGeneMatrix(gene.name, gene.source)]" [queryParams]="{}">{{ gene.name }}</a>
-              </td>
-              <td>{{ getServerName(gene.source) }}</td>
-            </tr>
+            @for (gene of resultGenes|async; track gene) {
+              <tr>
+                <td>
+                  <div class="form-check">
+                    <input type="checkbox" class="form-check-input" (change)="toggleGene($event, gene.name, gene.source)">
+                  </div>
+                </td>
+                <td>
+                  <a [routerLink]="['/gene', geneSourceToRouterGeneMatrix(gene.name, gene.source)]" [queryParams]="{}">{{ gene.name }}</a>
+                </td>
+                <td>{{ getServerName(gene.source) }}</td>
+              </tr>
+            }
           </tbody>
         </table>
       </div>
 
       <div class="row">
-        {{ (resultRegions|async).length }} region<ng-container *ngIf="(resultRegions|async).length != 1">s</ng-container> returned
+        {{ (resultRegions|async).length }} region@if ((resultRegions|async).length != 1) {
+        s
+        } returned
         <table class="table table-striped">
           <thead>
             <tr>
@@ -66,12 +74,14 @@
             </tr>
           </thead>
           <tbody>
-            <tr *ngFor="let region of resultRegions|async">
-              <td>
-                <a [routerLink]="['/gene', geneSourceToRouterGeneMatrix(region.gene, region.source)]" [queryParams]="{neighbors: region.neighbors}">{{ region.gene }} ({{ region.neighbors }})</a>
-              </td>
-              <td>{{ getServerName(region.source) }}</td>
-            </tr>
+            @for (region of resultRegions|async; track region) {
+              <tr>
+                <td>
+                  <a [routerLink]="['/gene', geneSourceToRouterGeneMatrix(region.gene, region.source)]" [queryParams]="{neighbors: region.neighbors}">{{ region.gene }} ({{ region.neighbors }})</a>
+                </td>
+                <td>{{ getServerName(region.source) }}</td>
+              </tr>
+            }
           </tbody>
         </table>
       </div>

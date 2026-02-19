@@ -14,17 +14,23 @@ import { GeneService, RegionService } from '@gcv/gene/services';
     <div class="details">
       <h4>{{ gene }}</h4>
       <p><a [routerLink]="['/gene', singleGeneMatrix]" queryParamsHandling="merge">Search for similar contexts</a></p>
-      <p *ngIf="familyTreeLink !== undefined">Family: <a href="{{ familyTreeLink }}">{{ family }}</a></p>
+      @if (familyTreeLink !== undefined) {
+        <p>Family: <a href="{{ familyTreeLink }}">{{ family }}</a></p>
+      }
       <ul>
-        <li *ngFor="let link of geneLinks">
-          <a href="{{ link.href }}">{{ link.text }}</a>
-        </li>
-        <li *ngFor="let link of regionLinks">
-          <a href="{{ link.href }}">{{ link.text }}</a>
-        </li>
+        @for (link of geneLinks; track link) {
+          <li>
+            <a href="{{ link.href }}">{{ link.text }}</a>
+          </li>
+        }
+        @for (link of regionLinks; track link) {
+          <li>
+            <a href="{{ link.href }}">{{ link.text }}</a>
+          </li>
+        }
       </ul>
     </div>
-  `,
+    `,
     standalone: false
 })
 export class GeneDetailComponent implements OnDestroy, OnInit {

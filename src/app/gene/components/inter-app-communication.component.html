@@ -1,6 +1,8 @@
 <div role="alert" [className]="alert.class">
   {{alert.message}}
-  <i *ngIf="alert.working" class="fas fa-circle-notch fa-spin"></i>
+  @if (alert.working) {
+    <i class="fas fa-circle-notch fa-spin"></i>
+  }
 </div>
 
 <form class="px-4 py-3">

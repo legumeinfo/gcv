@@ -15,18 +15,26 @@ import { MicroTracksService } from '@gcv/gene/services';
     <div class="details">
       <h4>{{family.name}}</h4>
       <p><a [routerLink]="['/gene', geneMatrix]" queryParamsHandling="merge">View genes in multi-alignment view</a></p>
-      <p>Phylograms: <span *ngIf="familyTreeLinks.length === 0">none</span></p>
-      <ul *ngIf="familyTreeLinks.length > 0">
-        <li *ngFor="let link of familyTreeLinks">
-          <a href="{{link.url}}">{{link.text}}</a>
-        </li>
-      </ul>
+      <p>Phylograms: @if (familyTreeLinks.length === 0) {
+        <span>none</span>
+      }</p>
+      @if (familyTreeLinks.length > 0) {
+        <ul>
+          @for (link of familyTreeLinks; track link) {
+            <li>
+              <a href="{{link.url}}">{{link.text}}</a>
+            </li>
+          }
+        </ul>
+      }
       <p>Genes:</p>
       <ul>
-        <li *ngFor="let gene of genes">{{ gene }}</li>
+        @for (gene of genes; track gene) {
+          <li>{{ gene }}</li>
+        }
       </ul>
     </div>
-  `,
+    `,
     standalone: false
 })
 export class FamilyDetailComponent implements OnDestroy, OnInit {

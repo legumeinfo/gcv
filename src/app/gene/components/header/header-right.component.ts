@@ -13,16 +13,18 @@ import { InterAppCommunicationService } from '@gcv/gene/services';
     styles: [],
     template: `
     <ul class="navbar-nav me-auto">
-      <li *ngIf="communicate" class="nav-item dropdown">
-        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-          <i class="fas fa-broadcast-tower"></i>
-        </a>
-        <div class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownMenuLink">
-          <gcv-inter-app-communication></gcv-inter-app-communication>
-        </div>
-      </li>
+      @if (communicate) {
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            <i class="fas fa-broadcast-tower"></i>
+          </a>
+          <div class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownMenuLink">
+            <gcv-inter-app-communication></gcv-inter-app-communication>
+          </div>
+        </li>
+      }
     </ul>
-  `,
+    `,
     standalone: false
 })
 export class HeaderRightComponent implements OnDestroy {

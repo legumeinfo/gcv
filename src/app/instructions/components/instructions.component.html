@@ -53,14 +53,18 @@
   <section class="border-top py-5 bg-light">
     <div class="container">
       <!-- examples -->
-      <div class="row" *ngIf="dashboard.examples.length > 0">
-        <div class="col-md-12">
-          <h2>{{brand.name}} Examples<!-- <span class="text-muted">Checkmate.</span>--></h2>
-          <ul>
-            <li *ngFor="let example of dashboard.examples" [innerHTML]="example"></li>
-          </ul>
+      @if (dashboard.examples.length > 0) {
+        <div class="row">
+          <div class="col-md-12">
+            <h2>{{brand.name}} Examples<!-- <span class="text-muted">Checkmate.</span>--></h2>
+            <ul>
+              @for (example of dashboard.examples; track example) {
+                <li [innerHTML]="example"></li>
+              }
+            </ul>
+          </div>
         </div>
-      </div>
+      }
     </div>
   </section>
 
@@ -68,61 +72,61 @@
   <section class="border-top py-5" id="description">
     <div class="container">
 
-    <div class="row mb-5">
-      <h1 class="display-4 text-center">How it Works</h1>
-      <p class="lead text-center">The Genome Context Viewer is a micro-synteny viewer that can load data from multiple sources simultaneously, enabling the comparative analysis of data curated by independent data providers. Though there are other visualizations, such as dot plots and macro-synteny blocks, they're intended to supplement the micro-synteny visualization from which their content is derived.</p>
-    </div>
+      <div class="row mb-5">
+        <h1 class="display-4 text-center">How it Works</h1>
+        <p class="lead text-center">The Genome Context Viewer is a micro-synteny viewer that can load data from multiple sources simultaneously, enabling the comparative analysis of data curated by independent data providers. Though there are other visualizations, such as dot plots and macro-synteny blocks, they're intended to supplement the micro-synteny visualization from which their content is derived.</p>
+      </div>
 
-    <div class="row mb-5">
-      <div class="col-md-5 flex-shrink-1">
-        <h2>Micro-Synteny</h2>
-        <p>The micro-synteny visualization shows segments of chromosomes as ordered sequences of genes. Each segment, or <i>track</i>, is drawn as "beads-on-a-string", where each triangular bead represents a gene, the orientation of which conveys the strand the gene occurs on and the color corresponds to the gene's functional annotation. The thickness of the string, or line, between genes represents the physical distance between them.</p>
-        <p><b>Micro-synteny search</b> is the primary function of the Genome Context Viewer. Given one or more <i>query genes</i>, a micro-synteny <i>query track</i> is constructed for each gene from the genes, or <i>neighbors</i>, that flank it on its chromosome. The Genome Context Viewer then searches one or more databases for tracks that have similar functional annotation content.</p>
-        <p><b>Track alignment</b> based on the functional annotations of the track genes is used to emphasize the preservation and variation of structure among micro-synteny tracks. Query tracks are multiple aligned and search result tracks are pairwise aligned to the consensus of the multiple alignment. Inversions and tandem duplications are drawn on separate lines to emphasize the variation of structure.</p>
+      <div class="row mb-5">
+        <div class="col-md-5 flex-shrink-1">
+          <h2>Micro-Synteny</h2>
+          <p>The micro-synteny visualization shows segments of chromosomes as ordered sequences of genes. Each segment, or <i>track</i>, is drawn as "beads-on-a-string", where each triangular bead represents a gene, the orientation of which conveys the strand the gene occurs on and the color corresponds to the gene's functional annotation. The thickness of the string, or line, between genes represents the physical distance between them.</p>
+          <p><b>Micro-synteny search</b> is the primary function of the Genome Context Viewer. Given one or more <i>query genes</i>, a micro-synteny <i>query track</i> is constructed for each gene from the genes, or <i>neighbors</i>, that flank it on its chromosome. The Genome Context Viewer then searches one or more databases for tracks that have similar functional annotation content.</p>
+          <p><b>Track alignment</b> based on the functional annotations of the track genes is used to emphasize the preservation and variation of structure among micro-synteny tracks. Query tracks are multiple aligned and search result tracks are pairwise aligned to the consensus of the multiple alignment. Inversions and tandem duplications are drawn on separate lines to emphasize the variation of structure.</p>
+        </div>
+        <div class="col-md-7 flex-shrink-1">
+          <figure class="figure">
+            <gcv-screenshot [screenshot]="dashboard.trackScreenshot" [alt]="'The anatomy of a query track'"></gcv-screenshot>
+            <figcaption class="figure-caption">{{dashboard.trackScreenshot.caption}}</figcaption>
+          </figure>
+          <figure class="figure">
+            <gcv-screenshot [screenshot]="dashboard.microsyntenyScreenshot" [alt]="'The micro-synteny viewer'"></gcv-screenshot>
+            <figcaption class="figure-caption">{{dashboard.microsyntenyScreenshot.caption}}</figcaption>
+          </figure>
+        </div>
       </div>
-      <div class="col-md-7 flex-shrink-1">
-        <figure class="figure">
-          <gcv-screenshot [screenshot]="dashboard.trackScreenshot" [alt]="'The anatomy of a query track'"></gcv-screenshot>
-          <figcaption class="figure-caption">{{dashboard.trackScreenshot.caption}}</figcaption>
-        </figure>
-        <figure class="figure">
-          <gcv-screenshot [screenshot]="dashboard.microsyntenyScreenshot" [alt]="'The micro-synteny viewer'"></gcv-screenshot>
-          <figcaption class="figure-caption">{{dashboard.microsyntenyScreenshot.caption}}</figcaption>
-        </figure>
-      </div>
-    </div>
 
-    <div class="row mb-5">
-      <div class="col-md-7 flex-shrink-1">
-        <figure class="figure">
-          <gcv-screenshot [screenshot]="dashboard.dotplotsScreenshot" [alt]="'Local and gloabl dot plots'"></gcv-screenshot>
-          <figcaption class="figure-caption">{{dashboard.dotplotsScreenshot.caption}}</figcaption>
-        </figure>
+      <div class="row mb-5">
+        <div class="col-md-7 flex-shrink-1">
+          <figure class="figure">
+            <gcv-screenshot [screenshot]="dashboard.dotplotsScreenshot" [alt]="'Local and gloabl dot plots'"></gcv-screenshot>
+            <figcaption class="figure-caption">{{dashboard.dotplotsScreenshot.caption}}</figcaption>
+          </figure>
+        </div>
+        <div class="col-md-5 flex-shrink-1">
+          <h2>Dot Plots</h2>
+          <p>Pairwise gene-loci dot plots between any track and the query tracks can be loaded on-demand to further elucidate structure.</p>
+          <p><b>Local plots</b> depict only the genes from the micro-synteny tracks being compared.</p>
+          <p><b>Global plots</b> depict the genes from the micro-tracks being compared in addition to all the gene's from the selected track's chromosome that have a functional annotation present in the query track being plotted against.</p>
+        </div>
       </div>
-      <div class="col-md-5 flex-shrink-1">
-        <h2>Dot Plots</h2>
-        <p>Pairwise gene-loci dot plots between any track and the query tracks can be loaded on-demand to further elucidate structure.</p>
-        <p><b>Local plots</b> depict only the genes from the micro-synteny tracks being compared.</p>
-        <p><b>Global plots</b> depict the genes from the micro-tracks being compared in addition to all the gene's from the selected track's chromosome that have a functional annotation present in the query track being plotted against.</p>
-      </div>
-    </div>
 
-    <div class="row">
-      <div class="col-md-5">
-        <h2>Macro-Synteny</h2>
-        <p>Macro-synteny visualizations are used to put micro-synteny tracks into context by displaying chromosome-scale pairwise synteny blocks for the chromosomes of the query tracks. These blocks are computed on-demand by one or more databases using an <a href="https://doi.org/10.1093/nar/gkr1293" target="_blank">MCScanX</a> style algorithm and are colored by genus and species.</p>
-        <p><b>Reference blocks</b> can be computed using the chromosome of any of the query tracks as a reference. The genomic interval corresponding to the chromosome's query track is highlighted, putting the micro-synteny structures into the context of the macro-synteny structures.</p>
-        <p><b>Circos blocks</b> can be computed between the chromosomes of the query tracks. As with the reference blocks, the genomic intervals corresponding to the query tracks are highlighted. Additionally, the all-pairs comparison can reveal structures that are preserved among all or a subsets of the query track chromosomes.</p>
+      <div class="row">
+        <div class="col-md-5">
+          <h2>Macro-Synteny</h2>
+          <p>Macro-synteny visualizations are used to put micro-synteny tracks into context by displaying chromosome-scale pairwise synteny blocks for the chromosomes of the query tracks. These blocks are computed on-demand by one or more databases using an <a href="https://doi.org/10.1093/nar/gkr1293" target="_blank">MCScanX</a> style algorithm and are colored by genus and species.</p>
+          <p><b>Reference blocks</b> can be computed using the chromosome of any of the query tracks as a reference. The genomic interval corresponding to the chromosome's query track is highlighted, putting the micro-synteny structures into the context of the macro-synteny structures.</p>
+          <p><b>Circos blocks</b> can be computed between the chromosomes of the query tracks. As with the reference blocks, the genomic intervals corresponding to the query tracks are highlighted. Additionally, the all-pairs comparison can reveal structures that are preserved among all or a subsets of the query track chromosomes.</p>
+        </div>
+        <div class="col-md-7">
+          <figure class="figure">
+            <gcv-screenshot [screenshot]="dashboard.macrosyntenyScreenshot" [alt]="'Multi view screenshot'"></gcv-screenshot>
+            <figcaption class="figure-caption">{{dashboard.macrosyntenyScreenshot.caption}}</figcaption>
+          </figure>
+        </div>
       </div>
-      <div class="col-md-7">
-        <figure class="figure">
-          <gcv-screenshot [screenshot]="dashboard.macrosyntenyScreenshot" [alt]="'Multi view screenshot'"></gcv-screenshot>
-          <figcaption class="figure-caption">{{dashboard.macrosyntenyScreenshot.caption}}</figcaption>
-        </figure>
-      </div>
-    </div>
 
-  </div>
+    </div>
   </section>
 
   <footer class="border-top py-3">

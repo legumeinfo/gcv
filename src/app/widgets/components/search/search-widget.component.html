@@ -7,11 +7,15 @@
       <span class="visually-hidden">Toggle Dropdown</span>
     </button>
     <select class="dropdown-menu w-100" multiple name="sources"
-        (click)="$event.stopPropagation()"
-        [(ngModel)]="model.sources">
-      <option *ngFor="let src of sources" [value]="src.id">{{src.name}}</option>
+      (click)="$event.stopPropagation()"
+      [(ngModel)]="model.sources">
+      @for (src of sources; track src) {
+        <option [value]="src.id">{{src.name}}</option>
+      }
     </select>
     <button type="submit" class="btn btn-primary">Search</button>
   </div>
-  <small class="form-text text-muted" *ngIf="helpText" [innerHTML]="helpText"></small>
+  @if (helpText) {
+    <small class="form-text text-muted" [innerHTML]="helpText"></small>
+  }
 </form>

@@ -10,8 +10,12 @@
               <a class="nav-link dropdown-toggle" href="" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
               </a>
               <div class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownMenuLink" #dropdown>
-                <a class="dropdown-item native" (click)="imageClick()" *ngIf="showImage()">Screenshot<span class="float-end"><i class="fas fa-camera" aria-hidden="true"></i></span></a>
-                <a class="dropdown-item native" (click)="dataClick()" *ngIf="showData()">Download<span class="float-end"><i class="fas fa-arrow-down" aria-hidden="true"></i></span></a>
+                @if (showImage()) {
+                  <a class="dropdown-item native" (click)="imageClick()">Screenshot<span class="float-end"><i class="fas fa-camera" aria-hidden="true"></i></span></a>
+                }
+                @if (showData()) {
+                  <a class="dropdown-item native" (click)="dataClick()">Download<span class="float-end"><i class="fas fa-arrow-down" aria-hidden="true"></i></span></a>
+                }
                 <div class="dropdown-divider" [hidden]="!showSeparator()"></div>
                 <ng-content select="[dropdown]"></ng-content>
               </div>

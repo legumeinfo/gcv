@@ -16,23 +16,29 @@ import { Track } from '@gcv/gene/models';
       <h4>{{ track.genus[0] }}.{{ track.species }} - {{ track.name }}</h4>
       <p><a [routerLink]="['/search', track.source, focus]" queryParamsHandling="merge">Search for similar contexts</a></p>
       <ul>
-        <li *ngFor="let link of regionLinks">
-          <a href="{{ link.href }}">{{ link.text }}</a>
-        </li>
+        @for (link of regionLinks; track link) {
+          <li>
+            <a href="{{ link.href }}">{{ link.text }}</a>
+          </li>
+        }
       </ul>
       <p>Genes:</p>
       <ul>
-        <li *ngFor="let gene of track.genes; let i = index">
-          {{ gene }}
-          <ul *ngIf="familyTreeLink !== '' && track.families[i] !== ''">
-            <li>
-              Family: <a href="{{ familyTreeLink }}{{ track.families[i] }}">{{ track.families[i] }}</a>
-            </li>
-          </ul>
-        </li>
+        @for (gene of track.genes; track gene; let i = $index) {
+          <li>
+            {{ gene }}
+            @if (familyTreeLink !== '' && track.families[i] !== '') {
+              <ul>
+                <li>
+                  Family: <a href="{{ familyTreeLink }}{{ track.families[i] }}">{{ track.families[i] }}</a>
+                </li>
+              </ul>
+            }
+          </li>
+        }
       </ul>
     </div>
-  `,
+    `,
     standalone: false
 })
 export class TrackDetailComponent implements OnDestroy, OnInit {

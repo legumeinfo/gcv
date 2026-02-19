@@ -5,13 +5,17 @@
       <label class="form-label" for="bmatched">Min Matched Families</label>
       <input type="number" class="form-control" formControlName="bmatched" >
       <small class="form-text text-muted">Positive integer (&ge;1)</small>
-      <p class="help-block" *ngIf="blockHelp">The minimum number of gene families that must match between the query and a result chromosome in each block.</p>
+      @if (blockHelp) {
+        <p class="help-block">The minimum number of gene families that must match between the query and a result chromosome in each block.</p>
+      }
     </div>
     <div class="mb-3" [ngClass]="{'has-error': !blockGroup.controls.bintermediate.valid}">
       <label class="form-label" for="bintermediate">Max Insertion Size</label>
       <input type="number" class="form-control" formControlName="bintermediate" >
       <small class="form-text text-muted">Non-negative integer (&ge;0)</small>
-      <p class="help-block" *ngIf="blockHelp">The maximum number of non-matching genes between successive matching genes in a block.</p>
+      @if (blockHelp) {
+        <p class="help-block">The maximum number of non-matching genes between successive matching genes in a block.</p>
+      }
     </div>
     <label class="form-label">
       <a data-bs-toggle="collapse" class="dropdown-toggle" href="#macro-advanced" aria-expanded="false" aria-controls="macro-advanced">Advanced options</a>
@@ -21,19 +25,25 @@
         <label class="form-label" for="bmask">Max Family Size</label>
         <input type="number" class="form-control" formControlName="bmask" >
         <small class="form-text text-muted">Positive integer (&ge;1)</small>
-        <p class="help-block" *ngIf="blockHelp">The maximum number of instances of a family that can occur on a chromosome before it's omitted from block computations.</p>
+        @if (blockHelp) {
+          <p class="help-block">The maximum number of instances of a family that can occur on a chromosome before it's omitted from block computations.</p>
+        }
       </div>
       <div class="mb-3" [ngClass]="{'has-error': !blockGroup.controls.bchrgenes.valid}">
         <label class="form-label" for="bchrgenes">Min Chromosome Genes</label>
         <input type="number" class="form-control" formControlName="bchrgenes" >
         <small class="form-text text-muted">Positive integer (&ge;1)</small>
-        <p class="help-block" *ngIf="blockHelp">Exclude chromosomes that have less than the specified number of genes from being used when computing macro-synteny blocks.</p>
+        @if (blockHelp) {
+          <p class="help-block">Exclude chromosomes that have less than the specified number of genes from being used when computing macro-synteny blocks.</p>
+        }
       </div>
       <div class="mb-3" [ngClass]="{'has-error': !blockGroup.controls.bchrlength.valid}">
         <label class="form-label" for="bchrlength">Min Chromosome Length (bp)</label>
         <input type="number" class="form-control" formControlName="bchrlength" >
         <small class="form-text text-muted">Positive integer (&ge;1)</small>
-        <p class="help-block" *ngIf="blockHelp">Exclude chromosomes with physical length less than the specified number of base-pairs from being used when computing macro-synteny blocks.</p>
+        @if (blockHelp) {
+          <p class="help-block">Exclude chromosomes with physical length less than the specified number of base-pairs from being used when computing macro-synteny blocks.</p>
+        }
       </div>
     </div>
   </fieldset>
@@ -43,19 +53,25 @@
       <label class="form-label" for="neighbors">Neighbors</label>
       <input type="number" class="form-control" formControlName="neighbors" >
       <small class="form-text text-muted">Positive integer (&ge;1)</small>
-      <p class="help-block" *ngIf="queryHelp">Number of genes on either side of the query gene.</p>
+      @if (queryHelp) {
+        <p class="help-block">Number of genes on either side of the query gene.</p>
+      }
     </div>
     <div class="mb-3" [ngClass]="{'has-error': !queryGroup.controls.matched.valid}">
       <label class="form-label" for="matched">Min Matched Families</label>
       <input type="number" class="form-control" formControlName="matched" >
       <small class="form-text text-muted">Non-zero percent (&lt;1) or positive integer (&ge;1)</small>
-      <p class="help-block" *ngIf="queryHelp">The minimum number of gene families that must match between the query track and each result track.</p>
+      @if (queryHelp) {
+        <p class="help-block">The minimum number of gene families that must match between the query track and each result track.</p>
+      }
     </div>
     <div class="mb-3" [ngClass]="{'has-error': !queryGroup.controls.intermediate.valid}">
       <label class="form-label" for="intermediate">Max Insertion Size</label>
       <input type="number" class="form-control" formControlName="intermediate" >
       <small class="form-text text-muted">Percent (&lt;1) or non-negative integer (&ge;0)</small>
-      <p class="help-block" *ngIf="queryHelp">The maximum number of non-matching genes between successive matching genes in a result track.</p>
+      @if (queryHelp) {
+        <p class="help-block">The maximum number of non-matching genes between successive matching genes in a result track.</p>
+      }
     </div>
   </fieldset>
   <fieldset [formGroup]="clusteringGroup">
@@ -63,69 +79,93 @@
     <div class="mb-3" [ngClass]="{'has-error': !clusteringGroup.controls.linkage.valid}">
       <label class="form-label" for="linkage">Linkage</label>
       <select class="form-select form-select" formControlName="linkage" >
-        <option *ngFor="let link of linkages" [value]="link.id">{{link.name}}</option>
+        @for (link of linkages; track link) {
+          <option [value]="link.id">{{link.name}}</option>
+        }
       </select>
       <small class="form-text text-muted">Select one</small>
-      <p class="help-block" *ngIf="clusteringHelp">Which linkage algorithm to use.</p>
+      @if (clusteringHelp) {
+        <p class="help-block">Which linkage algorithm to use.</p>
+      }
     </div>
     <div class="mb-3" [ngClass]="{'has-error': !clusteringGroup.controls.cthreshold.valid}">
       <label class="form-label" for="cthreshold">Threshold</label>
       <input type="number" class="form-control" formControlName="cthreshold" >
       <small class="form-text text-muted">Positive integer (&ge;1)</small>
-      <p class="help-block" *ngIf="clusteringHelp">The max distance between clusters.</p>
+      @if (clusteringHelp) {
+        <p class="help-block">The max distance between clusters.</p>
+      }
     </div>
   </fieldset>
   <fieldset id="alignment-parameters" [formGroup]="alignmentGroup">
     <legend>Micro-Synteny Alignment<a id="align-params-help" class="float-end" (click)="alignmentHelp=!alignmentHelp" role="button"><i class="fas fa-question-circle"></i></a></legend>
     <div class="mb-3" ng-class="{'has-help': alignmentHelp}">
       <label class="form-label">Algorithm</label>
-      <div class="form-check" *ngFor="let alg of algorithms">
-        <input class="form-check-input" type="radio" [value]="alg.id" formControlName="algorithm" />
-        <label class="form-check-label">
-          {{alg.name}}
-        </label>
-      </div>
-      <span class="help-block" *ngIf="alignmentHelp">The sequence alignment algorithm used to align result tracks to the query track.</span>
+      @for (alg of algorithms; track alg) {
+        <div class="form-check">
+          <input class="form-check-input" type="radio" [value]="alg.id" formControlName="algorithm" />
+          <label class="form-check-label">
+            {{alg.name}}
+          </label>
+        </div>
+      }
+      @if (alignmentHelp) {
+        <span class="help-block">The sequence alignment algorithm used to align result tracks to the query track.</span>
+      }
     </div>
     <div class="mb-3" [ngClass]="{'has-error': !alignmentGroup.controls.match.valid}">
       <label class="form-label" for="match">Match</label>
       <input type="number" class="form-control" formControlName="match" >
       <small class="form-text text-muted">Positive integer (&ge;1)</small>
-      <p class="help-block" *ngIf="alignmentHelp">How many points matching a gene family when aligning is worth.</p>
+      @if (alignmentHelp) {
+        <p class="help-block">How many points matching a gene family when aligning is worth.</p>
+      }
     </div>
     <div class="mb-3" [ngClass]="{'has-error': !alignmentGroup.controls.mismatch.valid}">
       <label class="form-label" for="mismatch">Mismatch</label>
       <input type="number" class="form-control" formControlName="mismatch" >
       <small class="form-text text-muted">Negative integer (&le;-1)</small>
-      <p class="help-block" *ngIf="alignmentHelp">The penalty for mismatching gene families when aligning.</p>
+      @if (alignmentHelp) {
+        <p class="help-block">The penalty for mismatching gene families when aligning.</p>
+      }
     </div>
     <div class="mb-3" [ngClass]="{'has-error': !alignmentGroup.controls.gap.valid}">
       <label class="form-label" for="gap">Gap</label>
       <input type="number" class="form-control" formControlName="gap" >
       <small class="form-text text-muted">Negative integer (&le;-1)</small>
-      <p class="help-block" *ngIf="alignmentHelp">The penalty for adding a gap when aligning gene families.</p>
+      @if (alignmentHelp) {
+        <p class="help-block">The penalty for adding a gap when aligning gene families.</p>
+      }
     </div>
     <div class="mb-3" [ngClass]="{'has-error': !alignmentGroup.controls.score.valid}">
       <label class="form-label" for="score">Score</label>
       <input type="number" class="form-control" formControlName="score" >
       <small class="form-text text-muted">Positive integer (&ge;1)</small>
-      <p class="help-block" *ngIf="alignmentHelp">The minimum score an aligned result track must have to be displayed.</p>
+      @if (alignmentHelp) {
+        <p class="help-block">The minimum score an aligned result track must have to be displayed.</p>
+      }
     </div>
     <div class="mb-3" [ngClass]="{'has-error': !alignmentGroup.controls.threshold.valid}">
       <label class="form-label" for="threshold">Threshold</label>
       <input type="number" class="form-control" formControlName="threshold" >
       <small class="form-text text-muted">Positive integer (&ge;1)</small>
-      <p class="help-block" *ngIf="alignmentHelp">The minimum score a Repeat segment must have to contribute to the alignment.</p>
+      @if (alignmentHelp) {
+        <p class="help-block">The minimum score a Repeat segment must have to contribute to the alignment.</p>
+      }
     </div>
   </fieldset>
   <fieldset id="sources-parameters" [formGroup]="sourcesGroup">
     <legend>Sources<a id="sources-params-help" class="float-end" (click)="sourcesHelp=!sourcesHelp" role="button"><i class="fas fa-question-circle"></i></a></legend>
     <div class="mb-3" [ngClass]="{'has-error': !sourcesGroup.controls.sources.valid}">
       <select multiple class="form-select" formControlName="sources" >
-        <option *ngFor="let src of sources" [value]="src.id">{{src.name}}</option>
+        @for (src of sources; track src) {
+          <option [value]="src.id">{{src.name}}</option>
+        }
       </select>
       <small class="form-text text-muted">Select one or more</small>
-      <p class="help-block" *ngIf="sourcesHelp">Which databases to load data from.</p>
+      @if (sourcesHelp) {
+        <p class="help-block">Which databases to load data from.</p>
+      }
     </div>
   </fieldset>
   <button type="submit" class="btn btn-primary col-sm-12" [disabled]="!queryGroup.valid || !alignmentGroup.valid">Submit</button>

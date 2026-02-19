@@ -10,21 +10,21 @@ import { statusToClass, statusToIcon } from '@gcv/gene/components/pipeline.shim'
 @Component({
     selector: 'gcv-process-tooltip',
     template: `
-    <ng-container *ngIf="process.status|async; let processStatus">
+    @if (process.status|async; as processStatus) {
       <ul class="list-group list-group-flush">
         <li class="list-group-item fw-bold {{ statusToClass(processStatus) }}">
           <i class="fas {{ statusToIcon(processStatus) }}"></i>&nbsp;<span [innerHTML]="processStatus.description"></span>
         </li>
-        <ng-template ngFor let-subprocess [ngForOf]="subprocesses|async">
-          <ng-container *ngIf="subprocess|async; let status">
+        @for (subprocess of subprocesses|async; track subprocess) {
+          @if (subprocess|async; as status) {
             <li class="list-group-item {{ statusToClass(status) }}">
               <i class="fas {{ statusToIcon(status) }}"></i>&nbsp;<span [innerHTML]="status.description"></span>
             </li>
-          </ng-container>
-        </ng-template>
+          }
+        }
       </ul>
-    </ng-container>
-  `,
+    }
+    `,
     standalone: false
 })
 export class ProcessTooltipComponent {
