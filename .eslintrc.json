@@ -47,7 +47,7 @@
         "*.ts"
       ],
       "extends": [
-        "plugin:@ngrx/recommended"
+        "plugin:@ngrx/all"
       ]
     }
   ]
