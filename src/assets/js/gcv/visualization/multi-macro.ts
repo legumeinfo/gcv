@@ -1,5 +1,5 @@
 import { d3 } from "./d3";
-import * as Circos from "circos";
+import Circos from "circos";
 import { eventBus } from "../common"
 
 
