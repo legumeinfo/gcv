@@ -12,7 +12,7 @@ export function microLegendConfigFactory(outputs: any={}) {
   _outputs = Object.assign(_outputs, outputs);
   return  {
     type: 'component',
-    componentName: 'microlegend',
+    componentType: 'microlegend',
     id: id,
     title: 'Micro Synteny Legend',
     componentState: {

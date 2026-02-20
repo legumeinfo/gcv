@@ -12,7 +12,7 @@ export function macroLegendConfigFactory(outputs: any={}) {
   _outputs = Object.assign(_outputs, outputs);
   return  {
     type: 'component',
-    componentName: 'macrolegend',
+    componentType: 'macrolegend',
     id: id,
     title: 'Macro Synteny Legend',
     componentState: {

@@ -19,7 +19,7 @@ export function macroConfigFactory(
   _outputs = Object.assign(_outputs, outputs);
   return  {
     type: 'component',
-    componentName: 'macro',
+    componentType: 'macro',
     id: id,
     title: `${name} (cluster ${clusterID}) Macro Synteny`,
     componentState: {

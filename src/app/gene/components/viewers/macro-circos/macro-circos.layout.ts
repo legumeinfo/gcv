@@ -12,7 +12,7 @@ export function macroCircosConfigFactory(clusterID: number, outputs: any={}) {
   _outputs = Object.assign(_outputs, outputs);
   return  {
     type: 'component',
-    componentName: 'macrocircos',
+    componentType: 'macrocircos',
     id: id,
     title: `Cluster ${clusterID} Circos`,
     componentState: {

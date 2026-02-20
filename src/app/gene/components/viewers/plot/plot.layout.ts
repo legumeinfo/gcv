@@ -35,7 +35,7 @@ export function plotConfigFactory(
   _outputs = Object.assign(_outputs, outputs);
   return {
     type: 'component',
-    componentName: 'plot',
+    componentType: 'plot',
     id: id,
     title: `${name} x ${referenceName} (${cluster}) ${type} plot`,
     componentState: {

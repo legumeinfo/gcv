@@ -18,7 +18,7 @@ export function microConfigFactory(clusterID: number, outputs: any={}) {
   _outputs = Object.assign(_outputs, outputs);
   return  {
     type: 'component',
-    componentName: 'micro',
+    componentType: 'micro',
     id: id,
     title: `Micro Synteny Cluster ${clusterID}`,
     componentState: {

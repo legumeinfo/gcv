@@ -35,10 +35,10 @@ export class GeneComponent implements AfterViewInit, OnDestroy {
       settings: {
         showPopoutIcon: false,
       },
-      content: [{
+      root: {
         type: 'row',
         content: [{type: 'column', content: []}, {type: 'column', content: []}],
-      }]
+      }
     };
   tooltipComponents = [...fromTooltips.tooltipComponents];
   showLeftSlider: Observable<boolean>;

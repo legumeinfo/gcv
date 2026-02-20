@@ -9,7 +9,7 @@ export function familyDetailConfigFactory(family: {id: string, name: string}) {
   const id = `family:${family.id}`;
   return {
     type: 'component',
-    componentName: 'family',
+    componentType: 'family',
     id,
     title: `Family: ${family.name}`,
     componentState: {inputs: {family}}

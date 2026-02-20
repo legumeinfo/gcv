@@ -12,7 +12,7 @@ export function trackDetailConfigFactory(track) {
   const id = `track:${clusteredTrackID(track)}`;
   return {
     type: 'component',
-    componentName: 'track',
+    componentType: 'track',
     id: id,
     title: `Track: ${track.name}`,
     componentState: {inputs: {track}},
