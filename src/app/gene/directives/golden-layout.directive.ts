@@ -219,9 +219,9 @@ export class GoldenLayoutDirective implements AfterContentInit, OnDestroy {
             item = (item as RowOrColumn | Stack).contentItems[i];
           }
         }
-        // Add child to the target item
-        if ('addChild' in item) {
-          (item as any).addChild(itemConfig);
+        // Add item to the target container
+        if ('addItem' in item) {
+          (item as RowOrColumn | Stack).addItem(itemConfig);
         }
       } else {
         // Item already exists, activate it
@@ -244,12 +244,12 @@ export class GoldenLayoutDirective implements AfterContentInit, OnDestroy {
     if (id !== undefined && items.length > 0) {
       const instances = this._findItemsById(id);
 
-      // find the nearest stack ancestor and add the item as a child
+      // find the nearest stack ancestor and add the item
       if (instances.length === 0) {
         const item = items[0];
         const stack = this._closestStack(item);
         if (stack !== null) {
-          (stack as any).addChild(itemConfig);
+          stack.addItem(itemConfig);
         }
       // get the item's stack and make it the active item
       } else {
