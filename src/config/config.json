@@ -52,7 +52,7 @@
       "website": "https://legumeinfo.org/",
       "microSearch": {
         "type": "GRPC",
-        "url": "http://localhost:4200/gcv/microservices/micro-synteny-search/grpc-web"
+        "url": "http://localhost/gcv/microservices/micro-synteny-search/grpc-web"
       },
       "geneLinks": {
         "type": "GET",
