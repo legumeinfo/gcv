@@ -91,11 +91,11 @@ export class GeneComponent implements AfterViewInit, OnDestroy {
   }
 
   private _initializeLegends(): void {
-    this._addItem([0, 1], fromViewers.macroLegendConfigFactory);
+    this._addItem([1], fromViewers.macroLegendConfigFactory);
     const click = (id, family) => {
         this._stackItem(id, fromDetails.familyDetailConfigFactory, family);
       };
-    this._addItem([0, 1], fromViewers.microLegendConfigFactory, {click});
+    this._addItem([1], fromViewers.microLegendConfigFactory, {click});
   }
 
   private _addPlots(id, track, queryTracks, type): void {
