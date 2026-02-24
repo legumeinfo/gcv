@@ -106,7 +106,7 @@
   color: #000000
 }
 
-.lm_controls>li {
+.lm_controls > * {
   position: relative;
   background-position: center center;
   background-repeat: no-repeat;
@@ -114,7 +114,7 @@
   transition: opacity 300ms ease
 }
 
-.lm_controls>li:hover {
+.lm_controls > *:hover {
   opacity: 1
 }
 
