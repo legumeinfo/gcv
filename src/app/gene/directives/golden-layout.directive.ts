@@ -11,7 +11,8 @@ import {
   LayoutConfig,
   ResolvedLayoutConfig,
   RowOrColumn,
-  Stack
+  Stack,
+  StackItemConfig
 } from 'golden-layout';
 // app
 import { ComponentService } from '@gcv/gene/services';
@@ -234,7 +235,7 @@ export class GoldenLayoutDirective implements AfterContentInit, OnDestroy {
     }
   }
 
-  stackItem(itemConfig: ComponentItemConfig, stackID: string): void {
+  stackItem(itemConfig: ComponentItemConfig | StackItemConfig, stackID: string): void {
     const rootItem = this._layout.rootItem;
     if (!rootItem) return;
 
@@ -249,7 +250,8 @@ export class GoldenLayoutDirective implements AfterContentInit, OnDestroy {
         const item = items[0];
         const stack = this._closestStack(item);
         if (stack !== null) {
-          stack.addItem(itemConfig);
+          // Cast needed: Golden Layout accepts StackItemConfig at runtime
+          stack.addItem(itemConfig as ComponentItemConfig);
         }
       // get the item's stack and make it the active item
       } else {
