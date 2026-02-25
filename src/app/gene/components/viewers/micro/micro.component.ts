@@ -199,8 +199,8 @@ export class MicroComponent implements AfterViewInit, OnDestroy, OnInit {
         highlight: queryGenes.map((g) => g.name),
         selectiveColoring: familySizes,
         plotClick: (e, t, i) => this.emitPlotClick(e, tracks[i], queryTracks),
-        geneClick: (t, g, i) => this.emitGeneClick(g.name, g.family, t.source),
-        geneOver: (e, t, g, i) => this.emitGeneOver(e, g.name, g.family, t.source),
+        geneClick: (t, g) => this.emitGeneClick(g.name, g.family, t.source),
+        geneOver: (e, t, g) => this.emitGeneOver(e, g.name, g.family, t.source),
         nameClick: (t, i) => this.emitNameClick(tracks[i])
       };
     options = Object.assign(options, this.options, {autoResize: false});

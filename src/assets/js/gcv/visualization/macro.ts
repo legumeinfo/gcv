@@ -106,17 +106,17 @@ export class Macro extends Visualizer {
     this.options = Object.assign({}, options);
     this.options.nameClick = this.options.nameClick || ((y, i) => { /* noop */ });
     this.options.blockClick = this.options.blockClick || ((b) => { /* noop */ });
-    this.options.blockOver = this.options.blockOver || ((e, t, b) => { /* noop */ });
+    this.options.blockOver = this.options.blockOver || ((e, t, i, b) => { /* noop */ });
     this.options.viewportDrag = this.options.viewportDrag;
     this.options.viewport = this.options.viewport || false;
     this.options.autoResize = this.options.autoResize || false;
     this.options.hoverDelay = this.options.hoverDelay || 500;
     this.options.highlight = this.options.highlight || [];
     if (this.options.contextmenu) {
-      this.viewer.on("contextmenu", () => this.options.contextmenu(d3.event));
+      this.viewer.on("contextmenu", (event) => this.options.contextmenu(event));
     }
     if (this.options.click) {
-      this.viewer.on("click", () => this.options.click(d3.event));
+      this.viewer.on("click", (event) => this.options.click(event));
     }
   }
 
@@ -188,43 +188,42 @@ export class Macro extends Visualizer {
         return "auto";
       })
       // translate viewport mouse events to block mouse events
-      .on("mouseover", () => {
-        const el = this.secondElementUnderPointer(d3.event);
+      .on("mouseover", (event) => {
+        const el = this.secondElementUnderPointer(event);
         this.artificialHover(el);
       })
-      .on("mouseout", () => {
-        const e = d3.event;
-        const el = document.elementFromPoint(e.clientX, e.clientY);
+      .on("mouseout", (event) => {
+        const el = document.elementFromPoint(event.clientX, event.clientY);
         this.artificialHover(el);
       })
-      .on("mousemove", () => {
-        const el = this.secondElementUnderPointer(d3.event);
+      .on("mousemove", (event) => {
+        const el = this.secondElementUnderPointer(event);
         this.artificialHover(el);
       })
-      .on("click", () => {
-        const el = this.secondElementUnderPointer(d3.event);
+      .on("click", (event) => {
+        const el = this.secondElementUnderPointer(event);
         if (el.classList.contains("block")) {
           this.fireEvent(el, "click");
         }
       });
     if (this.options.viewportDrag) {
       viewport.call(d3.drag()
-        .on("drag", () => {
+        .on("drag", (event: any) => {
           const r = this.scale.range();
           const w = parseFloat(viewport.attr("width"));
           const x = parseFloat(viewport.attr("x"));
-          let newX = Math.max(x + d3.event.dx, r[0]);
+          let newX = Math.max(x + event.dx, r[0]);
           if (newX + w > r[1]) {
             newX = r[1] - w;
           }
           viewport.attr("x", newX);
         })
-        .on("end", () => {
+        .on("end", (event: any) => {
           const x1 = parseFloat(viewport.attr("x"));
           const x2 = x1 + parseFloat(viewport.attr("width"));
           const d1 = this.scale.invert(x1);
           const d2 = this.scale.invert(x2);
-          this.options.viewportDrag(d3.event, d1, d2);
+          this.options.viewportDrag(event, d1, d2);
         }));
     }
     // how the viewport is resized
@@ -370,19 +369,18 @@ export class Macro extends Visualizer {
       .attr("data-reference-locus", (b) => b.query_start + ":" + b.query_stop)
       .attr("data-orientation", (b) => b.orientation)
       .style("cursor", "pointer")
-      .on("mouseover", function (b, j) {
-        const event = d3.event;
+      .on("mouseover", function (event, b) {
         obj.block = this;
         obj.setTimeout(() => {
           publishBlockEvent("select", b)();
-          obj.options.blockOver(event, datum, i, b, j);
+          obj.options.blockOver(event, datum, i, b);
         });
       })
-      .on("mouseout", function (b) {
+      .on("mouseout", function (event, b) {
         obj.block = undefined;
         obj.clearTimeout(publishBlockEvent("deselect", b));
       })
-      .on("click", () => this.options.blockClick());
+      .on("click", (event) => this.options.blockClick());
     // help for generating points
     const genPoints = (b, yTop, yBottom, yMiddle) => {
       const x1 = obj.scale(b.query_start);
@@ -495,9 +493,9 @@ export class Macro extends Visualizer {
       .attr("data-chromosome", (y, i) => this.data.tracks[i].chromosome)
       .attr("data-organism", (y, i) => this.data.tracks[i].genus + " " + this.data.tracks[i].species)
       .style("cursor", "pointer")
-      .on("mouseover", (y, i) => this.setTimeout(publishTrackEvent("select", this.data.tracks[i])))
-      .on("mouseout", (y, i) => this.clearTimeout(publishTrackEvent("deselect", this.data.tracks[i])))
-      .on("click", () => this.options.nameClick());
+      .on("mouseover", (event, y) => { const i = ticks.indexOf(y); this.setTimeout(publishTrackEvent("select", this.data.tracks[i])); })
+      .on("mouseout", (event, y) => { const i = ticks.indexOf(y); this.clearTimeout(publishTrackEvent("deselect", this.data.tracks[i])); })
+      .on("click", (event) => this.options.nameClick());
     return yAxis;
   }
 

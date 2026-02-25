@@ -88,8 +88,8 @@ export class Micro extends Visualizer {
     this.options.highlight = this.options.highlight || [];
     this.options.selectiveColoring = this.options.selectiveColoring;
     this.options.nameClick = this.options.nameClick || ((t, i) => { /* noop */ });
-    this.options.geneClick = this.options.geneClick || ((t, g, i) => { /* noop */ });
-    this.options.geneOver = this.options.geneOver || ((e, t, g, i) => { /* noop */ });
+    this.options.geneClick = this.options.geneClick || ((t, g) => { /* noop */ });
+    this.options.geneOver = this.options.geneOver || ((e, t, g) => { /* noop */ });
     this.options.plotClick = this.options.plotClick;
     this.options.autoResize = this.options.autoResize || false;
     this.options.hoverDelay = this.options.hoverDelay || 500;
@@ -288,15 +288,14 @@ export class Micro extends Visualizer {
         return "translate(" + obj.x(g.x) + ", " + obj.y(y + g.y) + ")";
       })
       .style("cursor", "pointer")
-      .on("mouseover", (g, i) => {
-        const event = d3.event;
+      .on("mouseover", (event, g) => {
         this.setTimeout(() => {
           publishGeneEvent("select", g)();
-          this.options.geneOver(event, t, g, i);
+          this.options.geneOver(event, t, g);
         });
       })
-      .on("mouseout", (g) => this.clearTimeout(publishGeneEvent("deselect", g)))
-      .on("click", (g, i) => obj.options.geneClick(t, g, i))
+      .on("mouseout", (event, g) => this.clearTimeout(publishGeneEvent("deselect", g)))
+      .on("click", (event, g) => obj.options.geneClick(t, g))
       // add optional HTML attributes to gene elements
       .addHTMLAttributes();
     // add genes to the gene groups
@@ -405,9 +404,9 @@ export class Micro extends Visualizer {
       .attr("data-chromosome", (y, i) => this.data[i].chromosome_name)
       .attr("data-organism", (y, i) => this.data[i].genus + " " + this.data[i].species)
       .style("cursor", "pointer")
-      .on("mouseover", (y, i) => this.setTimeout(publishTrackEvent("select", i)))
-      .on("mouseout", (y, i) => this.clearTimeout(publishTrackEvent("deselect", i)))
-      .on("click", (y, i) => this.options.nameClick(this.data[i], i))
+      .on("mouseover", (event, y) => { const i = this.ticks.indexOf(y); this.setTimeout(publishTrackEvent("select", i)); })
+      .on("mouseout", (event, y) => { const i = this.ticks.indexOf(y); this.clearTimeout(publishTrackEvent("deselect", i)); })
+      .on("click", (event, y) => { const i = this.ticks.indexOf(y); this.options.nameClick(this.data[i], i); })
       // add optional HTML attributes to gene elements
       //.addHTMLAttributes();
       .each(function(y, i) {
@@ -434,7 +433,7 @@ export class Micro extends Visualizer {
     plotYAxis.selectAll("text")
       .attr("class", "micro-plot-link")
       .style("cursor", "pointer")
-      .on("click", (y, i) => this.options.plotClick(d3.event, this.data[i], i));
+      .on("click", (event, y) => { const i = this.ticks.indexOf(y); this.options.plotClick(event, this.data[i], i); });
     return plotYAxis;
   }
 }

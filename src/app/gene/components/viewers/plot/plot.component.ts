@@ -141,7 +141,7 @@ export class PlotComponent implements AfterViewInit, OnDestroy, OnInit {
     const data = plotShim(plot, genes);
     let options = {
         plotClick: () => this.emitPlotClick(plot),
-        geneClick: (g, j) => this.emitGeneClick(g.name, g.family, source),
+        geneClick: (g) => this.emitGeneClick(g.name, g.family, source),
         geneOver: (e, g) => this.emitGeneOver(e, g.name, g.family, source),
       };
     options = Object.assign(options, this.options, {autoResize: false});
