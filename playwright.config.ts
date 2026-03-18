@@ -6,7 +6,7 @@ import { defineConfig, devices } from '@playwright/test';
  */
 export default defineConfig({
   // Test directory
-  testDir: './tests',
+  testDir: './playwright',
 
   // Run tests in parallel
   fullyParallel: true,
@@ -41,7 +41,7 @@ export default defineConfig({
     screenshot: 'only-on-failure',
 
     // Video on failure
-    video: 'retain-on-failure',
+    video: 'on',
   },
 
   // Test timeout - extended for visualization rendering
