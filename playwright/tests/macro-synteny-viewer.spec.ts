@@ -22,9 +22,14 @@ test.describe('macro synteny viewer', () => {
 
     await d3Drag(page, source, target);
 
-    await expect(page.locator('gcv-micro')).toContainText('glyma.Wm82.gnm4.Gm09:5850124-6992234');
-    await expect(page.locator('gcv-micro')).toContainText('glyma.Wm82.gnm4.Gm15:14994031-16120193');
-    await expect(page.locator('gcv-micro')).toContainText('glyma.Wm82.gnm4.Gm17:3864170-4208319');
+    await expect(page.locator('gcv-micro text.query')).toHaveAttribute('data-micro-track', '0');
+    await expect(page.locator('gcv-micro text.query[data-micro-track="0"]')).toContainText('glyma.Wm82.gnm4.Gm09:5850124-6992234');
+
+    await expect(page.locator('gcv-micro text').nth(1)).toHaveAttribute('data-micro-track', '1');
+    await expect(page.locator('gcv-micro text[data-micro-track="1"]')).toContainText('glyma.Wm82.gnm4.Gm15:14994031-16120193');
+
+    await expect(page.locator('gcv-micro text').nth(2)).toHaveAttribute('data-micro-track', '2');
+    await expect(page.locator('gcv-micro text[data-micro-track="2"]')).toContainText('glyma.Wm82.gnm4.Gm17:3864170-4208319');
   });
 
 });
