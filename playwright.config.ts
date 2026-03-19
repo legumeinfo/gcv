@@ -40,8 +40,11 @@ export default defineConfig({
     // Screenshot on failure
     screenshot: 'only-on-failure',
 
-    // Video on failure
-    video: 'on',
+    // Video always
+    video: {
+      mode: 'on',
+      size: { width: 1280, height: 720 }
+    },
   },
 
   // Test timeout - extended for visualization rendering
