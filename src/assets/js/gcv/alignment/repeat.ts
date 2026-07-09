@@ -148,7 +148,7 @@ function align<T>(
     // end alignment
     if (j > 0 && j2 === 0) {
       if (a.coordinates.filter((x) => x !== null).length > 2) {
-        const fill = Array(ref.length-a.coordinates.length).fill(null);
+        const fill = Array(Math.max(0, ref.length-a.coordinates.length)).fill(null);
         a.coordinates.unshift(...fill);
         a.scores.unshift(...fill);
         alignments.push(a);
