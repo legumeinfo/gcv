@@ -94,7 +94,7 @@ function align<T>(
   }
   // end alignment
   if (alignment.coordinates.filter((x) => x !== null).length > 2) {
-    const fill = Array(ref.length-alignment.coordinates.length).fill(null);
+    const fill = Array(Math.max(0, ref.length-alignment.coordinates.length)).fill(null);
     alignment.coordinates.unshift(...fill);
     alignment.scores.unshift(...fill);
   } else {

@@ -55,7 +55,7 @@ function combineAlignmentIntervals(
   intervals.forEach(([begin, end, i]) => {
     // fill the gap
     // TODO: can gaps be prevented at cut time?
-    if (gapBegin != begin) {
+    if (gapBegin < begin) {
       const gapEnd = begin-1;
       const alignmentGapScores = alignments
         .map((a, j): [(number|null)[], number] => {
