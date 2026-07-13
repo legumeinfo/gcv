@@ -159,7 +159,7 @@ export function smithWaterman<T>(
       sequence,
       [forwardAlignment],
       [reverseAlignment],
-      options.reversals,
+      options.reverse,
       options.inversions,
       options.scores.threshold)
     .map((a) => {
