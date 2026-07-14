@@ -250,8 +250,8 @@ Migrated from the unused Karma/Jasmine setup to Jest (see §6.1). Remaining work
 
 **Shims** (`src/app/gene/models/shims/`) — Pure data transformations:
 - `trackMap`, `geneMap`, `familyCountMap` — correct indexing by key
-- `referenceBlockMap` — correct binning by reference chromosome
-- `blockIndexMap` — correct gene index extraction
+- `referenceBlockMap` — correct binning of blocks by reference chromosome (`reference:referenceSource`)
+- `blockIndexMap` — correct binning of block gene indices (`i`, `j`) by reference chromosome (`reference:referenceSource`), not the target `chromosome`
 - `endpointGenes` — correct gene filtering by index array
 - `trackToInterval` — correct start/stop computation from gene coordinates
 - `macroBlocks` — correct resolution of block indices to gene coordinates

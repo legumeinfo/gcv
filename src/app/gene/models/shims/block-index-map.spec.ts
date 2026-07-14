@@ -2,7 +2,7 @@ import { blockIndexMap } from "./block-index-map";
 
 describe("blockIndexMap", () => {
 
-  it("bins block gene indices by chromosome:source", () => {
+  it("bins block gene indices by reference:referenceSource", () => {
     const pairwiseBlocks = [
       {
         reference: "Gm01",
@@ -16,11 +16,14 @@ describe("blockIndexMap", () => {
     ];
 
     const result = blockIndexMap(pairwiseBlocks as any);
+    // Keyed by reference:referenceSource ("Gm01:lis"), NOT the target
+    // `chromosome` field ("Gm15") — blockIndexMap bins by the reference
+    // chromosome (see referenceBlockMap, same keying).
     const key = "Gm01:lis";
     expect(result[key]).toEqual([0, 2]);
   });
 
-  it("concatenates indices from multiple blocks for the same chromosome", () => {
+  it("concatenates indices from multiple blocks for the same reference", () => {
     const pairwiseBlocks = [
       {
         reference: "Gm01",
@@ -40,7 +43,7 @@ describe("blockIndexMap", () => {
     expect(result[key]).toEqual([0, 1, 3, 5]);
   });
 
-  it("separates indices by chromosome name", () => {
+  it("separates indices by reference name", () => {
     const pairwiseBlocks = [
       {
         reference: "Gm01",
@@ -63,7 +66,7 @@ describe("blockIndexMap", () => {
     expect(result["Gm02:lis"]).toEqual([5, 7]);
   });
 
-  it("separates indices by source, even for the same chromosome name", () => {
+  it("separates indices by referenceSource, even for the same reference name", () => {
     const pairwiseBlocks = [
       {
         reference: "Gm01",
