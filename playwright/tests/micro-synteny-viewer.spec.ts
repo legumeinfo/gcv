@@ -86,4 +86,39 @@ test.describe('micro synteny viewer', () => {
     }
   });
 
+  // Gene direction is GCV's orientation encoding: each glyph is rotated
+  // rotate(±90), where the sign is the gene's *displayed* strand — its genomic
+  // strand multiplied by the alignment orientation the engine assigned it
+  // (micro.shim.ts: `gene.strand *= t.orientations[i]`). A rotate(-90) glyph is
+  // therefore a gene drawn reverse-oriented: a reverse genomic strand, or a
+  // segment the micro-synteny alignment placed in inverted orientation. If that
+  // signal is lost — orientation dropped in the alignment engine, the
+  // strand×orientation multiply removed, or the rotation logic broken — the app
+  // still renders, but every gene points forward and inversions vanish from the
+  // figure. This asserts orientation reaches the DOM for every gene and that
+  // reverse-oriented genes are actually drawn (rather than collapsed to forward).
+  test('renders gene orientation, including reverse-oriented genes', async ({ page }) => {
+    const rotations = await page.evaluate(() => {
+      const out: string[] = [];
+      document.querySelectorAll('gcv-micro .gene').forEach((g) => {
+        const transform = g.querySelector('path')?.getAttribute('transform') ?? 'MISSING';
+        const m = transform.match(/^rotate\((-?90)\)$/);
+        out.push(m ? m[1] : transform);
+      });
+      return out;
+    });
+
+    expect(rotations.length, 'micro genes should have rendered').toBeGreaterThan(0);
+
+    // (1) Every glyph carries a valid orientation (rotate(90) or rotate(-90)).
+    const invalid = [...new Set(rotations.filter((r) => r !== '90' && r !== '-90'))];
+    expect(invalid, 'every gene glyph must render rotate(90) or rotate(-90)').toEqual([]);
+
+    // (2) Both orientations are drawn. A rotate(-90) glyph only occurs when the
+    // displayed strand is -1, so its presence confirms reverse-oriented genes
+    // survive the pipeline to the DOM rather than being flattened to forward.
+    expect(rotations.includes('90'), 'forward-oriented genes should be drawn').toBe(true);
+    expect(rotations.includes('-90'), 'reverse-oriented genes should be drawn').toBe(true);
+  });
+
 });
