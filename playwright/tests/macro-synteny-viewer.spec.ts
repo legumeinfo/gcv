@@ -70,4 +70,52 @@ test.describe('macro synteny viewer', () => {
     expect(orientations.includes('-'), 'inverted blocks should be drawn').toBe(true);
   });
 
+  // A block's data-reference-locus is the interval it covers on the reference
+  // chromosome and data-locus the interval on the target; together they place
+  // the block along the axis. A coordinate/scale error would draw a syntenic
+  // region at the wrong genomic position — or past the end of the chromosome.
+  // This asserts both intervals are well-formed and ordered, and that every
+  // reference interval lies within the reference chromosome's span (its x-axis
+  // domain, 0..length). Invariants, so it does not depend on the dataset.
+  test('draws every synteny block within well-formed genomic bounds', async ({ page }) => {
+    await page.locator('gcv-macro g[data-locus]').first().waitFor({ state: 'attached' });
+
+    const { blocks, referenceLength } = await page.evaluate(() => {
+      const blocks = Array.from(document.querySelectorAll('gcv-macro g[data-locus]')).map((b) => ({
+        locus: b.getAttribute('data-locus') ?? '',
+        refLocus: b.getAttribute('data-reference-locus') ?? '',
+      }));
+      // The reference chromosome span is the numeric x-axis domain (0..length);
+      // the y-axis ticks are chromosome names, so pure integers isolate it.
+      const numericTicks = Array.from(document.querySelectorAll('gcv-macro .axis text'))
+        .map((t) => t.textContent ?? '')
+        .filter((s) => /^\d+$/.test(s))
+        .map(Number);
+      return { blocks, referenceLength: numericTicks.length ? Math.max(...numericTicks) : 0 };
+    });
+
+    expect(blocks.length, 'macro synteny blocks should have rendered').toBeGreaterThan(0);
+    expect(referenceLength, 'reference chromosome length should be readable').toBeGreaterThan(0);
+
+    const parse = (raw: string) => {
+      const m = raw.match(/^(\d+):(\d+)$/);
+      return m ? { start: Number(m[1]), stop: Number(m[2]) } : null;
+    };
+
+    for (const { locus, refLocus } of blocks) {
+      for (const [name, raw] of [['locus', locus], ['reference-locus', refLocus]] as const) {
+        const iv = parse(raw);
+        expect(iv, `${name} "${raw}" must read "<start>:<stop>"`).not.toBeNull();
+        expect(iv!.start, `${name} "${raw}" start must be non-negative`).toBeGreaterThanOrEqual(0);
+        expect(iv!.stop, `${name} "${raw}" must be ordered (start <= stop)`).toBeGreaterThanOrEqual(iv!.start);
+      }
+      // the reference interval must sit on the reference chromosome
+      const ref = parse(refLocus)!;
+      expect(
+        ref.stop,
+        `reference-locus "${refLocus}" must fit within reference length ${referenceLength}`,
+      ).toBeLessThanOrEqual(referenceLength);
+    }
+  });
+
 });

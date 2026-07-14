@@ -121,4 +121,42 @@ test.describe('micro synteny viewer', () => {
     expect(rotations.includes('-90'), 'reverse-oriented genes should be drawn').toBe(true);
   });
 
+  // Each track is labelled with the genomic region it represents,
+  // "<chromosome>:<start>-<stop>", and carries the same interval as a
+  // machine-readable data-extent. That interval is computed from the track's
+  // gene coordinates (trackToInterval). A coordinate/scale bug, or a label that
+  // drifts from the stored extent, would state the wrong genomic location for a
+  // region while still rendering it. This asserts every label is well-formed,
+  // ordered, and consistent with its data-extent — invariants, not the specific
+  // coordinates, so it holds across datasets.
+  test('labels each track with a well-formed interval matching its extent', async ({ page }) => {
+    // A track is drawn with a placeholder 0:0 extent (trackToInterval's result
+    // for genes not yet in genesMap) until its gene coordinates load; wait for
+    // those to resolve so we assert the settled view rather than a load frame.
+    await expect(page.locator('gcv-micro text[data-extent="0:0"]')).toHaveCount(0);
+
+    const labels = await page.evaluate(() =>
+      Array.from(document.querySelectorAll('gcv-micro text[data-micro-track]')).map((t) => ({
+        text: t.textContent ?? '',
+        extent: t.getAttribute('data-extent') ?? '',
+      })),
+    );
+
+    expect(labels.length, 'micro track labels should have rendered').toBeGreaterThan(0);
+
+    for (const { text, extent } of labels) {
+      const m = text.match(/^(.+):(\d+)-(\d+)$/);
+      expect(m, `label "${text}" must read "<chromosome>:<start>-<stop>"`).not.toBeNull();
+      const [, chromosome, startStr, stopStr] = m!;
+      const start = Number(startStr);
+      const stop = Number(stopStr);
+
+      expect(chromosome.length, `label "${text}" must name a chromosome`).toBeGreaterThan(0);
+      expect(start, `interval in "${text}" must be non-negative`).toBeGreaterThanOrEqual(0);
+      expect(stop, `interval in "${text}" must be ordered (start < stop)`).toBeGreaterThan(start);
+      // the human-readable label and the machine-readable extent must agree
+      expect(extent, `data-extent must match the label "${text}"`).toBe(`${start}:${stop}`);
+    }
+  });
+
 });
