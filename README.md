@@ -25,7 +25,7 @@ Like micro-synteny tracks, macro-synteny blocks are computed on demand with an [
 These blocks can be drawn in a reference style viewer or an all-pairs Circos style viewer.
 
 In general, GCV is intended for comparative and pangenomic analyses.
-See the [Wiki](https://github.com/legumeinfo/lis_context_viewer/wiki/User-Help) for a thorough description of GCV features, algorithms, and parameters.
+See the [Wiki](https://github.com/legumeinfo/gcv/wiki/User-Help) for a thorough description of GCV features, algorithms, and parameters.
 
 
 ## Running GCV
@@ -134,7 +134,7 @@ See the Angular docs for a discussion on production deployment options: [https:/
 
 The client can be extensively configured via the `src/config/config.json` file (`dist/config/config.json` for production).
 This file is loaded dynamically when the client starts, meaning the client does not have to be recompiled when changes are made to the file; the app simply has to be reloaded in your web browser.
-See the [Wiki](https://github.com/legumeinfo/lis_context_viewer/wiki/Client-Configuration) for details about the contents of the client configuration file.
+See the [Wiki](https://github.com/legumeinfo/gcv/wiki/Client-Configuration) for details about the contents of the client configuration file.
 
 ## Citation
 If you used an instance of GCV in your work or deployed it as part of you site, please consider citing the manuscript to help support maintenance and further development:
