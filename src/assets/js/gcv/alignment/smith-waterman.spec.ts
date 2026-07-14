@@ -140,13 +140,11 @@ describe("smithWaterman", () => {
 
   // ── Inversions / reversals ─────────────────────────────────────
   //
-  // Regression: the app invokes smithWaterman with only {omit, scores,
-  // carryover} (see clustered-and-aligned-micro-tracks.selector.ts), so the
-  // `reverse` and `inversions` options fall back to their defaults (true, 2).
-  // A syntenic region that is inverted relative to the query must therefore
-  // still be reported, with orientation -1. A prior typo passed the never-set
-  // `options.reversals` to mergeAlignments, which silently discarded every
-  // reverse-only alignment.
+  // The app invokes smithWaterman with only {omit, scores, carryover} (see
+  // clustered-and-aligned-micro-tracks.selector.ts), so the `reverse` and
+  // `inversions` options fall back to their defaults (true, 2). A syntenic
+  // region that is inverted relative to the query must therefore still be
+  // reported, with orientation -1.
 
   it("reports a fully inverted region with orientation -1 under production defaults", () => {
     // No options: mirrors how the selector calls the aligner (defaults apply).

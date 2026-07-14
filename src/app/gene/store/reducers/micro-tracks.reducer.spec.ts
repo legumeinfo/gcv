@@ -132,10 +132,8 @@ describe("micro-tracks.reducer — SEARCH state transitions", () => {
 
   it("SEARCH_SUCCESS keeps the first track when two share a microTrackID (addMany does not upsert)", () => {
     // microTrackID is cluster:firstGene:lastGene:source, so these two tracks
-    // collide on id. This pins the REAL @ngrx/entity adapter behaviour: addMany
-    // ignores an entity whose id already exists (it is not an upsert). A prior
-    // hand-written adapter mock overwrote on collision, which would have masked
-    // this. Regression guard for the NgRx 21 upgrade on this branch.
+    // collide on id. @ngrx/entity's addMany ignores an entity whose id already
+    // exists — it does not upsert — so the first track wins on collision.
     const first = {
       cluster: 1, genes: ["g1", "g2", "g3"], families: ["f1", "f2", "f3"],
       source: "lis", name: "first", genus: "Glycine", species: "max", length: 1,

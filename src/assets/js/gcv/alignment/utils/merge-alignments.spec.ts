@@ -131,15 +131,15 @@ describe("mergeAlignments", () => {
 
   // ── Palindrome edge cases (weightedIntervalScheduling) ──────────
   //
-  // These guard the tie-breaking and post-traceback swap logic at
-  // weightedIntervalScheduling:262-290 against regressions in
-  // inversion detection for palindromic sequences.
+  // These guard the tie-breaking and post-traceback swap logic in
+  // weightedIntervalScheduling against regressions in inversion detection
+  // for palindromic sequences.
 
   it("does not crash when forward and reverse have equal-scoring overlapping intervals", () => {
     // Two forward and two reverse intervals, all overlapping, equal weight.
     // The WIS algorithm must resolve ties without throwing RangeError.
-    // This guards weightedIntervalScheduling:262-290 against regressions
-    // in palindrome/inversion edge-case handling.
+    // This guards weightedIntervalScheduling's tie-breaking against
+    // regressions in palindrome/inversion edge-case handling.
     const fwd1 = ia([0, 1, 2, null, null, null], 5);
     const fwd2 = ia([null, null, null, 3, null, null], 5);
     const rev1 = ia([0, 1, 2, 3, null, null], 5);
