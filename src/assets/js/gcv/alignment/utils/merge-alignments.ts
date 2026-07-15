@@ -25,9 +25,10 @@ function combineAlignments(
 }
 
 
-// assumes intervals are non-overlapping and sorted by start position, and if
-// there's a gap at least one alignment covers it
-function combineAlignmentIntervals(
+// assumes intervals are non-overlapping and sorted by start position.
+// Exported for direct unit testing (merge-alignments.spec.ts); not part of the
+// module's public surface.
+export function combineAlignmentIntervals(
   alignments: InternalAlignment[],
   intervals: Array<[number, number, number]>): InternalAlignment
 {
@@ -73,7 +74,12 @@ function combineAlignmentIntervals(
         const weights = alignmentGapWeights.map(([weight, j]) => weight);
         const indexes = alignmentGapWeights.map(([weight, j]) => j);
         let j = weights.indexOf(Math.max(...weights));
-        spliceAlignment(gapBegin, gapEnd, indexes[j]);
+        // If neither alignment spans the whole gap (both have a null within it),
+        // there is no valid fill; leave the gap unaligned (it is already null).
+        // Guards against `indexes[j]` being undefined. See issue #424.
+        if (indexes[j] !== undefined) {
+          spliceAlignment(gapBegin, gapEnd, indexes[j]);
+        }
       }
     }
     // save the current interval
@@ -218,8 +224,11 @@ function cutPointsToWeightedIntervals(
  * schedule.
  * @return{Array<number>} - The indices of the intervals in the input array that
  * are in the solution.
+ *
+ * Exported for direct unit testing (weighted-interval-scheduling.spec.ts); it is
+ * not part of the module's public surface.
  */
-function weightedIntervalScheduling(
+export function weightedIntervalScheduling(
   intervals: WeightedInterval[],
   breakpoint: number=0,
 ): number[] {

@@ -1,5 +1,38 @@
-import { mergeAlignments } from "./merge-alignments";
+import { mergeAlignments, combineAlignmentIntervals } from "./merge-alignments";
 import { InternalAlignment } from "../models";
+
+// combineAlignmentIntervals stitches the optimal forward/reverse cut intervals
+// into one alignment, filling gaps between them. Issue #424: when a gap falls
+// on positions where BOTH orientations are null (repeat/tandem-rich regions),
+// neither can fill it, and the fill picked an undefined alignment index —
+// crashing with "Cannot read properties of undefined (reading 'coordinates')".
+// The fix leaves such a gap unaligned (null). This is the reduced form of the
+// inputs captured live from the issue's query gene (glyma…Glyma.18G052800).
+describe("combineAlignmentIntervals — unfillable gaps (issue #424)", () => {
+
+  // Two segments [0,0] (forward) and [3,4] (reverse) with a gap at [1,2] where
+  // the forward alignment is null at 1 and the reverse is null at 2, so no
+  // single alignment spans the gap.
+  const alignments: InternalAlignment[] = [
+    { coordinates: [0, null, 2, 3, 4], scores: [10, null, 10, 10, 10] },
+    { coordinates: [0, 1, null, 3, 4], scores: [10, 10, null, 10, 10] },
+  ];
+  const intervals: [number, number, number][] = [[0, 0, 0], [3, 4, 1]];
+
+  it("does not crash when neither alignment can fill a gap", () => {
+    expect(() => combineAlignmentIntervals(alignments, intervals)).not.toThrow();
+  });
+
+  it("leaves the unfillable gap unaligned and splices the flanking segments", () => {
+    const result = combineAlignmentIntervals(alignments, intervals);
+    // gap [1,2] stays null; the forward and reverse segments are placed.
+    expect(result.coordinates).toEqual([0, null, null, 3, 4]);
+    expect(result.orientations).toEqual([1, null, null, -1, -1]);
+    expect(result.segments).toEqual([0, null, null, 1, 1]);
+    expect(result.scores).toEqual([10, null, null, 10, 10]);
+  });
+
+});
 
 describe("mergeAlignments", () => {
 
@@ -135,11 +168,17 @@ describe("mergeAlignments", () => {
   // weightedIntervalScheduling against regressions in inversion detection
   // for palindromic sequences.
 
-  it("does not crash when forward and reverse have equal-scoring overlapping intervals", () => {
-    // Two forward and two reverse intervals, all overlapping, equal weight.
-    // The WIS algorithm must resolve ties without throwing RangeError.
-    // This guards weightedIntervalScheduling's tie-breaking against
-    // regressions in palindrome/inversion edge-case handling.
+  it("detects the inversion when forward and reverse have equal-scoring overlapping intervals", () => {
+    // Two forward and two reverse intervals, all overlapping, equal weight —
+    // the palindrome shape that triggers issue #1023's gratuitous-inversion
+    // swap. The engine must resolve the tie without throwing (guarded by the
+    // shipped fixes) AND still report the inversion: the leading merged block
+    // spans the whole palindrome in reverse orientation.
+    //
+    // This is a golden pin of the current, user-correct behaviour ("the beloved
+    // inversion is back"). If the deferred swap fix (issue #1023 Candidate 2)
+    // reshapes this output, this test fires — re-baseline it against the new,
+    // verified-correct alignment rather than deleting the coverage.
     const fwd1 = ia([0, 1, 2, null, null, null], 5);
     const fwd2 = ia([null, null, null, 3, null, null], 5);
     const rev1 = ia([0, 1, 2, 3, null, null], 5);
@@ -147,12 +186,12 @@ describe("mergeAlignments", () => {
     const seq = ["A", "B", "C", "D", "E", "F"];
 
     const result = mergeAlignments(seq, [fwd1, fwd2], [rev1, rev2], true, 2, 0);
-    // Primary invariant: no RangeError thrown. Coordinate arrays are non-empty
-    // and contain valid mapped positions.
-    for (const a of result) {
-      expect(a.coordinates.length).toBeGreaterThan(0);
-      expect(a.scores.length).toBeGreaterThan(0);
-    }
+
+    expect(result.length).toBeGreaterThan(0);
+    const inversion = result[0];
+    expect(inversion.coordinates).toEqual([0, 1, 2, 3, null, null]);
+    expect(inversion.orientations).toEqual([-1, -1, -1, -1, null, null]);
+    expect(inversion.segments).toEqual([0, 0, 0, 0, null, null]);
   });
 
   it("maximizes total score when choosing among overlapping forward and reverse intervals", () => {
