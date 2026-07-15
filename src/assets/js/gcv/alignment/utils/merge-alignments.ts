@@ -324,45 +324,106 @@ function reversalsAndInversions<T>(
   reverseAlignments: InternalAlignment[],
   reverseIntervals: Interval[],
   minsize: number,
-  threshold: number): InternalAlignment
+  threshold: number): MergedInternalAlignment
 {
   // combine each orientation's alignments and scores
   const flatForward = combineAlignments(forwardAlignments, forwardIntervals);
   const flatReverse = combineAlignments(reverseAlignments, reverseIntervals);
 
-  // identify potential cut points
-  const [forwardCutPoints, reverseCutPoints] =
-    potentialCutPoints(sequence, flatForward, flatReverse);
+  // segment the track into a maximum-weight labeling over the two orientations
+  return segmentAlignment(flatForward, flatReverse, minsize, threshold);
+}
 
-  // convert potential cut points into valid weighted intervals
-  const weightedForwardIntervals =
-    cutPointsToWeightedIntervals(flatForward, forwardCutPoints, minsize, threshold);
-  const weightedReverseIntervals =
-    cutPointsToWeightedIntervals(flatReverse, reverseCutPoints, minsize, threshold);
 
-  // use weighted interval scheduling dynamic program to find a set of cut
-  // intervals that generates the highest scoring alignment
-  const breakpoint = weightedForwardIntervals.length;
-  const weightedIntervals =
-    weightedForwardIntervals.concat(weightedReverseIntervals);
-  const optimalIntervals = weightedIntervalScheduling(weightedIntervals, breakpoint);
-  const compare = (a, b) => a[0]-b[0] || a[1]-b[1] || a[2]-b[2];
-  const alignmentIndexedOptimalIntervals = optimalIntervals
-    .map((i): [number, number, number] => {
-      if (i < breakpoint) {
-        const [begin, end, weight] = weightedForwardIntervals[i];
-        return [begin, end, 0];
+/**
+ * Labels every gene of a track as forward, reverse, or unaligned to maximize
+ * total alignment score, given the track's flattened forward and reverse
+ * alignments to the consensus. Because each gene receives exactly one label the
+ * result is non-overlapping and gap-defined by construction (resolving the
+ * structural faults behind #420/#1023 and #424). A parsimony tie-break — prefer
+ * fewer reverse segments on equal score — keeps palindromic regions forward and
+ * replaces the previous post-hoc gratuitous-inversion swap.
+ *
+ * See doc/alignment-segmentation-proposal.md.
+ * @param {InternalAlignment} flatForward - Per-gene forward coords/scores (null where unaligned).
+ * @param {InternalAlignment} flatReverse - Per-gene reverse coords/scores (null where unaligned).
+ * @param {number} minsize - Minimum length of a forward/reverse segment.
+ * @param {number} threshold - Minimum score of a forward/reverse segment.
+ * @return {MergedInternalAlignment} - The merged, segmented alignment.
+ */
+function segmentAlignment(
+  flatForward: InternalAlignment,
+  flatReverse: InternalAlignment,
+  minsize: number,
+  threshold: number): MergedInternalAlignment
+{
+  const L = flatForward.coordinates.length;
+  const fc = flatForward.coordinates, fs = flatForward.scores;
+  const rc = flatReverse.coordinates, rs = flatReverse.scores;
+
+  // Score of labeling the half-open run [i, j) in one orientation; null if the
+  // run is inadmissible (a gap within it, too short, or below threshold).
+  // orientation 0 = forward, 1 = reverse.
+  const segScore = (i: number, j: number, orientation: 0 | 1): number | null => {
+    const scores = (orientation === 0) ? fs : rs;
+    let s = 0;
+    for (let k = i; k < j; k++) {
+      if (scores[k] === null) return null;
+      s += scores[k] as number;
+    }
+    if (j - i < minsize || s < threshold) return null;
+    return s;
+  };
+
+  // dp[j] = best labeling of genes [0, j). Lexicographic objective: maximize
+  // total score, then minimize the number of reverse segments (parsimony).
+  const bestScore: number[] = new Array(L + 1).fill(-Infinity);
+  const bestInv: number[] = new Array(L + 1).fill(0);
+  const back: ({ i: number, label: -1 | 0 | 1 } | null)[] = new Array(L + 1).fill(null);
+  bestScore[0] = 0;
+  for (let j = 1; j <= L; j++) {
+    for (let i = 0; i < j; i++) {
+      if (bestScore[i] === -Infinity) continue;
+      // candidate labels for the run [i, j): unaligned (always), forward, reverse
+      const candidates: Array<[-1 | 0 | 1, number, number]> = [[-1, 0, 0]];
+      const f = segScore(i, j, 0); if (f !== null) candidates.push([0, f, 0]);
+      const r = segScore(i, j, 1); if (r !== null) candidates.push([1, r, 1]);
+      for (const [label, sc, addInv] of candidates) {
+        const score = bestScore[i] + sc;
+        const inv = bestInv[i] + addInv;
+        if (score > bestScore[j] || (score === bestScore[j] && inv < bestInv[j])) {
+          bestScore[j] = score; bestInv[j] = inv; back[j] = { i, label };
+        }
       }
-      i = i-breakpoint;
-      const [begin, end, weight] = weightedReverseIntervals[i];
-      return [begin, end, 1];
-    })
-    .sort(compare);
-  const alignments = [flatForward, flatReverse];
-  const alignment =
-    combineAlignmentIntervals(alignments, alignmentIndexedOptimalIntervals);
+    }
+  }
 
-  return alignment;
+  // backtrack into a per-gene label (-1 unaligned, 0 forward, 1 reverse)
+  const labels: (-1 | 0 | 1)[] = new Array(L).fill(-1);
+  for (let j = L; j > 0 && back[j] !== null; ) {
+    const { i, label } = back[j]!;
+    for (let k = i; k < j; k++) labels[k] = label;
+    j = i;
+  }
+
+  // read back into the merged-alignment shape; number contiguous same-orientation
+  // runs as segments, leaving unaligned genes null.
+  const coordinates: (number | null)[] = new Array(L).fill(null);
+  const orientations: (null | 1 | -1)[] = new Array(L).fill(null);
+  const segments: (number | null)[] = new Array(L).fill(null);
+  const scores: (number | null)[] = new Array(L).fill(null);
+  let segId = -1;
+  let prev: -1 | 0 | 1 = -1;
+  for (let i = 0; i < L; i++) {
+    const label = labels[i];
+    if (label === -1) { prev = -1; continue; }
+    if (label !== prev) { segId += 1; prev = label; }
+    coordinates[i] = (label === 0) ? fc[i] : rc[i];
+    scores[i] = (label === 0) ? fs[i] : rs[i];
+    orientations[i] = (label === 0) ? 1 : -1;
+    segments[i] = segId;
+  }
+  return { coordinates, orientations, segments, scores };
 }
 
 
