@@ -250,8 +250,18 @@ export class GoldenLayoutDirective implements AfterContentInit, OnDestroy {
         const item = items[0];
         const stack = this._closestStack(item);
         if (stack !== null) {
-          // Cast needed: Golden Layout accepts StackItemConfig at runtime
-          stack.addItem(itemConfig as ComponentItemConfig);
+          // A Stack can only hold ComponentItems in v2, so a stack/row/column
+          // config must be added to the Stack's RowOrColumn parent as a sibling
+          // (this is how the plots pane is created). Component configs go into
+          // the Stack itself.
+          if (itemConfig.type !== 'component') {
+            const parent = stack.parent;
+            if (parent !== null && 'addItem' in parent) {
+              (parent as RowOrColumn).addItem(itemConfig as StackItemConfig);
+            }
+          } else {
+            stack.addItem(itemConfig as ComponentItemConfig);
+          }
         }
       // get the item's stack and make it the active item
       } else {
