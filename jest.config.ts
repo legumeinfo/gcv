@@ -45,6 +45,13 @@ const config: Config = {
       roots: ["<rootDir>/src/app"],
       testMatch: ["**/*.spec.ts"],
       moduleNameMapper,
+      // The app imports the D3-based engine (src/assets/js/gcv), so the d3 family
+      // of ESM packages must be transformed here too — extend the preset's
+      // ignore list (which otherwise transforms only .mjs and Angular locales).
+      transformIgnorePatterns: [
+        "node_modules/(?!(.*\\.mjs$|@angular/common/locales/.*\\.js$|" +
+          "(?:mnemonist|d3|d3-.*|internmap|delaunator|robust-predicates)/))",
+      ],
     },
   ],
 };
