@@ -1,5 +1,5 @@
 // Angular
-import { AfterViewInit, Component, OnDestroy, ViewChild, ChangeDetectionStrategy } from '@angular/core';
+import { AfterViewInit, Component, OnDestroy, ViewChild, ChangeDetectionStrategy, inject } from '@angular/core';
 import { Observable, Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 // app
@@ -10,7 +10,6 @@ import * as fromDetails from './details';
 import * as fromTooltips from './tooltips';
 import * as fromViewers from './viewers';
 // dependencies
-import tippy from 'tippy.js';
 
 
 @Component({
@@ -21,6 +20,8 @@ import tippy from 'tippy.js';
     standalone: false
 })
 export class GeneComponent implements AfterViewInit, OnDestroy {
+  private _microTracksService = inject(MicroTracksService);
+
 
   @ViewChild(GoldenLayoutDirective, {static: true}) goldenLayoutDirective;
   @ViewChild(TooltipFactoryDirective, {static: true}) tooltipFactoryDirective;
@@ -43,8 +44,6 @@ export class GeneComponent implements AfterViewInit, OnDestroy {
     };
   tooltipComponents = [...fromTooltips.tooltipComponents];
   showLeftSlider: Observable<boolean>;
-
-  constructor(private _microTracksService: MicroTracksService) { }
 
   // Angular hooks
 

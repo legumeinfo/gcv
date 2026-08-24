@@ -1,9 +1,5 @@
 // Angular + dependencies
-import {
-  AfterViewInit, Component, ElementRef, EventEmitter, Input, OnDestroy,
-  OnInit, Output, ViewChild,
-  ChangeDetectionStrategy
-} from '@angular/core';
+import { AfterViewInit, Component, ElementRef, EventEmitter, Input, OnDestroy, OnInit, Output, ViewChild, ChangeDetectionStrategy, inject } from '@angular/core';
 import { Observable, Subject, combineLatest } from 'rxjs';
 import { filter, map, mergeAll, switchMap, takeUntil } from 'rxjs/operators';
 // app
@@ -28,6 +24,10 @@ import { plotShim } from './plot.shim';
     standalone: false
 })
 export class PlotComponent implements AfterViewInit, OnDestroy, OnInit {
+  private _plotsService = inject(PlotsService);
+  private _processService = inject(ProcessService);
+  private _geneService = inject(GeneService);
+
 
   // IO
 
@@ -55,12 +55,6 @@ export class PlotComponent implements AfterViewInit, OnDestroy, OnInit {
 
   private _destroy: Subject<boolean> = new Subject();
   private _viewer;
-
-  // constructor
-
-  constructor(private _plotsService: PlotsService,
-              private _processService: ProcessService,
-              private _geneService: GeneService) { }
 
   // Angular hooks
 

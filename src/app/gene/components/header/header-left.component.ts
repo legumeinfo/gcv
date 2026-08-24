@@ -1,5 +1,5 @@
 // Angular
-import { Component, ChangeDetectionStrategy } from '@angular/core';
+import { Component, ChangeDetectionStrategy, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 // app
 import { LayoutService } from '@gcv/gene/services';
@@ -18,10 +18,10 @@ import { LayoutService } from '@gcv/gene/services';
     template: `
     <ul class="navbar-nav me-auto">
       <li>
-        <a [class.active]="(visible|async)&&(content|async)=='parameters'" class="btn btn-outline-dark me-sm-2" role="button" (click)="toggleParameters()">Parameters</a>
+        <a [class.active]="(visible|async)&&(content|async)==='parameters'" class="btn btn-outline-dark me-sm-2" role="button" (click)="toggleParameters()">Parameters</a>
       </li>
       <li>
-        <a [class.active]="(visible|async)&&(content|async)=='filters'" class="btn btn-outline-dark" role="button" (click)="toggleFilters()">Filters</a>
+        <a [class.active]="(visible|async)&&(content|async)==='filters'" class="btn btn-outline-dark" role="button" (click)="toggleFilters()">Filters</a>
       </li>
     </ul>
   `,
@@ -29,11 +29,15 @@ import { LayoutService } from '@gcv/gene/services';
     standalone: false
 })
 export class HeaderLeftComponent {
+  private _layoutService = inject(LayoutService);
+
 
   visible: Observable<boolean>;
   content: Observable<string>;
 
-  constructor(private _layoutService: LayoutService) {
+  constructor() {
+    const _layoutService = this._layoutService;
+
     this.visible = _layoutService.getLeftSliderState();
     this.content = _layoutService.getLeftSliderContent();
   }

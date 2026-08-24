@@ -1,5 +1,5 @@
 // Angular
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 // store
 import { Observable } from 'rxjs';
 import { Store } from '@ngrx/store';
@@ -10,8 +10,8 @@ import * as fromLayout from '@gcv/gene/store/selectors/layout';
 
 @Injectable()
 export class LayoutService {
+  private _store = inject<Store<fromRoot.State>>(Store);
 
-  constructor(private _store: Store<fromRoot.State>) { }
 
   getLeftSliderState(): Observable<boolean> {
     return this._store.select(fromLayout.getShowLeftSlider);

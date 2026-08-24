@@ -1,5 +1,5 @@
 // Angular
-import { Data, Params } from '@angular/router';
+import { Params } from '@angular/router';
 // NgRx
 import { createSelector } from '@ngrx/store';
 // store

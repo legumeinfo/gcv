@@ -2,7 +2,6 @@ import {
   pairwiseBlocksID,
   singleID,
   idArrayLeftDifference,
-  idArrayIntersection,
 } from "./pairwise-blocks.reducer";
 
 describe("pairwise-blocks.reducer — ID factory", () => {

@@ -1,5 +1,5 @@
 // Angular
-import { Component, Input, OnDestroy, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, Input, OnDestroy, OnInit, ChangeDetectionStrategy, inject } from '@angular/core';
 import { Subject } from 'rxjs';
 import { filter, switchMap, take, takeUntil } from 'rxjs/operators';
 // App
@@ -43,6 +43,10 @@ import { Track } from '@gcv/gene/models';
     standalone: false
 })
 export class TrackDetailComponent implements OnDestroy, OnInit {
+  private _appConfig = inject(AppConfig);
+  private _geneService = inject(GeneService);
+  private _regionService = inject(RegionService);
+
 
   @Input() track: Track;
 
@@ -53,11 +57,9 @@ export class TrackDetailComponent implements OnDestroy, OnInit {
   familyTreeLink: string = '';
   regionLinks: any[] = [];
 
-  constructor(
-    private _appConfig: AppConfig,
-    private _geneService: GeneService,
-    private _regionService: RegionService,
-  ) {
+  constructor() {
+    const _appConfig = this._appConfig;
+
     this._serverIDs = _appConfig.getServerIDs();
   }
 

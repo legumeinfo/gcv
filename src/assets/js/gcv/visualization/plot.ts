@@ -151,7 +151,7 @@ export class Plot {
       .append("g")
       .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
-    const clip = plot.append("defs").append("svg:clipPath")
+    plot.append("defs").append("svg:clipPath")
       .attr("id", "clip")
       .append("svg:rect")
       .attr("width", width )
@@ -177,7 +177,7 @@ export class Plot {
       .on("mouseout", (event, g) => publishGeneEvent("deselect", g))
       .on("click", (event, g) => this.options.geneClick(g));
 
-    const points = genes.append("circle")
+    genes.append("circle")
       .attr("r", radius)
       .attr("cx", (d) => this.scale.x(d.x))
       .attr("cy", (d) => this.scale.y(d.y))
@@ -258,7 +258,7 @@ export class Plot {
   private autoResize() {
     const ro = new ResizeObserver((entries) => {
       clearTimeout(this.resizeTimer);
-      const id = this.resizeTimer = setTimeout(() => {
+      this.resizeTimer = setTimeout(() => {
         const width = Math.max(this.container.clientWidth, this.container.clientHeight);
         // NOTE: shouldn't have to check if circos is undefined if scope is correct...
         if (this.viewer !== undefined && this.viewer.attr("width") !== width) {
@@ -314,7 +314,7 @@ export class Plot {
   /** Generates the raw SVG xml. */
   xml() {
     try {
-      const isFileSaverSupported = !!new Blob();
+      const _isFileSaverSupported = !!new Blob();
     } catch (e) {
       alert("Your broswer does not support saving");
     }

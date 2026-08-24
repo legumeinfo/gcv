@@ -64,7 +64,6 @@ export class MultiMacro {
     // convert each chromosome's MacroTracks into a slice of the circle
     for (let i = 0; i < multiMacroTracks.length; i++) {
       const macroTracks = multiMacroTracks[i];
-      const name = macroTracks.genus + " " + macroTracks.species;
       const target_id = macroTracks.chromosome;
       const id = macroTracks.id;
       this.data.colors[target_id] = this.options.colors(id);
@@ -276,10 +275,9 @@ export class MultiMacro {
   // TODO: clearTimeout doesn't appear to be working due to a scoping issue
   // NOTE: is there a more efficient way to resize other than redrawing?
   private autoResize() {
-    const scope = this;
     const ro = new ResizeObserver((entries) => {
       clearTimeout(this.resizeTimer);
-      const id = this.resizeTimer = setTimeout(() => {
+      this.resizeTimer = setTimeout(() => {
         const width = Math.min(this.container.clientWidth, this.container.clientHeight);
         // NOTE: shouldn't have to check if circos is undefined if scope is correct...
         if (this.circos !== undefined && this.circos.conf.width !== width) {
@@ -359,7 +357,7 @@ export class MultiMacro {
   /** Generates the raw SVG xml. */
   xml() {
     try {
-      const isFileSaverSupported = !!new Blob();
+      const _isFileSaverSupported = !!new Blob();
     } catch (e) {
       alert("Your broswer does not support saving");
     }

@@ -73,7 +73,7 @@ export const reducer = (
     }
     case searchActions.SEARCH:
     {
-      const {query, source} = action.payload;
+      const {source} = action.payload;
       let targetIDs = [{source, action: action.id}];
       // filter targets by loading and loaded
       targetIDs = idArrayLeftDifference(targetIDs, state.loading);

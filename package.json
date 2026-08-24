@@ -60,7 +60,6 @@
     "@angular-eslint/schematics": "22.0.0",
     "@angular-eslint/template-parser": "22.0.0",
     "@angular/cli": "~22.1.2",
-    "angular-eslint": "22.0.0",
     "@angular/compiler-cli": "^22.1.0",
     "@ngrx/eslint-plugin": "^21.1.1",
     "@playwright/test": "^1.58.2",
@@ -68,15 +67,17 @@
     "@types/node": "^25.0.0",
     "@typescript-eslint/eslint-plugin": "^8.33.1",
     "@typescript-eslint/parser": "^8.33.1",
-    "typescript-eslint": "^8.33.1",
+    "angular-eslint": "22.0.0",
     "eslint": "^9.28.0",
+    "eslint-plugin-unused-imports": "^4.4.1",
     "jest": "^30.4.2",
     "jest-environment-jsdom": "^30.4.1",
     "jest-preset-angular": "^17.0.0",
     "jsdom": "^29.1.1",
     "sharp": "^0.34.1",
     "ts-jest": "^29.4.11",
-    "typescript": "^6.0.3"
+    "typescript": "^6.0.3",
+    "typescript-eslint": "^8.33.1"
   },
   "engines": {
     "node": ">=22.22.3"

@@ -1,5 +1,5 @@
 // Angular
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { UntypedFormBuilder } from '@angular/forms';
 import { PRIMARY_OUTLET, ActivatedRouteSnapshot, NavigationExtras, Router, RouterStateSnapshot, UrlTree } from '@angular/router';
 import { Observable } from 'rxjs';
@@ -13,12 +13,10 @@ import { formControlConfigFactory, parseParams } from '@gcv/core/models/params';
 
 @Injectable()
 export class QueryParamsGuard  {
+  private _fb = inject(UntypedFormBuilder);
+  private _router = inject(Router);
+  private _store = inject<Store<fromRoot.State>>(Store);
 
-  constructor(
-    private _fb: UntypedFormBuilder,
-    private _router: Router,
-    private _store: Store<fromRoot.State>,
-  ) { }
 
   canActivate(route: ActivatedRouteSnapshot, state: RouterStateSnapshot):
   Observable<UrlTree|boolean> {

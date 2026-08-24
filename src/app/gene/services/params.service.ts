@@ -1,6 +1,6 @@
 // Angular
 import { HttpClient } from '@angular/common/http';
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 // store
 import { Store } from '@ngrx/store';
@@ -16,9 +16,16 @@ import { HttpService } from '@gcv/core/services/http.service';
 
 @Injectable()
 export class ParamsService extends HttpService {
+  private _http: HttpClient;
+  private _store = inject<Store<fromRoot.State>>(Store);
 
-  constructor(private _http: HttpClient, private _store: Store<fromRoot.State>) {
+
+  constructor() {
+    const _http = inject(HttpClient);
+
     super(_http);
+  
+    this._http = _http;
   }
 
   getAlignmentParams(): Observable<AlignmentParams> {

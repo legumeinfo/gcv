@@ -321,7 +321,6 @@ export class MSAHMM extends Directed {
     let i = 0;
     for (let j = 0; j < path.length - 1; j++) {
       const from = path[j];
-      const to   = path[j + 1];
       const n    = this.getNode(from).attr;
       if (n instanceof MSAHMM.InsertState ||
           n instanceof MSAHMM.MatchState) {
@@ -345,7 +344,7 @@ export class MSAHMM extends Directed {
       const d = "d" + j;
       if (ipaths.hasOwnProperty(pId) || mpaths.hasOwnProperty(pId)) {
         if (ipaths.hasOwnProperty(pId)) {
-          for (const p of ipaths[pId]) {
+          for (const _p of ipaths[pId]) {
             path.push(i);
           }
         }
@@ -359,7 +358,7 @@ export class MSAHMM extends Directed {
     const i = "i" + this._numColumns;
     const ipaths = this.getNode(i).attr.paths;
     if (ipaths.hasOwnProperty(pId)) {
-      for (const p of ipaths[pId]) {
+      for (const _p of ipaths[pId]) {
         path.push(i);
       }
     }
@@ -669,7 +668,6 @@ export class MSAHMM extends Directed {
         insertion = 0;
       };
     let prev = "a0";
-    let prevIndex = -1;
     for (let i = 1; i < path.length; i++) {
       const n = path[i];
       let index = parseInt(n.substr(1));
@@ -689,7 +687,6 @@ export class MSAHMM extends Directed {
         insertion++;
       }
       prev = n;
-      prevIndex = n;
     }
     return alignment;
   }
@@ -814,7 +811,7 @@ export class MSAHMM extends Directed {
 
     // remove the remaining columns that were invalidated by the shifting
     for (i = 0; i < validColumns.length-1; i++) {
-      let c = this._numColumns+i;
+      const c = this._numColumns+i;
       this.removeNode("m" + c);
       this.removeNode("i" + (c+1));
       this.removeNode("d" + c);
@@ -841,7 +838,7 @@ export class MSAHMM extends Directed {
     for (let i = 0; i < this._numColumns; i++) {
       const matchState = this.getNode("m" + i);
       const probs = matchState.attr.emissionProbabilities;
-      const [c, p] = Object.entries(probs).reduce(reducer);
+      const [c] = Object.entries(probs).reduce(reducer);
       sequence.push(c);
     }
     return sequence;

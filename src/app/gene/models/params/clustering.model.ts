@@ -1,5 +1,5 @@
 // Angular
-import { AbstractControl, Validators } from '@angular/forms';
+import { Validators } from '@angular/forms';
 // app
 import { LINKAGES, Regex } from '@gcv/gene/constants';
 

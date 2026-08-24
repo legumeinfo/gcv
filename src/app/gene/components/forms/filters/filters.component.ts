@@ -1,5 +1,5 @@
 // Angular
-import { Component, ChangeDetectionStrategy } from '@angular/core';
+import { Component, ChangeDetectionStrategy, inject } from '@angular/core';
 import { Observable, Subject } from 'rxjs';
 import { map } from 'rxjs/operators';
 // app
@@ -22,6 +22,8 @@ import { ParamsService } from '@gcv/gene/services';
     standalone: false
 })
 export class FiltersComponent {
+  private _paramsService = inject(ParamsService);
+
 
   // variables
 
@@ -44,7 +46,7 @@ export class FiltersComponent {
 
   // constructor
 
-  constructor(private _paramsService: ParamsService) {
+  constructor() {
     this.currentMacroRegexp = this._paramsService.getMacroFilterParams()
       .pipe(map((params: MacroFilterParams) => params.bregexp));
     this.selectedMacroOrderAlgorithm = this._paramsService.getMacroOrderParams()

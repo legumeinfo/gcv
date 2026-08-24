@@ -1,6 +1,6 @@
 // Angular
 import { HttpClient } from '@angular/common/http';
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { Observable, from, throwError } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 // store
@@ -18,11 +18,17 @@ import { SearchPromiseClient, SearchReply, SearchRequest }
 
 @Injectable()
 export class SearchService extends HttpService {
+  private _appConfig = inject(AppConfig);
+  private _http: HttpClient;
+  private _store = inject<Store<fromRoot.State>>(Store);
 
-  constructor(private _appConfig: AppConfig,
-              private _http: HttpClient,
-              private _store: Store<fromRoot.State>) {
+
+  constructor() {
+    const _http = inject(HttpClient);
+
     super(_http);
+  
+    this._http = _http;
   }
 
   search(query: string, serverID: string): Observable<Result> {

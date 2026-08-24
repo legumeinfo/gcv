@@ -15,7 +15,7 @@ function combineAlignments(
       scores: Array(l).fill(null)
     };
   alignments.forEach((a, i) => {
-    let [begin, end] = intervals[i];
+    const [begin, end] = intervals[i];
     const coordinates = a.coordinates.slice(begin, end+1);
     const scores = a.scores.slice(begin, end+1);
     alignment.coordinates.splice(begin, end+1-begin, ...coordinates);
@@ -73,7 +73,7 @@ export function combineAlignmentIntervals(
           .map(([scores, j]) => [sum(scores), j]);
         const weights = alignmentGapWeights.map(([weight, j]) => weight);
         const indexes = alignmentGapWeights.map(([weight, j]) => j);
-        let j = weights.indexOf(Math.max(...weights));
+        const j = weights.indexOf(Math.max(...weights));
         // If neither alignment spans the whole gap (both have a null within it),
         // there is no valid fill; leave the gap unaligned (it is already null).
         // Guards against `indexes[j]` being undefined. See issue #424.
@@ -160,8 +160,6 @@ function potentialCutPoints<T>(
     const rBreak = !rBegin && !rEnd &&
       ((rScore > 0 && prevRscore <= 0) || (rScore <= 0 && prevRscore > 0)) &&
       fScore != null && !duplicate;
-    const fNull = prevFscore == null && fScore == null;
-    const rNull = prevRscore == null && rScore == null;
     const fNoCut = !fBegin && !fEnd && !fBreak && fScore != null;
     const rNoCut = !rBegin && !rEnd && !rBreak && rScore != null;
 
@@ -248,7 +246,7 @@ export function weightedIntervalScheduling(
   const p = [0].concat(sortedIntervals.map(([begin, end, weight, i], j) => {
       // TODO: this is worst case n^2; can be done in n log n with binary search
       for (let k = j-1; k >= 0; k--) {
-        const [begin2, end2, weight2, i2] = sortedIntervals[k];
+        const [, end2] = sortedIntervals[k];
         if (end2 < begin) {  // strictly less than because intervals are inclusive
           return k+1;
         }
@@ -350,11 +348,11 @@ function reversalsAndInversions<T>(
   const alignmentIndexedOptimalIntervals = optimalIntervals
     .map((i): [number, number, number] => {
       if (i < breakpoint) {
-        const [begin, end, weight] = weightedForwardIntervals[i];
+        const [begin, end] = weightedForwardIntervals[i];
         return [begin, end, 0];
       }
       i = i-breakpoint;
-      const [begin, end, weight] = weightedReverseIntervals[i];
+      const [begin, end] = weightedReverseIntervals[i];
       return [begin, end, 1];
     })
     .sort(compare);

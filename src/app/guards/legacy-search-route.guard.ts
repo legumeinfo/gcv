@@ -1,5 +1,5 @@
 // Angular
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { ActivatedRouteSnapshot, NavigationExtras, Router, UrlTree } from '@angular/router';
 // app
 import { AppConfig } from '@gcv/core/models';
@@ -7,8 +7,9 @@ import { AppConfig } from '@gcv/core/models';
 
 @Injectable()
 export class LegacySearchRouteGuard  {
+  private _appConfig = inject(AppConfig);
+  private _router = inject(Router);
 
-  constructor(private _appConfig: AppConfig, private _router: Router) { }
 
   canActivate(route: ActivatedRouteSnapshot): UrlTree {
     let url = '/';

@@ -1,5 +1,5 @@
 // Angular
-import { OnInit, Component, ChangeDetectionStrategy } from '@angular/core';
+import { OnInit, Component, ChangeDetectionStrategy, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { Observable } from 'rxjs';
 // App
@@ -15,6 +15,10 @@ import { SearchService } from '@gcv/search/services';
     standalone: false
 })
 export class SearchComponent implements OnInit {
+  private _appConfig = inject(AppConfig);
+  private _router = inject(Router);
+  private _searchService = inject(SearchService);
+
 
   model: any;
   sources: Server[];
@@ -24,9 +28,9 @@ export class SearchComponent implements OnInit {
   resultRegions: Observable<{source: string, gene: string, neighbors: number}[]>;
   private _sourceNameMap: any;
 
-  constructor(private _appConfig: AppConfig,
-              private _router: Router,
-              private _searchService: SearchService) {
+  constructor() {
+    const _appConfig = this._appConfig;
+
     this.model = {
       neighbors: '',
       sources: _appConfig.servers

@@ -1,16 +1,16 @@
 // Angular
 
-import { Inject, Injectable, DOCUMENT } from '@angular/core';
+import { Injectable, DOCUMENT, inject } from '@angular/core';
 import { Observable, OperatorFunction } from 'rxjs';
 import { zip } from 'rxjs/operators';
 
 
 @Injectable()
 export class ScriptService {
+  private _document = inject<HTMLDocument>(DOCUMENT);
+
 
   private _scripts: Set<string> = new Set<string>();
-
-  constructor(@Inject(DOCUMENT) private _document: HTMLDocument) { }
 
   load(...scripts: string[]): OperatorFunction<any, any> {
     const scriptLoaders: Observable<any>[] =

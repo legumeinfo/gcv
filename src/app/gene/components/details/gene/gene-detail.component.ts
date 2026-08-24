@@ -1,5 +1,5 @@
 // Angular
-import { Component, Input, OnDestroy, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, Input, OnDestroy, OnInit, ChangeDetectionStrategy, inject } from '@angular/core';
 import { Subject } from 'rxjs';
 import { filter, map, switchMap, take, takeUntil } from 'rxjs/operators';
 // App
@@ -35,6 +35,10 @@ import { GeneService, RegionService } from '@gcv/gene/services';
     standalone: false
 })
 export class GeneDetailComponent implements OnDestroy, OnInit {
+  private _appConfig = inject(AppConfig);
+  private _geneService = inject(GeneService);
+  private _regionService = inject(RegionService);
+
 
   @Input() gene: string;
   @Input() family: string;
@@ -48,11 +52,9 @@ export class GeneDetailComponent implements OnDestroy, OnInit {
   singleGeneMatrix = {};
   familyTreeLink: string = '';
 
-  constructor(
-    private _appConfig: AppConfig,
-    private _geneService: GeneService,
-    private _regionService: RegionService,
-  ) {
+  constructor() {
+    const _appConfig = this._appConfig;
+
     this._serverIDs = _appConfig.getServerIDs();
   }
 

@@ -1,10 +1,10 @@
 // Angular
 import { HttpClient } from '@angular/common/http';
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { Observable, from, throwError } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 // store
-import { Store, select } from '@ngrx/store';
+import { Store } from '@ngrx/store';
 import * as geneActions from '@gcv/gene/store/actions/gene.actions';
 import * as fromRoot from '@gcv/store/reducers';
 import * as fromGene from '@gcv/gene/store/selectors/gene/';
@@ -20,11 +20,17 @@ import { GenesGetReply, GenesGetRequest, GenesPromiseClient }
 
 @Injectable()
 export class GeneService extends HttpService {
+  private _appConfig = inject(AppConfig);
+  private _http: HttpClient;
+  private _store = inject<Store<fromRoot.State>>(Store);
 
-  constructor(private _appConfig: AppConfig,
-              private _http: HttpClient,
-              private _store: Store<fromRoot.State>) {
+
+  constructor() {
+    const _http = inject(HttpClient);
+
     super(_http);
+  
+    this._http = _http;
   }
 
   // fetches genes for the given gene ids from the given source
@@ -61,13 +67,13 @@ export class GeneService extends HttpService {
   getGenesForSource(names: string[], source: string): Observable<Gene[]> {
     const action = new geneActions.Get({names, source});
     this._store.dispatch(action);
-    return this._store.pipe(select(fromGene.getGenesForSource(names, source)));
+    return this._store.select((fromGene.getGenesForSource(names, source)));
   }
 
   getGenesForTracks(tracks: Track[]): Observable<Gene[]> {
     const actions = geneActions.tracksToGetGeneActions(tracks);
     actions.forEach((a) => this._store.dispatch(a));
-    return this._store.pipe(select(fromGene.getGenesForTracks(tracks)));
+    return this._store.select((fromGene.getGenesForTracks(tracks)));
   }
 
   // returns all the genes from the URL

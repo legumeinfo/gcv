@@ -1,5 +1,5 @@
 // Angular
-import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnInit, ChangeDetectionStrategy, inject } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 // NgRx
 import { filter, map } from 'rxjs/operators';
@@ -13,15 +13,17 @@ import { AppConfig, Server } from '@gcv/core/models';
     standalone: false
 })
 export class AbstractSearchWidgetComponent implements OnInit {
+  protected _appConfig = inject(AppConfig);
+  protected _activatedRoute = inject(ActivatedRoute);
+  protected router = inject(Router);
+
 
   model: any;
   sources: Server[];
 
-  constructor(
-    protected _appConfig: AppConfig,
-    protected _activatedRoute: ActivatedRoute,
-    protected router: Router,
-  ) {
+  constructor() {
+    const _appConfig = this._appConfig;
+
     this.model = {
       query: '',
       sources: _appConfig.servers

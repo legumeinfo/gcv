@@ -22,7 +22,7 @@ export const arrayIsEqual = (a: any[], b: any[]) => {
 
 
 // determines if two objects have equal content
-export const objectIsEqual = (a: Object, b: Object) => {
+export const objectIsEqual = (a: object, b: object) => {
   if (a === b) return true;
   if (a == null || b == null) return false;
 

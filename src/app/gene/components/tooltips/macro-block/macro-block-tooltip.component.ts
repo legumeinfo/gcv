@@ -1,5 +1,5 @@
 // Angular
-import { OnInit, Component, Input, ChangeDetectionStrategy } from '@angular/core';
+import { OnInit, Component, Input, ChangeDetectionStrategy, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { filter, map, mergeAll, switchMap } from 'rxjs/operators';
 // app
@@ -27,14 +27,14 @@ import { ChromosomeService, GeneService } from '@gcv/gene/services';
     standalone: false
 })
 export class MacroBlockTooltipComponent implements OnInit {
+  private _chromosomeService = inject(ChromosomeService);
+  private _geneService = inject(GeneService);
+
 
   @Input() pairwiseBlocks: PairwiseBlocks;
   @Input() block: PairwiseBlock;
 
   referenceInterval: Observable<{fmin: number, fmax: number}>;
-
-  constructor(private _chromosomeService: ChromosomeService,
-              private _geneService: GeneService) { }
 
   // Angular hooks
 

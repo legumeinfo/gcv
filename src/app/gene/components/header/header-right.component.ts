@@ -1,5 +1,5 @@
 // Angular
-import { Component, OnDestroy, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnDestroy, ChangeDetectionStrategy, inject } from '@angular/core';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 // app
@@ -29,14 +29,18 @@ import { InterAppCommunicationService } from '@gcv/gene/services';
     standalone: false
 })
 export class HeaderRightComponent implements OnDestroy {
+  private _appConfig = inject(AppConfig);
+  private _communicationService = inject(InterAppCommunicationService);
+
 
   communicate: boolean;
 
   private _destroy: Subject<boolean> = new Subject();
   private _eventBus;
 
-  constructor(private _appConfig: AppConfig,
-              private _communicationService: InterAppCommunicationService) {
+  constructor() {
+    const _appConfig = this._appConfig;
+
     this.communicate = _appConfig.communication.channel !== undefined;
     if (this.communicate) {
       this._setupCommunication();

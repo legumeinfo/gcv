@@ -32,7 +32,6 @@ import { ClusterMixin } from '@gcv/gene/models/mixins';
 import { ActionID } from '@gcv/store/utils';
 
 
-declare var Object: any;  // because TypeScript doesn't support Object.values
 
 
 export const microTracksFeatureKey = 'microtracks';

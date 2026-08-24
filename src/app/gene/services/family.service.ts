@@ -1,5 +1,5 @@
 // Angular
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 // store
 import { Observable } from 'rxjs';
 import { Store } from '@ngrx/store';
@@ -10,8 +10,8 @@ import * as fromFamily from '@gcv/gene/store/selectors/family';
 
 @Injectable()
 export class FamilyService {
+  private _store = inject<Store<fromRoot.State>>(Store);
 
-  constructor(private _store: Store<fromRoot.State>) { }
 
   omitFamilies(families: string[]): void {
     this._store.dispatch(familyActions.OmitFamilies({families}));

@@ -1,4 +1,4 @@
-import { Algorithm, Gene } from '@gcv/gene/models';
+import { Algorithm } from '@gcv/gene/models';
 import { GCV } from '@gcv-assets/js/gcv';
 import { AlgorithmMap, algorithmMap } from './utils';
 

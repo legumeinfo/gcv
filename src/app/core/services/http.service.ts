@@ -1,7 +1,7 @@
 // Angular
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { BehaviorSubject, Observable, throwError } from 'rxjs';
-import { filter, share } from 'rxjs/operators';
+import { Observable, throwError } from 'rxjs';
+import { share } from 'rxjs/operators';
 // app
 import { ConfigError } from '@gcv/core/models';
 import { GET, POST, Request } from '@gcv/core/models';

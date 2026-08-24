@@ -72,14 +72,14 @@ function align<T>(
       scores: Array(ref.length-i).fill(null)
     };
   while (m[i][j] !== 0) {
-    let [i2, j2] = t[i][j];
+    const [i2, j2] = t[i][j];
     if (j2 === j && j !== 0) {
       insertion += 1;
     // (mis)match
     } else if (j2 === j-1 && i2 === i-1) {
       // backfill insertion
       if (insertion > 0) {
-        let step = 1/(insertion+1);
+        const step = 1/(insertion+1);
         for (let k = insertion-1; k >= 0; k--) {
           const x = j + (k+1)*step;
           alignment.coordinates.unshift(x-1);

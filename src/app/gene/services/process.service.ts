@@ -1,27 +1,24 @@
 // Angular
-import { HttpClient } from '@angular/common/http';
-import { Injectable } from '@angular/core';
-import { Observable, combineLatest, empty, merge } from 'rxjs';
+import { Injectable, inject } from '@angular/core';
+import { Observable, combineLatest, empty } from 'rxjs';
 import { distinct, filter, map, mergeAll, scan, startWith, switchMap }
   from 'rxjs/operators';
 // store
-import { Store, select } from '@ngrx/store';
+import { Store } from '@ngrx/store';
 import { GeneID, geneID } from '@gcv/gene/store/reducers/gene.reducer';
 import { microTrackID, partialMicroTrackID }
   from '@gcv/gene/store/reducers/micro-tracks.reducer';
 import { pairwiseBlocksID }
   from '@gcv/gene/store/reducers/pairwise-blocks.reducer';
-import * as layoutActions from '@gcv/gene/store/actions/layout.actions';
 import * as fromRoot from '@gcv/store/reducers';
 import * as fromChromosome from '@gcv/gene/store/selectors/chromosome';
 import * as fromGenes from '@gcv/gene/store/selectors/gene';
-import * as fromLayout from '@gcv/gene/store/selectors/layout';
 import * as fromMicroTracks from '@gcv/gene/store/selectors/micro-tracks';
 import * as fromPairwiseBlocks from '@gcv/gene/store/selectors/pairwise-blocks';
 import * as fromParams from '@gcv/gene/store/selectors/params';
 import * as fromPlots from '@gcv/gene/store/selectors/plots';
 // app
-import { arrayFlatten, setIntersection } from '@gcv/core/utils';
+import { arrayFlatten } from '@gcv/core/utils';
 import { PairwiseBlocks, Plot, Process, ProcessStatus, ProcessStatusStream,
   ProcessStatusWord, ProcessStream, Track } from '@gcv/gene/models';
 import { ClusterMixin } from '@gcv/gene/models/mixins';
@@ -31,8 +28,8 @@ import { TrackID, trackID } from '@gcv/gene/store/utils';
 
 @Injectable()
 export class ProcessService {
+  private _store = inject<Store<fromRoot.State>>(Store);
 
-  constructor(private _store: Store<fromRoot.State>) { }
 
   // private helpers
 
@@ -81,7 +78,7 @@ export class ProcessService {
   // top
 
   private _getQueryGeneSubprocess(id: GeneID): ProcessStatusStream {
-    let {name, source} = id;
+    const {name, source} = id;
     const idString = geneID(id);
     return combineLatest(
       this._store.select(fromGenes.getLoading),
@@ -184,7 +181,7 @@ export class ProcessService {
   }
 
   private _getQueryTrackSubprocess(id: TrackID): ProcessStatusStream {
-    let {name, source} = id;
+    const {name, source} = id;
     const idString = trackID(id);
     return combineLatest(
       this._store.select(fromChromosome.getLoading),
@@ -679,7 +676,7 @@ export class ProcessService {
     );
     const chromosomeFilter = (idSet) => {
         return (blockID) => {
-          const {chromosome, ...wildcardID} = blockID;
+          const {chromosome: _chromosome, ...wildcardID} = blockID;
           return idSet.has(pairwiseBlocksID(blockID)) ||
                  idSet.has(pairwiseBlocksID(wildcardID));
         };
@@ -827,7 +824,7 @@ export class ProcessService {
       this._store.select(fromPairwiseBlocks.getPairwiseBlocks).pipe(
         map((blocks) => {
           return blocks.filter((b) => {
-            const {chromosome, ...wildcard} = b;
+            const {chromosome: _chromosome, ...wildcard} = b;
             const id = (targets.length > 0) ?
               pairwiseBlocksID(b) :
               pairwiseBlocksID(wildcard);
@@ -887,7 +884,7 @@ export class ProcessService {
       mergeAll(),
       // only keep blocks with one of the chromosomes as the reference
       filter((blocks: PairwiseBlocks) => {
-        const {chromosome, ...wildcard} = blocks;
+        const {chromosome: _chromosome, ...wildcard} = blocks;
         const id = (targets.length > 0) ?
           pairwiseBlocksID(blocks) : pairwiseBlocksID(wildcard);
         return chromosomeIDs.has(id);
@@ -977,8 +974,8 @@ export class ProcessService {
   getCircosBlockProcess(clusterID: number): ProcessStream {
     // emit a new process every time a new chromosome is emitted for the cluster
     // TODO: not ideal...
-    return this._store.pipe(
-      select(fromChromosome.getSelectedChromosomesForCluster(clusterID))
+    return this._store.
+      select((fromChromosome.getSelectedChromosomesForCluster(clusterID))
     ).pipe(
       switchMap((chromosomes) => {
         const IDs = chromosomes
@@ -993,8 +990,8 @@ export class ProcessService {
   getCircosBlockPositionProcess(clusterID: number): ProcessStream {
     // emit a new process every time a new chromosome is emitted for the cluster
     // TODO: not ideal...
-    return this._store.pipe(
-      select(fromChromosome.getSelectedChromosomesForCluster(clusterID))
+    return this._store.
+      select((fromChromosome.getSelectedChromosomesForCluster(clusterID))
     ).pipe(
       switchMap((chromosomes) => {
         const IDs = chromosomes
@@ -1083,8 +1080,8 @@ export class ProcessService {
   ): ProcessStream {
     // return a process every time the plots update
     const plots = type == 'local' ?
-      this._store.pipe(select(fromPlots.getLocalPlots(track))) :
-      this._store.pipe(select(fromPlots.getGlobalPlots(track)));
+      this._store.select((fromPlots.getLocalPlots(track))) :
+      this._store.select((fromPlots.getGlobalPlots(track)));
     return plots.pipe(
       // NOTE: this is awkward; see plot component
       mergeAll(),

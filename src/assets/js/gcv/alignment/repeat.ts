@@ -120,7 +120,7 @@ function align<T>(
   let [, [i, j]] =
     computeFirstCellOfColumn(m, cols, scores.threshold, carryover, matches);
   while (!(i === 0 && j === 0)) {
-    let [i2, j2] = t[i][j];
+    const [i2, j2] = t[i][j];
     // start new alignment
     if (j2 > j) {
       a = {
@@ -134,7 +134,7 @@ function align<T>(
     } else if (j2 === j-1 && i2 === i-1) {
       // backfill insertion
       if (insertion > 0) {
-        let step = 1/(insertion+1);
+        const step = 1/(insertion+1);
         for (let k = insertion-1; k >= 0; k--) {
           const x = j + (k+1)*step;
           a.coordinates.unshift(x-1);

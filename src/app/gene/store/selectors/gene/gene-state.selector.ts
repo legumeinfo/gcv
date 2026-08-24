@@ -31,7 +31,7 @@ export const getLoaded = createSelectorFactory(memoizeArray)(
   state => {
     const genes: Gene[] = Object.values(state.entities);
     const ids = genes.map((g) => {
-        let {name, source} = g;
+        const {name, source} = g;
         return {name, source};
       });
     return ids;

@@ -1,5 +1,5 @@
 // Angular + dependencies
-import { Component, ChangeDetectionStrategy } from '@angular/core';
+import { Component, ChangeDetectionStrategy, inject } from '@angular/core';
 // app
 import { InterAppCommunicationService } from '@gcv/gene/services';
 
@@ -10,6 +10,8 @@ import { InterAppCommunicationService } from '@gcv/gene/services';
     standalone: false
 })
 export class InterAppCommunicationComponent {
+  private _communicationService = inject(InterAppCommunicationService);
+
 
   alert = {
     class: '',
@@ -20,7 +22,7 @@ export class InterAppCommunicationComponent {
   private _typingTimer;
   private _doneTypingInterval = 1000;  // 1 seconds
 
-  constructor(private _communicationService: InterAppCommunicationService) {
+  constructor() {
     this._alert();
   }
 

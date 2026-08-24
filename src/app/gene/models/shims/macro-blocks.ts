@@ -38,8 +38,6 @@ export function macroBlocks(referenceTrack, referenceBlocks, genesMap) {
     species,
     source,
     tracks: referenceBlocks.map((chromosomeBlocks) => {
-      const {chromosome, chromosomeSource} = chromosomeBlocks;
-      const chromosomeID = nameSourceID(chromosome, chromosomeSource);
       return track(referenceTrack, chromosomeBlocks, genesMap);
     }),
   };

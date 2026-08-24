@@ -1,7 +1,7 @@
 // Angular
-import { Component, Output, SimpleChanges, ChangeDetectionStrategy } from '@angular/core';
+import { Component, ChangeDetectionStrategy, inject } from '@angular/core';
 import { Observable } from 'rxjs';
-import { map, takeUntil } from 'rxjs/operators';
+import { map } from 'rxjs/operators';
 // App
 import { SliderStates, toggleSlider } from '@gcv/gene/animations';
 import { LayoutService } from '@gcv/gene/services';
@@ -16,11 +16,15 @@ import { LayoutService } from '@gcv/gene/services';
     standalone: false
 })
 export class LeftSliderComponent {
+  private _layoutService = inject(LayoutService);
+
 
   state: Observable<SliderStates>;
   content: Observable<string>;
 
-  constructor(private _layoutService: LayoutService) {
+  constructor() {
+    const _layoutService = this._layoutService;
+
     this.state = _layoutService.getLeftSliderState()
       .pipe(
         map((showSlider) =>  {

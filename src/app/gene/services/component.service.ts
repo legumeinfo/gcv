@@ -1,20 +1,15 @@
 // Angular
-import { ApplicationRef, ComponentRef, createComponent,
-  EmbeddedViewRef, Injectable, Injector, NgZone } from '@angular/core';
+import { ApplicationRef, ComponentRef, createComponent, EmbeddedViewRef, Injectable, Injector, NgZone, inject } from '@angular/core';
 // store
-import { Store } from '@ngrx/store';
-import * as layoutActions from '@gcv/gene/store/actions/layout.actions';
-import * as fromLayout from '@gcv/gene/store/selectors/layout';
 // app
-import { HttpService } from '@gcv/core/services/http.service';
 
 
 @Injectable()
 export class ComponentService {
+  private _appRef = inject(ApplicationRef);
+  private _injector = inject(Injector);
+  private _zone = inject(NgZone);
 
-  constructor(private _appRef: ApplicationRef,
-              private _injector: Injector,
-              private _zone: NgZone) { }
 
   createComponent(component, element, inputs, outputs): ComponentRef<any> {
     // v22 removed ComponentFactoryResolver; createComponent takes the class

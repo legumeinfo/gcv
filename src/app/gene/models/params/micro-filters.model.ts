@@ -1,7 +1,6 @@
 // Angular
 import { Validators } from '@angular/forms';
 // app
-import { Regex } from '@gcv/gene/constants';
 
 
 export type MicroFilterParams = {

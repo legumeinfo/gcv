@@ -4,7 +4,7 @@
  * valid) should be handled by the modules that actually use the types.
  */
 import { Script, isScript } from './script.model';
-import { Request, Server, isServer } from './server.model';
+import { Request, Server } from './server.model';
 
 
 export class Brand {

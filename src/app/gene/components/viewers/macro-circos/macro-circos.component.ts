@@ -1,10 +1,6 @@
 // Angular
 import { Location } from '@angular/common';
-import {
-  AfterViewInit, Component, ElementRef, Input, OnDestroy, OnInit,
-  ViewChild,
-  ChangeDetectionStrategy
-} from '@angular/core';
+import { AfterViewInit, Component, ElementRef, Input, OnDestroy, OnInit, ViewChild, ChangeDetectionStrategy, inject } from '@angular/core';
 import { Subject, combineLatest } from 'rxjs';
 import { map, mergeMap, switchMap, takeUntil } from 'rxjs/operators';
 // app
@@ -33,6 +29,14 @@ import { macroCircosShim } from './macro-circos.shim';
     standalone: false
 })
 export class MacroCircosComponent implements AfterViewInit, OnDestroy, OnInit {
+  private _chromosomeService = inject(ChromosomeService);
+  private _geneService = inject(GeneService);
+  private _location = inject(Location);
+  private _microTracksService = inject(MicroTracksService);
+  private _pairwiseBlocksService = inject(PairwiseBlocksService);
+  private _paramsService = inject(ParamsService);
+  private _processService = inject(ProcessService);
+
 
   // IO
 
@@ -59,16 +63,6 @@ export class MacroCircosComponent implements AfterViewInit, OnDestroy, OnInit {
 
   private _destroy: Subject<boolean> = new Subject();
   private _viewer;
-
-  // constructor
-
-  constructor(private _chromosomeService: ChromosomeService,
-              private _geneService: GeneService,
-              private _location: Location,
-              private _microTracksService: MicroTracksService,
-              private _pairwiseBlocksService: PairwiseBlocksService,
-              private _paramsService: ParamsService,
-              private _processService: ProcessService) { }
 
   // Angular hooks
 

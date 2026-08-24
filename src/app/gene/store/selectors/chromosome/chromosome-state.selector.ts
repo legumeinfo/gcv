@@ -32,7 +32,7 @@ export const getLoaded = createSelectorFactory(memoizeArray)(
   state => {
     const chromosomes: Track[] = Object.values(state.entities);
     const ids = chromosomes.map((c) => {
-        let {name, source} = c;
+        const {name, source} = c;
         return {name, source};
       });
     return ids;

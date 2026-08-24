@@ -1,16 +1,10 @@
 // Angular + dependencies
-import {
-  AfterViewInit, Component, ElementRef, EventEmitter, Input, NgZone,
-  OnDestroy, Output, ViewChild,
-  ChangeDetectionStrategy
-} from '@angular/core';
-import { Observable, Subject, combineLatest } from 'rxjs';
-import { map, takeUntil } from 'rxjs/operators';
+import { AfterViewInit, Component, ElementRef, EventEmitter, Input, NgZone, OnDestroy, Output, ViewChild, ChangeDetectionStrategy, inject } from '@angular/core';
+import { Subject, combineLatest } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 // app
 import { GCV } from '@gcv-assets/js/gcv';
 import { saveFile } from '@gcv/core/utils';
-import { Gene, Track } from '@gcv/gene/models';
-import { AlignmentMixin, ClusterMixin } from '@gcv/gene/models/mixins';
 import { FamilyService, GeneService, MicroTracksService }
   from '@gcv/gene/services';
 import { microLegendShim } from './micro-legend.shim';
@@ -27,6 +21,11 @@ import { microLegendShim } from './micro-legend.shim';
     standalone: false
 })
 export class MicroLegendComponent implements AfterViewInit, OnDestroy {
+  private _familyService = inject(FamilyService);
+  private _geneService = inject(GeneService);
+  private _microTracksService = inject(MicroTracksService);
+  private _zone = inject(NgZone);
+
 
   @Input() options: any = {};
   @Output() click = new EventEmitter();
@@ -37,11 +36,6 @@ export class MicroLegendComponent implements AfterViewInit, OnDestroy {
 
   private _destroy: Subject<boolean> = new Subject();
   private _viewer;
-
-  constructor(private _familyService: FamilyService,
-              private _geneService: GeneService,
-              private _microTracksService: MicroTracksService,
-              private _zone: NgZone) { }
 
   // Angular hooks
 

@@ -1,5 +1,5 @@
 // Angular
-import { Component, ChangeDetectionStrategy } from '@angular/core';
+import { Component, ChangeDetectionStrategy, inject } from '@angular/core';
 // app
 import { AppConfig, Brand, Dashboard } from '@gcv/core/models';
 
@@ -12,12 +12,16 @@ import { AppConfig, Brand, Dashboard } from '@gcv/core/models';
     standalone: false
 })
 export class InstructionsComponent {
+  private _appConfig = inject(AppConfig);
+
 
   brand: Brand;
   dashboard: Dashboard;
   copyrightYear = (new Date()).getFullYear();
 
-  constructor(private _appConfig: AppConfig) {
+  constructor() {
+    const _appConfig = this._appConfig;
+
     this.brand = _appConfig.brand;
     this.dashboard = _appConfig.dashboard;
   }

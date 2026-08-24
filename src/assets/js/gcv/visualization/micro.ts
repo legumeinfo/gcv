@@ -299,7 +299,7 @@ export class Micro extends Visualizer {
       // add optional HTML attributes to gene elements
       .addHTMLAttributes();
     // add genes to the gene groups
-    const genes = geneGroups.append("path")
+    geneGroups.append("path")
       .attr("d", (g) => {
         if (g.glyph === "circle" || g.strand === undefined) {
           return d3.symbol().type(d3.symbolCircle).size(50)();

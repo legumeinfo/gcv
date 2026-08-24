@@ -1,5 +1,5 @@
 // Angular
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { Location } from '@angular/common';
 // store
@@ -9,14 +9,12 @@ import * as routerActions from '@gcv/store/actions/router.actions';
 
 @Injectable()
 export class RouterEffects {
+  private actions$ = inject(Actions);
+  private location = inject(Location);
+  private router = inject(Router);
 
-  constructor(
-    private actions$: Actions,
-    private location: Location,
-    private router: Router,
-  ) { }
 
-  navigate$ = createEffect(() => this.actions$.pipe(
+  navigate$ = createEffect(() => { return this.actions$.pipe(
     ofType(routerActions.GO),
     map((action: routerActions.Go) => action.payload),
     scan((currentRoute, {path, query: queryParams, extras}) => {
@@ -30,16 +28,16 @@ export class RouterEffects {
         ...extras,
       });
     })
-  ), {dispatch: false})
+  ) }, {dispatch: false})
 
-  navigateBack$ = createEffect(() => this.actions$.pipe(
+  navigateBack$ = createEffect(() => { return this.actions$.pipe(
     ofType(routerActions.BACK),
     tap(() => this.location.back())
-  ), {dispatch: false});
+  ) }, {dispatch: false});
 
-  navigateForward$ = createEffect(() => this.actions$.pipe(
+  navigateForward$ = createEffect(() => { return this.actions$.pipe(
     ofType(routerActions.FORWARD),
     tap(() => this.location.forward())
-  ), {dispatch: false});
+  ) }, {dispatch: false});
 
 }

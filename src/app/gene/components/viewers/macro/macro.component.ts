@@ -1,9 +1,5 @@
 // Angular + dependencies
-import {
-  AfterViewInit, Component, ElementRef, EventEmitter, Input, OnDestroy,
-  OnInit, Output, ViewChild,
-  ChangeDetectionStrategy
-} from '@angular/core';
+import { AfterViewInit, Component, ElementRef, EventEmitter, Input, OnDestroy, OnInit, Output, ViewChild, ChangeDetectionStrategy, inject } from '@angular/core';
 import { Subject, combineLatest } from 'rxjs';
 import { filter, map, mergeAll, mergeMap, switchMap, takeUntil }
   from 'rxjs/operators';
@@ -33,6 +29,14 @@ import { macroShim } from './macro.shim';
     standalone: false
 })
 export class MacroComponent implements AfterViewInit, OnDestroy, OnInit {
+  private _chromosomeService = inject(ChromosomeService);
+  private _geneService = inject(GeneService);
+  private _microTracksService = inject(MicroTracksService);
+  private _pairwiseBlocksService = inject(PairwiseBlocksService);
+  private _paramsService = inject(ParamsService);
+  private _processService = inject(ProcessService);
+  private _regionService = inject(RegionService);
+
 
   // IO
 
@@ -62,16 +66,6 @@ export class MacroComponent implements AfterViewInit, OnDestroy, OnInit {
 
   private _destroy: Subject<boolean> = new Subject();
   private _viewer;
-
-  // constructor
-
-  constructor(private _chromosomeService: ChromosomeService,
-              private _geneService: GeneService,
-              private _microTracksService: MicroTracksService,
-              private _pairwiseBlocksService: PairwiseBlocksService,
-              private _paramsService: ParamsService,
-              private _processService: ProcessService,
-              private _regionService: RegionService) { }
 
   // Angular hooks
 

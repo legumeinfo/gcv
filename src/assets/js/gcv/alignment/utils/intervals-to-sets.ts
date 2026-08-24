@@ -28,7 +28,7 @@ export function intervalsToSets(
   let f = 0;
   let r = 0;
   while (f < forward.length && r < reverse.length) {
-    let [fBegin, fEnd] = forward[f];
+    const [fBegin, fEnd] = forward[f];
     let [rBegin, rEnd] = reverse[r];
     // consider neighboring intervals as overlapping for inversions
     if (inversions) {

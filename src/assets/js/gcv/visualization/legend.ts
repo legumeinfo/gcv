@@ -1,4 +1,3 @@
-import { d3 } from "./d3";
 import { eventBus } from "../common"
 import { Visualizer } from "./visualizer";
 

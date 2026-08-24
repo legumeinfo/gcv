@@ -1,5 +1,5 @@
 // Angular
-import { Component, EventEmitter, OnDestroy, OnInit, Output, ChangeDetectionStrategy } from '@angular/core';
+import { Component, EventEmitter, OnDestroy, OnInit, Output, ChangeDetectionStrategy, inject } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
@@ -25,6 +25,10 @@ import { ParamsService } from '@gcv/gene/services';
     standalone: false
 })
 export class ParamsComponent implements OnDestroy, OnInit {
+  private _appConfig = inject(AppConfig);
+  private _paramsService = inject(ParamsService);
+  private _fb = inject(UntypedFormBuilder);
+
 
   // component IO
   @Output() invalid = new EventEmitter();
@@ -53,9 +57,9 @@ export class ParamsComponent implements OnDestroy, OnInit {
   private _destroy: Subject<boolean> = new Subject();
 
   // constructor
-  constructor(private _appConfig: AppConfig,
-              private _paramsService: ParamsService,
-              private _fb: UntypedFormBuilder) {
+  constructor() {
+    const _appConfig = this._appConfig;
+
     this.sources = _appConfig.servers.filter((s) => s.hasOwnProperty('microSearch'));
     // initialize form groups
     this.blockGroup =

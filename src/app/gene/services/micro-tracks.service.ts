@@ -1,11 +1,10 @@
 // Angular
 import { HttpClient } from '@angular/common/http';
-import { Injectable } from '@angular/core';
-import { Observable, combineLatest, from, throwError } from 'rxjs';
-import { catchError, map, take } from 'rxjs/operators';
+import { Injectable, inject } from '@angular/core';
+import { Observable, from, throwError } from 'rxjs';
+import { catchError, map } from 'rxjs/operators';
 // store
-import { Store, select } from '@ngrx/store';
-import * as routerActions from '@gcv/store/actions/router.actions';
+import { Store } from '@ngrx/store';
 import * as fromRoot from '@gcv/store/reducers';
 import * as fromMicroTracks from '@gcv/gene/store/selectors/micro-tracks/';
 // app
@@ -22,11 +21,17 @@ import { MicroSyntenySearchReply, MicroSyntenySearchRequest,
 
 @Injectable()
 export class MicroTracksService extends HttpService {
+  private _appConfig = inject(AppConfig);
+  private _http: HttpClient;
+  private _store = inject<Store<fromRoot.State>>(Store);
 
-  constructor(private _appConfig: AppConfig,
-              private _http: HttpClient,
-              private _store: Store<fromRoot.State>) {
+
+  constructor() {
+    const _http = inject(HttpClient);
+
     super(_http);
+  
+    this._http = _http;
   }
 
   microTracksSearch(families: string[], params: QueryParams, serverID: string):
@@ -84,15 +89,15 @@ export class MicroTracksService extends HttpService {
   // to the given cluster
   getCluster(id: number): Observable<(Track & ClusterMixin & AlignmentMixin)[]>
   {
-    return this._store.pipe(
-      select(fromMicroTracks.getAlignedMicroTrackCluster(id))
+    return this._store.
+      select((fromMicroTracks.getAlignedMicroTrackCluster(id))
     );
   }
 
   getSelectedClusterTracks(id: number):
   Observable<(Track & ClusterMixin & AlignmentMixin)[]> {
-    return this._store.pipe(
-      select(fromMicroTracks.getSelectedMicroTracksForCluster(id))
+    return this._store.
+      select((fromMicroTracks.getSelectedMicroTracksForCluster(id))
     );
   }
 

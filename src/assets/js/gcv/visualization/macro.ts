@@ -95,7 +95,6 @@ export class Macro extends Visualizer {
     this.BLOCK_HEIGHT = 11;
     this.PTR_LEN      = 5;
     // compute the space required for chromosome names
-    const chromosomes = data.tracks.map((t) => t.chromosome);
     this.left = 0;
     this.right = this.PAD;
     // create the scale used to map block coordinates to pixels
@@ -335,7 +334,6 @@ export class Macro extends Visualizer {
     const blockData = datum.blocks.map((b) => Object.create(b));
     this.blocksToRows(blockData);
     // create the track
-    const selector = "macro-" + i.toString();
     const track = this.viewer.append("g")
       .attr("data-macro-track", i.toString())
       .attr("data-chromosome", datum.chromosome)
@@ -421,7 +419,6 @@ export class Macro extends Visualizer {
         const yTop = ((obj.BLOCK_HEIGHT + obj.PAD) * b.y) + obj.PAD;
         const yBottom = yTop + obj.BLOCK_HEIGHT;
         const yMiddle = yTop + (obj.BLOCK_HEIGHT / 2);
-        const block = d3.select(this);
         d3.select(this)  // evil nested assignments!
           .attr("data-y-top", yTop)
           .attr("data-y-bottom", yBottom)
@@ -439,7 +436,6 @@ export class Macro extends Visualizer {
     }
     // how the blocks are resized
     track.resize = function(polygons) {
-      const obj = this;
       polygons.attr("points", function(b) {
         const block = d3.select(this);
         const yTop = block.attr("data-y-top");
@@ -508,7 +504,6 @@ export class Macro extends Visualizer {
   private secondElementUnderPointer(e) {
     const x = e.clientX;
     const y = e.clientY;
-    const stack = [];
     // find the elements
     const first = document.elementFromPoint(x, y);
     first.classList.add("pointer-events-none");

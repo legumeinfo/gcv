@@ -1,6 +1,6 @@
 // Angular
 import { HttpClient, provideHttpClient, withInterceptorsFromDi, withXhr } from '@angular/common/http';
-import { NgModule, NO_ERRORS_SCHEMA, inject, provideAppInitializer } from '@angular/core';
+import { NgModule, inject, provideAppInitializer } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 // NgRx

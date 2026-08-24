@@ -1,10 +1,10 @@
 // Angular
-import { AfterViewInit, Component, OnDestroy, ViewChild, ChangeDetectionStrategy } from '@angular/core';
+import { AfterViewInit, Component, OnDestroy, ViewChild, ChangeDetectionStrategy, inject } from '@angular/core';
 // App
 import { AppConfig, Brand } from '@gcv/core/models';
 
 
-declare var bootstrap: any;
+declare let bootstrap: any;
 
 
 @Component({
@@ -14,7 +14,9 @@ declare var bootstrap: any;
     changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
-export class HeaderComponent implements AfterViewInit {
+export class HeaderComponent implements AfterViewInit, OnDestroy {
+  private _appConfig = inject(AppConfig);
+
 
   @ViewChild('brandText') brandText;
 
@@ -22,7 +24,9 @@ export class HeaderComponent implements AfterViewInit {
 
   private _brandCollapse: any;
 
-  constructor(private _appConfig: AppConfig) {
+  constructor() {
+    const _appConfig = this._appConfig;
+
     this.brand = _appConfig.brand;
   }
 

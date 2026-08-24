@@ -1,5 +1,5 @@
 // Angular
-import { AfterContentInit, ComponentRef, Directive, ElementRef, Input, OnDestroy }
+import { AfterContentInit, ComponentRef, Directive, ElementRef, Input, OnDestroy, inject }
   from '@angular/core';
 // Golden Layout v2
 import {
@@ -7,9 +7,7 @@ import {
   ComponentItemConfig,
   ContentItem,
   GoldenLayout,
-  ItemConfig,
   LayoutConfig,
-  ResolvedLayoutConfig,
   RowOrColumn,
   Stack,
   StackItemConfig
@@ -33,6 +31,9 @@ interface ComponentRefMap {
     standalone: false
 })
 export class GoldenLayoutDirective implements AfterContentInit, OnDestroy {
+  private _componentService = inject(ComponentService);
+  private _el = inject(ElementRef);
+
 
   @Input('gcvGoldenLayout') components: LayoutComponent[];
   @Input() config: LayoutConfig | any;
@@ -40,9 +41,6 @@ export class GoldenLayoutDirective implements AfterContentInit, OnDestroy {
   private _layout: GoldenLayout;
   private _componentRefs: ComponentRefMap = {};
   private _resizeHandler: () => void;
-
-  constructor(private _componentService: ComponentService,
-              private _el: ElementRef) { }
 
   // Angular hooks
 

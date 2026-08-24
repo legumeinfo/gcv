@@ -20,7 +20,7 @@ const levenshteinRecurrence =
       t[i][j] = i;
     // test if last characters of the strings match
     } else {
-      let cost = (a[i-1] == b[j-1] ? 0 : 1);
+      const cost = (a[i-1] == b[j-1] ? 0 : 1);
       // return minimum of delete char from a, delete char from b, and delete
       // char from both
       t[i][j] = Math.min(levenshteinRecurrence(a, i-1, b, j, t)+1,

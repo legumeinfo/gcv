@@ -1,10 +1,9 @@
 // Angular
-import { Component, Input, OnDestroy, OnInit, ChangeDetectionStrategy } from '@angular/core';
-import { Observable, Subject } from 'rxjs';
+import { Component, Input, OnDestroy, OnInit, ChangeDetectionStrategy, inject } from '@angular/core';
+import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 // App
-import { AppConfig, Server } from '@gcv/core/models';
-import { Track } from '@gcv/gene/models';
+import { AppConfig } from '@gcv/core/models';
 import { MicroTracksService } from '@gcv/gene/services';
 
 
@@ -39,6 +38,9 @@ import { MicroTracksService } from '@gcv/gene/services';
     standalone: false
 })
 export class FamilyDetailComponent implements OnDestroy, OnInit {
+  private _appConfig = inject(AppConfig);
+  private _microTracksService = inject(MicroTracksService);
+
 
   @Input() family: {id: string, name: string};
 
@@ -49,10 +51,9 @@ export class FamilyDetailComponent implements OnDestroy, OnInit {
   geneMatrix = {};
   familyTreeLinks: any[] = [];
 
-  constructor(
-    private _appConfig: AppConfig,
-    private _microTracksService: MicroTracksService,
-  ) {
+  constructor() {
+    const _appConfig = this._appConfig;
+
     this._serverIDs = _appConfig.getServerIDs();
   }
 

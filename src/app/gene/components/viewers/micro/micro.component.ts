@@ -1,15 +1,11 @@
 // Angular + dependencies
-import {
-  AfterViewInit, Component, ElementRef, EventEmitter, Input, OnDestroy,
-  OnInit, Output, ViewChild,
-  ChangeDetectionStrategy
-} from '@angular/core';
+import { AfterViewInit, Component, ElementRef, EventEmitter, Input, OnDestroy, OnInit, Output, ViewChild, ChangeDetectionStrategy, inject } from '@angular/core';
 import { Observable, Subject, combineLatest } from 'rxjs';
 import { map, switchMap, takeUntil } from 'rxjs/operators';
 // app
 import { GCV } from '@gcv-assets/js/gcv';
 import { saveFile } from '@gcv/core/utils';
-import { Gene, Track, Pipeline } from '@gcv/gene/models';
+import { Track, Pipeline } from '@gcv/gene/models';
 import { AlignmentMixin, ClusterMixin } from '@gcv/gene/models/mixins';
 import { FamilyService, GeneService, MicroTracksService, ProcessService }
   from '@gcv/gene/services';
@@ -60,6 +56,11 @@ import { microShim } from './micro.shim';
     standalone: false
 })
 export class MicroComponent implements AfterViewInit, OnDestroy, OnInit {
+  private _familyService = inject(FamilyService);
+  private _geneService = inject(GeneService);
+  private _microTracksService = inject(MicroTracksService);
+  private _processService = inject(ProcessService);
+
 
   @Input() clusterID: number;
   @Input() options: any = {};
@@ -94,11 +95,6 @@ export class MicroComponent implements AfterViewInit, OnDestroy, OnInit {
   pipeline: Pipeline;
 
   queryTracks: Observable<(Track & ClusterMixin & AlignmentMixin)[]>;
-
-  constructor(private _familyService: FamilyService,
-              private _geneService: GeneService,
-              private _microTracksService: MicroTracksService,
-              private _processService: ProcessService) { }
 
   // Angular hooks
 

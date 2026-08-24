@@ -1,5 +1,5 @@
 // Angular
-import { Component, Input, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, Input, OnInit, ChangeDetectionStrategy, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 // app
@@ -25,13 +25,13 @@ import { GeneService } from '@gcv/gene/services';
     standalone: false
 })
 export class GeneTooltipComponent implements OnInit {
+  private _geneService = inject(GeneService);
+
 
   @Input() gene: string;
   @Input() source: string;
 
   instance: Observable<Gene>;
-
-  constructor(private _geneService: GeneService) { }
 
   // Angular hooks
 

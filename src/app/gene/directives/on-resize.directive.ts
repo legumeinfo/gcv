@@ -1,5 +1,5 @@
 // Angular
-import { Directive, ElementRef, EventEmitter, OnDestroy, OnInit, Output }
+import { Directive, ElementRef, EventEmitter, OnDestroy, OnInit, Output, inject }
   from '@angular/core';
 
 
@@ -8,14 +8,14 @@ import { Directive, ElementRef, EventEmitter, OnDestroy, OnInit, Output }
     standalone: false
 })
 export class OnResizeDirective implements OnDestroy, OnInit {
+  private _el = inject(ElementRef);
+
 
   @Output() gcvOnResize = new EventEmitter();
 
   // variables
 
   private _resizeObserver;
-
-  constructor(private _el: ElementRef) { }
 
   // Angular hooks
 

@@ -42,7 +42,7 @@ export const getSelectedPairwiseBlocks = createSelectorFactory(memoizeArray)(
     const idStrings = ids.map((id) => pairwiseBlocksID(id));
     const partialBlockIDset = new Set(idStrings);
     const reducer = (accumulator, id) => {
-        const [reference, referenceSource, chromosome, chromosomeSource] =
+        const [reference, referenceSource, , chromosomeSource] =
           id.split(':');
         const partialID =
           pairwiseBlocksID(reference, referenceSource, chromosomeSource);

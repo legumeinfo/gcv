@@ -1,7 +1,7 @@
 // Angular
 import { animate, style, AnimationBuilder, AnimationFactory, AnimationPlayer }
   from '@angular/animations';
-import { Directive, ElementRef } from '@angular/core';
+import { Directive, ElementRef, inject } from '@angular/core';
  
 @Directive({
     selector: '[gcvSidebar]',
@@ -9,12 +9,11 @@ import { Directive, ElementRef } from '@angular/core';
     standalone: false
 })
 export class SidebarDirective {
+  private _animationBuilder = inject(AnimationBuilder);
+  private _el = inject(ElementRef);
+
 
   private _open = true;
-
-  constructor(
-    private _animationBuilder: AnimationBuilder,
-    private _el: ElementRef) { }
 
   private _createPlayer(): AnimationPlayer {
     const width = this._el.nativeElement.scrollWidth;

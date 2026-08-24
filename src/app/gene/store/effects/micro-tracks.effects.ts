@@ -1,16 +1,17 @@
 // Angular
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 // store
 import { Store } from '@ngrx/store';
 import * as fromRoot from '@gcv/store/reducers';
-import { idArrayIntersection, partialMicroTrackID }
+import { idArrayIntersection }
   from '@gcv/gene/store/reducers/micro-tracks.reducer';
 import * as fromGenes from '@gcv/gene/store/selectors/gene';
 import * as fromMicroTracks from '@gcv/gene/store/selectors/micro-tracks/';
 import * as fromParams from '@gcv/gene/store/selectors/params';
 import { createEffect, Actions, ofType } from '@ngrx/effects';
-import { Observable, combineLatest, of } from 'rxjs';
-import { catchError, map, mergeMap, switchMap, takeUntil, withLatestFrom }
+import { concatLatestFrom } from '@ngrx/operators';
+import { combineLatest, of } from 'rxjs';
+import { catchError, map, mergeMap, switchMap, takeUntil }
   from 'rxjs/operators';
 import * as microTracksActions
   from '@gcv/gene/store/actions/micro-tracks.actions';
@@ -22,10 +23,10 @@ import { MicroTracksService } from '@gcv/gene/services';
 
 @Injectable()
 export class MicroTracksEffects {
+  private actions$ = inject(Actions);
+  private microTracksService = inject(MicroTracksService);
+  private _store = inject<Store<fromRoot.State>>(Store);
 
-  constructor(private actions$: Actions,
-              private microTracksService: MicroTracksService,
-              private store: Store<fromRoot.State>) { }
 
   // private
 
@@ -38,24 +39,24 @@ export class MicroTracksEffects {
   // public
 
   // clear the store every time a new query or change of parameters occurs
-  clearTracks$ = createEffect(() => combineLatest(
-    this.store.select(fromGenes.getSelectedGeneIDs),
-    this.store.select(fromParams.getQueryParams),
-    //this.store.select(fromParams.getSourcesParam),
-    this.store.select(fromParams.getClusteringParams),
+  clearTracks$ = createEffect(() => { return combineLatest(
+    this._store.select(fromGenes.getSelectedGeneIDs),
+    this._store.select(fromParams.getQueryParams),
+    //this._store.select(fromParams.getSourcesParam),
+    this._store.select(fromParams.getClusteringParams),
   ).pipe(
     map((...args) => new microTracksActions.Clear())
-  ));
+  ) });
 
   // initializes a search whenever new aligned clusters are generated
-  consensusSearch$ = createEffect(() => combineLatest(
-    this.store.select(fromMicroTracks.getClusteredAndAlignedSelectedMicroTracks),
-    //this.store.select(fromParams.getSourcesParam)
+  consensusSearch$ = createEffect(() => { return combineLatest(
+    this._store.select(fromMicroTracks.getClusteredAndAlignedSelectedMicroTracks),
+    //this._store.select(fromParams.getSourcesParam)
     // TODO: This code is copied from the selector that's commented out above
     // because the selector won't compile... Fix it!
-    this.store.select(fromParams.getSourceParams)
+    this._store.select(fromParams.getSourceParams)
       .pipe(map((params: SourceParams): string[] => params.sources)),
-    this.store.select(fromParams.getQueryParams),
+    this._store.select(fromParams.getQueryParams),
   ).pipe(
     switchMap(
     ([{consensuses, tracks}, sources, params]) => {
@@ -69,17 +70,17 @@ export class MicroTracksEffects {
       });
       return actions;
     }),
-  ));
+  ) });
 
   // search for similar tracks to the query
-  mircoTracksSearch$ = createEffect(() => this.actions$.pipe(
+  mircoTracksSearch$ = createEffect(() => { return this.actions$.pipe(
     ofType(microTracksActions.SEARCH),
     map((action: microTracksActions.Search) => {
       return {action: action.id, ...action.payload};
     }),
-    withLatestFrom(
-      this.store.select(fromMicroTracks.getClusteredSelectedMicroTracks),
-      this.store.select(fromMicroTracks.getLoading)),
+    concatLatestFrom(() => [
+      this._store.select(fromMicroTracks.getClusteredSelectedMicroTracks),
+      this._store.select(fromMicroTracks.getLoading)]),
     mergeMap(
     ([{cluster, families, source, params, action}, clusteredTracks, loading]) =>
     {
@@ -114,6 +115,6 @@ export class MicroTracksEffects {
         }),
       );
     })
-  ));
+  ) });
 
 }

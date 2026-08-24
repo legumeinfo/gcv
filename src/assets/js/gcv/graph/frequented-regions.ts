@@ -32,8 +32,8 @@ export class FR {
   }
   mergeIntervals(hardSpan) {
     const comparePoints = (a, b) => {
-      const [ap, ac, as] = a;
-      const [bp, bc, bs] = b;
+      const [ap, ac] = a;
+      const [bp, bc] = b;
       if (ap < bp || (ap === bp && ac > bc)) {
         return -1;
       } else if (bp < ap || (bp === ap && bc > ac)) {

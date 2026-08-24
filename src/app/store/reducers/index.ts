@@ -1,8 +1,6 @@
 // Angular
-import { InjectionToken } from '@angular/core';
 // NgRx
-import * as fromRouterStore from '@ngrx/router-store';
-import { Action, ActionReducerMap, MetaReducer, createFeatureSelector }
+import { ActionReducerMap, MetaReducer, createFeatureSelector }
   from '@ngrx/store';
 // store
 import * as fromRouter from './router.reducer';

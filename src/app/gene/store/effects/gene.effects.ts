@@ -1,35 +1,36 @@
 // Angular
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 // store
 import { createEffect, Actions, ofType } from '@ngrx/effects';
-import { Observable, of } from 'rxjs';
-import { catchError, concatMap, filter, map, switchMap, takeUntil,
-  withLatestFrom } from 'rxjs/operators';
+import { concatLatestFrom } from '@ngrx/operators';
+import { of } from 'rxjs';
+import { catchError, concatMap, filter, map, switchMap,
+  takeUntil } from 'rxjs/operators';
 import { Store } from '@ngrx/store';
 import * as geneActions from '@gcv/gene/store/actions/gene.actions';
 import * as fromRoot from '@gcv/store/reducers';
-import { geneID, idArrayIntersection }
+import { idArrayIntersection }
   from '@gcv/gene/store/reducers/gene.reducer';
 import * as fromGene from '@gcv/gene/store/selectors/gene/';
 import * as fromMicroTracks from '@gcv/gene/store/selectors/micro-tracks/';
 // app
-import { Gene, Track } from '@gcv/gene/models';
+import { Gene } from '@gcv/gene/models';
 import { GeneService } from '@gcv/gene/services';
 
 @Injectable()
 export class GeneEffects {
+  private actions$ = inject(Actions);
+  private geneService = inject(GeneService);
+  private _store = inject<Store<fromRoot.State>>(Store);
 
-  constructor(private actions$: Actions,
-              private geneService: GeneService,
-              private store: Store<fromRoot.State>) { }
 
   // clear the store every time the set of selected genes changes
-  clearGenes$ = createEffect(() => this.store.select(fromGene.getSelectedGeneIDs).pipe(
+  clearGenes$ = createEffect(() => { return this._store.select(fromGene.getSelectedGeneIDs).pipe(
     map((...args) => new geneActions.Clear()),
-  ));
+  ) });
 
   // emits a get action for each selected gene
-  getSelected$ = createEffect(() => this.store.select(fromGene.getSelectedGeneIDs).pipe(
+  getSelected$ = createEffect(() => { return this._store.select(fromGene.getSelectedGeneIDs).pipe(
     filter((ids) => ids.length > 0),
     switchMap((ids) => {
       // bin ids by source
@@ -48,16 +49,16 @@ export class GeneEffects {
         });
       return actions;
     }),
-  ));
+  ) });
 
   // get genes via the gene service
-  getGenes$ = createEffect(() => this.actions$.pipe(
+  getGenes$ = createEffect(() => { return this.actions$.pipe(
     ofType(geneActions.GET),
     map((action: geneActions.Get) => ({action: action.id, ...action.payload})),
-    withLatestFrom(
-      this.store.select(fromGene.getSelectedGeneIDs),
-      this.store.select(fromGene.getLoading),
-    ),
+    concatLatestFrom(() => [
+      this._store.select(fromGene.getSelectedGeneIDs),
+      this._store.select(fromGene.getLoading),
+    ]),
     concatMap(([{action, names, source}, selectedIDs, loading]) => {
       let targetIDs = names.map((name) => ({name, source, action}));
       // only keep targets that the reducer says need to be loaded (no need to
@@ -85,11 +86,11 @@ export class GeneEffects {
         catchError((error) => of(new geneActions.GetFailure({names, source})))
       );
     })
-  ));
+  ) });
 
   // get all genes for the selected micro-tracks
-  getMicroTrackGenes$ = createEffect(() => this.store.select(fromMicroTracks.getAllMicroTracks).pipe(
+  getMicroTrackGenes$ = createEffect(() => { return this._store.select(fromMicroTracks.getAllMicroTracks).pipe(
     switchMap((tracks) => geneActions.tracksToGetGeneActions(tracks)),
-  ));
+  ) });
 
 }

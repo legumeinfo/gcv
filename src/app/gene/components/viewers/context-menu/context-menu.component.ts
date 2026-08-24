@@ -1,9 +1,5 @@
 // Angular
-import {
-  AfterViewInit, ChangeDetectorRef, Component, ElementRef, EventEmitter,
-  Input, Output, ViewChild,
-  ChangeDetectionStrategy
-} from '@angular/core';
+import { AfterViewInit, ChangeDetectorRef, Component, ElementRef, EventEmitter, Output, ViewChild, ChangeDetectionStrategy, inject } from '@angular/core';
 
 @Component({
     selector: 'gcv-context-menu',
@@ -13,13 +9,13 @@ import {
     standalone: false
 })
 export class ContextMenuComponent implements AfterViewInit {
+  private changeDetector = inject(ChangeDetectorRef);
+
 
   @Output() saveData = new EventEmitter();
   @Output() saveImage = new EventEmitter();
 
   @ViewChild('dropdown') el: ElementRef;
-
-  constructor(private changeDetector: ChangeDetectorRef) { }
 
   // Angular hooks
 

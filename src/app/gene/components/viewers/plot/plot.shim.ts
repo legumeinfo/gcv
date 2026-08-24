@@ -1,4 +1,4 @@
-import { Gene, Plot, Track } from '@gcv/gene/models';
+import { Gene, Plot } from '@gcv/gene/models';
 
 
 export function plotShim(plot: Plot, genes: Gene[]) {

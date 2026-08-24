@@ -1,6 +1,6 @@
-export const enumerableProperties = (o: Object): string[] => {
+export const enumerableProperties = (o: object): string[] => {
   const props = [];
-  for (let p in o) {
+  for (const p in o) {
     props.push(p);
   }
   return props;

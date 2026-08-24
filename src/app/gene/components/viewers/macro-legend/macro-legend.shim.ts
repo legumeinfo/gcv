@@ -4,7 +4,7 @@ import { PairSet, placeholderReplace } from '@gcv/core/utils'
 
 
 function trackToFormattedName(track) {
-  let name = AppConfig.macroLegend.format;
+  const name = AppConfig.macroLegend.format;
   const placeholders = {};
   placeholders[OrganismPlaceholders.Genus] = track.genus;
   placeholders[OrganismPlaceholders.Species] = track.species;

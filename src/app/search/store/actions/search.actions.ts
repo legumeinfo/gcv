@@ -1,4 +1,4 @@
-import { Action, createAction, props } from '@ngrx/store';
+import { Action } from '@ngrx/store';
 import { counter } from '@gcv/core/utils';
 import { Result } from '@gcv/search/models';
 

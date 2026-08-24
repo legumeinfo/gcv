@@ -1,23 +1,22 @@
 // Angular
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 // store
 import { createEffect, Actions, ofType } from '@ngrx/effects';
-import { Observable, of } from 'rxjs';
+import { of } from 'rxjs';
 import { catchError, map, switchMap } from 'rxjs/operators';
 import * as regionActions from '@gcv/gene/store/actions/region.actions';
 import * as routerActions from '@gcv/store/actions/router.actions';
 // app
-import { Region } from '@gcv/gene/models';
 import { RegionService } from '@gcv/gene/services';
 
 @Injectable()
 export class RegionEffects {
+  private actions$ = inject(Actions);
+  private regionService = inject(RegionService);
 
-  constructor(private actions$: Actions,
-              private regionService: RegionService) { }
 
   // get region via the region service
-  getRegion$ = createEffect(() => this.actions$.pipe(
+  getRegion$ = createEffect(() => { return this.actions$.pipe(
     ofType(regionActions.GET),
     map((action: regionActions.Get) => action.payload),
     switchMap(({chromosome, start, stop, source}) => {
@@ -30,10 +29,10 @@ export class RegionEffects {
         catchError((e) => of(new regionActions.GetFailure({chromosome, start, stop, source}))),
       );
     })
-  ));
+  ) });
 
   // loads a new gene view (search) when a region is successfully retrieved
-  regionSearch$ = createEffect(() => this.actions$.pipe(
+  regionSearch$ = createEffect(() => { return this.actions$.pipe(
     ofType(regionActions.GET_SUCCESS),
     map((action: regionActions.GetSuccess) => action.payload),
     map(({region}) => {
@@ -43,6 +42,6 @@ export class RegionEffects {
       const query = {neighbors: region.neighbors};
       return new routerActions.Go({path, query});
     }),
-  ));
+  ) });
 
 }

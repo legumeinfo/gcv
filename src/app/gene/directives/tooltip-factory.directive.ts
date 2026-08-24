@@ -1,5 +1,5 @@
 // Angular
-import { Directive, ElementRef, Input } from '@angular/core';
+import { Directive, ElementRef, Input, inject } from '@angular/core';
 // app
 import { ComponentService } from '@gcv/gene/services';
 // dependencies
@@ -11,6 +11,9 @@ import tippy, { sticky } from 'tippy.js';
     standalone: false
 })
 export class TooltipFactoryDirective {
+  private _componentService = inject(ComponentService);
+  private _el = inject(ElementRef);
+
 
   private _components: any = {};
   @Input('gcvTooltipFactory')
@@ -21,9 +24,6 @@ export class TooltipFactoryDirective {
       };
     this._components = components.reduce(reducer, {});
   }
-
-  constructor(private _componentService: ComponentService,
-              private _el: ElementRef) { }
 
   // private
 

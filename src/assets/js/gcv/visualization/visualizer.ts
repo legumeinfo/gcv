@@ -36,7 +36,7 @@ export abstract class Visualizer {
   /** Generates the raw SVG xml. */
   xml() {
     try {
-      const isFileSaverSupported = !!new Blob();
+      const _isFileSaverSupported = !!new Blob();
     } catch (e) {
       alert("Your broswer does not support saving");
     }
@@ -65,7 +65,7 @@ export abstract class Visualizer {
   protected autoResize() {
     this.resizeObserver = new ResizeObserver((entries) => {
       clearTimeout(this.resizeTimer);
-      const id = this.resizeTimer = setTimeout(() => {
+      this.resizeTimer = setTimeout(() => {
         if (this.container !== undefined && this.viewer !== undefined) {
           const width =
             Math.max(this.container.clientWidth, this.container.clientHeight);

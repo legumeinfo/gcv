@@ -1,5 +1,5 @@
 import { AppConfig, OrganismPlaceholders } from '@gcv/core/models';
-import { referenceBlockMap, geneMap, macroBlocks, nameSourceID, trackMap,
+import { referenceBlockMap, geneMap, macroBlocks, trackMap,
   trackToInterval } from '@gcv/gene/models/shims';
 
 

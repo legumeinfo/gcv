@@ -1,13 +1,13 @@
 // NgRx
 import { createSelectorFactory } from '@ngrx/store';
 // store
-import { State, pairwiseBlocksID, singleID }
+import { State, pairwiseBlocksID }
   from '@gcv/gene/store/reducers/pairwise-blocks.reducer';
 import * as fromParams from '@gcv/gene/store/selectors/params';
 import { getPairwiseBlocksState } from './pairwise-blocks-state.selector';
 // app
 import { arrayFlatten, memoizeArray } from '@gcv/core/utils';
-import { Gene, PairwiseBlocks, Track } from '@gcv/gene/models';
+import { PairwiseBlocks, Track } from '@gcv/gene/models';
 import { MACRO_ORDER_ALGORITHMS } from '@gcv/gene/algorithms';
 import { macroRegexpFactory } from '@gcv/gene/algorithms/utils';
 
@@ -34,7 +34,7 @@ export const getPairwiseBlocksForTracks =
       ));
     const filteredBlocks = blocks
       .filter((b) => {
-        const {chromosome, ...wildcard} = b;
+        const {chromosome: _chromosome, ...wildcard} = b;
         const partialID = pairwiseBlocksID(wildcard);
         return chromosomeIDs.has(partialID);
       });

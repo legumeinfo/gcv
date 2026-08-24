@@ -1,9 +1,5 @@
 // Angular + dependencies
-import {
-  AfterViewInit, Component, ElementRef, EventEmitter, Input, OnDestroy,
-  Output, ViewChild,
-  ChangeDetectionStrategy
-} from '@angular/core';
+import { AfterViewInit, Component, ElementRef, EventEmitter, Input, OnDestroy, Output, ViewChild, ChangeDetectionStrategy, inject } from '@angular/core';
 import { Subject, combineLatest } from 'rxjs';
 import { mergeMap, takeUntil } from 'rxjs/operators';
 // app
@@ -24,6 +20,9 @@ import { macroLegendShim } from './macro-legend.shim';
     standalone: false
 })
 export class MacroLegendComponent implements AfterViewInit, OnDestroy {
+  private _microTracksService = inject(MicroTracksService);
+  private _pairwiseBlocksService = inject(PairwiseBlocksService);
+
 
   @Input() options: any = {};
   @Output() click = new EventEmitter();
@@ -34,9 +33,6 @@ export class MacroLegendComponent implements AfterViewInit, OnDestroy {
 
   private _destroy: Subject<boolean> = new Subject();
   private _viewer;
-
-  constructor(private _microTracksService: MicroTracksService,
-              private _pairwiseBlocksService: PairwiseBlocksService) { }
 
   // Angular hooks
 

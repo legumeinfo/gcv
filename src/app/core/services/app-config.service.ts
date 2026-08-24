@@ -1,6 +1,6 @@
 // Angular
 import { HttpClient } from '@angular/common/http';
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 // app
 import { AppConfig, ConfigError,
   Brand, isBrand,
@@ -9,8 +9,7 @@ import { AppConfig, ConfigError,
   DefaultParameters, isDefaultParameters,
   MacroLegend, isMacroLegend,
   Miscellaneous, isMiscellaneous,
-  Server, isServer,
-  Request } from '@gcv/core/models';
+  Server, isServer } from '@gcv/core/models';
 import { objectMergeDeep } from '@gcv/core/utils';
 
 
@@ -76,10 +75,8 @@ const defaultConfig = {
 
 @Injectable()
 export class AppConfigService extends AppConfig {
+  private http = inject(HttpClient);
 
-  constructor(private http: HttpClient) {
-    super();
-  }
 
   public load(): Promise<any> {
     return this.http.get<AppConfig>('config/config.json')
@@ -120,7 +117,7 @@ export class AppConfigService extends AppConfig {
     if (!isBrand(brand)) {
       this._parseError('brand');
     }
-    const {favicon, url, img, name, slogan, hide, ...rest} = brand;
+    const {favicon, url, img, name, slogan, hide} = brand;
     return {favicon, url, img, name, slogan, hide} as Brand;
   }
 
@@ -132,12 +129,14 @@ export class AppConfigService extends AppConfig {
     if (!isCommunication(communication)) {
       this._parseError('communication');
     }
-    const {communicate, channel, ...rest} = communication;
+    const {communicate, channel} = communication;
     return {communicate, channel} as Communication;
   }
 
   private _parseDashboard(config: AppConfig): Dashboard {
-    const dashboard = objectMergeDeep({},
+    // TODO: merged defaults are computed but not yet applied (see the TODO
+    // below); kept for the pending fix, hence the underscore.
+    const _dashboard = objectMergeDeep({},
         defaultConfig.dashboard || {},
         config.dashboard || {},
       );
@@ -151,7 +150,6 @@ export class AppConfigService extends AppConfig {
         dotplotsScreenshot,
         macrosyntenyScreenshot,
         examples,
-        ...rest
       } = config.dashboard;
     // TODO: set defaults
     return {
@@ -172,7 +170,7 @@ export class AppConfigService extends AppConfig {
     if (!isDefaultParameters(defaultParameters)) {
       this._parseError('defaultParameters');
     }
-    const {gene, ...rest} = defaultParameters;
+    const {gene} = defaultParameters;
     return {gene} as DefaultParameters;
   }
 
@@ -184,7 +182,7 @@ export class AppConfigService extends AppConfig {
     if (!isMacroLegend(macroLegend)) {
       this._parseError('macroLegend');
     }
-    const {format, colors, ...rest} = macroLegend;
+    const {format, colors} = macroLegend;
     return {format, colors} as MacroLegend;
 
   }
@@ -197,7 +195,7 @@ export class AppConfigService extends AppConfig {
     if (!isMiscellaneous(miscellaneous)) {
       this._parseError('miscellaneous');
     }
-    const {searchHelpText, ...rest} = miscellaneous;
+    const {searchHelpText} = miscellaneous;
     return {searchHelpText} as Miscellaneous;
   }
 
@@ -219,7 +217,6 @@ export class AppConfigService extends AppConfig {
             geneLinks,
             regionLinks,
             familyTreeLink,
-            ...rest
           } = s;
         return {
           id,

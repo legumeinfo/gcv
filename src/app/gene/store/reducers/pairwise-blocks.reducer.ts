@@ -17,7 +17,6 @@ import { PairwiseBlocks } from '@gcv/gene/models';
 import { ActionID } from '@gcv/store/utils';
 
 
-declare var Object: any;  // because TypeScript doesn't support Object.values
 
 
 export const pairwiseBlocksFeatureKey = 'pairwiseblocks';
@@ -90,7 +89,7 @@ export function idArrayLeftDifference(a1, a2, checkAction=false) {
   const id2string = (checkAction) ? pairwiseBlocksActionID : pairwiseBlocksID;
   const a2IDs = new Set(a2.map(id2string));
   return a1.filter((id) => {
-    const {chromosome, ...wildcardID} = id;
+    const {chromosome: _chromosome, ...wildcardID} = id;
     return !a2IDs.has(id2string(wildcardID)) &&
            !a2IDs.has(id2string(id));
   });

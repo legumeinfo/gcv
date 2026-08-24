@@ -11,7 +11,7 @@ import { arrayIsEqual } from '@gcv/core/utils';
 import LazyLoad from "vanilla-lazyload";
 
 
-declare var bootstrap: any;
+declare let bootstrap: any;
 
 
 @Component({
@@ -102,7 +102,7 @@ implements AfterViewInit, OnChanges, OnDestroy {
   private _responsiveToIntrinsicWidths(responsive) {
     // assumes input is validated with _validateResponsive
     return responsive.map((e) => {
-      const [src, intrinsic_width] = e.split(' ');
+      const [, intrinsic_width] = e.split(' ');
       return Number(intrinsic_width.substring(0, intrinsic_width.length-1));
     });
   }

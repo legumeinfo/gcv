@@ -3,7 +3,6 @@ import {
   partialMicroTrackID,
   reducer,
   initialState,
-  idArrayLeftDifference,
 } from "./micro-tracks.reducer";
 import * as microTrackActions from "@gcv/gene/store/actions/micro-tracks.actions";
 

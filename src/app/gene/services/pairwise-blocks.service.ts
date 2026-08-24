@@ -1,10 +1,10 @@
 // Angular
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, from, of, throwError } from 'rxjs';
 import { catchError, endWith, map } from 'rxjs/operators';
 // store
-import { Store, select } from '@ngrx/store';
+import { Store } from '@ngrx/store';
 import * as pairwiseBlocksActions
   from '@gcv/gene/store/actions/pairwise-blocks.actions';
 import * as routerActions from '@gcv/store/actions/router.actions';
@@ -33,12 +33,18 @@ type RawPairwiseBlocks = {
 
 @Injectable()
 export class PairwiseBlocksService extends HttpService {
+  private _appConfig = inject(AppConfig);
+  private _http: HttpClient;
+  private _scriptService = inject(ScriptService);
+  private _store = inject<Store<fromRoot.State>>(Store);
 
-  constructor(private _appConfig: AppConfig,
-              private _http: HttpClient,
-              private _scriptService: ScriptService,
-              private _store: Store<fromRoot.State>) {
+
+  constructor() {
+    const _http = inject(HttpClient);
+
     super(_http);
+  
+    this._http = _http;
   }
 
   getPairwiseBlocks(
@@ -118,11 +124,11 @@ export class PairwiseBlocksService extends HttpService {
       });
     trackActions.forEach((ta) => ta.forEach((a) => this._store.dispatch(a)));
     const targetSet = new Set(targets);
-    return this._store.pipe(
-      select(
+    return this._store.select(
         fromPairwiseBlocks
           .getFilteredAndOrderedPairwiseBlocksForTracks(tracks, sources)
-      ),
+      ).pipe(
+      
       // TODO: there should be a selector for this
       map((blocks) => {
         if (targetSet.size == 0) {
@@ -143,7 +149,7 @@ export class PairwiseBlocksService extends HttpService {
     // use colors from config file
     const macroConfig: any = this._appConfig.macroLegend;
     if (macroConfig !== undefined && macroConfig.colors !== undefined) {
-      let func: Function = (args) => {
+      const func: Function = (args) => {
           return executeFunctionByName(macroConfig.colors.functionName, window, args);
         };
       return this._scriptService.loadScript(macroConfig.colors.scriptUrl)

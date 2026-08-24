@@ -1,5 +1,5 @@
-// Angular
-import { Injectable } from '@angular/core';
+import { concatLatestFrom } from '@ngrx/operators';// Angular
+import { Injectable, inject } from '@angular/core';
 // store
 import { Store } from '@ngrx/store';
 import * as fromRoot from '@gcv/store/reducers';
@@ -7,35 +7,34 @@ import { idArrayIntersection } from '@gcv/search/store/reducers/search.reducer';
 import * as fromSearch from '@gcv/search/store/selectors/search/';
 import * as fromParams from '@gcv/search/store/selectors/params';
 import { createEffect, Actions, ofType } from '@ngrx/effects';
-import { Observable, combineLatest, of } from 'rxjs';
-import { catchError, map, mergeMap, switchMap, takeUntil, withLatestFrom }
+import { combineLatest, of } from 'rxjs';
+import { catchError, map, mergeMap, switchMap, takeUntil }
   from 'rxjs/operators';
 import * as searchActions
   from '@gcv/search/store/actions/search.actions';
 // app
-import { Result } from '@gcv/search/models';
 import { SearchService } from '@gcv/search/services';
 
 
 @Injectable()
 export class SearchEffects {
+  private actions$ = inject(Actions);
+  private searchService = inject(SearchService);
+  private _store = inject<Store<fromRoot.State>>(Store);
 
-  constructor(private actions$: Actions,
-              private searchService: SearchService,
-              private store: Store<fromRoot.State>) { }
 
   // public
 
   // clear the store every time a new query occurs
-  clearResults = createEffect(() => this.store.select(fromSearch.getQuery)
+  clearResults = createEffect(() => { return this._store.select(fromSearch.getQuery)
   .pipe(
     map((...args) => new searchActions.Clear())
-  ));
+  ) });
 
   // initializes a search whenever new aligned clusters are generated
-  initializeSearch$ = createEffect(() => combineLatest(
-    this.store.select(fromSearch.getQuery),
-    this.store.select(fromParams.getSourceParams)
+  initializeSearch$ = createEffect(() => { return combineLatest(
+    this._store.select(fromSearch.getQuery),
+    this._store.select(fromParams.getSourceParams)
   ).pipe(
     switchMap(
     ([query, {sources}]) => {
@@ -47,16 +46,16 @@ export class SearchEffects {
       });
       return actions;
     }),
-  ));
+  ) });
 
   // perform the search
-  search$ = createEffect(() => this.actions$.pipe(
+  search$ = createEffect(() => { return this.actions$.pipe(
     ofType(searchActions.SEARCH),
     map((action: searchActions.Search) => {
       return {action: action.id, ...action.payload};
     }),
-    withLatestFrom(
-      this.store.select(fromSearch.getLoading)),
+    concatLatestFrom(
+      () => this._store.select(fromSearch.getLoading)),
     mergeMap(
     ([{query, source, action}, loading]) =>
     {
@@ -81,6 +80,6 @@ export class SearchEffects {
         }),
       );
     })
-  ));
+  ) });
 
 }

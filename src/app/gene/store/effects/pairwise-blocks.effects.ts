@@ -1,17 +1,17 @@
 // Angular
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 // store
 import { createEffect, Actions, ofType } from '@ngrx/effects';
-import { combineLatest, of, zip } from 'rxjs';
-import { catchError, filter, map, mergeMap, switchMap, takeUntil,
-  withLatestFrom } from 'rxjs/operators';
+import { concatLatestFrom } from '@ngrx/operators';
+import { combineLatest, of } from 'rxjs';
+import { catchError, map, mergeMap,
+  takeUntil } from 'rxjs/operators';
 import { Store } from '@ngrx/store';
 import * as pairwiseBlocksActions
   from '@gcv/gene/store/actions/pairwise-blocks.actions';
 import * as fromRoot from '@gcv/store/reducers';
-import { idArrayIntersection, pairwiseBlocksID }
+import { idArrayIntersection }
   from '@gcv/gene/store/reducers/pairwise-blocks.reducer';
-import * as fromChromosome from '@gcv/gene/store/selectors/chromosome/';
 import * as fromGenes from '@gcv/gene/store/selectors/gene/';
 import * as fromPairwiseBlocks
   from '@gcv/gene/store/selectors/pairwise-blocks/';
@@ -21,30 +21,30 @@ import { PairwiseBlocksService } from '@gcv/gene/services';
 
 @Injectable()
 export class PairwiseBlocksEffects {
+  private actions$ = inject(Actions);
+  private pairwiseBlocksService = inject(PairwiseBlocksService);
+  private _store = inject<Store<fromRoot.State>>(Store);
 
-  constructor(private actions$: Actions,
-              private pairwiseBlocksService: PairwiseBlocksService,
-              private store: Store<fromRoot.State>) { }
 
   // clear the store every time new query genes or parameters are emitted
-  clearPairwiseBlocks$ = createEffect(() => combineLatest(
-    this.store.select(fromGenes.getSelectedGeneIDs),
-    this.store.select(fromParams.getBlockParams),
-    this.store.select(fromParams.getSourceParams),
+  clearPairwiseBlocks$ = createEffect(() => { return combineLatest(
+    this._store.select(fromGenes.getSelectedGeneIDs),
+    this._store.select(fromParams.getBlockParams),
+    this._store.select(fromParams.getSourceParams),
   ).pipe(
     map((...args) => new pairwiseBlocksActions.Clear()),
-  ));
+  ) });
 
   // get pairwise blocks via the pairwise blocks service
-  getPairwiseBlocks$ = createEffect(() => this.actions$.pipe(
+  getPairwiseBlocks$ = createEffect(() => { return this.actions$.pipe(
     ofType(pairwiseBlocksActions.GET),
     map((action: pairwiseBlocksActions.Get) => {
       return {action: action.id, ...action.payload};
     }),
-    withLatestFrom(
-      this.store.select(fromPairwiseBlocks.getLoading),
-      this.store.select(fromPairwiseBlocks.getLoaded),
-    ),
+    concatLatestFrom(() => [
+      this._store.select(fromPairwiseBlocks.getLoading),
+      this._store.select(fromPairwiseBlocks.getLoaded),
+    ]),
     mergeMap(([{chromosome, source, params, targets, action}, loading]) => {
       const partialID = {
           referenceSource: chromosome.source,
@@ -61,7 +61,7 @@ export class PairwiseBlocksEffects {
       if (targetIDs.length == 0) {
         return [];
       }
-      let filteredTargets = targetIDs
+      const filteredTargets = targetIDs
         .filter((id) => id['chromosome'] !== undefined)
         .map((id) => id['chromosome']);
       // load blocks
@@ -78,6 +78,6 @@ export class PairwiseBlocksEffects {
         })
       );
     })
-  ));
+  ) });
 
 }
