@@ -3,17 +3,17 @@ import { Params } from '@angular/router';
 // NgRx
 import { createSelector } from '@ngrx/store';
 // store
-import { getRouter } from '@gcv/store/reducers';
+import { selectRouter } from '@gcv/store/reducers';
 import { RouterStateUrl, State } from '@gcv/store/reducers/router.reducer';
 
-export const getRouterState = createSelector(
-  getRouter,
+export const selectRouterState = createSelector(
+  selectRouter,
   (routerState: State) => routerState.state,
 );
 
 // select the current route query params
 export const selectQueryParams = createSelector(
-  getRouterState,
+  selectRouterState,
   (state: RouterStateUrl): Params => state.queryParams,
 );
 
@@ -23,7 +23,7 @@ export const selectQueryParam = (param: string): any =>
 
 // select the current route params
 export const selectRouteParams = createSelector(
-  getRouterState,
+  selectRouterState,
   (state: RouterStateUrl): Params => state.params,
 );
 
@@ -33,12 +33,12 @@ export const selectRouteParam = (param: string): any =>
 
 // select the current route data
 //export const selectRouteData = createSelector(
-//  getRouterState,
+//  selectRouterState,
 //  (state: RouterStateUrl): Data => state.data,
 //);
 
 // select the current url
 export const selectUrl = createSelector(
-  getRouterState,
+  selectRouterState,
   (state: RouterStateUrl): string => state.url,
 );

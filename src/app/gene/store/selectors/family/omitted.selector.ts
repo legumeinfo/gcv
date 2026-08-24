@@ -2,9 +2,9 @@
 import { createSelector } from '@ngrx/store';
 // store
 import { State } from '@gcv/gene/store/reducers/family.reducer';
-import { getFamilyState } from './family-state.selector';
+import { selectFamilyState } from './family-state.selector';
 
-export const getOmittedFamilies = createSelector(
-  getFamilyState,
+export const selectOmittedFamilies = createSelector(
+  selectFamilyState,
   (state: State) => state.omitted,
 );

@@ -78,8 +78,8 @@ export class MicroTracksService extends HttpService {
     return this._store.select(fromMicroTracks.getSelectedMicroTracks);
   }
 
-  getClusterIDs(): Observable<number[]> {
-    //return this._store.select(fromMicroTracks.getClusterIDs);
+  selectClusterIDs(): Observable<number[]> {
+    //return this._store.select(fromMicroTracks.selectClusterIDs);
     // TODO: This code is copied from the selector that's commented out above
     // because the selector won't compile... Fix it!
     return this._store

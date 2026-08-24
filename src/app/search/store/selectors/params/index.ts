@@ -32,7 +32,7 @@ export const getSourceParams = createSelectorFactory(memoizeObject)(
   },
 );
 
-export const getSourcesParam = createSelector(
+export const selectSourcesParam = createSelector(
   getSourceParams,
   (params: SourceParams): string[] => params.sources,
 );

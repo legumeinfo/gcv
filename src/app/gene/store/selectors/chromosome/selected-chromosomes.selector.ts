@@ -2,10 +2,10 @@
 import { createSelectorFactory } from '@ngrx/store';
 // store
 import { State } from '@gcv/gene/store/reducers/chromosome.reducer';
-import { getQueryNeighborParam } from '@gcv/gene/store/selectors/params';
+import { selectQueryNeighborParam } from '@gcv/gene/store/selectors/params';
 import { getSelectedGenes } from '@gcv/gene/store/selectors/gene/selected-genes.selector';
 import { trackID, TrackID } from '@gcv/gene/store/utils';
-import { getChromosomeState } from './chromosome-state.selector';
+import { selectChromosomeState } from './chromosome-state.selector';
 // app
 import { Gene, Track } from '@gcv/gene/models';
 import { memoizeArray, memoizeValue, setIntersection } from '@gcv/core/utils';
@@ -27,7 +27,7 @@ export const getSelectedChromosomeIDs = createSelectorFactory(memoizeArray)(
 );
 
 export const getChromosomes = createSelectorFactory(memoizeArray)(
-  getChromosomeState,
+  selectChromosomeState,
   (state: State): Track[] => {
     return Object.values(state.entities) as Track[];
   },
@@ -46,7 +46,7 @@ export const getChromosomesForIDs = (IDs: TrackID[]) =>
   );
 
 export const getSelectedChromosomesLoaded = createSelectorFactory(memoizeValue)(
-  getChromosomeState,
+  selectChromosomeState,
   getSelectedChromosomeIDs,
   (state: State, ids: TrackID[]): boolean => {
     const loaded = new Set(state.ids as string[]);
@@ -58,7 +58,7 @@ export const getSelectedChromosomesLoaded = createSelectorFactory(memoizeValue)(
 );
 
 export const getSelectedChromosomes = createSelectorFactory(memoizeArray)(
-  getChromosomeState,
+  selectChromosomeState,
   getSelectedChromosomeIDs,
   (state: State, ids: TrackID[]): Track[] => {
     const reducer = (accumulator, { name, source }) => {
@@ -77,7 +77,7 @@ export const getSelectedChromosomes = createSelectorFactory(memoizeArray)(
 export const getSelectedSlices = createSelectorFactory(memoizeArray)(
   getSelectedChromosomes,
   getSelectedGenes,
-  getQueryNeighborParam,
+  selectQueryNeighborParam,
   (chromosomes: Track[], genes: Gene[], neighbors: number): Track[] => {
     const chromosomeMap = {};
     chromosomes.forEach((c) => {

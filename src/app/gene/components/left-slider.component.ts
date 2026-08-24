@@ -31,7 +31,7 @@ export class LeftSliderComponent {
         return SliderStates.SLIDER_INACTIVE;
       }),
     );
-    this.content = _layoutService.getLeftSliderContent();
+    this.content = _layoutService.selectLeftSliderContent();
   }
 
   // public

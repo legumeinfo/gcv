@@ -7,23 +7,23 @@ import { chromosomeFeatureKey } from '@gcv/gene/store/reducers/chromosome.reduce
 import { Track } from '@gcv/gene/models';
 import { memoizeArray } from '@gcv/core/utils';
 
-export const getChromosomeState = createSelector(
-  fromModule.getGeneModuleState,
+export const selectChromosomeState = createSelector(
+  fromModule.selectGeneModuleState,
   (state) => state[chromosomeFeatureKey],
 );
 
 export const getLoading = createSelectorFactory(memoizeArray)(
-  getChromosomeState,
+  selectChromosomeState,
   (state) => state.loading,
 );
 
 export const getFailed = createSelectorFactory(memoizeArray)(
-  getChromosomeState,
+  selectChromosomeState,
   (state) => state.failed,
 );
 
 export const getLoaded = createSelectorFactory(memoizeArray)(
-  getChromosomeState,
+  selectChromosomeState,
   (state) => {
     const chromosomes: Track[] = Object.values(state.entities);
     const ids = chromosomes.map((c) => {

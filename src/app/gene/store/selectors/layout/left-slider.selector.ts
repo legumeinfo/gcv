@@ -2,14 +2,14 @@
 import { createSelector } from '@ngrx/store';
 // store
 import { State } from '@gcv/gene/store/reducers/layout.reducer';
-import { getLayoutState } from './layout-state.selector';
+import { selectLayoutState } from './layout-state.selector';
 
-export const getShowLeftSlider = createSelector(
-  getLayoutState,
+export const selectShowLeftSlider = createSelector(
+  selectLayoutState,
   (state: State) => state.showLeftSlider,
 );
 
-export const getLeftSliderContent = createSelector(
-  getLayoutState,
+export const selectLeftSliderContent = createSelector(
+  selectLayoutState,
   (state: State) => state.leftSliderContent,
 );

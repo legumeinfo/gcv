@@ -164,7 +164,7 @@ export class MicroComponent implements AfterViewInit, OnDestroy, OnInit {
         return this._geneService.getGenesForTracks(tracks);
       }),
     );
-    const omittedFamilies = this._familyService.getOmittedFamilies();
+    const omittedFamilies = this._familyService.selectOmittedFamilies();
     // fetch own data because injected components don't have change detection
     combineLatest(
       queryGenes,

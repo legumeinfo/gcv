@@ -19,7 +19,7 @@ export class FamilyService {
     this._store.dispatch(familyActions.IncludeFamilies({ families }));
   }
 
-  getOmittedFamilies(): Observable<string[]> {
-    return this._store.select(fromFamily.getOmittedFamilies);
+  selectOmittedFamilies(): Observable<string[]> {
+    return this._store.select(fromFamily.selectOmittedFamilies);
   }
 }

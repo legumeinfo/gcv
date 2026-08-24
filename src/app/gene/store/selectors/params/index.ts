@@ -104,7 +104,7 @@ export const getQueryParams = createSelectorFactory(memoizeObject)(
   },
 );
 
-export const getQueryNeighborParam = createSelector(
+export const selectQueryNeighborParam = createSelector(
   getQueryParams,
   (params: QueryParams): number => params.neighbors,
 );
@@ -117,7 +117,7 @@ export const getSourceParams = createSelectorFactory(memoizeObject)(
   },
 );
 
-export const getSourcesParam = createSelector(
+export const selectSourcesParam = createSelector(
   getSourceParams,
   (params: SourceParams): string[] => params.sources,
 );

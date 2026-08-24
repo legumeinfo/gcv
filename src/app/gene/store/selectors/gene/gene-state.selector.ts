@@ -7,23 +7,23 @@ import { geneFeatureKey } from '@gcv/gene/store/reducers/gene.reducer';
 import { memoizeArray } from '@gcv/core/utils';
 import { Gene } from '@gcv/gene/models';
 
-export const getGeneState = createSelector(
-  fromModule.getGeneModuleState,
+export const selectGeneState = createSelector(
+  fromModule.selectGeneModuleState,
   (state) => state[geneFeatureKey],
 );
 
 export const getLoading = createSelectorFactory(memoizeArray)(
-  getGeneState,
+  selectGeneState,
   (state) => state.loading,
 );
 
 export const getFailed = createSelectorFactory(memoizeArray)(
-  getGeneState,
+  selectGeneState,
   (state) => state.failed,
 );
 
 export const getLoaded = createSelectorFactory(memoizeArray)(
-  getGeneState,
+  selectGeneState,
   (state) => {
     const genes: Gene[] = Object.values(state.entities);
     const ids = genes.map((g) => {

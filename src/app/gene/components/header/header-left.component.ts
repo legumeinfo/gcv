@@ -53,7 +53,7 @@ export class HeaderLeftComponent {
     const _layoutService = this._layoutService;
 
     this.visible = _layoutService.getLeftSliderState();
-    this.content = _layoutService.getLeftSliderContent();
+    this.content = _layoutService.selectLeftSliderContent();
   }
 
   // public

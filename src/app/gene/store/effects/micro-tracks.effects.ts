@@ -45,7 +45,7 @@ export class MicroTracksEffects {
     return combineLatest(
       this._store.select(fromGenes.getSelectedGeneIDs),
       this._store.select(fromParams.getQueryParams),
-      //this._store.select(fromParams.getSourcesParam),
+      //this._store.select(fromParams.selectSourcesParam),
       this._store.select(fromParams.getClusteringParams),
     ).pipe(map((...args) => new microTracksActions.Clear()));
   });
@@ -56,7 +56,7 @@ export class MicroTracksEffects {
       this._store.select(
         fromMicroTracks.getClusteredAndAlignedSelectedMicroTracks,
       ),
-      //this._store.select(fromParams.getSourcesParam)
+      //this._store.select(fromParams.selectSourcesParam)
       // TODO: This code is copied from the selector that's commented out above
       // because the selector won't compile... Fix it!
       this._store

@@ -15,7 +15,7 @@ import { Gene, Track } from '@gcv/gene/models';
 export const getSelectedMicroTracks = createSelectorFactory(memoizeArray)(
   getSelectedChromosomes,
   getSelectedGenes,
-  fromParams.getQueryNeighborParam,
+  fromParams.selectQueryNeighborParam,
   (chromosomes: Track[], genes: Gene[], neighbors: number): Track[] => {
     const chromosomeMap = {};
     chromosomes.forEach((c) => {

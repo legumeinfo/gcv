@@ -6,22 +6,22 @@ import * as fromModule from '@gcv/gene/store/reducers';
 // app
 import { memoizeArray } from '@gcv/core/utils';
 
-export const getPairwiseBlocksState = createSelector(
-  fromModule.getGeneModuleState,
+export const selectPairwiseBlocksState = createSelector(
+  fromModule.selectGeneModuleState,
   (state) => state[pairwiseBlocksFeatureKey],
 );
 
 export const getLoading = createSelectorFactory(memoizeArray)(
-  getPairwiseBlocksState,
+  selectPairwiseBlocksState,
   (state) => state.loading,
 );
 
 export const getLoaded = createSelectorFactory(memoizeArray)(
-  getPairwiseBlocksState,
+  selectPairwiseBlocksState,
   (state) => state.loaded,
 );
 
 export const getFailed = createSelectorFactory(memoizeArray)(
-  getPairwiseBlocksState,
+  selectPairwiseBlocksState,
   (state) => state.failed,
 );

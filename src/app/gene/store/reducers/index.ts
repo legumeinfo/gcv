@@ -36,5 +36,5 @@ export function reducers(state: GeneState | undefined, action: Action) {
 }
 
 // select the module's state
-export const getGeneModuleState =
+export const selectGeneModuleState =
   createFeatureSelector<GeneState>(geneFeatureKey);

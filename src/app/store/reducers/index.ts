@@ -18,7 +18,7 @@ export const reducers: ActionReducerMap<State> = {
   routerReducer: fromRouter.reducer,
 };
 
-export const getRouter =
+export const selectRouter =
   createFeatureSelector<fromRouter.State>('routerReducer');
 
 // add environment-specific meta reducers here

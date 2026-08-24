@@ -4,7 +4,7 @@ import { createSelector, createSelectorFactory } from '@ngrx/store';
 import { State } from '@gcv/gene/store/reducers/micro-tracks.reducer';
 import * as fromParams from '@gcv/gene/store/selectors/params';
 import { getSelectedGenesLoaded } from '@gcv/gene/store/selectors/gene';
-import { getMicroTracksState } from './micro-tracks-state.selector';
+import { selectMicroTracksState } from './micro-tracks-state.selector';
 import {
   getSelectedMicroTracks,
   getSelectedMicroTracksLoaded,
@@ -102,7 +102,7 @@ export const getSelectedMicroTracksForCluster = (id: number) =>
   );
 
 // NOTE: not memoized because successive distinct clusters could have same IDs
-export const getClusterIDs = createSelector(
+export const selectClusterIDs = createSelector(
   getClusteredSelectedMicroTracks,
   (tracks: (Track & ClusterMixin)[]): number[] => {
     const IDs = tracks.map((t: ClusterMixin) => t.cluster);
@@ -255,7 +255,7 @@ export const getClusteredAndAlignedSelectedMicroTracks = createSelectorFactory(
 );
 
 export const getSearchMicroTracks = createSelectorFactory(memoizeArray)(
-  getMicroTracksState,
+  selectMicroTracksState,
   (state: State): (Track & ClusterMixin)[] => Object.values(state.entities),
 );
 

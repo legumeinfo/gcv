@@ -12,11 +12,11 @@ export class LayoutService {
   private _store = inject<Store<fromRoot.State>>(Store);
 
   getLeftSliderState(): Observable<boolean> {
-    return this._store.select(fromLayout.getShowLeftSlider);
+    return this._store.select(fromLayout.selectShowLeftSlider);
   }
 
-  getLeftSliderContent(): Observable<string> {
-    return this._store.select(fromLayout.getLeftSliderContent);
+  selectLeftSliderContent(): Observable<string> {
+    return this._store.select(fromLayout.selectLeftSliderContent);
   }
 
   closeLeftSlider(): void {

@@ -2,7 +2,7 @@
 import { createSelectorFactory } from '@ngrx/store';
 // store
 import { State, geneID } from '@gcv/gene/store/reducers/gene.reducer';
-import { getGeneState } from './gene-state.selector';
+import { selectGeneState } from './gene-state.selector';
 // app
 import { arrayFlatten, memoizeArray } from '@gcv/core/utils';
 import { Gene, Track } from '@gcv/gene/models';
@@ -19,12 +19,12 @@ const getGenesFromState = (
 };
 
 export const getGenesForSource = (genes: string[], source: string) =>
-  createSelectorFactory(memoizeArray)(getGeneState, (state: State): Gene[] =>
+  createSelectorFactory(memoizeArray)(selectGeneState, (state: State): Gene[] =>
     getGenesFromState(genes, source, state),
   );
 
 export const getGenesForTracks = (tracks: Track[]) =>
-  createSelectorFactory(memoizeArray)(getGeneState, (state: State): Gene[] => {
+  createSelectorFactory(memoizeArray)(selectGeneState, (state: State): Gene[] => {
     const trackGenes = tracks.map((t) =>
       getGenesFromState(t.genes, t.source, state),
     );

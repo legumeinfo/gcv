@@ -3,7 +3,7 @@ import { createSelectorFactory } from '@ngrx/store';
 // store
 import { geneID, GeneID, State } from '@gcv/gene/store/reducers/gene.reducer';
 import { selectRouteParams } from '@gcv/store/selectors/router';
-import { getGeneState } from './gene-state.selector';
+import { selectGeneState } from './gene-state.selector';
 // app
 import { AppConfig } from '@gcv/core/models';
 import {
@@ -30,7 +30,7 @@ export const getSelectedGeneIDs = createSelectorFactory(memoizeArray)(
 );
 
 export const getSelectedGenesLoaded = createSelectorFactory(memoizeValue)(
-  getGeneState,
+  selectGeneState,
   getSelectedGeneIDs,
   (state: State, ids: GeneID[]): boolean => {
     const loaded = new Set(state.ids as string[]);
@@ -42,7 +42,7 @@ export const getSelectedGenesLoaded = createSelectorFactory(memoizeValue)(
 );
 
 export const getSelectedGenes = createSelectorFactory(memoizeArray)(
-  getGeneState,
+  selectGeneState,
   getSelectedGeneIDs,
   (state: State, ids: GeneID[]): Gene[] => {
     const reducer = (accumulator, { name, source }) => {

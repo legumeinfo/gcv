@@ -4,7 +4,7 @@ import { createSelector } from '@ngrx/store';
 import * as fromModule from '@gcv/gene/store/reducers';
 import { familyFeatureKey } from '@gcv/gene/store/reducers/family.reducer';
 
-export const getFamilyState = createSelector(
-  fromModule.getGeneModuleState,
+export const selectFamilyState = createSelector(
+  fromModule.selectGeneModuleState,
   (state) => state[familyFeatureKey],
 );

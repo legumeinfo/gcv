@@ -6,22 +6,22 @@ import { searchFeatureKey } from '@gcv/search/store/reducers/search.reducer';
 // app
 import { memoizeArray } from '@gcv/core/utils';
 
-export const getSearchState = createSelector(
-  fromModule.getSearchModuleState,
+export const selectSearchState = createSelector(
+  fromModule.selectSearchModuleState,
   (state) => state[searchFeatureKey],
 );
 
 export const getLoading = createSelectorFactory(memoizeArray)(
-  getSearchState,
+  selectSearchState,
   (state) => state.loading,
 );
 
 export const getLoaded = createSelectorFactory(memoizeArray)(
-  getSearchState,
+  selectSearchState,
   (state) => state.loaded,
 );
 
 export const getFailed = createSelectorFactory(memoizeArray)(
-  getSearchState,
+  selectSearchState,
   (state) => state.failed,
 );

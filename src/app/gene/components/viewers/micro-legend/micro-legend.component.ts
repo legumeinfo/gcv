@@ -58,7 +58,7 @@ export class MicroLegendComponent implements AfterViewInit, OnDestroy {
     // fetch own data because injected components don't have change detection
     const queryGenes = this._geneService.getQueryGenes();
     const tracks = this._microTracksService.getAllTracks();
-    const omittedFamilies = this._familyService.getOmittedFamilies();
+    const omittedFamilies = this._familyService.selectOmittedFamilies();
     combineLatest(tracks, queryGenes, omittedFamilies)
       .pipe(takeUntil(this._destroy))
       .subscribe(([tracks, queryGenes, omittedFamilies]) => {

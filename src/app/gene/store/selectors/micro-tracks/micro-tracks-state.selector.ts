@@ -6,22 +6,22 @@ import { microTracksFeatureKey } from '@gcv/gene/store/reducers/micro-tracks.red
 // app
 import { memoizeArray } from '@gcv/core/utils';
 
-export const getMicroTracksState = createSelector(
-  fromModule.getGeneModuleState,
+export const selectMicroTracksState = createSelector(
+  fromModule.selectGeneModuleState,
   (state) => state[microTracksFeatureKey],
 );
 
 export const getLoading = createSelectorFactory(memoizeArray)(
-  getMicroTracksState,
+  selectMicroTracksState,
   (state) => state.loading,
 );
 
 export const getFailed = createSelectorFactory(memoizeArray)(
-  getMicroTracksState,
+  selectMicroTracksState,
   (state) => state.failed,
 );
 
 export const getLoaded = createSelectorFactory(memoizeArray)(
-  getMicroTracksState,
+  selectMicroTracksState,
   (state) => state.loaded,
 );

@@ -10,15 +10,15 @@ import {
   PairwiseBlocksID,
   State,
 } from '@gcv/gene/store/reducers/pairwise-blocks.reducer';
-import { getPairwiseBlocksState } from './pairwise-blocks-state.selector';
+import { selectPairwiseBlocksState } from './pairwise-blocks-state.selector';
 // app
 import { memoizeArray } from '@gcv/core/utils';
 import { PairwiseBlocks } from '@gcv/gene/models';
 
 export const getSelectedPartialBlockIDs = createSelectorFactory(memoizeArray)(
-  getPairwiseBlocksState,
+  selectPairwiseBlocksState,
   getSelectedChromosomeIDs,
-  fromParams.getSourcesParam,
+  fromParams.selectSourcesParam,
   (state: State, ids: TrackID[], sources: string[]): PairwiseBlocksID[] => {
     const reducer = (
       accumulator,
@@ -37,7 +37,7 @@ export const getSelectedPartialBlockIDs = createSelectorFactory(memoizeArray)(
 
 // derive selected pairwise blocks from Chromosome State
 export const getSelectedPairwiseBlocks = createSelectorFactory(memoizeArray)(
-  getPairwiseBlocksState,
+  selectPairwiseBlocksState,
   getSelectedPartialBlockIDs,
   (state: State, ids: PairwiseBlocksID[]): PairwiseBlocks[] => {
     const idStrings = ids.map((id) => pairwiseBlocksID(id));
@@ -62,7 +62,7 @@ export const getSelectedPairwiseBlocks = createSelectorFactory(memoizeArray)(
 
 export const getUnloadedSelectedPartialPairwiseBlocksIDs =
   createSelectorFactory(memoizeArray)(
-    getPairwiseBlocksState,
+    selectPairwiseBlocksState,
     getSelectedPartialBlockIDs,
     // TODO: can initialState be handled upstream?
     (
