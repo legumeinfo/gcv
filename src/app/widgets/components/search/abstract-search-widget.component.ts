@@ -1,5 +1,5 @@
 // Angular
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 // NgRx
 import { filter, map } from 'rxjs/operators';
@@ -9,6 +9,7 @@ import { AppConfig, Server } from '@gcv/core/models';
 
 @Component({
     template: '',
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class AbstractSearchWidgetComponent implements OnInit {

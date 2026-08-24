@@ -1,5 +1,5 @@
 // Angular
-import { Component, Input, OnDestroy, OnInit } from '@angular/core';
+import { Component, Input, OnDestroy, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { Observable, Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 // App
@@ -35,6 +35,7 @@ import { MicroTracksService } from '@gcv/gene/services';
       </ul>
     </div>
     `,
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class FamilyDetailComponent implements OnDestroy, OnInit {

@@ -1,5 +1,5 @@
 // Angular
-import { OnInit, Component, Input } from '@angular/core';
+import { OnInit, Component, Input, ChangeDetectionStrategy } from '@angular/core';
 import { Observable } from 'rxjs';
 import { filter, map, mergeAll, switchMap } from 'rxjs/operators';
 // app
@@ -23,6 +23,7 @@ import { ChromosomeService, GeneService } from '@gcv/gene/services';
       {{ block.fmin }}-{{ block.fmax }}
     </div>
   `,
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class MacroBlockTooltipComponent implements OnInit {

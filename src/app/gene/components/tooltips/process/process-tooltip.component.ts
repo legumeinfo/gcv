@@ -1,5 +1,5 @@
 // Angular
-import { Component, Input } from '@angular/core';
+import { Component, Input, ChangeDetectionStrategy } from '@angular/core';
 import { Observable } from 'rxjs';
 import { scan } from 'rxjs/operators';
 // app
@@ -25,6 +25,7 @@ import { statusToClass, statusToIcon } from '@gcv/gene/components/pipeline.shim'
       </ul>
     }
     `,
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class ProcessTooltipComponent {

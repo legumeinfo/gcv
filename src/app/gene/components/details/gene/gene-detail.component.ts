@@ -1,5 +1,5 @@
 // Angular
-import { Component, Input, OnDestroy, OnInit } from '@angular/core';
+import { Component, Input, OnDestroy, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { Subject } from 'rxjs';
 import { filter, map, switchMap, take, takeUntil } from 'rxjs/operators';
 // App
@@ -31,6 +31,7 @@ import { GeneService, RegionService } from '@gcv/gene/services';
       </ul>
     </div>
     `,
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class GeneDetailComponent implements OnDestroy, OnInit {

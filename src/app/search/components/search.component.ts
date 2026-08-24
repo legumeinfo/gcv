@@ -1,5 +1,5 @@
 // Angular
-import { OnInit, Component } from '@angular/core';
+import { OnInit, Component, ChangeDetectionStrategy } from '@angular/core';
 import { Router } from '@angular/router';
 import { Observable } from 'rxjs';
 // App
@@ -11,6 +11,7 @@ import { SearchService } from '@gcv/search/services';
     selector: 'gcv-search',
     styleUrls: ['search.component.scss'],
     templateUrl: 'search.component.html',
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class SearchComponent implements OnInit {

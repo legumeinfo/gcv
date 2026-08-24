@@ -1,5 +1,5 @@
 // Angular
-import { Component, Input, ViewChild } from '@angular/core';
+import { Component, Input, ViewChild, ChangeDetectionStrategy } from '@angular/core';
 // app
 import {
   htmlTooltipComponent, htmlTooltipConfigFactory,
@@ -15,6 +15,7 @@ import { statusToClass, statusToIcon } from './pipeline.shim';
     selector: 'gcv-pipeline',
     styleUrls: ['./pipeline.component.scss'],
     templateUrl: 'pipeline.component.html',
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class PipelineComponent { 

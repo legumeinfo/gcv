@@ -1,5 +1,5 @@
 // Angular
-import { AfterViewInit, Component, OnDestroy, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, OnDestroy, ViewChild, ChangeDetectionStrategy } from '@angular/core';
 // App
 import { AppConfig, Brand } from '@gcv/core/models';
 
@@ -11,6 +11,7 @@ declare var bootstrap: any;
     selector: 'gcv-header',
     styleUrls: ['./header.component.scss'],
     templateUrl: './header.component.html',
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class HeaderComponent implements AfterViewInit {

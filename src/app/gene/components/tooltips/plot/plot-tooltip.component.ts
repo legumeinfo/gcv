@@ -1,5 +1,5 @@
 // Angular
-import { Component, EventEmitter, Output } from '@angular/core';
+import { Component, EventEmitter, Output, ChangeDetectionStrategy } from '@angular/core';
 
 
 @Component({
@@ -7,6 +7,7 @@ import { Component, EventEmitter, Output } from '@angular/core';
     template: `
     <a [routerLink]="[]" queryParamsHandling="preserve" (click)="local()">local</a>&nbsp;|&nbsp;<a [routerLink]="[]" queryParamsHandling="preserve" (click)="global()">global</a>
   `,
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class PlotTooltipComponent {

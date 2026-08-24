@@ -1,5 +1,5 @@
 // Angular
-import { Component } from '@angular/core';
+import { Component, ChangeDetectionStrategy } from '@angular/core';
 // app
 import { Pipeline } from '@gcv/gene/models';
 import { ProcessService } from '@gcv/gene/services';
@@ -11,6 +11,7 @@ import { ProcessService } from '@gcv/gene/services';
     template: `
     <gcv-pipeline [info]=info [pipeline]=pipeline></gcv-pipeline>
   `,
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class HeaderCenterComponent {

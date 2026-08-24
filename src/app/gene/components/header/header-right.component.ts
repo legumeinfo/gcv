@@ -1,5 +1,5 @@
 // Angular
-import { Component, OnDestroy } from '@angular/core';
+import { Component, OnDestroy, ChangeDetectionStrategy } from '@angular/core';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 // app
@@ -25,6 +25,7 @@ import { InterAppCommunicationService } from '@gcv/gene/services';
       }
     </ul>
     `,
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class HeaderRightComponent implements OnDestroy {

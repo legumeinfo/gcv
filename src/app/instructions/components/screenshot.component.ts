@@ -1,6 +1,9 @@
 // Angular
-import { AfterViewInit, Component, ElementRef, Input, OnChanges, OnDestroy,
-  SimpleChanges, ViewChild } from '@angular/core';
+import {
+  AfterViewInit, Component, ElementRef, Input, OnChanges, OnDestroy,
+  SimpleChanges, ViewChild,
+  ChangeDetectionStrategy
+} from '@angular/core';
 // app
 import { ConfigError, DashboardView } from '@gcv/core/models';
 import { arrayIsEqual } from '@gcv/core/utils';
@@ -15,6 +18,7 @@ declare var bootstrap: any;
     selector: 'gcv-screenshot',
     styleUrls: ['./screenshot.component.scss'],
     templateUrl: './screenshot.component.html',
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class ScreenshotComponent

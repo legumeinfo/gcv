@@ -1,5 +1,5 @@
 // Angular
-import { Component, Output, SimpleChanges } from '@angular/core';
+import { Component, Output, SimpleChanges, ChangeDetectionStrategy } from '@angular/core';
 import { Observable } from 'rxjs';
 import { map, takeUntil } from 'rxjs/operators';
 // App
@@ -12,6 +12,7 @@ import { LayoutService } from '@gcv/gene/services';
     selector: 'gcv-left-slider',
     styleUrls: ['./left-slider.component.scss'],
     templateUrl: './left-slider.component.html',
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class LeftSliderComponent {

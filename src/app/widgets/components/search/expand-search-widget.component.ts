@@ -1,5 +1,5 @@
 // Angular
-import { Component, ElementRef, ViewChild } from '@angular/core';
+import { Component, ElementRef, ViewChild, ChangeDetectionStrategy } from '@angular/core';
 // App
 import { AbstractSearchWidgetComponent }
   from './abstract-search-widget.component';
@@ -9,6 +9,7 @@ import { AbstractSearchWidgetComponent }
     selector: 'gcv-expand-search-widget',
     styleUrls: ['./expand-search-widget.component.scss'],
     templateUrl: './expand-search-widget.component.html',
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class ExpandSearchWidgetComponent extends AbstractSearchWidgetComponent {

@@ -1,5 +1,5 @@
 // Angular
-import { Component, Input, OnDestroy, OnInit } from '@angular/core';
+import { Component, Input, OnDestroy, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { Subject } from 'rxjs';
 import { filter, switchMap, take, takeUntil } from 'rxjs/operators';
 // App
@@ -39,6 +39,7 @@ import { Track } from '@gcv/gene/models';
       </ul>
     </div>
     `,
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class TrackDetailComponent implements OnDestroy, OnInit {

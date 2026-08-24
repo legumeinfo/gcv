@@ -1,5 +1,5 @@
 // Angular
-import { AfterViewInit, Component, OnDestroy, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, OnDestroy, ViewChild, ChangeDetectionStrategy } from '@angular/core';
 import { Observable, Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 // app
@@ -17,6 +17,7 @@ import tippy from 'tippy.js';
     selector: 'gcv-gene',
     styleUrls: ['./gene.component.scss'],
     templateUrl: './gene.component.html',
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class GeneComponent implements AfterViewInit, OnDestroy {

@@ -1,6 +1,9 @@
 // Angular + dependencies
-import { AfterViewInit, Component, ElementRef, EventEmitter, Input, NgZone,
-  OnDestroy, Output, ViewChild } from '@angular/core';
+import {
+  AfterViewInit, Component, ElementRef, EventEmitter, Input, NgZone,
+  OnDestroy, Output, ViewChild,
+  ChangeDetectionStrategy
+} from '@angular/core';
 import { Observable, Subject, combineLatest } from 'rxjs';
 import { map, takeUntil } from 'rxjs/operators';
 // app
@@ -20,6 +23,7 @@ import { microLegendShim } from './micro-legend.shim';
     <gcv-context-menu (saveImage)="saveImage()"></gcv-context-menu>
     <div (gcvOnResize)="draw()" class="viewer" #container></div>
   `,
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class MicroLegendComponent implements AfterViewInit, OnDestroy {

@@ -1,6 +1,9 @@
 // Angular + dependencies
-import { AfterViewInit, Component, ElementRef, EventEmitter, Input, OnDestroy,
-  Output, ViewChild } from '@angular/core';
+import {
+  AfterViewInit, Component, ElementRef, EventEmitter, Input, OnDestroy,
+  Output, ViewChild,
+  ChangeDetectionStrategy
+} from '@angular/core';
 import { Subject, combineLatest } from 'rxjs';
 import { mergeMap, takeUntil } from 'rxjs/operators';
 // app
@@ -17,6 +20,7 @@ import { macroLegendShim } from './macro-legend.shim';
     <gcv-context-menu (saveImage)="saveImage()"></gcv-context-menu>
     <div (gcvOnResize)="draw()" class="viewer" #container></div>
   `,
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class MacroLegendComponent implements AfterViewInit, OnDestroy {

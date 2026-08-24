@@ -1,5 +1,5 @@
 // Angular
-import { Component } from '@angular/core';
+import { Component, ChangeDetectionStrategy } from '@angular/core';
 import { Observable, Subject } from 'rxjs';
 import { map } from 'rxjs/operators';
 // app
@@ -18,6 +18,7 @@ import { ParamsService } from '@gcv/gene/services';
 @Component({
     selector: 'gcv-filters',
     templateUrl: './filters.component.html',
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class FiltersComponent {

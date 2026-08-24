@@ -1,6 +1,9 @@
 // Angular + dependencies
-import { AfterViewInit, Component, ElementRef, EventEmitter, Input, OnDestroy,
-  OnInit, Output, ViewChild } from '@angular/core';
+import {
+  AfterViewInit, Component, ElementRef, EventEmitter, Input, OnDestroy,
+  OnInit, Output, ViewChild,
+  ChangeDetectionStrategy
+} from '@angular/core';
 import { Subject, combineLatest } from 'rxjs';
 import { filter, map, mergeAll, mergeMap, switchMap, takeUntil }
   from 'rxjs/operators';
@@ -26,6 +29,7 @@ import { macroShim } from './macro.shim';
     </gcv-context-menu>
     <div (gcvOnResize)="draw()" class="viewer" #container></div>
   `,
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class MacroComponent implements AfterViewInit, OnDestroy, OnInit {

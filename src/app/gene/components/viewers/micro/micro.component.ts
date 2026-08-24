@@ -1,6 +1,9 @@
 // Angular + dependencies
-import { AfterViewInit, Component, ElementRef, EventEmitter, Input, OnDestroy,
-  OnInit, Output, ViewChild } from '@angular/core';
+import {
+  AfterViewInit, Component, ElementRef, EventEmitter, Input, OnDestroy,
+  OnInit, Output, ViewChild,
+  ChangeDetectionStrategy
+} from '@angular/core';
 import { Observable, Subject, combineLatest } from 'rxjs';
 import { map, switchMap, takeUntil } from 'rxjs/operators';
 // app
@@ -53,6 +56,7 @@ import { microShim } from './micro.shim';
     </gcv-context-menu>
     <div (gcvOnResize)="draw()" class="viewer" #container></div>
     `,
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class MicroComponent implements AfterViewInit, OnDestroy, OnInit {

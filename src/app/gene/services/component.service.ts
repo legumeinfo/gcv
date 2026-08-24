@@ -1,5 +1,5 @@
 // Angular
-import { ApplicationRef, ComponentFactoryResolver, ComponentRef,
+import { ApplicationRef, ComponentRef, createComponent,
   EmbeddedViewRef, Injectable, Injector, NgZone } from '@angular/core';
 // store
 import { Store } from '@ngrx/store';
@@ -13,18 +13,17 @@ import { HttpService } from '@gcv/core/services/http.service';
 export class ComponentService {
 
   constructor(private _appRef: ApplicationRef,
-              private _componentFactoryResolver: ComponentFactoryResolver,
               private _injector: Injector,
               private _zone: NgZone) { }
 
   createComponent(component, element, inputs, outputs): ComponentRef<any> {
-    const factory =
-      this._componentFactoryResolver.resolveComponentFactory(component);
-    //const providers = Object.keys(inputs).map((i) => {
-    //    return {provide: i, useValue: inputs[i]};
-    //  });
-    //const injector = Injector.create({providers});
-    const componentRef = factory.create(this._injector);
+    // v22 removed ComponentFactoryResolver; createComponent takes the class
+    // directly, with the ApplicationRef's EnvironmentInjector and the root
+    // element injector (preserving the previous factory.create(injector)).
+    const componentRef = createComponent(component, {
+      environmentInjector: this._appRef.injector,
+      elementInjector: this._injector,
+    });
     Object.keys(inputs).forEach((i) => componentRef.instance[i] = inputs[i]);
     Object.keys(outputs).forEach((o) => {
       componentRef.instance[o].subscribe((...args) => {

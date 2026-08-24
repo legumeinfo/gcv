@@ -1,7 +1,10 @@
 // Angular
 import { Location } from '@angular/common';
-import { AfterViewInit, Component, ElementRef, Input, OnDestroy, OnInit,
-  ViewChild } from '@angular/core';
+import {
+  AfterViewInit, Component, ElementRef, Input, OnDestroy, OnInit,
+  ViewChild,
+  ChangeDetectionStrategy
+} from '@angular/core';
 import { Subject, combineLatest } from 'rxjs';
 import { map, mergeMap, switchMap, takeUntil } from 'rxjs/operators';
 // app
@@ -26,6 +29,7 @@ import { macroCircosShim } from './macro-circos.shim';
     </gcv-context-menu>
     <div (gcvOnResize)="draw()" class="viewer" #container></div>
   `,
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class MacroCircosComponent implements AfterViewInit, OnDestroy, OnInit {

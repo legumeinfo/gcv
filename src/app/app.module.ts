@@ -1,5 +1,5 @@
 // Angular
-import { HttpClient, provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
+import { HttpClient, provideHttpClient, withInterceptorsFromDi, withXhr } from '@angular/common/http';
 import { NgModule, NO_ERRORS_SCHEMA, inject, provideAppInitializer } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
@@ -38,7 +38,11 @@ import { RouterEffects } from '@gcv/store/effects';
                 strictActionImmutability: true,
                 strictStateSerializability: false, // classes are not serializable...
                 strictActionSerializability: false, // breaks router store serializer
-                strictActionWithinNgZone: true,
+                // Off under Angular 22: router-store emits navigation outside
+                // NgZone, so clearResults dispatches [SEARCH] CLEAR out-of-zone.
+                // Dev-mode-only check; prod builds are unaffected. Revisit when
+                // NgRx 22 (GA) restores zone coordination.
+                strictActionWithinNgZone: false,
                 strictActionTypeUniqueness: true,
             },
             initialState: {
@@ -64,6 +68,6 @@ import { RouterEffects } from '@gcv/store/effects';
             useClass: CustomRouterStateSerializer,
         },
         ...fromGuards.guards,
-        provideHttpClient(withInterceptorsFromDi()),
+        provideHttpClient(withXhr(), withInterceptorsFromDi()),
     ] })
 export class AppModule { }

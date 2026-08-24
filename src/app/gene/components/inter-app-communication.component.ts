@@ -1,11 +1,12 @@
 // Angular + dependencies
-import { Component } from '@angular/core';
+import { Component, ChangeDetectionStrategy } from '@angular/core';
 // app
 import { InterAppCommunicationService } from '@gcv/gene/services';
 
 @Component({
     selector: 'gcv-inter-app-communication',
     templateUrl: './inter-app-communication.component.html',
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class InterAppCommunicationComponent {

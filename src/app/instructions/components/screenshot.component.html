@@ -20,7 +20,7 @@
         @if (screenshot.responsive) {
           <img [attr.data-srcset]="screenshot.responsive" [attr.data-sizes]="modalSizes(screenshot.responsive)" alt="{{ alt }}">
         } @else {
-          <img data-src="{{ screenshot.img }}" alt="{{ alt }}">
+          <img [attr.data-src]="screenshot.img" alt="{{ alt }}">
         }
       </div>
       <div class="modal-footer">

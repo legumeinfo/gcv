@@ -1,5 +1,5 @@
 // Angular
-import { Component } from '@angular/core';
+import { Component, ChangeDetectionStrategy } from '@angular/core';
 import { Observable } from 'rxjs';
 // app
 import { LayoutService } from '@gcv/gene/services';
@@ -25,6 +25,7 @@ import { LayoutService } from '@gcv/gene/services';
       </li>
     </ul>
   `,
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class HeaderLeftComponent {

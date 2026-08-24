@@ -1,5 +1,5 @@
 // Angular
-import { Component, NgZone, OnInit } from '@angular/core';
+import { Component, NgZone, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { NavigationStart, PRIMARY_OUTLET, Router } from '@angular/router';
 // store
 import { Store } from '@ngrx/store';
@@ -14,6 +14,7 @@ declare var window: any;
     <gcv-header></gcv-header>
     <router-outlet></router-outlet>
   `,
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class AppComponent implements OnInit {

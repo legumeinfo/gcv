@@ -1,5 +1,5 @@
 // Angular
-import { Component } from '@angular/core';
+import { Component, ChangeDetectionStrategy } from '@angular/core';
 // app
 import { AppConfig, Brand, Dashboard } from '@gcv/core/models';
 
@@ -8,6 +8,7 @@ import { AppConfig, Brand, Dashboard } from '@gcv/core/models';
     selector: 'gcv-instructions',
     styleUrls: ['./instructions.component.scss'],
     templateUrl: './instructions.component.html',
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class InstructionsComponent {
