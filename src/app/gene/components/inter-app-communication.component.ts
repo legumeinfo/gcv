@@ -4,14 +4,13 @@ import { Component, ChangeDetectionStrategy, inject } from '@angular/core';
 import { InterAppCommunicationService } from '@gcv/gene/services';
 
 @Component({
-    selector: 'gcv-inter-app-communication',
-    templateUrl: './inter-app-communication.component.html',
-    changeDetection: ChangeDetectionStrategy.Eager,
-    standalone: false
+  selector: 'gcv-inter-app-communication',
+  templateUrl: './inter-app-communication.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
+  standalone: false,
 })
 export class InterAppCommunicationComponent {
   private _communicationService = inject(InterAppCommunicationService);
-
 
   alert = {
     class: '',
@@ -20,7 +19,7 @@ export class InterAppCommunicationComponent {
   };
 
   private _typingTimer;
-  private _doneTypingInterval = 1000;  // 1 seconds
+  private _doneTypingInterval = 1000; // 1 seconds
 
   constructor() {
     this._alert();
@@ -48,7 +47,7 @@ export class InterAppCommunicationComponent {
     this._alert();
   }
 
-  private _setAlert(type, message, working=false): void {
+  private _setAlert(type, message, working = false): void {
     this.alert.class = `rounded-0 alert alert-${type}`;
     this.alert.message = message;
     this.alert.working = working;

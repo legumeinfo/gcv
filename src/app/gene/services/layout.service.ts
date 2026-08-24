@@ -7,11 +7,9 @@ import * as layoutActions from '@gcv/gene/store/actions/layout.actions';
 import * as fromRoot from '@gcv/store/reducers';
 import * as fromLayout from '@gcv/gene/store/selectors/layout';
 
-
 @Injectable()
 export class LayoutService {
   private _store = inject<Store<fromRoot.State>>(Store);
-
 
   getLeftSliderState(): Observable<boolean> {
     return this._store.select(fromLayout.getShowLeftSlider);
@@ -34,7 +32,6 @@ export class LayoutService {
   }
 
   toggleLeftSliderContent(content: string) {
-    this._store.dispatch(layoutActions.ToggleLeftSliderContent({content}));
+    this._store.dispatch(layoutActions.ToggleLeftSliderContent({ content }));
   }
-
 }

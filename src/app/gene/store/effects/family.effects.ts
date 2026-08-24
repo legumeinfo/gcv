@@ -9,15 +9,14 @@ import * as fromRoot from '@gcv/store/reducers';
 import * as fromGene from '@gcv/gene/store/selectors/gene/';
 // app
 
-
 @Injectable()
 export class FamilyEffects {
   private _store = inject<Store<fromRoot.State>>(Store);
 
-
   // clear the store every time the set of selected genes changes
-  clear = createEffect(() => { return this._store.select(fromGene.getSelectedGeneIDs).pipe(
-    map((...args) => familyActions.Clear()),
-  ) });
-
+  clear = createEffect(() => {
+    return this._store
+      .select(fromGene.getSelectedGeneIDs)
+      .pipe(map((...args) => familyActions.Clear()));
+  });
 }

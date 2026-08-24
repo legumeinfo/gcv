@@ -6,16 +6,14 @@ import { getSearchState } from './search-state.selector';
 // app
 import { memoizeArray } from '@gcv/core/utils';
 
-
 export const getResultGenes = createSelectorFactory(memoizeArray)(
   getSearchState,
-  (state: State): {source: string, name: string}[] => state.genes,
+  (state: State): { source: string; name: string }[] => state.genes,
 );
-
 
 export const getResultRegions = createSelectorFactory(memoizeArray)(
   getSearchState,
-  (state: State): {source: string, gene: string, neighbors: number}[] => {
+  (state: State): { source: string; gene: string; neighbors: number }[] => {
     return state.regions;
   },
 );

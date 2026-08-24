@@ -1,5 +1,12 @@
 // Angular
-import { Component, Input, OnDestroy, OnInit, ChangeDetectionStrategy, inject } from '@angular/core';
+import {
+  Component,
+  Input,
+  OnDestroy,
+  OnInit,
+  ChangeDetectionStrategy,
+  inject,
+} from '@angular/core';
 import { Subject } from 'rxjs';
 import { filter, switchMap, take, takeUntil } from 'rxjs/operators';
 // App
@@ -7,14 +14,19 @@ import { AppConfig } from '@gcv/core/models';
 import { RegionService, GeneService } from '@gcv/gene/services';
 import { Track } from '@gcv/gene/models';
 
-
 @Component({
-    selector: 'gcv-track-detail',
-    styleUrls: ['../details.scss'],
-    template: `
+  selector: 'gcv-track-detail',
+  styleUrls: ['../details.scss'],
+  template: `
     <div class="details">
       <h4>{{ track.genus[0] }}.{{ track.species }} - {{ track.name }}</h4>
-      <p><a [routerLink]="['/search', track.source, focus]" queryParamsHandling="merge">Search for similar contexts</a></p>
+      <p>
+        <a
+          [routerLink]="['/search', track.source, focus]"
+          queryParamsHandling="merge"
+          >Search for similar contexts</a
+        >
+      </p>
       <ul>
         @for (link of regionLinks; track link) {
           <li>
@@ -30,7 +42,10 @@ import { Track } from '@gcv/gene/models';
             @if (familyTreeLink !== '' && track.families[i] !== '') {
               <ul>
                 <li>
-                  Family: <a href="{{ familyTreeLink }}{{ track.families[i] }}">{{ track.families[i] }}</a>
+                  Family:
+                  <a href="{{ familyTreeLink }}{{ track.families[i] }}">{{
+                    track.families[i]
+                  }}</a>
                 </li>
               </ul>
             }
@@ -38,15 +53,14 @@ import { Track } from '@gcv/gene/models';
         }
       </ul>
     </div>
-    `,
-    changeDetection: ChangeDetectionStrategy.Eager,
-    standalone: false
+  `,
+  changeDetection: ChangeDetectionStrategy.Eager,
+  standalone: false,
 })
 export class TrackDetailComponent implements OnDestroy, OnInit {
   private _appConfig = inject(AppConfig);
   private _geneService = inject(GeneService);
   private _regionService = inject(RegionService);
-
 
   @Input() track: Track;
 
@@ -82,23 +96,28 @@ export class TrackDetailComponent implements OnDestroy, OnInit {
 
     // get region details
     const first = this.track.genes[0];
-    const last = this.track.genes[this.track.genes.length-1];
-    this._geneService.getGenes([first, last], this.track.source)
+    const last = this.track.genes[this.track.genes.length - 1];
+    this._geneService
+      .getGenes([first, last], this.track.source)
       .pipe(
         filter((genes) => genes.length >= 2),
         switchMap((genes) => {
           const fmin = Math.min(genes[0].fmin, genes[1].fmin);
           const fmax = Math.max(genes[0].fmax, genes[1].fmax);
-          return this._regionService
-            .getRegionDetails(this.track.name, fmin, fmax, this.track.source);
+          return this._regionService.getRegionDetails(
+            this.track.name,
+            fmin,
+            fmax,
+            this.track.source,
+          );
         }),
         takeUntil(this._destroy),
-        take(1))
+        take(1),
+      )
       .subscribe((links) => this._processRegionLinks(links));
   }
 
   private _processRegionLinks(links: any[]) {
     this.regionLinks = links;
   }
-
 }

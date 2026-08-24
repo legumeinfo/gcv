@@ -1,5 +1,11 @@
 // Angular
-import { OnInit, Component, Input, ChangeDetectionStrategy, inject } from '@angular/core';
+import {
+  OnInit,
+  Component,
+  Input,
+  ChangeDetectionStrategy,
+  inject,
+} from '@angular/core';
 import { Observable } from 'rxjs';
 import { filter, map, mergeAll, switchMap } from 'rxjs/operators';
 // app
@@ -8,41 +14,40 @@ import { PairwiseBlock, PairwiseBlocks } from '@gcv/gene/models';
 import { endpointGenes, nameSourceID } from '@gcv/gene/models/shims';
 import { ChromosomeService, GeneService } from '@gcv/gene/services';
 
-
 @Component({
-    selector: 'gcv-macro-block-tooltip',
-    template: `
+  selector: 'gcv-macro-block-tooltip',
+  template: `
     <!--
     <b>{{ pairwiseBlocks.reference }}</b> ({{ pairwiseBlocks.referenceSource }})
     <div *ngIf="referenceInterval|async; let interval">
       {{ interval.fmin }}-{{ interval.fmax }}
     </div>
     -->
-    <b>{{ pairwiseBlocks.chromosome }}</b> ({{ pairwiseBlocks.chromosomeSource }})
-    <div>
-      {{ block.fmin }}-{{ block.fmax }}
-    </div>
+    <b>{{ pairwiseBlocks.chromosome }}</b> ({{
+      pairwiseBlocks.chromosomeSource
+    }})
+    <div>{{ block.fmin }}-{{ block.fmax }}</div>
   `,
-    changeDetection: ChangeDetectionStrategy.Eager,
-    standalone: false
+  changeDetection: ChangeDetectionStrategy.Eager,
+  standalone: false,
 })
 export class MacroBlockTooltipComponent implements OnInit {
   private _chromosomeService = inject(ChromosomeService);
   private _geneService = inject(GeneService);
 
-
   @Input() pairwiseBlocks: PairwiseBlocks;
   @Input() block: PairwiseBlock;
 
-  referenceInterval: Observable<{fmin: number, fmax: number}>;
+  referenceInterval: Observable<{ fmin: number; fmax: number }>;
 
   // Angular hooks
 
   ngOnInit() {
-    const {reference, referenceSource} = this.pairwiseBlocks;
+    const { reference, referenceSource } = this.pairwiseBlocks;
     const referenceID = nameSourceID(reference, referenceSource);
-    this.referenceInterval =
-      this._chromosomeService.getSelectedChromosomes().pipe(
+    this.referenceInterval = this._chromosomeService
+      .getSelectedChromosomes()
+      .pipe(
         mergeAll(),
         filter((c) => referenceID == nameSourceID(c.name, c.source)),
         map((c) => endpointGenes(c, [this.block.i, this.block.j])),
@@ -53,11 +58,10 @@ export class MacroBlockTooltipComponent implements OnInit {
               const geneLociPoints = arrayFlatten(geneLoci);
               const fmin = Math.min(...geneLociPoints);
               const fmax = Math.max(...geneLociPoints);
-              return {fmin, fmax};
+              return { fmin, fmax };
             }),
           );
         }),
       );
   }
-
 }

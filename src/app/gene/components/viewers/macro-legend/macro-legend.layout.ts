@@ -1,24 +1,28 @@
 import { MacroLegendComponent } from './macro-legend.component';
 
+export const macroLegendLayoutComponent = {
+  component: MacroLegendComponent,
+  name: 'macrolegend',
+};
 
-export const macroLegendLayoutComponent = 
-  {component: MacroLegendComponent, name: 'macrolegend'};
-
-
-export function macroLegendConfigFactory(outputs: any={}) {
+export function macroLegendConfigFactory(outputs: any = {}) {
   const id = 'macrolegend';
   const options = {};
-  let _outputs = {click: (id, organism) => { /* no-op */ }};
+  let _outputs = {
+    click: (id, organism) => {
+      /* no-op */
+    },
+  };
   _outputs = Object.assign(_outputs, outputs);
-  return  {
+  return {
     type: 'component',
     componentType: 'macrolegend',
     id: id,
     title: 'Macro Synteny Legend',
     componentState: {
-      inputs: {options},
-      outputs: {click: (organism) => _outputs.click(id, organism)},
+      inputs: { options },
+      outputs: { click: (organism) => _outputs.click(id, organism) },
     },
-    isClosable: false
+    isClosable: false,
   };
 }

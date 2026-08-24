@@ -1,27 +1,40 @@
 // Angular
-import { Component, Input, OnDestroy, OnInit, ChangeDetectionStrategy, inject } from '@angular/core';
+import {
+  Component,
+  Input,
+  OnDestroy,
+  OnInit,
+  ChangeDetectionStrategy,
+  inject,
+} from '@angular/core';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 // App
 import { AppConfig } from '@gcv/core/models';
 import { MicroTracksService } from '@gcv/gene/services';
 
-
 @Component({
-    selector: 'gcv-family-detail',
-    styleUrls: ['../details.scss'],
-    template: `
+  selector: 'gcv-family-detail',
+  styleUrls: ['../details.scss'],
+  template: `
     <div class="details">
-      <h4>{{family.name}}</h4>
-      <p><a [routerLink]="['/gene', geneMatrix]" queryParamsHandling="merge">View genes in multi-alignment view</a></p>
-      <p>Phylograms: @if (familyTreeLinks.length === 0) {
-        <span>none</span>
-      }</p>
+      <h4>{{ family.name }}</h4>
+      <p>
+        <a [routerLink]="['/gene', geneMatrix]" queryParamsHandling="merge"
+          >View genes in multi-alignment view</a
+        >
+      </p>
+      <p>
+        Phylograms:
+        @if (familyTreeLinks.length === 0) {
+          <span>none</span>
+        }
+      </p>
       @if (familyTreeLinks.length > 0) {
         <ul>
           @for (link of familyTreeLinks; track link) {
             <li>
-              <a href="{{link.url}}">{{link.text}}</a>
+              <a href="{{ link.url }}">{{ link.text }}</a>
             </li>
           }
         </ul>
@@ -33,16 +46,15 @@ import { MicroTracksService } from '@gcv/gene/services';
         }
       </ul>
     </div>
-    `,
-    changeDetection: ChangeDetectionStrategy.Eager,
-    standalone: false
+  `,
+  changeDetection: ChangeDetectionStrategy.Eager,
+  standalone: false,
 })
 export class FamilyDetailComponent implements OnDestroy, OnInit {
   private _appConfig = inject(AppConfig);
   private _microTracksService = inject(MicroTracksService);
 
-
-  @Input() family: {id: string, name: string};
+  @Input() family: { id: string; name: string };
 
   private _serverIDs: string[];
   private _destroy: Subject<boolean> = new Subject();
@@ -66,7 +78,8 @@ export class FamilyDetailComponent implements OnDestroy, OnInit {
 
   ngOnInit() {
     const tracks = this._microTracksService.getAllTracks();
-    tracks.pipe(takeUntil(this._destroy))
+    tracks
+      .pipe(takeUntil(this._destroy))
       .subscribe((tracks) => this._process(tracks));
   }
 
@@ -75,13 +88,13 @@ export class FamilyDetailComponent implements OnDestroy, OnInit {
   private _process(tracks) {
     this.geneMatrix = {};
     this.genes = [];
-    const {id} = this.family;
+    const { id } = this.family;
 
-    tracks.forEach(({source, families, genes}) => {
+    tracks.forEach(({ source, families, genes }) => {
       const familyGenes = genes.filter((g, i) => {
-          const f = families[i];
-          return (f.length > 0 && id.includes(f)) || f === id;
-        });
+        const f = families[i];
+        return (f.length > 0 && id.includes(f)) || f === id;
+      });
       if (familyGenes.length > 0) {
         if (!(source in this.geneMatrix)) {
           this.geneMatrix[source] = [];

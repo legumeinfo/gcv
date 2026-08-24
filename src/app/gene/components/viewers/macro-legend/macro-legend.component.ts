@@ -1,5 +1,16 @@
 // Angular + dependencies
-import { AfterViewInit, Component, ElementRef, EventEmitter, Input, OnDestroy, Output, ViewChild, ChangeDetectionStrategy, inject } from '@angular/core';
+import {
+  AfterViewInit,
+  Component,
+  ElementRef,
+  EventEmitter,
+  Input,
+  OnDestroy,
+  Output,
+  ViewChild,
+  ChangeDetectionStrategy,
+  inject,
+} from '@angular/core';
 import { Subject, combineLatest } from 'rxjs';
 import { mergeMap, takeUntil } from 'rxjs/operators';
 // app
@@ -8,28 +19,28 @@ import { saveFile } from '@gcv/core/utils';
 import { MicroTracksService, PairwiseBlocksService } from '@gcv/gene/services';
 import { macroLegendShim } from './macro-legend.shim';
 
-
 @Component({
-    selector: 'gcv-macro-legend',
-    styleUrls: ['../golden-viewer.scss'],
-    template: `
+  selector: 'gcv-macro-legend',
+  styleUrls: ['../golden-viewer.scss'],
+  template: `
     <gcv-context-menu (saveImage)="saveImage()"></gcv-context-menu>
     <div (gcvOnResize)="draw()" class="viewer" #container></div>
   `,
-    changeDetection: ChangeDetectionStrategy.Eager,
-    standalone: false
+  changeDetection: ChangeDetectionStrategy.Eager,
+  standalone: false,
 })
 export class MacroLegendComponent implements AfterViewInit, OnDestroy {
   private _microTracksService = inject(MicroTracksService);
   private _pairwiseBlocksService = inject(PairwiseBlocksService);
 
-
   @Input() options: any = {};
   @Output() click = new EventEmitter();
 
-  @ViewChild('container', {static: true}) container: ElementRef;
+  @ViewChild('container', { static: true }) container: ElementRef;
 
-  draw = () => { /* no-op */ };
+  draw = () => {
+    /* no-op */
+  };
 
   private _destroy: Subject<boolean> = new Subject();
   private _viewer;
@@ -40,12 +51,11 @@ export class MacroLegendComponent implements AfterViewInit, OnDestroy {
     // fetch own data because injected components don't have change detection
     const selectedTracks = this._microTracksService.getSelectedTracks();
     const tracks = this._microTracksService.getAllTracks();
-    const colors = selectedTracks
-      .pipe(
-        mergeMap((queries) => {
-          return this._pairwiseBlocksService.getMacroColors();
-        })
-      );
+    const colors = selectedTracks.pipe(
+      mergeMap((queries) => {
+        return this._pairwiseBlocksService.getMacroColors();
+      }),
+    );
     combineLatest(selectedTracks, tracks, colors)
       .pipe(takeUntil(this._destroy))
       .subscribe(([queries, tracks, colors]) => {
@@ -82,25 +92,26 @@ export class MacroLegendComponent implements AfterViewInit, OnDestroy {
   }
 
   private _preDraw(queries, tracks, colors): void {
-    const {data, highlight, selector} = macroLegendShim(queries, tracks);
-    let options = {highlight, selector};
-    options = Object.assign(options, this.options, {autoResize: false});
+    const { data, highlight, selector } = macroLegendShim(queries, tracks);
+    let options = { highlight, selector };
+    options = Object.assign(options, this.options, { autoResize: false });
     this.draw = this._draw.bind(this, colors, data, options);
   }
 
   private _draw(colors, data, options) {
     let tempViewer: any;
     const dim = Math.min(
-        this.container.nativeElement.clientWidth,
-        this.container.nativeElement.clientHeight
-      );
+      this.container.nativeElement.clientWidth,
+      this.container.nativeElement.clientHeight,
+    );
     // draw the new viewer before destroying the old to preserve scroll position
     if (dim > 0) {
       tempViewer = new GCV.visualization.Legend(
-          this.container.nativeElement,
-          colors,
-          data,
-          options);
+        this.container.nativeElement,
+        colors,
+        data,
+        options,
+      );
     }
     this._destroyViewer();
     this._viewer = tempViewer;

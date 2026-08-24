@@ -1,8 +1,7 @@
-import { repeat } from "./repeat";
+import { repeat } from './repeat';
 
-describe("repeat (Durbin repeat-finding local alignment)", () => {
-
-  const genes = (letters: string): string[] => letters.split("");
+describe('repeat (Durbin repeat-finding local alignment)', () => {
+  const genes = (letters: string): string[] => letters.split('');
 
   // NB: repeat() reads the `reversals` option (not `reverse`). Passing
   // `reverse` here would be silently ignored, leaving reversals at their
@@ -12,9 +11,9 @@ describe("repeat (Durbin repeat-finding local alignment)", () => {
 
   // ── Single block ───────────────────────────────────────────────
 
-  it("finds a single exact match block within the reference", () => {
-    const seq = genes("ABC");
-    const ref = genes("XYZABCGGG");
+  it('finds a single exact match block within the reference', () => {
+    const seq = genes('ABC');
+    const ref = genes('XYZABCGGG');
     const result = R(ref, seq);
     expect(result.length).toBe(1);
     expect(result[0].score).toBe(15);
@@ -26,10 +25,10 @@ describe("repeat (Durbin repeat-finding local alignment)", () => {
 
   // ── Repeated elements ──────────────────────────────────────────
 
-  it("finds blocks across non-contiguous reference regions", () => {
+  it('finds blocks across non-contiguous reference regions', () => {
     // Seq "ABCDE" has "AB" at ref[2..3] and "CD" at ref[7..8].
-    const seq = genes("ABCDE");
-    const ref = genes("ABABFGHCD");
+    const seq = genes('ABCDE');
+    const ref = genes('ABABFGHCD');
     const result = R(ref, seq);
     // The repeat algorithm maps each seq position to its best match.
     // seq[0]=A→ref[2], seq[1]=B→ref[3], seq[2]=C→ref[7], seq[3]=D→ref[8], seq[4]=E→null
@@ -40,18 +39,18 @@ describe("repeat (Durbin repeat-finding local alignment)", () => {
 
   // ── No match ───────────────────────────────────────────────────
 
-  it("returns empty array when the sequence has no matching blocks", () => {
-    const seq = genes("ABC");
-    const ref = genes("DEFGHI");
+  it('returns empty array when the sequence has no matching blocks', () => {
+    const seq = genes('ABC');
+    const ref = genes('DEFGHI');
     const result = R(ref, seq);
     expect(result.length).toBe(0);
   });
 
   // ── Custom scores ──────────────────────────────────────────────
 
-  it("respects custom match/mismatch/gap scores", () => {
-    const seq = genes("ABC");
-    const ref = genes("ABC");
+  it('respects custom match/mismatch/gap scores', () => {
+    const seq = genes('ABC');
+    const ref = genes('ABC');
     const result = R(ref, seq, {
       scores: { match: 2, mismatch: -3, gap: -1 },
     });
@@ -61,13 +60,13 @@ describe("repeat (Durbin repeat-finding local alignment)", () => {
 
   // ── Threshold ───────────────────────────────────────────────────
 
-  it("keeps a block at/above the threshold and filters one below it", () => {
+  it('keeps a block at/above the threshold and filters one below it', () => {
     // ABC/ABC scores 15 with 3 aligned positions, clearing the internal
     // minimum-length filter, so the threshold is the deciding factor. A
     // 2-element sequence would be dropped by the length filter first, making
     // any threshold assertion vacuous.
-    const seq = genes("ABC");
-    const ref = genes("ABC");
+    const seq = genes('ABC');
+    const ref = genes('ABC');
     const base = { match: 5, mismatch: 0, gap: -1 };
 
     // Unlike Smith-Waterman's post-hoc `sum >= threshold` gate, the repeat DP
@@ -90,21 +89,19 @@ describe("repeat (Durbin repeat-finding local alignment)", () => {
 
   // ── Inversions ─────────────────────────────────────────────────
 
-  it("detects inverted blocks when reverse and inversions are enabled", () => {
-    const seq = genes("ABC");
-    const ref = genes("CBA");
+  it('detects inverted blocks when reverse and inversions are enabled', () => {
+    const seq = genes('ABC');
+    const ref = genes('CBA');
     const result = repeat(ref, seq, { reverse: true, inversions: 2 });
-    const hasInverse = result.some((a) =>
-      a.orientations.some((o) => o === -1)
-    );
+    const hasInverse = result.some((a) => a.orientations.some((o) => o === -1));
     expect(hasInverse).toBe(true);
   });
 
   // ── Output invariants ──────────────────────────────────────────
 
-  it("alignment length equals sequence length for each block", () => {
-    const seq = genes("AB");
-    const ref = genes("XABYABZ");
+  it('alignment length equals sequence length for each block', () => {
+    const seq = genes('AB');
+    const ref = genes('XABYABZ');
     const result = R(ref, seq);
     for (const a of result) {
       expect(a.alignment.length).toBe(seq.length);
@@ -113,9 +110,9 @@ describe("repeat (Durbin repeat-finding local alignment)", () => {
     }
   });
 
-  it("orientation values are only null, 1, or -1", () => {
-    const seq = genes("ABCDEF");
-    const ref = genes("ABCDEF");
+  it('orientation values are only null, 1, or -1', () => {
+    const seq = genes('ABCDEF');
+    const ref = genes('ABCDEF');
     const result = repeat(ref, seq, { reverse: true, inversions: 2 });
     for (const a of result) {
       for (const o of a.orientations) {
@@ -126,9 +123,8 @@ describe("repeat (Durbin repeat-finding local alignment)", () => {
 
   // ── Edge cases ─────────────────────────────────────────────────
 
-  it("returns empty for an empty sequence", () => {
-    const result = R(genes("XYZ"), []);
+  it('returns empty for an empty sequence', () => {
+    const result = R(genes('XYZ'), []);
     expect(result.length).toBe(0);
   });
-
 });

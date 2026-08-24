@@ -1,41 +1,70 @@
 <main>
   <section class="py-5">
     <div class="container">
-
       <div class="row">
-        <p class="p-0">Showing results for <b>"{{ query|async }}"</b></p>
+        <p class="p-0">
+          Showing results for <b>"{{ query | async }}"</b>
+        </p>
       </div>
 
       <form class="row mb-3" (ngSubmit)="viewGenes()" #viewForm="ngForm">
         <div class="col-auto flex-grow-1">
           <div class="row">
-            <label class="col-auto col-form-label" for="neighbors">Neighbors</label>
+            <label class="col-auto col-form-label" for="neighbors"
+              >Neighbors</label
+            >
             <div class="col ps-0">
-              <input type="text" class="form-control" id="neighbors" name="neighbors" [(ngModel)]="model.neighbors">
+              <input
+                type="text"
+                class="form-control"
+                id="neighbors"
+                name="neighbors"
+                [(ngModel)]="model.neighbors"
+              />
             </div>
           </div>
         </div>
         <div class="col-auto ps-0">
-          <button class="btn btn-secondary dropdown-toggle" type="button" id="sources" data-bs-toggle="dropdown" aria-expanded="false">
+          <button
+            class="btn btn-secondary dropdown-toggle"
+            type="button"
+            id="sources"
+            data-bs-toggle="dropdown"
+            aria-expanded="false"
+          >
             Sources
           </button>
-          <select class="dropdown-menu dropdown-menu-end" multiple name="sources"
+          <select
+            class="dropdown-menu dropdown-menu-end"
+            multiple
+            name="sources"
             (click)="$event.stopPropagation()"
-            [(ngModel)]="model.sources">
+            [(ngModel)]="model.sources"
+          >
             @for (src of sources; track src) {
-              <option [value]="src.id">{{src.name}}</option>
+              <option [value]="src.id">{{ src.name }}</option>
             }
           </select>
         </div>
         <div class="col-auto ps-0">
-          <button type="submit" class="btn btn-primary" [disabled]="!canSubmit()">View selected genes</button>
+          <button
+            type="submit"
+            class="btn btn-primary"
+            [disabled]="!canSubmit()"
+          >
+            View selected genes
+          </button>
         </div>
       </form>
 
       <div class="row">
-        <p class="p-0">{{ (resultGenes|async).length }} gene@if ((resultGenes|async).length != 1) {
-          s
-        } returned</p>
+        <p class="p-0">
+          {{ (resultGenes | async).length }} gene
+          @if ((resultGenes | async).length != 1) {
+            s
+          }
+          returned
+        </p>
         <table class="table table-striped">
           <thead>
             <tr>
@@ -45,15 +74,26 @@
             </tr>
           </thead>
           <tbody>
-            @for (gene of resultGenes|async; track gene) {
+            @for (gene of resultGenes | async; track gene) {
               <tr>
                 <td>
                   <div class="form-check">
-                    <input type="checkbox" class="form-check-input" (change)="toggleGene($event, gene.name, gene.source)">
+                    <input
+                      type="checkbox"
+                      class="form-check-input"
+                      (change)="toggleGene($event, gene.name, gene.source)"
+                    />
                   </div>
                 </td>
                 <td>
-                  <a [routerLink]="['/gene', geneSourceToRouterGeneMatrix(gene.name, gene.source)]" [queryParams]="{}">{{ gene.name }}</a>
+                  <a
+                    [routerLink]="[
+                      '/gene',
+                      geneSourceToRouterGeneMatrix(gene.name, gene.source),
+                    ]"
+                    [queryParams]="{}"
+                    >{{ gene.name }}</a
+                  >
                 </td>
                 <td>{{ getServerName(gene.source) }}</td>
               </tr>
@@ -63,9 +103,11 @@
       </div>
 
       <div class="row">
-        {{ (resultRegions|async).length }} region@if ((resultRegions|async).length != 1) {
-        s
-        } returned
+        {{ (resultRegions | async).length }} region
+        @if ((resultRegions | async).length != 1) {
+          s
+        }
+        returned
         <table class="table table-striped">
           <thead>
             <tr>
@@ -74,10 +116,17 @@
             </tr>
           </thead>
           <tbody>
-            @for (region of resultRegions|async; track region) {
+            @for (region of resultRegions | async; track region) {
               <tr>
                 <td>
-                  <a [routerLink]="['/gene', geneSourceToRouterGeneMatrix(region.gene, region.source)]" [queryParams]="{neighbors: region.neighbors}">{{ region.gene }} ({{ region.neighbors }})</a>
+                  <a
+                    [routerLink]="[
+                      '/gene',
+                      geneSourceToRouterGeneMatrix(region.gene, region.source),
+                    ]"
+                    [queryParams]="{ neighbors: region.neighbors }"
+                    >{{ region.gene }} ({{ region.neighbors }})</a
+                  >
                 </td>
                 <td>{{ getServerName(region.source) }}</td>
               </tr>

@@ -4,19 +4,15 @@ import { Action, combineReducers, createFeatureSelector } from '@ngrx/store';
 import * as fromRoot from '@gcv/store/reducers';
 import * as fromSearch from './search.reducer';
 
-
 export const searchFeatureKey = 'searchmodule';
-
 
 export interface SearchState {
   [fromSearch.searchFeatureKey]: fromSearch.State;
 }
 
-
 export interface State extends fromRoot.State {
   [searchFeatureKey]: SearchState;
 }
-
 
 export function reducers(state: SearchState | undefined, action: Action) {
   return combineReducers({
@@ -25,5 +21,5 @@ export function reducers(state: SearchState | undefined, action: Action) {
 }
 
 // select the module's state
-export const getSearchModuleState = createFeatureSelector<SearchState>
-  (searchFeatureKey);
+export const getSearchModuleState =
+  createFeatureSelector<SearchState>(searchFeatureKey);

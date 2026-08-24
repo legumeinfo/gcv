@@ -1,9 +1,18 @@
-import { AppConfig, Brand, Communication, DashboardView, Dashboard,
-  Miscellaneous } from './app-config.model';
-import { OrganismPlaceholders, GenePlaceholders, RegionPlaceholders } from './placeholders.model';
+import {
+  AppConfig,
+  Brand,
+  Communication,
+  DashboardView,
+  Dashboard,
+  Miscellaneous,
+} from './app-config.model';
+import {
+  OrganismPlaceholders,
+  GenePlaceholders,
+  RegionPlaceholders,
+} from './placeholders.model';
 import { Script } from './script.model';
 import { GET, POST, Request, Server } from './server.model';
-
 
 export const models: any[] = [
   AppConfig,
@@ -21,7 +30,6 @@ export const models: any[] = [
   Script,
   Server,
 ];
-
 
 export * from './app-config.model';
 export * from './placeholders.model';

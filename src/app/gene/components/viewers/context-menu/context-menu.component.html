@@ -7,14 +7,34 @@
           <ng-content select="[navright]"></ng-content>
           <ul class="navbar-nav ms-auto">
             <li class="nav-item dropdown" [hidden]="!showDropdown()">
-              <a class="nav-link dropdown-toggle" href="" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+              <a
+                class="nav-link dropdown-toggle"
+                href=""
+                id="navbarDropdown"
+                role="button"
+                data-bs-toggle="dropdown"
+                aria-expanded="false"
+              >
               </a>
-              <div class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownMenuLink" #dropdown>
+              <div
+                class="dropdown-menu dropdown-menu-end"
+                aria-labelledby="dropdownMenuLink"
+                #dropdown
+              >
                 @if (showImage()) {
-                  <a class="dropdown-item native" (click)="imageClick()">Screenshot<span class="float-end"><i class="fas fa-camera" aria-hidden="true"></i></span></a>
+                  <a class="dropdown-item native" (click)="imageClick()"
+                    >Screenshot<span class="float-end"
+                      ><i class="fas fa-camera" aria-hidden="true"></i></span
+                  ></a>
                 }
                 @if (showData()) {
-                  <a class="dropdown-item native" (click)="dataClick()">Download<span class="float-end"><i class="fas fa-arrow-down" aria-hidden="true"></i></span></a>
+                  <a class="dropdown-item native" (click)="dataClick()"
+                    >Download<span class="float-end"
+                      ><i
+                        class="fas fa-arrow-down"
+                        aria-hidden="true"
+                      ></i></span
+                  ></a>
                 }
                 <div class="dropdown-divider" [hidden]="!showSeparator()"></div>
                 <ng-content select="[dropdown]"></ng-content>

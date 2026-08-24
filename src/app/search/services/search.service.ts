@@ -12,9 +12,11 @@ import { AppConfig, ConfigError, GET, POST, GRPC } from '@gcv/core/models';
 import { Result } from '@gcv/search/models';
 import { HttpService } from '@gcv/core/services/http.service';
 // api
-import { SearchPromiseClient, SearchReply, SearchRequest }
-  from 'legumeinfo-microservices/dist/search_service/v1';
-
+import {
+  SearchPromiseClient,
+  SearchReply,
+  SearchRequest,
+} from 'legumeinfo-microservices/dist/search_service/v1';
 
 @Injectable()
 export class SearchService extends HttpService {
@@ -22,21 +24,21 @@ export class SearchService extends HttpService {
   private _http: HttpClient;
   private _store = inject<Store<fromRoot.State>>(Store);
 
-
   constructor() {
     const _http = inject(HttpClient);
 
     super(_http);
-  
+
     this._http = _http;
   }
 
   search(query: string, serverID: string): Observable<Result> {
     const request = this._appConfig.getServerRequest(serverID, 'search');
     if (request.type === GET || request.type === POST) {
-      const body = {q: query};
-      return this._makeHttpRequest<Result>(request, body)
-        .pipe(catchError((error) => throwError(error)));
+      const body = { q: query };
+      return this._makeHttpRequest<Result>(request, body).pipe(
+        catchError((error) => throwError(error)),
+      );
     } else if (request.type === GRPC) {
       const client = new SearchPromiseClient(request.url);
       const grpcRequest = new SearchRequest();
@@ -46,12 +48,14 @@ export class SearchService extends HttpService {
         map((result: SearchReply) => {
           const genes = result.getGenesList();
           const regions = result.getRegionsList().map((r) => r.toObject());
-          return {genes, regions};
+          return { genes, regions };
         }),
         catchError((error) => throwError(error)),
       );
     }
-    const error = new ConfigError('Unsupported request type \'' + request.type + '\'');
+    const error = new ConfigError(
+      "Unsupported request type '" + request.type + "'",
+    );
     return throwError(error);
   }
 
@@ -59,13 +63,13 @@ export class SearchService extends HttpService {
     return this._store.select(fromSearch.getQuery);
   }
 
-  getSearchResultGenes(): Observable<{source: string, name: string}[]> {
+  getSearchResultGenes(): Observable<{ source: string; name: string }[]> {
     return this._store.select(fromSearch.getResultGenes);
   }
 
-  getSearchResultRegions():
-  Observable<{source: string, gene: string, neighbors: number}[]> {
+  getSearchResultRegions(): Observable<
+    { source: string; gene: string; neighbors: number }[]
+  > {
     return this._store.select(fromSearch.getResultRegions);
   }
-
 }

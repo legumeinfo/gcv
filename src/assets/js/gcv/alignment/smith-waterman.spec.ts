@@ -1,8 +1,7 @@
-import { smithWaterman } from "./smith-waterman";
+import { smithWaterman } from './smith-waterman';
 
-describe("smithWaterman", () => {
-
-  const genes = (letters: string): string[] => letters.split("");
+describe('smithWaterman', () => {
+  const genes = (letters: string): string[] => letters.split('');
 
   /**
    * Convenience: pure forward Smith-Waterman (no reverse/inversions).
@@ -13,18 +12,18 @@ describe("smithWaterman", () => {
 
   // ── Perfect matches ────────────────────────────────────────────
 
-  it("aligns identical sequences to a perfect 1:1 mapping with full score", () => {
-    const seq = genes("ABCDE");
-    const ref = genes("ABCDE");
+  it('aligns identical sequences to a perfect 1:1 mapping with full score', () => {
+    const seq = genes('ABCDE');
+    const ref = genes('ABCDE');
     const result = SW(ref, seq);
     expect(result.length).toBe(1);
     expect(result[0].alignment).toEqual([0, 1, 2, 3, 4]);
     expect(result[0].score).toBe(25);
   });
 
-  it("aligns a sequence that contains an exact match substring of the reference", () => {
-    const seq = genes("ABCDEFG");
-    const ref = genes("DEFG");
+  it('aligns a sequence that contains an exact match substring of the reference', () => {
+    const seq = genes('ABCDEFG');
+    const ref = genes('DEFG');
     const result = SW(ref, seq);
     expect(result.length).toBe(1);
     expect(result[0].alignment).toEqual([null, null, null, 0, 1, 2, 3]);
@@ -33,21 +32,21 @@ describe("smithWaterman", () => {
 
   // ── Mismatches ─────────────────────────────────────────────────
 
-  it("maps mismatch positions to the correct reference index", () => {
-    const seq = genes("ABXD");
-    const ref = genes("ABCD");
+  it('maps mismatch positions to the correct reference index', () => {
+    const seq = genes('ABXD');
+    const ref = genes('ABCD');
     const result = SW(ref, seq);
     expect(result.length).toBe(1);
     // X at seq[2] maps to ref[2]=C (mismatched but included in the block)
     expect(result[0].alignment).toEqual([0, 1, 2, 3]);
-    expect(result[0].score).toBe(15);      // A(5)+B(5)+X-C mismatch(0)+D(5)
+    expect(result[0].score).toBe(15); // A(5)+B(5)+X-C mismatch(0)+D(5)
   });
 
   // ── Insertions ─────────────────────────────────────────────────
 
-  it("reports fractional coordinates for insertions between matched positions", () => {
-    const seq = genes("ABXC");
-    const ref = genes("ABC");
+  it('reports fractional coordinates for insertions between matched positions', () => {
+    const seq = genes('ABXC');
+    const ref = genes('ABC');
     const result = SW(ref, seq);
     expect(result.length).toBe(1);
     const coords = result[0].alignment;
@@ -61,9 +60,9 @@ describe("smithWaterman", () => {
 
   // ── Deletions ──────────────────────────────────────────────────
 
-  it("handles deletions in the sequence", () => {
-    const seq = genes("ABD");
-    const ref = genes("ABCD");
+  it('handles deletions in the sequence', () => {
+    const seq = genes('ABD');
+    const ref = genes('ABCD');
     const result = SW(ref, seq);
     expect(result.length).toBe(1);
     // seq[0]=A→ref[0], seq[1]=B→ref[1], seq[2]=D→ref[3]
@@ -73,20 +72,20 @@ describe("smithWaterman", () => {
 
   // ── Custom scoring ─────────────────────────────────────────────
 
-  it("scales the score by the custom match value", () => {
-    const seq = genes("ABCD");
-    const ref = genes("ABCD");
+  it('scales the score by the custom match value', () => {
+    const seq = genes('ABCD');
+    const ref = genes('ABCD');
     const result = SW(ref, seq, {
       scores: { match: 2, mismatch: -3, gap: -1 },
     });
     expect(result.length).toBe(1);
-    expect(result[0].score).toBe(8);      // 4 matches × 2
+    expect(result[0].score).toBe(8); // 4 matches × 2
   });
 
-  it("applies the custom mismatch penalty, altering score and path", () => {
+  it('applies the custom mismatch penalty, altering score and path', () => {
     // ABXDE vs ABCDE: a single interior mismatch (X vs C) flanked by matches.
-    const seq = genes("ABXDE");
-    const ref = genes("ABCDE");
+    const seq = genes('ABXDE');
+    const ref = genes('ABCDE');
 
     // Default mismatch of 0: X aligns straight onto ref[2] for a full 1:1
     // block scoring 5 × 4 matches + 0 = 20.
@@ -109,25 +108,25 @@ describe("smithWaterman", () => {
 
   // ── Omit set ───────────────────────────────────────────────────
 
-  it("maps omitted elements to the correct position but with zero score contribution", () => {
-    const seq = genes("ABCD");
-    const ref = genes("ABCD");
-    const result = SW(ref, seq, { omit: new Set(["B"]) });
+  it('maps omitted elements to the correct position but with zero score contribution', () => {
+    const seq = genes('ABCD');
+    const ref = genes('ABCD');
+    const result = SW(ref, seq, { omit: new Set(['B']) });
     expect(result.length).toBe(1);
     // B still maps to its position but contributes 0 instead of 5
     expect(result[0].alignment).toEqual([0, 1, 2, 3]);
-    expect(result[0].score).toBe(15);      // A(5) + B(0) + C(5) + D(5) = 15
+    expect(result[0].score).toBe(15); // A(5) + B(0) + C(5) + D(5) = 15
   });
 
   // ── Threshold ──────────────────────────────────────────────────
 
-  it("keeps an alignment at/above the threshold and filters one below it", () => {
+  it('keeps an alignment at/above the threshold and filters one below it', () => {
     // ABC/ABC scores 15 and has 3 aligned positions, so it clears the
     // internal minimum-length filter and the threshold is what actually
     // decides its fate (unlike a 2-element sequence, which the length filter
     // drops before the threshold is ever consulted).
-    const seq = genes("ABC");
-    const ref = genes("ABC");
+    const seq = genes('ABC');
+    const ref = genes('ABC');
     const base = { match: 5, mismatch: 0, gap: -1 };
 
     const kept = SW(ref, seq, { scores: { ...base, threshold: 15 } });
@@ -146,10 +145,10 @@ describe("smithWaterman", () => {
   // region that is inverted relative to the query must therefore still be
   // reported, with orientation -1.
 
-  it("reports a fully inverted region with orientation -1 under production defaults", () => {
+  it('reports a fully inverted region with orientation -1 under production defaults', () => {
     // No options: mirrors how the selector calls the aligner (defaults apply).
-    const seq = genes("ABCDE");
-    const ref = genes("EDCBA");
+    const seq = genes('ABCDE');
+    const ref = genes('EDCBA');
     const result = smithWaterman(ref, seq);
     expect(result.length).toBe(1);
     expect(result[0].alignment).toEqual([4, 3, 2, 1, 0]);
@@ -157,21 +156,19 @@ describe("smithWaterman", () => {
     expect(result[0].score).toBe(25);
   });
 
-  it("keeps a reverse-only alignment when reverse is enabled explicitly", () => {
-    const seq = genes("ABCD");
-    const ref = genes("DCBA");
+  it('keeps a reverse-only alignment when reverse is enabled explicitly', () => {
+    const seq = genes('ABCD');
+    const ref = genes('DCBA');
     const result = smithWaterman(ref, seq, { reverse: true, inversions: 2 });
-    const hasInverse = result.some((a) =>
-      a.orientations.some((o) => o === -1)
-    );
+    const hasInverse = result.some((a) => a.orientations.some((o) => o === -1));
     expect(hasInverse).toBe(true);
   });
 
   // ── Output invariants ──────────────────────────────────────────
 
-  it("alignment length equals sequence length for every result", () => {
-    const seq = genes("ABEF");
-    const ref = genes("ABCDEFGHIJ");
+  it('alignment length equals sequence length for every result', () => {
+    const seq = genes('ABEF');
+    const ref = genes('ABCDEFGHIJ');
     const result = SW(ref, seq);
     expect(result.length).toBe(1);
     expect(result[0].alignment.length).toBe(seq.length);
@@ -179,9 +176,9 @@ describe("smithWaterman", () => {
     expect(result[0].segments.length).toBe(seq.length);
   });
 
-  it("orientation values are only null, 1, or -1", () => {
-    const seq = genes("ABCDEF");
-    const ref = genes("ABCDEF");
+  it('orientation values are only null, 1, or -1', () => {
+    const seq = genes('ABCDEF');
+    const ref = genes('ABCDEF');
     const result = smithWaterman(ref, seq, { reverse: true, inversions: 2 });
     for (const a of result) {
       for (const o of a.orientations) {
@@ -192,14 +189,13 @@ describe("smithWaterman", () => {
 
   // ── Edge cases: inputs producing valid local alignments ────────
 
-  it("aligns a sequence that is a subsequence of a larger reference", () => {
+  it('aligns a sequence that is a subsequence of a larger reference', () => {
     // Need at least 3 non-null alignment positions to pass the internal filter.
-    const seq = genes("CDE");
-    const ref = genes("ABCDEF");
+    const seq = genes('CDE');
+    const ref = genes('ABCDEF');
     const result = SW(ref, seq);
     expect(result.length).toBe(1);
     expect(result[0].alignment).toEqual([2, 3, 4]);
     expect(result[0].score).toBe(15);
   });
-
 });

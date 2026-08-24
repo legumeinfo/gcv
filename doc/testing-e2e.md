@@ -11,18 +11,18 @@ npm run test:e2e:report
 
 `playwright.config.ts` auto-starts `ng serve` (`npm start`, `:4200`); `webServer` reuses an existing dev server locally. Chromium only (Firefox/WebKit commented). Config `config.json` points the microservices at `http://localhost/gcv/microservices/{svc}/grpc-web`, so **a local GCV microservices stack must be running**. Tests query `Glyma.09G134900` (soybean), which the standard dataset provides.
 
-## Guiding principle: catch *silent wrong biology*
+## Guiding principle: catch _silent wrong biology_
 
 The dangerous regressions here aren't crashes — they're a clean render of inaccurate biology (wrong homology color, a dropped inversion, a region at the wrong locus). Every pixel is a biological claim; these tests assert those claims. Tier 1 (highest weight) is complete:
 
-| Test (file) | Biological claim | Silent failure caught |
-|-------------|------------------|-----------------------|
-| family color consistency (micro) | same family → same color; distinct families → distinct colors; genes match the legend | false (non-)homology; a divergent color scale |
-| gene orientation (micro) | reverse-oriented genes are drawn reversed (glyph `rotate(±90)` = `strand × alignmentOrientation`) | inversions flattened to forward |
-| block orientation (macro) | inverted synteny blocks marked `data-orientation="-"` | inversions between chromosomes vanishing |
-| track interval (micro) | label `<chr>:<start>-<stop>` well-formed, ordered, matches `data-extent` | a region mislabeled to the wrong locus |
-| block bounds (macro) | block loci well-formed; reference-locus within the chromosome span | a region drawn at the wrong coordinate / off-chromosome |
-| viewport drag (macro) | dragging onto Gm17's block yields the expected micro-tracks | the macro→micro selection pipeline |
+| Test (file)                      | Biological claim                                                                                  | Silent failure caught                                   |
+| -------------------------------- | ------------------------------------------------------------------------------------------------- | ------------------------------------------------------- |
+| family color consistency (micro) | same family → same color; distinct families → distinct colors; genes match the legend             | false (non-)homology; a divergent color scale           |
+| gene orientation (micro)         | reverse-oriented genes are drawn reversed (glyph `rotate(±90)` = `strand × alignmentOrientation`) | inversions flattened to forward                         |
+| block orientation (macro)        | inverted synteny blocks marked `data-orientation="-"`                                             | inversions between chromosomes vanishing                |
+| track interval (micro)           | label `<chr>:<start>-<stop>` well-formed, ordered, matches `data-extent`                          | a region mislabeled to the wrong locus                  |
+| block bounds (macro)             | block loci well-formed; reference-locus within the chromosome span                                | a region drawn at the wrong coordinate / off-chromosome |
+| viewport drag (macro)            | dragging onto Gm17's block yields the expected micro-tracks                                       | the macro→micro selection pipeline                      |
 
 `macro-synteny-viewer.spec.ts`, `micro-synteny-viewer.spec.ts`. Roadmap (Tier 2, deep-link reproducibility, param→URL) tracked in project memory.
 

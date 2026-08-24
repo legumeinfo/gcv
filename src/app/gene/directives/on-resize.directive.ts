@@ -1,15 +1,20 @@
 // Angular
-import { Directive, ElementRef, EventEmitter, OnDestroy, OnInit, Output, inject }
-  from '@angular/core';
-
+import {
+  Directive,
+  ElementRef,
+  EventEmitter,
+  OnDestroy,
+  OnInit,
+  Output,
+  inject,
+} from '@angular/core';
 
 @Directive({
-    selector: '[gcvOnResize]',
-    standalone: false
+  selector: '[gcvOnResize]',
+  standalone: false,
 })
 export class OnResizeDirective implements OnDestroy, OnInit {
   private _el = inject(ElementRef);
-
 
   @Output() gcvOnResize = new EventEmitter();
 
@@ -31,5 +36,4 @@ export class OnResizeDirective implements OnDestroy, OnInit {
     });
     this._resizeObserver.observe(this._el.nativeElement);
   }
-
 }

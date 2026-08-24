@@ -14,17 +14,17 @@ export class Clear implements Action {
 export class Get implements Action {
   readonly type = GET;
   readonly id = counter.getCount();
-  constructor(public payload: {name: string, source: string}) { }
+  constructor(public payload: { name: string; source: string }) {}
 }
 
 export class GetSuccess implements Action {
   readonly type = GET_SUCCESS;
-  constructor(public payload: {chromosome: Track}) { }
+  constructor(public payload: { chromosome: Track }) {}
 }
 
 export class GetFailure implements Action {
   readonly type = GET_FAILURE;
-  constructor(public payload: {name: string, source: string}) { }
+  constructor(public payload: { name: string; source: string }) {}
 }
 
 export type Actions = Clear | Get | GetSuccess | GetFailure;

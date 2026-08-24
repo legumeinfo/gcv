@@ -9,20 +9,19 @@ import { createEntityAdapter, EntityState } from '@ngrx/entity';
 // store
 import * as geneActions from '@gcv/gene/store/actions/gene.actions';
 // app
-import { idArrayLeftDifferenceFactory, idArrayIntersectionFactory }
-  from '@gcv/core/utils/id-array.util';
+import {
+  idArrayLeftDifferenceFactory,
+  idArrayIntersectionFactory,
+} from '@gcv/core/utils/id-array.util';
 import { Gene } from '@gcv/gene/models';
 import { ActionID } from '@gcv/store/utils';
 
-
 export const geneFeatureKey = 'gene';
 
-
-export type GeneID = {name: string, source: string};
-
+export type GeneID = { name: string; source: string };
 
 export function geneID(name: string, source: string): string;
-export function geneID({name, source}): string;
+export function geneID({ name, source }): string;
 export function geneID(...args): string {
   if (typeof args[0] === 'object') {
     const id = args[0];
@@ -32,11 +31,9 @@ export function geneID(...args): string {
   return `${name}:${source}`;
 }
 
-
 const adapter = createEntityAdapter<Gene>({
-  selectId: (e) => geneID(e.name, e.source)
+  selectId: (e) => geneID(e.name, e.source),
 });
-
 
 export interface State extends EntityState<Gene> {
   failed: GeneID[];
@@ -44,30 +41,29 @@ export interface State extends EntityState<Gene> {
   loading: (GeneID & ActionID)[];
 }
 
-
 const initialState: State = adapter.getInitialState({
   failed: [],
-  loaded: [],  // need for checking raw IDs
+  loaded: [], // need for checking raw IDs
   loading: [],
 });
 
-
-export function geneActionID({action, ...gID}: GeneID & ActionID): string {
+export function geneActionID({ action, ...gID }: GeneID & ActionID): string {
   return `${geneID(gID)}:${action}`;
 }
 
+export const idArrayLeftDifference = idArrayLeftDifferenceFactory(
+  geneActionID,
+  geneID,
+);
 
-export const idArrayLeftDifference =
-  idArrayLeftDifferenceFactory(geneActionID, geneID);
-
-
-export const idArrayIntersection =
-  idArrayIntersectionFactory(geneActionID, geneID);
-
+export const idArrayIntersection = idArrayIntersectionFactory(
+  geneActionID,
+  geneID,
+);
 
 export function reducer(
   state = initialState,
-  action: geneActions.Actions
+  action: geneActions.Actions,
 ): State {
   switch (action.type) {
     case geneActions.CLEAR:
@@ -79,8 +75,12 @@ export function reducer(
         loading: [],
       });
     case geneActions.GET:
-      const {source, names} = action.payload;
-      let targetIDs = names.map((name) => ({name, source, action: action.id}));
+      const { source, names } = action.payload;
+      let targetIDs = names.map((name) => ({
+        name,
+        source,
+        action: action.id,
+      }));
       // filter targets by loading and loaded
       targetIDs = idArrayLeftDifference(targetIDs, state.loading);
       targetIDs = idArrayLeftDifference(targetIDs, state.loaded);
@@ -93,28 +93,23 @@ export function reducer(
         loading,
         failed,
       };
-    case geneActions.GET_SUCCESS:
-    {
-      const {genes} = action.payload;
-      let targetIDs = genes.map(({name, source}) => ({name, source}));
+    case geneActions.GET_SUCCESS: {
+      const { genes } = action.payload;
+      let targetIDs = genes.map(({ name, source }) => ({ name, source }));
       // remove IDs from loading
       const loading = idArrayLeftDifference(state.loading, targetIDs);
       // add IDs to loaded
       targetIDs = idArrayLeftDifference(targetIDs, state.loaded);
       const loaded = state.loaded.concat(targetIDs);
-      return adapter.addMany(
-        genes,
-        {
-          ...state,
-          loading,
-          loaded,
-        },
-      );
+      return adapter.addMany(genes, {
+        ...state,
+        loading,
+        loaded,
+      });
     }
-    case geneActions.GET_FAILURE:
-    {
-      const {source, names} = action.payload;
-      let targetIDs = names.map((name) => ({name, source}));
+    case geneActions.GET_FAILURE: {
+      const { source, names } = action.payload;
+      let targetIDs = names.map((name) => ({ name, source }));
       // remove IDs from loading
       const loading = idArrayLeftDifference(state.loading, targetIDs);
       // add IDs to failed

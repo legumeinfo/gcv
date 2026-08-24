@@ -17,23 +17,17 @@ import * as fromGene from './store';
 // app
 import { GeneRoutingModule } from '@gcv/gene/gene-routing.module';
 
-
 @NgModule({
-    declarations: [
-        ...fromComponents.components,
-        ...fromDirectives.directives
-    ],
-    imports: [
-        CommonModule,
-        FormsModule,
-        ReactiveFormsModule,
-        RouterModule,
-        StoreModule.forFeature(fromGene.geneFeatureKey, fromGene.reducers),
-        EffectsModule.forFeature(fromGene.effects),
-        GeneRoutingModule
-    ],
-    providers: [
-        ...fromServices.services,
-    ]
+  declarations: [...fromComponents.components, ...fromDirectives.directives],
+  imports: [
+    CommonModule,
+    FormsModule,
+    ReactiveFormsModule,
+    RouterModule,
+    StoreModule.forFeature(fromGene.geneFeatureKey, fromGene.reducers),
+    EffectsModule.forFeature(fromGene.effects),
+    GeneRoutingModule,
+  ],
+  providers: [...fromServices.services],
 })
-export class GeneModule { }
+export class GeneModule {}

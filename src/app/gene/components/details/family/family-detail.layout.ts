@@ -1,17 +1,20 @@
 import { FamilyDetailComponent } from './family-detail.component';
 
+export const familyDetailLayoutComponent = {
+  component: FamilyDetailComponent,
+  name: 'family',
+};
 
-export const familyDetailLayoutComponent =
-  {component: FamilyDetailComponent, name: 'family'};
-
-
-export function familyDetailConfigFactory(family: {id: string, name: string}) {
+export function familyDetailConfigFactory(family: {
+  id: string;
+  name: string;
+}) {
   const id = `family:${family.id}`;
   return {
     type: 'component',
     componentType: 'family',
     id,
     title: `Family: ${family.name}`,
-    componentState: {inputs: {family}}
+    componentState: { inputs: { family } },
   };
 }

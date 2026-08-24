@@ -14,34 +14,47 @@ export class RegionEffects {
   private actions$ = inject(Actions);
   private regionService = inject(RegionService);
 
-
   // get region via the region service
-  getRegion$ = createEffect(() => { return this.actions$.pipe(
-    ofType(regionActions.GET),
-    map((action: regionActions.Get) => action.payload),
-    switchMap(({chromosome, start, stop, source}) => {
-      return this.regionService.getRegion(chromosome, start, stop, source).pipe(
-        // TODO: should the be a takeUntil to stop requests in flight?
-        map((region) => {
-          region.source = source;
-          return new regionActions.GetSuccess({region});
-        }),
-        catchError((e) => of(new regionActions.GetFailure({chromosome, start, stop, source}))),
-      );
-    })
-  ) });
+  getRegion$ = createEffect(() => {
+    return this.actions$.pipe(
+      ofType(regionActions.GET),
+      map((action: regionActions.Get) => action.payload),
+      switchMap(({ chromosome, start, stop, source }) => {
+        return this.regionService
+          .getRegion(chromosome, start, stop, source)
+          .pipe(
+            // TODO: should the be a takeUntil to stop requests in flight?
+            map((region) => {
+              region.source = source;
+              return new regionActions.GetSuccess({ region });
+            }),
+            catchError((e) =>
+              of(
+                new regionActions.GetFailure({
+                  chromosome,
+                  start,
+                  stop,
+                  source,
+                }),
+              ),
+            ),
+          );
+      }),
+    );
+  });
 
   // loads a new gene view (search) when a region is successfully retrieved
-  regionSearch$ = createEffect(() => { return this.actions$.pipe(
-    ofType(regionActions.GET_SUCCESS),
-    map((action: regionActions.GetSuccess) => action.payload),
-    map(({region}) => {
-      const matrixParams = {};
-      matrixParams[region.source] = region.gene;
-      const path = ['/gene', matrixParams];
-      const query = {neighbors: region.neighbors};
-      return new routerActions.Go({path, query});
-    }),
-  ) });
-
+  regionSearch$ = createEffect(() => {
+    return this.actions$.pipe(
+      ofType(regionActions.GET_SUCCESS),
+      map((action: regionActions.GetSuccess) => action.payload),
+      map(({ region }) => {
+        const matrixParams = {};
+        matrixParams[region.source] = region.gene;
+        const path = ['/gene', matrixParams];
+        const query = { neighbors: region.neighbors };
+        return new routerActions.Go({ path, query });
+      }),
+    );
+  });
 }

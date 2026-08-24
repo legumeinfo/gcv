@@ -2,7 +2,13 @@ import { TestBed } from '@angular/core/testing';
 import { NgZone } from '@angular/core';
 import { provideMockActions } from '@ngrx/effects/testing';
 import { Store } from '@ngrx/store';
-import { BehaviorSubject, Observable, ReplaySubject, of, throwError } from 'rxjs';
+import {
+  BehaviorSubject,
+  Observable,
+  ReplaySubject,
+  of,
+  throwError,
+} from 'rxjs';
 import { take, toArray } from 'rxjs/operators';
 
 import { SearchEffects } from './search.effects';
@@ -29,7 +35,9 @@ describe('SearchEffects', () => {
   beforeEach(() => {
     actions$ = new ReplaySubject<any>(1);
     query$ = new BehaviorSubject<string>('Glyma.09G134900');
-    sourceParams$ = new BehaviorSubject<{ sources: string[] }>({ sources: ['lis'] });
+    sourceParams$ = new BehaviorSubject<{ sources: string[] }>({
+      sources: ['lis'],
+    });
     loading$ = new BehaviorSubject<any[]>([]);
     searchService = { search: jest.fn() };
 
@@ -64,25 +72,38 @@ describe('SearchEffects', () => {
   it('initializeSearch$ dispatches one Search per configured source', (done) => {
     sourceParams$.next({ sources: ['lis', 'other'] });
 
-    effects.initializeSearch$.pipe(take(2), toArray()).subscribe((actions: any[]) => {
-      expect(actions.map((a) => a.type)).toEqual([searchActions.SEARCH, searchActions.SEARCH]);
-      expect(actions.map((a) => a.payload.source)).toEqual(['lis', 'other']);
-      expect(actions.every((a) => a.payload.query === 'Glyma.09G134900')).toBe(true);
-      done();
-    });
+    effects.initializeSearch$
+      .pipe(take(2), toArray())
+      .subscribe((actions: any[]) => {
+        expect(actions.map((a) => a.type)).toEqual([
+          searchActions.SEARCH,
+          searchActions.SEARCH,
+        ]);
+        expect(actions.map((a) => a.payload.source)).toEqual(['lis', 'other']);
+        expect(
+          actions.every((a) => a.payload.query === 'Glyma.09G134900'),
+        ).toBe(true);
+        done();
+      });
   });
 
   it('search$ emits SearchSuccess with the service result on success', (done) => {
     const result = { tracks: [] } as any;
     searchService.search.mockReturnValue(of(result));
-    const search = new searchActions.Search({ query: 'Glyma.09G134900', source: 'lis' });
+    const search = new searchActions.Search({
+      query: 'Glyma.09G134900',
+      source: 'lis',
+    });
     // the reducer marks this {source, action-id} pair as loading
     loading$.next([{ source: 'lis', action: search.id }]);
 
     effects.search$.pipe(take(1)).subscribe((action: any) => {
       expect(action.type).toBe(searchActions.SEARCH_SUCCESS);
       expect(action.payload).toEqual({ source: 'lis', result });
-      expect(searchService.search).toHaveBeenCalledWith('Glyma.09G134900', 'lis');
+      expect(searchService.search).toHaveBeenCalledWith(
+        'Glyma.09G134900',
+        'lis',
+      );
       done();
     });
 
@@ -91,7 +112,10 @@ describe('SearchEffects', () => {
 
   it('search$ emits SearchFailure when the service errors', (done) => {
     searchService.search.mockReturnValue(throwError(() => new Error('boom')));
-    const search = new searchActions.Search({ query: 'Glyma.09G134900', source: 'lis' });
+    const search = new searchActions.Search({
+      query: 'Glyma.09G134900',
+      source: 'lis',
+    });
     loading$.next([{ source: 'lis', action: search.id }]);
 
     effects.search$.pipe(take(1)).subscribe((action: any) => {
@@ -109,7 +133,9 @@ describe('SearchEffects', () => {
 
     let emitted = false;
     effects.search$.subscribe(() => (emitted = true));
-    actions$.next(new searchActions.Search({ query: 'Glyma.09G134900', source: 'lis' }));
+    actions$.next(
+      new searchActions.Search({ query: 'Glyma.09G134900', source: 'lis' }),
+    );
 
     expect(emitted).toBe(false);
     expect(searchService.search).not.toHaveBeenCalled();
@@ -125,7 +151,8 @@ describe('SearchEffects', () => {
     const seen: { type: string; inZone: boolean }[] = [];
 
     const sub = effects.clearResults.subscribe((a: any) =>
-      seen.push({ type: a.type, inZone: NgZone.isInAngularZone() }));
+      seen.push({ type: a.type, inZone: NgZone.isInAngularZone() }),
+    );
     seen.length = 0; // drop the BehaviorSubject's initial (in-zone) emission
 
     zone.runOutsideAngular(() => query$.next('a-new-query'));

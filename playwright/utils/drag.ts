@@ -49,18 +49,28 @@ export async function d3Drag(
   target: Locator,
   options: D3DragOptions = {},
 ): Promise<void> {
-  const { steps = 20, sourceOffset = { x: 0.5, y: 0.5 }, targetOffset = { x: 0.5, y: 0.5 } } = options;
+  const {
+    steps = 20,
+    sourceOffset = { x: 0.5, y: 0.5 },
+    targetOffset = { x: 0.5, y: 0.5 },
+  } = options;
 
   const sourceBounds = await source.boundingBox();
   const targetBounds = await target.boundingBox();
 
-  if (!sourceBounds) throw new Error(`d3Drag: source element has no bounding box — is it visible?`);
-  if (!targetBounds) throw new Error(`d3Drag: target element has no bounding box — is it visible?`);
+  if (!sourceBounds)
+    throw new Error(
+      `d3Drag: source element has no bounding box — is it visible?`,
+    );
+  if (!targetBounds)
+    throw new Error(
+      `d3Drag: target element has no bounding box — is it visible?`,
+    );
 
-  const startX = sourceBounds.x + sourceBounds.width  * sourceOffset.x;
+  const startX = sourceBounds.x + sourceBounds.width * sourceOffset.x;
   const startY = sourceBounds.y + sourceBounds.height * sourceOffset.y;
-  const endX   = targetBounds.x + targetBounds.width  * targetOffset.x;
-  const endY   = targetBounds.y + targetBounds.height * targetOffset.y;
+  const endX = targetBounds.x + targetBounds.width * targetOffset.x;
+  const endY = targetBounds.y + targetBounds.height * targetOffset.y;
 
   await page.mouse.move(startX, startY);
   await page.mouse.down();
@@ -78,7 +88,7 @@ export async function d3Drag(
 export async function d3DragByCoords(
   page: Page,
   start: { x: number; y: number },
-  end:   { x: number; y: number },
+  end: { x: number; y: number },
   options: Pick<D3DragOptions, 'steps'> = {},
 ): Promise<void> {
   const { steps = 20 } = options;

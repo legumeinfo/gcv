@@ -1,24 +1,38 @@
 // Angular + dependencies
-import { AfterViewInit, Component, ElementRef, EventEmitter, Input, NgZone, OnDestroy, Output, ViewChild, ChangeDetectionStrategy, inject } from '@angular/core';
+import {
+  AfterViewInit,
+  Component,
+  ElementRef,
+  EventEmitter,
+  Input,
+  NgZone,
+  OnDestroy,
+  Output,
+  ViewChild,
+  ChangeDetectionStrategy,
+  inject,
+} from '@angular/core';
 import { Subject, combineLatest } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 // app
 import { GCV } from '@gcv-assets/js/gcv';
 import { saveFile } from '@gcv/core/utils';
-import { FamilyService, GeneService, MicroTracksService }
-  from '@gcv/gene/services';
+import {
+  FamilyService,
+  GeneService,
+  MicroTracksService,
+} from '@gcv/gene/services';
 import { microLegendShim } from './micro-legend.shim';
 
-
 @Component({
-    selector: 'gcv-micro-legend',
-    styleUrls: ['../golden-viewer.scss'],
-    template: `
+  selector: 'gcv-micro-legend',
+  styleUrls: ['../golden-viewer.scss'],
+  template: `
     <gcv-context-menu (saveImage)="saveImage()"></gcv-context-menu>
     <div (gcvOnResize)="draw()" class="viewer" #container></div>
   `,
-    changeDetection: ChangeDetectionStrategy.Eager,
-    standalone: false
+  changeDetection: ChangeDetectionStrategy.Eager,
+  standalone: false,
 })
 export class MicroLegendComponent implements AfterViewInit, OnDestroy {
   private _familyService = inject(FamilyService);
@@ -26,13 +40,14 @@ export class MicroLegendComponent implements AfterViewInit, OnDestroy {
   private _microTracksService = inject(MicroTracksService);
   private _zone = inject(NgZone);
 
-
   @Input() options: any = {};
   @Output() click = new EventEmitter();
 
-  @ViewChild('container', {static: true}) container: ElementRef;
+  @ViewChild('container', { static: true }) container: ElementRef;
 
-  draw = () => { /* no-op */ };
+  draw = () => {
+    /* no-op */
+  };
 
   private _destroy: Subject<boolean> = new Subject();
   private _viewer;
@@ -80,42 +95,43 @@ export class MicroLegendComponent implements AfterViewInit, OnDestroy {
   }
 
   private _preDraw(tracks, queryGenes, omittedFamilies): void {
-    const {data, singletons, orphans} = microLegendShim(tracks);
-    orphans['checkbox'] = (omittedFamilies.indexOf(orphans.id) === -1);
+    const { data, singletons, orphans } = microLegendShim(tracks);
+    orphans['checkbox'] = omittedFamilies.indexOf(orphans.id) === -1;
     let options = {
-        blank: singletons,
-        blankDashed: orphans,
-        checkboxCallback: (id, checked) => {
-          this._zone.run(() => {
-            if (checked) {
-              this._familyService.includeFamilies([id]);
-            } else {
-              this._familyService.omitFamilies([id]);
-            }
-          });
-        },
-        highlight: queryGenes.map((g) => g.family),
-        keyClick: (k) => this.emitClick(k),
-        selector: 'family',
-        membersSelector: 'genes',
-      };
-    options = Object.assign(options, this.options, {autoResize: false});
+      blank: singletons,
+      blankDashed: orphans,
+      checkboxCallback: (id, checked) => {
+        this._zone.run(() => {
+          if (checked) {
+            this._familyService.includeFamilies([id]);
+          } else {
+            this._familyService.omitFamilies([id]);
+          }
+        });
+      },
+      highlight: queryGenes.map((g) => g.family),
+      keyClick: (k) => this.emitClick(k),
+      selector: 'family',
+      membersSelector: 'genes',
+    };
+    options = Object.assign(options, this.options, { autoResize: false });
     this.draw = this._draw.bind(this, data, options);
   }
 
   private _draw(data, options) {
     let tempViewer: any;
     const dim = Math.min(
-        this.container.nativeElement.clientWidth,
-        this.container.nativeElement.clientHeight
-      );
+      this.container.nativeElement.clientWidth,
+      this.container.nativeElement.clientHeight,
+    );
     // draw the new viewer before destroying the old to preserve scroll position
     if (dim > 0) {
       tempViewer = new GCV.visualization.Legend(
-          this.container.nativeElement,
-          GCV.common.colors,
-          data,
-          options);
+        this.container.nativeElement,
+        GCV.common.colors,
+        data,
+        options,
+      );
     }
     this._destroyViewer();
     this._viewer = tempViewer;

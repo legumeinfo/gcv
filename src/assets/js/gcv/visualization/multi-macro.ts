@@ -1,10 +1,8 @@
-import { d3 } from "./d3";
-import Circos from "circos";
-import { eventBus } from "../common"
-
+import { d3 } from './d3';
+import Circos from 'circos';
+import { eventBus } from '../common';
 
 export class MultiMacro {
-
   private eventBus;
   private container: any;
   private options: any;
@@ -29,7 +27,7 @@ export class MultiMacro {
     this.options.highlight = this.options.highlight || [];
     this.options.replicateBlocks = this.options.replicateBlocks || false;
     if (this.options.colors === undefined) {
-      this.options.colors = ((s) => "#cfcfcf");
+      this.options.colors = (s) => '#cfcfcf';
     }
     this.options.IRIprefix = this.options.IRIprefix || '';
   }
@@ -47,17 +45,17 @@ export class MultiMacro {
       chromosomes: [],
       colors: {},
       genusSpecies: multiMacroTracks.reduce((genusSpecies, track) => {
-        genusSpecies[track.chromosome] = track.genus + " " + track.species;
+        genusSpecies[track.chromosome] = track.genus + ' ' + track.species;
         return genusSpecies;
       }, {}),
       // compute which parts of each chromosome should be highlighted
       highlight: this.options.highlight
         .filter((d) => chromosomeIDs.indexOf(d.chromosome) > -1)
-        .map(function(d) {
+        .map(function (d) {
           return {
             block_id: d.chromosome,
             start: d.start,
-            end: d.stop
+            end: d.stop,
           };
         }),
     };
@@ -122,7 +120,7 @@ export class MultiMacro {
               id: target_id,
               start: block.query_start,
               end: block.query_stop,
-            }
+            },
           });
           // replicate chords for replicated blocks
           if (this.options.replicateBlocks) {
@@ -136,7 +134,7 @@ export class MultiMacro {
                 id: source_id,
                 start: block.start,
                 end: block.stop,
-              }
+              },
             });
           }
         }
@@ -148,14 +146,17 @@ export class MultiMacro {
   private drawCircos() {
     this.eventBus = eventBus.subscribe(this.eventHandler.bind(this));
 
-    const width = Math.min(this.container.clientWidth, this.container.clientHeight);
+    const width = Math.min(
+      this.container.clientWidth,
+      this.container.clientHeight,
+    );
     this.circos = new Circos({
       container: this.container,
       width: width,
-      height: width
+      height: width,
     });
 
-    this.circos.svg.attr("class", "GCV");
+    this.circos.svg.attr('class', 'GCV');
 
     const chordInnerRadius = width / 2 - 100;
     const chordOuterRadius = width / 2 - 80;
@@ -168,9 +169,9 @@ export class MultiMacro {
         targets: {
           chromosome: chromosome.id,
           organism: this.data.genusSpecies[chromosome.id],
-        }
+        },
       });
-    }
+    };
 
     const publishBlockEvent = (type, block) => {
       eventBus.publish({
@@ -186,7 +187,7 @@ export class MultiMacro {
               locus: [block.start, block.end],
             },
             orientation: block.orientation,
-          }
+          },
         },
       });
     };
@@ -201,34 +202,36 @@ export class MultiMacro {
         ticks: {
           display: true,
           labels: false,
-          spacing: 1000000
+          spacing: 1000000,
         },
         events: {
-          "mouseover": (d, i, nodes, event) => publishChromosomeEvent("select", d),
-          "mouseout": (d, i, nodes, event) => publishChromosomeEvent("deselect", d),
-        }
+          mouseover: (d, i, nodes, event) =>
+            publishChromosomeEvent('select', d),
+          mouseout: (d, i, nodes, event) =>
+            publishChromosomeEvent('deselect', d),
+        },
       })
-      .stack("stack", this.data.blocks, {
+      .stack('stack', this.data.blocks, {
         innerRadius: stackInnerRadius,
         outerRadius: stackOuterRadius,
         thickness: 4,
         margin: 0.01 * length,
-        direction: "out",
+        direction: 'out',
         strokeWidth: 0,
         color: (d) => {
           return this.data.colors[d.source_id];
         },
         tooltipContent: null,
         events: {
-          "mouseover": (d, i, nodes, event) => publishBlockEvent("select", d),
-          "mouseout": (d, i, nodes, event) => publishBlockEvent("deselect", d),
-        }
+          mouseover: (d, i, nodes, event) => publishBlockEvent('select', d),
+          mouseout: (d, i, nodes, event) => publishBlockEvent('deselect', d),
+        },
       })
-      .chords("l1", this.data.chords, {
+      .chords('l1', this.data.chords, {
         logScale: false,
         tooltipContent: null,
       })
-      .highlight("cytobands", this.data.highlight, {
+      .highlight('cytobands', this.data.highlight, {
         innerRadius: chordInnerRadius,
         outerRadius: chordOuterRadius,
         tooltipContent: null,
@@ -238,34 +241,37 @@ export class MultiMacro {
         strokeColor: '#000000',
         opacity: 0.4,
       })
-      .render()
+      .render();
 
     // add GCV data attributes for interactivity
-    this.circos.svg.selectAll(".cs-layout > g")
-      .attr("data-chromosome", (d) => d && d.id)
-      .attr("data-organism", (d) => d && this.data.genusSpecies[d.id]);
-    this.circos.svg.selectAll(".chord")
-      .attr("data-chromosome", (d) => d.source.id)
-      .attr("data-reference-chromosome", (d) => d.target.id)
-      .attr("data-locus", (d) => {
-        return [d.source.start, d.source.end].sort((a, b) => a - b).join(":");
+    this.circos.svg
+      .selectAll('.cs-layout > g')
+      .attr('data-chromosome', (d) => d && d.id)
+      .attr('data-organism', (d) => d && this.data.genusSpecies[d.id]);
+    this.circos.svg
+      .selectAll('.chord')
+      .attr('data-chromosome', (d) => d.source.id)
+      .attr('data-reference-chromosome', (d) => d.target.id)
+      .attr('data-locus', (d) => {
+        return [d.source.start, d.source.end].sort((a, b) => a - b).join(':');
       })
-      .attr("data-reference-locus", (d) => {
-        return [d.target.start, d.target.end].sort((a, b) => a - b).join(":");
+      .attr('data-reference-locus', (d) => {
+        return [d.target.start, d.target.end].sort((a, b) => a - b).join(':');
       })
-      .attr("data-orientation", (d) => d.orientation)
-      .attr("data-organism", (d) => d && this.data.genusSpecies[d.source_id]);
-    this.circos.svg.selectAll(".stack > .block > .tile")
-      .attr("data-chromosome", (d) => d.source_id)
-      .attr("data-reference-chromosome", (d) => d.block_id)
-      .attr("data-locus", (d) => d.source_start + ":" + d.source_end)
-      .attr("data-reference-locus", (d) => d.start + ":" + d.end)
-      .attr("data-orientation", (d) => d.orientation)
-      .attr("data-organism", (d) => d && this.data.genusSpecies[d.id]);
+      .attr('data-orientation', (d) => d.orientation)
+      .attr('data-organism', (d) => d && this.data.genusSpecies[d.source_id]);
+    this.circos.svg
+      .selectAll('.stack > .block > .tile')
+      .attr('data-chromosome', (d) => d.source_id)
+      .attr('data-reference-chromosome', (d) => d.block_id)
+      .attr('data-locus', (d) => d.source_start + ':' + d.source_end)
+      .attr('data-reference-locus', (d) => d.start + ':' + d.end)
+      .attr('data-orientation', (d) => d.orientation)
+      .attr('data-organism', (d) => d && this.data.genusSpecies[d.id]);
 
     // HACK: allows users to add an IRI prefix since CircosJS only uses relative
     // paths (i.e. just the reference element selector)
-    this.data.chromosomes.forEach(({id}) => {
+    this.data.chromosomes.forEach(({ id }) => {
       const textPath = this.circos.svg.select(`g[class='${id}'] textPath`);
       const pathRef = this.options.IRIprefix + textPath.attr('href');
       textPath.attr('href', pathRef);
@@ -278,7 +284,10 @@ export class MultiMacro {
     const ro = new ResizeObserver((entries) => {
       clearTimeout(this.resizeTimer);
       this.resizeTimer = setTimeout(() => {
-        const width = Math.min(this.container.clientWidth, this.container.clientHeight);
+        const width = Math.min(
+          this.container.clientWidth,
+          this.container.clientHeight,
+        );
         // NOTE: shouldn't have to check if circos is undefined if scope is correct...
         if (this.circos !== undefined && this.circos.conf.width !== width) {
           this.destroy();
@@ -295,50 +304,84 @@ export class MultiMacro {
   protected eventHandler(event) {
     // select the relevant elements in the viewer
     let selection;
-    if (event.targets.hasOwnProperty("block")) {
+    if (event.targets.hasOwnProperty('block')) {
       const block = event.targets.block;
-                       // block
-      const selector = "[data-chromosome='" + block.source.chromosome + "']" +
-                       "[data-reference-chromosome='" + block.reference.chromosome + "']" +
-                       "[data-locus='" + block.source.locus.join(":") + "']" +
-                       "[data-reference-locus='" + block.reference.locus.join(":") + "']" +
-                       "[data-orientation='" + block.orientation + "']" +
-                       ", " +
-                       // corresponding block
-                       "[data-reference-chromosome='" + block.source.chromosome + "']" +
-                       "[data-chromosome='" + block.reference.chromosome + "']" +
-                       "[data-reference-locus='" + block.source.locus.join(":") + "']" +
-                       "[data-locus='" + block.reference.locus.join(":") + "']" +
-                       "[data-orientation='" + block.orientation + "']" +
-                       ", " +
-                       // chord
-                       ".chord" +
-                       "[data-chromosome='" + block.source.chromosome + "']" +
-                       "[data-reference-chromosome='" + block.reference.chromosome + "']" +
-                       "[data-locus='" + block.source.locus.join(":") + "']" +
-                       "[data-reference-locus='" + block.reference.locus.join(":") + "']";
+      // block
+      const selector =
+        "[data-chromosome='" +
+        block.source.chromosome +
+        "']" +
+        "[data-reference-chromosome='" +
+        block.reference.chromosome +
+        "']" +
+        "[data-locus='" +
+        block.source.locus.join(':') +
+        "']" +
+        "[data-reference-locus='" +
+        block.reference.locus.join(':') +
+        "']" +
+        "[data-orientation='" +
+        block.orientation +
+        "']" +
+        ', ' +
+        // corresponding block
+        "[data-reference-chromosome='" +
+        block.source.chromosome +
+        "']" +
+        "[data-chromosome='" +
+        block.reference.chromosome +
+        "']" +
+        "[data-reference-locus='" +
+        block.source.locus.join(':') +
+        "']" +
+        "[data-locus='" +
+        block.reference.locus.join(':') +
+        "']" +
+        "[data-orientation='" +
+        block.orientation +
+        "']" +
+        ', ' +
+        // chord
+        '.chord' +
+        "[data-chromosome='" +
+        block.source.chromosome +
+        "']" +
+        "[data-reference-chromosome='" +
+        block.reference.chromosome +
+        "']" +
+        "[data-locus='" +
+        block.source.locus.join(':') +
+        "']" +
+        "[data-reference-locus='" +
+        block.reference.locus.join(':') +
+        "']";
       selection = this.circos.svg.selectAll(selector);
-    } else if (event.targets.hasOwnProperty("chromosome")) {
-      const selector = "[data-chromosome='" + event.targets.chromosome + "'], " +
-                       "[data-reference-chromosome='" + event.targets.chromosome + "']";
+    } else if (event.targets.hasOwnProperty('chromosome')) {
+      const selector =
+        "[data-chromosome='" +
+        event.targets.chromosome +
+        "'], " +
+        "[data-reference-chromosome='" +
+        event.targets.chromosome +
+        "']";
       selection = this.circos.svg.selectAll(selector);
-    } else if (event.targets.hasOwnProperty("organism")) {
+    } else if (event.targets.hasOwnProperty('organism')) {
       const selector = "[data-organism='" + event.targets.organism + "']";
       selection = this.circos.svg.selectAll(selector);
     }
     // (un)fade the (un)selected elements
-    switch(event.type) {
-      case "select":
-        this.circos.svg.classed("hovering", true);
+    switch (event.type) {
+      case 'select':
+        this.circos.svg.classed('hovering', true);
         if (selection !== undefined) {
-          selection.classed("active", true);
+          selection.classed('active', true);
         }
         break;
-      case "deselect":
+      case 'deselect':
         if (selection !== undefined) {
-          selection.classed("active", false);
+          selection.classed('active', false);
         }
-        this.circos.svg.classed("hovering", false);
+        this.circos.svg.classed('hovering', false);
         break;
     }
   }
@@ -359,17 +402,21 @@ export class MultiMacro {
     try {
       const _isFileSaverSupported = !!new Blob();
     } catch (e) {
-      alert("Your broswer does not support saving");
+      alert('Your broswer does not support saving');
     }
     // create a clone of the viewer with all GCV styles inlined
     const clone = this.inlineCopy();
     // generate the data
-    const xml = (new XMLSerializer()).serializeToString(clone.node());
+    const xml = new XMLSerializer().serializeToString(clone.node());
     return xml;
   }
 
   /** Makes a copy of the SVG and inlines external GCV styles. */
-  protected inlineCopy(mod = (clone) => {/* noop */}) {
+  protected inlineCopy(
+    mod = (clone) => {
+      /* noop */
+    },
+  ) {
     // clone the current view node
     const clone = d3.select(this.circos.svg.node().cloneNode(true));
     mod(clone);
@@ -386,7 +433,7 @@ export class MultiMacro {
       for (const r of Object.keys(rules)) {
         const rule = rules[r];
         const selector = rule.selectorText;
-        if (selector !== undefined && selector.startsWith(".GCV")) {
+        if (selector !== undefined && selector.startsWith('.GCV')) {
           const style = rule.style;
           const selection = clone.selectAll(selector);
           for (const prop of style) {

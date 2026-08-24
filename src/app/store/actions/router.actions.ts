@@ -8,11 +8,13 @@ export const CHANGE = '[ROUTER] CHANGE';
 
 export class Go implements Action {
   readonly type = GO;
-  constructor(public payload: {
-    path: any[];
-    query?: object;
-    extras?: NavigationExtras;
-  }) {}
+  constructor(
+    public payload: {
+      path: any[];
+      query?: object;
+      extras?: NavigationExtras;
+    },
+  ) {}
 }
 
 export class Back implements Action {
@@ -25,7 +27,7 @@ export class Forward implements Action {
 
 export class Change implements Action {
   readonly type = CHANGE;
-  constructor(public payload: { params: any, path: string }) {}
+  constructor(public payload: { params: any; path: string }) {}
 }
 
 export type Actions = Go | Back | Forward | Change;

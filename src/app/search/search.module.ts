@@ -12,7 +12,6 @@ import * as fromServices from '@gcv/search/services';
 import * as fromSearch from './store';
 import { SearchRoutingModule } from '@gcv/search/search-routing.module';
 
-
 @NgModule({
   declarations: [...fromComponents.components],
   imports: [
@@ -27,4 +26,4 @@ import { SearchRoutingModule } from '@gcv/search/search-routing.module';
   exports: [...fromComponents.components],
   providers: [...fromServices.services],
 })
-export class SearchModule { }
+export class SearchModule {}

@@ -1,8 +1,7 @@
 // library
-import { matrix, setOption, sum } from "../common";
-import { Alignment, InternalAlignment, Scores, Traceback } from "./models";
-import { computeScore, mergeAlignments } from "./utils";
-
+import { matrix, setOption, sum } from '../common';
+import { Alignment, InternalAlignment, Scores, Traceback } from './models';
+import { computeScore, mergeAlignments } from './utils';
 
 /**
  * Aligns the given sequence to the given reference using the Smith-Waterman
@@ -23,37 +22,36 @@ function align<T>(
   seq: T[],
   ref: T[],
   scores: Scores,
-  omit: Set<T>=new Set): InternalAlignment
-{
-
+  omit: Set<T> = new Set(),
+): InternalAlignment {
   // construct score and traceback matrices
-  const cols = ref.length + 1;  // first item is at index 1
-  const rows = seq.length + 1;  // ditto
-  const m = matrix(cols, rows, 0);  // scores
-  const t = matrix(cols, rows, [0, 0]);  // traceback
+  const cols = ref.length + 1; // first item is at index 1
+  const rows = seq.length + 1; // ditto
+  const m = matrix(cols, rows, 0); // scores
+  const t = matrix(cols, rows, [0, 0]); // traceback
   let max = 0;
   let maxCell = [0, 0];
   for (let i = 1; i < cols; i++) {
     for (let j = 1; j < rows; j++) {
       const choices = [
-          0,
-          m[i-1][j-1] + computeScore(ref[i-1], seq[j-1], scores, omit),
-          m[i-1][j] + scores.gap,
-          m[i][j-1] + scores.gap
-        ];
+        0,
+        m[i - 1][j - 1] + computeScore(ref[i - 1], seq[j - 1], scores, omit),
+        m[i - 1][j] + scores.gap,
+        m[i][j - 1] + scores.gap,
+      ];
       m[i][j] = Math.max(...choices);
       switch (choices.indexOf(m[i][j])) {
         case Traceback.FIRST:
           // points to default [0, 0]
           break;
         case Traceback.DIAGONAL:
-          t[i][j] = [i-1, j-1];
+          t[i][j] = [i - 1, j - 1];
           break;
         case Traceback.LEFT:
-          t[i][j] = [i-1, j];
+          t[i][j] = [i - 1, j];
           break;
         case Traceback.UP:
-          t[i][j] = [i, j-1];
+          t[i][j] = [i, j - 1];
           break;
       }
       if (m[i][j] > max) {
@@ -68,45 +66,46 @@ function align<T>(
   let [i, j] = maxCell;
   // begin alginment
   const alignment = {
-      coordinates: Array(ref.length-i).fill(null),
-      scores: Array(ref.length-i).fill(null)
-    };
+    coordinates: Array(ref.length - i).fill(null),
+    scores: Array(ref.length - i).fill(null),
+  };
   while (m[i][j] !== 0) {
     const [i2, j2] = t[i][j];
     if (j2 === j && j !== 0) {
       insertion += 1;
-    // (mis)match
-    } else if (j2 === j-1 && i2 === i-1) {
+      // (mis)match
+    } else if (j2 === j - 1 && i2 === i - 1) {
       // backfill insertion
       if (insertion > 0) {
-        const step = 1/(insertion+1);
-        for (let k = insertion-1; k >= 0; k--) {
-          const x = j + (k+1)*step;
-          alignment.coordinates.unshift(x-1);
-          alignment.scores.unshift(m[i+k+1][j]-m[i+k][j]);
+        const step = 1 / (insertion + 1);
+        for (let k = insertion - 1; k >= 0; k--) {
+          const x = j + (k + 1) * step;
+          alignment.coordinates.unshift(x - 1);
+          alignment.scores.unshift(m[i + k + 1][j] - m[i + k][j]);
         }
         insertion = 0;
       }
-      alignment.coordinates.unshift(j-1)
-      alignment.scores.unshift(m[i][j]-m[i2][j2]);
+      alignment.coordinates.unshift(j - 1);
+      alignment.scores.unshift(m[i][j] - m[i2][j2]);
     }
     [i, j] = [i2, j2];
   }
   // end alignment
   if (alignment.coordinates.filter((x) => x !== null).length > 2) {
-    const fill = Array(Math.max(0, ref.length-alignment.coordinates.length)).fill(null);
+    const fill = Array(
+      Math.max(0, ref.length - alignment.coordinates.length),
+    ).fill(null);
     alignment.coordinates.unshift(...fill);
     alignment.scores.unshift(...fill);
   } else {
     return {
-      coordinates: Array(ref.length-i).fill(null),
-      scores: Array(ref.length-i).fill(null)
+      coordinates: Array(ref.length - i).fill(null),
+      scores: Array(ref.length - i).fill(null),
     };
   }
 
   return alignment;
 }
-
 
 /**
  * The Smith-Waterman algorithm.
@@ -126,28 +125,35 @@ function align<T>(
 export function smithWaterman<T>(
   reference: T[],
   sequence: T[],
-  options: any={}): Alignment[]
-{
-
+  options: any = {},
+): Alignment[] {
   // parse optional parameters
   options = Object.assign({}, options);
   options.scores = Object.assign({}, options.scores);
-  setOption(options.scores, "match", 5);
-  setOption(options.scores, "mismatch", 0);
-  setOption(options.scores, "gap", -1);
-  setOption(options.scores, "threshold", 0);
-  setOption(options, "omit", new Set());
-  setOption(options, "reverse", true);
-  setOption(options, "inversions", 2);
+  setOption(options.scores, 'match', 5);
+  setOption(options.scores, 'mismatch', 0);
+  setOption(options.scores, 'gap', -1);
+  setOption(options.scores, 'threshold', 0);
+  setOption(options, 'omit', new Set());
+  setOption(options, 'reverse', true);
+  setOption(options, 'inversions', 2);
 
   // perform forward and reverse alignments
   const forward = sequence;
-  const forwardAlignment =
-    align(reference, forward, options.scores, options.omit);
-  const reverse = (options.reverse || options.inversions) ?
-    [...forward].reverse() : [];
-  const reverseAlignment =
-    align(reference, reverse, options.scores, options.omit);
+  const forwardAlignment = align(
+    reference,
+    forward,
+    options.scores,
+    options.omit,
+  );
+  const reverse =
+    options.reverse || options.inversions ? [...forward].reverse() : [];
+  const reverseAlignment = align(
+    reference,
+    reverse,
+    options.scores,
+    options.omit,
+  );
   // reverse the reverse alignment
   if (reverseAlignment !== null) {
     reverseAlignment.coordinates.reverse();
@@ -156,19 +162,19 @@ export function smithWaterman<T>(
 
   // merge alignments
   const alignments = mergeAlignments(
-      sequence,
-      [forwardAlignment],
-      [reverseAlignment],
-      options.reverse,
-      options.inversions,
-      options.scores.threshold)
-    .map((a) => {
-      return {
-        alignment: a.coordinates,
-        orientations: a.orientations,
-        segments: a.segments,
-        score: sum(a.scores),
-      };
-    });
+    sequence,
+    [forwardAlignment],
+    [reverseAlignment],
+    options.reverse,
+    options.inversions,
+    options.scores.threshold,
+  ).map((a) => {
+    return {
+      alignment: a.coordinates,
+      orientations: a.orientations,
+      segments: a.segments,
+      score: sum(a.scores),
+    };
+  });
   return alignments;
 }

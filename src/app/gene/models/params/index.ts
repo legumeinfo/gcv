@@ -1,22 +1,57 @@
-import { AlignmentParams, alignmentParamMembers, alignmentParamParsers,
-  alignmentParamValidators } from './alignment.model';
-import { BlockParams, blockParamMembers, blockParamParsers,
-  blockParamValidators } from './block.model';
-import { ClusteringParams, clusteringParamMembers, clusteringParamParsers,
-  clusteringParamValidators } from './clustering.model';
-import { MacroFilterParams, macroFilterParamMembers, macroFilterParamParsers,
-  macroFilterParamValidators } from './macro-filters.model';
-import { MacroOrderParams, macroOrderParamMembers, macroOrderParamParsers,
-  macroOrderParamValidators } from './macro-order.model';
-import { MicroFilterParams, microFilterParamMembers, microFilterParamParsers,
-  microFilterParamValidators } from './micro-filters.model';
-import { MicroOrderParams, microOrderParamMembers, microOrderParamParsers,
-  microOrderParamValidators } from './micro-order.model';
-import { QueryParams, queryParamMembers, queryParamParsers,
-  queryParamValidators } from './query.model';
-import { SourceParams, sourceParamMembers, sourceParamParsers,
-  sourceParamValidators } from './source.model';
-
+import {
+  AlignmentParams,
+  alignmentParamMembers,
+  alignmentParamParsers,
+  alignmentParamValidators,
+} from './alignment.model';
+import {
+  BlockParams,
+  blockParamMembers,
+  blockParamParsers,
+  blockParamValidators,
+} from './block.model';
+import {
+  ClusteringParams,
+  clusteringParamMembers,
+  clusteringParamParsers,
+  clusteringParamValidators,
+} from './clustering.model';
+import {
+  MacroFilterParams,
+  macroFilterParamMembers,
+  macroFilterParamParsers,
+  macroFilterParamValidators,
+} from './macro-filters.model';
+import {
+  MacroOrderParams,
+  macroOrderParamMembers,
+  macroOrderParamParsers,
+  macroOrderParamValidators,
+} from './macro-order.model';
+import {
+  MicroFilterParams,
+  microFilterParamMembers,
+  microFilterParamParsers,
+  microFilterParamValidators,
+} from './micro-filters.model';
+import {
+  MicroOrderParams,
+  microOrderParamMembers,
+  microOrderParamParsers,
+  microOrderParamValidators,
+} from './micro-order.model';
+import {
+  QueryParams,
+  queryParamMembers,
+  queryParamParsers,
+  queryParamValidators,
+} from './query.model';
+import {
+  SourceParams,
+  sourceParamMembers,
+  sourceParamParsers,
+  sourceParamValidators,
+} from './source.model';
 
 export * from './alignment.model';
 export * from './block.model';
@@ -28,11 +63,16 @@ export * from './micro-order.model';
 export * from './query.model';
 export * from './source.model';
 
-
-export type Params = AlignmentParams | BlockParams | ClusteringParams |
-  MacroFilterParams | MacroOrderParams | MicroFilterParams | MicroOrderParams |
-  QueryParams | SourceParams;
-
+export type Params =
+  | AlignmentParams
+  | BlockParams
+  | ClusteringParams
+  | MacroFilterParams
+  | MacroOrderParams
+  | MicroFilterParams
+  | MicroOrderParams
+  | QueryParams
+  | SourceParams;
 
 export const paramMembers = [
   ...alignmentParamMembers,
@@ -46,7 +86,6 @@ export const paramMembers = [
   ...sourceParamMembers,
 ];
 
-
 export const paramValidators = {
   ...alignmentParamValidators,
   ...blockParamValidators,
@@ -59,8 +98,7 @@ export const paramValidators = {
   ...sourceParamValidators,
 };
 
-
-export const paramParsers: {[key: string]: Function} = {
+export const paramParsers: { [key: string]: Function } = {
   ...alignmentParamParsers,
   ...blockParamParsers,
   ...clusteringParamParsers,

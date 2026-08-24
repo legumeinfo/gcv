@@ -1,7 +1,14 @@
 // Angular
 import { Injectable, inject } from '@angular/core';
 import { UntypedFormBuilder } from '@angular/forms';
-import { PRIMARY_OUTLET, ActivatedRouteSnapshot, NavigationExtras, Router, RouterStateSnapshot, UrlTree } from '@angular/router';
+import {
+  PRIMARY_OUTLET,
+  ActivatedRouteSnapshot,
+  NavigationExtras,
+  Router,
+  RouterStateSnapshot,
+  UrlTree,
+} from '@angular/router';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 // store
@@ -10,27 +17,31 @@ import * as fromRoot from '@gcv/store/reducers';
 // app
 import { formControlConfigFactory, parseParams } from '@gcv/core/models/params';
 
-
 @Injectable()
-export class QueryParamsGuard  {
+export class QueryParamsGuard {
   private _fb = inject(UntypedFormBuilder);
   private _router = inject(Router);
   private _store = inject<Store<fromRoot.State>>(Store);
 
-
-  canActivate(route: ActivatedRouteSnapshot, state: RouterStateSnapshot):
-  Observable<UrlTree|boolean> {
+  canActivate(
+    route: ActivatedRouteSnapshot,
+    state: RouterStateSnapshot,
+  ): Observable<UrlTree | boolean> {
     // parse query param strings to correct types
     // TODO: can this be done without using route data?
-    const {paramMembers, paramParsers, paramValidators, paramsSelector} = route.data;
+    const { paramMembers, paramParsers, paramValidators, paramsSelector } =
+      route.data;
     const routeParams = parseParams(route.queryParams, paramParsers);
     // validate query params
-    const controls =
-      formControlConfigFactory(paramMembers, routeParams, paramValidators);
+    const controls = formControlConfigFactory(
+      paramMembers,
+      routeParams,
+      paramValidators,
+    );
     const paramsGroup = this._fb.group(controls);
     paramsGroup.markAsDirty();
     return this._store.select(paramsSelector).pipe(
-      map((params): UrlTree|boolean => {
+      map((params): UrlTree | boolean => {
         if (paramsGroup.valid) {
           return true;
         }
@@ -48,12 +59,11 @@ export class QueryParamsGuard  {
         const queryParams = Object.assign({}, params, routeParams);
         const commands = [path, route.params];
         const extras: NavigationExtras = {
-            queryParams,
-            queryParamsHandling: 'merge',
-          };
+          queryParams,
+          queryParamsHandling: 'merge',
+        };
         return this._router.createUrlTree(commands, extras);
       }),
     );
   }
-
 }

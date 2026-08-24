@@ -15,6 +15,5 @@ export const ALIGNMENT_ALGORITHMS: Algorithm[] = [
   },
 ];
 
-
-export const ALIGNMENT_ALGORITHM_MAP: AlgorithmMap
-  = algorithmMap(ALIGNMENT_ALGORITHMS);
+export const ALIGNMENT_ALGORITHM_MAP: AlgorithmMap =
+  algorithmMap(ALIGNMENT_ALGORITHMS);

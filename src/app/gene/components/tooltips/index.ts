@@ -1,6 +1,8 @@
 import { geneTooltipComponent, GeneTooltipComponent } from './gene';
-import { macroBlockTooltipComponent, MacroBlockTooltipComponent }
-  from './macro-block';
+import {
+  macroBlockTooltipComponent,
+  MacroBlockTooltipComponent,
+} from './macro-block';
 import { processTooltipComponent, ProcessTooltipComponent } from './process';
 import { plotTooltipComponent, PlotTooltipComponent } from './plot';
 import { htmlTooltipComponent, HtmlTooltipComponent } from './html';

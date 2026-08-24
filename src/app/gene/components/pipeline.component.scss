@@ -34,13 +34,18 @@ $bootstrap-btn-border-size: 1px;
 $bootstrap-btn-padding: 0.375rem;
 $bootstrap-btn-line-height: 1.5;
 
-$bootstrap-btn-transition: color .15s ease-in-out, background-color .15s ease-in-out, border-color .15s ease-in-out, box-shadow .15s ease-in-out !default;
+$bootstrap-btn-transition:
+  color 0.15s ease-in-out,
+  background-color 0.15s ease-in-out,
+  border-color 0.15s ease-in-out,
+  box-shadow 0.15s ease-in-out !default;
 
-$arrow-border-size: $bootstrap-btn-padding + math.div($bootstrap-btn-line-height, 2);
+$arrow-border-size: $bootstrap-btn-padding +
+  math.div($bootstrap-btn-line-height, 2);
 
 /* colored arrow */
 .pipeline .btn.pipeline-arrow:not(:last-child):after {
-  content: "";
+  content: '';
   width: 0;
   height: 0;
   position: absolute;
@@ -51,11 +56,11 @@ $arrow-border-size: $bootstrap-btn-padding + math.div($bootstrap-btn-line-height
   border-bottom: $arrow-border-size solid transparent;
   border-left: $arrow-border-size solid white;
   z-index: 3;
-  transition: $bootstrap-btn-transition
+  transition: $bootstrap-btn-transition;
 }
 /* arrow border */
 .pipeline .btn.pipeline-arrow:not(:last-child):before {
-  content: "";
+  content: '';
   width: 0;
   height: 0;
   position: absolute;
@@ -197,7 +202,6 @@ $prefix: bs-;
   color: var(--#{$prefix}alert-color);
   background-color: var(--#{$prefix}alert-bg);
 }
-
 
 /* primary alert */
 .pipeline .btn.pipeline-arrow.alert-primary:not(:last-child) {

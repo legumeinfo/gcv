@@ -12,17 +12,17 @@ GCV (Genome Context Viewer) is a comparative genomics web application for visual
 
 ### Tech Stack
 
-| Layer | Technology |
-|-------|-----------|
-| Framework | Angular 21 (TypeScript) |
-| State | NgRx 21 (Store, Effects, Router-Store) |
-| Visualization | D3.js 7, Circos.js 2 |
-| Layout | Golden Layout 2 |
-| UI | Bootstrap 5, FontAwesome 7, Tippy.js |
-| Backend | gRPC-web + HTTP (REST GET/POST) |
-| E2E Tests | Playwright 1.58 |
-| Unit Tests | Jest 30 (two projects: node engine + jest-preset-angular) |
-| Lint | ESLint 9 + angular-eslint + ngRx-eslint |
+| Layer         | Technology                                                |
+| ------------- | --------------------------------------------------------- |
+| Framework     | Angular 21 (TypeScript)                                   |
+| State         | NgRx 21 (Store, Effects, Router-Store)                    |
+| Visualization | D3.js 7, Circos.js 2                                      |
+| Layout        | Golden Layout 2                                           |
+| UI            | Bootstrap 5, FontAwesome 7, Tippy.js                      |
+| Backend       | gRPC-web + HTTP (REST GET/POST)                           |
+| E2E Tests     | Playwright 1.58                                           |
+| Unit Tests    | Jest 30 (two projects: node engine + jest-preset-angular) |
+| Lint          | ESLint 9 + angular-eslint + ngRx-eslint                   |
 
 ---
 
@@ -62,13 +62,13 @@ src/app/
 
 `src/assets/js/gcv/` is a non-Angular, vanilla-TypeScript D3.js engine. It exports a global `GCV` object consumed by Angular viewer components:
 
-| Module | Responsibility |
-|--------|---------------|
+| Module           | Responsibility                                                                                                                                         |
+| ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `visualization/` | SVG renderers for micro-synteny (`micro.ts`), macro-synteny (`macro.ts`), multi-macro (`multi-macro.ts`), dot plots (`plot.ts`), legends (`legend.ts`) |
-| `alignment/` | Smith-Waterman and repeat-based local alignment algorithms |
-| `common/` | Color mapping (`colors.ts`), event bus, matrix utilities |
-| `graph/` | Directed/undirected graphs, MSA-HMM, frequented-region detection |
-| `metrics/` | Levenshtein distance |
+| `alignment/`     | Smith-Waterman and repeat-based local alignment algorithms                                                                                             |
+| `common/`        | Color mapping (`colors.ts`), event bus, matrix utilities                                                                                               |
+| `graph/`         | Directed/undirected graphs, MSA-HMM, frequented-region detection                                                                                       |
+| `metrics/`       | Levenshtein distance                                                                                                                                   |
 
 ---
 
@@ -89,14 +89,14 @@ The `genemodule` and `searchmodule` states are **lazy-loaded feature stores**, r
 
 ### 3.2 Gene Module State (`genemodule`)
 
-| Reducer | Entity Type | Key | Request IDs |
-|---------|------------|-----|-------------|
-| `chromosome` | `Track` | `trackID(name, source)` | `{name, source}` |
-| `gene` | `Gene` | `geneID(name, source)` | `{name, source}` |
-| `microTracks` | `Track & ClusterMixin` | `microTrackID(cluster, start, stop, source)` | `{cluster, source}` |
-| `pairwiseBlocks` | `PairwiseBlocks` | `pairwiseBlocksID(refSource, ref, chrSource, chr\|*)` | `{referenceSource, reference, chromosomeSource, chromosome?}` |
-| `family` | - | - | `{ omitted: string[] }` |
-| `layout` | - | - | `{ showLeftSlider, leftSliderContent }` |
+| Reducer          | Entity Type            | Key                                                   | Request IDs                                                   |
+| ---------------- | ---------------------- | ----------------------------------------------------- | ------------------------------------------------------------- |
+| `chromosome`     | `Track`                | `trackID(name, source)`                               | `{name, source}`                                              |
+| `gene`           | `Gene`                 | `geneID(name, source)`                                | `{name, source}`                                              |
+| `microTracks`    | `Track & ClusterMixin` | `microTrackID(cluster, start, stop, source)`          | `{cluster, source}`                                           |
+| `pairwiseBlocks` | `PairwiseBlocks`       | `pairwiseBlocksID(refSource, ref, chrSource, chr\|*)` | `{referenceSource, reference, chromosomeSource, chromosome?}` |
+| `family`         | -                      | -                                                     | `{ omitted: string[] }`                                       |
+| `layout`         | -                      | -                                                     | `{ showLeftSlider, leftSliderContent }`                       |
 
 **Common reducer pattern** (chromosome, gene, micro-tracks, pairwise-blocks):
 
@@ -126,6 +126,7 @@ The search module has its own feature store using the same request-deduplication
 ### 3.4 Selectors
 
 Hierarchical memoized selectors compose from raw entity state to derived views:
+
 - `getSelectedGenes` → `getSelectedGeneIDs` → `getSelectedGenesLoaded`
 - `getSelectedMicroTracks` → `getClusteredSelectedMicroTracks` → `getClusteredAndAlignedSelectedMicroTracks`
 - `getPairwiseBlocks` → `getFilteredAndOrderedPairwiseBlocksForTracks`
@@ -191,7 +192,6 @@ export const <category>ParamParsers: { [member]: (raw: string) => <type> };
 (e.g. `alignmentParamMembers`, `clusteringParamValidators`, `blockParamParsers`.)
 
 These drive reactive forms, URL (de)serialization, and store selectors.
-
 
 ---
 

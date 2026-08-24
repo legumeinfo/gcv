@@ -1,6 +1,5 @@
 import { nameSourceID } from './name-source-id';
 
-
 function block(b, referenceTrack, genesMap) {
   const startGene = genesMap[referenceTrack.genes[b.i]];
   const stopGene = genesMap[referenceTrack.genes[b.j]];
@@ -14,7 +13,7 @@ function block(b, referenceTrack, genesMap) {
 }
 
 function track(referenceTrack, chromosomeBlocks, genesMap) {
-  const {chromosome, chromosomeGenus, chromosomeSpecies} = chromosomeBlocks;
+  const { chromosome, chromosomeGenus, chromosomeSpecies } = chromosomeBlocks;
   return {
     chromosome,
     genus: chromosomeGenus,
@@ -30,7 +29,7 @@ function track(referenceTrack, chromosomeBlocks, genesMap) {
 }
 
 export function macroBlocks(referenceTrack, referenceBlocks, genesMap) {
-  const {name, length, genus, species, source} = referenceTrack;
+  const { name, length, genus, species, source } = referenceTrack;
   return {
     chromosome: name,
     length,

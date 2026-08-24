@@ -1,5 +1,17 @@
 // Angular + dependencies
-import { AfterViewInit, Component, ElementRef, EventEmitter, Input, OnDestroy, OnInit, Output, ViewChild, ChangeDetectionStrategy, inject } from '@angular/core';
+import {
+  AfterViewInit,
+  Component,
+  ElementRef,
+  EventEmitter,
+  Input,
+  OnDestroy,
+  OnInit,
+  Output,
+  ViewChild,
+  ChangeDetectionStrategy,
+  inject,
+} from '@angular/core';
 import { Observable, Subject, combineLatest } from 'rxjs';
 import { map, switchMap, takeUntil } from 'rxjs/operators';
 // app
@@ -7,29 +19,45 @@ import { GCV } from '@gcv-assets/js/gcv';
 import { saveFile } from '@gcv/core/utils';
 import { Track, Pipeline } from '@gcv/gene/models';
 import { AlignmentMixin, ClusterMixin } from '@gcv/gene/models/mixins';
-import { FamilyService, GeneService, MicroTracksService, ProcessService }
-  from '@gcv/gene/services';
+import {
+  FamilyService,
+  GeneService,
+  MicroTracksService,
+  ProcessService,
+} from '@gcv/gene/services';
 // component
 import { microShim } from './micro.shim';
 
-
 @Component({
-    selector: 'gcv-micro',
-    styleUrls: ['../golden-viewer.scss'],
-    template: `
+  selector: 'gcv-micro',
+  styleUrls: ['../golden-viewer.scss'],
+  template: `
     <gcv-context-menu (saveImage)="saveImage()">
       <ul class="navbar-nav me-auto">
         @if (showMacro()) {
           <li class="nav-item dropdown">
-            <a class="btn btn-outline-dark dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            <a
+              class="btn btn-outline-dark dropdown-toggle"
+              href="#"
+              id="navbarDropdown"
+              role="button"
+              data-bs-toggle="dropdown"
+              aria-expanded="false"
+            >
               Macro Viewers
             </a>
-            @if (queryTracks|async; as tracks) {
+            @if (queryTracks | async; as tracks) {
               <div class="dropdown-menu" aria-labelledby="dropdownMenuLink">
                 @if (showCircos()) {
                   <div>
                     <h6 class="dropdown-header">Multi</h6>
-                    <a [routerLink]="[]" queryParamsHandling="preserve" class="dropdown-item" (click)="emitCircos(tracks)">Circos</a>
+                    <a
+                      [routerLink]="[]"
+                      queryParamsHandling="preserve"
+                      class="dropdown-item"
+                      (click)="emitCircos(tracks)"
+                      >Circos</a
+                    >
                   </div>
                 }
                 @if (showCircos() && showReference()) {
@@ -39,7 +67,13 @@ import { microShim } from './micro.shim';
                   <div>
                     <h6 class="dropdown-header">Reference</h6>
                     @for (track of tracks; track track) {
-                      <a [routerLink]="[]" queryParamsHandling="preserve" class="dropdown-item" (click)="emitReference(track)">{{ track.name }}</a>
+                      <a
+                        [routerLink]="[]"
+                        queryParamsHandling="preserve"
+                        class="dropdown-item"
+                        (click)="emitReference(track)"
+                        >{{ track.name }}</a
+                      >
                     }
                   </div>
                 }
@@ -48,19 +82,22 @@ import { microShim } from './micro.shim';
           </li>
         }
       </ul>
-      <gcv-pipeline [info]=info [pipeline]=pipeline navcenter></gcv-pipeline>
+      <gcv-pipeline
+        [info]="info"
+        [pipeline]="pipeline"
+        navcenter
+      ></gcv-pipeline>
     </gcv-context-menu>
     <div (gcvOnResize)="draw()" class="viewer" #container></div>
-    `,
-    changeDetection: ChangeDetectionStrategy.Eager,
-    standalone: false
+  `,
+  changeDetection: ChangeDetectionStrategy.Eager,
+  standalone: false,
 })
 export class MicroComponent implements AfterViewInit, OnDestroy, OnInit {
   private _familyService = inject(FamilyService);
   private _geneService = inject(GeneService);
   private _microTracksService = inject(MicroTracksService);
   private _processService = inject(ProcessService);
-
 
   @Input() clusterID: number;
   @Input() options: any = {};
@@ -73,9 +110,11 @@ export class MicroComponent implements AfterViewInit, OnDestroy, OnInit {
   @Output() circos = new EventEmitter();
   @Output() reference = new EventEmitter();
 
-  @ViewChild('container', {static: true}) container: ElementRef;
+  @ViewChild('container', { static: true }) container: ElementRef;
 
-  draw = () => { /* no-op */ };
+  draw = () => {
+    /* no-op */
+  };
 
   private _destroy: Subject<boolean> = new Subject();
   private _viewer;
@@ -99,37 +138,54 @@ export class MicroComponent implements AfterViewInit, OnDestroy, OnInit {
   // Angular hooks
 
   ngOnInit() {
-    this.queryTracks =
-      this._microTracksService.getSelectedClusterTracks(this.clusterID);
+    this.queryTracks = this._microTracksService.getSelectedClusterTracks(
+      this.clusterID,
+    );
     this.pipeline = {
-        'Track Search':
-          this._processService.getTrackSearchProcess(this.clusterID),
-        'Track Alignment':
-          this._processService.getTrackAlignmentProcess(this.clusterID),
-        'Track Genes': this._processService.getTrackGeneProcess(this.clusterID),
-      };
+      'Track Search': this._processService.getTrackSearchProcess(
+        this.clusterID,
+      ),
+      'Track Alignment': this._processService.getTrackAlignmentProcess(
+        this.clusterID,
+      ),
+      'Track Genes': this._processService.getTrackGeneProcess(this.clusterID),
+    };
   }
 
   ngAfterViewInit() {
     const queryGenes = this._geneService.getQueryGenes();
     const allTracks = this._microTracksService.getAllTracks();
     const genes = allTracks.pipe(
-        map((tracks) => {
-          const filter = (t) => t.cluster == this.clusterID;
-          return tracks.filter(filter);
-        }),
-        switchMap((tracks) => {
-          return this._geneService.getGenesForTracks(tracks);
-        }),
-      );
+      map((tracks) => {
+        const filter = (t) => t.cluster == this.clusterID;
+        return tracks.filter(filter);
+      }),
+      switchMap((tracks) => {
+        return this._geneService.getGenesForTracks(tracks);
+      }),
+    );
     const omittedFamilies = this._familyService.getOmittedFamilies();
     // fetch own data because injected components don't have change detection
-    combineLatest(queryGenes, this.queryTracks, allTracks, genes, omittedFamilies)
+    combineLatest(
+      queryGenes,
+      this.queryTracks,
+      allTracks,
+      genes,
+      omittedFamilies,
+    )
       .pipe(takeUntil(this._destroy))
-      .subscribe(([queryGenes, queryTracks, allTracks, genes, omittedFamilies]) => {
-        this._preDraw(queryGenes, queryTracks, allTracks, genes, omittedFamilies);
-        this.draw();
-      });
+      .subscribe(
+        ([queryGenes, queryTracks, allTracks, genes, omittedFamilies]) => {
+          this._preDraw(
+            queryGenes,
+            queryTracks,
+            allTracks,
+            genes,
+            omittedFamilies,
+          );
+          this.draw();
+        },
+      );
   }
 
   ngOnDestroy() {
@@ -141,27 +197,27 @@ export class MicroComponent implements AfterViewInit, OnDestroy, OnInit {
   // public
 
   emitPlotClick(event, track, queryTracks) {
-    this.plotClick.emit({event, track, queryTracks});
+    this.plotClick.emit({ event, track, queryTracks });
   }
 
   emitGeneClick(gene, family, source) {
-    this.geneClick.emit({gene, family, source});
+    this.geneClick.emit({ gene, family, source });
   }
 
   emitGeneOver(event, gene, family, source) {
-    this.geneOver.emit({event, gene, family, source});
+    this.geneOver.emit({ event, gene, family, source });
   }
 
   emitNameClick(track) {
-    this.nameClick.emit({track});
+    this.nameClick.emit({ track });
   }
 
   emitCircos(tracks) {
-    this.circos.emit({tracks});
+    this.circos.emit({ tracks });
   }
 
   emitReference(track) {
-    this.reference.emit({track});
+    this.reference.emit({ track });
   }
 
   saveImage(): void {
@@ -191,35 +247,47 @@ export class MicroComponent implements AfterViewInit, OnDestroy, OnInit {
     }
   }
 
-  private _preDraw(queryGenes, queryTracks, tracks, genes, omittedFamilies): void {
-    const {data, bold, familySizes} =
-      microShim(this.clusterID, queryTracks, tracks, genes, omittedFamilies);
+  private _preDraw(
+    queryGenes,
+    queryTracks,
+    tracks,
+    genes,
+    omittedFamilies,
+  ): void {
+    const { data, bold, familySizes } = microShim(
+      this.clusterID,
+      queryTracks,
+      tracks,
+      genes,
+      omittedFamilies,
+    );
     let options = {
-        bold: bold,
-        highlight: queryGenes.map((g) => g.name),
-        selectiveColoring: familySizes,
-        plotClick: (e, t, i) => this.emitPlotClick(e, tracks[i], queryTracks),
-        geneClick: (t, g) => this.emitGeneClick(g.name, g.family, t.source),
-        geneOver: (e, t, g) => this.emitGeneOver(e, g.name, g.family, t.source),
-        nameClick: (t, i) => this.emitNameClick(tracks[i])
-      };
-    options = Object.assign(options, this.options, {autoResize: false});
+      bold: bold,
+      highlight: queryGenes.map((g) => g.name),
+      selectiveColoring: familySizes,
+      plotClick: (e, t, i) => this.emitPlotClick(e, tracks[i], queryTracks),
+      geneClick: (t, g) => this.emitGeneClick(g.name, g.family, t.source),
+      geneOver: (e, t, g) => this.emitGeneOver(e, g.name, g.family, t.source),
+      nameClick: (t, i) => this.emitNameClick(tracks[i]),
+    };
+    options = Object.assign(options, this.options, { autoResize: false });
     this.draw = this._draw.bind(this, data, options);
   }
 
   private _draw(data, options) {
     let tempViewer: any;
     const dim = Math.min(
-        this.container.nativeElement.clientWidth,
-        this.container.nativeElement.clientHeight
-      );
+      this.container.nativeElement.clientWidth,
+      this.container.nativeElement.clientHeight,
+    );
     // draw the new viewer before destroying the old to preserve scroll position
     if (dim > 0) {
       tempViewer = new GCV.visualization.Micro(
-          this.container.nativeElement,
-          GCV.common.colors,
-          data,
-          options);
+        this.container.nativeElement,
+        GCV.common.colors,
+        data,
+        options,
+      );
     }
     this._destroyViewer();
     this._viewer = tempViewer;

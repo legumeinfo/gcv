@@ -1,26 +1,35 @@
 // Angular
-import { Component, Input, ViewChild, ChangeDetectionStrategy } from '@angular/core';
+import {
+  Component,
+  Input,
+  ViewChild,
+  ChangeDetectionStrategy,
+} from '@angular/core';
 // app
 import {
-  htmlTooltipComponent, htmlTooltipConfigFactory,
-  processTooltipComponent, processTooltipConfigFactory,
+  htmlTooltipComponent,
+  htmlTooltipConfigFactory,
+  processTooltipComponent,
+  processTooltipConfigFactory,
 } from '@gcv/gene/components/tooltips';
 import { TooltipFactoryDirective } from '@gcv/gene/directives';
-import { Pipeline, Process, ProcessStatus, ProcessStream }
-  from '@gcv/gene/models';
+import {
+  Pipeline,
+  Process,
+  ProcessStatus,
+  ProcessStream,
+} from '@gcv/gene/models';
 import { statusToClass, statusToIcon } from './pipeline.shim';
 
-
 @Component({
-    selector: 'gcv-pipeline',
-    styleUrls: ['./pipeline.component.scss'],
-    templateUrl: 'pipeline.component.html',
-    changeDetection: ChangeDetectionStrategy.Eager,
-    standalone: false
+  selector: 'gcv-pipeline',
+  styleUrls: ['./pipeline.component.scss'],
+  templateUrl: 'pipeline.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
+  standalone: false,
 })
-export class PipelineComponent { 
-
-  @ViewChild(TooltipFactoryDirective, {static: true}) tooltipFactoryDirective;
+export class PipelineComponent {
+  @ViewChild(TooltipFactoryDirective, { static: true }) tooltipFactoryDirective;
 
   // IO
 
@@ -34,7 +43,7 @@ export class PipelineComponent {
 
   tooltipComponents = [htmlTooltipComponent, processTooltipComponent];
 
-  private _tipOptions = {placement: 'bottom'};
+  private _tipOptions = { placement: 'bottom' };
 
   // public methods
 
@@ -52,15 +61,14 @@ export class PipelineComponent {
   }
 
   infoTooltip(e, html: string): void {
-    const inputs = {html};
+    const inputs = { html };
     const config = htmlTooltipConfigFactory(inputs, this._tipOptions);
     this.tooltipFactoryDirective.componentTip(e.target, config);
   }
 
   processTooltip(e, process: Process): void {
-    const inputs = {process};
+    const inputs = { process };
     const config = processTooltipConfigFactory(inputs, this._tipOptions);
     this.tooltipFactoryDirective.componentTip(e.target, config);
   }
-
 }

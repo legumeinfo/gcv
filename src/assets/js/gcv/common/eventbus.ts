@@ -1,6 +1,5 @@
 // basic implementation of a publish-subscribe eventbus
 class EventBus {
-
   private subscribers = [];
 
   subscribe(callback) {
@@ -9,8 +8,8 @@ class EventBus {
     return {
       unsubscribe: () => {
         delete this.subscribers[index];
-      }
-    }
+      },
+    };
   }
 
   publish(event) {

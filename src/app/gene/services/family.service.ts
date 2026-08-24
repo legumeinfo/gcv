@@ -7,22 +7,19 @@ import * as familyActions from '@gcv/gene/store/actions/family.actions';
 import * as fromRoot from '@gcv/store/reducers';
 import * as fromFamily from '@gcv/gene/store/selectors/family';
 
-
 @Injectable()
 export class FamilyService {
   private _store = inject<Store<fromRoot.State>>(Store);
 
-
   omitFamilies(families: string[]): void {
-    this._store.dispatch(familyActions.OmitFamilies({families}));
+    this._store.dispatch(familyActions.OmitFamilies({ families }));
   }
 
   includeFamilies(families: string[]): void {
-    this._store.dispatch(familyActions.IncludeFamilies({families}));
+    this._store.dispatch(familyActions.IncludeFamilies({ families }));
   }
 
   getOmittedFamilies(): Observable<string[]> {
     return this._store.select(fromFamily.getOmittedFamilies);
   }
-
 }

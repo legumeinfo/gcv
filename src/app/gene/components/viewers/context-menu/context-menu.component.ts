@@ -1,16 +1,25 @@
 // Angular
-import { AfterViewInit, ChangeDetectorRef, Component, ElementRef, EventEmitter, Output, ViewChild, ChangeDetectionStrategy, inject } from '@angular/core';
+import {
+  AfterViewInit,
+  ChangeDetectorRef,
+  Component,
+  ElementRef,
+  EventEmitter,
+  Output,
+  ViewChild,
+  ChangeDetectionStrategy,
+  inject,
+} from '@angular/core';
 
 @Component({
-    selector: 'gcv-context-menu',
-    styleUrls: ['./context-menu.component.scss'],
-    templateUrl: './context-menu.component.html',
-    changeDetection: ChangeDetectionStrategy.Eager,
-    standalone: false
+  selector: 'gcv-context-menu',
+  styleUrls: ['./context-menu.component.scss'],
+  templateUrl: './context-menu.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
+  standalone: false,
 })
 export class ContextMenuComponent implements AfterViewInit {
   private changeDetector = inject(ChangeDetectorRef);
-
 
   @Output() saveData = new EventEmitter();
   @Output() saveImage = new EventEmitter();
@@ -35,7 +44,10 @@ export class ContextMenuComponent implements AfterViewInit {
 
   private _hasContent(children: any): any {
     for (const c of children) {
-      if (!c.className.includes('native') && c.className !== 'dropdown-divider') {
+      if (
+        !c.className.includes('native') &&
+        c.className !== 'dropdown-divider'
+      ) {
         return true;
       }
     }
@@ -53,17 +65,19 @@ export class ContextMenuComponent implements AfterViewInit {
   }
 
   showDropdown(): boolean {
-    return this.showData()
-        || this.showImage()
-        || (this.el !== undefined
-        && this._hasContent(this.el.nativeElement.children));
+    return (
+      this.showData() ||
+      this.showImage() ||
+      (this.el !== undefined &&
+        this._hasContent(this.el.nativeElement.children))
+    );
   }
 
   showSeparator(): boolean {
-    return (this.showData()
-        || this.showImage())
-        && (this.el !== undefined
-        && this._hasContent(this.el.nativeElement.children));
+    return (
+      (this.showData() || this.showImage()) &&
+      this.el !== undefined &&
+      this._hasContent(this.el.nativeElement.children)
+    );
   }
-
 }

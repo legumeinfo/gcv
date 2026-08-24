@@ -1,17 +1,30 @@
 <nav class="navbar navbar-expand-lg navbar-light bg-light border-bottom">
   <div class="container-fluid">
     @if (brand !== undefined) {
-      <a class="navbar-brand" href="{{brand.url}}" (mouseenter)="toggleBrand()" (mouseleave)="toggleBrand()">
-        <img src="{{brand.img}}" class="d-inline-block align-text-top" alt="">
+      <a
+        class="navbar-brand"
+        href="{{ brand.url }}"
+        (mouseenter)="toggleBrand()"
+        (mouseleave)="toggleBrand()"
+      >
+        <img
+          src="{{ brand.img }}"
+          class="d-inline-block align-text-top"
+          alt=""
+        />
       </a>
     }
-    <a class="navbar-brand brand-name collapse collapse-horizontal" href="{{brand.url}}" #brandText>
+    <a
+      class="navbar-brand brand-name collapse collapse-horizontal"
+      href="{{ brand.url }}"
+      #brandText
+    >
       @if (brand.slogan === undefined) {
-        {{brand.name}}
+        {{ brand.name }}
       }
       @if (brand.slogan !== undefined) {
-        <span>{{brand.name}}</span>
-        <small>{{brand.slogan}}</small>
+        <span>{{ brand.name }}</span>
+        <small>{{ brand.slogan }}</small>
       }
     </a>
     <div class="collapse navbar-collapse">
@@ -24,15 +37,45 @@
         <div class="navbar-right">
           <ul class="navbar-nav me-auto">
             <li class="nav-item dropdown">
-              <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+              <a
+                class="nav-link dropdown-toggle"
+                href="#"
+                id="navbarDropdown"
+                role="button"
+                data-bs-toggle="dropdown"
+                aria-expanded="false"
+              >
                 Help
               </a>
-              <div class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownMenuLink">
-                <a class="dropdown-item" [routerLink]="['/instructions']" target="_blank">Instructions</a>
-                <a class="dropdown-item" href="https://github.com/legumeinfo/gcv/wiki" target="_blank">Documentation</a>
-                <a class="dropdown-item" href="https://doi.org/10.1093/nar/gkad391" target="_blank">Manuscript</a>
+              <div
+                class="dropdown-menu dropdown-menu-end"
+                aria-labelledby="dropdownMenuLink"
+              >
+                <a
+                  class="dropdown-item"
+                  [routerLink]="['/instructions']"
+                  target="_blank"
+                  >Instructions</a
+                >
+                <a
+                  class="dropdown-item"
+                  href="https://github.com/legumeinfo/gcv/wiki"
+                  target="_blank"
+                  >Documentation</a
+                >
+                <a
+                  class="dropdown-item"
+                  href="https://doi.org/10.1093/nar/gkad391"
+                  target="_blank"
+                  >Manuscript</a
+                >
                 <div class="dropdown-divider"></div>
-                <a class="dropdown-item" href="https://github.com/legumeinfo/gcv/issues" target="_blank">Contact developers</a>
+                <a
+                  class="dropdown-item"
+                  href="https://github.com/legumeinfo/gcv/issues"
+                  target="_blank"
+                  >Contact developers</a
+                >
               </div>
             </li>
           </ul>

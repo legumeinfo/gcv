@@ -4,16 +4,14 @@ import { Validators } from '@angular/forms';
 import { ALIGNMENT_ALGORITHMS } from '@gcv/gene/algorithms/alignment.algorithm';
 import { Regex } from '@gcv/gene/constants';
 
-
 export type AlignmentParams = {
-  algorithm: string,  // Algorithm ID
-  match: number,
-  mismatch: number,
-  gap: number,
-  score: number,
-  threshold: number,
+  algorithm: string; // Algorithm ID
+  match: number;
+  mismatch: number;
+  gap: number;
+  score: number;
+  threshold: number;
 };
-
 
 export const alignmentParamMembers = [
   'algorithm',
@@ -23,7 +21,6 @@ export const alignmentParamMembers = [
   'score',
   'threshold',
 ];
-
 
 export const alignmentParamValidators = {
   algorithm: Validators.compose([
@@ -51,7 +48,6 @@ export const alignmentParamValidators = {
     Validators.pattern(Regex.POSITIVE_INT),
   ]),
 };
-
 
 export const alignmentParamParsers = {
   algorithm: (s) => s,

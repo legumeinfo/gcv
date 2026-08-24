@@ -1,4 +1,9 @@
-import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
+import {
+  ComponentFixture,
+  TestBed,
+  fakeAsync,
+  tick,
+} from '@angular/core/testing';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { of } from 'rxjs';
@@ -27,7 +32,9 @@ describe('SearchWidgetComponent (DOM)', () => {
       { id: 'lis', name: 'LIS', search: {} },
       { id: 'nolabel', name: 'No Search Endpoint' }, // lacks `search` → filtered out
     ] as unknown as Server[];
-    appConfig.miscellaneous = { searchHelpText: 'Try <b>Phvul.002G100400</b>' } as any;
+    appConfig.miscellaneous = {
+      searchHelpText: 'Try <b>Phvul.002G100400</b>',
+    } as any;
 
     await TestBed.configureTestingModule({
       imports: [FormsModule],
@@ -36,7 +43,14 @@ describe('SearchWidgetComponent (DOM)', () => {
         { provide: AppConfig, useValue: appConfig },
         { provide: Router, useValue: { navigateByUrl } },
         // getter so a test can swap the params before the component initializes
-        { provide: ActivatedRoute, useValue: { get queryParams() { return routeQueryParams; } } },
+        {
+          provide: ActivatedRoute,
+          useValue: {
+            get queryParams() {
+              return routeQueryParams;
+            },
+          },
+        },
       ],
     }).compileComponents();
   });
@@ -56,20 +70,31 @@ describe('SearchWidgetComponent (DOM)', () => {
     create();
     tick(); // let the template-driven NgModel register its control
 
-    const input: HTMLInputElement = fixture.nativeElement.querySelector('#query-search');
+    const input: HTMLInputElement =
+      fixture.nativeElement.querySelector('#query-search');
     input.value = 'Glyma.09G134900';
     input.dispatchEvent(new Event('input')); // drive ngModel view → model
     tick();
     fixture.detectChanges();
 
-    (fixture.nativeElement.querySelector('button[type="submit"]') as HTMLButtonElement).click();
+    (
+      fixture.nativeElement.querySelector(
+        'button[type="submit"]',
+      ) as HTMLButtonElement
+    ).click();
 
-    expect(navigateByUrl).toHaveBeenCalledWith('/search?q=Glyma.09G134900&sources=lis');
+    expect(navigateByUrl).toHaveBeenCalledWith(
+      '/search?q=Glyma.09G134900&sources=lis',
+    );
   }));
 
   it('does not navigate when the query is empty', () => {
     create();
-    (fixture.nativeElement.querySelector('button[type="submit"]') as HTMLButtonElement).click();
+    (
+      fixture.nativeElement.querySelector(
+        'button[type="submit"]',
+      ) as HTMLButtonElement
+    ).click();
     expect(navigateByUrl).not.toHaveBeenCalled();
   });
 
@@ -80,7 +105,8 @@ describe('SearchWidgetComponent (DOM)', () => {
     fixture.detectChanges();
 
     expect(component.model.query).toBe('Medtr3g110360');
-    const input: HTMLInputElement = fixture.nativeElement.querySelector('#query-search');
+    const input: HTMLInputElement =
+      fixture.nativeElement.querySelector('#query-search');
     expect(input.value).toBe('Medtr3g110360');
   }));
 });

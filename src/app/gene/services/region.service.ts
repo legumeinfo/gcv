@@ -8,15 +8,24 @@ import { Store } from '@ngrx/store';
 import * as regionActions from '@gcv/gene/store/actions/region.actions';
 import * as fromRoot from '@gcv/store/reducers';
 // app
-import { AppConfig, RegionPlaceholders, ConfigError, GET, POST, GRPC } from '@gcv/core/models';
+import {
+  AppConfig,
+  RegionPlaceholders,
+  ConfigError,
+  GET,
+  POST,
+  GRPC,
+} from '@gcv/core/models';
 import { Region } from '@gcv/gene/models';
 import { HttpService } from '@gcv/core/services/http.service';
 import { grpcRegionToModel } from './shims';
 import { placeholderReplace } from '@gcv/core/utils';
 // api
-import { ChromosomeRegionGetReply, ChromosomeRegionGetRequest,
-  ChromosomeRegionPromiseClient, } from 'legumeinfo-microservices/dist/chromosomeregion_service/v1';
-
+import {
+  ChromosomeRegionGetReply,
+  ChromosomeRegionGetRequest,
+  ChromosomeRegionPromiseClient,
+} from 'legumeinfo-microservices/dist/chromosomeregion_service/v1';
 
 @Injectable()
 export class RegionService extends HttpService {
@@ -24,26 +33,29 @@ export class RegionService extends HttpService {
   private _http: HttpClient;
   private _store = inject<Store<fromRoot.State>>(Store);
 
-
   constructor() {
     const _http = inject(HttpClient);
 
     super(_http);
-  
+
     this._http = _http;
   }
 
-  getRegion(chromosome: string, start: number, stop: number, serverID: string):
-  Observable<Region> {
+  getRegion(
+    chromosome: string,
+    start: number,
+    stop: number,
+    serverID: string,
+  ): Observable<Region> {
     start = Math.floor(start);
     stop = Math.ceil(stop);
     const request = this._appConfig.getServerRequest(serverID, 'region');
     if (request.type === GET || request.type === POST) {
-      const body = {chromosome, start, stop};
-      return this._makeHttpRequest<{region: Region}>(request, body)
-        .pipe(
-          map(({region}) => region),
-          catchError((error) => throwError(error)));
+      const body = { chromosome, start, stop };
+      return this._makeHttpRequest<{ region: Region }>(request, body).pipe(
+        map(({ region }) => region),
+        catchError((error) => throwError(error)),
+      );
     } else if (request.type === GRPC) {
       const client = new ChromosomeRegionPromiseClient(request.url);
       const grpcRequest = new ChromosomeRegionGetRequest();
@@ -59,17 +71,30 @@ export class RegionService extends HttpService {
         catchError((error) => throwError(error)),
       );
     }
-    const error = new ConfigError('Unsupported request type \'' + request.type + '\'');
+    const error = new ConfigError(
+      "Unsupported request type '" + request.type + "'",
+    );
     return throwError(error);
   }
 
-  regionSearch(chromosome: string, start: number, stop: number, source: string):
-  void {
-    this._store.dispatch(new regionActions.Get({chromosome, start, stop, source}));
+  regionSearch(
+    chromosome: string,
+    start: number,
+    stop: number,
+    source: string,
+  ): void {
+    this._store.dispatch(
+      new regionActions.Get({ chromosome, start, stop, source }),
+    );
   }
 
   //fill in templated regionLinksURL
-  private regionToRegionLinksURL(urlTemplate: string, chromosome: string, start: number, stop: number): string {
+  private regionToRegionLinksURL(
+    urlTemplate: string,
+    chromosome: string,
+    start: number,
+    stop: number,
+  ): string {
     const placeholders = {};
     placeholders[RegionPlaceholders.Chromosome] = chromosome;
     placeholders[RegionPlaceholders.Start] = start.toString();
@@ -78,10 +103,15 @@ export class RegionService extends HttpService {
   }
 
   // fetches source specific details for the given region
-  getRegionDetails(chromosome: string, start: number, end: number, source: string): Observable<any> {
+  getRegionDetails(
+    chromosome: string,
+    start: number,
+    end: number,
+    source: string,
+  ): Observable<any> {
     const request = this._appConfig.getServerRequest(source, 'regionLinks');
-    const makeUrl = (url: string) => this.regionToRegionLinksURL(request.url, chromosome, start, end);
+    const makeUrl = (url: string) =>
+      this.regionToRegionLinksURL(request.url, chromosome, start, end);
     return this._makeHttpRequest<any>(request, {}, makeUrl);
   }
-
 }

@@ -9,9 +9,7 @@ import * as fromGene from './gene.reducer';
 import * as fromLayout from './layout.reducer';
 import * as fromMicroTracks from './micro-tracks.reducer';
 
-
 export const geneFeatureKey = 'genemodule';
-
 
 export interface GeneState {
   [fromPairwiseBlocks.pairwiseBlocksFeatureKey]: fromPairwiseBlocks.State;
@@ -22,11 +20,9 @@ export interface GeneState {
   [fromMicroTracks.microTracksFeatureKey]: fromMicroTracks.State;
 }
 
-
 export interface State extends fromRoot.State {
   [geneFeatureKey]: GeneState;
 }
-
 
 export function reducers(state: GeneState | undefined, action: Action) {
   return combineReducers({
@@ -40,5 +36,5 @@ export function reducers(state: GeneState | undefined, action: Action) {
 }
 
 // select the module's state
-export const getGeneModuleState = createFeatureSelector< GeneState>
-  (geneFeatureKey);
+export const getGeneModuleState =
+  createFeatureSelector<GeneState>(geneFeatureKey);

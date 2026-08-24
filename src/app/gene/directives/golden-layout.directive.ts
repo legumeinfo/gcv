@@ -1,6 +1,13 @@
 // Angular
-import { AfterContentInit, ComponentRef, Directive, ElementRef, Input, OnDestroy, inject }
-  from '@angular/core';
+import {
+  AfterContentInit,
+  ComponentRef,
+  Directive,
+  ElementRef,
+  Input,
+  OnDestroy,
+  inject,
+} from '@angular/core';
 // Golden Layout v2
 import {
   ComponentContainer,
@@ -10,11 +17,10 @@ import {
   LayoutConfig,
   RowOrColumn,
   Stack,
-  StackItemConfig
+  StackItemConfig,
 } from 'golden-layout';
 // app
 import { ComponentService } from '@gcv/gene/services';
-
 
 interface LayoutComponent {
   name: string;
@@ -25,15 +31,13 @@ interface ComponentRefMap {
   [containerId: string]: ComponentRef<any>;
 }
 
-
 @Directive({
-    selector: '[gcvGoldenLayout]',
-    standalone: false
+  selector: '[gcvGoldenLayout]',
+  standalone: false,
 })
 export class GoldenLayoutDirective implements AfterContentInit, OnDestroy {
   private _componentService = inject(ComponentService);
   private _el = inject(ElementRef);
-
 
   @Input('gcvGoldenLayout') components: LayoutComponent[];
   @Input() config: LayoutConfig | any;
@@ -62,7 +66,7 @@ export class GoldenLayoutDirective implements AfterContentInit, OnDestroy {
     this._layout = new GoldenLayout(
       this._el.nativeElement,
       this._bindComponent.bind(this),
-      this._unbindComponent.bind(this)
+      this._unbindComponent.bind(this),
     );
 
     // load the layout configuration
@@ -79,7 +83,7 @@ export class GoldenLayoutDirective implements AfterContentInit, OnDestroy {
       window.removeEventListener('resize', this._resizeHandler);
     }
     // destroy all component refs
-    Object.values(this._componentRefs).forEach(ref => {
+    Object.values(this._componentRefs).forEach((ref) => {
       this._componentService.destroyComponent(ref);
     });
     this._componentRefs = {};
@@ -98,23 +102,27 @@ export class GoldenLayoutDirective implements AfterContentInit, OnDestroy {
             return {
               type: 'component',
               componentType: c.name,
-              isClosable: false
+              isClosable: false,
             };
-          })
-        }
+          }),
+        },
       };
     }
   }
 
   private _bindComponent(
     container: ComponentContainer,
-    itemConfig: ComponentItemConfig
+    itemConfig: ComponentItemConfig,
   ): ComponentContainer.BindableComponent {
     const componentType = itemConfig.componentType as string;
-    const layoutComponent = this.components.find(c => c.name === componentType);
+    const layoutComponent = this.components.find(
+      (c) => c.name === componentType,
+    );
 
     if (!layoutComponent) {
-      console.error(`Component type "${componentType}" not found in registered components`);
+      console.error(
+        `Component type "${componentType}" not found in registered components`,
+      );
       return { component: undefined, virtual: false };
     }
 
@@ -127,7 +135,7 @@ export class GoldenLayoutDirective implements AfterContentInit, OnDestroy {
       layoutComponent.component,
       container.element,
       inputs,
-      outputs
+      outputs,
     );
 
     // Store reference for cleanup using container's unique ID
@@ -136,7 +144,7 @@ export class GoldenLayoutDirective implements AfterContentInit, OnDestroy {
 
     return {
       component: componentRef,
-      virtual: false
+      virtual: false,
     };
   }
 
@@ -214,7 +222,10 @@ export class GoldenLayoutDirective implements AfterContentInit, OnDestroy {
         // Navigate to target location using indices
         let item: ContentItem = rootItem;
         for (const i of indices) {
-          if ('contentItems' in item && (item as RowOrColumn | Stack).contentItems[i]) {
+          if (
+            'contentItems' in item &&
+            (item as RowOrColumn | Stack).contentItems[i]
+          ) {
             item = (item as RowOrColumn | Stack).contentItems[i];
           }
         }
@@ -233,7 +244,10 @@ export class GoldenLayoutDirective implements AfterContentInit, OnDestroy {
     }
   }
 
-  stackItem(itemConfig: ComponentItemConfig | StackItemConfig, stackID: string): void {
+  stackItem(
+    itemConfig: ComponentItemConfig | StackItemConfig,
+    stackID: string,
+  ): void {
     const rootItem = this._layout.rootItem;
     if (!rootItem) return;
 
@@ -261,7 +275,7 @@ export class GoldenLayoutDirective implements AfterContentInit, OnDestroy {
             stack.addItem(itemConfig as ComponentItemConfig);
           }
         }
-      // get the item's stack and make it the active item
+        // get the item's stack and make it the active item
       } else {
         const contentItem = instances[0];
         // handle nested stacks

@@ -1,19 +1,18 @@
 // store
 import * as searchActions from '@gcv/search/store/actions/search.actions';
 // app
-import { idArrayLeftDifferenceFactory, idArrayIntersectionFactory }
-  from '@gcv/core/utils/id-array.util';
+import {
+  idArrayLeftDifferenceFactory,
+  idArrayIntersectionFactory,
+} from '@gcv/core/utils/id-array.util';
 import { ActionID } from '@gcv/store/utils';
-
 
 export const searchFeatureKey = 'search';
 
-
-export type SearchID = {source: string};
-
+export type SearchID = { source: string };
 
 export function searchID(source: string): string;
-export function searchID({source}): string;
+export function searchID({ source }): string;
 export function searchID(...args): string {
   if (typeof args[0] === 'object') {
     const id = args[0];
@@ -23,15 +22,13 @@ export function searchID(...args): string {
   return `${source}`;
 }
 
-
 export interface State {
   loading: (SearchID & ActionID)[];
   loaded: SearchID[];
   failed: SearchID[];
-  genes: {source: string, name: string}[];
-  regions: {source: string, gene: string, neighbors: number}[];
+  genes: { source: string; name: string }[];
+  regions: { source: string; gene: string; neighbors: number }[];
 }
-
 
 const initialState: State = {
   loading: [],
@@ -41,27 +38,29 @@ const initialState: State = {
   regions: [],
 };
 
-
-export function searchActionID({action, ...sID}: SearchID & ActionID): string {
+export function searchActionID({
+  action,
+  ...sID
+}: SearchID & ActionID): string {
   return `${searchID(sID)}:${action}`;
 }
 
+export const idArrayLeftDifference = idArrayLeftDifferenceFactory(
+  searchActionID,
+  searchID,
+);
 
-export const idArrayLeftDifference =
-  idArrayLeftDifferenceFactory(searchActionID, searchID);
-
-
-export const idArrayIntersection =
-  idArrayIntersectionFactory(searchActionID, searchID);
-
+export const idArrayIntersection = idArrayIntersectionFactory(
+  searchActionID,
+  searchID,
+);
 
 export const reducer = (
   state = initialState,
   action: searchActions.Actions,
 ): State => {
   switch (action.type) {
-    case searchActions.CLEAR:
-    {
+    case searchActions.CLEAR: {
       return {
         ...state,
         loading: [],
@@ -71,10 +70,9 @@ export const reducer = (
         regions: [],
       };
     }
-    case searchActions.SEARCH:
-    {
-      const {source} = action.payload;
-      let targetIDs = [{source, action: action.id}];
+    case searchActions.SEARCH: {
+      const { source } = action.payload;
+      let targetIDs = [{ source, action: action.id }];
       // filter targets by loading and loaded
       targetIDs = idArrayLeftDifference(targetIDs, state.loading);
       targetIDs = idArrayLeftDifference(targetIDs, state.loaded);
@@ -88,19 +86,21 @@ export const reducer = (
         failed,
       };
     }
-    case searchActions.SEARCH_SUCCESS:
-    {
-      const {result, source} = action.payload;
-      let targetIDs = [{source}];
+    case searchActions.SEARCH_SUCCESS: {
+      const { result, source } = action.payload;
+      let targetIDs = [{ source }];
       // remove IDs from loading
       const loading = idArrayLeftDifference(state.loading, targetIDs);
       // add IDs to loaded
       targetIDs = idArrayLeftDifference(targetIDs, state.loaded);
       const loaded = state.loaded.concat(targetIDs);
       // update results
-      const resultGenes = result.genes.map((name) => ({source, name}));
+      const resultGenes = result.genes.map((name) => ({ source, name }));
       const genes = state.genes.concat(resultGenes);
-      const resultRegions = result.regions.map((region) => ({source, ...region}));
+      const resultRegions = result.regions.map((region) => ({
+        source,
+        ...region,
+      }));
       const regions = state.regions.concat(resultRegions);
       return {
         ...state,
@@ -110,10 +110,9 @@ export const reducer = (
         regions,
       };
     }
-    case searchActions.SEARCH_FAILURE:
-    {
-      const {source} = action.payload;
-      let targetIDs = [{source}];
+    case searchActions.SEARCH_FAILURE: {
+      const { source } = action.payload;
+      let targetIDs = [{ source }];
       // remove IDs from loading
       const loading = idArrayLeftDifference(state.loading, targetIDs);
       // add IDs to failed
@@ -128,4 +127,4 @@ export const reducer = (
     default:
       return state;
   }
-}
+};

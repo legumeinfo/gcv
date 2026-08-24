@@ -1,23 +1,23 @@
 // twitter bootstrap
-@use "bootstrap/scss/bootstrap";
+@use 'bootstrap/scss/bootstrap';
 // font awesome
-@use "@fortawesome/fontawesome-free/scss/fontawesome";
-@use "@fortawesome/fontawesome-free/scss/brands";
-@use "@fortawesome/fontawesome-free/scss/regular";
-@use "@fortawesome/fontawesome-free/scss/solid";
-@use "@fortawesome/fontawesome-free/scss/v4-shims";
+@use '@fortawesome/fontawesome-free/scss/fontawesome';
+@use '@fortawesome/fontawesome-free/scss/brands';
+@use '@fortawesome/fontawesome-free/scss/regular';
+@use '@fortawesome/fontawesome-free/scss/solid';
+@use '@fortawesome/fontawesome-free/scss/v4-shims';
 // golden layout
-@use "golden-layout/dist/css/goldenlayout-base.css";
-@use "assets/css/goldenlayout-gcv-theme.css";
+@use 'golden-layout/dist/css/goldenlayout-base.css';
+@use 'assets/css/goldenlayout-gcv-theme.css';
 // gcv
-@use "assets/css/gcv.css";
+@use 'assets/css/gcv.css';
 // tippy.js
-@use "tippy.js/dist/tippy.css";
-@use "tippy.js/themes/light.css";
-
+@use 'tippy.js/dist/tippy.css';
+@use 'tippy.js/themes/light.css';
 
 // global styles
 
-html, body {
+html,
+body {
   height: 100%;
 }

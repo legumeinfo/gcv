@@ -1,11 +1,10 @@
-import { Directed } from "./directed";
+import { Directed } from './directed';
 
 /**
  * A specialized directed graph that implements a profile Hidden Markov Model
  * (HMM) with the canonical Multiple Sequence Alignment (MSA) topology.
  */
 export class MSAHMM extends Directed {
-
   // static members
 
   static State = class {
@@ -49,7 +48,7 @@ export class MSAHMM extends Directed {
       this.countAmplifier = Math.pow(this.numObservations, 1.25);
       const p = 1 / this.numObservations;
       characters.forEach((o) => {
-        this.emissionCounts[o] = 1;  // pseudo-count
+        this.emissionCounts[o] = 1; // pseudo-count
         this.emissionProbabilities[o] = p;
       });
     }
@@ -59,7 +58,7 @@ export class MSAHMM extends Directed {
     addPath(pId, o) {
       this.paths[pId] = o;
       this.emissionCounts[o] += this.countAmplifier;
-      this.numObservations   += this.countAmplifier;
+      this.numObservations += this.countAmplifier;
       for (const c in this.emissionCounts) {
         if (this.emissionCounts.hasOwnProperty(c)) {
           const p = this.emissionCounts[c] / this.numObservations;
@@ -101,49 +100,51 @@ export class MSAHMM extends Directed {
 
   private _constructModel() {
     // add nodes w/ absolute lexicographical ordering
-    this.addNode("a", new MSAHMM.State());
+    this.addNode('a', new MSAHMM.State());
     for (let i = 0; i < this._numColumns; i++) {
-      let id = "m" + i;
+      let id = 'm' + i;
       const m = new MSAHMM.MatchState(this._characters);
       this.addNode(id, m);
-      id = "i" + i;
+      id = 'i' + i;
       this.addNode(id, new MSAHMM.InsertState());
-      id = "d" + i;
+      id = 'd' + i;
       this.addNode(id, new MSAHMM.State());
     }
-    this.addNode("i" + this._numColumns, new MSAHMM.InsertState());
-    this.addNode("z", new MSAHMM.State());
+    this.addNode('i' + this._numColumns, new MSAHMM.InsertState());
+    this.addNode('z', new MSAHMM.State());
     // add edges
-    this.addEdge("a", "m0");
-    this.addEdge("a", "i0");
-    this.addEdge("a", "d0");
+    this.addEdge('a', 'm0');
+    this.addEdge('a', 'i0');
+    this.addEdge('a', 'd0');
     for (let i = 0; i < this._numColumns; i++) {
       if (i < this._numColumns - 1) {
-        this.addEdge("m" + i, "m" + (i + 1));
-        this.addEdge("m" + i, "i" + (i + 1));
-        this.addEdge("m" + i, "d" + (i + 1));
-        this.addEdge("d" + i, "d" + (i + 1));
-        this.addEdge("d" + i, "m" + (i + 1));
-        this.addEdge("d" + i, "i" + (i + 1));
+        this.addEdge('m' + i, 'm' + (i + 1));
+        this.addEdge('m' + i, 'i' + (i + 1));
+        this.addEdge('m' + i, 'd' + (i + 1));
+        this.addEdge('d' + i, 'd' + (i + 1));
+        this.addEdge('d' + i, 'm' + (i + 1));
+        this.addEdge('d' + i, 'i' + (i + 1));
       }
-      this.addEdge("i" + i, "i" + i);
-      this.addEdge("i" + i, "m" + i);
-      this.addEdge("i" + i, "d" + i);
+      this.addEdge('i' + i, 'i' + i);
+      this.addEdge('i' + i, 'm' + i);
+      this.addEdge('i' + i, 'd' + i);
     }
-    this.addEdge("m" + (this._numColumns - 1), "i" + this._numColumns);
-    this.addEdge("m" + (this._numColumns - 1), "z");
-    this.addEdge("i" + this._numColumns, "i" + this._numColumns);
-    this.addEdge("i" + this._numColumns, "z");
-    this.addEdge("d" + (this._numColumns - 1), "i" + this._numColumns);
-    this.addEdge("d" + (this._numColumns - 1), "z");
+    this.addEdge('m' + (this._numColumns - 1), 'i' + this._numColumns);
+    this.addEdge('m' + (this._numColumns - 1), 'z');
+    this.addEdge('i' + this._numColumns, 'i' + this._numColumns);
+    this.addEdge('i' + this._numColumns, 'z');
+    this.addEdge('d' + (this._numColumns - 1), 'i' + this._numColumns);
+    this.addEdge('d' + (this._numColumns - 1), 'z');
     this._updateTransitionProbabilities();
   }
 
   // private
 
   private _setOption(options: object, option: string, value: any) {
-    if (options[option] === undefined ||
-        typeof options[option] !== typeof value) {
+    if (
+      options[option] === undefined ||
+      typeof options[option] !== typeof value
+    ) {
       options[option] = value;
     }
   }
@@ -165,17 +166,19 @@ export class MSAHMM extends Directed {
   }
 
   private _updateNodeTransitionProbabilities(id) {
-    if (id === "d" + (this._numColumns - 1) ||
-        id === "m" + (this._numColumns - 1) ||
-        id === "i" + this._numColumns) {
-      const ilast = "i" + this._numColumns;
+    if (
+      id === 'd' + (this._numColumns - 1) ||
+      id === 'm' + (this._numColumns - 1) ||
+      id === 'i' + this._numColumns
+    ) {
+      const ilast = 'i' + this._numColumns;
       const p = this._indelTransitionProbability();
       this.updateEdge(id, ilast, p);
-      this.updateEdge(id, "z", 1 - p);
+      this.updateEdge(id, 'z', 1 - p);
     } else {
       this.nodes[id].outNeighbors.forEach((nId) => {
         let p;
-        if (nId.startsWith("m")) {
+        if (nId.startsWith('m')) {
           p = this._matchTransitionProbability();
         } else {
           p = this._indelTransitionProbability();
@@ -191,9 +194,9 @@ export class MSAHMM extends Directed {
    */
   private _performSurgery() {
     let growBy = 0;
-    for (let j = 0; j <= this._numColumns; j += (growBy + 1)) {
+    for (let j = 0; j <= this._numColumns; j += growBy + 1) {
       growBy = 0;
-      const ipaths = this.nodes["i" + j].attr.paths;
+      const ipaths = this.nodes['i' + j].attr.paths;
       // if one or more paths traverses the insert state
       if (Object.keys(ipaths).length > 0) {
         // find the largest number of consecutive insertions
@@ -206,12 +209,12 @@ export class MSAHMM extends Directed {
         const l = this._numColumns;
         this._numColumns += growBy;
         for (let k = l + growBy - 1; k >= j; k--) {
-          const knext  = k + 1;
-          const dk = "d" + k;
-          const ik = "i" + knext;
-          const mk = "m" + k;
-          const dknext = "d" + knext;
-          const mknext = "m" + knext;
+          const knext = k + 1;
+          const dk = 'd' + k;
+          const ik = 'i' + knext;
+          const mk = 'm' + k;
+          const dknext = 'd' + knext;
+          const mknext = 'm' + knext;
           // add new nodes and edges
           if (k >= l) {
             // add new column
@@ -223,10 +226,10 @@ export class MSAHMM extends Directed {
             this.addEdge(mk, ik);
             // add new end state transitions
             if (k === l + growBy - 1) {
-              this.addEdge(dk, "z", this.removeEdge("d" + (l - 1), "z"));
-              this.addEdge(ik, "z", this.removeEdge("i" + l, "z"));
-              this.addEdge(mk, "z", this.removeEdge("m" + (l - 1), "z"));
-            // add edges between current and previously added new column
+              this.addEdge(dk, 'z', this.removeEdge('d' + (l - 1), 'z'));
+              this.addEdge(ik, 'z', this.removeEdge('i' + l, 'z'));
+              this.addEdge(mk, 'z', this.removeEdge('m' + (l - 1), 'z'));
+              // add edges between current and previously added new column
             } else {
               this.addEdge(dk, dknext);
               this.addEdge(dk, mknext);
@@ -237,10 +240,10 @@ export class MSAHMM extends Directed {
             }
             // add edges between old last column and first new column
             if (k === l) {
-              const kprev  = k - 1;
-              const dkprev = "d" + kprev;
-              const ikprev = "i" + k;
-              const mkprev = "m" + kprev;
+              const kprev = k - 1;
+              const dkprev = 'd' + kprev;
+              const ikprev = 'i' + k;
+              const mkprev = 'm' + kprev;
               this.addEdge(dkprev, dk);
               this.addEdge(dkprev, mk);
               this.addEdge(ikprev, dk);
@@ -253,11 +256,11 @@ export class MSAHMM extends Directed {
           if (k >= j + growBy) {
             const shift = k - growBy;
             const shiftNext = shift + 1;
-            const dshift = "d" + shift;
-            const ishift = "i" + shiftNext;
-            const mshift = "m" + shift;
-            const dshiftNext = "d" + shiftNext;
-            const mshiftNext = "m" + shiftNext;
+            const dshift = 'd' + shift;
+            const ishift = 'i' + shiftNext;
+            const mshift = 'm' + shift;
+            const dshiftNext = 'd' + shiftNext;
+            const mshiftNext = 'm' + shiftNext;
             // shift nodes
             this.updateNode(dk, this.getNode(dshift).attr);
             this.updateNode(ik, this.getNode(ishift).attr);
@@ -274,7 +277,7 @@ export class MSAHMM extends Directed {
             this.updateEdge(dk, ik, this.getEdge(dshift, ishift));
             this.updateEdge(ik, ik, this.getEdge(ishift, ishift));
             this.updateEdge(mk, ik, this.getEdge(mshift, ishift));
-          // generate new states
+            // generate new states
           } else {
             this.updateNode(dk, new MSAHMM.State());
             this.updateNode(ik, new MSAHMM.InsertState());
@@ -286,27 +289,27 @@ export class MSAHMM extends Directed {
           if (ipaths.hasOwnProperty(pId)) {
             for (let k = 0; k < ipaths[pId].length; k++) {
               const o = ipaths[pId][k];
-              const m = "m" + (j + k);
+              const m = 'm' + (j + k);
               this.nodes[m].attr.addPath(pId, o);
             }
           }
         }
-        this.updateNode("i" + j, new MSAHMM.InsertState());
+        this.updateNode('i' + j, new MSAHMM.InsertState());
         // compute the transition probabilities for each inserted column
         if (j === 0) {
-          this._updateNodeTransitionProbabilities("a");
+          this._updateNodeTransitionProbabilities('a');
         }
         for (let k = Math.max(0, j - 1); k < j + growBy; k++) {
-          const dk = "d" + k;
-          const ik = "i" + (k + 1);
-          const mk = "m" + k;
+          const dk = 'd' + k;
+          const ik = 'i' + (k + 1);
+          const mk = 'm' + k;
           this._updateNodeTransitionProbabilities(dk);
           this._updateNodeTransitionProbabilities(ik);
           this._updateNodeTransitionProbabilities(mk);
         }
       }
     }
-  };
+  }
 
   /**
    * Embeds the given sequence along the given state path in the given HMM.
@@ -321,13 +324,12 @@ export class MSAHMM extends Directed {
     let i = 0;
     for (let j = 0; j < path.length - 1; j++) {
       const from = path[j];
-      const n    = this.getNode(from).attr;
-      if (n instanceof MSAHMM.InsertState ||
-          n instanceof MSAHMM.MatchState) {
+      const n = this.getNode(from).attr;
+      if (n instanceof MSAHMM.InsertState || n instanceof MSAHMM.MatchState) {
         n.addPath(pId, seq[i++]);
       }
     }
-  };
+  }
 
   /**
    * Gets an embedded sequence"s path through the current topology of the graph.
@@ -335,13 +337,13 @@ export class MSAHMM extends Directed {
    * return {Array} - An ordered array of state IDs describing the sequence path.
    */
   private _getPath(pId) {
-    const path = ["a"];
+    const path = ['a'];
     for (let j = 0; j < this._numColumns; j++) {
-      const i = "i" + j;
+      const i = 'i' + j;
       const ipaths = this.getNode(i).attr.paths;
-      const m = "m" + j;
+      const m = 'm' + j;
       const mpaths = this.getNode(m).attr.paths;
-      const d = "d" + j;
+      const d = 'd' + j;
       if (ipaths.hasOwnProperty(pId) || mpaths.hasOwnProperty(pId)) {
         if (ipaths.hasOwnProperty(pId)) {
           for (const _p of ipaths[pId]) {
@@ -355,16 +357,16 @@ export class MSAHMM extends Directed {
         path.push(d);
       }
     }
-    const i = "i" + this._numColumns;
+    const i = 'i' + this._numColumns;
     const ipaths = this.getNode(i).attr.paths;
     if (ipaths.hasOwnProperty(pId)) {
       for (const _p of ipaths[pId]) {
         path.push(i);
       }
     }
-    path.push("z");
+    path.push('z');
     return path;
-  };
+  }
 
   /**
    * Takes the match and insertion state emission probabilities of the paths for
@@ -387,14 +389,14 @@ export class MSAHMM extends Directed {
       const fP = forwardEmissions[i];
       const rP = reverseEmissions[reverseEmissions.length - (i + 1)];
       if (fP > rP) {
-        orientations.push("f");
+        orientations.push('f');
         fcounts[rlocs.length] += 1;
       } else if (fP < rP) {
-        orientations.push("r");
+        orientations.push('r');
         rlocs.push(i);
         fcounts.push(0);
       } else {
-        orientations.push("t");
+        orientations.push('t');
       }
     }
     rlocs.push(forwardEmissions.length);
@@ -405,26 +407,26 @@ export class MSAHMM extends Directed {
       // convert t chains between r's with one or less f's to r's
       if (fcounts[i + 1] <= 1) {
         for (let j = l + 1; j < rlocs[i + 1]; j++) {
-          orientations[j] = "r";
+          orientations[j] = 'r';
         }
-      // flip island r's
+        // flip island r's
       } else {
-        if (l - 1 >= 0 && orientations[l - 1] !== "r") {
-          orientations[l] = "f";
+        if (l - 1 >= 0 && orientations[l - 1] !== 'r') {
+          orientations[l] = 'f';
         }
         for (let j = l + 1; j < rlocs[i + 1]; j++) {
-          orientations[j] = "f";
+          orientations[j] = 'f';
         }
       }
     }
     // get the edge case - there's an inversion at the beginning
-    if (orientations[rlocs[0]] === "r" && fcounts[0] <= 1) {
+    if (orientations[rlocs[0]] === 'r' && fcounts[0] <= 1) {
       for (let j = 0; j < rlocs[0]; j++) {
-        orientations[j] = "r";
+        orientations[j] = 'r';
       }
     } else {
       for (let j = 0; j < rlocs[0]; j++) {
-        orientations[j] = "f";
+        orientations[j] = 'f';
       }
     }
     return orientations;
@@ -441,35 +443,35 @@ export class MSAHMM extends Directed {
    * entries are from the forwardPath and "r" entries are from the reversePath.
    */
   private _mergePaths(forwardPath, reversePath, orientations) {
-    const path = ["a"];
+    const path = ['a'];
     let i = 1;
-    let j = reversePath.length-2;
+    let j = reversePath.length - 2;
     // add any deletions at beginning of forward to path and skip over deletions
     // at end of reverse path
     const consumeDeletions = (reverse) => {
-        while (forwardPath[i].startsWith("d") && i < forwardPath.length) {
-          if (!reverse) {
-            path.push(forwardPath[i]);
-          }
-          i++;
+      while (forwardPath[i].startsWith('d') && i < forwardPath.length) {
+        if (!reverse) {
+          path.push(forwardPath[i]);
         }
-        while (reversePath[j].startsWith("d") && j >= 0) {
-          if (reverse) {
-            path.push(reversePath[j]);
-          }
-          j--;
+        i++;
+      }
+      while (reversePath[j].startsWith('d') && j >= 0) {
+        if (reverse) {
+          path.push(reversePath[j]);
         }
-      };
+        j--;
+      }
+    };
     consumeDeletions(false);
     // combine paths based on match/insertion orientations
     orientations.forEach((o, k) => {
-      const s = (o === "f") ? forwardPath[i++] : reversePath[j--];
+      const s = o === 'f' ? forwardPath[i++] : reversePath[j--];
       path.push(s);
       const reverse =
-        o === "r" && k < orientations.length-1 && orientations[k+1] === "r";
+        o === 'r' && k < orientations.length - 1 && orientations[k + 1] === 'r';
       consumeDeletions(reverse);
     });
-    path.push("z");
+    path.push('z');
     return path;
   }
 
@@ -489,15 +491,15 @@ export class MSAHMM extends Directed {
     let j = 0;
     for (let i = 1; i < path.length; i++) {
       const n = path[i];
-      if (n.startsWith("m")) {
+      if (n.startsWith('m')) {
         eseq.push(this.getNode(n).attr.emit(seq[j++]));
-      } else if (n.startsWith("i")) {
+      } else if (n.startsWith('i')) {
         eseq.push(0);
         j++;
       }
     }
     return eseq;
-  };
+  }
 
   /**
    * A message passing implementation of the Viterbi algorithm.
@@ -518,51 +520,54 @@ export class MSAHMM extends Directed {
     // a generic probability forward propagate function
     const propagate = (from, to, i) => {
       const currentProb = probs[to][i] || -Infinity;
-      const currentPtr = ptrs[to][i]  || "";
-      let candidate = probs[from][i - (+ !to.startsWith("d"))] +  // arithmetic HACK!
-                        Math.log(this.getEdge(from, to));
-      if (to.startsWith("m")) {
+      const currentPtr = ptrs[to][i] || '';
+      let candidate =
+        probs[from][i - +!to.startsWith('d')] + // arithmetic HACK!
+        Math.log(this.getEdge(from, to));
+      if (to.startsWith('m')) {
         candidate += Math.log(this.getNode(to).attr.emit(seq[i]));
       }
-      if (candidate > currentProb ||
-         (candidate === currentProb && from > currentPtr)) {
+      if (
+        candidate > currentProb ||
+        (candidate === currentProb && from > currentPtr)
+      ) {
         probs[to][i] = candidate;
         ptrs[to][i] = from;
       }
     };
     // recursively identifies the sequence's most probable path through the HMM
     const traceback = (id, i) => {
-      if (id === "a") {
+      if (id === 'a') {
         return [id];
       }
       const ptr = ptrs[id][i];
-      const path = traceback(ptr, i - (+ !id.startsWith("d")));  // arithmetic HACK!
+      const path = traceback(ptr, i - +!id.startsWith('d')); // arithmetic HACK!
       path.push(id);
       return path;
     };
     // seed start state
-    const s = "a";
-    probs[s][-1] = 0;  // = log(1)
+    const s = 'a';
+    probs[s][-1] = 0; // = log(1)
     // propagate pre-sequence deletion probabilities
-    let dj = "d0";
+    let dj = 'd0';
     propagate(s, dj, -1);
     for (let j = 1; j < this._numColumns; j++) {
       const djprev = dj;
-      dj = "d" + j;
+      dj = 'd' + j;
       propagate(djprev, dj, -1);
     }
     // compute one time transitions out of start state
-    let ij = "i" + 0;
-    const ilast = "i" + this._numColumns;
+    let ij = 'i' + 0;
+    const ilast = 'i' + this._numColumns;
     propagate(s, ij, 0);
-    let mj = "m" + 0;
+    let mj = 'm' + 0;
     propagate(s, mj, 0);
     // propagate probabilities via Viterbi recurrence relation and message passing
     for (let i = 0; i < seq.length; i++) {
       for (let j = 0; j < this._numColumns; j++) {
-        ij = "i" + j;
-        dj = "d" + j;
-        mj = "m" + j;
+        ij = 'i' + j;
+        dj = 'd' + j;
+        mj = 'm' + j;
         // all transitions out of insertion j
         if (i > 0) {
           propagate(ij, ij, i);
@@ -570,8 +575,8 @@ export class MSAHMM extends Directed {
         }
         propagate(ij, dj, i);
         if (j < this._numColumns - 1) {
-          const djnext = "d" + (j + 1);
-          const mjnext = "m" + (j + 1);
+          const djnext = 'd' + (j + 1);
+          const mjnext = 'm' + (j + 1);
           // delete and merge transitions out of deletion j
           propagate(dj, djnext, i);
           propagate(dj, mjnext, i);
@@ -579,7 +584,7 @@ export class MSAHMM extends Directed {
           propagate(mj, djnext, i);
           propagate(mj, mjnext, i);
         }
-        const ijnext = "i" + (j + 1);
+        const ijnext = 'i' + (j + 1);
         // insertion transition out of delete j
         propagate(dj, ijnext, i);
         // insertion transition out of match j
@@ -591,7 +596,7 @@ export class MSAHMM extends Directed {
       }
     }
     // compute one time transitions into end state
-    const e = "z";
+    const e = 'z';
     propagate(dj, e, seq.length);
     propagate(ilast, e, seq.length);
     propagate(mj, e, seq.length);
@@ -607,24 +612,25 @@ export class MSAHMM extends Directed {
    * matters).
    * @param{Object} options - Optional training parameters.
    */
-  train(sequences,
-        options: {
-          omit?: Set<any>,
-          reverse?: boolean,
-          surgery?: boolean,
-        }={})
-  {
+  train(
+    sequences,
+    options: {
+      omit?: Set<any>;
+      reverse?: boolean;
+      surgery?: boolean;
+    } = {},
+  ) {
     // parse optional parameters
-    this._setOption(options, "omit", new Set());
-    this._setOption(options, "reverse", true);
-    this._setOption(options, "surgery", true);
+    this._setOption(options, 'omit', new Set());
+    this._setOption(options, 'reverse', true);
+    this._setOption(options, 'surgery', true);
     // train the model
     const filter = (sequence) => sequence.filter((s) => !options.omit.has(s));
     sequences.forEach((s, i) => {
       // generate and align training sequences
       const forward = filter(s);
       const forwardPath = this.viterbi(forward);
-      const reverse = (options.reverse) ? [...forward].reverse() : [];
+      const reverse = options.reverse ? [...forward].reverse() : [];
       const reversePath = this.viterbi(reverse);
       // embed alignment path (updates transition and emission probabilities)
       if (forwardPath.probability >= reversePath.probability) {
@@ -656,34 +662,36 @@ export class MSAHMM extends Directed {
     const alignment = [];
     let insertion = 0;
     const insert = (x, reverse) => {
-        let step = 1 / (insertion+1);
-        if (reverse) {
-          step *= -1;
-        } else {
-          x -= 1;
-        }
-        for (let i = 0; i < insertion; i++) {
-          alignment.push(x+((i+1)*step));
-        }
-        insertion = 0;
-      };
-    let prev = "a0";
+      let step = 1 / (insertion + 1);
+      if (reverse) {
+        step *= -1;
+      } else {
+        x -= 1;
+      }
+      for (let i = 0; i < insertion; i++) {
+        alignment.push(x + (i + 1) * step);
+      }
+      insertion = 0;
+    };
+    let prev = 'a0';
     for (let i = 1; i < path.length; i++) {
       const n = path[i];
       let index = parseInt(n.substr(1));
       if (Number.isNaN(index)) {
         index = this.numColumns;
       }
-      if (insertion > 0 &&
-          (!n.startsWith("i") || (n.startsWith("i") && n !== prev))) {
+      if (
+        insertion > 0 &&
+        (!n.startsWith('i') || (n.startsWith('i') && n !== prev))
+      ) {
         const prevIndex = parseInt(prev.substr(1));
         const index = parseInt(n.substr(1));
         const reverse = prevIndex > index;
         insert(prevIndex, reverse);
       }
-      if (n.startsWith("m")) {
+      if (n.startsWith('m')) {
         alignment.push(index);
-      } else if (n.startsWith("i")) {
+      } else if (n.startsWith('i')) {
         insertion++;
       }
       prev = n;
@@ -707,17 +715,17 @@ export class MSAHMM extends Directed {
    *     [4, 3, 1, 0.5, 0]  // whole alignment is inverted and includes an
    *                        // insertion and deletion
    */
-  align(sequence, options: {reverse?: boolean, inversions?: boolean}={}) {
+  align(sequence, options: { reverse?: boolean; inversions?: boolean } = {}) {
     // parse options
-    this._setOption(options, "reverse", true);
-    this._setOption(options, "inversions", true);
+    this._setOption(options, 'reverse', true);
+    this._setOption(options, 'inversions', true);
 
     // compute Viterbi paths and their emission probabilities
     let forward = sequence;
     let forwardPath = this.viterbi(forward);
     let forwardEmissions = this.sequenceEmissions(forward, forwardPath);
-    let reverse = (options.reverse || options.inversions) ?
-      [...forward].reverse() : [];
+    let reverse =
+      options.reverse || options.inversions ? [...forward].reverse() : [];
     let reversePath = this.viterbi(reverse);
     let reverseEmissions = this.sequenceEmissions(reverse, reversePath);
 
@@ -725,29 +733,40 @@ export class MSAHMM extends Directed {
     const reversed =
       options.reverse && forwardPath.probability < reversePath.probability;
     if (reversed) {
-      [forward, reverse,
-      forwardPath, reversePath,
-      forwardEmissions, reverseEmissions] =
-        [reverse, forward,
-        reversePath, forwardPath,
-        reverseEmissions, forwardEmissions];
+      [
+        forward,
+        reverse,
+        forwardPath,
+        reversePath,
+        forwardEmissions,
+        reverseEmissions,
+      ] = [
+        reverse,
+        forward,
+        reversePath,
+        forwardPath,
+        reverseEmissions,
+        forwardEmissions,
+      ];
     }
 
     // compute inversions
     let alignmentPath = forwardPath;
     if (options.inversions) {
-      const orientations =
-        this._emissionsToOrientation(forwardEmissions, reverseEmissions);
+      const orientations = this._emissionsToOrientation(
+        forwardEmissions,
+        reverseEmissions,
+      );
       alignmentPath = this._mergePaths(forwardPath, reversePath, orientations);
     }
 
     // convert path to hmm state independent alignment
     const alignment = {
-        alignment: this.pathToAlignment(alignmentPath),
-        orientations: [],
-        segments: [],
-        score: 0,
-      };
+      alignment: this.pathToAlignment(alignmentPath),
+      orientations: [],
+      segments: [],
+      score: 0,
+    };
     if (reversed) {
       alignment.alignment.reverse();
       alignment.orientations = Array(alignment.alignment.length).fill(-1);
@@ -771,9 +790,9 @@ export class MSAHMM extends Directed {
    */
   deleteColumns(columns: number[]) {
     // only keep the columns that exist in the HMM
-    const validColumns = [...new Set(
-        columns.filter((c) => c >= 0 && c < this.numColumns)
-      )].sort()
+    const validColumns = [
+      ...new Set(columns.filter((c) => c >= 0 && c < this.numColumns)),
+    ].sort();
 
     // exit if no valid columns were provided
     if (!validColumns.length) {
@@ -789,32 +808,32 @@ export class MSAHMM extends Directed {
       // the current column should be removed
       if (i == c) {
         c = validColumns[++j];
-      // this column stays but needs to be shifted
+        // this column stays but needs to be shifted
       } else {
-        this.updateNode("d"+(i-j), this.getNode("d"+i).attr);
-        this.updateNode("i"+(i-j), this.getNode("i"+i).attr);
-        this.updateNode("m"+(i-j), this.getNode("m"+i).attr);
+        this.updateNode('d' + (i - j), this.getNode('d' + i).attr);
+        this.updateNode('i' + (i - j), this.getNode('i' + i).attr);
+        this.updateNode('m' + (i - j), this.getNode('m' + i).attr);
       }
       i += 1;
     }
 
     // shift the last insertion state
-    this.updateNode("i"+(i-j), this.getNode("i"+i).attr);
+    this.updateNode('i' + (i - j), this.getNode('i' + i).attr);
 
     // update the number of columns
-    this._numColumns -= validColumns.length-1;
+    this._numColumns -= validColumns.length - 1;
 
     // add new end state transitions
-    this.addEdge("m" + this._numColumns, "z");
-    this.addEdge("i" + (this._numColumns+1), "z");
-    this.addEdge("d" + this._numColumns, "z");
+    this.addEdge('m' + this._numColumns, 'z');
+    this.addEdge('i' + (this._numColumns + 1), 'z');
+    this.addEdge('d' + this._numColumns, 'z');
 
     // remove the remaining columns that were invalidated by the shifting
-    for (i = 0; i < validColumns.length-1; i++) {
-      const c = this._numColumns+i;
-      this.removeNode("m" + c);
-      this.removeNode("i" + (c+1));
-      this.removeNode("d" + c);
+    for (i = 0; i < validColumns.length - 1; i++) {
+      const c = this._numColumns + i;
+      this.removeNode('m' + c);
+      this.removeNode('i' + (c + 1));
+      this.removeNode('d' + c);
     }
   }
 
@@ -828,20 +847,19 @@ export class MSAHMM extends Directed {
   // probabilities are close/equal?
   consensus() {
     const reducer = (prev, [c, p]): [any, {}] => {
-        const [cMax, pMax] = prev;
-        if (p > pMax) {
-          return [c, p];
-        }
-        return [cMax, pMax];
-      };
+      const [cMax, pMax] = prev;
+      if (p > pMax) {
+        return [c, p];
+      }
+      return [cMax, pMax];
+    };
     const sequence = [];
     for (let i = 0; i < this._numColumns; i++) {
-      const matchState = this.getNode("m" + i);
+      const matchState = this.getNode('m' + i);
       const probs = matchState.attr.emissionProbabilities;
       const [c] = Object.entries(probs).reduce(reducer);
       sequence.push(c);
     }
     return sequence;
   }
-
 }

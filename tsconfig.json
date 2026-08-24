@@ -5,18 +5,10 @@
     "baseUrl": "./",
     "ignoreDeprecations": "6.0",
     "paths": {
-      "@gcv/*": [
-        "./src/app/*"
-      ],
-      "@gcv-assets/*": [
-        "./src/assets/*"
-      ],
-      "@gcv-dependencies/*": [
-        "./node_modules/*"
-      ],
-      "@gcv-environments/*": [
-        "./src/environments/*"
-      ]
+      "@gcv/*": ["./src/app/*"],
+      "@gcv-assets/*": ["./src/assets/*"],
+      "@gcv-dependencies/*": ["./node_modules/*"],
+      "@gcv-environments/*": ["./src/environments/*"]
     },
     "outDir": "./dist/out-tsc",
     "esModuleInterop": true,
@@ -34,10 +26,7 @@
     "isolatedModules": true,
     "target": "ES2020",
     "module": "ES2020",
-    "lib": [
-      "ES2020",
-      "dom"
-    ]
+    "lib": ["ES2020", "dom"]
   },
   "angularCompilerOptions": {
     "enableI18nLegacyMessageIdFormat": false,

@@ -9,7 +9,6 @@ import { AppConfig } from '@gcv/core/models';
 export class InterAppCommunicationService {
   private _appConfig = inject(AppConfig);
 
-
   private _bc;
   private _channel: string;
   private _communicate: boolean;
@@ -80,5 +79,4 @@ export class InterAppCommunicationService {
       this._bc.postMessage(message);
     }
   }
-
 }

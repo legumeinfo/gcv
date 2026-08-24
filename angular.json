@@ -21,23 +21,14 @@
               "base": "dist"
             },
             "index": "src/index.html",
-            "polyfills": [
-              "zone.js"
-            ],
+            "polyfills": ["zone.js"],
             "tsConfig": "tsconfig.app.json",
             "inlineStyleLanguage": "scss",
-            "assets": [
-              "src/config",
-              "src/assets"
-            ],
+            "assets": ["src/config", "src/assets"],
             "stylePreprocessorOptions": {
-              "includePaths": [
-                "./node_modules"
-              ]
+              "includePaths": ["./node_modules"]
             },
-            "styles": [
-              "src/styles.scss",
-            ],
+            "styles": ["src/styles.scss"],
             "scripts": [
               "node_modules/@popperjs/core/dist/umd/popper.min.js",
               "node_modules/bootstrap/dist/js/bootstrap.min.js"
@@ -84,19 +75,14 @@
         "lint": {
           "builder": "@angular-eslint/builder:lint",
           "options": {
-            "lintFilePatterns": [
-              "src/**/*.ts",
-              "src/**/*.html"
-            ]
+            "lintFilePatterns": ["src/**/*.ts", "src/**/*.html"]
           }
         }
       }
     }
   },
   "cli": {
-    "schematicCollections": [
-      "@angular-eslint/schematics"
-    ],
+    "schematicCollections": ["@angular-eslint/schematics"],
     "analytics": false
   },
   "schematics": {

@@ -13,18 +13,17 @@ import * as chromosomeActions from '@gcv/gene/store/actions/chromosome.actions';
 import { TrackID, trackID } from '@gcv/gene/store/utils';
 import { ActionID } from '@gcv/store/utils';
 // app
-import { idArrayLeftDifferenceFactory, idArrayIntersectionFactory }
-  from '@gcv/core/utils/id-array.util';
+import {
+  idArrayLeftDifferenceFactory,
+  idArrayIntersectionFactory,
+} from '@gcv/core/utils/id-array.util';
 import { Track } from '@gcv/gene/models';
-
 
 export const chromosomeFeatureKey = 'chromosome';
 
-
 const adapter = createEntityAdapter<Track>({
-  selectId: (e) => trackID(e.name, e.source)
+  selectId: (e) => trackID(e.name, e.source),
 });
-
 
 export interface State extends EntityState<Track> {
   failed: TrackID[];
@@ -32,30 +31,32 @@ export interface State extends EntityState<Track> {
   loading: (TrackID & ActionID)[];
 }
 
-
 const initialState: State = adapter.getInitialState({
   failed: [],
-  loaded: [],  // need for checking raw IDs
+  loaded: [], // need for checking raw IDs
   loading: [],
 });
 
-
-export function chromosomeActionID({action, ...cID}: TrackID & ActionID): string {
+export function chromosomeActionID({
+  action,
+  ...cID
+}: TrackID & ActionID): string {
   return `${trackID(cID)}:${action}`;
 }
 
+export const idArrayLeftDifference = idArrayLeftDifferenceFactory(
+  chromosomeActionID,
+  trackID,
+);
 
-export const idArrayLeftDifference =
-  idArrayLeftDifferenceFactory(chromosomeActionID, trackID);
-
-
-export const idArrayIntersection =
-  idArrayIntersectionFactory(chromosomeActionID, trackID);
-
+export const idArrayIntersection = idArrayIntersectionFactory(
+  chromosomeActionID,
+  trackID,
+);
 
 export function reducer(
   state = initialState,
-  action: chromosomeActions.Actions
+  action: chromosomeActions.Actions,
 ): State {
   switch (action.type) {
     case chromosomeActions.CLEAR:
@@ -67,8 +68,8 @@ export function reducer(
         loading: [],
       });
     case chromosomeActions.GET:
-      const {name, source} = action.payload;
-      let targetIDs = [{name, source, action: action.id}];
+      const { name, source } = action.payload;
+      let targetIDs = [{ name, source, action: action.id }];
       // filter targets by loading and loaded
       targetIDs = idArrayLeftDifference(targetIDs, state.loading);
       targetIDs = idArrayLeftDifference(targetIDs, state.loaded);
@@ -81,28 +82,23 @@ export function reducer(
         loading,
         failed,
       };
-    case chromosomeActions.GET_SUCCESS:
-    {
-      const {chromosome} = action.payload;
-      let targetIDs = [{name: chromosome.name, source: chromosome.source}];
+    case chromosomeActions.GET_SUCCESS: {
+      const { chromosome } = action.payload;
+      let targetIDs = [{ name: chromosome.name, source: chromosome.source }];
       // remove IDs from loading
       const loading = idArrayLeftDifference(state.loading, targetIDs);
       // add IDs to loaded
       targetIDs = idArrayLeftDifference(targetIDs, state.loaded);
       const loaded = state.loaded.concat(targetIDs);
-      return adapter.addOne(
-        chromosome,
-        {
-          ...state,
-          loading,
-          loaded,
-        },
-      );
+      return adapter.addOne(chromosome, {
+        ...state,
+        loading,
+        loaded,
+      });
     }
-    case chromosomeActions.GET_FAILURE:
-    {
-      const {name, source} = action.payload;
-      let targetIDs = [{name, source}];
+    case chromosomeActions.GET_FAILURE: {
+      const { name, source } = action.payload;
+      let targetIDs = [{ name, source }];
       // remove IDs from loading
       const loading = idArrayLeftDifference(state.loading, targetIDs);
       // add IDs to failed

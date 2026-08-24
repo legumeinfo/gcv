@@ -1,22 +1,25 @@
 // Angular
-import { Component, OnInit, ChangeDetectionStrategy, inject } from '@angular/core';
+import {
+  Component,
+  OnInit,
+  ChangeDetectionStrategy,
+  inject,
+} from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 // NgRx
 import { filter, map } from 'rxjs/operators';
 // app
 import { AppConfig, Server } from '@gcv/core/models';
 
-
 @Component({
-    template: '',
-    changeDetection: ChangeDetectionStrategy.Eager,
-    standalone: false
+  template: '',
+  changeDetection: ChangeDetectionStrategy.Eager,
+  standalone: false,
 })
 export class AbstractSearchWidgetComponent implements OnInit {
   protected _appConfig = inject(AppConfig);
   protected _activatedRoute = inject(ActivatedRoute);
   protected router = inject(Router);
-
 
   model: any;
   sources: Server[];
@@ -27,19 +30,21 @@ export class AbstractSearchWidgetComponent implements OnInit {
     this.model = {
       query: '',
       sources: _appConfig.servers
-                 .filter((s) => s.hasOwnProperty('search'))
-                 .map((s) => s.id),
+        .filter((s) => s.hasOwnProperty('search'))
+        .map((s) => s.id),
     };
     this.sources = _appConfig.servers.filter((s) => s.hasOwnProperty('search'));
   }
 
   ngOnInit(): void {
-    this._activatedRoute.queryParams.pipe(
-      filter((queryParams) => 'q' in queryParams),
-      map((queryParams) => queryParams['q']),
-    ).subscribe((query) => {
-      this.model.query = query;
-    });
+    this._activatedRoute.queryParams
+      .pipe(
+        filter((queryParams) => 'q' in queryParams),
+        map((queryParams) => queryParams['q']),
+      )
+      .subscribe((query) => {
+        this.model.query = query;
+      });
   }
 
   submit(): void {
@@ -50,5 +55,4 @@ export class AbstractSearchWidgetComponent implements OnInit {
       this.router.navigateByUrl(url);
     }
   }
-
 }

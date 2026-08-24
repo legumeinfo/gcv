@@ -1,9 +1,8 @@
-import { eventBus } from "../common"
-import { Visualizer } from "./visualizer";
+import { eventBus } from '../common';
+import { Visualizer } from './visualizer';
 
 /** The legend viewer. */
 export class Legend extends Visualizer {
-
   // Constants
   private RECT_SIZE: number;
 
@@ -11,7 +10,7 @@ export class Legend extends Visualizer {
   protected resize() {
     // viewer
     const w = this.container.clientWidth;
-    this.viewer.attr("width", w);
+    this.viewer.attr('width', w);
   }
 
   /** Handles events that come from the GCV eventBus.
@@ -23,25 +22,25 @@ export class Legend extends Visualizer {
     let selection;
     if (event.targets.hasOwnProperty(selector)) {
       const selectors = [];
-      event.targets[selector].split(",").forEach((f) => {
-        selectors.push("[data-" + selector + "='" + f + "']");  // orphans
-        selectors.push("[data-" + selector + "*='" + f + "']");  // singletons
+      event.targets[selector].split(',').forEach((f) => {
+        selectors.push('[data-' + selector + "='" + f + "']"); // orphans
+        selectors.push('[data-' + selector + "*='" + f + "']"); // singletons
       });
-      selection = this.viewer.selectAll(selectors.join(", "));
+      selection = this.viewer.selectAll(selectors.join(', '));
     }
     // (un)fade the (un)selected elements
-    switch(event.type) {
-      case "select":
-        this.viewer.classed("hovering", true);
+    switch (event.type) {
+      case 'select':
+        this.viewer.classed('hovering', true);
         if (selection !== undefined) {
-          selection.classed("active", true);
+          selection.classed('active', true);
         }
         break;
-      case "deselect":
+      case 'deselect':
         if (selection !== undefined) {
-          selection.classed("active", false);
+          selection.classed('active', false);
         }
-        this.viewer.classed("hovering", false);
+        this.viewer.classed('hovering', false);
         break;
     }
   }
@@ -62,17 +61,29 @@ export class Legend extends Visualizer {
     // parse optional parameters
     this.options = Object.assign({}, options);
     this.options.highlight = this.options.highlight || [];
-    this.options.checkboxCallback = this.options.checkboxCallback || ((id, checked) => { /* noop */ });
+    this.options.checkboxCallback =
+      this.options.checkboxCallback ||
+      ((id, checked) => {
+        /* noop */
+      });
     this.options.selectiveColoring = this.options.selectiveColoring;
-    this.options.keyClick = this.options.keyClick || ((k) => { /* noop */ });
+    this.options.keyClick =
+      this.options.keyClick ||
+      ((k) => {
+        /* noop */
+      });
     this.options.autoResize = this.options.autoResize || false;
     this.options.hoverDelay = this.options.hoverDelay || 0;
-    this.options.selector = this.options.selector || "";
+    this.options.selector = this.options.selector || '';
     this.options.membersSelector = this.options.membersSelector || undefined;
     this.options.blank = this.options.blank || undefined;
     this.options.blankDashed = this.options.blankDashed || undefined;
     this.options.multiDelimiter = this.options.multiDelimiter || undefined;
-    this.options.sizeCallback = this.options.sizeCallback || ((s) => { /* noop */ });
+    this.options.sizeCallback =
+      this.options.sizeCallback ||
+      ((s) => {
+        /* noop */
+      });
     super.initResize();
   }
 
@@ -80,11 +91,11 @@ export class Legend extends Visualizer {
   protected draw() {
     // draw the legend
     const legend = this.drawLegend();
-    legend.attr("y", this.PAD);
+    legend.attr('y', this.PAD);
     this.decorateResize(legend.resize);
     const lBox = legend.node().getBBox();
-    this.options.sizeCallback({width: lBox.width, height: lBox.height});
-    this.viewer.attr("height", lBox.y + lBox.height + (2 * this.PAD));
+    this.options.sizeCallback({ width: lBox.width, height: lBox.height });
+    this.viewer.attr('height', lBox.y + lBox.height + 2 * this.PAD);
     // create an auto resize iframe, if necessary
     if (this.options.autoResize) {
       this.autoResize();
@@ -102,10 +113,10 @@ export class Legend extends Visualizer {
     const obj = this;
     const selector = obj.options.selector;
     const membersSelector = obj.options.membersSelector;
-    const row = legend.append("g");
+    const row = legend.append('g');
     // create the key group
     const publishKeyEvent = (type) => {
-      const event = {type, targets: {}};
+      const event = { type, targets: {} };
       event.targets[selector] = f.id;
       if (membersSelector !== undefined) {
         event.targets[membersSelector] = f[membersSelector];
@@ -113,84 +124,88 @@ export class Legend extends Visualizer {
       return () => eventBus.publish(event);
     };
     // add a key gorup to handle mouse events
-    const key = row.append("g")
-      .attr("class", "legend")
-      .attr("data-" + selector, f.id)
-      .style("cursor", "pointer")
-      .on("mouseover", () => this.setTimeout(publishKeyEvent("select")))
-      .on("mouseout", () => this.clearTimeout(publishKeyEvent("deselect")))
-      .on("click", () => this.options.keyClick(f));
+    const key = row
+      .append('g')
+      .attr('class', 'legend')
+      .attr('data-' + selector, f.id)
+      .style('cursor', 'pointer')
+      .on('mouseover', () => this.setTimeout(publishKeyEvent('select')))
+      .on('mouseout', () => this.clearTimeout(publishKeyEvent('deselect')))
+      .on('click', () => this.options.keyClick(f));
     if (membersSelector !== undefined) {
-      key.attr("data-" + membersSelector, f[membersSelector]);
+      key.attr('data-' + membersSelector, f[membersSelector]);
     }
     // add the colored rectangles
     let shape;
-    if (f.glyph === "circle") {
-      shape = key.append("circle")
-        .attr("r", this.RECT_SIZE/2)
-        .attr("cy", () => this.RECT_SIZE / 2);
+    if (f.glyph === 'circle') {
+      shape = key
+        .append('circle')
+        .attr('r', this.RECT_SIZE / 2)
+        .attr('cy', () => this.RECT_SIZE / 2);
     } else {
-      shape = key.append("rect")
-        .attr("width", this.RECT_SIZE)
-        .attr("height", this.RECT_SIZE);
+      shape = key
+        .append('rect')
+        .attr('width', this.RECT_SIZE)
+        .attr('height', this.RECT_SIZE);
     }
     shape
-      .style("fill", () => {
+      .style('fill', () => {
         if (f === this.options.blank || f === this.options.blankDashed) {
-          return "#FFFFFF";
+          return '#FFFFFF';
         }
         return this.colors(f.id);
       })
-      .attr("class", () => {
+      .attr('class', () => {
         if (this.options.highlight.indexOf(f.name) !== -1) {
-          return "focus";
+          return 'focus';
         } else if (f === this.options.blank) {
-          return "single";
+          return 'single';
         } else if (f === this.options.blankDashed) {
-          return "no_fam";
+          return 'no_fam';
         }
-        return "";
+        return '';
       });
     // add then labels
-    const text = key.append("text")
-      .style("text-anchor", "end")
-      .style("dominant-baseline", "middle")
-      .attr("y", () => this.RECT_SIZE / 2)
+    const text = key
+      .append('text')
+      .style('text-anchor', 'end')
+      .style('dominant-baseline', 'middle')
+      .attr('y', () => this.RECT_SIZE / 2)
       .text(() => f.name);
     // add optional key checkbox
     let foreigner = undefined;
     if ('checkbox' in f) {
-      foreigner = row.append("foreignObject")
-          .attr("width", this.RECT_SIZE)
-          .attr("height", this.RECT_SIZE);
+      foreigner = row
+        .append('foreignObject')
+        .attr('width', this.RECT_SIZE)
+        .attr('height', this.RECT_SIZE);
       const checkbox = foreigner
-        .append("xhtml:div")
-        .attr("class", "checkbox")
-          .attr("line-height", this.RECT_SIZE)
-          .append("input")
-          .attr("type", "checkbox");
+        .append('xhtml:div')
+        .attr('class', 'checkbox')
+        .attr('line-height', this.RECT_SIZE)
+        .append('input')
+        .attr('type', 'checkbox');
       if (f.checkbox) {
-        checkbox.attr("checked", true);
+        checkbox.attr('checked', true);
       }
-      checkbox
-        .node().onclick = function () {
-          obj.options.checkboxCallback(f.id, this.checked);
-        };
+      checkbox.node().onclick = function () {
+        obj.options.checkboxCallback(f.id, this.checked);
+      };
     }
     // implement the resize function
-    row.resize = function(f, shape, text, foreigner) {
-      const w = this.viewer.attr("width");
+    row.resize = function (f, shape, text, foreigner) {
+      const w = this.viewer.attr('width');
       let x = w - (this.PAD + this.RECT_SIZE);
-      if (f.glyph === "circle") {
-        shape.attr("cx", x + this.RECT_SIZE/2)
+      if (f.glyph === 'circle') {
+        shape.attr('cx', x + this.RECT_SIZE / 2);
       } else {
-        shape.attr("x", x);
+        shape.attr('x', x);
       }
-      x -= (2 * this.PAD);
-      text.attr("x", x);
+      x -= 2 * this.PAD;
+      text.attr('x', x);
       if (foreigner !== undefined) {
         x -= this.RECT_SIZE + text.node().getComputedTextLength();
-        foreigner.attr("x", x);
+        foreigner.attr('x', x);
       }
     }.bind(this, f, shape, text, foreigner);
     row.resize();
@@ -202,7 +217,7 @@ export class Legend extends Visualizer {
    * @return {object} - D3 selection of a group containing the keys.
    */
   private drawLegend() {
-    const legend = this.viewer.append("g");
+    const legend = this.viewer.append('g');
     // create the legend keys
     let entries = [];
     if (this.options.blank !== undefined) {
@@ -211,12 +226,14 @@ export class Legend extends Visualizer {
     if (this.options.blankDashed !== undefined) {
       entries.push(this.options.blankDashed);
     }
-    entries = entries.concat(this.data.filter((f) => {
-      if (this.options.selectiveColoring) {
-        return this.options.selectiveColoring[f.id] > 1;
-      }
-      return true;
-    }));
+    entries = entries.concat(
+      this.data.filter((f) => {
+        if (this.options.selectiveColoring) {
+          return this.options.selectiveColoring[f.id] > 1;
+        }
+        return true;
+      }),
+    );
     legend.keys = [];
     entries.forEach((f, i) => {
       const k = this.drawKey(legend, f);
@@ -224,12 +241,14 @@ export class Legend extends Visualizer {
       if (i > 0) {
         y += 2 * this.PAD;
       }
-      k.attr("transform", "translate(0, " + y + ")");
+      k.attr('transform', 'translate(0, ' + y + ')');
       legend.keys.push(k);
     });
     // implement the resize function
-    legend.resize = function(keys) {
-      keys.forEach((k) => { k.resize(); });
+    legend.resize = function (keys) {
+      keys.forEach((k) => {
+        k.resize();
+      });
     }.bind(this, legend.keys);
     return legend;
   }

@@ -15,7 +15,7 @@ if (process.argv.length == 2) {
   process.exit(1);
 }
 
-function getNormalSize({width, height, orientation}) {
+function getNormalSize({ width, height, orientation }) {
   return orientation || 0 >= 5
     ? { width: height, height: width }
     : { width, height };
@@ -25,11 +25,10 @@ function getOutputImageInfo(image_file_parts, width) {
   const filename = `${image_file_parts.name}-${width}w${image_file_parts.ext}`;
   const filepath = path.join(image_file_parts.dir, filename);
   const responsive = `${filename} ${width}w`;
-  return {filename, filepath, responsive};
+  return { filename, filepath, responsive };
 }
 
 async function scaleImage(resize_widths) {
-
   // get the input image and information about it
   const image_file = process.argv[2];
   const image_file_parts = path.parse(image_file);
@@ -57,7 +56,7 @@ async function scaleImage(resize_widths) {
     status_msg += '... ';
     process.stdout.write(status_msg);
     await image
-      .resize({width})
+      .resize({ width })
       .toFile(output_info.filepath)
       .then(() => {
         process.stdout.write('done!');
@@ -76,7 +75,6 @@ async function scaleImage(resize_widths) {
   }
 
   return responsive;
-
 }
 
 // 1/2 of each Bootstrap .container responsive breakpoint in px (because of how
@@ -84,10 +82,10 @@ async function scaleImage(resize_widths) {
 const resize_widths = [360, 480, 570, 660, Infinity];
 
 scaleImage(resize_widths).then((responsive) => {
-
   // tell the user how to use these files with GCV
-  const img = responsive[responsive.length-1].split(' ')[0];
-  const responsive_json = '[' + responsive.map((i) => `"${i}"`).join(', ') + ']';
+  const img = responsive[responsive.length - 1].split(' ')[0];
+  const responsive_json =
+    '[' + responsive.map((i) => `"${i}"`).join(', ') + ']';
 
   console.log(`
 Files generated!
@@ -106,5 +104,4 @@ Add the following to your GCV config.json file to use them (be sure to update th
   ...
 }
   `);
-
 });

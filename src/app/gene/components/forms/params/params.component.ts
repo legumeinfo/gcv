@@ -1,5 +1,13 @@
 // Angular
-import { Component, EventEmitter, OnDestroy, OnInit, Output, ChangeDetectionStrategy, inject } from '@angular/core';
+import {
+  Component,
+  EventEmitter,
+  OnDestroy,
+  OnInit,
+  Output,
+  ChangeDetectionStrategy,
+  inject,
+} from '@angular/core';
 import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
@@ -9,26 +17,34 @@ import { formControlConfigFactory } from '@gcv/core/models/params';
 import { ALIGNMENT_ALGORITHMS } from '@gcv/gene/algorithms';
 import { LINKAGES } from '@gcv/gene/constants';
 import {
-  AlignmentParams, alignmentParamMembers, alignmentParamValidators,
-  BlockParams, blockParamMembers, blockParamValidators,
-  ClusteringParams, clusteringParamMembers, clusteringParamValidators,
-  QueryParams, queryParamMembers, queryParamValidators,
-  SourceParams, sourceParamMembers, sourceParamValidators,
+  AlignmentParams,
+  alignmentParamMembers,
+  alignmentParamValidators,
+  BlockParams,
+  blockParamMembers,
+  blockParamValidators,
+  ClusteringParams,
+  clusteringParamMembers,
+  clusteringParamValidators,
+  QueryParams,
+  queryParamMembers,
+  queryParamValidators,
+  SourceParams,
+  sourceParamMembers,
+  sourceParamValidators,
 } from '@gcv/gene/models/params';
 import { ParamsService } from '@gcv/gene/services';
 
-
 @Component({
-    selector: 'gcv-params',
-    templateUrl: './params.component.html',
-    changeDetection: ChangeDetectionStrategy.Eager,
-    standalone: false
+  selector: 'gcv-params',
+  templateUrl: './params.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
+  standalone: false,
 })
 export class ParamsComponent implements OnDestroy, OnInit {
   private _appConfig = inject(AppConfig);
   private _paramsService = inject(ParamsService);
   private _fb = inject(UntypedFormBuilder);
-
 
   // component IO
   @Output() invalid = new EventEmitter();
@@ -60,45 +76,62 @@ export class ParamsComponent implements OnDestroy, OnInit {
   constructor() {
     const _appConfig = this._appConfig;
 
-    this.sources = _appConfig.servers.filter((s) => s.hasOwnProperty('microSearch'));
+    this.sources = _appConfig.servers.filter((s) =>
+      s.hasOwnProperty('microSearch'),
+    );
     // initialize form groups
-    this.blockGroup =
-      this._initializeGroup(blockParamMembers, blockParamValidators);
-    this.queryGroup =
-      this._initializeGroup(queryParamMembers, queryParamValidators);
-    this.clusteringGroup =
-      this._initializeGroup(clusteringParamMembers, clusteringParamValidators);
-    this.alignmentGroup =
-      this._initializeGroup(alignmentParamMembers, alignmentParamValidators);
-    this.sourcesGroup =
-      this._initializeGroup(sourceParamMembers, sourceParamValidators);
+    this.blockGroup = this._initializeGroup(
+      blockParamMembers,
+      blockParamValidators,
+    );
+    this.queryGroup = this._initializeGroup(
+      queryParamMembers,
+      queryParamValidators,
+    );
+    this.clusteringGroup = this._initializeGroup(
+      clusteringParamMembers,
+      clusteringParamValidators,
+    );
+    this.alignmentGroup = this._initializeGroup(
+      alignmentParamMembers,
+      alignmentParamValidators,
+    );
+    this.sourcesGroup = this._initializeGroup(
+      sourceParamMembers,
+      sourceParamValidators,
+    );
   }
 
   // Angular hooks
 
   ngOnInit(): void {
     // update form groups
-    this._paramsService.getBlockParams()
+    this._paramsService
+      .getBlockParams()
       .pipe(takeUntil(this._destroy))
       .subscribe((params: BlockParams) => {
         this._updateGroup(this.blockGroup, params);
       });
-    this._paramsService.getQueryParams()
+    this._paramsService
+      .getQueryParams()
       .pipe(takeUntil(this._destroy))
       .subscribe((params: QueryParams) => {
         this._updateGroup(this.queryGroup, params);
       });
-    this._paramsService.getClusteringParams()
+    this._paramsService
+      .getClusteringParams()
       .pipe(takeUntil(this._destroy))
       .subscribe((params: ClusteringParams) => {
         this._updateGroup(this.clusteringGroup, params);
       });
-    this._paramsService.getAlignmentParams()
+    this._paramsService
+      .getAlignmentParams()
       .pipe(takeUntil(this._destroy))
       .subscribe((params: AlignmentParams) => {
         this._updateGroup(this.alignmentGroup, params);
       });
-    this._paramsService.getSourceParams()
+    this._paramsService
+      .getSourceParams()
       .pipe(takeUntil(this._destroy))
       .subscribe((params: SourceParams) => {
         this._updateGroup(this.sourcesGroup, params);
@@ -132,9 +165,13 @@ export class ParamsComponent implements OnDestroy, OnInit {
   // public
 
   submit(): void {
-    if (this.blockGroup.valid && this.queryGroup.valid && this.clusteringGroup &&
-        this.alignmentGroup.valid && this.sourcesGroup.valid)
-    {
+    if (
+      this.blockGroup.valid &&
+      this.queryGroup.valid &&
+      this.clusteringGroup &&
+      this.alignmentGroup.valid &&
+      this.sourcesGroup.valid
+    ) {
       this.valid.emit();
       // submit params
       this._submitGroup(this.blockGroup);
@@ -146,5 +183,4 @@ export class ParamsComponent implements OnDestroy, OnInit {
       this.invalid.emit();
     }
   }
-
 }

@@ -4,19 +4,17 @@ import { Component, ChangeDetectionStrategy, inject } from '@angular/core';
 import { Pipeline } from '@gcv/gene/models';
 import { ProcessService } from '@gcv/gene/services';
 
-
 @Component({
-    selector: 'gcv-header-center',
-    styles: [],
-    template: `
-    <gcv-pipeline [info]=info [pipeline]=pipeline></gcv-pipeline>
+  selector: 'gcv-header-center',
+  styles: [],
+  template: `
+    <gcv-pipeline [info]="info" [pipeline]="pipeline"></gcv-pipeline>
   `,
-    changeDetection: ChangeDetectionStrategy.Eager,
-    standalone: false
+  changeDetection: ChangeDetectionStrategy.Eager,
+  standalone: false,
 })
 export class HeaderCenterComponent {
   private _processService = inject(ProcessService);
-
 
   info = `<p>This is the top level <i>pipeline</i> of the Genome Context Viewer.
           It depicts the flow of data from one <i>process</i> to the next when
@@ -34,17 +32,16 @@ export class HeaderCenterComponent {
           <p class="mb-0">Each cluster of aligned micro tracks is displayed
           below in its own micro synteny viewer.</p>`;
 
-  pipeline: Pipeline; 
+  pipeline: Pipeline;
 
   constructor() {
     const _processService = this._processService;
 
     this.pipeline = {
-        'Query Genes': _processService.getQueryGeneProcess(),
-        'Query Tracks': _processService.getQueryTrackProcess(),
-        'Clustering': _processService.getClusteringProcess(),
-        'Alignment': _processService.getQueryAlignmentProcess(),
-      };
+      'Query Genes': _processService.getQueryGeneProcess(),
+      'Query Tracks': _processService.getQueryTrackProcess(),
+      Clustering: _processService.getClusteringProcess(),
+      Alignment: _processService.getQueryAlignmentProcess(),
+    };
   }
-
 }

@@ -1,16 +1,15 @@
-import { Graph } from "./graph";
+import { Graph } from './graph';
 
 /**
  * A directed graph that implements the abstract Graph class.
  */
 export class Directed extends Graph {
-
   static Node = class extends Graph.Node {
     inNeighbors: Set<any>;
     outNeighbors: Set<any>;
     constructor(attr) {
       super(attr);
-      this.inNeighbors  = new Set();
+      this.inNeighbors = new Set();
       this.outNeighbors = new Set();
     }
   };
@@ -69,5 +68,4 @@ export class Directed extends Graph {
     }
     return null;
   }
-
 }

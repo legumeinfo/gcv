@@ -1,16 +1,32 @@
 <form (ngSubmit)="submit()" #searchForm="ngForm">
   <div class="input-group">
-    <input type="text" class="form-control" id="query-search" name="query" placeholder="Enter a gene name"
+    <input
+      type="text"
+      class="form-control"
+      id="query-search"
+      name="query"
+      placeholder="Enter a gene name"
       [(ngModel)]="model.query"
-      #search="ngModel">
-    <button type="button" class="btn btn-outline-secondary dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" data-bs-reference="parent" aria-expanded="false">
+      #search="ngModel"
+    />
+    <button
+      type="button"
+      class="btn btn-outline-secondary dropdown-toggle dropdown-toggle-split"
+      data-bs-toggle="dropdown"
+      data-bs-reference="parent"
+      aria-expanded="false"
+    >
       <span class="visually-hidden">Toggle Dropdown</span>
     </button>
-    <select class="dropdown-menu w-100" multiple name="sources"
+    <select
+      class="dropdown-menu w-100"
+      multiple
+      name="sources"
       (click)="$event.stopPropagation()"
-      [(ngModel)]="model.sources">
+      [(ngModel)]="model.sources"
+    >
       @for (src of sources; track src) {
-        <option [value]="src.id">{{src.name}}</option>
+        <option [value]="src.id">{{ src.name }}</option>
       }
     </select>
     <button type="submit" class="btn btn-primary">Search</button>

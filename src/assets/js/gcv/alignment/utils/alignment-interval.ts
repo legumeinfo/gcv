@@ -13,7 +13,7 @@ export function alignmentInterval(a: number[]): [number, number] {
     i += 1;
   }
   begin = i;
-  i = a.length-1;
+  i = a.length - 1;
   while (i >= 0 && a[i] === null) {
     i -= 1;
   }

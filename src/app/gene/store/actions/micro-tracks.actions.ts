@@ -16,20 +16,32 @@ export class Clear implements Action {
 export class Search implements Action {
   readonly type = SEARCH;
   readonly id = counter.getCount();
-  constructor(public payload: {cluster: number, families: string[],
-    source: string, params: QueryParams}) { }
+  constructor(
+    public payload: {
+      cluster: number;
+      families: string[];
+      source: string;
+      params: QueryParams;
+    },
+  ) {}
 }
 
 export class SearchSuccess implements Action {
   readonly type = SEARCH_SUCCESS;
-  constructor(public payload: {cluster: number, tracks: (Track & ClusterMixin)[],
-    source: string}) { }
+  constructor(
+    public payload: {
+      cluster: number;
+      tracks: (Track & ClusterMixin)[];
+      source: string;
+    },
+  ) {}
 }
 
 export class SearchFailure implements Action {
   readonly type = SEARCH_FAILURE;
-  constructor(public payload: {cluster: number, families: string[],
-    source: string}) { }
+  constructor(
+    public payload: { cluster: number; families: string[]; source: string },
+  ) {}
 }
 
 export type Actions = Clear | Search | SearchSuccess | SearchFailure;

@@ -4,26 +4,28 @@ import { Observable, Subject } from 'rxjs';
 import { map } from 'rxjs/operators';
 // app
 import {
-  MACRO_ORDER_ALGORITHMS, MACRO_ORDER_ALGORITHM_MAP,
-  MICRO_ORDER_ALGORITHMS, MICRO_ORDER_ALGORITHM_MAP
+  MACRO_ORDER_ALGORITHMS,
+  MACRO_ORDER_ALGORITHM_MAP,
+  MICRO_ORDER_ALGORITHMS,
+  MICRO_ORDER_ALGORITHM_MAP,
 } from '@gcv/gene/algorithms';
 import { Algorithm } from '@gcv/gene/models';
 import {
-  MacroFilterParams, MacroOrderParams,
-  MicroFilterParams, MicroOrderParams
+  MacroFilterParams,
+  MacroOrderParams,
+  MicroFilterParams,
+  MicroOrderParams,
 } from '@gcv/gene/models/params';
 import { ParamsService } from '@gcv/gene/services';
 
-
 @Component({
-    selector: 'gcv-filters',
-    templateUrl: './filters.component.html',
-    changeDetection: ChangeDetectionStrategy.Eager,
-    standalone: false
+  selector: 'gcv-filters',
+  templateUrl: './filters.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
+  standalone: false,
 })
 export class FiltersComponent {
   private _paramsService = inject(ParamsService);
-
 
   // variables
 
@@ -47,14 +49,22 @@ export class FiltersComponent {
   // constructor
 
   constructor() {
-    this.currentMacroRegexp = this._paramsService.getMacroFilterParams()
+    this.currentMacroRegexp = this._paramsService
+      .getMacroFilterParams()
       .pipe(map((params: MacroFilterParams) => params.bregexp));
-    this.selectedMacroOrderAlgorithm = this._paramsService.getMacroOrderParams()
-      .pipe(map((params: MacroOrderParams) => this._macroOrderMap[params.border]));
-    this.currentMicroRegexp = this._paramsService.getMicroFilterParams()
+    this.selectedMacroOrderAlgorithm = this._paramsService
+      .getMacroOrderParams()
+      .pipe(
+        map((params: MacroOrderParams) => this._macroOrderMap[params.border]),
+      );
+    this.currentMicroRegexp = this._paramsService
+      .getMicroFilterParams()
       .pipe(map((params: MicroFilterParams) => params.regexp));
-    this.selectedMicroOrderAlgorithm = this._paramsService.getMicroOrderParams()
-      .pipe(map((params: MicroOrderParams) => this._microOrderMap[params.order]));
+    this.selectedMicroOrderAlgorithm = this._paramsService
+      .getMicroOrderParams()
+      .pipe(
+        map((params: MicroOrderParams) => this._microOrderMap[params.order]),
+      );
   }
 
   // public
@@ -67,28 +77,27 @@ export class FiltersComponent {
     try {
       new RegExp(bregexp);
       this.badMacroRegexp = false;
-      this._paramsService.updateParams({bregexp});
+      this._paramsService.updateParams({ bregexp });
     } catch (e) {
       this.badMacroRegexp = true;
     }
   }
 
   updateMacroOrder(border: string): void {
-    this._paramsService.updateParams({border});
+    this._paramsService.updateParams({ border });
   }
 
   updateMicroRegexp(regexp: string): void {
     try {
       new RegExp(regexp);
       this.badMicroRegexp = false;
-      this._paramsService.updateParams({regexp});
+      this._paramsService.updateParams({ regexp });
     } catch (e) {
       this.badMicroRegexp = true;
     }
   }
 
   updateMicroOrder(order: string): void {
-    this._paramsService.updateParams({order});
+    this._paramsService.updateParams({ order });
   }
-
 }

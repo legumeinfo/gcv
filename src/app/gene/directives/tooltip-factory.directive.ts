@@ -5,23 +5,21 @@ import { ComponentService } from '@gcv/gene/services';
 // dependencies
 import tippy, { sticky } from 'tippy.js';
 
-
 @Directive({
-    selector: '[gcvTooltipFactory]',
-    standalone: false
+  selector: '[gcvTooltipFactory]',
+  standalone: false,
 })
 export class TooltipFactoryDirective {
   private _componentService = inject(ComponentService);
   private _el = inject(ElementRef);
 
-
   private _components: any = {};
   @Input('gcvTooltipFactory')
-  set components(components: {component: any, name: string}[]) {
-    const reducer = (accumulator, {name, component}) => {
-        accumulator[name] = component;
-        return accumulator;
-      };
+  set components(components: { component: any; name: string }[]) {
+    const reducer = (accumulator, { name, component }) => {
+      accumulator[name] = component;
+      return accumulator;
+    };
     this._components = components.reduce(reducer, {});
   }
 
@@ -34,32 +32,42 @@ export class TooltipFactoryDirective {
     return null;
   }
 
-  private _createComponentTip(target, component, inputs, outputs, options,
-  hideOutputs): void {
+  private _createComponentTip(
+    target,
+    component,
+    inputs,
+    outputs,
+    options,
+    hideOutputs,
+  ): void {
     // create component
-    const componentRef = this._componentService
-      .createComponent(component, this._el.nativeElement, inputs, outputs);
+    const componentRef = this._componentService.createComponent(
+      component,
+      this._el.nativeElement,
+      inputs,
+      outputs,
+    );
     // create tooltip
     let _options = {
-        appendTo: document.body,
-        content: componentRef.location.nativeElement,
-        showOnCreate: true,
-        theme: 'light',
-        onDestroy: (instance) => {
-          this._componentService.destroyComponent(componentRef);
-        },
-        // TODO: figure out how to destroy only when target is removed from DOM
-        onHidden: (instance) => {
+      appendTo: document.body,
+      content: componentRef.location.nativeElement,
+      showOnCreate: true,
+      theme: 'light',
+      onDestroy: (instance) => {
+        this._componentService.destroyComponent(componentRef);
+      },
+      // TODO: figure out how to destroy only when target is removed from DOM
+      onHidden: (instance) => {
+        instance.destroy();
+      },
+      onMount(instance) {
+        // destroy the tip if its target no longer exists
+        if (!document.body.contains(target)) {
           instance.destroy();
-        },
-        onMount(instance) {
-          // destroy the tip if its target no longer exists
-          if (!document.body.contains(target)) {
-            instance.destroy();
-          }
-        },
-        plugins: [sticky],
-      };
+        }
+      },
+      plugins: [sticky],
+    };
     _options = Object.assign(_options, options);
     const tip: any = tippy(target, _options);
     // hide the tooltip when component outputs emit
@@ -77,7 +85,7 @@ export class TooltipFactoryDirective {
 
   // public
 
-  componentTip(target, config: any={}): void {
+  componentTip(target, config: any = {}): void {
     if (target._tippy === undefined) {
       const component = this._getComponent(config.componentName);
       const state = config.componentState || {};
@@ -85,9 +93,14 @@ export class TooltipFactoryDirective {
       const outputs = state.outputs || {};
       const options = config.tipOptions || {};
       const hideOutputs = config.hideOutputs || [];
-      this._createComponentTip(target, component, inputs, outputs, options,
-        hideOutputs);
+      this._createComponentTip(
+        target,
+        component,
+        inputs,
+        outputs,
+        options,
+        hideOutputs,
+      );
     }
   }
-
 }

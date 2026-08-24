@@ -1,5 +1,11 @@
 // Angular
-import { Component, NgZone, OnInit, ChangeDetectionStrategy, inject } from '@angular/core';
+import {
+  Component,
+  NgZone,
+  OnInit,
+  ChangeDetectionStrategy,
+  inject,
+} from '@angular/core';
 import { NavigationStart, PRIMARY_OUTLET, Router } from '@angular/router';
 // store
 import { Store } from '@ngrx/store';
@@ -9,19 +15,18 @@ import * as fromRoot from '@gcv/store/reducers';
 declare let window: any;
 
 @Component({
-    selector: 'gcv',
-    template: `
+  selector: 'gcv',
+  template: `
     <gcv-header></gcv-header>
     <router-outlet></router-outlet>
   `,
-    changeDetection: ChangeDetectionStrategy.Eager,
-    standalone: false
+  changeDetection: ChangeDetectionStrategy.Eager,
+  standalone: false,
 })
 export class AppComponent implements OnInit {
   private router = inject(Router);
   private _store = inject<Store<fromRoot.State>>(Store);
   private zone = inject(NgZone);
-
 
   constructor() {
     // make the app's single page navigation available outside of Angular, but
@@ -48,11 +53,13 @@ export class AppComponent implements OnInit {
       const tree = this.router.parseUrl(url);
       const path = tree.root.children[PRIMARY_OUTLET].toString();
       const queryParams = tree.queryParams;
-      this._store.dispatch(new routerActions.Go({
-        path: [path],
-        query: queryParams,
-        extras: {replaceUrl: false}
-      }));
+      this._store.dispatch(
+        new routerActions.Go({
+          path: [path],
+          query: queryParams,
+          extras: { replaceUrl: false },
+        }),
+      );
     });
   }
 }

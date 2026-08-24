@@ -6,7 +6,6 @@
 import { Script, isScript } from './script.model';
 import { Request, Server } from './server.model';
 
-
 export class Brand {
   favicon?: string;
   url?: string;
@@ -16,48 +15,52 @@ export class Brand {
   hide?: boolean;
 }
 
-
 export function isBrand(instance: any): instance is Brand {
   const brand = <Brand>instance;
-  return brand !== null &&
-  (brand.favicon === undefined || typeof brand.favicon === 'string') &&
-  (brand.url === undefined || typeof brand.url === 'string') &&
-  (brand.img === undefined || typeof brand.img === 'string') &&
-  (brand.name === undefined || typeof brand.name === 'string') &&
-  (brand.slogan === undefined || typeof brand.slogan === 'string') &&
-  (brand.hide === undefined || typeof brand.hide === 'boolean');
+  return (
+    brand !== null &&
+    (brand.favicon === undefined || typeof brand.favicon === 'string') &&
+    (brand.url === undefined || typeof brand.url === 'string') &&
+    (brand.img === undefined || typeof brand.img === 'string') &&
+    (brand.name === undefined || typeof brand.name === 'string') &&
+    (brand.slogan === undefined || typeof brand.slogan === 'string') &&
+    (brand.hide === undefined || typeof brand.hide === 'boolean')
+  );
 }
-
 
 export class Communication {
   communicate?: boolean;
   channel?: string;
 }
 
-
 export function isCommunication(instance: any): instance is Communication {
   const communication = <Communication>instance;
-  return communication !== null &&
-  (communication.communicate === undefined || typeof communication.communicate === 'boolean') &&
-  (communication.channel === undefined || typeof communication.channel === 'string');
+  return (
+    communication !== null &&
+    (communication.communicate === undefined ||
+      typeof communication.communicate === 'boolean') &&
+    (communication.channel === undefined ||
+      typeof communication.channel === 'string')
+  );
 }
-
 
 export class DashboardView {
-  img: string;  // URL to example screenshot
+  img: string; // URL to example screenshot
   caption: string;
-  responsive?: string[];  // ["<image URL> <intrinsic image width>w", ...]
+  responsive?: string[]; // ["<image URL> <intrinsic image width>w", ...]
 }
-
 
 export function isDashboardView(instance: any): instance is DashboardView {
   const view = <DashboardView>instance;
-  return view !== null &&
-  (typeof view.img === 'string') &&
-  (typeof view.caption === 'string') &&
-  (view.responsive === undefined || (Array.isArray(view.responsive) && view.responsive.every((e) => typeof e === 'string')));
+  return (
+    view !== null &&
+    typeof view.img === 'string' &&
+    typeof view.caption === 'string' &&
+    (view.responsive === undefined ||
+      (Array.isArray(view.responsive) &&
+        view.responsive.every((e) => typeof e === 'string')))
+  );
 }
-
 
 export class Dashboard {
   gcvScreenshot?: DashboardView;
@@ -65,21 +68,27 @@ export class Dashboard {
   microsyntenyScreenshot?: DashboardView;
   dotplotsScreenshot?: DashboardView;
   macrosyntenyScreenshot?: DashboardView;
-  examples?: string[];  // each string should contain HTML with a description and link to an example
+  examples?: string[]; // each string should contain HTML with a description and link to an example
 }
-
 
 export function isDashboard(instance: any): instance is Dashboard {
   const dashboard = <Dashboard>instance;
-  return dashboard !== null &&
-  (dashboard.gcvScreenshot === undefined || isDashboardView(dashboard.gcvScreenshot)) &&
-  (dashboard.trackScreenshot === undefined || isDashboardView(dashboard.trackScreenshot)) &&
-  (dashboard.microsyntenyScreenshot === undefined || isDashboardView(dashboard.microsyntenyScreenshot)) &&
-  (dashboard.dotplotsScreenshot === undefined || isDashboardView(dashboard.dotplotsScreenshot)) &&
-  (dashboard.macrosyntenyScreenshot === undefined || isDashboardView(dashboard.macrosyntenyScreenshot)) &&
-  (dashboard.examples === undefined || dashboard.examples.every((e) => typeof e === 'string'));
+  return (
+    dashboard !== null &&
+    (dashboard.gcvScreenshot === undefined ||
+      isDashboardView(dashboard.gcvScreenshot)) &&
+    (dashboard.trackScreenshot === undefined ||
+      isDashboardView(dashboard.trackScreenshot)) &&
+    (dashboard.microsyntenyScreenshot === undefined ||
+      isDashboardView(dashboard.microsyntenyScreenshot)) &&
+    (dashboard.dotplotsScreenshot === undefined ||
+      isDashboardView(dashboard.dotplotsScreenshot)) &&
+    (dashboard.macrosyntenyScreenshot === undefined ||
+      isDashboardView(dashboard.macrosyntenyScreenshot)) &&
+    (dashboard.examples === undefined ||
+      dashboard.examples.every((e) => typeof e === 'string'))
+  );
 }
-
 
 // replicates models in @gcv/gene/models/params so gene module isn't prematurely
 // loaded
@@ -99,7 +108,7 @@ export type DefaultParameters = {
       intermediate: number;
     };
     microSyntenyAlignment: {
-      algorithm:  string;
+      algorithm: string;
       match: number;
       mismatch: number;
       gap: number;
@@ -112,39 +121,46 @@ export type DefaultParameters = {
     };
     microSyntenyOrder: string;
   };
-}
-
+};
 
 // only validates types; invalid values will be handled by the gene module
-export function isDefaultParameters(instance: any): instance is DefaultParameters {
+export function isDefaultParameters(
+  instance: any,
+): instance is DefaultParameters {
   const defaultParameters = <DefaultParameters>instance;
-  return defaultParameters !== null &&
+  return (
+    defaultParameters !== null &&
     typeof defaultParameters.gene === 'object' &&
-      typeof defaultParameters.gene.macroSynteny === 'object' &&
-        typeof defaultParameters.gene.macroSynteny.matched === 'number' &&
-        typeof defaultParameters.gene.macroSynteny.intermediate === 'number' &&
-        typeof defaultParameters.gene.macroSynteny.mask === 'number' &&
-        typeof defaultParameters.gene.macroSynteny.minChromosomeGenes === 'number' &&
-        typeof defaultParameters.gene.macroSynteny.minChromosomeLength === 'number' &&
-      typeof defaultParameters.gene.macroSyntenyOrder === 'string' &&
-      typeof defaultParameters.gene.microSyntenyOrder === 'string' &&
-      typeof defaultParameters.gene.microSynteny === 'object' &&
-        typeof defaultParameters.gene.microSynteny.neighbors === 'number' &&
-        typeof defaultParameters.gene.microSynteny.matched === 'number' &&
-        typeof defaultParameters.gene.microSynteny.intermediate === 'number' &&
-      typeof defaultParameters.gene.microSyntenyAlignment === 'object' &&
-        typeof defaultParameters.gene.microSyntenyAlignment.algorithm === 'string' &&
-        typeof defaultParameters.gene.microSyntenyAlignment.match === 'number' &&
-        typeof defaultParameters.gene.microSyntenyAlignment.mismatch === 'number' &&
-        typeof defaultParameters.gene.microSyntenyAlignment.gap === 'number' &&
-        typeof defaultParameters.gene.microSyntenyAlignment.score === 'number' &&
-        typeof defaultParameters.gene.microSyntenyAlignment.threshold === 'number' &&
-      typeof defaultParameters.gene.microSyntenyClustering === 'object' &&
-        typeof defaultParameters.gene.microSyntenyClustering.linkage === 'string' &&
-        typeof defaultParameters.gene.microSyntenyClustering.cthreshold === 'number' &&
-      typeof defaultParameters.gene.microSyntenyOrder === 'string';
+    typeof defaultParameters.gene.macroSynteny === 'object' &&
+    typeof defaultParameters.gene.macroSynteny.matched === 'number' &&
+    typeof defaultParameters.gene.macroSynteny.intermediate === 'number' &&
+    typeof defaultParameters.gene.macroSynteny.mask === 'number' &&
+    typeof defaultParameters.gene.macroSynteny.minChromosomeGenes ===
+      'number' &&
+    typeof defaultParameters.gene.macroSynteny.minChromosomeLength ===
+      'number' &&
+    typeof defaultParameters.gene.macroSyntenyOrder === 'string' &&
+    typeof defaultParameters.gene.microSyntenyOrder === 'string' &&
+    typeof defaultParameters.gene.microSynteny === 'object' &&
+    typeof defaultParameters.gene.microSynteny.neighbors === 'number' &&
+    typeof defaultParameters.gene.microSynteny.matched === 'number' &&
+    typeof defaultParameters.gene.microSynteny.intermediate === 'number' &&
+    typeof defaultParameters.gene.microSyntenyAlignment === 'object' &&
+    typeof defaultParameters.gene.microSyntenyAlignment.algorithm ===
+      'string' &&
+    typeof defaultParameters.gene.microSyntenyAlignment.match === 'number' &&
+    typeof defaultParameters.gene.microSyntenyAlignment.mismatch === 'number' &&
+    typeof defaultParameters.gene.microSyntenyAlignment.gap === 'number' &&
+    typeof defaultParameters.gene.microSyntenyAlignment.score === 'number' &&
+    typeof defaultParameters.gene.microSyntenyAlignment.threshold ===
+      'number' &&
+    typeof defaultParameters.gene.microSyntenyClustering === 'object' &&
+    typeof defaultParameters.gene.microSyntenyClustering.linkage === 'string' &&
+    typeof defaultParameters.gene.microSyntenyClustering.cthreshold ===
+      'number' &&
+    typeof defaultParameters.gene.microSyntenyOrder === 'string'
+  );
 }
-
 
 export class MacroLegend {
   format?: string;
@@ -153,26 +169,28 @@ export class MacroLegend {
 
 export function isMacroLegend(instance: any): instance is MacroLegend {
   const macroLegend = <MacroLegend>instance;
-  return macroLegend !== null &&
-  (macroLegend.format === undefined || typeof macroLegend.format === 'string') &&
-  (macroLegend.colors === undefined || isScript(macroLegend.colors));
+  return (
+    macroLegend !== null &&
+    (macroLegend.format === undefined ||
+      typeof macroLegend.format === 'string') &&
+    (macroLegend.colors === undefined || isScript(macroLegend.colors))
+  );
 }
-
 
 export class Miscellaneous {
   searchHelpText?: string;
 }
 
-
 export function isMiscellaneous(instance: any): instance is Miscellaneous {
   const miscellaneous = <Miscellaneous>instance;
-  return miscellaneous !== null &&
-  (miscellaneous.searchHelpText === undefined || typeof miscellaneous.searchHelpText === 'string');
+  return (
+    miscellaneous !== null &&
+    (miscellaneous.searchHelpText === undefined ||
+      typeof miscellaneous.searchHelpText === 'string')
+  );
 }
 
-
 export class AppConfig {
-
   // attributes
 
   private static _instance: AppConfig;
@@ -188,8 +206,10 @@ export class AppConfig {
   // constructor
 
   constructor() {
-    if (AppConfig._instance){
-      throw new Error('AppConfig is a singleton and has already been instantiated');
+    if (AppConfig._instance) {
+      throw new Error(
+        'AppConfig is a singleton and has already been instantiated',
+      );
     }
     AppConfig._instance = this;
   }
@@ -234,7 +254,7 @@ export class AppConfig {
     return this._instance.getDefaultServer();
   }
 
-  public getServer(id: string): Server|undefined {
+  public getServer(id: string): Server | undefined {
     let server: Server;
     this.servers.forEach((s) => {
       if (s.id === id) {
@@ -243,7 +263,7 @@ export class AppConfig {
     });
     return server;
   }
-  public static getServer(id: string): Server|undefined {
+  public static getServer(id: string): Server | undefined {
     return this._instance.getServer(id);
   }
 
@@ -253,25 +273,33 @@ export class AppConfig {
     if (i > -1) {
       server = this.servers[i];
     } else {
-      throw new ConfigError('\'' + serverID + '\' is not a valid server ID');
+      throw new ConfigError("'" + serverID + "' is not a valid server ID");
     }
     if (!server.hasOwnProperty(requestType)) {
-      throw new ConfigError('\'' + serverID + '\' does not support requests of type \'' + requestType + '\'');
+      throw new ConfigError(
+        "'" +
+          serverID +
+          "' does not support requests of type '" +
+          requestType +
+          "'",
+      );
     }
     return server[requestType];
   }
-  public static getServerRequest(serverID: string, requestType: string): Request {
+  public static getServerRequest(
+    serverID: string,
+    requestType: string,
+  ): Request {
     return this._instance.getServerRequest(serverID, requestType);
   }
 
   public getServerIDs(): string[] {
-    return this.servers.map((s) => s.id)
+    return this.servers.map((s) => s.id);
   }
   public static getServerIDs(): string[] {
     return this._instance.getServerIDs();
   }
 }
-
 
 export class ConfigError extends Error {
   constructor(message) {

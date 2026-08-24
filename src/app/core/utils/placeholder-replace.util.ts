@@ -7,8 +7,8 @@
 export function placeholderReplace(text: string, placeholders: object) {
   let formatted = text;
   for (const p in placeholders) {
-    const regexp = new RegExp('\\{'+ p +'\\}', 'gi');
+    const regexp = new RegExp('\\{' + p + '\\}', 'gi');
     formatted = formatted.replace(regexp, placeholders[p]);
   }
   return formatted;
-};
+}

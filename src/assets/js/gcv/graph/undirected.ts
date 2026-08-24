@@ -1,4 +1,4 @@
-import { Graph } from "./graph";
+import { Graph } from './graph';
 
 /**
  * An undirected graph that implements the abstract Graph class.
@@ -21,7 +21,7 @@ export class Undirected extends Graph {
     });
   }
   getEdgeId(u, v) {
-    return (u < v) ? u + this.ed + v : v + this.ed + u;
+    return u < v ? u + this.ed + v : v + this.ed + u;
   }
   addEdge(u, v, attr?) {
     const e = this.getEdgeId(u, v);
@@ -68,7 +68,7 @@ export class Undirected extends Graph {
   contractEdge(u, v, contractF, updateF) {
     const e = this.getEdge(u, v);
     if (e != null) {
-      const [keep, remove] = (u < v) ? [u, v] : [v, u];
+      const [keep, remove] = u < v ? [u, v] : [v, u];
       const keepNode = this.getNode(keep);
       const removeNode = this.getNode(remove);
       keepNode.attr = contractF(keepNode.attr, removeNode.attr, e);

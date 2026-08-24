@@ -3,5 +3,5 @@ export enum Regex {
   POSITIVE_INT = '[1-9][0-9]*',
   POSITIVE_INT_AND_ZERO = '0|[1-9][0-9]*',
   NEGATIVE_INT = '-[1-9][0-9]*',
-  TWO_OR_GREATER = '[2-9]|[1-9]\d{1,}'
+  TWO_OR_GREATER = '[2-9]|[1-9]\d{1,}',
 }

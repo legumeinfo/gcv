@@ -1,15 +1,23 @@
 // Angular
 import { Injectable, inject } from '@angular/core';
 import { Observable, combineLatest, empty } from 'rxjs';
-import { distinct, filter, map, mergeAll, scan, startWith, switchMap }
-  from 'rxjs/operators';
+import {
+  distinct,
+  filter,
+  map,
+  mergeAll,
+  scan,
+  startWith,
+  switchMap,
+} from 'rxjs/operators';
 // store
 import { Store } from '@ngrx/store';
 import { GeneID, geneID } from '@gcv/gene/store/reducers/gene.reducer';
-import { microTrackID, partialMicroTrackID }
-  from '@gcv/gene/store/reducers/micro-tracks.reducer';
-import { pairwiseBlocksID }
-  from '@gcv/gene/store/reducers/pairwise-blocks.reducer';
+import {
+  microTrackID,
+  partialMicroTrackID,
+} from '@gcv/gene/store/reducers/micro-tracks.reducer';
+import { pairwiseBlocksID } from '@gcv/gene/store/reducers/pairwise-blocks.reducer';
 import * as fromRoot from '@gcv/store/reducers';
 import * as fromChromosome from '@gcv/gene/store/selectors/chromosome';
 import * as fromGenes from '@gcv/gene/store/selectors/gene';
@@ -19,27 +27,38 @@ import * as fromParams from '@gcv/gene/store/selectors/params';
 import * as fromPlots from '@gcv/gene/store/selectors/plots';
 // app
 import { arrayFlatten } from '@gcv/core/utils';
-import { PairwiseBlocks, Plot, Process, ProcessStatus, ProcessStatusStream,
-  ProcessStatusWord, ProcessStream, Track } from '@gcv/gene/models';
+import {
+  PairwiseBlocks,
+  Plot,
+  Process,
+  ProcessStatus,
+  ProcessStatusStream,
+  ProcessStatusWord,
+  ProcessStream,
+  Track,
+} from '@gcv/gene/models';
 import { ClusterMixin } from '@gcv/gene/models/mixins';
 import { trackMap } from '@gcv/gene/models/shims';
 import { TrackID, trackID } from '@gcv/gene/store/utils';
-
 
 @Injectable()
 export class ProcessService {
   private _store = inject<Store<fromRoot.State>>(Store);
 
-
   // private helpers
 
-  private _genesAndLoadStateToStatus(genes: string[], source: string,
-  loading: GeneID[], loaded: GeneID[], failed: GeneID[]): ProcessStatus {
+  private _genesAndLoadStateToStatus(
+    genes: string[],
+    source: string,
+    loading: GeneID[],
+    loaded: GeneID[],
+    failed: GeneID[],
+  ): ProcessStatus {
     const geneSet = new Set(genes);
     // filter loading states by gene name and source
     const loadStateFilter = (id) => {
-        return geneSet.has(id.name) && id.source == source;
-      };
+      return geneSet.has(id.name) && id.source == source;
+    };
     // generate the status based on the load states
     const filteredLoading = loading.filter(loadStateFilter);
     if (filteredLoading.length > 0) {
@@ -64,7 +83,7 @@ export class ProcessService {
     }
     return {
       word: 'process-warning',
-      description: `Failed to load one or more genes from <b>${source}</b>`
+      description: `Failed to load one or more genes from <b>${source}</b>`,
     };
   }
 
@@ -78,7 +97,7 @@ export class ProcessService {
   // top
 
   private _getQueryGeneSubprocess(id: GeneID): ProcessStatusStream {
-    const {name, source} = id;
+    const { name, source } = id;
     const idString = geneID(id);
     return combineLatest(
       this._store.select(fromGenes.getLoading),
@@ -115,8 +134,9 @@ export class ProcessService {
     );
   }
 
-  private _getQueryGeneSubprocesses(geneIDs: GeneID[]):
-  Observable<ProcessStatusStream> {
+  private _getQueryGeneSubprocesses(
+    geneIDs: GeneID[],
+  ): Observable<ProcessStatusStream> {
     return Observable.create((observer) => {
       geneIDs.forEach((id) => {
         const subproccess = this._getQueryGeneSubprocess(id);
@@ -126,9 +146,10 @@ export class ProcessService {
     });
   }
 
-  private
-  _getQueryGeneProcessStatus(subprocesses: Observable<ProcessStatusStream>):
-  ProcessStatusStream {
+  private;
+  _getQueryGeneProcessStatus(
+    subprocesses: Observable<ProcessStatusStream>,
+  ): ProcessStatusStream {
     return subprocesses.pipe(
       // aggregate subprocesses into array
       scan((accumulator, processStatus) => {
@@ -140,27 +161,27 @@ export class ProcessService {
         return combineLatest(...subs).pipe(
           map((subStates): ProcessStatus => {
             const words = new Set(
-                subStates.map((status: ProcessStatus) => status.word)
-              );
+              subStates.map((status: ProcessStatus) => status.word),
+            );
             let word: ProcessStatusWord;
             let description: string;
             if (words.has('process-running')) {
               word = 'process-running';
               description = 'Loading query genes';
-            // all success
+              // all success
             } else if (words.has('process-success') && words.size == 1) {
               word = 'process-success';
               description = 'All query genes successfully loaded';
-            // all error
+              // all error
             } else if (words.has('process-error') && words.size == 1) {
               word = 'process-error';
               description = 'Failed to load query genes';
-            // success and error
+              // success and error
             } else {
               word = 'process-warning';
               description = 'Failed to load one or more query genes';
             }
-            return {word, description};
+            return { word, description };
           }),
         );
       }),
@@ -181,7 +202,7 @@ export class ProcessService {
   }
 
   private _getQueryTrackSubprocess(id: TrackID): ProcessStatusStream {
-    const {name, source} = id;
+    const { name, source } = id;
     const idString = trackID(id);
     return combineLatest(
       this._store.select(fromChromosome.getLoading),
@@ -229,8 +250,9 @@ export class ProcessService {
     );
   }
 
-  private _getQueryTrackProcessStatus(subprocesses: Observable<ProcessStatusStream>):
-  ProcessStatusStream {
+  private _getQueryTrackProcessStatus(
+    subprocesses: Observable<ProcessStatusStream>,
+  ): ProcessStatusStream {
     const defaultDescription = 'Waiting for query genes';
     const defaultStatus = this._defaultProcessStatusFactory(defaultDescription);
     return subprocesses.pipe(
@@ -244,27 +266,27 @@ export class ProcessService {
         return combineLatest(...subs).pipe(
           map((subStates): ProcessStatus => {
             const words = new Set(
-                subStates.map((status: ProcessStatus) => status.word)
-              );
+              subStates.map((status: ProcessStatus) => status.word),
+            );
             let word: ProcessStatusWord;
             let description: string;
             if (words.has('process-running')) {
               word = 'process-running';
               description = 'Loading query tracks';
-            // all success
+              // all success
             } else if (words.has('process-success') && words.size == 1) {
               word = 'process-success';
               description = 'All query tracks successfully loaded';
-            // all error
+              // all error
             } else if (words.has('process-error') && words.size == 1) {
               word = 'process-error';
               description = 'Failed to load query tracks';
-            // success and error
+              // success and error
             } else {
               word = 'process-warning';
               description = 'Failed to load one or more query tracks';
             }
-            return {word, description};
+            return { word, description };
           }),
         );
       }),
@@ -309,7 +331,7 @@ export class ProcessService {
           word = 'process-info';
           description = 'Each track has its own cluster';
         }
-        return {word, description};
+        return { word, description };
       }),
       startWith(defaultStatus),
     );
@@ -336,19 +358,26 @@ export class ProcessService {
     return combineLatest(
       this._store.select(fromGenes.getSelectedGenesLoaded),
       this._store.select(fromChromosome.getSelectedChromosomesLoaded),
-      this._store.select(fromMicroTracks.getClusteredAndAlignedSelectedMicroTracks),
+      this._store.select(
+        fromMicroTracks.getClusteredAndAlignedSelectedMicroTracks,
+      ),
     ).pipe(
-      filter(([genesLoaded, chromosomesLoaded, {consensuses, tracks}]) => {
+      filter(([genesLoaded, chromosomesLoaded, { consensuses, tracks }]) => {
         return genesLoaded && chromosomesLoaded;
       }),
-      map(([genesLoaded, chromosomesLoaded, {consensuses, tracks}]):
-      ProcessStatus => {
-        // TODO: implement other, non-success statuses
-        return {
-          word: 'process-success',
-          description: 'Tracks successfully aligned',
-        };
-      }),
+      map(
+        ([
+          genesLoaded,
+          chromosomesLoaded,
+          { consensuses, tracks },
+        ]): ProcessStatus => {
+          // TODO: implement other, non-success statuses
+          return {
+            word: 'process-success',
+            description: 'Tracks successfully aligned',
+          };
+        },
+      ),
       startWith(defaultStatus),
     );
   }
@@ -370,8 +399,10 @@ export class ProcessService {
 
   // micro track
 
-  private _getTrackSearchSubprocess(clusterID: number, source: string):
-  ProcessStatusStream {
+  private _getTrackSearchSubprocess(
+    clusterID: number,
+    source: string,
+  ): ProcessStatusStream {
     const idString = partialMicroTrackID(clusterID, source);
     return combineLatest(
       this._store.select(fromMicroTracks.getLoading),
@@ -379,7 +410,9 @@ export class ProcessService {
       this._store.select(fromMicroTracks.getFailed),
     ).pipe(
       map(([loading, loaded, failed]) => {
-        const loadingStrings = new Set(loading.map((t) => partialMicroTrackID(t)));
+        const loadingStrings = new Set(
+          loading.map((t) => partialMicroTrackID(t)),
+        );
         if (loadingStrings.has(idString)) {
           return {
             word: 'process-running',
@@ -387,14 +420,18 @@ export class ProcessService {
           };
         }
         // TODO: say how many similar tracks were found
-        const loadedStrings = new Set(loaded.map((t) => partialMicroTrackID(t)));
+        const loadedStrings = new Set(
+          loaded.map((t) => partialMicroTrackID(t)),
+        );
         if (loadedStrings.has(idString)) {
           return {
             word: 'process-success',
             description: `The <b>${source}</b> search completed`,
           };
         }
-        const failedStrings = new Set(failed.map((t) => partialMicroTrackID(t)));
+        const failedStrings = new Set(
+          failed.map((t) => partialMicroTrackID(t)),
+        );
         if (failedStrings.has(idString)) {
           return {
             word: 'process-error',
@@ -409,8 +446,10 @@ export class ProcessService {
     );
   }
 
-  private _getTrackSearchSubprocesses(clusterID: number, sources: string[]):
-  Observable<ProcessStatusStream> {
+  private _getTrackSearchSubprocesses(
+    clusterID: number,
+    sources: string[],
+  ): Observable<ProcessStatusStream> {
     return Observable.create((observer) => {
       sources.forEach((source) => {
         const subproccess = this._getTrackSearchSubprocess(clusterID, source);
@@ -420,8 +459,9 @@ export class ProcessService {
     });
   }
 
-  private _getTrackSearchProcessStatus(subprocesses: Observable<ProcessStatusStream>):
-  ProcessStatusStream {
+  private _getTrackSearchProcessStatus(
+    subprocesses: Observable<ProcessStatusStream>,
+  ): ProcessStatusStream {
     return subprocesses.pipe(
       // aggregate subprocesses into array
       scan((accumulator, processStatus) => {
@@ -433,27 +473,27 @@ export class ProcessService {
         return combineLatest(...subs).pipe(
           map((subStates): ProcessStatus => {
             const words = new Set(
-                subStates.map((status: ProcessStatus) => status.word)
-              );
+              subStates.map((status: ProcessStatus) => status.word),
+            );
             let word: ProcessStatusWord;
             let description: string;
             if (words.has('process-running')) {
               word = 'process-running';
               description = 'Searching for similar tracks';
-            // all success
+              // all success
             } else if (words.has('process-success') && words.size == 1) {
               word = 'process-success';
               description = 'All searches successfully completed';
-            // all error
+              // all error
             } else if (words.has('process-error') && words.size == 1) {
               word = 'process-error';
               description = 'All searches failed';
-            // success and error
+              // success and error
             } else {
               word = 'process-warning';
               description = 'One or more searches failed';
             }
-            return {word, description};
+            return { word, description };
           }),
         );
       }),
@@ -468,8 +508,10 @@ export class ProcessService {
     ).pipe(
       map(([queryParams, sourceParams]) => {
         const sources = sourceParams.sources;
-        const subprocesses =
-          this._getTrackSearchSubprocesses(clusterID, sources);
+        const subprocesses = this._getTrackSearchSubprocesses(
+          clusterID,
+          sources,
+        );
         return {
           subprocesses,
           status: this._getTrackSearchProcessStatus(subprocesses),
@@ -478,19 +520,24 @@ export class ProcessService {
     );
   }
 
-  private _getTrackAlignmentProcessStatus(clusterID: number): ProcessStatusStream {
+  private _getTrackAlignmentProcessStatus(
+    clusterID: number,
+  ): ProcessStatusStream {
     const defaultDescription = 'Waiting for search results';
     const defaultStatus = this._defaultProcessStatusFactory(defaultDescription);
     return combineLatest(
       // TODO: should there be a "loaded" selector like there is for genes and
       // chromosomes in case searches are successful but don't return any tracks?
       this._store.select(fromMicroTracks.getActiveSearchMicroTracks),
-      this._store.select(fromMicroTracks.getClusteredAndAlignedSearchMicroTracks),
+      this._store.select(
+        fromMicroTracks.getClusteredAndAlignedSearchMicroTracks,
+      ),
     ).pipe(
       map(([tracks, alignedTracks]) => {
         const filteredTracks = tracks.filter((t) => t.cluster == clusterID);
-        const filteredAlignedTracks =
-          alignedTracks.filter((t) => t.cluster == clusterID);
+        const filteredAlignedTracks = alignedTracks.filter(
+          (t) => t.cluster == clusterID,
+        );
         return [filteredTracks, filteredAlignedTracks];
       }),
       filter(([tracks, alignedTracks]) => tracks.length > 0),
@@ -510,7 +557,7 @@ export class ProcessService {
           word = 'process-info';
           description = `${numAligned} alignments; some tracks don't have alignments`;
         }
-        return {word, description};
+        return { word, description };
       }),
       startWith(defaultStatus),
     );
@@ -533,8 +580,10 @@ export class ProcessService {
     );
   }
 
-  private _getTrackGeneSubprocess(clusterID: number, source: string):
-  ProcessStatusStream {
+  private _getTrackGeneSubprocess(
+    clusterID: number,
+    source: string,
+  ): ProcessStatusStream {
     return combineLatest(
       // get all selected and search result tracks
       this._store.select(fromMicroTracks.getSelectedMicroTracks),
@@ -547,24 +596,30 @@ export class ProcessService {
       map(([selectedTracks, searchTracks, loading, loaded, failed]) => {
         // keep tracks belonging to cluster and source and convert to gene array
         const selectedGenes: string[] = arrayFlatten(
-            selectedTracks
-              .filter((t) => t.cluster == clusterID && t.source == source)
-              .map((t) => t.genes)
-          );
+          selectedTracks
+            .filter((t) => t.cluster == clusterID && t.source == source)
+            .map((t) => t.genes),
+        );
         const searchGenes: string[] = arrayFlatten(
-            searchTracks
-              .filter((t) => t.cluster == clusterID && t.source == source)
-              .map((t) => t.genes)
-          );
+          searchTracks
+            .filter((t) => t.cluster == clusterID && t.source == source)
+            .map((t) => t.genes),
+        );
         const genes = selectedGenes.concat(searchGenes);
-        return this._genesAndLoadStateToStatus(genes, source, loading, loaded,
-          failed);
+        return this._genesAndLoadStateToStatus(
+          genes,
+          source,
+          loading,
+          loaded,
+          failed,
+        );
       }),
     );
   }
 
-  private _getTrackGeneSubprocesses(clusterID: number):
-  Observable<ProcessStatusStream> {
+  private _getTrackGeneSubprocesses(
+    clusterID: number,
+  ): Observable<ProcessStatusStream> {
     // get all selected and search result tracks
     return combineLatest(
       this._store.select(fromMicroTracks.getSelectedMicroTracks),
@@ -572,14 +627,12 @@ export class ProcessService {
     ).pipe(
       // keep tracks belonging to cluster and convert to source array
       map(([selectedTracks, searchTracks]) => {
-        const selectedSources =
-            selectedTracks
-              .filter((t) => t.cluster == clusterID)
-              .map((t) => t.source);
-        const searchSources =
-            searchTracks
-              .filter((t) => t.cluster == clusterID)
-              .map((t) => t.source);
+        const selectedSources = selectedTracks
+          .filter((t) => t.cluster == clusterID)
+          .map((t) => t.source);
+        const searchSources = searchTracks
+          .filter((t) => t.cluster == clusterID)
+          .map((t) => t.source);
         return selectedSources.concat(searchSources);
       }),
       // flatten the source array
@@ -591,8 +644,9 @@ export class ProcessService {
     );
   }
 
-  private _getTrackGeneProcessStatus(subprocesses: Observable<ProcessStatusStream>):
-  ProcessStatusStream {
+  private _getTrackGeneProcessStatus(
+    subprocesses: Observable<ProcessStatusStream>,
+  ): ProcessStatusStream {
     const defaultDescription = 'Waiting for tracks';
     const defaultStatus = this._defaultProcessStatusFactory(defaultDescription);
     return subprocesses.pipe(
@@ -606,27 +660,27 @@ export class ProcessService {
         return combineLatest(...subs).pipe(
           map((subStates): ProcessStatus => {
             const words = new Set(
-                subStates.map((status: ProcessStatus) => status.word)
-              );
+              subStates.map((status: ProcessStatus) => status.word),
+            );
             let word: ProcessStatusWord;
             let description: string;
             if (words.has('process-running')) {
               word = 'process-running';
               description = 'Loading track genes';
-            // all success
+              // all success
             } else if (words.has('process-success') && words.size == 1) {
               word = 'process-success';
               description = 'All track genes successfully loaded';
-            // all error
+              // all error
             } else if (words.has('process-error') && words.size == 1) {
               word = 'process-error';
               description = 'Failed to load track genes';
-            // success and error
+              // success and error
             } else {
               word = 'process-warning';
               description = 'Failed to load one or more track genes';
             }
-            return {word, description};
+            return { word, description };
           }),
         );
       }),
@@ -655,32 +709,34 @@ export class ProcessService {
   // macro blocks
 
   private _getMacroBlockSubprocess(
-    chromosomes: {name: string, source: string}[],
+    chromosomes: { name: string; source: string }[],
     source: string,
     targets: string[],
   ): ProcessStatusStream {
     const targetIDs = arrayFlatten(
       chromosomes.map((c) => {
         const wildcardID = {
-            referenceSource: c.source,
-            reference: c.name,
-            chromosomeSource: source,
-          };
+          referenceSource: c.source,
+          reference: c.name,
+          chromosomeSource: source,
+        };
         if (targets.length > 0) {
           return targets.map((name) => {
-            return {...wildcardID, chromosome: name};
+            return { ...wildcardID, chromosome: name };
           });
         }
         return [wildcardID];
-      })
+      }),
     );
     const chromosomeFilter = (idSet) => {
-        return (blockID) => {
-          const {chromosome: _chromosome, ...wildcardID} = blockID;
-          return idSet.has(pairwiseBlocksID(blockID)) ||
-                 idSet.has(pairwiseBlocksID(wildcardID));
-        };
+      return (blockID) => {
+        const { chromosome: _chromosome, ...wildcardID } = blockID;
+        return (
+          idSet.has(pairwiseBlocksID(blockID)) ||
+          idSet.has(pairwiseBlocksID(wildcardID))
+        );
       };
+    };
     return combineLatest(
       // get gene loading states
       this._store.select(fromPairwiseBlocks.getLoading),
@@ -705,7 +761,7 @@ export class ProcessService {
             description: `Loading blocks from <b>${source}</b>`,
           };
         }
-        const failedIDs = new Set(failed.map(pairwiseBlocksID))
+        const failedIDs = new Set(failed.map(pairwiseBlocksID));
         const failedTargets = targetIDs.filter(chromosomeFilter(failedIDs));
         if (failedTargets.length == targetIDs.length) {
           return {
@@ -722,23 +778,27 @@ export class ProcessService {
   }
 
   private _getMacroBlockSubprocesses(
-    chromosomes: {name: string, source: string}[],
+    chromosomes: { name: string; source: string }[],
     sources: string[],
     targets: string[],
   ): Observable<ProcessStatusStream> {
     // emit a subprocess for each source
     return Observable.create((observer) => {
       sources.forEach((source) => {
-        const subprocess =
-          this._getMacroBlockSubprocess(chromosomes, source, targets);
+        const subprocess = this._getMacroBlockSubprocess(
+          chromosomes,
+          source,
+          targets,
+        );
         observer.next(subprocess);
       });
       observer.complete();
     });
   }
 
-  private _getMacroBlockProcessStatus(subprocesses: Observable<ProcessStatusStream>):
-  ProcessStatusStream {
+  private _getMacroBlockProcessStatus(
+    subprocesses: Observable<ProcessStatusStream>,
+  ): ProcessStatusStream {
     return subprocesses.pipe(
       // aggregate subprocesses into array
       scan((accumulator, processStatus) => {
@@ -750,27 +810,27 @@ export class ProcessService {
         return combineLatest(...subs).pipe(
           map((subStates): ProcessStatus => {
             const words = new Set(
-                subStates.map((status: ProcessStatus) => status.word)
-              );
+              subStates.map((status: ProcessStatus) => status.word),
+            );
             let word: ProcessStatusWord;
             let description: string;
             if (words.has('process-running')) {
               word = 'process-running';
               description = 'Loading blocks';
-            // all success
+              // all success
             } else if (words.has('process-success') && words.size == 1) {
               word = 'process-success';
               description = 'All blocks successfully loaded';
-            // all error
+              // all error
             } else if (words.has('process-error') && words.size == 1) {
               word = 'process-error';
               description = 'Failed to load blocks';
-            // success and error
+              // success and error
             } else {
               word = 'process-warning';
               description = 'Failed to load blocks from one or more sources';
             }
-            return {word, description};
+            return { word, description };
           }),
         );
       }),
@@ -778,8 +838,8 @@ export class ProcessService {
   }
 
   getMacroBlockProcess(
-    chromosomes: {name: string, source: string}[],
-    targets: string[]=[],
+    chromosomes: { name: string; source: string }[],
+    targets: string[] = [],
   ): ProcessStream {
     // emit a new process every time the source or block params change
     return combineLatest(
@@ -788,8 +848,11 @@ export class ProcessService {
     ).pipe(
       map(([sourceParams, blockParams]) => {
         const sources = sourceParams.sources;
-        const subprocesses
-          = this._getMacroBlockSubprocesses(chromosomes, sources, targets);
+        const subprocesses = this._getMacroBlockSubprocesses(
+          chromosomes,
+          sources,
+          targets,
+        );
         return {
           subprocesses,
           status: this._getMacroBlockProcessStatus(subprocesses),
@@ -799,35 +862,38 @@ export class ProcessService {
   }
 
   private _getMacroBlockPositionSubprocess(
-    chromosomes: {name: string, source: string}[],
+    chromosomes: { name: string; source: string }[],
     source: string,
     targets: string[],
   ): ProcessStatusStream {
-    const chromosomeIDs = new Set(arrayFlatten(
+    const chromosomeIDs = new Set(
+      arrayFlatten(
         chromosomes.map((c) => {
           const wildcardID = {
-              reference: c.name,
-              referenceSource: c.source,
-              chromosomeSource: source,
-            };
+            reference: c.name,
+            referenceSource: c.source,
+            chromosomeSource: source,
+          };
           if (targets.length > 0) {
             return targets.map((name) => {
-              return pairwiseBlocksID({...wildcardID, chromosome: name});
+              return pairwiseBlocksID({ ...wildcardID, chromosome: name });
             });
           }
           return [pairwiseBlocksID(wildcardID)];
-        })
-      ));
+        }),
+      ),
+    );
     return combineLatest(
       // get chromosomes and blocks
       this._store.select(fromChromosome.getChromosomesForIDs(chromosomes)),
       this._store.select(fromPairwiseBlocks.getPairwiseBlocks).pipe(
         map((blocks) => {
           return blocks.filter((b) => {
-            const {chromosome: _chromosome, ...wildcard} = b;
-            const id = (targets.length > 0) ?
-              pairwiseBlocksID(b) :
-              pairwiseBlocksID(wildcard);
+            const { chromosome: _chromosome, ...wildcard } = b;
+            const id =
+              targets.length > 0
+                ? pairwiseBlocksID(b)
+                : pairwiseBlocksID(wildcard);
             return chromosomeIDs.has(id);
           });
         }),
@@ -840,53 +906,63 @@ export class ProcessService {
       map(([chromosomes, pairwiseBlocks, loading, loaded, failed]) => {
         const chromosomeMap = trackMap(chromosomes);
         const genes: string[] = arrayFlatten(
-            pairwiseBlocks.map((blocks) => {
-              const id = trackID(blocks.reference, blocks.referenceSource);
-              const genes = chromosomeMap[id].genes;
-              return arrayFlatten(
-                blocks.blocks.map((b) => [genes[b.i], genes[b.j]])
-              );
-            })
-          );
-        return this._genesAndLoadStateToStatus(genes, source, loading, loaded,
-          failed);
+          pairwiseBlocks.map((blocks) => {
+            const id = trackID(blocks.reference, blocks.referenceSource);
+            const genes = chromosomeMap[id].genes;
+            return arrayFlatten(
+              blocks.blocks.map((b) => [genes[b.i], genes[b.j]]),
+            );
+          }),
+        );
+        return this._genesAndLoadStateToStatus(
+          genes,
+          source,
+          loading,
+          loaded,
+          failed,
+        );
       }),
     );
   }
 
   private _getMacroBlockPositionSubprocesses(
-    chromosomes: {name: string, source: string}[],
+    chromosomes: { name: string; source: string }[],
     sources: string[],
     targets: string[],
   ): Observable<ProcessStatusStream> {
-    const chromosomeIDs = new Set(arrayFlatten(
-        chromosomes.map((c) => arrayFlatten(
-          sources.map((s) => {
-            const wildcardID = {
+    const chromosomeIDs = new Set(
+      arrayFlatten(
+        chromosomes.map((c) =>
+          arrayFlatten(
+            sources.map((s) => {
+              const wildcardID = {
                 referenceSource: c.source,
                 reference: c.name,
                 chromosomeSource: s,
               };
-            if (targets.length > 0) {
-              return targets.map((name) => {
-                const id = {...wildcardID, chromosome: name};
-                return pairwiseBlocksID(id);
-              });
-            }
-            return [pairwiseBlocksID(wildcardID)];
-          })
-        ))
-      ));
+              if (targets.length > 0) {
+                return targets.map((name) => {
+                  const id = { ...wildcardID, chromosome: name };
+                  return pairwiseBlocksID(id);
+                });
+              }
+              return [pairwiseBlocksID(wildcardID)];
+            }),
+          ),
+        ),
+      ),
+    );
     // group blocks by source
-    return this._store.select(fromPairwiseBlocks.getPairwiseBlocks)
-    .pipe(
+    return this._store.select(fromPairwiseBlocks.getPairwiseBlocks).pipe(
       // flatten arrays into single emissions
       mergeAll(),
       // only keep blocks with one of the chromosomes as the reference
       filter((blocks: PairwiseBlocks) => {
-        const {chromosome: _chromosome, ...wildcard} = blocks;
-        const id = (targets.length > 0) ?
-          pairwiseBlocksID(blocks) : pairwiseBlocksID(wildcard);
+        const { chromosome: _chromosome, ...wildcard } = blocks;
+        const id =
+          targets.length > 0
+            ? pairwiseBlocksID(blocks)
+            : pairwiseBlocksID(wildcard);
         return chromosomeIDs.has(id);
       }),
       // get sources from blocks that have loaded so we don't create a process
@@ -903,7 +979,7 @@ export class ProcessService {
           targets,
         );
       }),
-    )
+    );
   }
 
   private _getMacroBlockPositionStatus(
@@ -922,27 +998,27 @@ export class ProcessService {
         return combineLatest(...subs).pipe(
           map((subStates): ProcessStatus => {
             const words = new Set(
-                subStates.map((status: ProcessStatus) => status.word)
-              );
+              subStates.map((status: ProcessStatus) => status.word),
+            );
             let word: ProcessStatusWord;
             let description: string;
             if (words.has('process-running')) {
               word = 'process-running';
               description = 'Loading positions';
-            // all success
+              // all success
             } else if (words.has('process-success') && words.size == 1) {
               word = 'process-success';
               description = 'All positions successfully loaded';
-            // all error
+              // all error
             } else if (words.has('process-error') && words.size == 1) {
               word = 'process-error';
               description = 'Failed to load positions';
-            // success and error
+              // success and error
             } else {
               word = 'process-warning';
               description = 'Failed to load positions from one or more sources';
             }
-            return {word, description};
+            return { word, description };
           }),
         );
       }),
@@ -951,8 +1027,8 @@ export class ProcessService {
   }
 
   getMacroBlockPositionProcess(
-    chromosomes: {name: string, source: string}[],
-    targets: string[]=[],
+    chromosomes: { name: string; source: string }[],
+    targets: string[] = [],
   ): ProcessStream {
     // emit a new process every time the source or block params change
     return combineLatest(
@@ -961,8 +1037,11 @@ export class ProcessService {
     ).pipe(
       map(([sourceParams, blocksParams]) => {
         const sources = sourceParams.sources;
-        const subprocesses =
-          this._getMacroBlockPositionSubprocesses(chromosomes, sources, targets);
+        const subprocesses = this._getMacroBlockPositionSubprocesses(
+          chromosomes,
+          sources,
+          targets,
+        );
         return {
           subprocesses,
           status: this._getMacroBlockPositionStatus(subprocesses),
@@ -974,38 +1053,43 @@ export class ProcessService {
   getCircosBlockProcess(clusterID: number): ProcessStream {
     // emit a new process every time a new chromosome is emitted for the cluster
     // TODO: not ideal...
-    return this._store.
-      select((fromChromosome.getSelectedChromosomesForCluster(clusterID))
-    ).pipe(
-      switchMap((chromosomes) => {
-        const IDs = chromosomes
-          .map(({name, source, ...attrs}) => ({name, source}));
-        const targets = chromosomes.map((id) => id.name);
-        return this.getMacroBlockProcess(IDs, targets);
-      }),
-    );
+    return this._store
+      .select(fromChromosome.getSelectedChromosomesForCluster(clusterID))
+      .pipe(
+        switchMap((chromosomes) => {
+          const IDs = chromosomes.map(({ name, source, ...attrs }) => ({
+            name,
+            source,
+          }));
+          const targets = chromosomes.map((id) => id.name);
+          return this.getMacroBlockProcess(IDs, targets);
+        }),
+      );
   }
-
 
   getCircosBlockPositionProcess(clusterID: number): ProcessStream {
     // emit a new process every time a new chromosome is emitted for the cluster
     // TODO: not ideal...
-    return this._store.
-      select((fromChromosome.getSelectedChromosomesForCluster(clusterID))
-    ).pipe(
-      switchMap((chromosomes) => {
-        const IDs = chromosomes
-          .map(({name, source, ...attrs}) => ({name, source}));
-        const targets = chromosomes.map((id) => id.name);
-        return this.getMacroBlockPositionProcess(IDs, targets);
-      }),
-    );
+    return this._store
+      .select(fromChromosome.getSelectedChromosomesForCluster(clusterID))
+      .pipe(
+        switchMap((chromosomes) => {
+          const IDs = chromosomes.map(({ name, source, ...attrs }) => ({
+            name,
+            source,
+          }));
+          const targets = chromosomes.map((id) => id.name);
+          return this.getMacroBlockPositionProcess(IDs, targets);
+        }),
+      );
   }
 
   // plots
 
-  private _getPlotGeneSubprocess(source: string, genes: string[]):
-  ProcessStatusStream {
+  private _getPlotGeneSubprocess(
+    source: string,
+    genes: string[],
+  ): ProcessStatusStream {
     return combineLatest(
       // get gene loading states
       this._store.select(fromGenes.getLoading),
@@ -1013,28 +1097,37 @@ export class ProcessService {
       this._store.select(fromGenes.getFailed),
     ).pipe(
       map(([loading, loaded, failed]) => {
-        return this._genesAndLoadStateToStatus(genes, source, loading, loaded,
-          failed);
+        return this._genesAndLoadStateToStatus(
+          genes,
+          source,
+          loading,
+          loaded,
+          failed,
+        );
       }),
     );
   }
 
-  private _getPlotGeneSubprocesses(plot: Plot): Observable<ProcessStatusStream> {
+  private _getPlotGeneSubprocesses(
+    plot: Plot,
+  ): Observable<ProcessStatusStream> {
     // bin plot genes by source
     const sourceGeneMap = plot.sourceGeneMap();
     // emit a subprocess for each source
     return Observable.create((observer) => {
-      Object.entries(sourceGeneMap)
-        .forEach(([source, genes]: [string, string[]]) => {
+      Object.entries(sourceGeneMap).forEach(
+        ([source, genes]: [string, string[]]) => {
           const subprocess = this._getPlotGeneSubprocess(source, genes);
           observer.next(subprocess);
-        });
+        },
+      );
       observer.complete();
     });
   }
 
-  private _getPlotGeneProcessStatus(subprocesses: Observable<ProcessStatusStream>):
-  ProcessStatusStream {
+  private _getPlotGeneProcessStatus(
+    subprocesses: Observable<ProcessStatusStream>,
+  ): ProcessStatusStream {
     return subprocesses.pipe(
       // aggregate subprocesses into array
       scan((accumulator, processStatus) => {
@@ -1046,27 +1139,27 @@ export class ProcessService {
         return combineLatest(...subs).pipe(
           map((subStates): ProcessStatus => {
             const words = new Set(
-                subStates.map((status: ProcessStatus) => status.word)
-              );
+              subStates.map((status: ProcessStatus) => status.word),
+            );
             let word: ProcessStatusWord;
             let description: string;
             if (words.has('process-running')) {
               word = 'process-running';
               description = 'Loading plot genes';
-            // all success
+              // all success
             } else if (words.has('process-success') && words.size == 1) {
               word = 'process-success';
               description = 'All plot genes successfully loaded';
-            // all error
+              // all error
             } else if (words.has('process-error') && words.size == 1) {
               word = 'process-error';
               description = 'Failed to load plot genes';
-            // success and error
+              // success and error
             } else {
               word = 'process-warning';
               description = 'Failed to load one or more plot genes';
             }
-            return {word, description};
+            return { word, description };
           }),
         );
       }),
@@ -1079,15 +1172,18 @@ export class ProcessService {
     track: Track & ClusterMixin,
   ): ProcessStream {
     // return a process every time the plots update
-    const plots = type == 'local' ?
-      this._store.select((fromPlots.getLocalPlots(track))) :
-      this._store.select((fromPlots.getGlobalPlots(track)));
+    const plots =
+      type == 'local'
+        ? this._store.select(fromPlots.getLocalPlots(track))
+        : this._store.select(fromPlots.getGlobalPlots(track));
     return plots.pipe(
       // NOTE: this is awkward; see plot component
       mergeAll(),
       filter((plot: Plot) => {
-        return plot.reference.name === reference.name &&
-               plot.reference.source === reference.source;
+        return (
+          plot.reference.name === reference.name &&
+          plot.reference.source === reference.source
+        );
       }),
       map((plot) => {
         const subprocesses = this._getPlotGeneSubprocesses(plot);
@@ -1098,5 +1194,4 @@ export class ProcessService {
       }),
     );
   }
-
 }

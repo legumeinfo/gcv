@@ -1,8 +1,7 @@
 // library
-import { matrix, setOption, sum } from "../common";
-import { Alignment, InternalAlignment, Scores, Traceback } from "./models";
-import { computeScore, mergeAlignments } from "./utils";
-
+import { matrix, setOption, sum } from '../common';
+import { Alignment, InternalAlignment, Scores, Traceback } from './models';
+import { computeScore, mergeAlignments } from './utils';
 
 /**
  * Given a matrix, a column index, and a threshold, the function returns the
@@ -17,12 +16,16 @@ import { computeScore, mergeAlignments } from "./utils";
  * containing a pointer to the cell in the preceding column that the value was
  * derived from.
  */
-function computeFirstCellOfColumn(m: number[][], i: number, threshold: number,
-carryover: boolean, matches: Set<number>):
-[number, [number, number]] {
-  const t = (carryover) ? threshold : 0;
-  const values = m[i-1].map((s) => Math.max(0, s-t));
-  values[0] = m[i-1][0];
+function computeFirstCellOfColumn(
+  m: number[][],
+  i: number,
+  threshold: number,
+  carryover: boolean,
+  matches: Set<number>,
+): [number, [number, number]] {
+  const t = carryover ? threshold : 0;
+  const values = m[i - 1].map((s) => Math.max(0, s - t));
+  values[0] = m[i - 1][0];
   let v = Math.max(...values);
   let k = values.indexOf(v);
   if (!carryover) {
@@ -31,9 +34,8 @@ carryover: boolean, matches: Set<number>):
       k = 0;
     }
   }
-  return [v, [i-1, k]];
+  return [v, [i - 1, k]];
 }
-
 
 /**
  * Aligns the given sequence to the given reference using the repeat algorithm.
@@ -68,46 +70,50 @@ function align<T>(
   seq: T[],
   ref: T[],
   scores: Scores,
-  omit: Set<T>=new Set,
-  carryover: boolean=true): InternalAlignment[]
-{
-
+  omit: Set<T> = new Set(),
+  carryover: boolean = true,
+): InternalAlignment[] {
   // construct score and traceback matrices
-  const cols = ref.length + 1;  // first item is at index 1
-  const rows = seq.length + 1;  // ditto
-  const m = matrix(cols, rows, 0);  // scores
-  const t = matrix(cols, rows, [0, 0]);  // traceback
+  const cols = ref.length + 1; // first item is at index 1
+  const rows = seq.length + 1; // ditto
+  const m = matrix(cols, rows, 0); // scores
+  const t = matrix(cols, rows, [0, 0]); // traceback
   let matches = new Set<number>();
   for (let i = 1; i < cols; i++) {
     // handle unmatched regions and ends of matches
-    [m[i][0], t[i][0]] =
-      computeFirstCellOfColumn(m, i, scores.threshold, carryover, matches);
+    [m[i][0], t[i][0]] = computeFirstCellOfColumn(
+      m,
+      i,
+      scores.threshold,
+      carryover,
+      matches,
+    );
     matches = new Set<number>();
     // handle starts of matches and extensions
     for (let j = 1; j < rows; j++) {
-      const score = computeScore(ref[i-1], seq[j-1], scores, omit);
+      const score = computeScore(ref[i - 1], seq[j - 1], scores, omit);
       const choices = [
-          m[i][0],
-          m[i-1][j-1] + score,
-          m[i-1][j] + scores.gap,
-          m[i][j-1] + scores.gap
-        ];
+        m[i][0],
+        m[i - 1][j - 1] + score,
+        m[i - 1][j] + scores.gap,
+        m[i][j - 1] + scores.gap,
+      ];
       m[i][j] = Math.max(...choices);
       switch (choices.indexOf(m[i][j])) {
         case Traceback.FIRST:
           t[i][j] = [i, 0];
           break;
         case Traceback.DIAGONAL:
-          t[i][j] = [i-1, j-1];
+          t[i][j] = [i - 1, j - 1];
           if (score == scores.match) {
             matches.add(j);
           }
           break;
         case Traceback.LEFT:
-          t[i][j] = [i-1, j];
+          t[i][j] = [i - 1, j];
           break;
         case Traceback.UP:
-          t[i][j] = [i, j-1];
+          t[i][j] = [i, j - 1];
           break;
       }
     }
@@ -115,40 +121,47 @@ function align<T>(
 
   // construct alignments via traceback
   const alignments: InternalAlignment[] = [];
-  let a = {coordinates: [], scores: []};
+  let a = { coordinates: [], scores: [] };
   let insertion = 0;
-  let [, [i, j]] =
-    computeFirstCellOfColumn(m, cols, scores.threshold, carryover, matches);
+  let [, [i, j]] = computeFirstCellOfColumn(
+    m,
+    cols,
+    scores.threshold,
+    carryover,
+    matches,
+  );
   while (!(i === 0 && j === 0)) {
     const [i2, j2] = t[i][j];
     // start new alignment
     if (j2 > j) {
       a = {
-          coordinates: Array(ref.length-i2).fill(null),
-          scores: Array(ref.length-i2).fill(null)
-        };
-    // insertion
+        coordinates: Array(ref.length - i2).fill(null),
+        scores: Array(ref.length - i2).fill(null),
+      };
+      // insertion
     } else if (j2 === j && j !== 0) {
       insertion += 1;
-    // (mis)match
-    } else if (j2 === j-1 && i2 === i-1) {
+      // (mis)match
+    } else if (j2 === j - 1 && i2 === i - 1) {
       // backfill insertion
       if (insertion > 0) {
-        const step = 1/(insertion+1);
-        for (let k = insertion-1; k >= 0; k--) {
-          const x = j + (k+1)*step;
-          a.coordinates.unshift(x-1);
-          a.scores.unshift(m[i+k+1][j]-m[i+k][j]);
+        const step = 1 / (insertion + 1);
+        for (let k = insertion - 1; k >= 0; k--) {
+          const x = j + (k + 1) * step;
+          a.coordinates.unshift(x - 1);
+          a.scores.unshift(m[i + k + 1][j] - m[i + k][j]);
         }
         insertion = 0;
       }
-      a.coordinates.unshift(j-1)
-      a.scores.unshift(m[i][j]-m[i2][j2]);
+      a.coordinates.unshift(j - 1);
+      a.scores.unshift(m[i][j] - m[i2][j2]);
     }
     // end alignment
     if (j > 0 && j2 === 0) {
       if (a.coordinates.filter((x) => x !== null).length > 2) {
-        const fill = Array(Math.max(0, ref.length-a.coordinates.length)).fill(null);
+        const fill = Array(Math.max(0, ref.length - a.coordinates.length)).fill(
+          null,
+        );
         a.coordinates.unshift(...fill);
         a.scores.unshift(...fill);
         alignments.push(a);
@@ -176,57 +189,64 @@ function align<T>(
  *     [null, null, 3, 4, 5, null]  // ends weren't aligned
  */
 export function repeat<T>(
-  reference: T[], 
+  reference: T[],
   sequence: T[],
-  options: any={}): Alignment[]
-{
-
+  options: any = {},
+): Alignment[] {
   // parse optional parameters
   options = Object.assign({}, options);
   options.scores = Object.assign({}, options.scores);
-  setOption(options.scores, "match", 5);
-  setOption(options.scores, "mismatch", 0);
-  setOption(options.scores, "gap", -1);
-  setOption(options.scores, "threshold", 0);
-  setOption(options, "omit", new Set());
-  setOption(options, "reversals", true);
-  setOption(options, "inversions", 2);
-  setOption(options, "carryover", true);
+  setOption(options.scores, 'match', 5);
+  setOption(options.scores, 'mismatch', 0);
+  setOption(options.scores, 'gap', -1);
+  setOption(options.scores, 'threshold', 0);
+  setOption(options, 'omit', new Set());
+  setOption(options, 'reversals', true);
+  setOption(options, 'inversions', 2);
+  setOption(options, 'carryover', true);
 
   // perform forward and reverse alignments
   const forward = sequence;
-  const forwardAlignments =
-    align(reference, forward, options.scores, options.omit, options.carryover);
-  const reverse = (options.reversals || options.inversions) ?
-    [...forward].reverse() : [];
-  const reverseAlignments =
-    align(reference, reverse, options.scores, options.omit, options.carryover);
+  const forwardAlignments = align(
+    reference,
+    forward,
+    options.scores,
+    options.omit,
+    options.carryover,
+  );
+  const reverse =
+    options.reversals || options.inversions ? [...forward].reverse() : [];
+  const reverseAlignments = align(
+    reference,
+    reverse,
+    options.scores,
+    options.omit,
+    options.carryover,
+  );
   // reverse the reverse alignment orderings and the alignments themselves
-  reverseAlignments
-    .reverse()
-    .forEach(({coordinates, scores}) => {
-      coordinates.reverse();
-      scores.reverse();
-    });
+  reverseAlignments.reverse().forEach(({ coordinates, scores }) => {
+    coordinates.reverse();
+    scores.reverse();
+  });
 
   // merge alignments
   const alignments = mergeAlignments(
-      sequence,
-      // reverse alignment orders because the dynamic program returns them in
-      // backwards order relative to the input sequences
-      forwardAlignments.reverse(),
-      reverseAlignments.reverse(),
-      options.reversals,
-      options.inversions,
-      options.scores.threshold)
-    .map((a) => {
-      return {
-        alignment: a.coordinates,
-        orientations: a.orientations,
-        segments: a.segments,
-        score: sum(a.scores),
-      };
-    });
+    sequence,
+    // reverse alignment orders because the dynamic program returns them in
+    // backwards order relative to the input sequences
+    forwardAlignments.reverse(),
+    reverseAlignments.reverse(),
+    options.reversals,
+    options.inversions,
+    options.scores.threshold,
+  ).map((a) => {
+    return {
+      alignment: a.coordinates,
+      orientations: a.orientations,
+      segments: a.segments,
+      score: sum(a.scores),
+    };
+  });
 
   return alignments;
 }

@@ -1,26 +1,27 @@
 // Angular
 // NgRx
-import { ActionReducerMap, MetaReducer, createFeatureSelector }
-  from '@ngrx/store';
+import {
+  ActionReducerMap,
+  MetaReducer,
+  createFeatureSelector,
+} from '@ngrx/store';
 // store
 import * as fromRouter from './router.reducer';
 // app
 import { environment } from '@gcv-environments/environment';
 
-
 export interface State {
   routerReducer: fromRouter.State;
 }
-
 
 export const reducers: ActionReducerMap<State> = {
   routerReducer: fromRouter.reducer,
 };
 
-
-export const getRouter = createFeatureSelector<fromRouter.State>('routerReducer');
-
+export const getRouter =
+  createFeatureSelector<fromRouter.State>('routerReducer');
 
 // add environment-specific meta reducers here
-export const metaReducers: Array<MetaReducer<State>> =
-  environment.production ? [] : [];
+export const metaReducers: Array<MetaReducer<State>> = environment.production
+  ? []
+  : [];

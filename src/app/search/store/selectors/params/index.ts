@@ -7,10 +7,12 @@ import { initialState } from '@gcv/search/store/reducers/params.reducer';
 import { parseParams } from '@gcv/core/models/params';
 import { memoizeObject, pick } from '@gcv/core/utils';
 import {
-  Params, paramMembers, paramParsers,
-  SourceParams, sourceParamMembers,
+  Params,
+  paramMembers,
+  paramParsers,
+  SourceParams,
+  sourceParamMembers,
 } from '@gcv/search/models/params';
-
 
 export const getParams = createSelectorFactory(memoizeObject)(
   selectQueryParams,
@@ -22,7 +24,6 @@ export const getParams = createSelectorFactory(memoizeObject)(
   },
 );
 
-
 export const getSourceParams = createSelectorFactory(memoizeObject)(
   getParams,
   (params: Params): SourceParams => {
@@ -30,7 +31,6 @@ export const getSourceParams = createSelectorFactory(memoizeObject)(
     return sourceParams;
   },
 );
-
 
 export const getSourcesParam = createSelector(
   getSourceParams,

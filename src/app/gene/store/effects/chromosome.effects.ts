@@ -1,4 +1,4 @@
-import { concatLatestFrom } from '@ngrx/operators';// Angular
+import { concatLatestFrom } from '@ngrx/operators'; // Angular
 import { Injectable, inject } from '@angular/core';
 // store
 import { createEffect, Actions, ofType } from '@ngrx/effects';
@@ -19,44 +19,48 @@ export class ChromosomeEffects {
   private chromosomeService = inject(ChromosomeService);
   private _store = inject<Store<fromRoot.State>>(Store);
 
-
   // clear the store every time the set of selected genes changes
-  clearChromosomes$ = createEffect(() => { return this._store.select(fromGene.getSelectedGeneIDs).pipe(
-    map((...args) => new chromosomeActions.Clear()),
-  ) });
+  clearChromosomes$ = createEffect(() => {
+    return this._store
+      .select(fromGene.getSelectedGeneIDs)
+      .pipe(map((...args) => new chromosomeActions.Clear()));
+  });
 
   // emits a get action for each selected chromosome that's not loaded or
   // loading
-  getSelected$ = createEffect(() => { return this._store
-  .select(fromChromosome.getSelectedChromosomeIDs)
-  .pipe(
-    filter((ids) => ids.length > 0),
-    mergeMap((ids): chromosomeActions.Get[] => {
-      return ids.map((id) => new chromosomeActions.Get(id));
-    }),
-  ) });
+  getSelected$ = createEffect(() => {
+    return this._store.select(fromChromosome.getSelectedChromosomeIDs).pipe(
+      filter((ids) => ids.length > 0),
+      mergeMap((ids): chromosomeActions.Get[] => {
+        return ids.map((id) => new chromosomeActions.Get(id));
+      }),
+    );
+  });
 
   // get chromosome via the chromosome service
-  getChromosome$ = createEffect(() => { return this.actions$.pipe(
-    ofType(chromosomeActions.GET),
-    map((action: chromosomeActions.Get) => {
-      return {action: action.id, ...action.payload};
-    }),
-    concatLatestFrom(() => this._store.select(fromChromosome.getLoading)),
-    mergeMap(([{action, name, source}, loading]) => {
-      let targetIDs = [{name, source, action}];
-      // only keep targets that the reducer says need to be loaded (no need to
-      // check loaded since the reducer already took that into consideration)
-      targetIDs = idArrayIntersection(targetIDs, loading, true);
-      if (targetIDs.length == 0) {
-        return [];
-      }
-      return this.chromosomeService.getChromosome(name, source).pipe(
-        takeUntil(this.actions$.pipe(ofType(chromosomeActions.CLEAR))),
-        map((chromosome) => new chromosomeActions.GetSuccess({chromosome})),
-        catchError((e) => of(new chromosomeActions.GetFailure({name, source}))),
-      );
-    })
-  ) });
-
+  getChromosome$ = createEffect(() => {
+    return this.actions$.pipe(
+      ofType(chromosomeActions.GET),
+      map((action: chromosomeActions.Get) => {
+        return { action: action.id, ...action.payload };
+      }),
+      concatLatestFrom(() => this._store.select(fromChromosome.getLoading)),
+      mergeMap(([{ action, name, source }, loading]) => {
+        let targetIDs = [{ name, source, action }];
+        // only keep targets that the reducer says need to be loaded (no need to
+        // check loaded since the reducer already took that into consideration)
+        targetIDs = idArrayIntersection(targetIDs, loading, true);
+        if (targetIDs.length == 0) {
+          return [];
+        }
+        return this.chromosomeService.getChromosome(name, source).pipe(
+          takeUntil(this.actions$.pipe(ofType(chromosomeActions.CLEAR))),
+          map((chromosome) => new chromosomeActions.GetSuccess({ chromosome })),
+          catchError((e) =>
+            of(new chromosomeActions.GetFailure({ name, source })),
+          ),
+        );
+      }),
+    );
+  });
 }
