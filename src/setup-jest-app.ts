@@ -15,5 +15,36 @@ if (!AppConfig.instance) {
     { id: 'lis', name: 'Legume Information System', search: {} },
   ] as unknown as Server[];
   config.miscellaneous = { searchHelpText: '' } as any;
-  config.defaultParameters = {} as any;
+  // Mirrors the app's defaultConfig.defaultParameters — the params store reads
+  // this nested shape at import time (params.reducer initialState).
+  config.defaultParameters = {
+    gene: {
+      macroSynteny: {
+        matched: 20,
+        intermediate: 10,
+        mask: 10,
+        minChromosomeGenes: 1,
+        minChromosomeLength: 100000,
+      },
+      macroSyntenyOrder: 'distance',
+      microSynteny: {
+        neighbors: 10,
+        matched: 4,
+        intermediate: 5,
+      },
+      microSyntenyAlignment: {
+        algorithm: 'repeat',
+        match: 10,
+        mismatch: -1,
+        gap: -1,
+        score: 30,
+        threshold: 25,
+      },
+      microSyntenyClustering: {
+        linkage: 'average',
+        cthreshold: 20,
+      },
+      microSyntenyOrder: 'distance',
+    },
+  } as any;
 }
