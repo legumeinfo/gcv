@@ -4,6 +4,9 @@ const tseslint = require("typescript-eslint");
 const angular = require("angular-eslint");
 const ngrx = require("@ngrx/eslint-plugin");
 const unusedImports = require("eslint-plugin-unused-imports");
+// Turns OFF every ESLint rule that conflicts with Prettier. MUST be last so it
+// overrides formatting rules from the configs above; Prettier owns formatting.
+const eslintConfigPrettier = require("eslint-config-prettier/flat");
 
 module.exports = tseslint.config(
   {
@@ -82,4 +85,6 @@ module.exports = tseslint.config(
     extends: [...angular.configs.templateRecommended],
     rules: {},
   },
+  // Keep LAST: disable ESLint formatting rules that would conflict with Prettier.
+  eslintConfigPrettier,
 );
