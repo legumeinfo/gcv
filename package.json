@@ -60,6 +60,7 @@
     "@angular-eslint/schematics": "22.0.0",
     "@angular-eslint/template-parser": "22.0.0",
     "@angular/cli": "~22.1.2",
+    "angular-eslint": "22.0.0",
     "@angular/compiler-cli": "^22.1.0",
     "@ngrx/eslint-plugin": "^21.1.1",
     "@playwright/test": "^1.58.2",
@@ -67,6 +68,7 @@
     "@types/node": "^25.0.0",
     "@typescript-eslint/eslint-plugin": "^8.33.1",
     "@typescript-eslint/parser": "^8.33.1",
+    "typescript-eslint": "^8.33.1",
     "eslint": "^9.28.0",
     "jest": "^30.4.2",
     "jest-environment-jsdom": "^30.4.1",
@@ -80,6 +82,23 @@
     "node": ">=22.22.3"
   },
   "overrides": {
-    "d3-color": "^3.1.0"
+    "d3-color": "^3.1.0",
+    "@ngrx/store": {
+      "@angular/core": "$@angular/core"
+    },
+    "@ngrx/effects": {
+      "@angular/core": "$@angular/core"
+    },
+    "@ngrx/entity": {
+      "@angular/core": "$@angular/core"
+    },
+    "@ngrx/router-store": {
+      "@angular/core": "$@angular/core",
+      "@angular/common": "$@angular/common",
+      "@angular/router": "$@angular/router"
+    },
+    "ts-jest": {
+      "@babel/core": "^8.0.0"
+    }
   }
 }

@@ -41,7 +41,10 @@ const config: Config = {
     {
       displayName: "app",
       ...createCjsPreset({ tsconfig: "tsconfig.spec.json" }),
-      setupFilesAfterEnv: ["<rootDir>/src/setup-jest.ts"],
+      setupFilesAfterEnv: [
+        "<rootDir>/src/setup-jest.ts",
+        "<rootDir>/src/setup-jest-app.ts",
+      ],
       roots: ["<rootDir>/src/app"],
       testMatch: ["**/*.spec.ts"],
       moduleNameMapper,
