@@ -23,7 +23,7 @@ export class ChromosomeEffects {
   clearChromosomes$ = createEffect(() => {
     return this._store
       .select(fromGene.getSelectedGeneIDs)
-      .pipe(map((...args) => new chromosomeActions.Clear()));
+      .pipe(map((...args) => chromosomeActions.clear()));
   });
 
   // emits a get action for each selected chromosome that's not loaded or
@@ -31,8 +31,8 @@ export class ChromosomeEffects {
   getSelected$ = createEffect(() => {
     return this._store.select(fromChromosome.getSelectedChromosomeIDs).pipe(
       filter((ids) => ids.length > 0),
-      mergeMap((ids): chromosomeActions.Get[] => {
-        return ids.map((id) => new chromosomeActions.Get(id));
+      mergeMap((ids): ReturnType<typeof chromosomeActions.get>[] => {
+        return ids.map((id) => chromosomeActions.get(id));
       }),
     );
   });
@@ -40,8 +40,8 @@ export class ChromosomeEffects {
   // get chromosome via the chromosome service
   getChromosome$ = createEffect(() => {
     return this.actions$.pipe(
-      ofType(chromosomeActions.GET),
-      map((action: chromosomeActions.Get) => {
+      ofType(chromosomeActions.get),
+      map((action) => {
         return { action: action.id, ...action.payload };
       }),
       concatLatestFrom(() => this._store.select(fromChromosome.getLoading)),
@@ -55,10 +55,8 @@ export class ChromosomeEffects {
         }
         return this.chromosomeService.getChromosome(name, source).pipe(
           takeUntil(this.actions$.pipe(ofType(chromosomeActions.CLEAR))),
-          map((chromosome) => new chromosomeActions.GetSuccess({ chromosome })),
-          catchError((e) =>
-            of(new chromosomeActions.GetFailure({ name, source })),
-          ),
+          map((chromosome) => chromosomeActions.getSuccess({ chromosome })),
+          catchError((e) => of(chromosomeActions.getFailure({ name, source }))),
         );
       }),
     );

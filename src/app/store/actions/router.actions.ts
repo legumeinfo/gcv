@@ -1,4 +1,4 @@
-import { Action } from '@ngrx/store';
+import { createAction, union } from '@ngrx/store';
 import { NavigationExtras } from '@angular/router';
 
 export const GO = '[ROUTER] GO';
@@ -6,28 +6,21 @@ export const BACK = '[ROUTER] BACK';
 export const FORWARD = '[ROUTER] FORWARD';
 export const CHANGE = '[ROUTER] CHANGE';
 
-export class Go implements Action {
-  readonly type = GO;
-  constructor(
-    public payload: {
-      path: any[];
-      query?: object;
-      extras?: NavigationExtras;
-    },
-  ) {}
-}
+export const go = createAction(
+  GO,
+  (payload: { path: any[]; query?: object; extras?: NavigationExtras }) => ({
+    payload,
+  }),
+);
 
-export class Back implements Action {
-  readonly type = BACK;
-}
+export const back = createAction(BACK);
 
-export class Forward implements Action {
-  readonly type = FORWARD;
-}
+export const forward = createAction(FORWARD);
 
-export class Change implements Action {
-  readonly type = CHANGE;
-  constructor(public payload: { params: any; path: string }) {}
-}
+export const change = createAction(
+  CHANGE,
+  (payload: { params: any; path: string }) => ({ payload }),
+);
 
-export type Actions = Go | Back | Forward | Change;
+const all = union({ go, back, forward, change });
+export type Actions = typeof all;

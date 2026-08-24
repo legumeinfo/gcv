@@ -54,7 +54,7 @@ export class AppComponent implements OnInit {
       const path = tree.root.children[PRIMARY_OUTLET].toString();
       const queryParams = tree.queryParams;
       this._store.dispatch(
-        new routerActions.Go({
+        routerActions.go({
           path: [path],
           query: queryParams,
           extras: { replaceUrl: false },

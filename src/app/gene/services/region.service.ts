@@ -84,7 +84,7 @@ export class RegionService extends HttpService {
     source: string,
   ): void {
     this._store.dispatch(
-      new regionActions.Get({ chromosome, start, stop, source }),
+      regionActions.get({ chromosome, start, stop, source }),
     );
   }
 

@@ -31,7 +31,7 @@ export class SearchEffects {
   clearResults = createEffect(() => {
     return this._store
       .select(fromSearch.getQuery)
-      .pipe(map((...args) => new searchActions.Clear()));
+      .pipe(map((...args) => searchActions.clear()));
   });
 
   // initializes a search whenever new aligned clusters are generated
@@ -44,7 +44,7 @@ export class SearchEffects {
         const actions: searchActions.Actions[] = [];
         sources.forEach((source) => {
           const payload = { query, source };
-          const action = new searchActions.Search(payload);
+          const action = searchActions.search(payload);
           actions.push(action);
         });
         return actions;
@@ -55,8 +55,8 @@ export class SearchEffects {
   // perform the search
   search$ = createEffect(() => {
     return this.actions$.pipe(
-      ofType(searchActions.SEARCH),
-      map((action: searchActions.Search) => {
+      ofType(searchActions.search),
+      map((action) => {
         return { action: action.id, ...action.payload };
       }),
       concatLatestFrom(() => this._store.select(fromSearch.getLoading)),
@@ -73,11 +73,11 @@ export class SearchEffects {
           takeUntil(this.actions$.pipe(ofType(searchActions.CLEAR))),
           map((result) => {
             const payload = { source, result };
-            return new searchActions.SearchSuccess(payload);
+            return searchActions.searchSuccess(payload);
           }),
           catchError((error) => {
             const payload = { source };
-            return of(new searchActions.SearchFailure(payload));
+            return of(searchActions.searchFailure(payload));
           }),
         );
       }),

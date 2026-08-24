@@ -32,7 +32,7 @@ export class GeneEffects {
   clearGenes$ = createEffect(() => {
     return this._store
       .select(fromGene.getSelectedGeneIDs)
-      .pipe(map((...args) => new geneActions.Clear()));
+      .pipe(map((...args) => geneActions.clear()));
   });
 
   // emits a get action for each selected gene
@@ -52,7 +52,7 @@ export class GeneEffects {
         // make a gene request action for each source bin
         const actions = Object.entries(geneBins).map(
           ([source, names]: [string, string[]]) => {
-            return new geneActions.Get({ names, source });
+            return geneActions.get({ names, source });
           },
         );
         return actions;
@@ -63,8 +63,8 @@ export class GeneEffects {
   // get genes via the gene service
   getGenes$ = createEffect(() => {
     return this.actions$.pipe(
-      ofType(geneActions.GET),
-      map((action: geneActions.Get) => ({
+      ofType(geneActions.get),
+      map((action) => ({
         action: action.id,
         ...action.payload,
       })),
@@ -91,16 +91,14 @@ export class GeneEffects {
             );
             if (failedNames.length > 0) {
               const payload = { names: failedNames, source };
-              const failureAction = new geneActions.GetFailure(payload);
+              const failureAction = geneActions.getFailure(payload);
               actions.push(failureAction);
             }
-            const successAction = new geneActions.GetSuccess({ genes });
+            const successAction = geneActions.getSuccess({ genes });
             actions.push(successAction);
             return actions;
           }),
-          catchError((error) =>
-            of(new geneActions.GetFailure({ names, source })),
-          ),
+          catchError((error) => of(geneActions.getFailure({ names, source }))),
         );
       }),
     );

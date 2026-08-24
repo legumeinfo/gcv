@@ -32,7 +32,7 @@ describe('micro-tracks.reducer — ID functions', () => {
 
 describe('micro-tracks.reducer — SEARCH state transitions', () => {
   it('SEARCH adds cluster:source to loading when not already loaded', () => {
-    const action = new microTrackActions.Search({
+    const action = microTrackActions.search({
       cluster: 1,
       source: 'lis',
       families: ['famA'],
@@ -45,7 +45,7 @@ describe('micro-tracks.reducer — SEARCH state transitions', () => {
   });
 
   it('SEARCH is idempotent: duplicate search is deduplicated', () => {
-    const action = new microTrackActions.Search({
+    const action = microTrackActions.search({
       cluster: 1,
       source: 'lis',
       families: ['famA'],
@@ -57,7 +57,7 @@ describe('micro-tracks.reducer — SEARCH state transitions', () => {
   });
 
   it('SEARCH on an already-loaded cluster is blocked', () => {
-    const searchAction = new microTrackActions.Search({
+    const searchAction = microTrackActions.search({
       cluster: 1,
       source: 'lis',
       families: ['famA'],
@@ -68,7 +68,7 @@ describe('micro-tracks.reducer — SEARCH state transitions', () => {
     // Success
     state = reducer(
       state,
-      new microTrackActions.SearchSuccess({
+      microTrackActions.searchSuccess({
         cluster: 1,
         source: 'lis',
         tracks: [],
@@ -80,7 +80,7 @@ describe('micro-tracks.reducer — SEARCH state transitions', () => {
   });
 
   it('SEARCH_SUCCESS clears the loading entry and adds to loaded', () => {
-    const searchAction = new microTrackActions.Search({
+    const searchAction = microTrackActions.search({
       cluster: 1,
       source: 'lis',
       families: ['famA'],
@@ -91,7 +91,7 @@ describe('micro-tracks.reducer — SEARCH state transitions', () => {
 
     state = reducer(
       state,
-      new microTrackActions.SearchSuccess({
+      microTrackActions.searchSuccess({
         cluster: 1,
         source: 'lis',
         tracks: [],
@@ -116,7 +116,7 @@ describe('micro-tracks.reducer — SEARCH state transitions', () => {
     };
     let state = reducer(
       initialState,
-      new microTrackActions.Search({
+      microTrackActions.search({
         cluster: 1,
         source: 'lis',
         families: ['famA'],
@@ -125,7 +125,7 @@ describe('micro-tracks.reducer — SEARCH state transitions', () => {
     );
     state = reducer(
       state,
-      new microTrackActions.SearchSuccess({
+      microTrackActions.searchSuccess({
         cluster: 1,
         source: 'lis',
         tracks: [track as any],
@@ -163,7 +163,7 @@ describe('micro-tracks.reducer — SEARCH state transitions', () => {
 
     let state = reducer(
       initialState,
-      new microTrackActions.Search({
+      microTrackActions.search({
         cluster: 1,
         source: 'lis',
         families: ['famA'],
@@ -172,7 +172,7 @@ describe('micro-tracks.reducer — SEARCH state transitions', () => {
     );
     state = reducer(
       state,
-      new microTrackActions.SearchSuccess({
+      microTrackActions.searchSuccess({
         cluster: 1,
         source: 'lis',
         tracks: [first, collidingLast] as any,
@@ -185,7 +185,7 @@ describe('micro-tracks.reducer — SEARCH state transitions', () => {
   });
 
   it('SEARCH_FAILURE removes loading and adds to failed', () => {
-    const searchAction = new microTrackActions.Search({
+    const searchAction = microTrackActions.search({
       cluster: 1,
       source: 'lis',
       families: ['famA'],
@@ -196,7 +196,7 @@ describe('micro-tracks.reducer — SEARCH state transitions', () => {
 
     state = reducer(
       state,
-      new microTrackActions.SearchFailure({
+      microTrackActions.searchFailure({
         cluster: 1,
         source: 'lis',
         families: ['famA'],
@@ -209,14 +209,14 @@ describe('micro-tracks.reducer — SEARCH state transitions', () => {
   });
 
   it('CLEAR resets the entire state including entities', () => {
-    const searchAction = new microTrackActions.Search({
+    const searchAction = microTrackActions.search({
       cluster: 1,
       source: 'lis',
       families: ['famA'],
       params: {} as any,
     });
     let state = reducer(initialState, searchAction);
-    state = reducer(state, new microTrackActions.Clear());
+    state = reducer(state, microTrackActions.clear());
     expect(state.loading).toEqual([]);
     expect(state.loaded).toEqual([]);
     expect(state.failed).toEqual([]);

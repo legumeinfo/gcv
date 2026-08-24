@@ -47,7 +47,7 @@ export class MicroTracksEffects {
       this._store.select(fromParams.getQueryParams),
       //this._store.select(fromParams.selectSourcesParam),
       this._store.select(fromParams.getClusteringParams),
-    ).pipe(map((...args) => new microTracksActions.Clear()));
+    ).pipe(map((...args) => microTracksActions.clear()));
   });
 
   // initializes a search whenever new aligned clusters are generated
@@ -69,7 +69,7 @@ export class MicroTracksEffects {
         consensuses.forEach((families, cluster) => {
           sources.forEach((source) => {
             const payload = { cluster, families, source, params };
-            const action = new microTracksActions.Search(payload);
+            const action = microTracksActions.search(payload);
             actions.push(action);
           });
         });
@@ -81,8 +81,8 @@ export class MicroTracksEffects {
   // search for similar tracks to the query
   mircoTracksSearch$ = createEffect(() => {
     return this.actions$.pipe(
-      ofType(microTracksActions.SEARCH),
-      map((action: microTracksActions.Search) => {
+      ofType(microTracksActions.search),
+      map((action) => {
         return { action: action.id, ...action.payload };
       }),
       concatLatestFrom(() => [
@@ -121,11 +121,11 @@ export class MicroTracksEffects {
                   (t) => !this._tracksOverlap(t, clusterTracks),
                 );
                 const payload = { cluster, source, tracks: tracks.map(mixin) };
-                return new microTracksActions.SearchSuccess(payload);
+                return microTracksActions.searchSuccess(payload);
               }),
               catchError((error) => {
                 const payload = { cluster, families, source };
-                return of(new microTracksActions.SearchFailure(payload));
+                return of(microTracksActions.searchFailure(payload));
               }),
             );
         },

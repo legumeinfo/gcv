@@ -1,4 +1,4 @@
-import { Action } from '@ngrx/store';
+import { createAction, union } from '@ngrx/store';
 import { counter } from '@gcv/core/utils';
 import { Track } from '@gcv/gene/models';
 import { QueryParams } from '@gcv/gene/models/params';
@@ -9,39 +9,33 @@ export const SEARCH = '[MICRO_TRACKS] SEARCH';
 export const SEARCH_SUCCESS = '[MICRO_TRACKS] SEARCH_SUCCESS';
 export const SEARCH_FAILURE = '[MICRO_TRACKS] SEARCH_FAILURE';
 
-export class Clear implements Action {
-  readonly type = CLEAR;
-}
+export const clear = createAction(CLEAR);
 
-export class Search implements Action {
-  readonly type = SEARCH;
-  readonly id = counter.getCount();
-  constructor(
-    public payload: {
-      cluster: number;
-      families: string[];
-      source: string;
-      params: QueryParams;
-    },
-  ) {}
-}
+export const search = createAction(
+  SEARCH,
+  (payload: {
+    cluster: number;
+    families: string[];
+    source: string;
+    params: QueryParams;
+  }) => ({ id: counter.getCount(), payload }),
+);
 
-export class SearchSuccess implements Action {
-  readonly type = SEARCH_SUCCESS;
-  constructor(
-    public payload: {
-      cluster: number;
-      tracks: (Track & ClusterMixin)[];
-      source: string;
-    },
-  ) {}
-}
+export const searchSuccess = createAction(
+  SEARCH_SUCCESS,
+  (payload: {
+    cluster: number;
+    tracks: (Track & ClusterMixin)[];
+    source: string;
+  }) => ({ payload }),
+);
 
-export class SearchFailure implements Action {
-  readonly type = SEARCH_FAILURE;
-  constructor(
-    public payload: { cluster: number; families: string[]; source: string },
-  ) {}
-}
+export const searchFailure = createAction(
+  SEARCH_FAILURE,
+  (payload: { cluster: number; families: string[]; source: string }) => ({
+    payload,
+  }),
+);
 
-export type Actions = Clear | Search | SearchSuccess | SearchFailure;
+const all = union({ clear, search, searchSuccess, searchFailure });
+export type Actions = typeof all;

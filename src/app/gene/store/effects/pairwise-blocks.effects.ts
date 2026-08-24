@@ -27,14 +27,14 @@ export class PairwiseBlocksEffects {
       this._store.select(fromGenes.getSelectedGeneIDs),
       this._store.select(fromParams.getBlockParams),
       this._store.select(fromParams.getSourceParams),
-    ).pipe(map((...args) => new pairwiseBlocksActions.Clear()));
+    ).pipe(map((...args) => pairwiseBlocksActions.clear()));
   });
 
   // get pairwise blocks via the pairwise blocks service
   getPairwiseBlocks$ = createEffect(() => {
     return this.actions$.pipe(
-      ofType(pairwiseBlocksActions.GET),
-      map((action: pairwiseBlocksActions.Get) => {
+      ofType(pairwiseBlocksActions.get),
+      map((action) => {
         return { action: action.id, ...action.payload };
       }),
       concatLatestFrom(() => [
@@ -68,11 +68,11 @@ export class PairwiseBlocksEffects {
             takeUntil(this.actions$.pipe(ofType(pairwiseBlocksActions.CLEAR))),
             map((blocks) => {
               const payload = { chromosome, source, targets, blocks };
-              return new pairwiseBlocksActions.GetSuccess(payload);
+              return pairwiseBlocksActions.getSuccess(payload);
             }),
             catchError((error) => {
               const payload = { chromosome, source, targets };
-              return of(new pairwiseBlocksActions.GetFailure(payload));
+              return of(pairwiseBlocksActions.getFailure(payload));
             }),
           );
       }),

@@ -75,7 +75,7 @@ export class GeneService extends HttpService {
   }
 
   getGenesForSource(names: string[], source: string): Observable<Gene[]> {
-    const action = new geneActions.Get({ names, source });
+    const action = geneActions.get({ names, source });
     this._store.dispatch(action);
     return this._store.select(fromGene.getGenesForSource(names, source));
   }

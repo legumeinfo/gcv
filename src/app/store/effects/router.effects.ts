@@ -16,8 +16,8 @@ export class RouterEffects {
   navigate$ = createEffect(
     () => {
       return this.actions$.pipe(
-        ofType(routerActions.GO),
-        map((action: routerActions.Go) => action.payload),
+        ofType(routerActions.go),
+        map((action) => action.payload),
         scan(
           (currentRoute, { path, query: queryParams, extras }) => {
             const nextQueryParams = Object.assign(

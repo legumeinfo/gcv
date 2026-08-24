@@ -90,7 +90,7 @@ describe('SearchEffects', () => {
   it('search$ emits SearchSuccess with the service result on success', (done) => {
     const result = { tracks: [] } as any;
     searchService.search.mockReturnValue(of(result));
-    const search = new searchActions.Search({
+    const search = searchActions.search({
       query: 'Glyma.09G134900',
       source: 'lis',
     });
@@ -112,7 +112,7 @@ describe('SearchEffects', () => {
 
   it('search$ emits SearchFailure when the service errors', (done) => {
     searchService.search.mockReturnValue(throwError(() => new Error('boom')));
-    const search = new searchActions.Search({
+    const search = searchActions.search({
       query: 'Glyma.09G134900',
       source: 'lis',
     });
@@ -134,7 +134,7 @@ describe('SearchEffects', () => {
     let emitted = false;
     effects.search$.subscribe(() => (emitted = true));
     actions$.next(
-      new searchActions.Search({ query: 'Glyma.09G134900', source: 'lis' }),
+      searchActions.search({ query: 'Glyma.09G134900', source: 'lis' }),
     );
 
     expect(emitted).toBe(false);

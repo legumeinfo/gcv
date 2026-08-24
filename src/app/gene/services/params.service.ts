@@ -78,6 +78,6 @@ export class ParamsService extends HttpService {
       sources['sources'] = params['sources'].join(',');
     }
     const query = Object.assign({}, params, sources);
-    this._store.dispatch(new routerActions.Go({ path, query }));
+    this._store.dispatch(routerActions.go({ path, query }));
   }
 }

@@ -17,8 +17,8 @@ export class RegionEffects {
   // get region via the region service
   getRegion$ = createEffect(() => {
     return this.actions$.pipe(
-      ofType(regionActions.GET),
-      map((action: regionActions.Get) => action.payload),
+      ofType(regionActions.get),
+      map((action) => action.payload),
       switchMap(({ chromosome, start, stop, source }) => {
         return this.regionService
           .getRegion(chromosome, start, stop, source)
@@ -26,11 +26,11 @@ export class RegionEffects {
             // TODO: should the be a takeUntil to stop requests in flight?
             map((region) => {
               region.source = source;
-              return new regionActions.GetSuccess({ region });
+              return regionActions.getSuccess({ region });
             }),
             catchError((e) =>
               of(
-                new regionActions.GetFailure({
+                regionActions.getFailure({
                   chromosome,
                   start,
                   stop,
@@ -46,14 +46,14 @@ export class RegionEffects {
   // loads a new gene view (search) when a region is successfully retrieved
   regionSearch$ = createEffect(() => {
     return this.actions$.pipe(
-      ofType(regionActions.GET_SUCCESS),
-      map((action: regionActions.GetSuccess) => action.payload),
+      ofType(regionActions.getSuccess),
+      map((action) => action.payload),
       map(({ region }) => {
         const matrixParams = {};
         matrixParams[region.source] = region.gene;
         const path = ['/gene', matrixParams];
         const query = { neighbors: region.neighbors };
-        return new routerActions.Go({ path, query });
+        return routerActions.go({ path, query });
       }),
     );
   });

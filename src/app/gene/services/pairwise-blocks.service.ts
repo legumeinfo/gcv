@@ -123,7 +123,7 @@ export class PairwiseBlocksService extends HttpService {
     const trackActions = tracks.map((t) => {
       return sources.map((s) => {
         const payload = { chromosome: t, source: s, params, targets };
-        return new pairwiseBlocksActions.Get(payload);
+        return pairwiseBlocksActions.get(payload);
       });
     });
     trackActions.forEach((ta) => ta.forEach((a) => this._store.dispatch(a)));
@@ -149,7 +149,7 @@ export class PairwiseBlocksService extends HttpService {
   updateParams(params: BlockParams): void {
     const path = [];
     const query = Object.assign({}, params);
-    this._store.dispatch(new routerActions.Go({ path, query }));
+    this._store.dispatch(routerActions.go({ path, query }));
   }
 
   getMacroColors(): Observable<Function | undefined> {
