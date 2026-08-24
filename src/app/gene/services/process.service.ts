@@ -146,8 +146,7 @@ export class ProcessService {
     });
   }
 
-  private;
-  _getQueryGeneProcessStatus(
+  private _getQueryGeneProcessStatus(
     subprocesses: Observable<ProcessStatusStream>,
   ): ProcessStatusStream {
     return subprocesses.pipe(
