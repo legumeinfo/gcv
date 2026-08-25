@@ -60,6 +60,11 @@ module.exports = tseslint.config(
       // _activatedRoute, …); keep the global store consistent with that rather
       // than renaming every service to the rule's default of `store`.
       '@ngrx/use-consistent-global-store-name': ['error', '_store'],
+      // `routerReducer` is @ngrx/router-store's state slice, wired into
+      // StoreRouterConnectingModule, createFeatureSelector('routerReducer') and
+      // the initial state; renaming it risks the router-store integration for a
+      // pure naming preference, so this rule is off.
+      '@ngrx/no-reducer-in-key-names': 'off',
       // Unused imports are auto-removable; delegate them (and unused vars) to
       // eslint-plugin-unused-imports so `--fix` prunes dead imports on its own.
       '@typescript-eslint/no-unused-vars': 'off',
@@ -84,6 +89,17 @@ module.exports = tseslint.config(
     files: ['**/*.html'],
     extends: [...angular.configs.templateRecommended],
     rules: {},
+  },
+  // ProcessService derives process/status streams by mapping composed-selector
+  // outputs through stream operators (filter/startWith/switchMap). That mapping
+  // cannot move into a selector, so selecting-then-mapping is the correct pattern
+  // here (avoid-combining-selectors is still enforced — the combine sites use
+  // composed selectors). The rule stays on everywhere else.
+  {
+    files: ['**/gene/services/process.service.ts'],
+    rules: {
+      '@ngrx/avoid-mapping-selectors': 'off',
+    },
   },
   // Keep LAST: disable ESLint formatting rules that would conflict with Prettier.
   eslintConfigPrettier,

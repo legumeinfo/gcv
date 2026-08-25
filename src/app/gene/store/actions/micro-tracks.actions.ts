@@ -37,5 +37,5 @@ export const searchFailure = createAction(
   }),
 );
 
-const all = union({ clear, search, searchSuccess, searchFailure });
-export type Actions = typeof all;
+const _all = union({ clear, search, searchSuccess, searchFailure });
+export type Actions = typeof _all;

@@ -1,5 +1,5 @@
 // NgRx
-import { createSelectorFactory } from '@ngrx/store';
+import { createSelector, createSelectorFactory } from '@ngrx/store';
 // store
 import {
   State,
@@ -66,5 +66,23 @@ export const getFilteredAndOrderedPairwiseBlocksForTracks = (
           ? orderAlgorithmMap[border].algorithm
           : (t1, t2) => 0;
       return blocksFilter(blocks).sort(orderAlg);
+    },
+  );
+
+// as above, further restricted to blocks on the requested target chromosomes
+// (an empty targets list keeps every block)
+export const selectFilteredPairwiseBlocksForTracksAndTargets = (
+  tracks: Track[],
+  sources: string[],
+  targets: string[],
+) =>
+  createSelector(
+    getFilteredAndOrderedPairwiseBlocksForTracks(tracks, sources),
+    (blocks: PairwiseBlocks[]): PairwiseBlocks[] => {
+      if (targets.length === 0) {
+        return blocks;
+      }
+      const targetSet = new Set(targets);
+      return blocks.filter((b) => targetSet.has(b.chromosome));
     },
   );

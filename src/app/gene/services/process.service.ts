@@ -21,10 +21,10 @@ import { pairwiseBlocksID } from '@gcv/gene/store/reducers/pairwise-blocks.reduc
 import * as fromRoot from '@gcv/store/reducers';
 import * as fromChromosome from '@gcv/gene/store/selectors/chromosome';
 import * as fromGenes from '@gcv/gene/store/selectors/gene';
-import * as fromMicroTracks from '@gcv/gene/store/selectors/micro-tracks';
 import * as fromPairwiseBlocks from '@gcv/gene/store/selectors/pairwise-blocks';
 import * as fromParams from '@gcv/gene/store/selectors/params';
 import * as fromPlots from '@gcv/gene/store/selectors/plots';
+import * as fromProcess from './process.selectors';
 // app
 import { arrayFlatten } from '@gcv/core/utils';
 import {
@@ -99,11 +99,7 @@ export class ProcessService {
   private _getQueryGeneSubprocess(id: GeneID): ProcessStatusStream {
     const { name, source } = id;
     const idString = geneID(id);
-    return combineLatest(
-      this._store.select(fromGenes.getLoading),
-      this._store.select(fromGenes.getLoaded),
-      this._store.select(fromGenes.getFailed),
-    ).pipe(
+    return this._store.select(fromProcess.selectGeneLoadStates).pipe(
       map(([loading, loaded, failed]) => {
         const loadingStrings = new Set(loading.map((g) => geneID(g)));
         if (loadingStrings.has(idString)) {
@@ -203,11 +199,7 @@ export class ProcessService {
   private _getQueryTrackSubprocess(id: TrackID): ProcessStatusStream {
     const { name, source } = id;
     const idString = trackID(id);
-    return combineLatest(
-      this._store.select(fromChromosome.getLoading),
-      this._store.select(fromChromosome.getLoaded),
-      this._store.select(fromChromosome.getFailed),
-    ).pipe(
+    return this._store.select(fromProcess.selectChromosomeLoadStates).pipe(
       map(([loading, loaded, failed]) => {
         const loadingStrings = new Set(loading.map((c) => trackID(c)));
         if (loadingStrings.has(idString)) {
@@ -309,11 +301,7 @@ export class ProcessService {
   private _getClusteringProcessStatus(): ProcessStatusStream {
     const defaultDescription = 'Waiting for query tracks';
     const defaultStatus = this._defaultProcessStatusFactory(defaultDescription);
-    return combineLatest(
-      this._store.select(fromGenes.getSelectedGenesLoaded),
-      this._store.select(fromChromosome.getSelectedChromosomesLoaded),
-      this._store.select(fromMicroTracks.getClusteredSelectedMicroTracks),
-    ).pipe(
+    return this._store.select(fromProcess.selectClusteringInputs).pipe(
       filter(([genesLoaded, chromosomesLoaded, tracks]) => {
         return genesLoaded && chromosomesLoaded;
       }),
@@ -354,13 +342,7 @@ export class ProcessService {
   private _getQueryAlignmentProcessStatus(): ProcessStatusStream {
     const defaultDescription = 'Waiting for clustering';
     const defaultStatus = this._defaultProcessStatusFactory(defaultDescription);
-    return combineLatest(
-      this._store.select(fromGenes.getSelectedGenesLoaded),
-      this._store.select(fromChromosome.getSelectedChromosomesLoaded),
-      this._store.select(
-        fromMicroTracks.getClusteredAndAlignedSelectedMicroTracks,
-      ),
-    ).pipe(
+    return this._store.select(fromProcess.selectQueryAlignmentInputs).pipe(
       filter(([genesLoaded, chromosomesLoaded, { consensuses, tracks }]) => {
         return genesLoaded && chromosomesLoaded;
       }),
@@ -403,11 +385,7 @@ export class ProcessService {
     source: string,
   ): ProcessStatusStream {
     const idString = partialMicroTrackID(clusterID, source);
-    return combineLatest(
-      this._store.select(fromMicroTracks.getLoading),
-      this._store.select(fromMicroTracks.getLoaded),
-      this._store.select(fromMicroTracks.getFailed),
-    ).pipe(
+    return this._store.select(fromProcess.selectMicroTrackLoadStates).pipe(
       map(([loading, loaded, failed]) => {
         const loadingStrings = new Set(
           loading.map((t) => partialMicroTrackID(t)),
@@ -501,10 +479,7 @@ export class ProcessService {
 
   getTrackSearchProcess(clusterID: number): ProcessStream {
     // emit a new process every time the micro-synteny or source params change
-    return combineLatest(
-      this._store.select(fromParams.getQueryParams),
-      this._store.select(fromParams.getSourceParams),
-    ).pipe(
+    return this._store.select(fromProcess.selectQueryAndSourceParams).pipe(
       map(([queryParams, sourceParams]) => {
         const sources = sourceParams.sources;
         const subprocesses = this._getTrackSearchSubprocesses(
@@ -524,74 +499,63 @@ export class ProcessService {
   ): ProcessStatusStream {
     const defaultDescription = 'Waiting for search results';
     const defaultStatus = this._defaultProcessStatusFactory(defaultDescription);
-    return combineLatest(
-      // TODO: should there be a "loaded" selector like there is for genes and
-      // chromosomes in case searches are successful but don't return any tracks?
-      this._store.select(fromMicroTracks.getActiveSearchMicroTracks),
-      this._store.select(
-        fromMicroTracks.getClusteredAndAlignedSearchMicroTracks,
-      ),
-    ).pipe(
-      map(([tracks, alignedTracks]) => {
-        const filteredTracks = tracks.filter((t) => t.cluster == clusterID);
-        const filteredAlignedTracks = alignedTracks.filter(
-          (t) => t.cluster == clusterID,
-        );
-        return [filteredTracks, filteredAlignedTracks];
-      }),
-      filter(([tracks, alignedTracks]) => tracks.length > 0),
-      map(([tracks, alignedTracks]): ProcessStatus => {
-        const numAligned = alignedTracks.length;
-        const trackIDs = new Set(tracks.map((t) => microTrackID(t)));
-        const alignmentIDs = new Set(alignedTracks.map((t) => microTrackID(t)));
-        let word: ProcessStatusWord;
-        let description: string;
-        if (trackIDs.size == alignmentIDs.size) {
-          word = 'process-success';
-          description = `${numAligned} alignments; one or more for every track`;
-        } else if (alignmentIDs.size == 0) {
-          word = 'process-warning';
-          description = 'No alignments met the score requirements';
-        } else {
-          word = 'process-info';
-          description = `${numAligned} alignments; some tracks don't have alignments`;
-        }
-        return { word, description };
-      }),
-      startWith(defaultStatus),
-    );
+    // TODO: should there be a "loaded" selector like there is for genes and
+    // chromosomes in case searches are successful but don't return any tracks?
+    return this._store
+      .select(fromProcess.selectSearchTrackAlignmentInputs)
+      .pipe(
+        map(([tracks, alignedTracks]) => {
+          const filteredTracks = tracks.filter((t) => t.cluster == clusterID);
+          const filteredAlignedTracks = alignedTracks.filter(
+            (t) => t.cluster == clusterID,
+          );
+          return [filteredTracks, filteredAlignedTracks];
+        }),
+        filter(([tracks, alignedTracks]) => tracks.length > 0),
+        map(([tracks, alignedTracks]): ProcessStatus => {
+          const numAligned = alignedTracks.length;
+          const trackIDs = new Set(tracks.map((t) => microTrackID(t)));
+          const alignmentIDs = new Set(
+            alignedTracks.map((t) => microTrackID(t)),
+          );
+          let word: ProcessStatusWord;
+          let description: string;
+          if (trackIDs.size == alignmentIDs.size) {
+            word = 'process-success';
+            description = `${numAligned} alignments; one or more for every track`;
+          } else if (alignmentIDs.size == 0) {
+            word = 'process-warning';
+            description = 'No alignments met the score requirements';
+          } else {
+            word = 'process-info';
+            description = `${numAligned} alignments; some tracks don't have alignments`;
+          }
+          return { word, description };
+        }),
+        startWith(defaultStatus),
+      );
   }
 
   getTrackAlignmentProcess(clusterID: number): ProcessStream {
     // emit a new process every time the micro-synteny, source, or alignment
     // params change
-    return combineLatest(
-      this._store.select(fromParams.getQueryParams),
-      this._store.select(fromParams.getSourceParams),
-      this._store.select(fromParams.getAlignmentParams),
-    ).pipe(
-      map(([queryParams, sourceParams, alignment]) => {
-        return {
-          subprocesses: empty(),
-          status: this._getTrackAlignmentProcessStatus(clusterID),
-        };
-      }),
-    );
+    return this._store
+      .select(fromProcess.selectQuerySourceAlignmentParams)
+      .pipe(
+        map(([queryParams, sourceParams, alignment]) => {
+          return {
+            subprocesses: empty(),
+            status: this._getTrackAlignmentProcessStatus(clusterID),
+          };
+        }),
+      );
   }
 
   private _getTrackGeneSubprocess(
     clusterID: number,
     source: string,
   ): ProcessStatusStream {
-    return combineLatest(
-      // get all selected and search result tracks
-      this._store.select(fromMicroTracks.getSelectedMicroTracks),
-      this._store.select(fromMicroTracks.getActiveSearchMicroTracks),
-      // get gene loading states
-      this._store.select(fromGenes.getLoading),
-      this._store.select(fromGenes.getLoaded),
-      this._store.select(fromGenes.getFailed),
-    ).pipe(
+    return this._store.select(fromProcess.selectTrackGeneInputs).pipe(
       map(([selectedTracks, searchTracks, loading, loaded, failed]) => {
         // keep tracks belonging to cluster and source and convert to gene array
         const selectedGenes: string[] = arrayFlatten(
@@ -620,10 +584,7 @@ export class ProcessService {
     clusterID: number,
   ): Observable<ProcessStatusStream> {
     // get all selected and search result tracks
-    return combineLatest(
-      this._store.select(fromMicroTracks.getSelectedMicroTracks),
-      this._store.select(fromMicroTracks.getActiveSearchMicroTracks),
-    ).pipe(
+    return this._store.select(fromProcess.selectAllMicroTracks).pipe(
       // keep tracks belonging to cluster and convert to source array
       map(([selectedTracks, searchTracks]) => {
         const selectedSources = selectedTracks
@@ -690,19 +651,17 @@ export class ProcessService {
   getTrackGeneProcess(clusterID: number): ProcessStream {
     // emit a new process every time the micro-synteny, source, or alignment
     // params change
-    return combineLatest(
-      this._store.select(fromParams.getQueryParams),
-      this._store.select(fromParams.getSourceParams),
-      this._store.select(fromParams.getAlignmentParams),
-    ).pipe(
-      map(([queryParams, sourceParams, alignment]) => {
-        const subprocesses = this._getTrackGeneSubprocesses(clusterID);
-        return {
-          subprocesses,
-          status: this._getTrackGeneProcessStatus(subprocesses),
-        };
-      }),
-    );
+    return this._store
+      .select(fromProcess.selectQuerySourceAlignmentParams)
+      .pipe(
+        map(([queryParams, sourceParams, alignment]) => {
+          const subprocesses = this._getTrackGeneSubprocesses(clusterID);
+          return {
+            subprocesses,
+            status: this._getTrackGeneProcessStatus(subprocesses),
+          };
+        }),
+      );
   }
 
   // macro blocks
@@ -736,12 +695,7 @@ export class ProcessService {
         );
       };
     };
-    return combineLatest(
-      // get gene loading states
-      this._store.select(fromPairwiseBlocks.getLoading),
-      this._store.select(fromPairwiseBlocks.getLoaded),
-      this._store.select(fromPairwiseBlocks.getFailed),
-    ).pipe(
+    return this._store.select(fromProcess.selectPairwiseBlockLoadStates).pipe(
       map(([loading, loaded, failed]) => {
         const loadedIDs = new Set(loaded.map(pairwiseBlocksID));
         // filter targets (and containing wildcards) by loaded
@@ -841,10 +795,7 @@ export class ProcessService {
     targets: string[] = [],
   ): ProcessStream {
     // emit a new process every time the source or block params change
-    return combineLatest(
-      this._store.select(fromParams.getSourceParams),
-      this._store.select(fromParams.getBlockParams),
-    ).pipe(
+    return this._store.select(fromProcess.selectSourceAndBlockParams).pipe(
       map(([sourceParams, blockParams]) => {
         const sources = sourceParams.sources;
         const subprocesses = this._getMacroBlockSubprocesses(
@@ -882,6 +833,13 @@ export class ProcessService {
         }),
       ),
     );
+    // Intentionally keeps combineLatest with an inner map: it mixes the
+    // parameterized selector getChromosomesForIDs(chromosomes) with a
+    // getPairwiseBlocks whose filtering depends on the runtime chromosomeIDs and
+    // targets. Collapsing this into a single composed selector would require a
+    // per-call factory selector (no memoization benefit, worse readability), so
+    // the NgRx selector-composition rules are disabled for this one site.
+    /* eslint-disable @ngrx/avoid-combining-selectors */
     return combineLatest(
       // get chromosomes and blocks
       this._store.select(fromChromosome.getChromosomesForIDs(chromosomes)),
@@ -922,6 +880,7 @@ export class ProcessService {
         );
       }),
     );
+    /* eslint-enable @ngrx/avoid-combining-selectors */
   }
 
   private _getMacroBlockPositionSubprocesses(
@@ -1030,10 +989,7 @@ export class ProcessService {
     targets: string[] = [],
   ): ProcessStream {
     // emit a new process every time the source or block params change
-    return combineLatest(
-      this._store.select(fromParams.getSourceParams),
-      this._store.select(fromParams.getBlockParams),
-    ).pipe(
+    return this._store.select(fromProcess.selectSourceAndBlockParams).pipe(
       map(([sourceParams, blocksParams]) => {
         const sources = sourceParams.sources;
         const subprocesses = this._getMacroBlockPositionSubprocesses(
@@ -1089,12 +1045,7 @@ export class ProcessService {
     source: string,
     genes: string[],
   ): ProcessStatusStream {
-    return combineLatest(
-      // get gene loading states
-      this._store.select(fromGenes.getLoading),
-      this._store.select(fromGenes.getLoaded),
-      this._store.select(fromGenes.getFailed),
-    ).pipe(
+    return this._store.select(fromProcess.selectGeneLoadStates).pipe(
       map(([loading, loaded, failed]) => {
         return this._genesAndLoadStateToStatus(
           genes,

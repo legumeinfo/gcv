@@ -127,23 +127,13 @@ export class PairwiseBlocksService extends HttpService {
       });
     });
     trackActions.forEach((ta) => ta.forEach((a) => this._store.dispatch(a)));
-    const targetSet = new Set(targets);
-    return this._store
-      .select(
-        fromPairwiseBlocks.getFilteredAndOrderedPairwiseBlocksForTracks(
-          tracks,
-          sources,
-        ),
-      )
-      .pipe(
-        // TODO: there should be a selector for this
-        map((blocks) => {
-          if (targetSet.size == 0) {
-            return blocks;
-          }
-          return blocks.filter((b) => targetSet.has(b.chromosome));
-        }),
-      );
+    return this._store.select(
+      fromPairwiseBlocks.selectFilteredPairwiseBlocksForTracksAndTargets(
+        tracks,
+        sources,
+        targets,
+      ),
+    );
   }
 
   updateParams(params: BlockParams): void {

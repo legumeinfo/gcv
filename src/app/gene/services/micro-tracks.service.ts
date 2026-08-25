@@ -79,18 +79,7 @@ export class MicroTracksService extends HttpService {
   }
 
   selectClusterIDs(): Observable<number[]> {
-    //return this._store.select(fromMicroTracks.selectClusterIDs);
-    // TODO: This code is copied from the selector that's commented out above
-    // because the selector won't compile... Fix it!
-    return this._store
-      .select(fromMicroTracks.getClusteredSelectedMicroTracks)
-      .pipe(
-        map((tracks: (Track & ClusterMixin)[]) => {
-          const IDs = tracks.map((t: ClusterMixin) => t.cluster);
-          const uniqueIDs = new Set(IDs);
-          return Array.from(uniqueIDs);
-        }),
-      );
+    return this._store.select(fromMicroTracks.selectClusterIDs);
   }
 
   // returns all the aligned micro-tracks (selected and search result) belonging

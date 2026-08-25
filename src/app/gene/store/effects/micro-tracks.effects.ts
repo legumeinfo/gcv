@@ -1,7 +1,7 @@
 // Angular
 import { Injectable, inject } from '@angular/core';
 // store
-import { Store } from '@ngrx/store';
+import { createSelector, Store } from '@ngrx/store';
 import * as fromRoot from '@gcv/store/reducers';
 import { idArrayIntersection } from '@gcv/gene/store/reducers/micro-tracks.reducer';
 import * as fromGenes from '@gcv/gene/store/selectors/gene';
@@ -9,7 +9,7 @@ import * as fromMicroTracks from '@gcv/gene/store/selectors/micro-tracks/';
 import * as fromParams from '@gcv/gene/store/selectors/params';
 import { createEffect, Actions, ofType } from '@ngrx/effects';
 import { concatLatestFrom } from '@ngrx/operators';
-import { combineLatest, of } from 'rxjs';
+import { of } from 'rxjs';
 import {
   catchError,
   map,
@@ -21,8 +21,23 @@ import * as microTracksActions from '@gcv/gene/store/actions/micro-tracks.action
 // app
 import { Track } from '@gcv/gene/models';
 import { ClusterMixin } from '@gcv/gene/models/mixins';
-import { SourceParams } from '@gcv/gene/models/params';
 import { MicroTracksService } from '@gcv/gene/services';
+
+const selectClearTracksTriggers = createSelector(
+  fromGenes.getSelectedGeneIDs,
+  fromParams.getQueryParams,
+  fromParams.getClusteringParams,
+  (geneIDs, queryParams, clusteringParams) =>
+    [geneIDs, queryParams, clusteringParams] as const,
+);
+
+const selectConsensusSearchInputs = createSelector(
+  fromMicroTracks.getClusteredAndAlignedSelectedMicroTracks,
+  fromParams.getSourceParams,
+  fromParams.getQueryParams,
+  (aligned, sourceParams, queryParams) =>
+    [aligned, sourceParams.sources, queryParams] as const,
+);
 
 @Injectable()
 export class MicroTracksEffects {
@@ -42,28 +57,14 @@ export class MicroTracksEffects {
 
   // clear the store every time a new query or change of parameters occurs
   clearTracks$ = createEffect(() => {
-    return combineLatest(
-      this._store.select(fromGenes.getSelectedGeneIDs),
-      this._store.select(fromParams.getQueryParams),
-      //this._store.select(fromParams.selectSourcesParam),
-      this._store.select(fromParams.getClusteringParams),
-    ).pipe(map((...args) => microTracksActions.clear()));
+    return this._store
+      .select(selectClearTracksTriggers)
+      .pipe(map(() => microTracksActions.clear()));
   });
 
   // initializes a search whenever new aligned clusters are generated
   consensusSearch$ = createEffect(() => {
-    return combineLatest(
-      this._store.select(
-        fromMicroTracks.getClusteredAndAlignedSelectedMicroTracks,
-      ),
-      //this._store.select(fromParams.selectSourcesParam)
-      // TODO: This code is copied from the selector that's commented out above
-      // because the selector won't compile... Fix it!
-      this._store
-        .select(fromParams.getSourceParams)
-        .pipe(map((params: SourceParams): string[] => params.sources)),
-      this._store.select(fromParams.getQueryParams),
-    ).pipe(
+    return this._store.select(selectConsensusSearchInputs).pipe(
       switchMap(([{ consensuses, tracks }, sources, params]) => {
         const actions: microTracksActions.Actions[] = [];
         consensuses.forEach((families, cluster) => {

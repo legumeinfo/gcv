@@ -1,5 +1,3 @@
-import { nameSourceID } from './name-source-id';
-
 function block(b, referenceTrack, genesMap) {
   const startGene = genesMap[referenceTrack.genes[b.i]];
   const stopGene = genesMap[referenceTrack.genes[b.j]];

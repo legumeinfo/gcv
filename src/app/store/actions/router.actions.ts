@@ -22,5 +22,5 @@ export const change = createAction(
   (payload: { params: any; path: string }) => ({ payload }),
 );
 
-const all = union({ go, back, forward, change });
-export type Actions = typeof all;
+const _all = union({ go, back, forward, change });
+export type Actions = typeof _all;

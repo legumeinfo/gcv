@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
-import { Store } from '@ngrx/store';
-import { BehaviorSubject, Observable, of } from 'rxjs';
+import { provideMockStore, MockStore } from '@ngrx/store/testing';
+import { Observable, of } from 'rxjs';
 
 import { ProcessService } from './process.service';
 import { ProcessStatus, ProcessStatusStream } from '@gcv/gene/models';
@@ -11,25 +11,16 @@ import * as fromPairwiseBlocks from '@gcv/gene/store/selectors/pairwise-blocks';
 
 // Characterization tests for the reactive plumbing that change C refactors
 // (combineLatest(store.select(a), store.select(b), …) → store.select(composed)).
-// They pin the settled status a method derives from a coherent store state, so
-// the refactor is proven behavior-preserving. All sources are BehaviorSubjects,
-// so every emission lands synchronously on subscribe — we collect and assert
-// the final (settled) status, which is insensitive to the benign difference in
-// intermediate "glitch" emissions between combineLatest and a composed selector.
+// We drive the LEAF/input selectors via MockStore.overrideSelector, so whether a
+// method reads those selectors directly (pre-refactor) or through a composed
+// selector built on them (post-refactor), it derives the same value — making the
+// characterization invariant to the refactor. Assertions are on the settled
+// status word (insensitive to the benign combineLatest-vs-selector glitch
+// difference, sensitive to any logic change).
 
 describe('ProcessService (reactive plumbing)', () => {
   let service: ProcessService;
-  let subjects: Map<unknown, BehaviorSubject<unknown>>;
-  // returned for any selector not explicitly seeded — covers the parameterized
-  // factory selectors (e.g. getChromosomesForIDs(chromosomes)) whose identity
-  // changes per call and so can't be keyed by reference.
-  let fallback: BehaviorSubject<unknown>;
-
-  const seed = (selector: unknown, value: unknown) => {
-    subjects.set(selector, new BehaviorSubject<unknown>(value));
-  };
-  const set = (selector: unknown, value: unknown) =>
-    subjects.get(selector)!.next(value);
+  let store: MockStore;
 
   const words = (stream: Observable<ProcessStatus>): string[] => {
     const collected: string[] = [];
@@ -47,42 +38,49 @@ describe('ProcessService (reactive plumbing)', () => {
     (service as unknown as Record<string, (...a: unknown[]) => unknown>)[
       method
     ](...args) as Observable<ProcessStatus>;
+  const set = (selector: any, value: unknown) => {
+    store.overrideSelector(selector, value);
+    store.refreshState();
+  };
 
   beforeEach(() => {
-    subjects = new Map();
-    fallback = new BehaviorSubject<unknown>([]);
-    // gene load states
-    seed(fromGenes.getLoading, []);
-    seed(fromGenes.getLoaded, []);
-    seed(fromGenes.getFailed, []);
-    seed(fromGenes.getSelectedGenesLoaded, false);
-    // chromosome load states
-    seed(fromChromosome.getLoading, []);
-    seed(fromChromosome.getLoaded, []);
-    seed(fromChromosome.getFailed, []);
-    seed(fromChromosome.getSelectedChromosomesLoaded, false);
-    // micro-track sets
-    seed(fromMicroTracks.getClusteredSelectedMicroTracks, []);
-    seed(fromMicroTracks.getSelectedMicroTracks, []);
-    seed(fromMicroTracks.getActiveSearchMicroTracks, []);
-    seed(fromMicroTracks.getClusteredAndAlignedSelectedMicroTracks, {
-      consensuses: [],
-      tracks: [],
-    });
-    // pairwise blocks
-    seed(fromPairwiseBlocks.getPairwiseBlocks, []);
-
-    const store = {
-      select: (selector: unknown): Observable<unknown> =>
-        subjects.get(selector) ?? fallback,
-    };
     TestBed.configureTestingModule({
-      providers: [ProcessService, { provide: Store, useValue: store }],
+      providers: [ProcessService, provideMockStore()],
     });
+    store = TestBed.inject(MockStore);
     service = TestBed.inject(ProcessService);
+
+    // default (empty) values for every leaf selector the composed selectors read
+    store.overrideSelector(fromGenes.getLoading, []);
+    store.overrideSelector(fromGenes.getLoaded, []);
+    store.overrideSelector(fromGenes.getFailed, []);
+    store.overrideSelector(fromGenes.getSelectedGenesLoaded, false);
+    store.overrideSelector(fromChromosome.getLoading, []);
+    store.overrideSelector(fromChromosome.getLoaded, []);
+    store.overrideSelector(fromChromosome.getFailed, []);
+    store.overrideSelector(fromChromosome.getSelectedChromosomesLoaded, false);
+    store.overrideSelector(fromMicroTracks.getLoading, []);
+    store.overrideSelector(fromMicroTracks.getLoaded, []);
+    store.overrideSelector(fromMicroTracks.getFailed, []);
+    store.overrideSelector(fromMicroTracks.getSelectedMicroTracks, []);
+    store.overrideSelector(fromMicroTracks.getActiveSearchMicroTracks, []);
+    store.overrideSelector(fromMicroTracks.getClusteredSelectedMicroTracks, []);
+    store.overrideSelector(
+      fromMicroTracks.getClusteredAndAlignedSelectedMicroTracks,
+      { consensuses: [], tracks: [] },
+    );
+    store.overrideSelector(
+      fromMicroTracks.getClusteredAndAlignedSearchMicroTracks,
+      [],
+    );
+    store.overrideSelector(fromPairwiseBlocks.getLoading, []);
+    store.overrideSelector(fromPairwiseBlocks.getLoaded, []);
+    store.overrideSelector(fromPairwiseBlocks.getFailed, []);
+    store.overrideSelector(fromPairwiseBlocks.getPairwiseBlocks, []);
+    store.refreshState();
   });
 
-  describe('_getQueryGeneSubprocess (gene load-state combineLatest)', () => {
+  describe('_getQueryGeneSubprocess (gene load-state)', () => {
     const id = { name: 'g1', source: 'lis' };
 
     it('is running while the gene is loading', () => {
@@ -113,7 +111,7 @@ describe('ProcessService (reactive plumbing)', () => {
     });
   });
 
-  describe('_getQueryTrackSubprocess (chromosome load-state combineLatest)', () => {
+  describe('_getQueryTrackSubprocess (chromosome load-state)', () => {
     const id = { name: 'Gm09', source: 'lis' };
 
     it('is running while the chromosome is loading', () => {
@@ -144,7 +142,7 @@ describe('ProcessService (reactive plumbing)', () => {
     });
   });
 
-  describe('_getTrackGeneSubprocess (5-source combineLatest + gene helper)', () => {
+  describe('_getTrackGeneSubprocess (5-source + gene helper)', () => {
     const source = 'lis';
     const track = { cluster: 0, source, genes: ['g1', 'g2'] };
     const g1 = { name: 'g1', source };
@@ -174,7 +172,7 @@ describe('ProcessService (reactive plumbing)', () => {
     });
   });
 
-  describe('_getQueryAlignmentProcessStatus (genes/chromosomes/aligned combineLatest)', () => {
+  describe('_getQueryAlignmentProcessStatus', () => {
     it('waits until genes and chromosomes are loaded', () => {
       set(fromGenes.getSelectedGenesLoaded, false);
       expect(settled(priv('_getQueryAlignmentProcessStatus'))).toBe(
@@ -191,7 +189,7 @@ describe('ProcessService (reactive plumbing)', () => {
     });
   });
 
-  describe('_getClusteringProcessStatus (genes/chromosomes/tracks combineLatest)', () => {
+  describe('_getClusteringProcessStatus', () => {
     it('waits until selected genes and chromosomes are loaded', () => {
       set(fromGenes.getSelectedGenesLoaded, false);
       set(fromChromosome.getSelectedChromosomesLoaded, false);
@@ -223,17 +221,10 @@ describe('ProcessService (reactive plumbing)', () => {
     });
   });
 
-  describe('_getMacroBlockPositionSubprocess (parameterized + inner-mapped combineLatest)', () => {
-    // Wiring smoke test: exercises the full 5-source combine, including the
-    // parameterized getChromosomesForIDs (served by the fallback) and the
-    // inner-mapped getPairwiseBlocks. Empty inputs derive no genes → the gene
-    // helper vacuously reports success.
-    it('flows through to a status from the combined sources', () => {
-      expect(
-        settled(priv('_getMacroBlockPositionSubprocess', [], 'lis', [])),
-      ).toBe('process-success');
-    });
-  });
+  // Note: _getMacroBlockPositionSubprocess reads the parameterized selector
+  // getChromosomesForIDs(chromosomes), which can't be driven via MockStore's
+  // overrideSelector (its identity varies per call). That site is covered by the
+  // build and the macro-synteny Playwright tests rather than a unit test here.
 
   describe('_getQueryGeneProcessStatus (aggregates subprocess streams)', () => {
     const status = (word: string): ProcessStatusStream =>

@@ -1,14 +1,8 @@
 import { TestBed } from '@angular/core/testing';
 import { NgZone } from '@angular/core';
 import { provideMockActions } from '@ngrx/effects/testing';
-import { Store } from '@ngrx/store';
-import {
-  BehaviorSubject,
-  Observable,
-  ReplaySubject,
-  of,
-  throwError,
-} from 'rxjs';
+import { provideMockStore, MockStore } from '@ngrx/store/testing';
+import { ReplaySubject, of, throwError } from 'rxjs';
 import { take, toArray } from 'rxjs/operators';
 
 import { SearchEffects } from './search.effects';
@@ -19,45 +13,41 @@ import * as fromParams from '@gcv/search/store/selectors/params';
 
 // SearchEffects wires the search pipeline: it clears results when the query
 // changes, fans a query out into one Search per configured source, and turns
-// each Search into a SearchSuccess/SearchFailure via the SearchService. Several
-// of these effects are driven by `store.select(...)` state streams rather than
-// the action stream — the same streams router-store drives out of the Angular
-// zone under Angular 22 + NgRx 21 (see the NgZone test at the bottom).
+// each Search into a SearchSuccess/SearchFailure via the SearchService. The
+// state-driven effects read the query/params/loading selectors (directly or via
+// a composed selector), so we drive those leaf selectors with MockStore — the
+// same streams router-store drives out of the Angular zone under Angular 22 +
+// NgRx 21 (see the NgZone test at the bottom).
 
 describe('SearchEffects', () => {
   let actions$: ReplaySubject<any>;
   let effects: SearchEffects;
   let searchService: { search: jest.Mock };
-  let query$: BehaviorSubject<string>;
-  let sourceParams$: BehaviorSubject<{ sources: string[] }>;
-  let loading$: BehaviorSubject<any[]>;
+  let store: MockStore;
+
+  const setLoading = (value: unknown[]) => {
+    store.overrideSelector(fromSearch.getLoading, value);
+    store.refreshState();
+  };
 
   beforeEach(() => {
     actions$ = new ReplaySubject<any>(1);
-    query$ = new BehaviorSubject<string>('Glyma.09G134900');
-    sourceParams$ = new BehaviorSubject<{ sources: string[] }>({
-      sources: ['lis'],
-    });
-    loading$ = new BehaviorSubject<any[]>([]);
     searchService = { search: jest.fn() };
-
-    const store = {
-      select: (selector: any): Observable<any> => {
-        if (selector === fromSearch.getQuery) return query$;
-        if (selector === fromParams.getSourceParams) return sourceParams$;
-        if (selector === fromSearch.getLoading) return loading$;
-        return of(undefined);
-      },
-    };
 
     TestBed.configureTestingModule({
       providers: [
         SearchEffects,
         provideMockActions(() => actions$),
         { provide: SearchService, useValue: searchService },
-        { provide: Store, useValue: store },
+        provideMockStore(),
       ],
     });
+
+    store = TestBed.inject(MockStore);
+    store.overrideSelector(fromSearch.getQuery, 'Glyma.09G134900');
+    store.overrideSelector(fromParams.getSourceParams, { sources: ['lis'] });
+    store.overrideSelector(fromSearch.getLoading, []);
+    store.refreshState();
 
     effects = TestBed.inject(SearchEffects);
   });
@@ -70,7 +60,10 @@ describe('SearchEffects', () => {
   });
 
   it('initializeSearch$ dispatches one Search per configured source', (done) => {
-    sourceParams$.next({ sources: ['lis', 'other'] });
+    store.overrideSelector(fromParams.getSourceParams, {
+      sources: ['lis', 'other'],
+    });
+    store.refreshState();
 
     effects.initializeSearch$
       .pipe(take(2), toArray())
@@ -95,7 +88,7 @@ describe('SearchEffects', () => {
       source: 'lis',
     });
     // the reducer marks this {source, action-id} pair as loading
-    loading$.next([{ source: 'lis', action: search.id }]);
+    setLoading([{ source: 'lis', action: search.id }]);
 
     effects.search$.pipe(take(1)).subscribe((action: any) => {
       expect(action.type).toBe(searchActions.SEARCH_SUCCESS);
@@ -116,7 +109,7 @@ describe('SearchEffects', () => {
       query: 'Glyma.09G134900',
       source: 'lis',
     });
-    loading$.next([{ source: 'lis', action: search.id }]);
+    setLoading([{ source: 'lis', action: search.id }]);
 
     effects.search$.pipe(take(1)).subscribe((action: any) => {
       expect(action.type).toBe(searchActions.SEARCH_FAILURE);
@@ -129,7 +122,7 @@ describe('SearchEffects', () => {
 
   it('search$ skips sources the reducer has not marked as loading', () => {
     searchService.search.mockReturnValue(of({} as any));
-    loading$.next([]); // nothing pending → the search is a no-op
+    setLoading([]); // nothing pending → the search is a no-op
 
     let emitted = false;
     effects.search$.subscribe(() => (emitted = true));
@@ -153,9 +146,12 @@ describe('SearchEffects', () => {
     const sub = effects.clearResults.subscribe((a: any) =>
       seen.push({ type: a.type, inZone: NgZone.isInAngularZone() }),
     );
-    seen.length = 0; // drop the BehaviorSubject's initial (in-zone) emission
+    seen.length = 0; // drop the initial (in-zone) emission
 
-    zone.runOutsideAngular(() => query$.next('a-new-query'));
+    zone.runOutsideAngular(() => {
+      store.overrideSelector(fromSearch.getQuery, 'a-new-query');
+      store.refreshState();
+    });
     sub.unsubscribe();
 
     expect(seen.length).toBeGreaterThan(0);

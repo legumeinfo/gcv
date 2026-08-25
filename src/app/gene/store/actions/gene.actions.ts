@@ -27,8 +27,8 @@ export const getFailure = createAction(
   (payload: { names: string[]; source: string }) => ({ payload }),
 );
 
-const all = union({ clear, get, getSuccess, getFailure });
-export type Actions = typeof all;
+const _all = union({ clear, get, getSuccess, getFailure });
+export type Actions = typeof _all;
 
 // bins track genes by source and generates a get action for each source
 export function tracksToGetGeneActions(

@@ -1,13 +1,13 @@
 import { concatLatestFrom } from '@ngrx/operators'; // Angular
 import { Injectable, inject } from '@angular/core';
 // store
-import { Store } from '@ngrx/store';
+import { createSelector, Store } from '@ngrx/store';
 import * as fromRoot from '@gcv/store/reducers';
 import { idArrayIntersection } from '@gcv/search/store/reducers/search.reducer';
 import * as fromSearch from '@gcv/search/store/selectors/search/';
 import * as fromParams from '@gcv/search/store/selectors/params';
 import { createEffect, Actions, ofType } from '@ngrx/effects';
-import { combineLatest, of } from 'rxjs';
+import { of } from 'rxjs';
 import {
   catchError,
   map,
@@ -18,6 +18,12 @@ import {
 import * as searchActions from '@gcv/search/store/actions/search.actions';
 // app
 import { SearchService } from '@gcv/search/services';
+
+const selectInitializeSearchInputs = createSelector(
+  fromSearch.getQuery,
+  fromParams.getSourceParams,
+  (query, sourceParams) => [query, sourceParams] as const,
+);
 
 @Injectable()
 export class SearchEffects {
@@ -36,10 +42,7 @@ export class SearchEffects {
 
   // initializes a search whenever new aligned clusters are generated
   initializeSearch$ = createEffect(() => {
-    return combineLatest(
-      this._store.select(fromSearch.getQuery),
-      this._store.select(fromParams.getSourceParams),
-    ).pipe(
+    return this._store.select(selectInitializeSearchInputs).pipe(
       switchMap(([query, { sources }]) => {
         const actions: searchActions.Actions[] = [];
         sources.forEach((source) => {

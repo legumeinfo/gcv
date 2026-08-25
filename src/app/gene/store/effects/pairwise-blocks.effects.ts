@@ -3,9 +3,9 @@ import { Injectable, inject } from '@angular/core';
 // store
 import { createEffect, Actions, ofType } from '@ngrx/effects';
 import { concatLatestFrom } from '@ngrx/operators';
-import { combineLatest, of } from 'rxjs';
+import { of } from 'rxjs';
 import { catchError, map, mergeMap, takeUntil } from 'rxjs/operators';
-import { Store } from '@ngrx/store';
+import { createSelector, Store } from '@ngrx/store';
 import * as pairwiseBlocksActions from '@gcv/gene/store/actions/pairwise-blocks.actions';
 import * as fromRoot from '@gcv/store/reducers';
 import { idArrayIntersection } from '@gcv/gene/store/reducers/pairwise-blocks.reducer';
@@ -15,6 +15,14 @@ import * as fromParams from '@gcv/gene/store/selectors/params';
 // app
 import { PairwiseBlocksService } from '@gcv/gene/services';
 
+const selectClearPairwiseBlocksTriggers = createSelector(
+  fromGenes.getSelectedGeneIDs,
+  fromParams.getBlockParams,
+  fromParams.getSourceParams,
+  (geneIDs, blockParams, sourceParams) =>
+    [geneIDs, blockParams, sourceParams] as const,
+);
+
 @Injectable()
 export class PairwiseBlocksEffects {
   private actions$ = inject(Actions);
@@ -23,11 +31,9 @@ export class PairwiseBlocksEffects {
 
   // clear the store every time new query genes or parameters are emitted
   clearPairwiseBlocks$ = createEffect(() => {
-    return combineLatest(
-      this._store.select(fromGenes.getSelectedGeneIDs),
-      this._store.select(fromParams.getBlockParams),
-      this._store.select(fromParams.getSourceParams),
-    ).pipe(map((...args) => pairwiseBlocksActions.clear()));
+    return this._store
+      .select(selectClearPairwiseBlocksTriggers)
+      .pipe(map(() => pairwiseBlocksActions.clear()));
   });
 
   // get pairwise blocks via the pairwise blocks service

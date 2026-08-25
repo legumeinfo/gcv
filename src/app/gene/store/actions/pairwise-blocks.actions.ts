@@ -37,5 +37,5 @@ export const getFailure = createAction(
   }),
 );
 
-const all = union({ clear, get, getSuccess, getFailure });
-export type Actions = typeof all;
+const _all = union({ clear, get, getSuccess, getFailure });
+export type Actions = typeof _all;
