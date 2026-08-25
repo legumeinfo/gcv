@@ -30,27 +30,31 @@ export class Micro extends Visualizer {
   protected eventHandler(event) {
     // select the relevant elements in the viewer
     let selection;
-    if (event.targets.hasOwnProperty('block')) {
+    if (Object.prototype.hasOwnProperty.call(event.targets, 'block')) {
       /* noop */
-    } else if (event.targets.hasOwnProperty('genes')) {
+    } else if (Object.prototype.hasOwnProperty.call(event.targets, 'genes')) {
       const selectors = event.targets.genes.map(
         (g) => "[data-gene='" + g + "']",
       );
       const selector = selectors.join(',');
       selection = this.viewer.selectAll(selector);
-    } else if (event.targets.hasOwnProperty('family')) {
+    } else if (Object.prototype.hasOwnProperty.call(event.targets, 'family')) {
       const selectors = [];
       event.targets.family.split(',').forEach((f) => {
         selectors.push("[data-family='" + f + "']");
       });
       selection = this.viewer.selectAll(selectors.join(', '));
-    } else if (event.targets.hasOwnProperty('chromosome')) {
+    } else if (
+      Object.prototype.hasOwnProperty.call(event.targets, 'chromosome')
+    ) {
       let selector = "[data-chromosome='" + event.targets.chromosome + "']";
-      if (event.targets.hasOwnProperty('extent')) {
+      if (Object.prototype.hasOwnProperty.call(event.targets, 'extent')) {
         selector += "[data-extent='" + event.targets.extent.join(':') + "']";
       }
       selection = this.viewer.selectAll(selector);
-    } else if (event.targets.hasOwnProperty('organism')) {
+    } else if (
+      Object.prototype.hasOwnProperty.call(event.targets, 'organism')
+    ) {
       const selector = "[data-organism='" + event.targets.organism + "']";
       selection = this.viewer.selectAll(selector);
     }

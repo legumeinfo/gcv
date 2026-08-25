@@ -30,10 +30,12 @@ export class AbstractSearchWidgetComponent implements OnInit {
     this.model = {
       query: '',
       sources: _appConfig.servers
-        .filter((s) => s.hasOwnProperty('search'))
+        .filter((s) => Object.prototype.hasOwnProperty.call(s, 'search'))
         .map((s) => s.id),
     };
-    this.sources = _appConfig.servers.filter((s) => s.hasOwnProperty('search'));
+    this.sources = _appConfig.servers.filter((s) =>
+      Object.prototype.hasOwnProperty.call(s, 'search'),
+    );
   }
 
   ngOnInit(): void {

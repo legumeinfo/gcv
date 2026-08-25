@@ -67,7 +67,7 @@ export function reducer(
         loaded: [],
         loading: [],
       });
-    case chromosomeActions.GET:
+    case chromosomeActions.GET: {
       const { name, source } = action.payload;
       let targetIDs = [{ name, source, action: action.id }];
       // filter targets by loading and loaded
@@ -82,6 +82,7 @@ export function reducer(
         loading,
         failed,
       };
+    }
     case chromosomeActions.GET_SUCCESS: {
       const { chromosome } = action.payload;
       let targetIDs = [{ name: chromosome.name, source: chromosome.source }];

@@ -76,7 +76,12 @@ export class MultiMacro {
       for (let j = 0; j < macroTracks.tracks.length; j++) {
         const macroTrack = macroTracks.tracks[j];
         const source_id = macroTrack.chromosome;
-        if (!this.data.blockSources.hasOwnProperty(source_id)) {
+        if (
+          !Object.prototype.hasOwnProperty.call(
+            this.data.blockSources,
+            source_id,
+          )
+        ) {
           continue;
         }
         this.data.blockSources[target_id].add(source_id);
@@ -304,7 +309,7 @@ export class MultiMacro {
   protected eventHandler(event) {
     // select the relevant elements in the viewer
     let selection;
-    if (event.targets.hasOwnProperty('block')) {
+    if (Object.prototype.hasOwnProperty.call(event.targets, 'block')) {
       const block = event.targets.block;
       // block
       const selector =
@@ -356,7 +361,9 @@ export class MultiMacro {
         block.reference.locus.join(':') +
         "']";
       selection = this.circos.svg.selectAll(selector);
-    } else if (event.targets.hasOwnProperty('chromosome')) {
+    } else if (
+      Object.prototype.hasOwnProperty.call(event.targets, 'chromosome')
+    ) {
       const selector =
         "[data-chromosome='" +
         event.targets.chromosome +
@@ -365,7 +372,9 @@ export class MultiMacro {
         event.targets.chromosome +
         "']";
       selection = this.circos.svg.selectAll(selector);
-    } else if (event.targets.hasOwnProperty('organism')) {
+    } else if (
+      Object.prototype.hasOwnProperty.call(event.targets, 'organism')
+    ) {
       const selector = "[data-organism='" + event.targets.organism + "']";
       selection = this.circos.svg.selectAll(selector);
     }

@@ -1,6 +1,6 @@
 export const idArrayLeftDifferenceFactory = (
-  TactionID: Function,
-  Tid: Function,
+  TactionID: (id: any) => string,
+  Tid: (id: any) => string,
 ) => {
   // subtracts overlapping IDs from a1
   return (a1, a2, checkAction = false) => {
@@ -11,8 +11,8 @@ export const idArrayLeftDifferenceFactory = (
 };
 
 export const idArrayIntersectionFactory = (
-  TactionID: Function,
-  Tid: Function,
+  TactionID: (id: any) => string,
+  Tid: (id: any) => string,
 ) => {
   // computes the intersection of the two ID arrays
   return (a1, a2, checkAction = false) => {

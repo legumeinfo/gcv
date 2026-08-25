@@ -1,3 +1,3 @@
 export interface HTMLAttributesMixin {
-  htmlAttributes: { [key: string]: string | Function };
+  htmlAttributes: { [key: string]: string | ((...args: any[]) => any) };
 }

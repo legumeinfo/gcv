@@ -47,27 +47,27 @@ export abstract class Graph {
   }
 
   addNode(id, attr = undefined) {
-    if (!this.nodes.hasOwnProperty(id)) {
+    if (!Object.prototype.hasOwnProperty.call(this.nodes, id)) {
       this.nodes[id] = new this.Child.Node(attr);
     }
     return this.getNode(id);
   }
 
   updateNode(id, attr) {
-    if (this.nodes.hasOwnProperty(id)) {
+    if (Object.prototype.hasOwnProperty.call(this.nodes, id)) {
       this.nodes[id].attr = attr;
     }
   }
 
   removeNode(id) {
-    if (this.nodes.hasOwnProperty(id)) {
+    if (Object.prototype.hasOwnProperty.call(this.nodes, id)) {
       this.removeNodeEdges(id);
       delete this.nodes[id];
     }
   }
 
   getNode(id) {
-    if (this.nodes.hasOwnProperty(id)) {
+    if (Object.prototype.hasOwnProperty.call(this.nodes, id)) {
       return this.nodes[id];
     }
     return null;

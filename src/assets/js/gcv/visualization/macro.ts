@@ -40,7 +40,7 @@ export class Macro extends Visualizer {
   protected eventHandler(event) {
     // select the relevant elements in the viewer
     let selection;
-    if (event.targets.hasOwnProperty('block')) {
+    if (Object.prototype.hasOwnProperty.call(event.targets, 'block')) {
       const block = event.targets.block;
       if (block.reference.chromosome === this.data.chromosome) {
         const selector =
@@ -73,10 +73,14 @@ export class Macro extends Visualizer {
           "']";
         selection = this.viewer.selectAll(selector);
       }
-    } else if (event.targets.hasOwnProperty('chromosome')) {
+    } else if (
+      Object.prototype.hasOwnProperty.call(event.targets, 'chromosome')
+    ) {
       const selector = "[data-chromosome='" + event.targets.chromosome + "']";
       selection = this.viewer.selectAll(selector);
-    } else if (event.targets.hasOwnProperty('organism')) {
+    } else if (
+      Object.prototype.hasOwnProperty.call(event.targets, 'organism')
+    ) {
       const selector = "[data-organism='" + event.targets.organism + "']";
       selection = this.viewer.selectAll(selector);
     }

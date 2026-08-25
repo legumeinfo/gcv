@@ -13,7 +13,7 @@ export const formControlConfigFactory = (members, values, validators) => {
 
 export const parseParams = (
   params: { [key: string]: any },
-  paramParsers: { [key: string]: Function },
+  paramParsers: { [key: string]: (...args: any[]) => any },
 ): { [key: string]: any } => {
   const reducer = (accumulator, [key, value]) => {
     if (key in paramParsers) {

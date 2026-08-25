@@ -74,7 +74,7 @@ export function reducer(
         loaded: [],
         loading: [],
       });
-    case geneActions.GET:
+    case geneActions.GET: {
       const { source, names } = action.payload;
       let targetIDs = names.map((name) => ({
         name,
@@ -93,6 +93,7 @@ export function reducer(
         loading,
         failed,
       };
+    }
     case geneActions.GET_SUCCESS: {
       const { genes } = action.payload;
       let targetIDs = genes.map(({ name, source }) => ({ name, source }));

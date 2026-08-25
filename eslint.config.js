@@ -56,6 +56,10 @@ module.exports = tseslint.config(
       // Large legacy D3/visualization surface; tracked as incremental typing
       // work rather than a merge blocker.
       '@typescript-eslint/no-explicit-any': 'warn',
+      // `const obj = this` is the intentional instance alias in the D3
+      // visualizers, where nested `function()` callbacks rebind `this` to the
+      // DOM element — the alias is required, not a code smell.
+      '@typescript-eslint/no-this-alias': ['error', { allowedNames: ['obj'] }],
       // GCV names injected privates with a leading underscore (_appConfig,
       // _activatedRoute, …); keep the global store consistent with that rather
       // than renaming every service to the rule's default of `store`.

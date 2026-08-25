@@ -20,7 +20,7 @@ export class Legend extends Visualizer {
     // select the relevant elements in the viewer
     const selector = this.options.selector;
     let selection;
-    if (event.targets.hasOwnProperty(selector)) {
+    if (Object.prototype.hasOwnProperty.call(event.targets, selector)) {
       const selectors = [];
       event.targets[selector].split(',').forEach((f) => {
         selectors.push('[data-' + selector + "='" + f + "']"); // orphans

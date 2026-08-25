@@ -111,7 +111,10 @@ export class FamilyDetailComponent implements OnDestroy, OnInit {
       const geneString = this.genes.join(',');
       Object.keys(this.geneMatrix).forEach((s) => {
         const server = this._appConfig.getServer(s);
-        if (server !== undefined && server.hasOwnProperty('familyTreeLink')) {
+        if (
+          server !== undefined &&
+          Object.prototype.hasOwnProperty.call(server, 'familyTreeLink')
+        ) {
           const familyTreeLink = {
             url: server.familyTreeLink.url + id + '&gene_name=' + geneString,
             text: server.name,

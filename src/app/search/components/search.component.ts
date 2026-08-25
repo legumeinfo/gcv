@@ -39,11 +39,13 @@ export class SearchComponent implements OnInit {
     this.model = {
       neighbors: '',
       sources: _appConfig.servers
-        .filter((s) => s.hasOwnProperty('search'))
+        .filter((s) => Object.prototype.hasOwnProperty.call(s, 'search'))
         .map((s) => s.id),
       selectedGenes: {},
     };
-    this.sources = _appConfig.servers.filter((s) => s.hasOwnProperty('search'));
+    this.sources = _appConfig.servers.filter((s) =>
+      Object.prototype.hasOwnProperty.call(s, 'search'),
+    );
     this._sourceNameMap = _appConfig.servers.reduce((accumulator, server) => {
       accumulator[server.id] = server.name;
       return accumulator;
@@ -58,7 +60,9 @@ export class SearchComponent implements OnInit {
 
   toggleGene(event, gene: string, source: string): void {
     if (event.target.checked) {
-      if (!this.model.selectedGenes.hasOwnProperty(source)) {
+      if (
+        !Object.prototype.hasOwnProperty.call(this.model.selectedGenes, source)
+      ) {
         this.model.selectedGenes[source] = new Set();
       }
       this.model.selectedGenes[source].add(gene);

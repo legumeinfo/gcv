@@ -77,7 +77,7 @@ export class ParamsComponent implements OnDestroy, OnInit {
     const _appConfig = this._appConfig;
 
     this.sources = _appConfig.servers.filter((s) =>
-      s.hasOwnProperty('microSearch'),
+      Object.prototype.hasOwnProperty.call(s, 'microSearch'),
     );
     // initialize form groups
     this.blockGroup = this._initializeGroup(

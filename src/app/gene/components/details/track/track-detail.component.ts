@@ -90,7 +90,10 @@ export class TrackDetailComponent implements OnDestroy, OnInit {
     const server = this._appConfig.getServer(this.track.source);
 
     // set the tree link
-    if (server !== undefined && server.hasOwnProperty('familyTreeLink')) {
+    if (
+      server !== undefined &&
+      Object.prototype.hasOwnProperty.call(server, 'familyTreeLink')
+    ) {
       this.familyTreeLink = server.familyTreeLink.url;
     }
 

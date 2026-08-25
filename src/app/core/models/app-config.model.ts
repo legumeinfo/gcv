@@ -275,7 +275,7 @@ export class AppConfig {
     } else {
       throw new ConfigError("'" + serverID + "' is not a valid server ID");
     }
-    if (!server.hasOwnProperty(requestType)) {
+    if (!Object.prototype.hasOwnProperty.call(server, requestType)) {
       throw new ConfigError(
         "'" +
           serverID +

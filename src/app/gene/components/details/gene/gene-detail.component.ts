@@ -83,7 +83,7 @@ export class GeneDetailComponent implements OnDestroy, OnInit {
 
     // set the tree link
     if (server !== undefined) {
-      if (server.hasOwnProperty('familyTreeLink')) {
+      if (Object.prototype.hasOwnProperty.call(server, 'familyTreeLink')) {
         this.familyTreeLink = server.familyTreeLink.url + this.family;
       }
       this.singleGeneMatrix[this.source] = this.gene;

@@ -3,7 +3,7 @@
 export function instantiateAndPopulate<T>(type: { new (): T }, obj: any): T {
   const t = new type();
   Object.keys(t).forEach(function (key, index) {
-    if (obj.hasOwnProperty(key)) {
+    if (Object.prototype.hasOwnProperty.call(obj, key)) {
       t[key] = obj[key];
     }
   });

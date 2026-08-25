@@ -23,7 +23,7 @@ export class MSAHMM extends Directed {
       this.paths = {};
     }
     addPath(pId, o) {
-      if (!this.paths.hasOwnProperty(pId)) {
+      if (!Object.prototype.hasOwnProperty.call(this.paths, pId)) {
         this.paths[pId] = [];
       }
       this.paths[pId].push(o);
@@ -60,7 +60,7 @@ export class MSAHMM extends Directed {
       this.emissionCounts[o] += this.countAmplifier;
       this.numObservations += this.countAmplifier;
       for (const c in this.emissionCounts) {
-        if (this.emissionCounts.hasOwnProperty(c)) {
+        if (Object.prototype.hasOwnProperty.call(this.emissionCounts, c)) {
           const p = this.emissionCounts[c] / this.numObservations;
           this.emissionProbabilities[c] = p;
         }
@@ -159,7 +159,7 @@ export class MSAHMM extends Directed {
 
   private _updateTransitionProbabilities() {
     for (const id in this.nodes) {
-      if (this.nodes.hasOwnProperty(id)) {
+      if (Object.prototype.hasOwnProperty.call(this.nodes, id)) {
         this._updateNodeTransitionProbabilities(id);
       }
     }
@@ -201,7 +201,7 @@ export class MSAHMM extends Directed {
       if (Object.keys(ipaths).length > 0) {
         // find the largest number of consecutive insertions
         for (const pId in ipaths) {
-          if (ipaths.hasOwnProperty(pId)) {
+          if (Object.prototype.hasOwnProperty.call(ipaths, pId)) {
             growBy = Math.max(growBy, ipaths[pId].length);
           }
         }
@@ -286,7 +286,7 @@ export class MSAHMM extends Directed {
         }
         // expand the inserted paths into the new match states
         for (const pId in ipaths) {
-          if (ipaths.hasOwnProperty(pId)) {
+          if (Object.prototype.hasOwnProperty.call(ipaths, pId)) {
             for (let k = 0; k < ipaths[pId].length; k++) {
               const o = ipaths[pId][k];
               const m = 'm' + (j + k);
@@ -344,13 +344,16 @@ export class MSAHMM extends Directed {
       const m = 'm' + j;
       const mpaths = this.getNode(m).attr.paths;
       const d = 'd' + j;
-      if (ipaths.hasOwnProperty(pId) || mpaths.hasOwnProperty(pId)) {
-        if (ipaths.hasOwnProperty(pId)) {
+      if (
+        Object.prototype.hasOwnProperty.call(ipaths, pId) ||
+        Object.prototype.hasOwnProperty.call(mpaths, pId)
+      ) {
+        if (Object.prototype.hasOwnProperty.call(ipaths, pId)) {
           for (const _p of ipaths[pId]) {
             path.push(i);
           }
         }
-        if (mpaths.hasOwnProperty(pId)) {
+        if (Object.prototype.hasOwnProperty.call(mpaths, pId)) {
           path.push(m);
         }
       } else {
@@ -359,7 +362,7 @@ export class MSAHMM extends Directed {
     }
     const i = 'i' + this._numColumns;
     const ipaths = this.getNode(i).attr.paths;
-    if (ipaths.hasOwnProperty(pId)) {
+    if (Object.prototype.hasOwnProperty.call(ipaths, pId)) {
       for (const _p of ipaths[pId]) {
         path.push(i);
       }
@@ -512,7 +515,7 @@ export class MSAHMM extends Directed {
     const probs: any = {};
     const ptrs: any = {};
     for (const id in this.nodes) {
-      if (this.nodes.hasOwnProperty(id)) {
+      if (Object.prototype.hasOwnProperty.call(this.nodes, id)) {
         probs[id] = {};
         ptrs[id] = {};
       }
@@ -846,7 +849,7 @@ export class MSAHMM extends Directed {
   // TODO: should this allow match nodes to emit more than one value if their
   // probabilities are close/equal?
   consensus() {
-    const reducer = (prev, [c, p]): [any, {}] => {
+    const reducer = (prev, [c, p]): [any, number] => {
       const [cMax, pMax] = prev;
       if (p > pMax) {
         return [c, p];

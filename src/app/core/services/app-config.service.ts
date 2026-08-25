@@ -254,7 +254,7 @@ export class AppConfigService extends AppConfig {
   private _freezeObject(target): void {
     Object.freeze(target);
     for (const property in target) {
-      if (target.hasOwnProperty(property)) {
+      if (Object.prototype.hasOwnProperty.call(target, property)) {
         const value = target[property];
         if (typeof value === 'object' && value !== null) {
           this._freezeObject(value);

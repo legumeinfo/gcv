@@ -15,6 +15,6 @@ export const paramValidators = {
   ...sourceParamValidators,
 };
 
-export const paramParsers: { [key: string]: Function } = {
+export const paramParsers: { [key: string]: (...args: any[]) => any } = {
   ...sourceParamParsers,
 };

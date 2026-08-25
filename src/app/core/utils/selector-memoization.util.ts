@@ -5,7 +5,9 @@ import { arrayIsEqual, compare, objectIsEqual } from './comparators.util';
 
 type AnyFn = (...args: any[]) => any;
 
-export const selectorMemoizerFactory = (comparator: Function) => {
+export const selectorMemoizerFactory = (
+  comparator: (...args: any[]) => any,
+) => {
   return (t: AnyFn): MemoizedProjection => {
     let lastResult: any = null;
     let overrideResult: any;

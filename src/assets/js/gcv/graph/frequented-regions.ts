@@ -19,11 +19,11 @@ export class FR {
     this.avgAlpha = 0;
   }
   addToPath(pId, n, kappa) {
-    if (!this.paths.hasOwnProperty(pId)) {
+    if (!Object.prototype.hasOwnProperty.call(this.paths, pId)) {
       this.paths[pId] = [];
     }
     this.paths[pId].push(n);
-    if (!this.intervals.hasOwnProperty(pId)) {
+    if (!Object.prototype.hasOwnProperty.call(this.intervals, pId)) {
       this.intervals[pId] = [];
     }
     const halfKappa = kappa / 2;
@@ -42,7 +42,7 @@ export class FR {
       return 0;
     };
     for (const pId in this.intervals) {
-      if (this.intervals.hasOwnProperty(pId)) {
+      if (Object.prototype.hasOwnProperty.call(this.intervals, pId)) {
         const points = [];
         for (const interval of this.intervals[pId]) {
           const [begin, end, span] = interval;
@@ -75,7 +75,7 @@ export class FR {
     this.supporting = [];
     this.avgAlpha = 0;
     for (const pId in this.intervals) {
-      if (this.intervals.hasOwnProperty(pId)) {
+      if (Object.prototype.hasOwnProperty.call(this.intervals, pId)) {
         let maxAlpha = 0;
         for (const interval of this.intervals[pId]) {
           const iAlpha = interval[2] / this.nodes.length;
@@ -97,14 +97,14 @@ export class FR {
     fr.paths = Object.assign({}, this.paths);
     fr.intervals = Object.assign({}, this.intervals);
     for (const id in other.paths) {
-      if (fr.paths.hasOwnProperty(id)) {
+      if (Object.prototype.hasOwnProperty.call(fr.paths, id)) {
         fr.paths[id] = fr.paths[id].concat(other.paths[id]);
       } else {
         fr.paths[id] = other.paths[id].slice();
       }
     }
     for (const id in other.intervals) {
-      if (fr.intervals.hasOwnProperty(id)) {
+      if (Object.prototype.hasOwnProperty.call(fr.intervals, id)) {
         fr.intervals[id] = fr.intervals[id].concat(other.intervals[id]);
       } else {
         fr.intervals[id] = other.intervals[id].slice();
@@ -215,7 +215,7 @@ export function frequentedRegions(
     let maxE = null;
     for (const e in g.edges) {
       if (
-        g.edges.hasOwnProperty(e) &&
+        Object.prototype.hasOwnProperty.call(g.edges, e) &&
         (maxFR === null || maxFR.avgAlpha < g.edges[e].avgAlpha)
       ) {
         maxFR = g.edges[e];

@@ -10,7 +10,7 @@ export interface RouterStateUrl {
   data: Data;
 }
 
-export interface State extends RouterReducerState<RouterStateUrl> {}
+export type State = RouterReducerState<RouterStateUrl>;
 
 export const initialState: { state: RouterStateUrl; navigationId: number } = {
   state: {

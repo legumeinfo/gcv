@@ -160,7 +160,9 @@ export function microShim(
   // identify bold tracks
   const bold = [];
   filteredTracks.forEach((t, i) => {
-    if (queryTracks.some((query) => query.isPrototypeOf(t))) {
+    if (
+      queryTracks.some((query) => Object.prototype.isPrototypeOf.call(query, t))
+    ) {
       bold.push(data[i]);
     }
   });

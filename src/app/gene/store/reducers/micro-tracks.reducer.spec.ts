@@ -17,7 +17,7 @@ describe('micro-tracks.reducer — ID functions', () => {
       genes: ['g1', 'g2', 'g3'],
       source: 'gcv',
     };
-    // @ts-ignore
+    // @ts-expect-error - test intentionally passes a partial track shape
     expect(microTrackID(track)).toBe('3:g1:g3:gcv');
   });
 

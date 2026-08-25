@@ -44,7 +44,7 @@ export function pairwiseBlocksID({
 export function pairwiseBlocksID(...args): string {
   if (typeof args[0] === 'object') {
     const { referenceSource, reference, chromosomeSource, ...attrs } = args[0];
-    if (attrs.hasOwnProperty('chromosome')) {
+    if (Object.prototype.hasOwnProperty.call(attrs, 'chromosome')) {
       return pairwiseBlocksID(
         referenceSource,
         reference,
@@ -113,7 +113,7 @@ export function reducer(
         loaded: [],
         loading: [],
       });
-    case pairwiseBlocksActions.GET:
+    case pairwiseBlocksActions.GET: {
       const { chromosome, source, targets } = action.payload;
       const partialID = {
         referenceSource: chromosome.source,
@@ -137,6 +137,7 @@ export function reducer(
         loading,
         failed,
       };
+    }
     case pairwiseBlocksActions.GET_SUCCESS: {
       const { chromosome, source, targets, blocks } = action.payload;
       const partialID = {

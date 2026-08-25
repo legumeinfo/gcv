@@ -317,13 +317,13 @@ export class Plot {
   protected eventHandler(event) {
     // select the relevant elements in the viewer
     let selection;
-    if (event.targets.hasOwnProperty('genes')) {
+    if (Object.prototype.hasOwnProperty.call(event.targets, 'genes')) {
       const selectors = event.targets.genes.map(
         (g) => "[data-gene='" + g + "']",
       );
       const selector = selectors.join(',');
       selection = this.viewer.selectAll(selector);
-    } else if (event.targets.hasOwnProperty('family')) {
+    } else if (Object.prototype.hasOwnProperty.call(event.targets, 'family')) {
       const selectors = [];
       event.targets.family.split(',').forEach((f) => {
         selectors.push("[data-family='" + f + "']");

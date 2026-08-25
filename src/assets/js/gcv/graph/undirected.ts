@@ -25,7 +25,7 @@ export class Undirected extends Graph {
   }
   addEdge(u, v, attr?) {
     const e = this.getEdgeId(u, v);
-    if (!this.edges.hasOwnProperty(e)) {
+    if (!Object.prototype.hasOwnProperty.call(this.edges, e)) {
       this.nodes[u].neighbors.add(v);
       this.nodes[v].neighbors.add(u);
       this.edges[e] = attr;
@@ -33,13 +33,13 @@ export class Undirected extends Graph {
   }
   updateEdge(u, v, attr) {
     const e = this.getEdgeId(u, v);
-    if (this.edges.hasOwnProperty(e)) {
+    if (Object.prototype.hasOwnProperty.call(this.edges, e)) {
       this.edges[e] = attr;
     }
   }
   removeEdge(u, v) {
     const e = this.getEdgeId(u, v);
-    if (this.edges.hasOwnProperty(e)) {
+    if (Object.prototype.hasOwnProperty.call(this.edges, e)) {
       const attr = this.edges[e];
       delete this.edges[e];
       this.nodes[u].neighbors.delete(v);
@@ -50,7 +50,7 @@ export class Undirected extends Graph {
   }
   getEdge(u, v) {
     const e = this.getEdgeId(u, v);
-    if (this.edges.hasOwnProperty(e)) {
+    if (Object.prototype.hasOwnProperty.call(this.edges, e)) {
       return this.edges[e];
     }
     return null;
