@@ -137,7 +137,6 @@ export class Macro extends Visualizer {
       ((e, t, i, b) => {
         /* noop */
       });
-    this.options.viewportDrag = this.options.viewportDrag;
     this.options.viewport = this.options.viewport || false;
     this.options.autoResize = this.options.autoResize || false;
     this.options.hoverDelay = this.options.hoverDelay || 500;
@@ -349,7 +348,7 @@ export class Macro extends Visualizer {
       for (let i = orderedBlocks.length - 1; i >= 0; i--) {
         if (orderedBlocks[i].query_start > row[k].query_stop) {
           orderedBlocks[i].y = y;
-          row.push.apply(row, orderedBlocks.splice(i, 1));
+          row.push(...orderedBlocks.splice(i, 1));
           k++;
         }
       }

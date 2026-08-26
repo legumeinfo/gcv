@@ -15,7 +15,7 @@ import * as fromRoot from '@gcv/store/reducers';
 declare let window: any;
 
 @Component({
-  selector: 'gcv',
+  selector: 'gcv-root',
   template: `
     <gcv-header></gcv-header>
     <router-outlet></router-outlet>

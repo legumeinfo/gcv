@@ -4,7 +4,7 @@ import { Alignment, InternalAlignment, Scores, Traceback } from './models';
 import { computeScore, mergeAlignments } from './utils';
 
 /**
- * Aligns the given sequence to the given reference using the Smith-Waterman
+ * Aligns the given sequence to the given reference using the Smith-Waterman
  * alignment algorithm.
  * @param {Array<T>} seq - The sequence to be aligned to the refernece.
  * @param {Array<T>} ref - The reference to align the sequence to.

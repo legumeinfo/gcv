@@ -21,7 +21,7 @@ export function microLegendConfigFactory(outputs: any = {}) {
     title: 'Micro Synteny Legend',
     componentState: {
       inputs: { options },
-      outputs: { click: (family) => _outputs.click(id, family) },
+      outputs: { clicked: (family) => _outputs.click(id, family) },
     },
     isClosable: false,
   };

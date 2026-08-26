@@ -47,7 +47,7 @@ export class ParamsComponent implements OnDestroy, OnInit {
   private _fb = inject(UntypedFormBuilder);
 
   // component IO
-  @Output() invalid = new EventEmitter();
+  @Output() invalidated = new EventEmitter();
   @Output() valid = new EventEmitter();
 
   // UI state
@@ -180,7 +180,7 @@ export class ParamsComponent implements OnDestroy, OnInit {
       this._submitGroup(this.alignmentGroup);
       this._submitGroup(this.sourcesGroup);
     } else {
-      this.invalid.emit();
+      this.invalidated.emit();
     }
   }
 }

@@ -41,7 +41,7 @@ export class MicroLegendComponent implements AfterViewInit, OnDestroy {
   private _zone = inject(NgZone);
 
   @Input() options: any = {};
-  @Output() click = new EventEmitter();
+  @Output() clicked = new EventEmitter();
 
   @ViewChild('container', { static: true }) container: ElementRef;
 
@@ -76,7 +76,7 @@ export class MicroLegendComponent implements AfterViewInit, OnDestroy {
   // public
 
   emitClick(key) {
-    this.click.emit(key);
+    this.clicked.emit(key);
   }
 
   saveImage(): void {

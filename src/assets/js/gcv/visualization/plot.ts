@@ -31,7 +31,6 @@ export class Plot {
     this.options = options || {};
     this.options.autoResize = this.options.autoResize || false;
     this.options.resizeDelay = this.options.resizeDelay || 250;
-    this.options.selectiveColoring = this.options.selectiveColoring;
     this.options.geneClick =
       this.options.geneClick ||
       ((g) => {

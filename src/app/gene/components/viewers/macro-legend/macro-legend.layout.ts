@@ -21,7 +21,7 @@ export function macroLegendConfigFactory(outputs: any = {}) {
     title: 'Macro Synteny Legend',
     componentState: {
       inputs: { options },
-      outputs: { click: (organism) => _outputs.click(id, organism) },
+      outputs: { clicked: (organism) => _outputs.click(id, organism) },
     },
     isClosable: false,
   };

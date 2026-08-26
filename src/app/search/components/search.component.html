@@ -60,7 +60,7 @@
       <div class="row">
         <p class="p-0">
           {{ (resultGenes | async).length }} gene
-          @if ((resultGenes | async).length != 1) {
+          @if ((resultGenes | async).length !== 1) {
             s
           }
           returned
@@ -104,7 +104,7 @@
 
       <div class="row">
         {{ (resultRegions | async).length }} region
-        @if ((resultRegions | async).length != 1) {
+        @if ((resultRegions | async).length !== 1) {
           s
         }
         returned

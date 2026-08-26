@@ -66,7 +66,6 @@ export class Legend extends Visualizer {
       ((id, checked) => {
         /* noop */
       });
-    this.options.selectiveColoring = this.options.selectiveColoring;
     this.options.keyClick =
       this.options.keyClick ||
       ((k) => {

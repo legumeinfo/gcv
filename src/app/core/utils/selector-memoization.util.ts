@@ -12,11 +12,11 @@ export const selectorMemoizerFactory = (
     let lastResult: any = null;
     let overrideResult: any;
 
-    function memoized(): any {
+    function memoized(...args: any[]): any {
       if (overrideResult !== undefined) {
         return overrideResult.result;
       }
-      const result = t.apply(null, arguments);
+      const result = t(...args);
       if (lastResult === null || !comparator(result, lastResult)) {
         lastResult = result;
         return result;

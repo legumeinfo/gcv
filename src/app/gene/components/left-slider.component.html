@@ -23,7 +23,7 @@
     <div>
       @switch (content | async) {
         @case ('parameters') {
-          <gcv-params (valid)="close()" (invalid)="open()"></gcv-params>
+          <gcv-params (valid)="close()" (invalidated)="open()"></gcv-params>
         }
         @case ('filters') {
           <gcv-filters></gcv-filters>

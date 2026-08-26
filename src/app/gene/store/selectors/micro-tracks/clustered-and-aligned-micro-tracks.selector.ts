@@ -166,13 +166,12 @@ export const getClusteredAndAlignedSelectedMicroTracks = createSelectorFactory(
         // get HMM columns that nothing aligned to
         const columns = [...Array(hmm.numColumns).keys()];
         const alignedColumns = new Set(
-          [].concat.apply(
-            [],
-            // remove alignments between columns
-            alignments.map((a) => {
+          // remove alignments between columns
+          alignments
+            .map((a) => {
               return a.alignment.filter((c) => Number.isInteger(c));
-            }),
-          ),
+            })
+            .flat(),
         );
         const unalignedColumns = columns.filter((c) => !alignedColumns.has(c));
         if (unalignedColumns.length) {

@@ -34,7 +34,7 @@ export class MacroLegendComponent implements AfterViewInit, OnDestroy {
   private _pairwiseBlocksService = inject(PairwiseBlocksService);
 
   @Input() options: any = {};
-  @Output() click = new EventEmitter();
+  @Output() clicked = new EventEmitter();
 
   @ViewChild('container', { static: true }) container: ElementRef;
 
@@ -73,7 +73,7 @@ export class MacroLegendComponent implements AfterViewInit, OnDestroy {
   // public
 
   emitClick(key) {
-    this.click.emit(key);
+    this.clicked.emit(key);
   }
 
   saveImage(): void {

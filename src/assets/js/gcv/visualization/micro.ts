@@ -91,7 +91,6 @@ export class Micro extends Visualizer {
     this.options = Object.assign({}, options);
     this.options.bold = this.options.bold || [];
     this.options.highlight = this.options.highlight || [];
-    this.options.selectiveColoring = this.options.selectiveColoring;
     this.options.nameClick =
       this.options.nameClick ||
       ((t, i) => {
@@ -107,7 +106,6 @@ export class Micro extends Visualizer {
       ((e, t, g) => {
         /* noop */
       });
-    this.options.plotClick = this.options.plotClick;
     this.options.autoResize = this.options.autoResize || false;
     this.options.hoverDelay = this.options.hoverDelay || 500;
     this.options.prefix = this.options.prefix || ((t) => '');
