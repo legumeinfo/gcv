@@ -1,6 +1,6 @@
 // Angular
 import { HttpClient } from '@angular/common/http';
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 // store
 import { Store } from '@ngrx/store';
@@ -8,17 +8,31 @@ import * as routerActions from '@gcv/store/actions/router.actions';
 import * as fromRoot from '@gcv/store/reducers';
 import * as fromParams from '@gcv/gene/store/selectors/params/';
 // app
-import { AlignmentParams, BlockParams, ClusteringParams, MacroFilterParams,
-  MacroOrderParams, MicroFilterParams, MicroOrderParams, Params, QueryParams,
-  SourceParams } from '@gcv/gene/models/params';
+import {
+  AlignmentParams,
+  BlockParams,
+  ClusteringParams,
+  MacroFilterParams,
+  MacroOrderParams,
+  MicroFilterParams,
+  MicroOrderParams,
+  Params,
+  QueryParams,
+  SourceParams,
+} from '@gcv/gene/models/params';
 import { HttpService } from '@gcv/core/services/http.service';
-
 
 @Injectable()
 export class ParamsService extends HttpService {
+  private _http: HttpClient;
+  private _store = inject<Store<fromRoot.State>>(Store);
 
-  constructor(private _http: HttpClient, private _store: Store<fromRoot.State>) {
+  constructor() {
+    const _http = inject(HttpClient);
+
     super(_http);
+
+    this._http = _http;
   }
 
   getAlignmentParams(): Observable<AlignmentParams> {
@@ -64,7 +78,6 @@ export class ParamsService extends HttpService {
       sources['sources'] = params['sources'].join(',');
     }
     const query = Object.assign({}, params, sources);
-    this._store.dispatch(new routerActions.Go({path, query}));
+    this._store.dispatch(routerActions.go({ path, query }));
   }
-
 }

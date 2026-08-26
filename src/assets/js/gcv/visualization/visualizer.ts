@@ -1,5 +1,4 @@
-import { d3 } from "./d3";
-
+import { d3 } from './d3';
 
 export abstract class Visualizer {
   // private
@@ -36,14 +35,14 @@ export abstract class Visualizer {
   /** Generates the raw SVG xml. */
   xml() {
     try {
-      const isFileSaverSupported = !!new Blob();
+      const _isFileSaverSupported = !!new Blob();
     } catch (e) {
-      alert("Your broswer does not support saving");
+      alert('Your broswer does not support saving');
     }
     // create a clone of the viewer with all GCV styles inlined
     const clone = this.inlineCopy();
     // generate the data
-    const xml = (new XMLSerializer()).serializeToString(clone.node());
+    const xml = new XMLSerializer().serializeToString(clone.node());
     return xml;
   }
 
@@ -65,11 +64,13 @@ export abstract class Visualizer {
   protected autoResize() {
     this.resizeObserver = new ResizeObserver((entries) => {
       clearTimeout(this.resizeTimer);
-      const id = this.resizeTimer = setTimeout(() => {
+      this.resizeTimer = setTimeout(() => {
         if (this.container !== undefined && this.viewer !== undefined) {
-          const width =
-            Math.max(this.container.clientWidth, this.container.clientHeight);
-          if (this.viewer.attr("width") !== width) {
+          const width = Math.max(
+            this.container.clientWidth,
+            this.container.clientHeight,
+          );
+          if (this.viewer.attr('width') !== width) {
             this.resize();
           }
         }
@@ -104,7 +105,7 @@ export abstract class Visualizer {
    * @param {function} d - The decorator function.
    */
   protected decorateResize(d) {
-    this.resize = function(resize) {
+    this.resize = function (resize) {
       resize();
       d();
     }.bind(this, this.resize);
@@ -144,15 +145,17 @@ export abstract class Visualizer {
     }
     this.data = data;
     // create the viewer
-    this.viewer = d3.select(this.container)
-      .append("svg")
-      .attr("class", "GCV");
+    this.viewer = d3.select(this.container).append('svg').attr('class', 'GCV');
   }
 
   protected abstract draw(): void;
 
   /** Makes a copy of the SVG and inlines external GCV styles. */
-  protected inlineCopy(mod = (clone) => {/* noop */}) {
+  protected inlineCopy(
+    mod = (clone) => {
+      /* noop */
+    },
+  ) {
     // clone the current view node
     const clone = d3.select(this.viewer.node().cloneNode(true));
     mod(clone);
@@ -161,15 +164,15 @@ export abstract class Visualizer {
     // inline GCV styles
     for (const sheet of sheets) {
       let rules: any;
-        try {
-          rules = sheet.rules || sheet.cssRules;
-        } catch {
-          continue;
-        }
+      try {
+        rules = sheet.rules || sheet.cssRules;
+      } catch {
+        continue;
+      }
       for (const r of Object.keys(rules)) {
         const rule = rules[r];
         const selector = rule.selectorText;
-        if (selector !== undefined && selector.startsWith(".GCV")) {
+        if (selector !== undefined && selector.startsWith('.GCV')) {
           const style = rule.style;
           const selection = clone.selectAll(selector);
           for (const prop of style) {

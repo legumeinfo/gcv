@@ -1,6 +1,5 @@
 import { enumerableProperties } from './enumerable-properties.util';
 
-
 // determines if two elements are equal
 export const compare = (x: any, y: any) => {
   if (typeof x !== typeof y) return false;
@@ -9,7 +8,6 @@ export const compare = (x: any, y: any) => {
 
   return x === y;
 };
-
 
 // determines if two arrays have equal content
 export const arrayIsEqual = (a: any[], b: any[]) => {
@@ -20,15 +18,14 @@ export const arrayIsEqual = (a: any[], b: any[]) => {
   return a.every((e, i) => compare(e, b[i]));
 };
 
-
 // determines if two objects have equal content
-export const objectIsEqual = (a: Object, b: Object) => {
+export const objectIsEqual = (a: object, b: object) => {
   if (a === b) return true;
   if (a == null || b == null) return false;
 
   const aKeys = enumerableProperties(a).sort();
   const bKeys = enumerableProperties(b).sort();
-  if(!arrayIsEqual(aKeys, bKeys)) return false;
+  if (!arrayIsEqual(aKeys, bKeys)) return false;
 
   return aKeys.every((k) => compare(a[k], b[k]));
 };

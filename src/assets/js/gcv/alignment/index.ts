@@ -1,2 +1,2 @@
-export { repeat } from "./repeat";
-export { smithWaterman } from "./smith-waterman";
+export { repeat } from './repeat';
+export { smithWaterman } from './smith-waterman';

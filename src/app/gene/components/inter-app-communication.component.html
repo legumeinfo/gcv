@@ -1,24 +1,33 @@
 <div role="alert" [className]="alert.class">
-  {{alert.message}}
-  <i *ngIf="alert.working" class="fas fa-circle-notch fa-spin"></i>
+  {{ alert.message }}
+  @if (alert.working) {
+    <i class="fas fa-circle-notch fa-spin"></i>
+  }
 </div>
 
 <form class="px-4 py-3">
   <div class="mb-3">
     <div class="form-check">
-      <input type="checkbox" class="form-check-input" name="communicate"
+      <input
+        type="checkbox"
+        class="form-check-input"
+        name="communicate"
         [ngModel]="getCommunicate()"
         (ngModelChange)="setCommunicate($event)"
-        [disabled]="getChannel() === ''">
-      <label class="form-check-label" for="communicate">
-        Connect
-      </label>
+        [disabled]="getChannel() === ''"
+      />
+      <label class="form-check-label" for="communicate"> Connect </label>
     </div>
   </div>
   <div class="form-floating mb-3">
-    <input type="text" class="form-control" id="channel" name="channel"
+    <input
+      type="text"
+      class="form-control"
+      id="channel"
+      name="channel"
       [ngModel]="getChannel()"
-      (ngModelChange)="setChannel($event)">
+      (ngModelChange)="setChannel($event)"
+    />
     <label for="channel">Channel</label>
   </div>
 </form>

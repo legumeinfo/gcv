@@ -1,20 +1,14 @@
 // Angular
-import { AbstractControl, Validators } from '@angular/forms';
+import { Validators } from '@angular/forms';
 // app
 import { LINKAGES, Regex } from '@gcv/gene/constants';
 
-
 export type ClusteringParams = {
-  linkage: string,  // TODO: remove magic string
-  cthreshold: number,
+  linkage: string; // TODO: remove magic string
+  cthreshold: number;
 };
 
-
-export const clusteringParamMembers = [
-  'linkage',
-  'cthreshold',
-];
-
+export const clusteringParamMembers = ['linkage', 'cthreshold'];
 
 export const clusteringParamValidators = {
   linkage: Validators.compose([
@@ -26,7 +20,6 @@ export const clusteringParamValidators = {
     Validators.pattern(Regex.POSITIVE_INT),
   ]),
 };
-
 
 export const clusteringParamParsers = {
   linkage: (s) => s,

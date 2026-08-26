@@ -1,12 +1,18 @@
 import { ContextMenuComponent } from './context-menu';
 import { macroLayoutComponent, MacroComponent } from './macro';
-import { macroCircosLayoutComponent, MacroCircosComponent }
-  from './macro-circos';
-import { macroLegendLayoutComponent, MacroLegendComponent }
-  from './macro-legend';
+import {
+  macroCircosLayoutComponent,
+  MacroCircosComponent,
+} from './macro-circos';
+import {
+  macroLegendLayoutComponent,
+  MacroLegendComponent,
+} from './macro-legend';
 import { microLayoutComponent, MicroComponent } from './micro';
-import { microLegendLayoutComponent, MicroLegendComponent }
-  from './micro-legend';
+import {
+  microLegendLayoutComponent,
+  MicroLegendComponent,
+} from './micro-legend';
 import { plotLayoutComponent, PlotComponent } from './plot';
 
 export const components: any[] = [

@@ -1,22 +1,22 @@
 import { MacroCircosComponent } from './macro-circos.component';
 
+export const macroCircosLayoutComponent = {
+  component: MacroCircosComponent,
+  name: 'macrocircos',
+};
 
-export const macroCircosLayoutComponent =
-  {component: MacroCircosComponent, name: 'macrocircos'};
-
-
-export function macroCircosConfigFactory(clusterID: number, outputs: any={}) {
+export function macroCircosConfigFactory(clusterID: number, outputs: any = {}) {
   const id = `macrocircos:${clusterID}`;
   const options = {/*,replicateBlocks: true*/};
   let _outputs = {};
   _outputs = Object.assign(_outputs, outputs);
-  return  {
+  return {
     type: 'component',
-    componentName: 'macrocircos',
+    componentType: 'macrocircos',
     id: id,
     title: `Cluster ${clusterID} Circos`,
     componentState: {
-      inputs: {clusterID, options},
+      inputs: { clusterID, options },
       outputs: _outputs,
     },
   };

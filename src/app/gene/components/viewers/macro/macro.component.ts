@@ -1,34 +1,71 @@
 // Angular + dependencies
-import { AfterViewInit, Component, ElementRef, EventEmitter, Input, OnDestroy,
-  OnInit, Output, ViewChild } from '@angular/core';
+import {
+  AfterViewInit,
+  Component,
+  ElementRef,
+  EventEmitter,
+  Input,
+  OnDestroy,
+  OnInit,
+  Output,
+  ViewChild,
+  ChangeDetectionStrategy,
+  inject,
+} from '@angular/core';
 import { Subject, combineLatest } from 'rxjs';
-import { filter, map, mergeAll, mergeMap, switchMap, takeUntil }
-  from 'rxjs/operators';
+import {
+  filter,
+  map,
+  mergeAll,
+  mergeMap,
+  switchMap,
+  takeUntil,
+} from 'rxjs/operators';
 // app
 import { GCV } from '@gcv-assets/js/gcv';
 import { saveFile } from '@gcv/core/utils';
 import { Pipeline } from '@gcv/gene/models';
-import { blockIndexMap, endpointGenes, nameSourceID }
-  from '@gcv/gene/models/shims';
-import { ChromosomeService, GeneService, MicroTracksService,
-  PairwiseBlocksService, ParamsService, ProcessService, RegionService }
-  from '@gcv/gene/services';
+import {
+  blockIndexMap,
+  endpointGenes,
+  nameSourceID,
+} from '@gcv/gene/models/shims';
+import {
+  ChromosomeService,
+  GeneService,
+  MicroTracksService,
+  PairwiseBlocksService,
+  ParamsService,
+  ProcessService,
+  RegionService,
+} from '@gcv/gene/services';
 // component
 import { macroShim } from './macro.shim';
 
-
 @Component({
-    selector: 'gcv-macro',
-    styleUrls: ['../golden-viewer.scss'],
-    template: `
+  selector: 'gcv-macro',
+  styleUrls: ['../golden-viewer.scss'],
+  template: `
     <gcv-context-menu (saveImage)="saveImage()">
-      <gcv-pipeline [info]=info [pipeline]=pipeline navcenter></gcv-pipeline>
+      <gcv-pipeline
+        [info]="info"
+        [pipeline]="pipeline"
+        navcenter
+      ></gcv-pipeline>
     </gcv-context-menu>
     <div (gcvOnResize)="draw()" class="viewer" #container></div>
   `,
-    standalone: false
+  changeDetection: ChangeDetectionStrategy.Eager,
+  standalone: false,
 })
 export class MacroComponent implements AfterViewInit, OnDestroy, OnInit {
+  private _chromosomeService = inject(ChromosomeService);
+  private _geneService = inject(GeneService);
+  private _microTracksService = inject(MicroTracksService);
+  private _pairwiseBlocksService = inject(PairwiseBlocksService);
+  private _paramsService = inject(ParamsService);
+  private _processService = inject(ProcessService);
+  private _regionService = inject(RegionService);
 
   // IO
 
@@ -38,11 +75,13 @@ export class MacroComponent implements AfterViewInit, OnDestroy, OnInit {
   @Input() options: any = {};
   @Output() blockOver = new EventEmitter();
 
-  @ViewChild('container', {static: true}) container: ElementRef;
+  @ViewChild('container', { static: true }) container: ElementRef;
 
   // variables
 
-  draw = () => { /* no-op */ };
+  draw = () => {
+    /* no-op */
+  };
 
   info = `<p>This is the macro synteny <i>pipeline</i>.
           It depicts the flow of data from one <i>process</i> to the next for
@@ -53,74 +92,75 @@ export class MacroComponent implements AfterViewInit, OnDestroy, OnInit {
           <br>
           <b>Positions</b> fetches the physical positions of the computed blocks
           on the chromosomes.
-          </p>`
+          </p>`;
   pipeline: Pipeline;
 
   private _destroy: Subject<boolean> = new Subject();
   private _viewer;
 
-  // constructor
-
-  constructor(private _chromosomeService: ChromosomeService,
-              private _geneService: GeneService,
-              private _microTracksService: MicroTracksService,
-              private _pairwiseBlocksService: PairwiseBlocksService,
-              private _paramsService: ParamsService,
-              private _processService: ProcessService,
-              private _regionService: RegionService) { }
-
   // Angular hooks
 
   ngOnInit() {
-    const chromosomes = [{name: this.name, source: this.source}];
+    const chromosomes = [{ name: this.name, source: this.source }];
     this.pipeline = {
-        'Blocks': this._processService.getMacroBlockProcess(chromosomes),
-        'Positions': this._processService
-          .getMacroBlockPositionProcess(chromosomes),
-      };
+      Blocks: this._processService.getMacroBlockProcess(chromosomes),
+      Positions: this._processService.getMacroBlockPositionProcess(chromosomes),
+    };
   }
 
   ngAfterViewInit() {
     const queryID = nameSourceID(this.name, this.source);
-    const queryTrack = this._microTracksService.getSelectedTracks()
-      .pipe(
-        mergeAll(),
-        filter((t) => nameSourceID(t.name, t.source) == queryID));
+    const queryTrack = this._microTracksService.getSelectedTracks().pipe(
+      mergeAll(),
+      filter((t) => nameSourceID(t.name, t.source) == queryID),
+    );
     const clusterTracks = this._microTracksService.getCluster(this.clusterID);
-    const queryChromosome = this._chromosomeService.getSelectedChromosomes()
+    const queryChromosome = this._chromosomeService
+      .getSelectedChromosomes()
       .pipe(
         mergeAll(),
-        filter((c) => nameSourceID(c.name, c.source) == queryID));
-    const colors = queryChromosome
-      .pipe(
-        mergeMap((chromosome) => {
-          return this._pairwiseBlocksService.getMacroColors();
-        })
+        filter((c) => nameSourceID(c.name, c.source) == queryID),
       );
+    const colors = queryChromosome.pipe(
+      mergeMap((chromosome) => {
+        return this._pairwiseBlocksService.getMacroColors();
+      }),
+    );
     const sourceParams = this._paramsService.getSourceParams();
     const blockParams = this._paramsService.getBlockParams();
-    const pairwiseBlocks =
-      combineLatest(queryChromosome, sourceParams, blockParams).pipe(
-        switchMap(([chromosome, sources, params]) => {
-          const _sources = sources.sources;
-          return this._pairwiseBlocksService
-            .getPairwiseBlocksForTracks([chromosome], _sources, params);
-        }),
-      );
-    const blockGenes =
-      combineLatest(queryTrack, queryChromosome, pairwiseBlocks).pipe(
-        map(([query, chromosome, blocks]) => {
-          const chromosomeGeneIndexes = blockIndexMap(blocks);
-          // create chromosome copies that only contain index gene
-          const id = nameSourceID(chromosome.name, chromosome.source);
-          const geneChromosome =
-            endpointGenes(chromosome, chromosomeGeneIndexes[id]);
-          return [query, geneChromosome];
-        }),
-        switchMap((tracks) => {
-          return this._geneService.getGenesForTracks(tracks);
-        }),
-      );
+    const pairwiseBlocks = combineLatest(
+      queryChromosome,
+      sourceParams,
+      blockParams,
+    ).pipe(
+      switchMap(([chromosome, sources, params]) => {
+        const _sources = sources.sources;
+        return this._pairwiseBlocksService.getPairwiseBlocksForTracks(
+          [chromosome],
+          _sources,
+          params,
+        );
+      }),
+    );
+    const blockGenes = combineLatest(
+      queryTrack,
+      queryChromosome,
+      pairwiseBlocks,
+    ).pipe(
+      map(([query, chromosome, blocks]) => {
+        const chromosomeGeneIndexes = blockIndexMap(blocks);
+        // create chromosome copies that only contain index gene
+        const id = nameSourceID(chromosome.name, chromosome.source);
+        const geneChromosome = endpointGenes(
+          chromosome,
+          chromosomeGeneIndexes[id],
+        );
+        return [query, geneChromosome];
+      }),
+      switchMap((tracks) => {
+        return this._geneService.getGenesForTracks(tracks);
+      }),
+    );
     combineLatest(
       queryChromosome,
       queryTrack,
@@ -156,39 +196,47 @@ export class MacroComponent implements AfterViewInit, OnDestroy, OnInit {
   }
 
   private _preDraw(chromosome, query, tracks, blocks, genes, colors): void {
-    const {data, viewport, highlight} =
-      macroShim(chromosome, query, tracks, blocks, genes);
+    const { data, viewport, highlight } = macroShim(
+      chromosome,
+      query,
+      tracks,
+      blocks,
+      genes,
+    );
     let options = {
-        colors,
-        viewport,
-        highlight,
-        blockOver: (e, t, i, b, j) => {
-          const pairwiseBlocks = blocks[i];
-          // NOTE: this is sloppy; is there a better way to get the block?
-          const block = pairwiseBlocks.blocks.find((block) => {
-              return (b.start == block.fmin && b.stop == block.fmax) ||
-                     (b.start == block.fmax && b.stop == block.fmin);
-            });
-          this.emitBlockOver(e, pairwiseBlocks, block);
-        },
-        viewportDrag: (e, start, stop) => this._viewportDrag(start, stop),
-      };
-    options = Object.assign(options, this.options, {autoResize: false});
+      colors,
+      viewport,
+      highlight,
+      blockOver: (e, t, i, b, j) => {
+        const pairwiseBlocks = blocks[i];
+        // NOTE: this is sloppy; is there a better way to get the block?
+        const block = pairwiseBlocks.blocks.find((block) => {
+          return (
+            (b.start == block.fmin && b.stop == block.fmax) ||
+            (b.start == block.fmax && b.stop == block.fmin)
+          );
+        });
+        this.emitBlockOver(e, pairwiseBlocks, block);
+      },
+      viewportDrag: (e, start, stop) => this._viewportDrag(start, stop),
+    };
+    options = Object.assign(options, this.options, { autoResize: false });
     this.draw = this._draw.bind(this, data, options);
   }
 
   private _draw(data, options) {
     let tempViewer: any;
     const dim = Math.min(
-        this.container.nativeElement.clientWidth,
-        this.container.nativeElement.clientHeight
-      );
+      this.container.nativeElement.clientWidth,
+      this.container.nativeElement.clientHeight,
+    );
     // draw the new viewer before destroying the old to preserve scroll position
     if (dim > 0) {
       tempViewer = new GCV.visualization.Macro(
         this.container.nativeElement,
         data,
-        options);
+        options,
+      );
     }
     this._destroyViewer();
     this._viewer = tempViewer;
@@ -197,7 +245,7 @@ export class MacroComponent implements AfterViewInit, OnDestroy, OnInit {
   // public
 
   emitBlockOver(event, pairwiseBlocks, block) {
-    this.blockOver.emit({event, pairwiseBlocks, block});
+    this.blockOver.emit({ event, pairwiseBlocks, block });
   }
 
   saveImage(): void {

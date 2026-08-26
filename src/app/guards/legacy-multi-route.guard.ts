@@ -1,16 +1,23 @@
 // Angular
-import { Injectable } from '@angular/core';
-import { ActivatedRouteSnapshot, NavigationExtras, Router, UrlTree } from '@angular/router';
+import { Injectable, inject } from '@angular/core';
+import {
+  ActivatedRouteSnapshot,
+  NavigationExtras,
+  Router,
+  UrlTree,
+} from '@angular/router';
 import { AppConfig } from '@gcv/core/models';
 
-
 @Injectable()
-export class LegacyMultiRouteGuard  {
+export class LegacyMultiRouteGuard {
+  private _appConfig = inject(AppConfig);
+  private _router = inject(Router);
 
   private _sourceIDs: string[];
 
-  constructor(private _appConfig: AppConfig,
-              private _router: Router) {
+  constructor() {
+    const _appConfig = this._appConfig;
+
     this._sourceIDs = _appConfig.getServerIDs();
   }
 
@@ -26,10 +33,9 @@ export class LegacyMultiRouteGuard  {
     }
     const path = [url, params];
     const extras: NavigationExtras = {
-        queryParams: route.queryParams,
-        queryParamsHandling: 'merge',
-      };
+      queryParams: route.queryParams,
+      queryParamsHandling: 'merge',
+    };
     return this._router.createUrlTree(path, extras);
   }
-
 }

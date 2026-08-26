@@ -3,20 +3,20 @@ import { MemoizedProjection } from '@ngrx/store';
 // app
 import { arrayIsEqual, compare, objectIsEqual } from './comparators.util';
 
-
 type AnyFn = (...args: any[]) => any;
 
-
-export const selectorMemoizerFactory = (comparator: Function) => {
+export const selectorMemoizerFactory = (
+  comparator: (...args: any[]) => any,
+) => {
   return (t: AnyFn): MemoizedProjection => {
     let lastResult: any = null;
     let overrideResult: any;
 
-    function memoized(): any {
+    function memoized(...args: any[]): any {
       if (overrideResult !== undefined) {
         return overrideResult.result;
       }
-      const result = t.apply(null, arguments);
+      const result = t(...args);
       if (lastResult === null || !comparator(result, lastResult)) {
         lastResult = result;
         return result;
@@ -30,17 +30,16 @@ export const selectorMemoizerFactory = (comparator: Function) => {
     }
 
     function setResult(result: any = undefined) {
-      lastResult = {result};
-    };
+      lastResult = { result };
+    }
 
     function clearResult() {
       overrideResult = undefined;
     }
 
-    return {memoized, reset, setResult, clearResult};
-  }
+    return { memoized, reset, setResult, clearResult };
+  };
 };
-
 
 export const memoizeArray = selectorMemoizerFactory(arrayIsEqual);
 export const memoizeObject = selectorMemoizerFactory(objectIsEqual);

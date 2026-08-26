@@ -1,37 +1,60 @@
 // Angular
-import { Component, Input, OnDestroy, OnInit } from '@angular/core';
-import { Observable, Subject } from 'rxjs';
+import {
+  Component,
+  Input,
+  OnDestroy,
+  OnInit,
+  ChangeDetectionStrategy,
+  inject,
+} from '@angular/core';
+import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 // App
-import { AppConfig, Server } from '@gcv/core/models';
-import { Track } from '@gcv/gene/models';
+import { AppConfig } from '@gcv/core/models';
 import { MicroTracksService } from '@gcv/gene/services';
 
-
 @Component({
-    selector: 'gcv-family-detail',
-    styleUrls: ['../details.scss'],
-    template: `
+  selector: 'gcv-family-detail',
+  styleUrls: ['../details.scss'],
+  template: `
     <div class="details">
-      <h4>{{family.name}}</h4>
-      <p><a [routerLink]="['/gene', geneMatrix]" queryParamsHandling="merge">View genes in multi-alignment view</a></p>
-      <p>Phylograms: <span *ngIf="familyTreeLinks.length === 0">none</span></p>
-      <ul *ngIf="familyTreeLinks.length > 0">
-        <li *ngFor="let link of familyTreeLinks">
-          <a href="{{link.url}}">{{link.text}}</a>
-        </li>
-      </ul>
+      <h4>{{ family.name }}</h4>
+      <p>
+        <a [routerLink]="['/gene', geneMatrix]" queryParamsHandling="merge"
+          >View genes in multi-alignment view</a
+        >
+      </p>
+      <p>
+        Phylograms:
+        @if (familyTreeLinks.length === 0) {
+          <span>none</span>
+        }
+      </p>
+      @if (familyTreeLinks.length > 0) {
+        <ul>
+          @for (link of familyTreeLinks; track link) {
+            <li>
+              <a href="{{ link.url }}">{{ link.text }}</a>
+            </li>
+          }
+        </ul>
+      }
       <p>Genes:</p>
       <ul>
-        <li *ngFor="let gene of genes">{{ gene }}</li>
+        @for (gene of genes; track gene) {
+          <li>{{ gene }}</li>
+        }
       </ul>
     </div>
   `,
-    standalone: false
+  changeDetection: ChangeDetectionStrategy.Eager,
+  standalone: false,
 })
 export class FamilyDetailComponent implements OnDestroy, OnInit {
+  private _appConfig = inject(AppConfig);
+  private _microTracksService = inject(MicroTracksService);
 
-  @Input() family: {id: string, name: string};
+  @Input() family: { id: string; name: string };
 
   private _serverIDs: string[];
   private _destroy: Subject<boolean> = new Subject();
@@ -40,10 +63,9 @@ export class FamilyDetailComponent implements OnDestroy, OnInit {
   geneMatrix = {};
   familyTreeLinks: any[] = [];
 
-  constructor(
-    private _appConfig: AppConfig,
-    private _microTracksService: MicroTracksService,
-  ) {
+  constructor() {
+    const _appConfig = this._appConfig;
+
     this._serverIDs = _appConfig.getServerIDs();
   }
 
@@ -56,7 +78,8 @@ export class FamilyDetailComponent implements OnDestroy, OnInit {
 
   ngOnInit() {
     const tracks = this._microTracksService.getAllTracks();
-    tracks.pipe(takeUntil(this._destroy))
+    tracks
+      .pipe(takeUntil(this._destroy))
       .subscribe((tracks) => this._process(tracks));
   }
 
@@ -65,13 +88,13 @@ export class FamilyDetailComponent implements OnDestroy, OnInit {
   private _process(tracks) {
     this.geneMatrix = {};
     this.genes = [];
-    const {id} = this.family;
+    const { id } = this.family;
 
-    tracks.forEach(({source, families, genes}) => {
+    tracks.forEach(({ source, families, genes }) => {
       const familyGenes = genes.filter((g, i) => {
-          const f = families[i];
-          return (f.length > 0 && id.includes(f)) || f === id;
-        });
+        const f = families[i];
+        return (f.length > 0 && id.includes(f)) || f === id;
+      });
       if (familyGenes.length > 0) {
         if (!(source in this.geneMatrix)) {
           this.geneMatrix[source] = [];
@@ -88,7 +111,10 @@ export class FamilyDetailComponent implements OnDestroy, OnInit {
       const geneString = this.genes.join(',');
       Object.keys(this.geneMatrix).forEach((s) => {
         const server = this._appConfig.getServer(s);
-        if (server !== undefined && server.hasOwnProperty('familyTreeLink')) {
+        if (
+          server !== undefined &&
+          Object.prototype.hasOwnProperty.call(server, 'familyTreeLink')
+        ) {
           const familyTreeLink = {
             url: server.familyTreeLink.url + id + '&gene_name=' + geneString,
             text: server.name,

@@ -9,21 +9,10 @@ import * as fromGuards from '@gcv/core/guards';
 import * as fromServices from '@gcv/core/services';
 import { WidgetsModule } from '@gcv/widgets/widgets.module';
 
-
 @NgModule({
-  declarations: [
-    ...fromContainers.components,
-    ...fromComponents.components
-  ],
-  imports: [
-    CommonModule,
-    RouterModule,
-    WidgetsModule,
-  ],
+  declarations: [...fromContainers.components, ...fromComponents.components],
+  imports: [CommonModule, RouterModule, WidgetsModule],
   exports: [...fromComponents.components],
-  providers: [
-    ...fromGuards.guards,
-    ...fromServices.services,
-  ]
+  providers: [...fromGuards.guards, ...fromServices.services],
 })
-export class CoreModule { }
+export class CoreModule {}

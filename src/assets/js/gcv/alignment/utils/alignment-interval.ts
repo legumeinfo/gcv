@@ -6,17 +6,15 @@
  * alignment.
  */
 export function alignmentInterval(a: number[]): [number, number] {
-  let begin: number;
-  let end: number;
   let i = 0;
   while (i < a.length && a[i] === null) {
     i += 1;
   }
-  begin = i;
-  i = a.length-1;
+  const begin = i;
+  i = a.length - 1;
   while (i >= 0 && a[i] === null) {
     i -= 1;
   }
-  end = i;
+  const end = i;
   return [begin, end];
 }

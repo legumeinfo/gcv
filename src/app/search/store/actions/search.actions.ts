@@ -1,4 +1,4 @@
-import { Action, createAction, props } from '@ngrx/store';
+import { createAction, union } from '@ngrx/store';
 import { counter } from '@gcv/core/utils';
 import { Result } from '@gcv/search/models';
 
@@ -7,24 +7,25 @@ export const SEARCH = '[SEARCH] SEARCH';
 export const SEARCH_SUCCESS = '[SEARCH] SEARCH_SUCCESS';
 export const SEARCH_FAILURE = '[SEARCH] SEARCH_FAILURE';
 
-export class Clear implements Action {
-  readonly type = CLEAR;
-}
+export const clear = createAction(CLEAR);
 
-export class Search implements Action {
-  readonly type = SEARCH;
-  readonly id = counter.getCount();
-  constructor(public payload: {query: string, source: string}) { }
-}
+export const search = createAction(
+  SEARCH,
+  (payload: { query: string; source: string }) => ({
+    id: counter.getCount(),
+    payload,
+  }),
+);
 
-export class SearchSuccess implements Action {
-  readonly type = SEARCH_SUCCESS;
-  constructor(public payload: {result: Result, source: string}) { }
-}
+export const searchSuccess = createAction(
+  SEARCH_SUCCESS,
+  (payload: { result: Result; source: string }) => ({ payload }),
+);
 
-export class SearchFailure implements Action {
-  readonly type = SEARCH_FAILURE;
-  constructor(public payload: {source: string}) { }
-}
+export const searchFailure = createAction(
+  SEARCH_FAILURE,
+  (payload: { source: string }) => ({ payload }),
+);
 
-export type Actions = Clear | Search | SearchSuccess | SearchFailure;
+const _all = union({ clear, search, searchSuccess, searchFailure });
+export type Actions = typeof _all;

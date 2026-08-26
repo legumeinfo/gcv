@@ -1,4 +1,4 @@
-import { Graph } from "./graph";
+import { Graph } from './graph';
 
 /**
  * An undirected graph that implements the abstract Graph class.
@@ -21,11 +21,11 @@ export class Undirected extends Graph {
     });
   }
   getEdgeId(u, v) {
-    return (u < v) ? u + this.ed + v : v + this.ed + u;
+    return u < v ? u + this.ed + v : v + this.ed + u;
   }
   addEdge(u, v, attr?) {
     const e = this.getEdgeId(u, v);
-    if (!this.edges.hasOwnProperty(e)) {
+    if (!Object.prototype.hasOwnProperty.call(this.edges, e)) {
       this.nodes[u].neighbors.add(v);
       this.nodes[v].neighbors.add(u);
       this.edges[e] = attr;
@@ -33,13 +33,13 @@ export class Undirected extends Graph {
   }
   updateEdge(u, v, attr) {
     const e = this.getEdgeId(u, v);
-    if (this.edges.hasOwnProperty(e)) {
+    if (Object.prototype.hasOwnProperty.call(this.edges, e)) {
       this.edges[e] = attr;
     }
   }
   removeEdge(u, v) {
     const e = this.getEdgeId(u, v);
-    if (this.edges.hasOwnProperty(e)) {
+    if (Object.prototype.hasOwnProperty.call(this.edges, e)) {
       const attr = this.edges[e];
       delete this.edges[e];
       this.nodes[u].neighbors.delete(v);
@@ -50,7 +50,7 @@ export class Undirected extends Graph {
   }
   getEdge(u, v) {
     const e = this.getEdgeId(u, v);
-    if (this.edges.hasOwnProperty(e)) {
+    if (Object.prototype.hasOwnProperty.call(this.edges, e)) {
       return this.edges[e];
     }
     return null;
@@ -68,7 +68,7 @@ export class Undirected extends Graph {
   contractEdge(u, v, contractF, updateF) {
     const e = this.getEdge(u, v);
     if (e != null) {
-      const [keep, remove] = (u < v) ? [u, v] : [v, u];
+      const [keep, remove] = u < v ? [u, v] : [v, u];
       const keepNode = this.getNode(keep);
       const removeNode = this.getNode(remove);
       keepNode.attr = contractF(keepNode.attr, removeNode.attr, e);

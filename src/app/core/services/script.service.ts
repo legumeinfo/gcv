@@ -1,20 +1,19 @@
 // Angular
-import { DOCUMENT } from '@angular/common';
-import { Inject, Injectable } from '@angular/core';
+
+import { Injectable, DOCUMENT, inject } from '@angular/core';
 import { Observable, OperatorFunction } from 'rxjs';
 import { zip } from 'rxjs/operators';
 
-
 @Injectable()
 export class ScriptService {
+  private _document = inject<HTMLDocument>(DOCUMENT);
 
   private _scripts: Set<string> = new Set<string>();
 
-  constructor(@Inject(DOCUMENT) private _document: HTMLDocument) { }
-
   load(...scripts: string[]): OperatorFunction<any, any> {
-    const scriptLoaders: Observable<any>[] =
-      scripts.map((script) => this.loadScript(script));
+    const scriptLoaders: Observable<any>[] = scripts.map((script) =>
+      this.loadScript(script),
+    );
     return zip(...scriptLoaders);
   }
 
@@ -29,16 +28,20 @@ export class ScriptService {
         script.type = 'text/javascript';
         script.src = src;
         script.onerror = subscriber.error;
-        if (script.readyState) {  //IE
+        if (script.readyState) {
+          //IE
           script.onreadystatechange = () => {
-            if (script.readyState === 'loaded' ||
-                script.readyState === 'complete') {
+            if (
+              script.readyState === 'loaded' ||
+              script.readyState === 'complete'
+            ) {
               script.onreadystatechange = null;
               this._scripts.add(src);
               subscriber.complete();
             }
           };
-        } else {  //Others
+        } else {
+          //Others
           script.onload = () => {
             this._scripts.add(src);
             subscriber.complete();
@@ -48,5 +51,4 @@ export class ScriptService {
       }
     });
   }
-
 }

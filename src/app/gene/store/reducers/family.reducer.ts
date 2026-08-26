@@ -7,35 +7,31 @@ import { createReducer, on } from '@ngrx/store';
 // store
 import * as familyActions from '@gcv/gene/store/actions/family.actions';
 
-
 export const familyFeatureKey = 'family';
-
 
 export interface State {
   omitted: string[];
 }
 
-
 const initialState: State = {
   omitted: [],
 };
 
-
 export const reducer = createReducer(
   initialState,
-  on(familyActions.Clear, (state) => {
+  on(familyActions.Clear, (state): State => {
     return {
       omitted: [],
     };
   }),
-  on(familyActions.OmitFamilies, (state, {families}) => {
+  on(familyActions.OmitFamilies, (state, { families }): State => {
     const omitted = new Set(state.omitted);
     families.forEach((f) => omitted.add(f));
     return {
       omitted: Array.from(omitted),
     };
   }),
-  on(familyActions.IncludeFamilies, (state, {families}) => {
+  on(familyActions.IncludeFamilies, (state, { families }): State => {
     const omitted = new Set(state.omitted);
     families.forEach((f) => omitted.delete(f));
     return {

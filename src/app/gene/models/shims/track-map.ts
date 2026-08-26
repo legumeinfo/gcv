@@ -1,9 +1,7 @@
 import { Track } from '@gcv/gene/models';
 import { nameSourceID } from './name-source-id';
 
-
-export type TrackMap = {[key: string]: Track};
-
+export type TrackMap = { [key: string]: Track };
 
 export function trackMap(tracks: Track[]): TrackMap {
   const map: TrackMap = {};
