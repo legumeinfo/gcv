@@ -67,7 +67,7 @@
     "@playwright/test": "^1.58.2",
     "@types/jest": "^30.0.0",
     "@types/node": "^25.0.0",
-    "@typescript-eslint/eslint-plugin": "^8.33.1",
+    "@typescript-eslint/eslint-plugin": "^8.71.1",
     "@typescript-eslint/parser": "^8.33.1",
     "angular-eslint": "22.0.0",
     "eslint": "^9.28.0",
