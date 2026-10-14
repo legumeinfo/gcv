@@ -78,7 +78,7 @@
     "jest-preset-angular": "^17.0.0",
     "jsdom": "^29.1.1",
     "prettier": "^3.9.6",
-    "sharp": "^0.34.1",
+    "sharp": "^0.35.5",
     "ts-jest": "^29.4.11",
     "typescript": "^6.0.3",
     "typescript-eslint": "^8.33.1"
