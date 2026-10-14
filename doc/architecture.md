@@ -1,6 +1,6 @@
 # GCV Architecture
 
-**Version:** 2.6.1
+**Version:** 2.7.0
 **Repository:** https://github.com/legumeinfo/gcv
 **Live:** https://gcv.legumeinfo.org/
 
