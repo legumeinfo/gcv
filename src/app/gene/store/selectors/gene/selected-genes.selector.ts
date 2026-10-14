@@ -3,13 +3,16 @@ import { createSelectorFactory } from '@ngrx/store';
 // store
 import { geneID, GeneID, State } from '@gcv/gene/store/reducers/gene.reducer';
 import { selectRouteParams } from '@gcv/store/selectors/router';
-import { getGeneState } from './gene-state.selector';
+import { selectGeneState } from './gene-state.selector';
 // app
 import { AppConfig } from '@gcv/core/models';
-import { arrayFlatten, memoizeArray, memoizeValue, setIntersection }
-  from '@gcv/core/utils';
+import {
+  arrayFlatten,
+  memoizeArray,
+  memoizeValue,
+  setIntersection,
+} from '@gcv/core/utils';
 import { Gene } from '@gcv/gene/models';
-
 
 export const getSelectedGeneIDs = createSelectorFactory(memoizeArray)(
   selectRouteParams,
@@ -20,15 +23,14 @@ export const getSelectedGeneIDs = createSelectorFactory(memoizeArray)(
       .filter((source) => source in params)
       .map((source) => {
         const names = params[source].split(',');
-        return names.map((name) => ({source, name}));
+        return names.map((name) => ({ source, name }));
       });
     return arrayFlatten(selectedGenes);
   },
 );
 
-
 export const getSelectedGenesLoaded = createSelectorFactory(memoizeValue)(
-  getGeneState,
+  selectGeneState,
   getSelectedGeneIDs,
   (state: State, ids: GeneID[]): boolean => {
     const loaded = new Set(state.ids as string[]);
@@ -39,18 +41,17 @@ export const getSelectedGenesLoaded = createSelectorFactory(memoizeValue)(
   },
 );
 
-
 export const getSelectedGenes = createSelectorFactory(memoizeArray)(
-  getGeneState,
+  selectGeneState,
   getSelectedGeneIDs,
   (state: State, ids: GeneID[]): Gene[] => {
-    const reducer = (accumulator, {name, source}) => {
-        const id = geneID(name, source);
-        if (id in state.entities) {
-          accumulator[id] = state.entities[id];
-        }
-        return accumulator;
-      };
+    const reducer = (accumulator, { name, source }) => {
+      const id = geneID(name, source);
+      if (id in state.entities) {
+        accumulator[id] = state.entities[id];
+      }
+      return accumulator;
+    };
     const selectedGenes = ids.reduce(reducer, {});
     return Object.values(selectedGenes);
   },

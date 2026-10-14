@@ -1,10 +1,9 @@
 import { AppConfig } from '@gcv/core/models';
 import { Params } from '@gcv/gene/models/params';
 
-
 export const initialState: Params = {
   // alignment
-  algorithm:  AppConfig.defaultParameters.gene.microSyntenyAlignment.algorithm,
+  algorithm: AppConfig.defaultParameters.gene.microSyntenyAlignment.algorithm,
   match: AppConfig.defaultParameters.gene.microSyntenyAlignment.match,
   mismatch: AppConfig.defaultParameters.gene.microSyntenyAlignment.mismatch,
   gap: AppConfig.defaultParameters.gene.microSyntenyAlignment.gap,
@@ -18,7 +17,8 @@ export const initialState: Params = {
   bchrlength: AppConfig.defaultParameters.gene.macroSynteny.minChromosomeLength,
   // clustering
   linkage: AppConfig.defaultParameters.gene.microSyntenyClustering.linkage,
-  cthreshold: AppConfig.defaultParameters.gene.microSyntenyClustering.cthreshold,
+  cthreshold:
+    AppConfig.defaultParameters.gene.microSyntenyClustering.cthreshold,
   // query
   neighbors: AppConfig.defaultParameters.gene.microSynteny.neighbors,
   matched: AppConfig.defaultParameters.gene.microSynteny.matched,

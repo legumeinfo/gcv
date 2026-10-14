@@ -3,15 +3,13 @@ import { Validators } from '@angular/forms';
 // app
 import { Regex } from '@gcv/gene/constants';
 
-
 export type BlockParams = {
-  bmatched: number,
-  bintermediate: number,
-  bmask: number,
-  bchrgenes: number,
-  bchrlength: number,
+  bmatched: number;
+  bintermediate: number;
+  bmask: number;
+  bchrgenes: number;
+  bchrlength: number;
 };
-
 
 export const blockParamMembers = [
   'bmatched',
@@ -20,7 +18,6 @@ export const blockParamMembers = [
   'bchrgenes',
   'bchrlength',
 ];
-
 
 export const blockParamValidators = {
   bintermediate: Validators.compose([
@@ -35,14 +32,9 @@ export const blockParamValidators = {
     Validators.required,
     Validators.pattern(Regex.POSITIVE_INT),
   ]),
-  bchrgenes: Validators.compose([
-    Validators.pattern(Regex.POSITIVE_INT),
-  ]),
-  bchrlength: Validators.compose([
-    Validators.pattern(Regex.POSITIVE_INT),
-  ]),
+  bchrgenes: Validators.compose([Validators.pattern(Regex.POSITIVE_INT)]),
+  bchrlength: Validators.compose([Validators.pattern(Regex.POSITIVE_INT)]),
 };
-
 
 export const blockParamParsers = {
   bintermediate: parseInt,

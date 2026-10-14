@@ -1,6 +1,6 @@
 // https://gist.github.com/inexorabletash/52f437d1451d12145264
 
-(function(global) {
+(function (global) {
   var channels = [];
 
   function BroadcastChannel(channel) {
@@ -19,7 +19,7 @@
     this._mc.port1.start();
     this._mc.port2.start();
 
-    global.addEventListener('storage', function(e) {
+    global.addEventListener('storage', function (e) {
       if (e.storageArea !== global.localStorage) return;
       if (e.newValue === null) return;
       if (e.key.substring(0, id.length) !== id) return;
@@ -30,8 +30,10 @@
 
   BroadcastChannel.prototype = {
     // BroadcastChannel API
-    get name() { return this._name; },
-    postMessage: function(message) {
+    get name() {
+      return this._name;
+    },
+    postMessage: function (message) {
       var $this = this;
       if (this._closed) {
         var e = new Error();
@@ -43,15 +45,17 @@
       // Broadcast to other contexts via storage events...
       var key = this._id + String(Date.now()) + '$' + String(Math.random());
       global.localStorage.setItem(key, value);
-      setTimeout(function() { global.localStorage.removeItem(key); }, 500);
+      setTimeout(function () {
+        global.localStorage.removeItem(key);
+      }, 500);
 
       // Broadcast to current context via ports
-      channels[this._id].forEach(function(bc) {
+      channels[this._id].forEach(function (bc) {
         if (bc === $this) return;
         bc._mc.port2.postMessage(JSON.parse(value));
       });
     },
-    close: function() {
+    close: function () {
       if (this._closed) return;
       this._closed = true;
       this._mc.port1.close();
@@ -62,18 +66,25 @@
     },
 
     // EventTarget API
-    get onmessage() { return this._mc.port1.onmessage; },
-    set onmessage(value) { this._mc.port1.onmessage = value; },
-    addEventListener: function(type, listener /*, useCapture*/) {
+    get onmessage() {
+      return this._mc.port1.onmessage;
+    },
+    set onmessage(value) {
+      this._mc.port1.onmessage = value;
+    },
+    addEventListener: function (type, listener /*, useCapture*/) {
       return this._mc.port1.addEventListener.apply(this._mc.port1, arguments);
     },
-    removeEventListener: function(type, listener /*, useCapture*/) {
-      return this._mc.port1.removeEventListener.apply(this._mc.port1, arguments);
+    removeEventListener: function (type, listener /*, useCapture*/) {
+      return this._mc.port1.removeEventListener.apply(
+        this._mc.port1,
+        arguments,
+      );
     },
-    dispatchEvent: function(event) {
+    dispatchEvent: function (event) {
       return this._mc.port1.dispatchEvent.apply(this._mc.port1, arguments);
-    }
+    },
   };
 
   global.BroadcastChannel = global.BroadcastChannel || BroadcastChannel;
-}(self));
+})(self);

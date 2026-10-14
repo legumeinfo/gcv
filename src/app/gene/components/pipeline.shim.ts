@@ -1,6 +1,5 @@
 import { ProcessStatus } from '@gcv/gene/models';
 
-
 export const statusClasses = {
   'process-waiting': 'secondary',
   'process-running': 'secondary',
@@ -10,14 +9,12 @@ export const statusClasses = {
   'process-info': 'info',
 };
 
-
 export const statusToClass = (status: ProcessStatus): string => {
   if (status.word in statusClasses) {
     return statusClasses[status.word];
   }
   return 'secondary';
 };
-
 
 export const statusIcons = {
   'process-waiting': 'fas fa-ban',
@@ -27,7 +24,6 @@ export const statusIcons = {
   'process-warning': 'fas fa-exclamation-circle',
   'process-info': 'fas fa-info-circle',
 };
-
 
 export const statusToIcon = (status: ProcessStatus): string => {
   if (status.word in statusIcons) {

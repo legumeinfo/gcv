@@ -1,6 +1,5 @@
 // keeps an internal count that is incremented at each get call
 class Counter {
-
   private _count = 0;
 
   getCount() {

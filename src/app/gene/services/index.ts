@@ -5,7 +5,7 @@ import { GeneService } from './gene.service';
 import { InterAppCommunicationService } from './inter-app-communication.service';
 import { LayoutService } from './layout.service';
 import { MicroTracksService } from './micro-tracks.service';
-import { PairwiseBlocksService} from './pairwise-blocks.service';
+import { PairwiseBlocksService } from './pairwise-blocks.service';
 import { ParamsService } from './params.service';
 import { PlotsService } from './plots.service';
 import { ProcessService } from './process.service';

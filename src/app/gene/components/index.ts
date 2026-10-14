@@ -25,9 +25,7 @@ export const layoutComponents: any[] = [
   ...fromViewers.layoutComponents,
 ];
 
-export const tooltipComponents: any[] = [
-  ...fromTooltips.tooltipComponents,
-];
+export const tooltipComponents: any[] = [...fromTooltips.tooltipComponents];
 
 export * from './gene.component';
 export * from './inter-app-communication.component';

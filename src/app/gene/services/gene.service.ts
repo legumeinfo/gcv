@@ -1,30 +1,44 @@
 // Angular
 import { HttpClient } from '@angular/common/http';
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { Observable, from, throwError } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 // store
-import { Store, select } from '@ngrx/store';
+import { Store } from '@ngrx/store';
 import * as geneActions from '@gcv/gene/store/actions/gene.actions';
 import * as fromRoot from '@gcv/store/reducers';
 import * as fromGene from '@gcv/gene/store/selectors/gene/';
 // app
-import { AppConfig, GenePlaceholders, ConfigError, GET, POST, GRPC } from '@gcv/core/models';
+import {
+  AppConfig,
+  GenePlaceholders,
+  ConfigError,
+  GET,
+  POST,
+  GRPC,
+} from '@gcv/core/models';
 import { HttpService } from '@gcv/core/services/http.service';
 import { Gene, Track } from '@gcv/gene/models';
 import { placeholderReplace } from '@gcv/core/utils';
 // api
-import { GenesGetReply, GenesGetRequest, GenesPromiseClient }
-  from 'legumeinfo-microservices/dist/genes_service/v1';
-
+import {
+  GenesGetReply,
+  GenesGetRequest,
+  GenesPromiseClient,
+} from 'legumeinfo-microservices/dist/genes_service/v1';
 
 @Injectable()
 export class GeneService extends HttpService {
+  private _appConfig = inject(AppConfig);
+  private _http: HttpClient;
+  private _store = inject<Store<fromRoot.State>>(Store);
 
-  constructor(private _appConfig: AppConfig,
-              private _http: HttpClient,
-              private _store: Store<fromRoot.State>) {
+  constructor() {
+    const _http = inject(HttpClient);
+
     super(_http);
+
+    this._http = _http;
   }
 
   // fetches genes for the given gene ids from the given source
@@ -32,10 +46,10 @@ export class GeneService extends HttpService {
     // TODO: try/catch?
     const request = this._appConfig.getServerRequest(serverID, 'genes');
     if (request.type === GET || request.type === POST) {
-      const body = {genes};
-      return this._makeHttpRequest<{genes: Gene[]}>(request, body).pipe(
+      const body = { genes };
+      return this._makeHttpRequest<{ genes: Gene[] }>(request, body).pipe(
         map((result) => {
-          result.genes.forEach((g) => g.source = serverID);
+          result.genes.forEach((g) => (g.source = serverID));
           return result.genes;
         }),
         catchError((error) => throwError(error)),
@@ -48,26 +62,28 @@ export class GeneService extends HttpService {
       return from(clientRequest).pipe(
         map((result: GenesGetReply) => {
           const genes = result.getGenesList().map((g) => g.toObject() as Gene);
-          genes.forEach((g) => g.source = serverID);
+          genes.forEach((g) => (g.source = serverID));
           return genes;
         }),
         catchError((error) => throwError(error)),
       );
     }
-    const error = new ConfigError('Unsupported request type \'' + request.type + '\'');
+    const error = new ConfigError(
+      "Unsupported request type '" + request.type + "'",
+    );
     return throwError(error);
   }
 
   getGenesForSource(names: string[], source: string): Observable<Gene[]> {
-    const action = new geneActions.Get({names, source});
+    const action = geneActions.get({ names, source });
     this._store.dispatch(action);
-    return this._store.pipe(select(fromGene.getGenesForSource(names, source)));
+    return this._store.select(fromGene.getGenesForSource(names, source));
   }
 
   getGenesForTracks(tracks: Track[]): Observable<Gene[]> {
     const actions = geneActions.tracksToGetGeneActions(tracks);
     actions.forEach((a) => this._store.dispatch(a));
-    return this._store.pipe(select(fromGene.getGenesForTracks(tracks)));
+    return this._store.select(fromGene.getGenesForTracks(tracks));
   }
 
   // returns all the genes from the URL
@@ -88,5 +104,4 @@ export class GeneService extends HttpService {
     const makeUrl = (url: string) => this.geneToGeneLinksURL(request.url, gene);
     return this._makeHttpRequest<any>(request, {}, makeUrl);
   }
-
 }

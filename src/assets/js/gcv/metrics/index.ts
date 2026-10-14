@@ -1,1 +1,1 @@
-export { levenshtein } from "./levenshtein";
+export { levenshtein } from './levenshtein';

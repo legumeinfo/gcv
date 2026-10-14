@@ -1,14 +1,10 @@
-/* To learn more about this file see: https://angular.io/config/tsconfig. */
+/* TypeScript config for the Jest test suite (see jest.config.ts). */
 {
   "extends": "./tsconfig.json",
   "compilerOptions": {
     "outDir": "./out-tsc/spec",
-    "types": [
-      "jasmine"
-    ]
+    "rootDir": ".",
+    "types": ["jest", "node"]
   },
-  "include": [
-    "src/**/*.spec.ts",
-    "src/**/*.d.ts"
-  ]
+  "include": ["src/**/*.spec.ts", "src/**/*.d.ts"]
 }

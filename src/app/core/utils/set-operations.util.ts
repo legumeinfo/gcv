@@ -1,46 +1,46 @@
 export const setIsSuperset = (set, subset) => {
-  for (let elem of subset) {
+  for (const elem of subset) {
     if (!set.has(elem)) {
-      return false
+      return false;
     }
   }
-  return true
-}
+  return true;
+};
 
 export const setUnion = (setA, setB) => {
-  let union = new Set(setA)
-  for (let elem of setB) {
-    union.add(elem)
+  const union = new Set(setA);
+  for (const elem of setB) {
+    union.add(elem);
   }
-  return union
-}
+  return union;
+};
 
 export const setIntersection = (setA, setB) => {
-  let intersection = new Set()
-  for (let elem of setB) {
+  const intersection = new Set();
+  for (const elem of setB) {
     if (setA.has(elem)) {
-      intersection.add(elem)
+      intersection.add(elem);
     }
   }
-  return intersection
-}
+  return intersection;
+};
 
 export const setSymmetricDifference = (setA, setB) => {
-  let difference = new Set(setA)
-  for (let elem of setB) {
+  const difference = new Set(setA);
+  for (const elem of setB) {
     if (difference.has(elem)) {
-      difference.delete(elem)
+      difference.delete(elem);
     } else {
-      difference.add(elem)
+      difference.add(elem);
     }
   }
-  return difference
-}
+  return difference;
+};
 
 export const setDifference = (setA, setB) => {
-  let difference = new Set(setA)
-  for (let elem of setB) {
-    difference.delete(elem)
+  const difference = new Set(setA);
+  for (const elem of setB) {
+    difference.delete(elem);
   }
-  return difference
-}
+  return difference;
+};

@@ -1,26 +1,50 @@
 // Angular
-import { AfterContentInit, Directive, ElementRef, Input, OnDestroy }
-  from '@angular/core';
+import {
+  AfterContentInit,
+  ComponentRef,
+  Directive,
+  ElementRef,
+  Input,
+  OnDestroy,
+  inject,
+} from '@angular/core';
+// Golden Layout v2
+import {
+  ComponentContainer,
+  ComponentItemConfig,
+  ContentItem,
+  GoldenLayout,
+  LayoutConfig,
+  RowOrColumn,
+  Stack,
+  StackItemConfig,
+} from 'golden-layout';
 // app
 import { ComponentService } from '@gcv/gene/services';
 
+interface LayoutComponent {
+  name: string;
+  component: any;
+}
 
-declare var GoldenLayout: any;
-
+interface ComponentRefMap {
+  [containerId: string]: ComponentRef<any>;
+}
 
 @Directive({
-    selector: '[gcvGoldenLayout]',
-    standalone: false
+  selector: '[gcvGoldenLayout]',
+  standalone: false,
 })
 export class GoldenLayoutDirective implements AfterContentInit, OnDestroy {
+  private _componentService = inject(ComponentService);
+  private _el = inject(ElementRef);
 
-  @Input('gcvGoldenLayout') components: any[];
-  @Input() config: any;
+  @Input('gcvGoldenLayout') components: LayoutComponent[];
+  @Input() config: LayoutConfig | any;
 
-  private _layout: any;
-
-  constructor(private _componentService: ComponentService,
-              private _el: ElementRef) { }
+  private _layout: GoldenLayout;
+  private _componentRefs: ComponentRefMap = {};
+  private _resizeHandler: () => void;
 
   // Angular hooks
 
@@ -37,129 +61,236 @@ export class GoldenLayoutDirective implements AfterContentInit, OnDestroy {
   private _initialize(): void {
     // set the initial layout configuration
     this._setConfig();
-    // instantiate the layout
-    this._layout = new GoldenLayout(this.config, this._el.nativeElement);
-    // configure the layout components
-    this._configureLayoutComponents();
-    // initialize the layout
-    this._layout.init();
+
+    // instantiate the layout with bind/unbind handlers
+    this._layout = new GoldenLayout(
+      this._el.nativeElement,
+      this._bindComponent.bind(this),
+      this._unbindComponent.bind(this),
+    );
+
+    // load the layout configuration
+    this._layout.loadLayout(this.config);
+
     // add a resize listener
-    window.addEventListener('resize', this._resize.bind(this));
+    this._resizeHandler = this._resize.bind(this);
+    window.addEventListener('resize', this._resizeHandler);
   }
 
   private _destroy(): void {
     // remove resize listener
-    window.removeEventListener('resize', this._resize.bind(this));
+    if (this._resizeHandler) {
+      window.removeEventListener('resize', this._resizeHandler);
+    }
+    // destroy all component refs
+    Object.values(this._componentRefs).forEach((ref) => {
+      this._componentService.destroyComponent(ref);
+    });
+    this._componentRefs = {};
     // destroy layout
-    this._layout.destroy()
+    if (this._layout) {
+      this._layout.destroy();
+    }
   }
 
-  private _setConfig() {
+  private _setConfig(): void {
     if (this.config === undefined) {
       this.config = {
-        content: [{
+        root: {
           type: 'column',
           content: this.components.map((c) => {
             return {
               type: 'component',
-              componentName: c.name,
-              isClosable: false
+              componentType: c.name,
+              isClosable: false,
             };
-          })
-        }]
+          }),
+        },
       };
     }
   }
 
-  private _configureLayoutComponents() {
-    // register component factories
-    this.components.forEach((c) => {
-      let context = this;
-      const name = c.name;
-      this._layout.registerComponent(name, function($container, state) {
-        const component = c.component;
-        const element = $container.getElement();
-        const inputs = state.inputs || {};
-        const outputs = state.outputs || {};
-        this.componentRef = context._componentService
-          .createComponent(component, element, inputs, outputs);
-        return this;
-      });
-    });
-    // bind component destructor to layout's item destroy event
-    this._layout.on('itemDestroyed', (item, state) => {
-      if (item.type === 'component') {
-        this._componentService.destroyComponent(item.instance.componentRef);
-      }
-    });
+  private _bindComponent(
+    container: ComponentContainer,
+    itemConfig: ComponentItemConfig,
+  ): ComponentContainer.BindableComponent {
+    const componentType = itemConfig.componentType as string;
+    const layoutComponent = this.components.find(
+      (c) => c.name === componentType,
+    );
+
+    if (!layoutComponent) {
+      console.error(
+        `Component type "${componentType}" not found in registered components`,
+      );
+      return { component: undefined, virtual: false };
+    }
+
+    const state = (itemConfig.componentState || {}) as any;
+    const inputs = state.inputs || {};
+    const outputs = state.outputs || {};
+
+    // Create Angular component and append to container element
+    const componentRef = this._componentService.createComponent(
+      layoutComponent.component,
+      container.element,
+      inputs,
+      outputs,
+    );
+
+    // Store reference for cleanup using container's unique ID
+    const containerId = this._getContainerId(container);
+    this._componentRefs[containerId] = componentRef;
+
+    return {
+      component: componentRef,
+      virtual: false,
+    };
   }
 
-  private _resize() {
-    const width = this._el.nativeElement.offsetWidth;
-    const height = this._el.nativeElement.offsetHeight;
-    this._layout.updateSize(width, height);
+  private _unbindComponent(container: ComponentContainer): void {
+    const containerId = this._getContainerId(container);
+    const componentRef = this._componentRefs[containerId];
+
+    if (componentRef) {
+      this._componentService.destroyComponent(componentRef);
+      delete this._componentRefs[containerId];
+    }
+  }
+
+  private _getContainerId(container: ComponentContainer): string {
+    // Use the container's parent component item's ID or generate a unique one
+    const parent = container.parent;
+    if (parent && parent.id) {
+      return parent.id;
+    }
+    // Fallback: use object reference as string
+    return String((container as any)._element?.id || Math.random());
+  }
+
+  private _resize(): void {
+    if (this._layout) {
+      const width = this._el.nativeElement.offsetWidth;
+      const height = this._el.nativeElement.offsetHeight;
+      this._layout.setSize(width, height);
+    }
   }
 
   // finds the closest ancestor to an item that is a stack
-  private _closestStack(item) {
-    const root = this._layout.root;
-    let stack = item;
-    while (stack != root && !stack.isStack) {
-      stack = stack.parent;
+  private _closestStack(item: ContentItem): Stack | null {
+    const rootItem = this._layout.rootItem;
+    let current: ContentItem | null = item;
+
+    while (current && current !== rootItem) {
+      if (current.isStack) {
+        return current as Stack;
+      }
+      current = current.parent;
     }
-    if (stack.isStack) {
-      return stack;
-    }
-    return null
+
+    return null;
+  }
+
+  // Find items by ID - v2 uses different API
+  private _findItemsById(id: string): ContentItem[] {
+    const rootItem = this._layout.rootItem;
+    if (!rootItem) return [];
+
+    const results: ContentItem[] = [];
+    const search = (item: ContentItem) => {
+      if (item.id === id) {
+        results.push(item);
+      }
+      if ('contentItems' in item) {
+        (item as RowOrColumn | Stack).contentItems.forEach(search);
+      }
+    };
+    search(rootItem);
+    return results;
   }
 
   // public
 
-  addItem(itemConfig, indices: number[]) {
-    let item = this._layout.root;
+  addItem(itemConfig: ComponentItemConfig, indices: number[]): void {
+    const rootItem = this._layout.rootItem;
+    if (!rootItem) return;
+
     const id = itemConfig.id;
     if (id !== undefined) {
-      const instances = item.getItemsById(id);
+      const instances = this._findItemsById(id);
       if (instances.length === 0) {
-        indices.forEach((i) => item = item.contentItems[i]);
-        item.addChild(itemConfig);
+        // Navigate to target location using indices
+        let item: ContentItem = rootItem;
+        for (const i of indices) {
+          if (
+            'contentItems' in item &&
+            (item as RowOrColumn | Stack).contentItems[i]
+          ) {
+            item = (item as RowOrColumn | Stack).contentItems[i];
+          }
+        }
+        // Add item to the target container
+        if ('addItem' in item) {
+          (item as RowOrColumn | Stack).addItem(itemConfig);
+        }
       } else {
+        // Item already exists, activate it
         const contentItem = instances[0];
         const stack = this._closestStack(contentItem);
-        if (stack !== null) {
-          item.setActiveContentItem(contentItem);
+        if (stack !== null && contentItem.isComponent) {
+          stack.setActiveComponentItem(contentItem as any, true);
         }
       }
     }
   }
 
-  stackItem(itemConfig, stackID: string) {
-    let root = this._layout.root;
+  stackItem(
+    itemConfig: ComponentItemConfig | StackItemConfig,
+    stackID: string,
+  ): void {
+    const rootItem = this._layout.rootItem;
+    if (!rootItem) return;
+
     const id = itemConfig.id;
-    const items = root.getItemsById(stackID);
+    const items = this._findItemsById(stackID);
+
     if (id !== undefined && items.length > 0) {
-      const instances = root.getItemsById(id);
-      // find the nearest stack ancestor and add the item as a child
+      const instances = this._findItemsById(id);
+
+      // find the nearest stack ancestor and add the item
       if (instances.length === 0) {
         const item = items[0];
-        let stack = this._closestStack(item);
+        const stack = this._closestStack(item);
         if (stack !== null) {
-          stack.addChild(itemConfig);
+          // A Stack can only hold ComponentItems in v2, so a stack/row/column
+          // config must be added to the Stack's RowOrColumn parent as a sibling
+          // (this is how the plots pane is created). Component configs go into
+          // the Stack itself.
+          if (itemConfig.type !== 'component') {
+            const parent = stack.parent;
+            if (parent !== null && 'addItem' in parent) {
+              (parent as RowOrColumn).addItem(itemConfig as StackItemConfig);
+            }
+          } else {
+            stack.addItem(itemConfig as ComponentItemConfig);
+          }
         }
-      // get the item's stack and make it the active item
+        // get the item's stack and make it the active item
       } else {
         const contentItem = instances[0];
         // handle nested stacks
         const item = contentItem.isStack ? contentItem.parent : contentItem;
-        let stack = this._closestStack(item);
-        if (stack !== null) {
-          stack.setActiveContentItem(contentItem);
+        if (item) {
+          const stack = this._closestStack(item);
+          if (stack !== null && contentItem.isComponent) {
+            stack.setActiveComponentItem(contentItem as any, true);
+          }
         }
       }
     }
   }
 
-  reset() {
+  reset(): void {
     this._destroy();
     this._initialize();
   }

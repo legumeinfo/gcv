@@ -1,5 +1,4 @@
-export class PairSet implements Iterable<[any, any]>{
-
+export class PairSet implements Iterable<[any, any]> {
   // represent pairs using a dictionary of sets, i.e. a 2D set
   private _2dSet = {};
 
@@ -15,12 +14,12 @@ export class PairSet implements Iterable<[any, any]>{
     }
     this._2dSet[x].add(y);
   }
-  
+
   // check if a pair is in the set
   public has(x, y) {
     return !!(this._2dSet[x] && this._2dSet[x].has(y));
   }
-  
+
   // delete a pair from the set
   public del(x, y) {
     if (!this._2dSet[x]) {
@@ -40,5 +39,4 @@ export class PairSet implements Iterable<[any, any]>{
       }
     }
   }
-
 }

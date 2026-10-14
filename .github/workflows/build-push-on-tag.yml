@@ -38,7 +38,7 @@ jobs:
         uses: docker/build-push-action@v2
         with:
           context: .
-          target: "prod"
+          target: 'prod'
           no-cache: true
           push: true
           tags: ${{ steps.meta.outputs.tags }}

@@ -1,34 +1,40 @@
 // Angular
-import { Component, Input } from '@angular/core';
+import { Component, Input, ChangeDetectionStrategy } from '@angular/core';
 import { Observable } from 'rxjs';
 import { scan } from 'rxjs/operators';
 // app
 import { Process, ProcessStatus, ProcessStatusStream } from '@gcv/gene/models';
-import { statusToClass, statusToIcon } from '@gcv/gene/components/pipeline.shim';
-
+import {
+  statusToClass,
+  statusToIcon,
+} from '@gcv/gene/components/pipeline.shim';
 
 @Component({
-    selector: 'gcv-process-tooltip',
-    template: `
-    <ng-container *ngIf="process.status|async; let processStatus">
+  selector: 'gcv-process-tooltip',
+  template: `
+    @if (process.status | async; as processStatus) {
       <ul class="list-group list-group-flush">
         <li class="list-group-item fw-bold {{ statusToClass(processStatus) }}">
-          <i class="fas {{ statusToIcon(processStatus) }}"></i>&nbsp;<span [innerHTML]="processStatus.description"></span>
+          <i class="fas {{ statusToIcon(processStatus) }}"></i>&nbsp;<span
+            [innerHTML]="processStatus.description"
+          ></span>
         </li>
-        <ng-template ngFor let-subprocess [ngForOf]="subprocesses|async">
-          <ng-container *ngIf="subprocess|async; let status">
+        @for (subprocess of subprocesses | async; track subprocess) {
+          @if (subprocess | async; as status) {
             <li class="list-group-item {{ statusToClass(status) }}">
-              <i class="fas {{ statusToIcon(status) }}"></i>&nbsp;<span [innerHTML]="status.description"></span>
+              <i class="fas {{ statusToIcon(status) }}"></i>&nbsp;<span
+                [innerHTML]="status.description"
+              ></span>
             </li>
-          </ng-container>
-        </ng-template>
+          }
+        }
       </ul>
-    </ng-container>
+    }
   `,
-    standalone: false
+  changeDetection: ChangeDetectionStrategy.Eager,
+  standalone: false,
 })
 export class ProcessTooltipComponent {
-
   // IO
 
   @Input() process: Process;
@@ -39,7 +45,7 @@ export class ProcessTooltipComponent {
       scan((accumulator, stream): ProcessStatusStream[] => {
         accumulator.push(stream);
         return accumulator;
-      }, [])
+      }, []),
     );
   }
 
@@ -53,5 +59,4 @@ export class ProcessTooltipComponent {
   statusToIcon(status: ProcessStatus): string {
     return statusToIcon(status);
   }
-
 }

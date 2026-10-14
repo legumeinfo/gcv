@@ -4,7 +4,6 @@ about: A checklist of tasks required to make a release
 title: Release MAJOR.MINOR.PATCH
 labels: release
 assignees: ''
-
 ---
 
 - [ ] Create a branch for the release.

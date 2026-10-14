@@ -1,17 +1,17 @@
 import { GeneTooltipComponent } from './gene-tooltip.component';
 
+export const geneTooltipComponent = {
+  component: GeneTooltipComponent,
+  name: 'gene',
+};
 
-export const geneTooltipComponent =
-  {component: GeneTooltipComponent, name: 'gene'};
-
-
-export function geneTooltipConfigFactory(inputs: any, tipOptions: any={}) {
+export function geneTooltipConfigFactory(inputs: any, tipOptions: any = {}) {
   let _tipOptions = {
-      offset: [0, 20],
-      sticky: true,
-    };
+    offset: [0, 20],
+    sticky: true,
+  };
   _tipOptions = Object.assign(_tipOptions, tipOptions);
-  return  {
+  return {
     componentName: 'gene',
     componentState: {
       inputs,

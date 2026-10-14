@@ -1,20 +1,22 @@
 // Angular
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 // store
 import { Observable, Subject } from 'rxjs';
-import { filter } from 'rxjs/operators';
 // app
 import { AppConfig } from '@gcv/core/models';
 
 @Injectable()
 export class InterAppCommunicationService {
+  private _appConfig = inject(AppConfig);
 
   private _bc;
   private _channel: string;
   private _communicate: boolean;
   private _messages = new Subject<any>();
 
-  constructor(private _appConfig: AppConfig) {
+  constructor() {
+    const _appConfig = this._appConfig;
+
     this.setChannel(_appConfig.communication.channel);
     this.setCommunicate(_appConfig.communication.communicate);
   }
@@ -77,5 +79,4 @@ export class InterAppCommunicationService {
       this._bc.postMessage(message);
     }
   }
-
 }

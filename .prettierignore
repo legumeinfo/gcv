@@ -1,0 +1,21 @@
+# Build output
+dist/
+out-tsc/
+coverage/
+
+# Dependencies
+node_modules/
+
+# Vendored / generated code (built protobuf clients, not hand-authored)
+dep/
+
+# Lockfiles and generated manifests
+package-lock.json
+
+# Playwright artifacts
+playwright-report/
+test-results/
+
+# Minified / third-party assets
+*.min.js
+*.min.css

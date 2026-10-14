@@ -1,18 +1,26 @@
 // Angular
 import { HttpClient } from '@angular/common/http';
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 // app
-import { AppConfig, ConfigError,
-  Brand, isBrand,
-  Communication, isCommunication,
-  Dashboard, isDashboard,
-  DefaultParameters, isDefaultParameters,
-  MacroLegend, isMacroLegend,
-  Miscellaneous, isMiscellaneous,
-  Server, isServer,
-  Request } from '@gcv/core/models';
+import {
+  AppConfig,
+  ConfigError,
+  Brand,
+  isBrand,
+  Communication,
+  isCommunication,
+  Dashboard,
+  isDashboard,
+  DefaultParameters,
+  isDefaultParameters,
+  MacroLegend,
+  isMacroLegend,
+  Miscellaneous,
+  isMiscellaneous,
+  Server,
+  isServer,
+} from '@gcv/core/models';
 import { objectMergeDeep } from '@gcv/core/utils';
-
 
 const defaultConfig = {
   brand: {
@@ -56,7 +64,7 @@ const defaultConfig = {
         intermediate: 5,
       },
       microSyntenyAlignment: {
-        algorithm:  'repeat',
+        algorithm: 'repeat',
         match: 10,
         mismatch: -1,
         gap: -1,
@@ -73,16 +81,13 @@ const defaultConfig = {
   miscellaneous: {},
 };
 
-
 @Injectable()
 export class AppConfigService extends AppConfig {
-
-  constructor(private http: HttpClient) {
-    super();
-  }
+  private http = inject(HttpClient);
 
   public load(): Promise<any> {
-    return this.http.get<AppConfig>('config/config.json')
+    return this.http
+      .get<AppConfig>('config/config.json')
       .toPromise()
       .then((config) => {
         // parse and save configurations
@@ -113,46 +118,50 @@ export class AppConfigService extends AppConfig {
   // parsers
 
   private _parseBrand(config: AppConfig): Brand {
-    const brand = objectMergeDeep({},
-        defaultConfig.brand || {},
-        config.brand || {},
-      );
+    const brand = objectMergeDeep(
+      {},
+      defaultConfig.brand || {},
+      config.brand || {},
+    );
     if (!isBrand(brand)) {
       this._parseError('brand');
     }
-    const {favicon, url, img, name, slogan, hide, ...rest} = brand;
-    return {favicon, url, img, name, slogan, hide} as Brand;
+    const { favicon, url, img, name, slogan, hide } = brand;
+    return { favicon, url, img, name, slogan, hide } as Brand;
   }
 
   private _parseCommunication(config: AppConfig): Communication {
-    const communication = objectMergeDeep({},
-        defaultConfig.communication || {},
-        config.communication || {},
-      );
+    const communication = objectMergeDeep(
+      {},
+      defaultConfig.communication || {},
+      config.communication || {},
+    );
     if (!isCommunication(communication)) {
       this._parseError('communication');
     }
-    const {communicate, channel, ...rest} = communication;
-    return {communicate, channel} as Communication;
+    const { communicate, channel } = communication;
+    return { communicate, channel } as Communication;
   }
 
   private _parseDashboard(config: AppConfig): Dashboard {
-    const dashboard = objectMergeDeep({},
-        defaultConfig.dashboard || {},
-        config.dashboard || {},
-      );
+    // TODO: merged defaults are computed but not yet applied (see the TODO
+    // below); kept for the pending fix, hence the underscore.
+    const _dashboard = objectMergeDeep(
+      {},
+      defaultConfig.dashboard || {},
+      config.dashboard || {},
+    );
     if (!isDashboard(config.dashboard)) {
       this._parseError('dashboard');
     }
     const {
-        gcvScreenshot,
-        trackScreenshot,
-        microsyntenyScreenshot,
-        dotplotsScreenshot,
-        macrosyntenyScreenshot,
-        examples,
-        ...rest
-      } = config.dashboard;
+      gcvScreenshot,
+      trackScreenshot,
+      microsyntenyScreenshot,
+      dotplotsScreenshot,
+      macrosyntenyScreenshot,
+      examples,
+    } = config.dashboard;
     // TODO: set defaults
     return {
       gcvScreenshot,
@@ -160,93 +169,97 @@ export class AppConfigService extends AppConfig {
       microsyntenyScreenshot,
       dotplotsScreenshot,
       macrosyntenyScreenshot,
-      examples
+      examples,
     } as Dashboard;
   }
 
   private _parseDefaultParameters(config: AppConfig): DefaultParameters {
-    const defaultParameters = objectMergeDeep({},
-        defaultConfig.defaultParameters || {},
-        config.defaultParameters || {},
-      );
+    const defaultParameters = objectMergeDeep(
+      {},
+      defaultConfig.defaultParameters || {},
+      config.defaultParameters || {},
+    );
     if (!isDefaultParameters(defaultParameters)) {
       this._parseError('defaultParameters');
     }
-    const {gene, ...rest} = defaultParameters;
-    return {gene} as DefaultParameters;
+    const { gene } = defaultParameters;
+    return { gene } as DefaultParameters;
   }
 
   private _parseMacroLegend(config: AppConfig): MacroLegend {
-    const macroLegend = objectMergeDeep({},
-        defaultConfig.macroLegend || {},
-        config.macroLegend || {},
-      );
+    const macroLegend = objectMergeDeep(
+      {},
+      defaultConfig.macroLegend || {},
+      config.macroLegend || {},
+    );
     if (!isMacroLegend(macroLegend)) {
       this._parseError('macroLegend');
     }
-    const {format, colors, ...rest} = macroLegend;
-    return {format, colors} as MacroLegend;
-
+    const { format, colors } = macroLegend;
+    return { format, colors } as MacroLegend;
   }
 
   private _parseMiscellaneous(config: AppConfig): Miscellaneous {
-    const miscellaneous = objectMergeDeep({},
-        defaultConfig.miscellaneous || {},
-        config.miscellaneous || {},
-      );
+    const miscellaneous = objectMergeDeep(
+      {},
+      defaultConfig.miscellaneous || {},
+      config.miscellaneous || {},
+    );
     if (!isMiscellaneous(miscellaneous)) {
       this._parseError('miscellaneous');
     }
-    const {searchHelpText, ...rest} = miscellaneous;
-    return {searchHelpText} as Miscellaneous;
+    const { searchHelpText } = miscellaneous;
+    return { searchHelpText } as Miscellaneous;
   }
 
   private _parseServers(config: AppConfig): Server[] {
-    if (config.servers === undefined || !Array.isArray(config.servers) ||
-        !config.servers.every((s) => isServer(s))) {
+    if (
+      config.servers === undefined ||
+      !Array.isArray(config.servers) ||
+      !config.servers.every((s) => isServer(s))
+    ) {
       this._parseError('servers');
     }
     const servers: Server[] = config.servers.map((s): Server => {
-        const {
-            id,
-            name,
-            genes,
-            chromosome,
-            microSearch,
-            blocks,
-            search,
-            region,
-            geneLinks,
-            regionLinks,
-            familyTreeLink,
-            ...rest
-          } = s;
-        return {
-          id,
-          name,
-          genes,
-          chromosome,
-          microSearch,
-          blocks,
-          search,
-          region,
-          geneLinks,
-          regionLinks,
-          familyTreeLink,
-        } as Server;
-      });
+      const {
+        id,
+        name,
+        genes,
+        chromosome,
+        microSearch,
+        blocks,
+        search,
+        region,
+        geneLinks,
+        regionLinks,
+        familyTreeLink,
+      } = s;
+      return {
+        id,
+        name,
+        genes,
+        chromosome,
+        microSearch,
+        blocks,
+        search,
+        region,
+        geneLinks,
+        regionLinks,
+        familyTreeLink,
+      } as Server;
+    });
     return servers;
   }
 
   private _freezeObject(target): void {
     Object.freeze(target);
     for (const property in target) {
-      if (target.hasOwnProperty(property)) {
+      if (Object.prototype.hasOwnProperty.call(target, property)) {
         const value = target[property];
         if (typeof value === 'object' && value !== null) {
           this._freezeObject(value);
         }
       }
-    };
+    }
   }
 }

@@ -7,18 +7,28 @@ import { initialState } from '@gcv/gene/store/reducers/params.reducer';
 import { parseParams } from '@gcv/core/models/params';
 import { memoizeObject, pick } from '@gcv/core/utils';
 import {
-  Params, paramMembers, paramParsers,
-  AlignmentParams, alignmentParamMembers,
-  BlockParams, blockParamMembers,
-  ClusteringParams, clusteringParamMembers,
-  MacroFilterParams, macroFilterParamMembers,
-  MacroOrderParams, macroOrderParamMembers,
-  MicroFilterParams, microFilterParamMembers,
-  MicroOrderParams, microOrderParamMembers,
-  QueryParams, queryParamMembers,
-  SourceParams, sourceParamMembers,
+  Params,
+  paramMembers,
+  paramParsers,
+  AlignmentParams,
+  alignmentParamMembers,
+  BlockParams,
+  blockParamMembers,
+  ClusteringParams,
+  clusteringParamMembers,
+  MacroFilterParams,
+  macroFilterParamMembers,
+  MacroOrderParams,
+  macroOrderParamMembers,
+  MicroFilterParams,
+  microFilterParamMembers,
+  MicroOrderParams,
+  microOrderParamMembers,
+  QueryParams,
+  queryParamMembers,
+  SourceParams,
+  sourceParamMembers,
 } from '@gcv/gene/models/params';
-
 
 export const getParams = createSelectorFactory(memoizeObject)(
   selectQueryParams,
@@ -30,7 +40,6 @@ export const getParams = createSelectorFactory(memoizeObject)(
   },
 );
 
-
 export const getAlignmentParams = createSelectorFactory(memoizeObject)(
   getParams,
   (params: Params): AlignmentParams => {
@@ -38,7 +47,6 @@ export const getAlignmentParams = createSelectorFactory(memoizeObject)(
     return alignmentParams;
   },
 );
-
 
 export const getBlockParams = createSelectorFactory(memoizeObject)(
   getParams,
@@ -48,7 +56,6 @@ export const getBlockParams = createSelectorFactory(memoizeObject)(
   },
 );
 
-
 export const getClusteringParams = createSelectorFactory(memoizeObject)(
   getParams,
   (params: Params): ClusteringParams => {
@@ -56,7 +63,6 @@ export const getClusteringParams = createSelectorFactory(memoizeObject)(
     return clusteringParams;
   },
 );
-
 
 export const getMacroFilterParams = createSelectorFactory(memoizeObject)(
   getParams,
@@ -66,7 +72,6 @@ export const getMacroFilterParams = createSelectorFactory(memoizeObject)(
   },
 );
 
-
 export const getMacroOrderParams = createSelectorFactory(memoizeObject)(
   getParams,
   (params: Params): MacroOrderParams => {
@@ -74,7 +79,6 @@ export const getMacroOrderParams = createSelectorFactory(memoizeObject)(
     return macroOrderParams;
   },
 );
-
 
 export const getMicroFilterParams = createSelectorFactory(memoizeObject)(
   getParams,
@@ -84,7 +88,6 @@ export const getMicroFilterParams = createSelectorFactory(memoizeObject)(
   },
 );
 
-
 export const getMicroOrderParams = createSelectorFactory(memoizeObject)(
   getParams,
   (params: Params): MicroOrderParams => {
@@ -92,7 +95,6 @@ export const getMicroOrderParams = createSelectorFactory(memoizeObject)(
     return microOrderParams;
   },
 );
-
 
 export const getQueryParams = createSelectorFactory(memoizeObject)(
   getParams,
@@ -102,12 +104,10 @@ export const getQueryParams = createSelectorFactory(memoizeObject)(
   },
 );
 
-
-export const getQueryNeighborParam = createSelector(
+export const selectQueryNeighborParam = createSelector(
   getQueryParams,
   (params: QueryParams): number => params.neighbors,
 );
-
 
 export const getSourceParams = createSelectorFactory(memoizeObject)(
   getParams,
@@ -117,8 +117,7 @@ export const getSourceParams = createSelectorFactory(memoizeObject)(
   },
 );
 
-
-export const getSourcesParam = createSelector(
+export const selectSourcesParam = createSelector(
   getSourceParams,
   (params: SourceParams): string[] => params.sources,
 );

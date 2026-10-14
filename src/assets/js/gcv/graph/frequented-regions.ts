@@ -1,4 +1,4 @@
-import { Undirected } from "./undirected";
+import { Undirected } from './undirected';
 
 /**
  * A class that represents a Frequented Region.
@@ -19,11 +19,11 @@ export class FR {
     this.avgAlpha = 0;
   }
   addToPath(pId, n, kappa) {
-    if (!this.paths.hasOwnProperty(pId)) {
+    if (!Object.prototype.hasOwnProperty.call(this.paths, pId)) {
       this.paths[pId] = [];
     }
     this.paths[pId].push(n);
-    if (!this.intervals.hasOwnProperty(pId)) {
+    if (!Object.prototype.hasOwnProperty.call(this.intervals, pId)) {
       this.intervals[pId] = [];
     }
     const halfKappa = kappa / 2;
@@ -32,8 +32,8 @@ export class FR {
   }
   mergeIntervals(hardSpan) {
     const comparePoints = (a, b) => {
-      const [ap, ac, as] = a;
-      const [bp, bc, bs] = b;
+      const [ap, ac] = a;
+      const [bp, bc] = b;
       if (ap < bp || (ap === bp && ac > bc)) {
         return -1;
       } else if (bp < ap || (bp === ap && bc > ac)) {
@@ -42,7 +42,7 @@ export class FR {
       return 0;
     };
     for (const pId in this.intervals) {
-      if (this.intervals.hasOwnProperty(pId)) {
+      if (Object.prototype.hasOwnProperty.call(this.intervals, pId)) {
         const points = [];
         for (const interval of this.intervals[pId]) {
           const [begin, end, span] = interval;
@@ -75,7 +75,7 @@ export class FR {
     this.supporting = [];
     this.avgAlpha = 0;
     for (const pId in this.intervals) {
-      if (this.intervals.hasOwnProperty(pId)) {
+      if (Object.prototype.hasOwnProperty.call(this.intervals, pId)) {
         let maxAlpha = 0;
         for (const interval of this.intervals[pId]) {
           const iAlpha = interval[2] / this.nodes.length;
@@ -97,14 +97,14 @@ export class FR {
     fr.paths = Object.assign({}, this.paths);
     fr.intervals = Object.assign({}, this.intervals);
     for (const id in other.paths) {
-      if (fr.paths.hasOwnProperty(id)) {
+      if (Object.prototype.hasOwnProperty.call(fr.paths, id)) {
         fr.paths[id] = fr.paths[id].concat(other.paths[id]);
       } else {
         fr.paths[id] = other.paths[id].slice();
       }
     }
     for (const id in other.intervals) {
-      if (fr.intervals.hasOwnProperty(id)) {
+      if (Object.prototype.hasOwnProperty.call(fr.intervals, id)) {
         fr.intervals[id] = fr.intervals[id].concat(other.intervals[id]);
       } else {
         fr.intervals[id] = other.intervals[id].slice();
@@ -127,7 +127,14 @@ export class FR {
  * @param {object} options - Optional parameters.
  * @return {FRs[]} - An array of FR hierarchies.
  */
-export function frequentedRegions(tracks, alpha, kappa, minsup, minsize, options) {
+export function frequentedRegions(
+  tracks,
+  alpha,
+  kappa,
+  minsup,
+  minsize,
+  options,
+) {
   const omit = options.omit || [];
   const contractF = (uFR, vFR, eFR) => {
     return eFR;
@@ -140,14 +147,21 @@ export function frequentedRegions(tracks, alpha, kappa, minsup, minsize, options
   const findFRs = (root, minsup, minsize, prevsup) => {
     const frs = [];
     let sup = prevsup;
-    if (root.nodes.length >= minsize && root.supporting.length >= minsup &&
-    root.supporting.length > prevsup) {
+    if (
+      root.nodes.length >= minsize &&
+      root.supporting.length >= minsup &&
+      root.supporting.length > prevsup
+    ) {
       frs.push(root);
       sup = root.supporting.length;
     }
     if (root.descendants.length > 0) {
-      root.descendants = findFRs(root.descendants[0], minsup, minsize, sup)
-                 .concat(findFRs(root.descendants[1], minsup, minsize, sup));
+      root.descendants = findFRs(
+        root.descendants[0],
+        minsup,
+        minsize,
+        sup,
+      ).concat(findFRs(root.descendants[1], minsup, minsize, sup));
     }
     if (frs.length > 0) {
       return frs;
@@ -179,8 +193,12 @@ export function frequentedRegions(tracks, alpha, kappa, minsup, minsize, options
     for (const gene of group.genes) {
       const id = gene.family;
       const n = g.getNode(id);
-      if (prevN !== null && n !== null &&
-      g.getEdge(prevId, id) === null && prevId !== id) {
+      if (
+        prevN !== null &&
+        n !== null &&
+        g.getEdge(prevId, id) === null &&
+        prevId !== id
+      ) {
         g.addEdge(prevId, id, updateF(prevN.attr, n.attr));
       }
       if (n !== null && prevId !== id) {
@@ -196,8 +214,10 @@ export function frequentedRegions(tracks, alpha, kappa, minsup, minsize, options
     let maxFR = null;
     let maxE = null;
     for (const e in g.edges) {
-      if (g.edges.hasOwnProperty(e) && (maxFR === null ||
-      maxFR.avgAlpha < g.edges[e].avgAlpha)) {
+      if (
+        Object.prototype.hasOwnProperty.call(g.edges, e) &&
+        (maxFR === null || maxFR.avgAlpha < g.edges[e].avgAlpha)
+      ) {
         maxFR = g.edges[e];
         maxE = e;
       }
@@ -210,5 +230,5 @@ export function frequentedRegions(tracks, alpha, kappa, minsup, minsize, options
     g.contractEdge(u, v, contractF, updateF);
   }
   // return interesting FRs identified by traversing hierarchy
-  return (fr !== null) ? findFRs(fr, minsup, minsize, 0) : [];
+  return fr !== null ? findFRs(fr, minsup, minsize, 0) : [];
 }

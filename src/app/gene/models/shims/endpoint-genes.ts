@@ -1,6 +1,5 @@
 import { Track } from '@gcv/gene/models';
 
-
 // filters track genes/families to only contain indexes from the block map
 export function endpointGenes(track: Track, indexes: number[] = []): Track {
   const genes = [];

@@ -1,31 +1,32 @@
 // Angular
-import { ApplicationRef, ComponentFactoryResolver, ComponentRef,
-  EmbeddedViewRef, Injectable, Injector, NgZone } from '@angular/core';
+import {
+  ApplicationRef,
+  ComponentRef,
+  createComponent,
+  EmbeddedViewRef,
+  Injectable,
+  Injector,
+  NgZone,
+  inject,
+} from '@angular/core';
 // store
-import { Store } from '@ngrx/store';
-import * as layoutActions from '@gcv/gene/store/actions/layout.actions';
-import * as fromLayout from '@gcv/gene/store/selectors/layout';
 // app
-import { HttpService } from '@gcv/core/services/http.service';
-
 
 @Injectable()
 export class ComponentService {
-
-  constructor(private _appRef: ApplicationRef,
-              private _componentFactoryResolver: ComponentFactoryResolver,
-              private _injector: Injector,
-              private _zone: NgZone) { }
+  private _appRef = inject(ApplicationRef);
+  private _injector = inject(Injector);
+  private _zone = inject(NgZone);
 
   createComponent(component, element, inputs, outputs): ComponentRef<any> {
-    const factory =
-      this._componentFactoryResolver.resolveComponentFactory(component);
-    //const providers = Object.keys(inputs).map((i) => {
-    //    return {provide: i, useValue: inputs[i]};
-    //  });
-    //const injector = Injector.create({providers});
-    const componentRef = factory.create(this._injector);
-    Object.keys(inputs).forEach((i) => componentRef.instance[i] = inputs[i]);
+    // v22 removed ComponentFactoryResolver; createComponent takes the class
+    // directly, with the ApplicationRef's EnvironmentInjector and the root
+    // element injector (preserving the previous factory.create(injector)).
+    const componentRef = createComponent(component, {
+      environmentInjector: this._appRef.injector,
+      elementInjector: this._injector,
+    });
+    Object.keys(inputs).forEach((i) => (componentRef.instance[i] = inputs[i]));
     Object.keys(outputs).forEach((o) => {
       componentRef.instance[o].subscribe((...args) => {
         this._zone.run(() => outputs[o](...args));
@@ -42,5 +43,4 @@ export class ComponentService {
     this._appRef.detachView(componentRef.hostView);
     componentRef.destroy();
   }
-
 }

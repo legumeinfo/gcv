@@ -1,1 +1,1 @@
-export type ActionID = {action: number};
+export type ActionID = { action: number };
