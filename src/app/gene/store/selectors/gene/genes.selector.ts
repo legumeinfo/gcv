@@ -24,9 +24,12 @@ export const getGenesForSource = (genes: string[], source: string) =>
   );
 
 export const getGenesForTracks = (tracks: Track[]) =>
-  createSelectorFactory(memoizeArray)(selectGeneState, (state: State): Gene[] => {
-    const trackGenes = tracks.map((t) =>
-      getGenesFromState(t.genes, t.source, state),
-    );
-    return arrayFlatten(trackGenes);
-  });
+  createSelectorFactory(memoizeArray)(
+    selectGeneState,
+    (state: State): Gene[] => {
+      const trackGenes = tracks.map((t) =>
+        getGenesFromState(t.genes, t.source, state),
+      );
+      return arrayFlatten(trackGenes);
+    },
+  );

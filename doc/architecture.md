@@ -14,7 +14,7 @@ GCV (Genome Context Viewer) is a comparative genomics web application for visual
 
 | Layer         | Technology                                                |
 | ------------- | --------------------------------------------------------- |
-| Framework     | Angular 21 (TypeScript)                                   |
+| Framework     | Angular 22 (TypeScript 6)                                 |
 | State         | NgRx 21 (Store, Effects, Router-Store)                    |
 | Visualization | D3.js 7, Circos.js 2                                      |
 | Layout        | Golden Layout 2                                           |
