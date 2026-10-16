@@ -44,7 +44,7 @@ RUN npx ng build --configuration production $ANGULAR_BUILD_OPTIONS
 
 
 # prod stage deploys the project with NGINX
-FROM nginx:1.28-alpine as prod
+FROM nginx:1.29-alpine as prod
 
 # copy the nginx configuration template
 COPY nginx/templates/default.conf.template /etc/nginx/templates/
