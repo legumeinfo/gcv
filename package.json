@@ -61,7 +61,7 @@
     "@angular-eslint/eslint-plugin-template": "22.0.0",
     "@angular-eslint/schematics": "22.0.0",
     "@angular-eslint/template-parser": "22.0.0",
-    "@angular/cli": "~22.1.2",
+    "@angular/cli": "~22.2.2",
     "@angular/compiler-cli": "^22.1.0",
     "@ngrx/eslint-plugin": "^21.1.1",
     "@playwright/test": "^1.58.2",
