@@ -52,6 +52,7 @@ COPY nginx/templates/default.conf.template /etc/nginx/templates/
 ENV GCV_PATH=/gcv
 
 # put the build artifacts where nginx can find them
-COPY --from=build /gcv/dist /usr/share/nginx/html
+# the application builder writes the browser bundle to dist/browser
+COPY --from=build /gcv/dist/browser /usr/share/nginx/html
 
 # the nginx image automatically runs nginx and exposes port 80

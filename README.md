@@ -139,14 +139,14 @@ To host the client as part of a website, it must first be built:
 ng build
 ```
 
-The build artifacts will be stored in the `dist/` directory.
+The build artifacts will be stored in the `dist/browser/` directory.
 
 You can verify the build by running it locally via the [angular-http-server](https://www.npmjs.com/package/angular-http-server).
 See the Angular docs for a discussion on production deployment options: [https://angular.io/guide/deployment](https://angular.io/guide/deployment).
 
 #### Configuration
 
-The client can be extensively configured via the `src/config/config.json` file (`dist/config/config.json` for production).
+The client can be extensively configured via the `src/config/config.json` file (`dist/browser/config/config.json` for production).
 This file is loaded dynamically when the client starts, meaning the client does not have to be recompiled when changes are made to the file; the app simply has to be reloaded in your web browser.
 See the [Wiki](https://github.com/legumeinfo/gcv/wiki/Client-Configuration) for details about the contents of the client configuration file.
 
