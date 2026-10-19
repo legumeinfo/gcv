@@ -1,17 +1,15 @@
-// WebMCP tools for the gene view. They exist while the view is open: the view
-// declares them in its injection context, so they unregister when it closes.
-import { DestroyRef, inject } from '@angular/core';
+// WebMCP tools that read and change the analysis of the gene view. They run
+// in the open gene view's injection context (see webmcp/gene-view.host.ts).
+import { inject } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 // store
 import * as fromChromosome from '@gcv/gene/store/selectors/chromosome';
 import * as fromParams from '@gcv/gene/store/selectors/params';
 // app
-import { GCV } from '@gcv-assets/js/gcv';
 import {
   GcvWebMcpTools,
   WebMcpJsonSchema,
   WebMcpToolError,
-  declareGcvWebMcpTool,
   defineGcvWebMcpTool,
   waitFor,
 } from '@gcv/core/webmcp/webmcp';
@@ -27,7 +25,6 @@ import {
   syntenicCounterparts,
 } from './alignment.report';
 import { blockEndpointGenes, macroSyntenyReport } from './blocks.report';
-import { displayWebMcpTools } from './display.tools';
 import {
   SETTLE_TIMEOUT_MS,
   alignments,
@@ -35,8 +32,6 @@ import {
   viewContext,
   viewGenes,
 } from './gene-view.context';
-import { AgentHighlight } from './highlight';
-import { inspectWebMcpTools } from './inspect.tools';
 import { matchGeneName } from './lookup';
 import { parameterSchemas, validateParameterUpdate } from './parameters';
 import { currentGeneView, waitForSettledGeneView } from './view-state';
@@ -90,64 +85,67 @@ const getViewStatus = defineGcvWebMcpTool({
   },
 });
 
-const setViewParameters = defineGcvWebMcpTool({
-  name: 'set_view_parameters',
-  title: 'Set gene view parameters',
-  description:
-    'Changes analysis and display parameters of the gene view: the query neighborhood size, micro-synteny search sensitivity, clustering, alignment scoring, result filters and order, macro-synteny block criteria, and data sources. Parameters left out keep their values. The change is recorded in the URL, so the returned URL reproduces the view. Waits for the view to reload and returns what changed with the new view status.',
-  inputSchema: {
-    type: 'object',
-    properties: parameterSchemas() as unknown as Record<
-      string,
-      WebMcpJsonSchema
-    >,
-    additionalProperties: false,
-  },
-  execute: async (args, { signal }) => {
-    const { store, url } = viewContext();
-    const paramsService = inject(ParamsService);
-    const { params, errors } = validateParameterUpdate(
-      args as Record<string, unknown>,
-    );
-    if (errors.length > 0) {
-      throw new WebMcpToolError(
-        `No parameters changed. Invalid: ${errors.join('; ')}`,
+// built when tools register, once the configuration has loaded
+const setViewParameters = () =>
+  defineGcvWebMcpTool({
+    name: 'set_view_parameters',
+    title: 'Set gene view parameters',
+    description:
+      'Changes analysis and display parameters of the gene view: the query neighborhood size, micro-synteny search sensitivity, clustering, alignment scoring, result filters and order, macro-synteny block criteria, and data sources. Parameters left out keep their values. The change is recorded in the URL, so the returned URL reproduces the view. Waits for the view to reload and returns what changed with the new view status.',
+    inputSchema: {
+      type: 'object',
+      properties: parameterSchemas() as unknown as Record<
+        string,
+        WebMcpJsonSchema
+      >,
+      additionalProperties: false,
+    },
+    execute: async (args, { signal }) => {
+      const { store, url } = viewContext();
+      const paramsService = inject(ParamsService);
+      const { params, errors } = validateParameterUpdate(
+        args as Record<string, unknown>,
       );
-    }
-    const current: Params = await firstValueFrom(
-      store.select(fromParams.getParams),
-    );
-    const same = (key: string, value: unknown) =>
-      JSON.stringify(current[key]) === JSON.stringify(value);
-    const changed = {};
-    Object.entries(params)
-      .filter(([key, value]) => !same(key, value))
-      .forEach(([key, value]) => {
-        changed[key] = { from: current[key], to: value };
-      });
-    if (Object.keys(changed).length > 0) {
-      paramsService.updateParams(params as Params);
-      const applied = await waitFor(
-        store.select(fromParams.getParams),
-        (p) =>
-          Object.entries(params).every(
-            ([key, value]) => JSON.stringify(p[key]) === JSON.stringify(value),
-          ),
-        { signal, timeoutMs: SETTLE_TIMEOUT_MS },
-      );
-      if (applied.timedOut) {
+      if (errors.length > 0) {
         throw new WebMcpToolError(
-          'The parameters were not applied; the URL may have been rejected. Call get_view_status to see the current parameters.',
+          `No parameters changed. Invalid: ${errors.join('; ')}`,
         );
       }
-    }
-    const view = await waitForSettledGeneView(store, {
-      signal,
-      timeoutMs: SETTLE_TIMEOUT_MS,
-    });
-    return { changed, url: url(), view };
-  },
-});
+      const current: Params = await firstValueFrom(
+        store.select(fromParams.getParams),
+      );
+      const same = (key: string, value: unknown) =>
+        JSON.stringify(current[key]) === JSON.stringify(value);
+      const changed = {};
+      Object.entries(params)
+        .filter(([key, value]) => !same(key, value))
+        .forEach(([key, value]) => {
+          changed[key] = { from: current[key], to: value };
+        });
+      if (Object.keys(changed).length > 0) {
+        paramsService.updateParams(params as Params);
+        const applied = await waitFor(
+          store.select(fromParams.getParams),
+          (p) =>
+            Object.entries(params).every(
+              ([key, value]) =>
+                JSON.stringify(p[key]) === JSON.stringify(value),
+            ),
+          { signal, timeoutMs: SETTLE_TIMEOUT_MS },
+        );
+        if (applied.timedOut) {
+          throw new WebMcpToolError(
+            'The parameters were not applied; the URL may have been rejected. Call get_view_status to see the current parameters.',
+          );
+        }
+      }
+      const view = await waitForSettledGeneView(store, {
+        signal,
+        timeoutMs: SETTLE_TIMEOUT_MS,
+      });
+      return { changed, url: url(), view };
+    },
+  });
 
 const getMicrosyntenyAlignment = defineGcvWebMcpTool({
   name: 'get_microsynteny_alignment',
@@ -367,21 +365,11 @@ const getMacrosyntenyBlocks = defineGcvWebMcpTool({
   },
 });
 
-export const geneViewWebMcpTools: GcvWebMcpTools = [
+// the analysis tools, in the order agents use them
+export const analysisWebMcpTools = (): GcvWebMcpTools => [
   getViewStatus,
-  setViewParameters,
+  setViewParameters(),
   getMicrosyntenyAlignment,
   findSyntenicCounterparts,
   getMacrosyntenyBlocks,
 ];
-
-// Call in an injection context whose lifetime is the gene view's.
-export function declareGeneViewWebMcpTools(): void {
-  const highlight = new AgentHighlight(GCV.common.eventBus);
-  inject(DestroyRef).onDestroy(() => highlight.clear());
-  [
-    ...geneViewWebMcpTools,
-    ...inspectWebMcpTools,
-    ...displayWebMcpTools(highlight),
-  ].forEach((tool) => declareGcvWebMcpTool(tool));
-}

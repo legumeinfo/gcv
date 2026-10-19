@@ -1,10 +1,11 @@
 // WebMCP tools that change what the user sees in the gene view without
 // changing its analysis: highlighting, panels, family emphasis and downloads.
-import { inject } from '@angular/core';
+import { Injectable, OnDestroy, inject } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 // store
 import * as fromFamily from '@gcv/gene/store/selectors/family';
 // app
+import { GCV } from '@gcv-assets/js/gcv';
 import { saveFile } from '@gcv/core/utils';
 import {
   GcvWebMcpTools,
@@ -91,92 +92,103 @@ function resolveGene(tracks: AlignedTrack[], gene: string): string {
 const viewFamilies = (tracks: AlignedTrack[]) =>
   new Set(tracks.flatMap((t) => t.families));
 
-function highlightInView(highlight: AgentHighlight) {
-  return defineGcvWebMcpTool({
-    name: 'highlight_in_view',
-    title: 'Highlight genes in the view',
-    description:
-      "Points the user at genes or gene families in the gene view's viewers, as hovering over them would: everything else fades. Use it to show the user what you are describing. A new highlight replaces the previous one; it ends when the user moves the pointer off something in the view or a viewer redraws. Returns which genes and families the viewers now mark.",
-    inputSchema: {
-      type: 'object',
-      properties: {
-        genes: {
-          type: 'array',
-          items: { type: 'string' },
-          description: 'Gene names; unprefixed names work when unambiguous.',
-        },
-        families: {
-          type: 'array',
-          items: { type: 'string' },
-          description: 'Gene family IDs.',
-        },
-        clear: {
-          type: 'boolean',
-          description: 'Remove the highlight instead.',
-        },
-      },
-      additionalProperties: false,
-    },
-    annotations: { readOnlyHint: true },
-    execute: async ({ genes = [], families = [], clear }, { signal }) => {
-      const context = viewContext();
-      if (clear) {
-        highlight.clear();
-        return { cleared: true };
-      }
-      if (genes.length === 0 && families.length === 0) {
-        throw new WebMcpToolError('Name genes or families to highlight.');
-      }
-      await settledView(context, signal);
-      // the viewers redraw as gene positions load, which ends a highlight
-      const clusters = await alignments(context, signal);
-      const names = clusters.flatMap((c) =>
-        c.tracks.flatMap((t) => t.genes.map((g) => g.name)),
-      );
-      const resolved: string[] = [];
-      const notInView: string[] = [];
-      const ambiguous: Record<string, string[]> = {};
-      genes.forEach((gene) => {
-        const matches = matchGeneName(names, gene);
-        if (matches.length === 1) {
-          resolved.push(matches[0]);
-        } else if (matches.length > 1) {
-          ambiguous[gene] = matches;
-        } else {
-          notInView.push(gene);
-        }
-      });
-      const present = new Set(
-        clusters.flatMap((c) =>
-          c.tracks.flatMap((t) => t.genes.map((g) => g.family)),
-        ),
-      );
-      const knownFamilies = families.filter((f) => f !== '' && present.has(f));
-      notInView.push(...families.filter((f) => !knownFamilies.includes(f)));
-      highlight.show({ genes: resolved, families: knownFamilies });
-      // what the viewers mark now, which is what the user sees
-      const marked = Array.from(
-        context.document.querySelectorAll('.GCV.hovering .active'),
-      );
-      const markedValues = (attribute: string) =>
-        new Set(marked.map((e) => e.getAttribute(attribute)));
-      const markedGenes = markedValues('data-gene');
-      const markedFamilies = markedValues('data-family');
-      return {
-        highlighted: {
-          genes: resolved.filter((g) => markedGenes.has(g)),
-          families: knownFamilies.filter((f) => markedFamilies.has(f)),
-        },
-        notDrawn: [
-          ...resolved.filter((g) => !markedGenes.has(g)),
-          ...knownFamilies.filter((f) => !markedFamilies.has(f)),
-        ],
-        notInView,
-        ambiguous,
-      };
-    },
-  });
+// the agent's highlight in a gene view, cleared when the view closes
+@Injectable()
+export class GeneViewHighlight extends AgentHighlight implements OnDestroy {
+  constructor() {
+    super(GCV.common.eventBus);
+  }
+
+  ngOnDestroy(): void {
+    this.clear();
+  }
 }
+
+const highlightInView = defineGcvWebMcpTool({
+  name: 'highlight_in_view',
+  title: 'Highlight genes in the view',
+  description:
+    "Points the user at genes or gene families in the gene view's viewers, as hovering over them would: everything else fades. Use it to show the user what you are describing. A new highlight replaces the previous one; it ends when the user moves the pointer off something in the view or a viewer redraws. Returns which genes and families the viewers now mark.",
+  inputSchema: {
+    type: 'object',
+    properties: {
+      genes: {
+        type: 'array',
+        items: { type: 'string' },
+        description: 'Gene names; unprefixed names work when unambiguous.',
+      },
+      families: {
+        type: 'array',
+        items: { type: 'string' },
+        description: 'Gene family IDs.',
+      },
+      clear: {
+        type: 'boolean',
+        description: 'Remove the highlight instead.',
+      },
+    },
+    additionalProperties: false,
+  },
+  annotations: { readOnlyHint: true },
+  execute: async ({ genes = [], families = [], clear }, { signal }) => {
+    const context = viewContext();
+    const highlight = inject(GeneViewHighlight);
+    if (clear) {
+      highlight.clear();
+      return { cleared: true };
+    }
+    if (genes.length === 0 && families.length === 0) {
+      throw new WebMcpToolError('Name genes or families to highlight.');
+    }
+    await settledView(context, signal);
+    // the viewers redraw as gene positions load, which ends a highlight
+    const clusters = await alignments(context, signal);
+    const names = clusters.flatMap((c) =>
+      c.tracks.flatMap((t) => t.genes.map((g) => g.name)),
+    );
+    const resolved: string[] = [];
+    const notInView: string[] = [];
+    const ambiguous: Record<string, string[]> = {};
+    genes.forEach((gene) => {
+      const matches = matchGeneName(names, gene);
+      if (matches.length === 1) {
+        resolved.push(matches[0]);
+      } else if (matches.length > 1) {
+        ambiguous[gene] = matches;
+      } else {
+        notInView.push(gene);
+      }
+    });
+    const present = new Set(
+      clusters.flatMap((c) =>
+        c.tracks.flatMap((t) => t.genes.map((g) => g.family)),
+      ),
+    );
+    const knownFamilies = families.filter((f) => f !== '' && present.has(f));
+    notInView.push(...families.filter((f) => !knownFamilies.includes(f)));
+    highlight.show({ genes: resolved, families: knownFamilies });
+    // what the viewers mark now, which is what the user sees
+    const marked = Array.from(
+      context.document.querySelectorAll('.GCV.hovering .active'),
+    );
+    const markedValues = (attribute: string) =>
+      new Set(marked.map((e) => e.getAttribute(attribute)));
+    const markedGenes = markedValues('data-gene');
+    const markedFamilies = markedValues('data-family');
+    return {
+      highlighted: {
+        genes: resolved.filter((g) => markedGenes.has(g)),
+        families: knownFamilies.filter((f) => markedFamilies.has(f)),
+      },
+      notDrawn: [
+        ...resolved.filter((g) => !markedGenes.has(g)),
+        ...knownFamilies.filter((f) => !markedFamilies.has(f)),
+      ],
+      notInView,
+      ambiguous,
+    };
+  },
+});
 
 const openPanel = defineGcvWebMcpTool({
   name: 'open_panel',
@@ -466,11 +478,10 @@ const exportFigure = defineGcvWebMcpTool({
   },
 });
 
-export function displayWebMcpTools(highlight: AgentHighlight): GcvWebMcpTools {
-  return [
-    highlightInView(highlight),
-    openPanel,
-    setFamilyEmphasis,
-    exportFigure,
-  ];
-}
+// the tools that change what the user sees, in the order agents use them
+export const displayWebMcpTools = (): GcvWebMcpTools => [
+  highlightInView,
+  openPanel,
+  setFamilyEmphasis,
+  exportFigure,
+];

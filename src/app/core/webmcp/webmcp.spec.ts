@@ -1,4 +1,5 @@
 import {
+  ApplicationInitStatus,
   EnvironmentInjector,
   InjectionToken,
   NgZone,
@@ -130,11 +131,22 @@ describe('GCV WebMCP tools', () => {
     expect(registrations[0].signal.aborted).toBe(true);
   });
 
-  it('registers provided tools when the environment initializes', async () => {
+  it('registers provided tools once the app has initialized', async () => {
+    let initialized: () => void;
+    const donePromise = new Promise<void>((resolve) => (initialized = resolve));
+    const tools = jest.fn(() => [echo]);
     createEnvironmentInjector(
-      [provideGcvWebMcpTools([echo])],
+      [
+        { provide: ApplicationInitStatus, useValue: { donePromise } },
+        provideGcvWebMcpTools(tools),
+      ],
       TestBed.inject(EnvironmentInjector),
     );
+    await flush();
+    // the tools' schemas may read the configuration the initializers load
+    expect(tools).not.toHaveBeenCalled();
+    expect(registrations).toHaveLength(0);
+    initialized();
     await flush();
     expect(registrations.map((r) => r.tool.name)).toEqual(['echo']);
   });

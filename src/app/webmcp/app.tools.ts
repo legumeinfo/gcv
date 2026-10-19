@@ -1,6 +1,11 @@
-// WebMCP tools available on every page: describing GCV, searching its data
-// sources, and opening gene views. The gene view adds tools of its own while
-// it is open (see gene/webmcp/gene-view.tools.ts).
+// GCV's WebMCP tools. All of them register once the app is ready, so an agent
+// sees everything GCV can do from the start: describing GCV, searching its
+// data sources and opening gene views work on every page; the gene view's
+// tools work on the open gene view (see gene-view.host.ts).
+//
+// The gene and search modules read the configuration when they load (e.g. the
+// params reducer's initial state), so this file imports them only
+// dynamically, after the configuration has loaded.
 import {
   DOCUMENT,
   EnvironmentInjector,
@@ -24,35 +29,36 @@ import {
   provideGcvWebMcpTools,
   waitFor,
 } from '@gcv/core/webmcp/webmcp';
+import { inGeneView } from './gene-view.host';
+import {
+  CONCEPTS,
+  OVERVIEW,
+  RECIPES,
+  SEEING_THE_VIEW,
+  TOOL_GUIDE,
+  WORKFLOW,
+} from './guide';
 
 const NAVIGATION_TIMEOUT_MS = 30_000;
 const SETTLE_TIMEOUT_MS = 60_000;
 const MAX_SEARCH_GENES = 200;
 
-const GENE_VIEW_TOOLS = [
-  'get_view_status',
-  'set_view_parameters',
-  'get_microsynteny_alignment',
-  'find_syntenic_counterparts',
-  'get_macrosynteny_blocks',
-];
-
-// The search and gene modules provide these services lazily, so the tools
-// load them on first use rather than adding them to the initial bundle.
-const lazyServices = new WeakMap<
+// The search and gene modules provide these services, not the root injector,
+// so the tools create them on first use.
+const moduleServices = new WeakMap<
   EnvironmentInjector,
   Map<Type<unknown>, unknown>
 >();
 
-async function lazyService<T>(
+async function moduleService<T>(
   injector: EnvironmentInjector,
   load: () => Promise<Type<T>>,
 ): Promise<T> {
   const service = await load();
-  if (!lazyServices.has(injector)) {
-    lazyServices.set(injector, new Map());
+  if (!moduleServices.has(injector)) {
+    moduleServices.set(injector, new Map());
   }
-  const services = lazyServices.get(injector);
+  const services = moduleServices.get(injector);
   if (!services.has(service)) {
     const child = createEnvironmentInjector([service], injector);
     services.set(service, child.get(service));
@@ -78,8 +84,7 @@ const stripHtml = (html: string): string =>
 const describeGcv = defineGcvWebMcpTool({
   name: 'describe_gcv',
   title: 'Describe GCV',
-  description:
-    "Describes this Genome Context Viewer (GCV): what it computes, its data sources and what each supports, how genes, chromosomes and regions are named, every gene view parameter with its meaning and default, and which tools to use for what. Call it first to learn the instance's vocabulary.",
+  description: `${OVERVIEW} ${WORKFLOW} Call describe_gcv first: it explains how to use GCV effectively, with recipes for common questions, every tool grouped by purpose, how genes and regions are named, this instance's data sources and every gene view parameter with its default.`,
   inputSchema: { type: 'object', properties: {} },
   annotations: { readOnlyHint: true },
   execute: async () => {
@@ -96,8 +101,12 @@ const describeGcv = defineGcvWebMcpTool({
     return {
       app: AppConfig.brand?.name ?? 'Genome Context Viewer',
       url: document.location.href,
-      purpose:
-        'GCV compares the genomic context of genes across genomes, using gene families as the unit of homology. For query genes it takes a neighborhood of genes around each, clusters similar neighborhoods, aligns them into a consensus, searches the data sources for similar neighborhoods (micro-synteny) and aligns those to the consensus. It also computes chromosome-scale synteny blocks between query chromosomes and whole genomes (macro-synteny).',
+      overview: OVERVIEW,
+      workflow: WORKFLOW,
+      tools: TOOL_GUIDE,
+      concepts: CONCEPTS,
+      recipes: RECIPES,
+      seeingTheView: SEEING_THE_VIEW,
       sources: AppConfig.servers.map((s) => {
         const { description, website } = s as Server & {
           description?: string;
@@ -123,23 +132,9 @@ const describeGcv = defineGcvWebMcpTool({
         "A region is written 'chromosome:start-stop' in base pairs, e.g. 'glyma.Wm82.gnm4.Gm12:1000000-1200000'.",
         'Coordinates belong to one genome assembly; compare them only within a chromosome.',
         'A gene family is the unit of homology: genes in the same family are treated as matching when aligning and searching.',
-      ],
-      workflow: [
-        'search_genes_and_regions to turn names, symbols or regions into gene names.',
-        'show_gene_contexts to open the gene view on chosen genes or a region; it waits for the analysis and returns its status.',
-        'get_microsynteny_alignment and find_syntenic_counterparts to read gene-level correspondence across genomes.',
-        'get_macrosynteny_blocks for chromosome-scale synteny and duplication depth.',
-        'set_view_parameters to change the analysis; every view is reproducible from its URL.',
+        "Gene view tools accept a name without its assembly prefix ('Glyma.12G040000' for 'glyma.Wm82.gnm4.ann1.Glyma.12G040000') when only one gene in the view matches; otherwise they list the candidates.",
       ],
       parameters,
-      tools: {
-        everyPage: [
-          'describe_gcv',
-          'search_genes_and_regions',
-          'show_gene_contexts',
-        ],
-        whileGeneViewIsOpen: GENE_VIEW_TOOLS,
-      },
     };
   },
 });
@@ -179,7 +174,7 @@ const searchGenesAndRegions = defineGcvWebMcpTool({
         `Unknown or unsearchable sources ${unknown.join(', ')}; choose from ${searchable.join(', ')}.`,
       );
     }
-    const searchService = await lazyService(injector, loadSearchService);
+    const searchService = await moduleService(injector, loadSearchService);
     const results = await Promise.all(
       targets.map(async (source) => {
         const name = AppConfig.getServer(source)?.name;
@@ -209,7 +204,7 @@ const showGeneContexts = defineGcvWebMcpTool({
   name: 'show_gene_contexts',
   title: 'Show gene contexts',
   description:
-    "Opens the gene view on query genes, or on the genes of a genomic region, and waits for GCV to load them, cluster their neighborhoods, search every source for similar neighborhoods and align the results. Returns the view's status and its shareable URL; the gene view's own tools are then available. Analysis parameters already in the URL are kept.",
+    "Opens the gene view on query genes, or on the genes of a genomic region, and waits for GCV to load them, cluster their neighborhoods, search every source for similar neighborhoods and align the results. Returns the view's status and its shareable URL, ready for the gene view tools. Analysis parameters already in the URL are kept.",
   inputSchema: {
     type: 'object',
     properties: {
@@ -295,7 +290,7 @@ const showGeneContexts = defineGcvWebMcpTool({
       if (!serverIDs('region').includes(regionSource)) {
         throw new WebMcpToolError(`${regionSource} doesn't support regions.`);
       }
-      const regionService = await lazyService(injector, loadRegionService);
+      const regionService = await moduleService(injector, loadRegionService);
       let found;
       try {
         found = await firstValueFrom(
@@ -352,16 +347,28 @@ const showGeneContexts = defineGcvWebMcpTool({
       url: document.location.href,
       region: resolvedRegion,
       view,
-      tools: GENE_VIEW_TOOLS,
     };
   },
 });
 
-export const appWebMcpTools: GcvWebMcpTools = [
-  describeGcv,
-  searchGenesAndRegions,
-  showGeneContexts,
-];
+// every tool, in the order of the guide
+export async function appWebMcpTools(): Promise<GcvWebMcpTools> {
+  const [analysis, inspect, display] = await Promise.all([
+    import('@gcv/gene/webmcp/gene-view.tools'),
+    import('@gcv/gene/webmcp/inspect.tools'),
+    import('@gcv/gene/webmcp/display.tools'),
+  ]);
+  return [
+    describeGcv,
+    searchGenesAndRegions,
+    showGeneContexts,
+    ...[
+      ...analysis.analysisWebMcpTools(),
+      ...inspect.inspectWebMcpTools(),
+      ...display.displayWebMcpTools(),
+    ].map((tool) => inGeneView(tool)),
+  ];
+}
 
 export function provideAppWebMcpTools(): EnvironmentProviders {
   return provideGcvWebMcpTools(appWebMcpTools);

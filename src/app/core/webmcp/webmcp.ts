@@ -4,6 +4,8 @@
 // (Angular doesn't, and router navigation outside the zone skips change
 // detection), and one serialization of results for the agent.
 import {
+  ApplicationInitStatus,
+  EnvironmentInjector,
   EnvironmentProviders,
   Injector,
   NgZone,
@@ -102,14 +104,24 @@ export function declareGcvWebMcpTool<S extends WebMcpJsonSchema>(
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type GcvWebMcpTools = ReadonlyArray<GcvWebMcpTool<any>>;
 
-// Registers the tools for the lifetime of the environment injector.
+// Registers the tools once the app has initialized, which includes loading
+// its configuration, for the lifetime of the environment injector. Tools are
+// built then, so their schemas can list what the configuration provides and
+// they can load modules that read it.
 export function provideGcvWebMcpTools(
-  tools: GcvWebMcpTools,
+  tools: () => GcvWebMcpTools | Promise<GcvWebMcpTools>,
 ): EnvironmentProviders {
   return makeEnvironmentProviders([
     provideEnvironmentInitializer(() => {
-      const injector = inject(Injector);
-      tools.forEach((tool) => declareGcvWebMcpTool(tool, injector));
+      const injector = inject(EnvironmentInjector);
+      inject(ApplicationInitStatus)
+        .donePromise.then(tools)
+        .then((built) => {
+          if (!injector.destroyed) {
+            built.forEach((tool) => declareGcvWebMcpTool(tool, injector));
+          }
+        })
+        .catch((error) => console.warn('WebMCP: could not build tools', error));
     }),
   ]);
 }

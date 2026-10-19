@@ -300,8 +300,10 @@ const getDotPlotPairs = defineGcvWebMcpTool({
   },
 });
 
-export const inspectWebMcpTools: GcvWebMcpTools = [
-  getGeneDetails,
+// the tools that read genes, families and dot plots, in the order agents use
+// them
+export const inspectWebMcpTools = (): GcvWebMcpTools => [
   getFamilySummary,
   getDotPlotPairs,
+  getGeneDetails,
 ];

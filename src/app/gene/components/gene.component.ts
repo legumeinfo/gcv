@@ -15,7 +15,8 @@ import {
   TooltipFactoryDirective,
 } from '@gcv/gene/directives';
 import { MicroTracksService } from '@gcv/gene/services';
-import { declareGeneViewWebMcpTools } from '@gcv/gene/webmcp/gene-view.tools';
+import { GeneViewHighlight } from '@gcv/gene/webmcp/display.tools';
+import { attachGeneViewToWebMcp } from '@gcv/webmcp/gene-view.host';
 import * as fromDetails from './details';
 import { PanelService } from './panel.service';
 import * as fromTooltips from './tooltips';
@@ -28,7 +29,7 @@ import * as fromViewers from './viewers';
   templateUrl: './gene.component.html',
   changeDetection: ChangeDetectionStrategy.Eager,
   standalone: false,
-  providers: [PanelService],
+  providers: [PanelService, GeneViewHighlight],
 })
 export class GeneComponent implements AfterViewInit, OnDestroy {
   private _microTracksService = inject(MicroTracksService);
@@ -59,7 +60,7 @@ export class GeneComponent implements AfterViewInit, OnDestroy {
   showLeftSlider: Observable<boolean>;
 
   constructor() {
-    declareGeneViewWebMcpTools();
+    attachGeneViewToWebMcp();
   }
 
   // Angular hooks
