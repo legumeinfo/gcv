@@ -257,21 +257,21 @@ export class MicroComponent implements AfterViewInit, OnDestroy, OnInit {
     genes,
     omittedFamilies,
   ): void {
-    const { data, bold, familySizes } = microShim(
-      this.clusterID,
-      queryTracks,
-      tracks,
-      genes,
-      omittedFamilies,
-    );
+    const {
+      data,
+      bold,
+      familySizes,
+      tracks: clusterTracks,
+    } = microShim(this.clusterID, queryTracks, tracks, genes, omittedFamilies);
     let options = {
       bold: bold,
       highlight: queryGenes.map((g) => g.name),
       selectiveColoring: familySizes,
-      plotClick: (e, t, i) => this.emitPlotClick(e, tracks[i], queryTracks),
+      plotClick: (e, t, i) =>
+        this.emitPlotClick(e, clusterTracks[i], queryTracks),
       geneClick: (t, g) => this.emitGeneClick(g.name, g.family, t.source),
       geneOver: (e, t, g) => this.emitGeneOver(e, g.name, g.family, t.source),
-      nameClick: (t, i) => this.emitNameClick(tracks[i]),
+      nameClick: (t, i) => this.emitNameClick(clusterTracks[i]),
     };
     options = Object.assign(options, this.options, { autoResize: false });
     this.draw = this._draw.bind(this, data, options);

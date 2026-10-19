@@ -177,5 +177,6 @@ export function microShim(
     return accumulator;
   };
   const familySizes = tracks.reduce(reducer, {});
-  return { data, bold, familySizes };
+  // the viewer reports a track by its index in data, which is its index here
+  return { data, bold, familySizes, tracks: filteredTracks };
 }
