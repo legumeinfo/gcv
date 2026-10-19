@@ -1,4 +1,5 @@
 import { test, expect, Page } from '@playwright/test';
+import { waitForSettledMicroView } from '../utils';
 
 // The gene view narrows the legend column to its widest legend entry, plus a
 // margin of a quarter of that entry's width, giving the micro-synteny viewers
@@ -33,11 +34,7 @@ async function margin(page: Page): Promise<number> {
 
 async function settledView(page: Page) {
   await page.goto(GENE);
-  const stages = page.locator('gcv-micro gcv-pipeline .pipeline-arrow');
-  await expect(stages).toHaveCount(3);
-  await expect(stages.locator('.fa-spin, .fa-ban')).toHaveCount(0, {
-    timeout: 60000,
-  });
+  await waitForSettledMicroView(page);
   await expect(page.locator('gcv-macro-legend svg text').first()).toBeVisible();
 }
 

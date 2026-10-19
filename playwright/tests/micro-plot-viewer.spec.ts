@@ -1,4 +1,5 @@
 import { test, expect, Page } from '@playwright/test';
+import { waitForSettledMicroView } from '../utils';
 
 // Repro from issue: the cicar track whose plot buttons crashed with SACC88532.
 // Clicking a track's plot button then choosing local/global adds a plots pane
@@ -25,11 +26,9 @@ async function openPlot(page: Page, which: 'local' | 'global') {
 test.describe('micro-synteny plot viewer (Golden Layout v2)', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto(REPRO);
-    // wait for the micro tracks AND the per-track plot axis to render
-    await page
-      .locator('gcv-micro .gene')
-      .first()
-      .waitFor({ state: 'attached' });
+    // a redraw while a plot link's tooltip opens detaches the tooltip, so
+    // click only once the view has settled
+    await waitForSettledMicroView(page);
     await page.locator('gcv-micro .micro-plot-link').first().waitFor();
   });
 

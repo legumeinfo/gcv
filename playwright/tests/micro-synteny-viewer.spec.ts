@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { waitForSettledMicroView } from '../utils';
 
 test.describe('micro synteny viewer', () => {
   test.beforeEach(async ({ page }) => {
@@ -19,11 +20,9 @@ test.describe('micro synteny viewer', () => {
       })
       .click();
 
-    // Wait for the micro-synteny pipeline to render gene glyphs before asserting.
-    await page
-      .locator('gcv-micro .gene')
-      .first()
-      .waitFor({ state: 'attached' });
+    // Genes draw before their coordinates and strands load; assert on the
+    // settled view.
+    await waitForSettledMicroView(page);
   });
 
   // Color is GCV's homology encoding: a gene's fill is GCV.common.colors(family),

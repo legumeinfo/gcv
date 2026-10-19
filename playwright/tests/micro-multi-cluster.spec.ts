@@ -1,13 +1,14 @@
 import { test, expect, Locator, Page } from '@playwright/test';
+import { waitForSettledMicroView } from '../utils';
 
 // Two query genes on different chromosomes, so the view has two clusters, each
 // in its own micro-synteny viewer.
 const TWO_CLUSTERS =
   '/gene;lis=glyma.Wm82.gnm4.ann1.Glyma.09G134900,glyma.Wm82.gnm4.ann1.Glyma.12G040000';
 
-// Brings the last cluster's viewer to the front and waits until its pipeline
-// (search, alignment, genes) has finished, since tracks arriving later
-// reorder the viewer; returns the viewer and its cluster.
+// Brings the last cluster's viewer to the front and waits for the view to
+// settle, since tracks arriving later reorder the viewer; returns the viewer
+// and its cluster.
 async function lastClusterViewer(
   page: Page,
 ): Promise<{ viewer: Locator; cluster: string }> {
@@ -18,15 +19,8 @@ async function lastClusterViewer(
   const tab = tabs.last();
   const cluster = (await tab.textContent()).match(/Cluster (\d+)/)[1];
   await tab.click();
-  const viewer = page.locator('gcv-micro:visible');
-  await viewer.locator('.gene').first().waitFor({ state: 'attached' });
-  const stages = viewer.locator('gcv-pipeline .pipeline-arrow');
-  await expect(stages).toHaveCount(3);
-  await expect(stages.locator('.fa-spin, .fa-ban')).toHaveCount(0, {
-    timeout: 60000,
-  });
-  await expect(viewer.locator('text[data-extent="0:0"]')).toHaveCount(0);
-  return { viewer, cluster };
+  await waitForSettledMicroView(page);
+  return { viewer: page.locator('gcv-micro:visible'), cluster };
 }
 
 // the last track label of the viewer: its index and chromosome
