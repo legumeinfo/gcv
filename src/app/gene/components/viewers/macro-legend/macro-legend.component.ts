@@ -35,6 +35,12 @@ export class MacroLegendComponent implements AfterViewInit, OnDestroy {
 
   @Input() options: any = {};
   @Output() clicked = new EventEmitter();
+  // the narrowest width that shows every key, as drawn in container; 0
+  // without keys
+  @Output() naturalWidth = new EventEmitter<{
+    width: number;
+    container: HTMLElement;
+  }>();
 
   @ViewChild('container', { static: true }) container: ElementRef;
 
@@ -87,6 +93,10 @@ export class MacroLegendComponent implements AfterViewInit, OnDestroy {
 
   // private
 
+  private _emitNaturalWidth(width: number): void {
+    this.naturalWidth.emit({ width, container: this.container.nativeElement });
+  }
+
   private _destroyViewer(): void {
     if (this._viewer !== undefined) {
       this._viewer.destroy();
@@ -96,7 +106,11 @@ export class MacroLegendComponent implements AfterViewInit, OnDestroy {
 
   private _preDraw(queries, tracks, colors): void {
     const { data, highlight, selector } = macroLegendShim(queries, tracks);
-    let options = { highlight, selector };
+    let options = {
+      highlight,
+      selector,
+      sizeCallback: ({ naturalWidth }) => this._emitNaturalWidth(naturalWidth),
+    };
     options = Object.assign(options, this.options, { autoResize: false });
     this.draw = this._draw.bind(this, colors, data, options);
   }

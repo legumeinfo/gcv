@@ -12,6 +12,9 @@ export function microLegendConfigFactory(outputs: any = {}) {
     click: (id, family) => {
       /* no-op */
     },
+    naturalWidth: (id, { width, container }) => {
+      /* no-op */
+    },
   };
   _outputs = Object.assign(_outputs, outputs);
   return {
@@ -21,7 +24,10 @@ export function microLegendConfigFactory(outputs: any = {}) {
     title: 'Micro Synteny Legend',
     componentState: {
       inputs: { options },
-      outputs: { clicked: (family) => _outputs.click(id, family) },
+      outputs: {
+        clicked: (family) => _outputs.click(id, family),
+        naturalWidth: (e) => _outputs.naturalWidth(id, e),
+      },
     },
     isClosable: false,
   };

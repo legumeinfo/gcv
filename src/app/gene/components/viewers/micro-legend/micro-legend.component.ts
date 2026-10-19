@@ -42,6 +42,12 @@ export class MicroLegendComponent implements AfterViewInit, OnDestroy {
 
   @Input() options: any = {};
   @Output() clicked = new EventEmitter();
+  // the narrowest width that shows every key, as drawn in container; 0
+  // without keys
+  @Output() naturalWidth = new EventEmitter<{
+    width: number;
+    container: HTMLElement;
+  }>();
 
   @ViewChild('container', { static: true }) container: ElementRef;
 
@@ -90,6 +96,10 @@ export class MicroLegendComponent implements AfterViewInit, OnDestroy {
 
   // private
 
+  private _emitNaturalWidth(width: number): void {
+    this.naturalWidth.emit({ width, container: this.container.nativeElement });
+  }
+
   private _destroyViewer(): void {
     if (this._viewer !== undefined) {
       this._viewer.destroy();
@@ -116,6 +126,7 @@ export class MicroLegendComponent implements AfterViewInit, OnDestroy {
       keyClick: (k) => this.emitClick(k),
       selector: 'family',
       membersSelector: 'genes',
+      sizeCallback: ({ naturalWidth }) => this._emitNaturalWidth(naturalWidth),
     };
     options = Object.assign(options, this.options, { autoResize: false });
     this.draw = this._draw.bind(this, data, options);

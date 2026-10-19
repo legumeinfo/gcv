@@ -93,7 +93,15 @@ export class Legend extends Visualizer {
     legend.attr('y', this.PAD);
     this.decorateResize(legend.resize);
     const lBox = legend.node().getBBox();
-    this.options.sizeCallback({ width: lBox.width, height: lBox.height });
+    // keys are right-aligned, so the narrowest viewer that shows every key is
+    // the keys' width plus a margin on each side; 0 without keys
+    const naturalWidth =
+      legend.keys.length === 0 ? 0 : Math.ceil(lBox.width + 2 * this.PAD);
+    this.options.sizeCallback({
+      width: lBox.width,
+      height: lBox.height,
+      naturalWidth,
+    });
     this.viewer.attr('height', lBox.y + lBox.height + 2 * this.PAD);
     // create an auto resize iframe, if necessary
     if (this.options.autoResize) {

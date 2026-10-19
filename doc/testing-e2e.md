@@ -1,6 +1,6 @@
 # GCV Integration Tests (Playwright)
 
-Browser tests that drive the real app against a **real backend** and assert on the rendered DOM. **11 tests / 4 files.**
+Browser tests that drive the real app against a **real backend** and assert on the rendered DOM. **13 tests / 5 files.**
 
 ```bash
 npm run test:e2e          # headless (Chromium)
@@ -24,8 +24,9 @@ The dangerous regressions here aren't crashes — they're a clean render of inac
 | block bounds (macro)             | block loci well-formed; reference-locus within the chromosome span                                | a region drawn at the wrong coordinate / off-chromosome |
 | viewport drag (macro)            | dragging onto Gm17's block yields the expected micro-tracks                                       | the macro→micro selection pipeline                      |
 | track selection (multi-cluster)  | a track's name and plot links open that track, in every cluster's viewer                          | another cluster's track shown in its place              |
+| legend fit (layout)              | the legend column fits its widest entry and keeps the user's splitter position                    | legends clipped, or wasted width taken from the viewers |
 
-`macro-synteny-viewer.spec.ts`, `micro-synteny-viewer.spec.ts`, `micro-plot-viewer.spec.ts`, `micro-multi-cluster.spec.ts`. Roadmap (Tier 2, deep-link reproducibility, param→URL) tracked in project memory.
+`macro-synteny-viewer.spec.ts`, `micro-synteny-viewer.spec.ts`, `micro-plot-viewer.spec.ts`, `micro-multi-cluster.spec.ts`, `legend-fit.spec.ts`. Roadmap (Tier 2, deep-link reproducibility, param→URL) tracked in project memory.
 
 ## Conventions
 

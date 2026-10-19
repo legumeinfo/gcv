@@ -15,6 +15,14 @@ import * as fromViewers from './viewers';
 
 type ClusteredTrack = Track & ClusterMixin;
 
+// the legend column's bounds when it fits the legends: never narrower than
+// MIN_LEGEND_WIDTH pixels, nor wider than its share of the initial layout
+const MIN_LEGEND_WIDTH = 120;
+const MAX_LEGEND_SIZE = 50;
+// whitespace beside the widest legend, as a fraction of its width, so the
+// labels don't run into the column's edge
+const LEGEND_MARGIN = 0.25;
+
 // Opens the gene view's panels, for the viewers' callbacks and for agents. The
 // gene view provides it and attaches its layout once the layout exists.
 @Injectable()
@@ -22,6 +30,14 @@ export class PanelService {
   private _layout: GoldenLayoutDirective;
   private _tooltips: TooltipFactoryDirective;
   private _tipOptions: object;
+  // what each legend needs to show every key, by legend panel ID
+  private _legendWidths = new Map<
+    string,
+    { width: number; container: HTMLElement }
+  >();
+  // the legend column's size, in percent, as last fitted; undefined until
+  // the first fit, null once the user has resized the column
+  private _fittedSize: number | null | undefined;
 
   attach(
     layout: GoldenLayoutDirective,
@@ -40,6 +56,8 @@ export class PanelService {
   // replaces every panel with the legends and a micro-synteny viewer per
   // cluster
   reset(clusterIDs: number[]): void {
+    this._legendWidths.clear();
+    this._fittedSize = undefined;
     this._layout.reset();
     this._initializeLegends();
     this._addMicroViewers(clusterIDs);
@@ -172,9 +190,56 @@ export class PanelService {
   }
 
   private _initializeLegends(): void {
-    this._addItem(fromViewers.macroLegendConfigFactory(), [1]);
+    const naturalWidth = this._fitLegends.bind(this);
+    this._addItem(fromViewers.macroLegendConfigFactory({ naturalWidth }), [1]);
     const click = (id, family) => this.openFamilyDetail(id, family);
-    this._addItem(fromViewers.microLegendConfigFactory({ click }), [1]);
+    this._addItem(
+      fromViewers.microLegendConfigFactory({ click, naturalWidth }),
+      [1],
+    );
+  }
+
+  // Narrows the legend column to the widest legend, with a margin, giving
+  // the micro-synteny viewers the rest of the row. Legends report their width on each draw,
+  // including after the window or column resizes, so the fit follows both;
+  // once the user drags the column's splitter, the fit leaves it alone.
+  private _fitLegends(
+    id: string,
+    legend: { width: number; container: HTMLElement },
+  ): void {
+    this._legendWidths.set(id, legend);
+    const column = this._layout.rootChildWidth(id);
+    if (column === undefined || this._fittedSize === null) {
+      return;
+    }
+    if (
+      this._fittedSize !== undefined &&
+      Math.abs(column.size - this._fittedSize) > 0.5
+    ) {
+      this._fittedSize = null;
+      return;
+    }
+    // a legend's container is narrower than the column by its scrollbar and
+    // borders; a hidden legend (behind another tab) can't be measured
+    const needed = Array.from(this._legendWidths.values())
+      .filter((l) => l.width > 0 && l.container.clientWidth > 0)
+      .map(
+        (l) =>
+          l.width * (1 + LEGEND_MARGIN) +
+          column.width -
+          l.container.clientWidth,
+      );
+    if (needed.length === 0) {
+      return;
+    }
+    const width = Math.max(MIN_LEGEND_WIDTH, ...needed);
+    const maxWidth = (column.width / column.size) * MAX_LEGEND_SIZE;
+    const target = Math.min(width, maxWidth);
+    if (Math.abs(target - column.width) < 2) {
+      this._fittedSize ??= column.size;
+      return;
+    }
+    this._fittedSize = this._layout.setRootChildWidth(id, target) ?? null;
   }
 
   private _addMicroViewers(clusterIDs: number[]): void {

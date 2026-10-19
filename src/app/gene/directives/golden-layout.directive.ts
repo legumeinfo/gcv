@@ -36,6 +36,13 @@ export interface LayoutComponentItem {
   instance: any;
 }
 
+// Golden Layout 2.6 has no public API to resize an item; these members are
+// internal to it, so only the row-width methods below use them.
+type SizedItem = ContentItem & {
+  size: number;
+  updateSize(force: boolean): void;
+};
+
 interface ComponentRefMap {
   [containerId: string]: ComponentRef<any>;
 }
@@ -332,6 +339,51 @@ export class GoldenLayoutDirective implements AfterContentInit, OnDestroy {
     }
     stack.setActiveComponentItem(item as ComponentItem, true);
     return true;
+  }
+
+  // the root row's child that holds the item
+  private _rootChild(id: string): SizedItem | undefined {
+    const rootItem = this._layout?.rootItem;
+    if (!rootItem?.isRow) return undefined;
+    let item: ContentItem | null = this._findItemsById(id)[0] ?? null;
+    while (item !== null && item.parent !== rootItem) {
+      item = item.parent;
+    }
+    return (item as SizedItem) ?? undefined;
+  }
+
+  // the width, in pixels, and size, in percent of the row, of the root row's
+  // child that holds the item
+  rootChildWidth(id: string): { width: number; size: number } | undefined {
+    const child = this._rootChild(id);
+    if (child === undefined) return undefined;
+    return { width: child.element.offsetWidth, size: child.size };
+  }
+
+  // Sets the width, in pixels, of the root row's child that holds the item,
+  // resizing its siblings in proportion; returns its new size in percent.
+  setRootChildWidth(id: string, width: number): number | undefined {
+    const rootItem = this._layout?.rootItem as SizedItem | undefined;
+    const child = this._rootChild(id);
+    if (child === undefined) return undefined;
+    const siblings = rootItem.contentItems.filter(
+      (c) => c !== child,
+    ) as SizedItem[];
+    const splitters =
+      siblings.length * this._layout.layoutConfig.dimensions.borderWidth;
+    const total = rootItem.element.offsetWidth - splitters;
+    if (siblings.length === 0 || total <= 0) return undefined;
+    const size = Math.min(100, Math.max(0, (width / total) * 100));
+    const rest = siblings.reduce((sum, s) => sum + s.size, 0);
+    siblings.forEach((s) => {
+      s.size =
+        rest > 0
+          ? (s.size / rest) * (100 - size)
+          : (100 - size) / siblings.length;
+    });
+    child.size = size;
+    rootItem.updateSize(false);
+    return size;
   }
 
   reset(): void {

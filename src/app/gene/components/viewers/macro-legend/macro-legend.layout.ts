@@ -12,6 +12,9 @@ export function macroLegendConfigFactory(outputs: any = {}) {
     click: (id, organism) => {
       /* no-op */
     },
+    naturalWidth: (id, { width, container }) => {
+      /* no-op */
+    },
   };
   _outputs = Object.assign(_outputs, outputs);
   return {
@@ -21,7 +24,10 @@ export function macroLegendConfigFactory(outputs: any = {}) {
     title: 'Macro Synteny Legend',
     componentState: {
       inputs: { options },
-      outputs: { clicked: (organism) => _outputs.click(id, organism) },
+      outputs: {
+        clicked: (organism) => _outputs.click(id, organism),
+        naturalWidth: (e) => _outputs.naturalWidth(id, e),
+      },
     },
     isClosable: false,
   };
