@@ -1,5 +1,5 @@
 # base stage installs the project dependencies
-FROM node:24.19.0-alpine3.23 as base
+FROM node:26.12.0-alpine3.23 as base
 
 # install non-npm build dependencies
 RUN apk add --no-cache \
