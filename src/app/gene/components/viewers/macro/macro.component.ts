@@ -248,9 +248,12 @@ export class MacroComponent implements AfterViewInit, OnDestroy, OnInit {
     this.blockOver.emit({ event, pairwiseBlocks, block });
   }
 
-  saveImage(): void {
-    if (this._viewer !== undefined) {
-      saveFile('macro', this._viewer.xml(), 'image/svg+xml', 'svg');
+  // returns whether there was a drawn viewer to save
+  saveImage(): boolean {
+    if (this._viewer === undefined) {
+      return false;
     }
+    saveFile('macro', this._viewer.xml(), 'image/svg+xml', 'svg');
+    return true;
   }
 }

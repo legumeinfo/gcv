@@ -220,10 +220,13 @@ export class MicroComponent implements AfterViewInit, OnDestroy, OnInit {
     this.reference.emit({ track });
   }
 
-  saveImage(): void {
-    if (this._viewer !== undefined) {
-      saveFile('micro-synteny', this._viewer.xml(), 'image/svg+xml', 'svg');
+  // returns whether there was a drawn viewer to save
+  saveImage(): boolean {
+    if (this._viewer === undefined) {
+      return false;
     }
+    saveFile('micro-synteny', this._viewer.xml(), 'image/svg+xml', 'svg');
+    return true;
   }
 
   showCircos(): boolean {

@@ -11,6 +11,7 @@ import {
 // Golden Layout v2
 import {
   ComponentContainer,
+  ComponentItem,
   ComponentItemConfig,
   ContentItem,
   GoldenLayout,
@@ -25,6 +26,14 @@ import { ComponentService } from '@gcv/gene/services';
 interface LayoutComponent {
   name: string;
   component: any;
+}
+
+// an open panel
+export interface LayoutComponentItem {
+  id: string;
+  componentType: string;
+  title: string;
+  instance: any;
 }
 
 interface ComponentRefMap {
@@ -288,6 +297,41 @@ export class GoldenLayoutDirective implements AfterContentInit, OnDestroy {
         }
       }
     }
+  }
+
+  // the open component items, in layout order
+  componentItems(): LayoutComponentItem[] {
+    const rootItem = this._layout?.rootItem;
+    if (!rootItem) return [];
+    const results: LayoutComponentItem[] = [];
+    const search = (item: ContentItem) => {
+      if (item.isComponent) {
+        const component = item as ComponentItem;
+        results.push({
+          id: component.id,
+          componentType: component.componentType as string,
+          title: component.title,
+          instance: this._componentRefs[component.id]?.instance,
+        });
+      }
+      if ('contentItems' in item) {
+        (item as RowOrColumn | Stack).contentItems.forEach(search);
+      }
+    };
+    search(rootItem);
+    return results;
+  }
+
+  // brings a component item to the front of its stack
+  activateItem(id: string): boolean {
+    // a stack Golden Layout wraps a component in can share its ID
+    const item = this._findItemsById(id).find((i) => i.isComponent);
+    const stack = item === undefined ? null : this._closestStack(item);
+    if (stack === null) {
+      return false;
+    }
+    stack.setActiveComponentItem(item as ComponentItem, true);
+    return true;
   }
 
   reset(): void {

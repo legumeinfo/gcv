@@ -203,9 +203,12 @@ export class MacroCircosComponent implements AfterViewInit, OnDestroy, OnInit {
 
   // public
 
-  saveImage(): void {
-    if (this._viewer !== undefined) {
-      saveFile('macro-circos', this._viewer.xml(), 'image/svg+xml', 'svg');
+  // returns whether there was a drawn viewer to save
+  saveImage(): boolean {
+    if (this._viewer === undefined) {
+      return false;
     }
+    saveFile('macro-circos', this._viewer.xml(), 'image/svg+xml', 'svg');
+    return true;
   }
 }

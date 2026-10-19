@@ -1,15 +1,12 @@
 // WebMCP tools for the gene view. They exist while the view is open: the view
 // declares them in its injection context, so they unregister when it closes.
-import { DOCUMENT, inject } from '@angular/core';
-import { Store } from '@ngrx/store';
+import { DestroyRef, inject } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 // store
-import * as fromRoot from '@gcv/store/reducers';
-import * as geneActions from '@gcv/gene/store/actions/gene.actions';
 import * as fromChromosome from '@gcv/gene/store/selectors/chromosome';
-import * as fromMicroTracks from '@gcv/gene/store/selectors/micro-tracks';
 import * as fromParams from '@gcv/gene/store/selectors/params';
 // app
+import { GCV } from '@gcv-assets/js/gcv';
 import {
   GcvWebMcpTools,
   WebMcpJsonSchema,
@@ -27,94 +24,22 @@ import {
 import {
   ClusterAlignment,
   clusterAlignmentTsv,
-  clusterAlignments,
   syntenicCounterparts,
 } from './alignment.report';
 import { blockEndpointGenes, macroSyntenyReport } from './blocks.report';
-import { parameterSchemas, validateParameterUpdate } from './parameters';
+import { displayWebMcpTools } from './display.tools';
 import {
-  AlignedTrack,
-  GeneViewSummary,
-  currentGeneView,
-  loadGenes,
-  waitForSettledGeneView,
-} from './view-state';
-
-const SETTLE_TIMEOUT_MS = 60_000;
-
-// inject() only works before a tool's first await, so tools take everything
-// they need up front
-type ViewContext = {
-  store: Store<fromRoot.State>;
-  url: () => string;
-};
-
-function viewContext(): ViewContext {
-  const document = inject(DOCUMENT);
-  return {
-    store: inject<Store<fromRoot.State>>(Store),
-    url: () => document.location.href,
-  };
-}
-
-// waits for the view to settle and fails when it has nothing to report on
-async function settledView(
-  { store }: ViewContext,
-  signal: AbortSignal,
-): Promise<GeneViewSummary> {
-  const summary = await waitForSettledGeneView(store, {
-    signal,
-    timeoutMs: SETTLE_TIMEOUT_MS,
-  });
-  if (summary.status === 'empty' || summary.clusters.length === 0) {
-    throw new WebMcpToolError(
-      'The view has no loaded query genes. Call show_gene_contexts with genes from search_genes_and_regions first.' +
-        (summary.issues.length > 0
-          ? ` Issues: ${summary.issues.join('; ')}`
-          : ''),
-    );
-  }
-  return summary;
-}
-
-function geneRequests(tracks: AlignedTrack[]) {
-  return geneActions.tracksToGetGeneActions(tracks).map((a) => a.payload);
-}
-
-// the aligned tracks of the view, in the viewer's order, with gene positions
-async function alignments(
-  { store }: ViewContext,
-  signal: AbortSignal,
-  cluster?: number,
-): Promise<ClusterAlignment[]> {
-  const query = await firstValueFrom(
-    store.select(fromMicroTracks.getClusteredAndAlignedSelectedMicroTracks),
-  );
-  let tracks = await firstValueFrom(
-    store.select(fromMicroTracks.getAllClusteredAndAlignedMicroTracks),
-  );
-  if (cluster !== undefined) {
-    tracks = tracks.filter((t) => t.cluster === cluster);
-    if (tracks.length === 0) {
-      const ids = Array.from(new Set(query.tracks.map((t) => t.cluster)));
-      throw new WebMcpToolError(
-        `No cluster ${cluster}; the view has clusters ${ids.join(', ')}.`,
-      );
-    }
-  }
-  const genes = await loadGenes(
-    store,
-    geneRequests(tracks),
-    (request) => store.dispatch(geneActions.get(request)),
-    { signal, timeoutMs: SETTLE_TIMEOUT_MS },
-  );
-  return clusterAlignments(
-    query.consensuses,
-    tracks,
-    new Set(query.tracks),
-    genes,
-  );
-}
+  SETTLE_TIMEOUT_MS,
+  alignments,
+  settledView,
+  viewContext,
+  viewGenes,
+} from './gene-view.context';
+import { AgentHighlight } from './highlight';
+import { inspectWebMcpTools } from './inspect.tools';
+import { matchGeneName } from './lookup';
+import { parameterSchemas, validateParameterUpdate } from './parameters';
+import { currentGeneView, waitForSettledGeneView } from './view-state';
 
 // keeps a cluster's query tracks and its first maxTracks result tracks
 function limitTracks(cluster: ClusterAlignment, maxTracks: number) {
@@ -314,21 +239,15 @@ const findSyntenicCounterparts = defineGcvWebMcpTool({
           .flatMap((t) => t.genes.map((g) => g.name)),
       ),
     );
-    let name = gene;
-    if (!names.has(gene)) {
-      const suffix = `.${gene}`.toLowerCase();
-      const matches = Array.from(names).filter((n) =>
-        n.toLowerCase().endsWith(suffix),
+    const matches = matchGeneName(names, gene);
+    if (matches.length !== 1) {
+      throw new WebMcpToolError(
+        matches.length > 1
+          ? `${gene} is ambiguous in this view: ${matches.join(', ')}. Pass the full name.`
+          : `${gene} is not in the current view. Call show_gene_contexts with it to make it a query gene.`,
       );
-      if (matches.length !== 1) {
-        throw new WebMcpToolError(
-          matches.length > 1
-            ? `${gene} is ambiguous in this view: ${matches.join(', ')}. Pass the full name.`
-            : `${gene} is not in the current view. Call show_gene_contexts with it to make it a query gene.`,
-        );
-      }
-      name = matches[0];
     }
+    const name = matches[0];
     const occurrences = syntenicCounterparts(clusters, name, source);
     return {
       gene: name,
@@ -428,11 +347,10 @@ const getMacrosyntenyBlocks = defineGcvWebMcpTool({
         );
       }
       const shown = blocks.slice(0, maxTargets);
-      const genes = await loadGenes(
-        store,
+      const genes = await viewGenes(
+        context,
         [{ names: blockEndpointGenes(c, shown), source: c.source }],
-        (request) => store.dispatch(geneActions.get(request)),
-        { signal, timeoutMs: SETTLE_TIMEOUT_MS },
+        signal,
       );
       reports.push({
         ...macroSyntenyReport(c, blocks, genes, maxTargets),
@@ -459,5 +377,11 @@ export const geneViewWebMcpTools: GcvWebMcpTools = [
 
 // Call in an injection context whose lifetime is the gene view's.
 export function declareGeneViewWebMcpTools(): void {
-  geneViewWebMcpTools.forEach((tool) => declareGcvWebMcpTool(tool));
+  const highlight = new AgentHighlight(GCV.common.eventBus);
+  inject(DestroyRef).onDestroy(() => highlight.clear());
+  [
+    ...geneViewWebMcpTools,
+    ...inspectWebMcpTools,
+    ...displayWebMcpTools(highlight),
+  ].forEach((tool) => declareGcvWebMcpTool(tool));
 }

@@ -139,10 +139,13 @@ export class PlotComponent implements AfterViewInit, OnDestroy, OnInit {
     this.geneOver.emit({ event, gene, family, source });
   }
 
-  saveImage(): void {
-    if (this._viewer !== undefined) {
-      saveFile('micro-synteny', this._viewer.xml(), 'image/svg+xml', 'svg');
+  // returns whether there was a drawn viewer to save
+  saveImage(): boolean {
+    if (this._viewer === undefined) {
+      return false;
     }
+    saveFile('micro-synteny', this._viewer.xml(), 'image/svg+xml', 'svg');
+    return true;
   }
 
   // private
