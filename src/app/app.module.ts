@@ -31,6 +31,8 @@ import { CustomRouterStateSerializer } from '@gcv/store/utils';
 import { metaReducers, reducers } from '@gcv/store/reducers';
 import * as fromRouter from '@gcv/store/reducers/router.reducer';
 import { RouterEffects } from '@gcv/store/effects';
+// agents
+import { provideAppWebMcpTools } from '@gcv/webmcp/app.tools';
 
 @NgModule({
   //schemas: [NO_ERRORS_SCHEMA],
@@ -79,6 +81,7 @@ import { RouterEffects } from '@gcv/store/effects';
     },
     ...fromGuards.guards,
     provideHttpClient(withXhr(), withInterceptorsFromDi()),
+    provideAppWebMcpTools(),
   ],
 })
 export class AppModule {}

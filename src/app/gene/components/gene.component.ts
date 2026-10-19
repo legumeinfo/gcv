@@ -15,6 +15,7 @@ import {
   TooltipFactoryDirective,
 } from '@gcv/gene/directives';
 import { MicroTracksService } from '@gcv/gene/services';
+import { declareGeneViewWebMcpTools } from '@gcv/gene/webmcp/gene-view.tools';
 import * as fromDetails from './details';
 import * as fromTooltips from './tooltips';
 import * as fromViewers from './viewers';
@@ -54,6 +55,10 @@ export class GeneComponent implements AfterViewInit, OnDestroy {
   };
   tooltipComponents = [...fromTooltips.tooltipComponents];
   showLeftSlider: Observable<boolean>;
+
+  constructor() {
+    declareGeneViewWebMcpTools();
+  }
 
   // Angular hooks
 
