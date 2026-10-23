@@ -143,7 +143,7 @@ export const RECIPES = [
   {
     question: 'Is a result track real synteny or a chance match?',
     steps:
-      'Weigh what supports it. Strong: it survives a wider window (neighbors) at strict matched and score; it shares many families in collinear order over a long span (get_microsynteny_alignment summary, get_dot_plot_pairs rankCorrelation); a macro-synteny block on its chromosome spans it (get_macrosynteny_blocks). Weak: it appears only with loosened matched or score; it rests on a few genes, or mostly on large or tandem families (get_family_summary), whose members turn up in many places, so sharing them proves little.',
+      'Weigh what supports it. Strong: it survives a wider window (neighbors) at strict matched and score; it matches many single-copy families (get_microsynteny_alignment summary: support.singleCopyFamiliesMatched) in collinear order (get_dot_plot_pairs rankCorrelation); a macro-synteny block on its chromosome spans it (get_macrosynteny_blocks). Weak: it appears only with loosened matched or score; it rests on a few genes, or its matches are mostly families with several copies (familiesMatched well above singleCopyFamiliesMatched; get_family_summary shows their tandem arrays), whose members turn up in many places, so sharing them proves little.',
   },
   {
     question: 'The view shows too much.',

@@ -44,8 +44,24 @@ export type TrackAlignment = {
     inverted: number;
     segments: number;
     consensusCoverage: number;
+    support: TrackSupport;
   };
   genes: AlignedGene[];
+};
+
+// How much a track's matches say. A family with several copies in the
+// consensus or the track (a tandem array, a large family) is shared by many
+// regions, so matching it says little; a family with one copy in each is the
+// strongest evidence of shared ancestry.
+export type TrackSupport = {
+  // distinct families among the genes that matched the consensus
+  familiesMatched: number;
+  // those with one copy in the consensus and one in the track
+  singleCopyFamiliesMatched: number;
+  // genes from the first matching gene to the last
+  spanGenes: number;
+  // most genes between two successive matching genes
+  largestGap: number;
 };
 
 export type ClusterAlignment = {
@@ -56,6 +72,34 @@ export type ClusterAlignment = {
 
 const orientation = (o: number | null): Orientation =>
   o === 1 ? '+' : o === -1 ? '-' : null;
+
+function trackSupport(
+  genes: AlignedGene[],
+  matching: AlignedGene[],
+  consensus: string[],
+): TrackSupport {
+  const copies = (families: string[]) => {
+    const counts = new Map<string, number>();
+    families.forEach((f) => counts.set(f, (counts.get(f) ?? 0) + 1));
+    return counts;
+  };
+  const inConsensus = copies(consensus);
+  const inTrack = copies(genes.map((g) => g.family));
+  const families = new Set(matching.map((g) => g.family));
+  const positions = matching.map((g) => genes.indexOf(g));
+  const gaps = positions.slice(1).map((p, i) => p - positions[i] - 1);
+  return {
+    familiesMatched: families.size,
+    singleCopyFamiliesMatched: [...families].filter(
+      (f) => inConsensus.get(f) === 1 && inTrack.get(f) === 1,
+    ).length,
+    spanGenes:
+      positions.length === 0
+        ? 0
+        : positions[positions.length - 1] - positions[0] + 1,
+    largestGap: Math.max(0, ...gaps),
+  };
+}
 
 export function trackAlignment(
   track: AlignedTrack,
@@ -90,6 +134,9 @@ export function trackAlignment(
     track.segments.filter((s, i) => s !== null && track.alignment[i] !== null),
   );
   const located = alignedGenes.filter((g) => g.fmin !== undefined);
+  const matching = aligned.filter(
+    (g) => g.family !== '' && g.family === consensus[g.column],
+  );
   const report: TrackAlignment = {
     role,
     source: track.source,
@@ -102,15 +149,14 @@ export function trackAlignment(
       aligned: aligned.length,
       inserted: alignedGenes.filter((g) => g.insertedAfter !== undefined)
         .length,
-      familyMatches: aligned.filter(
-        (g) => g.family !== '' && g.family === consensus[g.column],
-      ).length,
+      familyMatches: matching.length,
       inverted: aligned.filter((g) => g.orientation === '-').length,
       segments: segments.size,
       consensusCoverage:
         consensus.length === 0
           ? 0
           : Math.round((columns.size / consensus.length) * 1000) / 1000,
+      support: trackSupport(alignedGenes, matching, consensus),
     },
     genes: alignedGenes,
   };

@@ -108,6 +108,12 @@ describe('clusterAlignments', () => {
       inverted: 3,
       segments: 1,
       consensusCoverage: 1,
+      support: {
+        familiesMatched: 2,
+        singleCopyFamiliesMatched: 2,
+        spanGenes: 2,
+        largestGap: 0,
+      },
     });
     expect(cluster.tracks[1].score).toBe(30);
     expect(cluster.tracks[0].score).toBeNull();
@@ -115,6 +121,33 @@ describe('clusterAlignments', () => {
 
   it("spans a track's located genes", () => {
     expect(cluster.tracks[1]).toMatchObject({ fmin: 5000, fmax: 5300 });
+  });
+});
+
+describe("a track's support", () => {
+  // t is a tandem pair in the consensus; the track matches a, t twice and b,
+  // with three unmatched genes between t and b
+  const tandem = track({
+    name: 'Lu03',
+    genes: ['g0', 'g1', 'g2', 'g3', 'g4', 'g5', 'g6'],
+    families: ['a', 't', 'x', 'x', 'x', 'b', 't'],
+    alignment: [0, 1, null, null, null, 3, 2],
+  });
+  const [cluster] = clusterAlignments(
+    [['a', 't', 't', 'b', 'c']],
+    [query, tandem],
+    new Set([query]),
+    new Map(),
+  );
+
+  it('counts distinct families, and those with one copy, apart', () => {
+    expect(cluster.tracks[1].summary.familyMatches).toBe(4);
+    expect(cluster.tracks[1].summary.support).toEqual({
+      familiesMatched: 3,
+      singleCopyFamiliesMatched: 2,
+      spanGenes: 7,
+      largestGap: 3,
+    });
   });
 });
 

@@ -98,6 +98,12 @@ describe('trackChanges', () => {
         score: 21,
         familyMatches: 2,
         segments: 1,
+        support: {
+          familiesMatched: 1,
+          singleCopyFamiliesMatched: 0,
+          spanGenes: 2,
+          largestGap: 0,
+        },
       },
       expect.objectContaining({
         chromosome: 'Chr03',

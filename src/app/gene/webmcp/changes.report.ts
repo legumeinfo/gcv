@@ -3,7 +3,11 @@
 // A track before and one after are the same region when they share a gene on
 // the same chromosome of the same source: changing the neighborhood changes a
 // track's genes, and reclustering can renumber its cluster.
-import { ClusterAlignment, TrackAlignment } from './alignment.report';
+import {
+  ClusterAlignment,
+  TrackAlignment,
+  TrackSupport,
+} from './alignment.report';
 
 export type ChangedTrack = {
   cluster: number;
@@ -16,6 +20,7 @@ export type ChangedTrack = {
   score: number;
   familyMatches: number;
   segments: number;
+  support: TrackSupport;
 };
 
 export type TrackChanges = {
@@ -76,6 +81,7 @@ function changedTrack({ cluster, track }: ResultTrack): ChangedTrack {
     score: track.score,
     familyMatches: track.summary.familyMatches,
     segments: track.summary.segments,
+    support: track.summary.support,
   };
   if (track.fmin !== undefined) {
     changed.fmin = track.fmin;
