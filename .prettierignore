@@ -19,3 +19,6 @@ test-results/
 # Minified / third-party assets
 *.min.js
 *.min.css
+
+# WebMCP scenario runs
+evals/webmcp/results/
