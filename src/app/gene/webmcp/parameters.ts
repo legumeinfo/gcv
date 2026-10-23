@@ -38,7 +38,7 @@ export function parameterSchemas(): Record<string, ParameterSchema> {
       type: 'integer',
       minimum: 1,
       description:
-        'Genes on each side of every query gene; a query track spans 2×neighbors+1 genes. To find a region the view misses, raise this first: the copies of a duplicated region lose genes over time, so their remaining shared genes lie farther apart than a narrow window spans.',
+        "Genes on each side of every query gene; a query track spans 2×neighbors+1 genes. To find a region the view misses, raise this first, with intermediate. After a polyploidy, fractionation removes genes from each copy of a region: where the result's copy lost genes, fewer of the query's families survive in it, and a wider window supplies more of them to reach matched.",
     },
     matched: {
       type: 'number',
@@ -50,7 +50,7 @@ export function parameterSchemas(): Record<string, ParameterSchema> {
       type: 'number',
       minimum: 0,
       description:
-        'Micro-synteny search: maximum non-matching genes between successive matching genes in a result track. An integer is a count; a value in (0, 1] is a fraction. Raise it with neighbors to bridge genes gained or lost between shared ones.',
+        "Micro-synteny search: maximum non-matching genes between successive matching genes in a result track. An integer is a count; a value in (0, 1] is a fraction. Raise it with neighbors for fractionated regions: where the query's copy lost genes, the result keeps genes whose families aren't in the query track, so its matching genes lie farther apart.",
     },
     sources: {
       type: 'array',

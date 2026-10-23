@@ -126,7 +126,7 @@ export const RECIPES = [
     question:
       'Has the region been duplicated (whole-genome or segmental duplication)?',
     steps:
-      "Several result tracks from one genome in a cluster suggest duplicates. get_macrosynteny_blocks reports, per species, how many query genes its blocks cover and how many blocks cover each on average (meanDepth). In another genome a depth near 2 suggests the region was duplicated there; in the query's own genome, the query region matching itself adds 1.",
+      "Several result tracks from one genome in a cluster suggest duplicates. get_macrosynteny_blocks reports, per species, how many query genes its blocks cover and how many blocks cover each on average (meanDepth). In another genome a depth near 2 suggests the region was duplicated there; in the query's own genome, the query region matching itself adds 1. Fractionation after a polyploidy leaves old copies sharing few genes, so at the default settings these counts are a lower bound: widen neighbors and intermediate, as for a region the view misses, before concluding how many copies a genome has.",
   },
   {
     question: 'Has a gene family expanded, contracted or formed tandem arrays?',
@@ -137,7 +137,7 @@ export const RECIPES = [
     question:
       'The view misses a region you expect (e.g. a copy that other synteny data reports).',
     steps:
-      'set_view_parameters, widening the search before lowering the evidence it requires. Raise neighbors first, with intermediate: the copies of a duplicated region lose genes over time, so their remaining shared genes lie farther apart than a narrow window spans. Lower matched or score only if that fails, and treat tracks found only then as candidates, not findings. Change one thing at a time: set_view_parameters reports the result tracks each change added and removed. The tool waits for the new analysis.',
+      "set_view_parameters, widening the search before lowering the evidence it requires. Expect misses after a polyploidy (a whole-genome duplication or triplication in the query's or the result's lineage): fractionation, the loss of duplicate genes from one copy or the other, leaves each copy sharing fewer genes, farther apart. Raise neighbors first, so the query track brings enough families to reach matched despite the genes the result's copy lost, and intermediate, so the search bridges the genes the query's copy lost. Lower matched or score only if that fails, and treat tracks found only then as candidates, not findings. Change one thing at a time, counting neighbors with intermediate as one: set_view_parameters reports the result tracks each change added and removed. The tool waits for the new analysis.",
   },
   {
     question: 'Is a result track real synteny or a chance match?',
