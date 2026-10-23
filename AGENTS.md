@@ -19,8 +19,9 @@ locus. Treat every rendered mark as a claim, and test the claim, not the pixels.
 
 ## Layout
 
-- `src/app/` is the Angular app: `core/` (configuration, HTTP abstraction), `gene/` (the
-  viewer workspace, its store and services), `search/`, `instructions/`, `widgets/`.
+- `src/app/` is the Angular app: `core/` (configuration, HTTP abstraction, the WebMCP
+  layer), `gene/` (the viewer workspace, its store and services), `search/`,
+  `instructions/`, `widgets/`, `webmcp/` (the app's WebMCP tools; see below).
 - `src/assets/js/gcv/` is a framework-free TypeScript engine: alignment, graph and metric
   algorithms and the D3 renderers. It must not import Angular; the app consumes it through
   the `GCV` global.
@@ -59,6 +60,54 @@ Imports use the path aliases in `tsconfig.json`: `@gcv/*` (`src/app`), `@gcv-ass
   with `defaultConfig`, checked with the type guards in `core/models/app-config.model.ts`,
   and frozen. A new configuration field needs the model, its guard and its default, and is
   a change for every deployment's `config.json`: say so in the PR.
+
+## WebMCP
+
+GCV registers [WebMCP](https://webmachinelearning.github.io/webmcp/) tools on
+`document.modelContext`, so an agent driving the browser can search, open gene views, read
+the analysis, change parameters and point at what it describes. In browsers without WebMCP
+the tools don't register; nothing else changes. The README lists the tools.
+
+- **Three layers.** `core/webmcp/webmcp.ts` wraps Angular's experimental
+  `declareExperimentalWebMcpTool`: `defineGcvWebMcpTool` types a tool's arguments from its
+  schema; execution runs inside `NgZone`; strings return as-is, anything else as JSON.
+  `webmcp/` holds the app-level pieces: registration and the start tools (`app.tools.ts`),
+  the gene-view host and the guide. `gene/webmcp/` holds the gene view's tools
+  (`*.tools.ts`) and the pure modules they're built on (`*.report.ts`, `lookup.ts`,
+  `parameters.ts`, `view-state.ts`), each with a spec. Put the logic in the pure modules
+  and keep tools thin.
+- **Every tool registers at startup,** once `ApplicationInitStatus` resolves (the
+  configuration has loaded), so an agent sees the whole of GCV without discovery calls.
+  The gene and search modules read `AppConfig` when they load, so app-level WebMCP code
+  imports them only dynamically; a static import crashes the app at startup.
+- **Gene-view tools run in the open gene view.** `GeneComponent` attaches its injector to
+  `GeneViewHost`; `inGeneView` runs the tool in that injection context, waits up to 30 s for
+  a view on a `/gene` URL, cancels the call if the view closes, and tells the agent how to
+  open one if none is open. `inject()` works only before a tool's first `await`, so tools
+  take what they need up front (`viewContext()`).
+- **Read the settled view.** Tools wait until every request the URL implies has succeeded
+  or failed (`waitForSettledGeneView`, `settledView`); earlier reads see tracks still
+  arriving and genes not yet placed.
+- **The URL stays the only analysis state.** `set_view_parameters` validates with the URL
+  guard's validators and applies changes through `ParamsService`, and it reports the result
+  tracks each change added and removed. A new URL parameter needs its entry in
+  `parameterSchemas` (`parameters.spec.ts` checks). Display tools never change the analysis
+  or the URL: highlighting publishes the viewers' own hover events on the GCV event bus,
+  and panels open through `PanelService`, which the viewers' callbacks share.
+- **Descriptions and the guide are the instructions.** `describe_gcv` returns `guide.ts`
+  (overview, tool groups, concepts, recipes) with the instance's sources and parameter
+  defaults; `guide.spec.ts` keeps its tool list in step with registration. A new tool needs
+  its group's list, a guide entry and a README row. Tool errors throw `WebMcpToolError`
+  with a message that says how to recover; large results truncate and say how much they
+  left out.
+- **The search guidance is deliberate.** The recipes and parameter descriptions say to widen
+  the search (`neighbors`, `intermediate`) before loosening the evidence it requires
+  (`matched`, `score`): loosened thresholds admit chance matches, while a wider window finds
+  the fractionated copies a polyploidy leaves. Keep that order, and check changes to such
+  advice with someone who knows the biology.
+- **Trying tools in a browser:** a Playwright init script can stand in for
+  `document.modelContext` with an object whose `registerTool` keeps each tool, then call
+  `tool.execute(args, { signal })` from `page.evaluate`.
 
 ## Building and the image
 

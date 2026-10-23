@@ -26,6 +26,31 @@ These blocks can be drawn in a reference style viewer or an all-pairs Circos sty
 In general, GCV is intended for comparative and pangenomic analyses.
 See the [Wiki](https://github.com/legumeinfo/gcv/wiki/User-Help) for a thorough description of GCV features, algorithms, and parameters.
 
+## WebMCP Tools
+
+GCV registers [WebMCP](https://webmachinelearning.github.io/webmcp/) tools, so an AI agent driving a browser that supports WebMCP can use GCV through tools as well as through its interface.
+Every tool is available once the app has loaded.
+An agent should call `describe_gcv` first: it explains how to use GCV, with recipes for common questions, and lists the instance's data sources and parameter defaults.
+The gene view tools work on the open gene view; `show_gene_contexts` opens one.
+
+| Tool                         | What it does                                                                                                                   |
+| ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| `describe_gcv`               | Explains GCV and how to use it, with the instance's data sources and parameter defaults.                                       |
+| `search_genes_and_regions`   | Turns gene names, partial names or regions into the exact names GCV uses.                                                      |
+| `show_gene_contexts`         | Opens the gene view on genes or a region and waits for the whole analysis.                                                     |
+| `get_view_status`            | Reports what loaded, the clusters, failed searches and every parameter.                                                        |
+| `set_view_parameters`        | Changes the neighborhood size, search sensitivity, alignment, filters or sources, and reports the tracks it added and removed. |
+| `get_microsynteny_alignment` | Reads which genes correspond across tracks, per track or as a table.                                                           |
+| `find_syntenic_counterparts` | Finds one gene's positional counterparts in every other track.                                                                 |
+| `get_macrosynteny_blocks`    | Finds chromosome-scale synteny blocks and how many times each genome covers the query.                                         |
+| `get_family_summary`         | Counts gene family copies per track and species, and finds tandem arrays.                                                      |
+| `get_dot_plot_pairs`         | Tests a track's collinearity with the query, locally or across the chromosome.                                                 |
+| `get_gene_details`           | Gets a gene's family, coordinates and the data source's links for it.                                                          |
+| `highlight_in_view`          | Highlights genes or families in the viewers, fading the rest.                                                                  |
+| `open_panel`                 | Opens gene, track or family details, a macro-synteny view, a Circos view or a dot plot.                                        |
+| `set_family_emphasis`        | Draws some families as strandless circles so the others stand out.                                                             |
+| `export_figure`              | Downloads a panel as SVG, or a cluster's alignment as TSV.                                                                     |
+
 ## Running GCV
 
 **Due to the complexity of the microservices implementation, we recommend running GCV and the microservices via Docker Compose.
