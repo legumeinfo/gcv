@@ -42,6 +42,7 @@ import {
 const NAVIGATION_TIMEOUT_MS = 30_000;
 const SETTLE_TIMEOUT_MS = 60_000;
 const MAX_SEARCH_GENES = 200;
+const MAX_QUERY_GENES = 50;
 
 // The search and gene modules provide these services, not the root injector,
 // so the tools create them on first use.
@@ -211,7 +212,7 @@ const showGeneContexts = defineGcvWebMcpTool({
       genes: {
         type: 'array',
         minItems: 1,
-        maxItems: 50,
+        maxItems: MAX_QUERY_GENES,
         items: {
           type: 'object',
           properties: {
@@ -255,6 +256,17 @@ const showGeneContexts = defineGcvWebMcpTool({
     const document = inject(DOCUMENT);
     if ((genes === undefined) === (region === undefined)) {
       throw new WebMcpToolError('Give either genes or region.');
+    }
+    // browsers don't check arguments against the schema
+    if (
+      genes !== undefined &&
+      (genes.length === 0 ||
+        genes.length > MAX_QUERY_GENES ||
+        genes.some((g) => typeof g?.name !== 'string' || g.name.trim() === ''))
+    ) {
+      throw new WebMcpToolError(
+        `Give 1 to ${MAX_QUERY_GENES} genes, each with a name; search_genes_and_regions finds the names.`,
+      );
     }
     const ids = serverIDs('microSearch');
     const defaultSource = source ?? (ids.length === 1 ? ids[0] : undefined);
@@ -315,7 +327,7 @@ const showGeneContexts = defineGcvWebMcpTool({
     } else {
       genes.forEach((g) => {
         const s = checkSource(g.source ?? defaultSource, g.name);
-        matrix[s] = [...(matrix[s] ?? []), g.name];
+        matrix[s] = [...(matrix[s] ?? []), g.name.trim()];
       });
       if (neighbors !== undefined) {
         query.neighbors = neighbors;
