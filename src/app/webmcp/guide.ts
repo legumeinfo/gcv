@@ -161,6 +161,15 @@ export const RECIPES = [
   },
 ];
 
+// how to report findings so a reader can check each one
+export const REPORTING = [
+  'Tie every claim to the view that shows it, by the URL the tool returned with it. Parameters change what a view shows, so a claim from one view may not hold in another: give each view you draw on its own link, or check your claims again in the view you link last.',
+  "Label each claim by its evidence: observed in GCV (with the view's URL), measured by another source (name it), inferred (say from what), or a hypothesis (say what would test it). Keep the labels in tables too, and don't put inferred rows beside observed ones unmarked.",
+  'A result track makes a candidate syntenic region; its support makes it a finding. Report a track with its support (single-copy families matched, the genes it spans) and whether it held across parameters, not by its score alone.',
+  'Scope claims to what was searched: the sources and the genomes the regexp keeps. A claim that a region is conserved across a group of genomes needs the group counted, those found and those not, rather than a list of hits.',
+  'When GCV and another source disagree, report both, each with its source, rather than choosing one silently.',
+];
+
 export const SEEING_THE_VIEW = [
   "The viewers are SVG in the page. If you can take browser screenshots, call highlight_in_view or open_panel first so the screenshot shows what you're discussing.",
   "A screenshot shows only the visible part of a viewer, and a viewer behind another tab is not drawn. export_figure brings a panel to the front and downloads its full drawing as SVG, with styles inlined, to the user's computer; ask the user before downloading.",

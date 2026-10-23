@@ -8,6 +8,15 @@ import {
 } from '@gcv/core/webmcp/arguments';
 import { declareGcvWebMcpTool } from '@gcv/core/webmcp/webmcp';
 import { appWebMcpTools } from './app.tools';
+import {
+  CONCEPTS,
+  OVERVIEW,
+  RECIPES,
+  REPORTING,
+  SEEING_THE_VIEW,
+  TOOL_GUIDE,
+  WORKFLOW,
+} from './guide';
 
 // jsdom has no WebMCP, so stand in for the browser's registry
 const page = document as unknown as { modelContext?: object };
@@ -75,6 +84,19 @@ describe('the app WebMCP tools', () => {
     const signal = new AbortController().signal;
     return JSON.parse(await registered.get(name).execute(args, { signal }));
   }
+
+  it('describe_gcv returns every section of the guide', async () => {
+    const guide = (await call('describe_gcv', {})) as Record<string, unknown>;
+    expect(guide).toMatchObject({
+      overview: OVERVIEW,
+      workflow: WORKFLOW,
+      tools: TOOL_GUIDE,
+      concepts: CONCEPTS,
+      recipes: RECIPES,
+      reporting: REPORTING,
+      seeingTheView: SEEING_THE_VIEW,
+    });
+  });
 
   // an empty list would open an empty gene view
   it.each([
