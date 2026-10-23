@@ -25,6 +25,7 @@ import {
   syntenicCounterparts,
 } from './alignment.report';
 import { blockEndpointGenes, macroSyntenyReport } from './blocks.report';
+import { trackChanges } from './changes.report';
 import {
   SETTLE_TIMEOUT_MS,
   alignments,
@@ -85,13 +86,16 @@ const getViewStatus = defineGcvWebMcpTool({
   },
 });
 
+// most added and removed tracks set_view_parameters reports
+const MAX_CHANGED_TRACKS = 25;
+
 // built when tools register, once the configuration has loaded
 const setViewParameters = () =>
   defineGcvWebMcpTool({
     name: 'set_view_parameters',
     title: 'Set gene view parameters',
     description:
-      'Changes analysis and display parameters of the gene view: the query neighborhood size, micro-synteny search sensitivity, clustering, alignment scoring, result filters and order, macro-synteny block criteria, and data sources. Parameters left out keep their values. The change is recorded in the URL, so the returned URL reproduces the view. Waits for the view to reload and returns what changed with the new view status.',
+      'Changes analysis and display parameters of the gene view: the query neighborhood size, micro-synteny search sensitivity, clustering, alignment scoring, result filters and order, macro-synteny block criteria, and data sources. Parameters left out keep their values. The change is recorded in the URL, so the returned URL reproduces the view. Waits for the view to reload and returns the parameters that changed, the result tracks the change added and removed (a track that keeps any of its genes counts as kept), and the new view status.',
     inputSchema: {
       type: 'object',
       properties: parameterSchemas() as unknown as Record<
@@ -101,7 +105,8 @@ const setViewParameters = () =>
       additionalProperties: false,
     },
     execute: async (args, { signal }) => {
-      const { store, url } = viewContext();
+      const context = viewContext();
+      const { store, url } = context;
       const paramsService = inject(ParamsService);
       const { params, errors } = validateParameterUpdate(
         args as Record<string, unknown>,
@@ -122,28 +127,54 @@ const setViewParameters = () =>
         .forEach(([key, value]) => {
           changed[key] = { from: current[key], to: value };
         });
-      if (Object.keys(changed).length > 0) {
-        paramsService.updateParams(params as Params);
-        const applied = await waitFor(
-          store.select(fromParams.getParams),
-          (p) =>
-            Object.entries(params).every(
-              ([key, value]) =>
-                JSON.stringify(p[key]) === JSON.stringify(value),
-            ),
-          { signal, timeoutMs: SETTLE_TIMEOUT_MS },
+      if (Object.keys(changed).length === 0) {
+        const view = await waitForSettledGeneView(store, {
+          signal,
+          timeoutMs: SETTLE_TIMEOUT_MS,
+        });
+        return { changed, url: url(), view };
+      }
+      const settledBefore = await waitForSettledGeneView(store, {
+        signal,
+        timeoutMs: SETTLE_TIMEOUT_MS,
+      });
+      const before = await alignments(context, signal);
+      paramsService.updateParams(params as Params);
+      const applied = await waitFor(
+        store.select(fromParams.getParams),
+        (p) =>
+          Object.entries(params).every(
+            ([key, value]) => JSON.stringify(p[key]) === JSON.stringify(value),
+          ),
+        { signal, timeoutMs: SETTLE_TIMEOUT_MS },
+      );
+      if (applied.timedOut) {
+        throw new WebMcpToolError(
+          'The parameters were not applied; the URL may have been rejected. Call get_view_status to see the current parameters.',
         );
-        if (applied.timedOut) {
-          throw new WebMcpToolError(
-            'The parameters were not applied; the URL may have been rejected. Call get_view_status to see the current parameters.',
-          );
-        }
       }
       const view = await waitForSettledGeneView(store, {
         signal,
         timeoutMs: SETTLE_TIMEOUT_MS,
       });
-      return { changed, url: url(), view };
+      const tracks = trackChanges(
+        before,
+        await alignments(context, signal),
+        MAX_CHANGED_TRACKS,
+      );
+      // a view that hadn't finished loading compares incomplete track lists
+      const incomplete = settledBefore.timedOut || view.timedOut;
+      return {
+        changed,
+        url: url(),
+        tracks: incomplete
+          ? {
+              ...tracks,
+              note: 'The view had not finished loading before or after the change, so some tracks may be missing from this comparison.',
+            }
+          : tracks,
+        view,
+      };
     },
   });
 

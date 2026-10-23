@@ -44,7 +44,7 @@ export const TOOL_GUIDE: ToolGuide[] = [
       },
       {
         name: 'set_view_parameters',
-        use: 'Change the neighborhood size, search sensitivity, alignment, filters or sources.',
+        use: 'Change the neighborhood size, search sensitivity, alignment, filters or sources; reports the result tracks the change added and removed.',
       },
       {
         name: 'get_microsynteny_alignment',
@@ -137,7 +137,7 @@ export const RECIPES = [
     question:
       'The view misses a region you expect (e.g. a copy that other synteny data reports).',
     steps:
-      'set_view_parameters, widening the search before lowering the evidence it requires. Raise neighbors first, with intermediate: the copies of a duplicated region lose genes over time, so their remaining shared genes lie farther apart than a narrow window spans. Lower matched or score only if that fails, and treat tracks found only then as candidates, not findings. Change one thing at a time and compare get_microsynteny_alignment summaries before and after each change. The tool waits for the new analysis.',
+      'set_view_parameters, widening the search before lowering the evidence it requires. Raise neighbors first, with intermediate: the copies of a duplicated region lose genes over time, so their remaining shared genes lie farther apart than a narrow window spans. Lower matched or score only if that fails, and treat tracks found only then as candidates, not findings. Change one thing at a time: set_view_parameters reports the result tracks each change added and removed. The tool waits for the new analysis.',
   },
   {
     question: 'Is a result track real synteny or a chance match?',
