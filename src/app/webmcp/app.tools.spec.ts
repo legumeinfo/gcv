@@ -10,6 +10,7 @@ import { declareGcvWebMcpTool } from '@gcv/core/webmcp/webmcp';
 import { appWebMcpTools } from './app.tools';
 import {
   CONCEPTS,
+  LIMITS,
   OVERVIEW,
   RECIPES,
   REPORTING,
@@ -92,6 +93,7 @@ describe('the app WebMCP tools', () => {
       workflow: WORKFLOW,
       tools: TOOL_GUIDE,
       concepts: CONCEPTS,
+      limits: LIMITS,
       recipes: RECIPES,
       reporting: REPORTING,
       seeingTheView: SEEING_THE_VIEW,

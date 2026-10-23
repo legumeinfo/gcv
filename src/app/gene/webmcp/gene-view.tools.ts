@@ -432,7 +432,7 @@ const getMacrosyntenyBlocks = defineGcvWebMcpTool({
   name: 'get_macrosynteny_blocks',
   title: 'Get macro-synteny blocks',
   description:
-    "Computes the macro-synteny blocks between a query chromosome and every target chromosome in the selected data sources, using the view's block parameters, filter and order. Each block reports its orientation, its span on the query chromosome (genes and coordinates) and on the target. A per-species summary gives how many query genes the species' blocks cover and how many times over, which reveals whole-genome and segmental duplications.",
+    "Computes the macro-synteny blocks between a query chromosome and every target chromosome in the selected data sources, using the view's block parameters, filter and order. Each block reports its orientation, its span on the query chromosome (genes and coordinates) and on the target. A per-species summary gives how many query genes the species' blocks cover and how many times over; a depth above 1 can indicate a duplication, and depends on the block parameters.",
   inputSchema: {
     type: 'object',
     properties: {

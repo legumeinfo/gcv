@@ -167,6 +167,15 @@ export const RECIPES = [
   },
 ];
 
+// what GCV can't tell, so agents don't infer it
+export const LIMITS = [
+  'GCV compares the order of gene families, not sequences. It has no sequence similarity, substitution rates (Ks) or divergence times, so it cannot date a duplication or say which of two copies is older; precomputed synteny with Ks, from another source, can.',
+  "Gene families are the data source's automated clusters. Genes of one family are homologous, not necessarily orthologous: GCV alone cannot tell an ortholog from a paralog of a whole-genome duplication, though collinear counterparts and the copies per genome narrow it.",
+  "GCV sees only the genes in its tracks: the query neighborhoods and the regions its searches found. A family's members elsewhere in a genome, or a gene outside the view, need another source.",
+  "Report every statistic with its count, and weigh it by the count: a rankCorrelation from a handful of pairs means little (it is null below three), a meanDepth goes with its queryGenesCovered, and a consensus reflects only its cluster's query tracks.",
+  "Macro-synteny blocks and their depth depend on bmatched, bintermediate, bmask and the chromosome filters (bchrgenes, bchrlength); families masked by bmask don't count toward blocks.",
+];
+
 // how to report findings so a reader can check each one
 export const REPORTING = [
   'Tie every claim to the view that shows it, by the URL the tool returned with it. Parameters change what a view shows, so a claim from one view may not hold in another: give each view you draw on its own link, or check your claims again in the view you link last.',

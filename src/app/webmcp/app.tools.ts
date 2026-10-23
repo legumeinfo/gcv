@@ -32,6 +32,7 @@ import {
 import { inGeneView } from './gene-view.host';
 import {
   CONCEPTS,
+  LIMITS,
   OVERVIEW,
   RECIPES,
   REPORTING,
@@ -86,7 +87,7 @@ const stripHtml = (html: string): string =>
 const describeGcv = defineGcvWebMcpTool({
   name: 'describe_gcv',
   title: 'Describe GCV',
-  description: `${OVERVIEW} ${WORKFLOW} Call describe_gcv first: it explains how to use GCV effectively, with recipes for common questions, how to report findings so each can be checked, every tool grouped by purpose, how genes and regions are named, this instance's data sources and every gene view parameter with its default.`,
+  description: `${OVERVIEW} ${WORKFLOW} Call describe_gcv first: it explains how to use GCV effectively, with recipes for common questions, what GCV can't tell, how to report findings so each can be checked, every tool grouped by purpose, how genes and regions are named, this instance's data sources and every gene view parameter with its default.`,
   inputSchema: { type: 'object', properties: {} },
   annotations: { readOnlyHint: true },
   execute: async () => {
@@ -107,6 +108,7 @@ const describeGcv = defineGcvWebMcpTool({
       workflow: WORKFLOW,
       tools: TOOL_GUIDE,
       concepts: CONCEPTS,
+      limits: LIMITS,
       recipes: RECIPES,
       reporting: REPORTING,
       seeingTheView: SEEING_THE_VIEW,
