@@ -38,19 +38,19 @@ export function parameterSchemas(): Record<string, ParameterSchema> {
       type: 'integer',
       minimum: 1,
       description:
-        'Genes on each side of every query gene; a query track spans 2×neighbors+1 genes.',
+        'Genes on each side of every query gene; a query track spans 2×neighbors+1 genes. To find a region the view misses, raise this first: the copies of a duplicated region lose genes over time, so their remaining shared genes lie farther apart than a narrow window spans.',
     },
     matched: {
       type: 'number',
       minimum: 0,
       description:
-        'Micro-synteny search: minimum gene families a result track must share with the query. An integer is a count; a value in (0, 1] is a fraction of the query track.',
+        'Micro-synteny search: minimum gene families a result track must share with the query. An integer is a count; a value in (0, 1] is a fraction of the query track. A low value admits tracks that share a few families by chance, more so when large or tandem families are in the view; raise neighbors before lowering it, and treat tracks found only at a low value as candidates to check.',
     },
     intermediate: {
       type: 'number',
       minimum: 0,
       description:
-        'Micro-synteny search: maximum non-matching genes between successive matching genes in a result track. An integer is a count; a value in (0, 1] is a fraction.',
+        'Micro-synteny search: maximum non-matching genes between successive matching genes in a result track. An integer is a count; a value in (0, 1] is a fraction. Raise it with neighbors to bridge genes gained or lost between shared ones.',
     },
     sources: {
       type: 'array',
@@ -96,7 +96,7 @@ export function parameterSchemas(): Record<string, ParameterSchema> {
       type: 'integer',
       minimum: 1,
       description:
-        'Minimum alignment score for a result track to be shown and reported.',
+        'Minimum alignment score for a result track to be shown and reported. Like a low matched, a low score admits weak alignments that may be chance.',
     },
     threshold: {
       type: 'integer',

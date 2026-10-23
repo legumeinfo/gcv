@@ -134,9 +134,20 @@ export const RECIPES = [
       "get_family_summary: compare each family's bySpecies counts with the species' track counts, and read tandemArrays; pass family for its genes per track.",
   },
   {
-    question: 'The view finds too little or too much.',
+    question:
+      'The view misses a region you expect (e.g. a copy that other synteny data reports).',
     steps:
-      "set_view_parameters: widen neighbors; lower matched or raise intermediate to find more distant matches; restrict genomes with regexp (e.g. 'Glycine'); change sources. The tool waits for the new analysis.",
+      'set_view_parameters, widening the search before lowering the evidence it requires. Raise neighbors first, with intermediate: the copies of a duplicated region lose genes over time, so their remaining shared genes lie farther apart than a narrow window spans. Lower matched or score only if that fails, and treat tracks found only then as candidates, not findings. Change one thing at a time and compare get_microsynteny_alignment summaries before and after each change. The tool waits for the new analysis.',
+  },
+  {
+    question: 'Is a result track real synteny or a chance match?',
+    steps:
+      'Weigh what supports it. Strong: it survives a wider window (neighbors) at strict matched and score; it shares many families in collinear order over a long span (get_microsynteny_alignment summary, get_dot_plot_pairs rankCorrelation); a macro-synteny block on its chromosome spans it (get_macrosynteny_blocks). Weak: it appears only with loosened matched or score; it rests on a few genes, or mostly on large or tandem families (get_family_summary), whose members turn up in many places, so sharing them proves little.',
+  },
+  {
+    question: 'The view shows too much.',
+    steps:
+      "set_view_parameters: restrict genomes with regexp (e.g. 'Glycine'), change sources, or raise matched or score.",
   },
   {
     question: 'Show the user what you found.',
