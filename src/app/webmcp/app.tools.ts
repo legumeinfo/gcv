@@ -257,15 +257,9 @@ const showGeneContexts = defineGcvWebMcpTool({
     if ((genes === undefined) === (region === undefined)) {
       throw new WebMcpToolError('Give either genes or region.');
     }
-    // browsers don't check arguments against the schema
-    if (
-      genes !== undefined &&
-      (genes.length === 0 ||
-        genes.length > MAX_QUERY_GENES ||
-        genes.some((g) => typeof g?.name !== 'string' || g.name.trim() === ''))
-    ) {
+    if (genes?.some((g) => g.name.trim() === '')) {
       throw new WebMcpToolError(
-        `Give 1 to ${MAX_QUERY_GENES} genes, each with a name; search_genes_and_regions finds the names.`,
+        'Give every gene a name; search_genes_and_regions finds the names.',
       );
     }
     const ids = serverIDs('microSearch');

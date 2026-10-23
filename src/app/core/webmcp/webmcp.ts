@@ -2,9 +2,11 @@
 // need on top of it: the spec's tool annotations (Angular's descriptor type
 // omits them, but its runtime passes them through), execution inside NgZone
 // (Angular doesn't, and router navigation outside the zone skips change
-// detection), and one serialization of results for the agent, failures
-// included: browsers reject a tool that throws with a generic error, dropping
-// its message, so a tool's error returns as the result {"error": message}.
+// detection), a check of the arguments against the tool's schema (browsers
+// pass them unchecked), and one serialization of results for the agent,
+// failures included: browsers reject a tool that throws with a generic error,
+// dropping its message, so a tool's error returns as the result
+// {"error": message}.
 import {
   ApplicationInitStatus,
   EnvironmentInjector,
@@ -20,6 +22,8 @@ import {
 } from '@angular/core';
 import { Observable, firstValueFrom, timer } from 'rxjs';
 import { filter, map, raceWith, take } from 'rxjs/operators';
+// app
+import { argumentProblems } from './arguments';
 
 // Angular doesn't export its JSON Schema type; recover it from its signature.
 export type WebMcpJsonSchema = Parameters<
@@ -58,6 +62,19 @@ function serialize(result: unknown): string {
   return typeof result === 'string' ? result : JSON.stringify(result);
 }
 
+// browsers don't check arguments against the tool's schema
+function checkArguments<S extends WebMcpJsonSchema>(
+  tool: GcvWebMcpTool<S>,
+  args: unknown,
+): void {
+  const problems = argumentProblems(tool.inputSchema, args);
+  if (problems.length > 0) {
+    throw new WebMcpToolError(
+      `Invalid arguments; nothing was done. ${problems.join('; ')}.`,
+    );
+  }
+}
+
 // A WebMcpToolError's message is written for the agent; any other error is a
 // fault in the tool, so it is also logged for developers.
 function errorMessage(name: string, error: unknown): string {
@@ -83,6 +100,7 @@ export function declareGcvWebMcpTool<S extends WebMcpJsonSchema>(
     const outcome = await zone.run(() => {
       let result: Promise<unknown>;
       try {
+        checkArguments(tool, args);
         result = Promise.resolve(tool.execute(args, client));
       } catch (error) {
         result = Promise.reject(error);

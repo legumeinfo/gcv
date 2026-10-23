@@ -129,6 +129,34 @@ describe('GCV WebMCP tools', () => {
     );
   });
 
+  it('checks the arguments against the schema before running the tool', async () => {
+    const execute = jest.fn(() => 'ran');
+    declareGcvWebMcpTool(
+      defineGcvWebMcpTool({
+        name: 'count',
+        description: 'Counts.',
+        inputSchema: {
+          type: 'object',
+          properties: { n: { type: 'integer', minimum: 1 } },
+          additionalProperties: false,
+        },
+        execute,
+      }),
+      createEnvironmentInjector([], TestBed.inject(EnvironmentInjector)),
+    );
+    await flush();
+    const signal = new AbortController().signal;
+    await expect(
+      registrations[0].tool.execute({ n: 0, m: 1 }, { signal }),
+    ).resolves.toBe(
+      '{"error":"Invalid arguments; nothing was done. n: must be at least 1, not 0; m: is not a parameter; use n."}',
+    );
+    expect(execute).not.toHaveBeenCalled();
+    await expect(
+      registrations[0].tool.execute({ n: 1 }, { signal }),
+    ).resolves.toBe('ran');
+  });
+
   it('reports and logs an unexpected error', async () => {
     const log = jest.spyOn(console, 'error').mockImplementation(() => {});
     declareFailing(new TypeError('x is undefined'));

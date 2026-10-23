@@ -70,7 +70,9 @@ the tools don't register; nothing else changes. The README lists the tools.
 
 - **Three layers.** `core/webmcp/webmcp.ts` wraps Angular's experimental
   `declareExperimentalWebMcpTool`: `defineGcvWebMcpTool` types a tool's arguments from its
-  schema; execution runs inside `NgZone`; strings return as-is, anything else as JSON.
+  schema; browsers pass arguments unchecked, so the layer checks them against the schema
+  (`arguments.ts`, which implements only the keywords the tools use; a test keeps them to
+  it); execution runs inside `NgZone`; strings return as-is, anything else as JSON.
   `webmcp/` holds the app-level pieces: registration and the start tools (`app.tools.ts`),
   the gene-view host and the guide. `gene/webmcp/` holds the gene view's tools
   (`*.tools.ts`) and the pure modules they're built on (`*.report.ts`, `lookup.ts`,
