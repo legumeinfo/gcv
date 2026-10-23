@@ -136,6 +136,7 @@ const describeGcv = defineGcvWebMcpTool({
         'Genes, chromosomes and families are identified by the names the data source uses; take them from search_genes_and_regions or the view rather than constructing them.',
         "A region is written 'chromosome:start-stop' in base pairs, e.g. 'glyma.Wm82.gnm4.Gm12:1000000-1200000'.",
         'Coordinates belong to one genome assembly; compare them only within a chromosome.',
+        "A gene's fmin and fmax are its start and end as the data source gives them, usually its GFF gene row's: 1-based, inclusive, untranslated regions included. A track's fmin and fmax span its genes.",
         'A gene family is the unit of homology: genes in the same family are treated as matching when aligning and searching.',
         "Gene view tools accept a name without its assembly prefix ('Glyma.12G040000' for 'glyma.Wm82.gnm4.ann1.Glyma.12G040000') when only one gene in the view matches; otherwise they list the candidates.",
       ],

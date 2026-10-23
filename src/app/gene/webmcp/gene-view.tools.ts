@@ -26,6 +26,7 @@ import {
 } from './alignment.report';
 import { blockEndpointGenes, macroSyntenyReport } from './blocks.report';
 import { regionPresence, trackChanges } from './changes.report';
+import { sameLocusTracks } from './duplicates.report';
 import {
   SETTLE_TIMEOUT_MS,
   ViewContext,
@@ -321,7 +322,7 @@ const getMicrosyntenyAlignment = defineGcvWebMcpTool({
   name: 'get_microsynteny_alignment',
   title: 'Get micro-synteny alignment',
   description:
-    "Reads the micro-synteny alignment the view computed. Each cluster of query tracks has a consensus sequence of gene families; every query and result track is aligned to it, so genes in the same consensus column correspond positionally across species and genomes. 'summary' reports, per track, its species, chromosome, span, alignment score, and how many genes aligned, matched the consensus family, aligned inverted, or fell in separate segments, with the matches' support: how many distinct families matched, how many of those have one copy in both the consensus and the track (the strongest evidence; tandem and large families are shared by chance), how many genes the matches span, and the largest run of unmatched genes between them. 'genes' adds every gene with its family, column (or, for a gene inserted between columns, the column it follows), alignment orientation, strand and coordinates. 'tsv' gives one row per track and one column per consensus position; a cell holds the aligned gene, then genes inserted after it marked '+', with ' (-)' marking inverted alignment. Results follow the view's current filter and order.",
+    "Reads the micro-synteny alignment the view computed. Each cluster of query tracks has a consensus sequence of gene families; every query and result track is aligned to it, so genes in the same consensus column correspond positionally across species and genomes. 'summary' reports, per track, its species, chromosome, span, alignment score, and how many genes aligned, matched the consensus family, aligned inverted, or fell in separate segments, with the matches' support: how many distinct families matched, how many of those have one copy in both the consensus and the track (the strongest evidence; tandem and large families are shared by chance), how many genes the matches span, and the largest run of unmatched genes between them. 'genes' adds every gene with its family, column (or, for a gene inserted between columns, the column it follows), alignment orientation, strand and coordinates. 'tsv' gives one row per track and one column per consensus position; a cell holds the aligned gene, then genes inserted after it marked '+', with ' (-)' marking inverted alignment. Results follow the view's current filter and order. possibleSameLocus lists pairs of tracks of one genome that may be one locus in two assemblies or annotations (shared gene names, or overlapping coordinates on chromosomes of the same name); check them before counting them as separate copies.",
   inputSchema: {
     type: 'object',
     properties: {
@@ -351,9 +352,8 @@ const getMicrosyntenyAlignment = defineGcvWebMcpTool({
   ) => {
     const context = viewContext();
     await settledView(context, signal);
-    const limited = (await alignments(context, signal, cluster)).map((c) =>
-      limitTracks(c, maxTracks),
-    );
+    const clusters = await alignments(context, signal, cluster);
+    const limited = clusters.map((c) => limitTracks(c, maxTracks));
     if (format === 'tsv') {
       return limited
         .map(({ cluster }) => clusterAlignmentTsv(cluster))
@@ -369,6 +369,7 @@ const getMicrosyntenyAlignment = defineGcvWebMcpTool({
         ),
         omittedResultTracks,
       })),
+      possibleSameLocus: sameLocusTracks(clusters),
     };
   },
 });
