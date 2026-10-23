@@ -136,13 +136,19 @@ export const RECIPES = [
   {
     question: 'Has a gene family expanded, contracted or formed tandem arrays?',
     steps:
-      "get_family_summary: compare each family's bySpecies counts with the species' track counts, and read tandemArrays; pass family for its genes per track.",
+      "get_family_summary: compare each family's bySpecies counts with the species' track counts, and read tandemArrays; pass family for its genes per track. Fewer copies in the view is not yet a contraction: a copy can lie outside the tracks GCV found (see the recipe on absence).",
   },
   {
     question:
       'The view misses a region you expect (e.g. a copy that other synteny data reports).',
     steps:
       "set_view_parameters, widening the search before lowering the evidence it requires. Expect misses after a polyploidy (a whole-genome duplication or triplication in the query's or the result's lineage): fractionation, the loss of duplicate genes from one copy or the other, leaves each copy sharing fewer genes, farther apart. Raise neighbors first, so the query track brings enough families to reach matched despite the genes the result's copy lost, and intermediate, so the search bridges the genes the query's copy lost. Lower matched or score only if that fails, and treat tracks found only then as candidates, not findings. Change one thing at a time, counting neighbors with intermediate as one: set_view_parameters reports the result tracks each change added and removed, and compare_parameter_sets runs several changes side by side. The tool waits for the new analysis.",
+  },
+  {
+    question:
+      'Is a region or gene absent from a genome (lost), or only not found?',
+    steps:
+      "Not finding something is weaker evidence than finding it. A missing track can mean the window or thresholds were too narrow, the copy is on an unplaced scaffold or in an assembly gap, the genome's annotation differs, or its genes were assigned to other families. Before reporting a loss: widen the search (compare_parameter_sets with neighbors and intermediate raised); check whether the genome has the family anywhere, since GCV sees only the genes in its tracks (another source's family listings can tell); and see what the corresponding position holds (find_syntenic_counterparts for the genes there, get_gene_details for their coordinates and links). Report the settings you searched with, and what you didn't check.",
   },
   {
     question: 'Is a result track real synteny or a chance match?',
@@ -167,6 +173,7 @@ export const REPORTING = [
   "Label each claim by its evidence: observed in GCV (with the view's URL), measured by another source (name it), inferred (say from what), or a hypothesis (say what would test it). Keep the labels in tables too, and don't put inferred rows beside observed ones unmarked.",
   'A result track makes a candidate syntenic region; its support makes it a finding. Report a track with its support (single-copy families matched, the genes it spans) and whether it held across parameters, not by its score alone.',
   'Scope claims to what was searched: the sources and the genomes the regexp keeps. A claim that a region is conserved across a group of genomes needs the group counted, those found and those not, rather than a list of hits.',
+  "Report an absence as 'not found with these settings', with the settings, unless you have ruled out the other causes; the recipe on absence lists them.",
   'When GCV and another source disagree, report both, each with its source, rather than choosing one silently.',
 ];
 
