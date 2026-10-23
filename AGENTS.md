@@ -97,9 +97,11 @@ the tools don't register; nothing else changes. The README lists the tools.
 - **Descriptions and the guide are the instructions.** `describe_gcv` returns `guide.ts`
   (overview, tool groups, concepts, recipes) with the instance's sources and parameter
   defaults; `guide.spec.ts` keeps its tool list in step with registration. A new tool needs
-  its group's list, a guide entry and a README row. Tool errors throw `WebMcpToolError`
-  with a message that says how to recover; large results truncate and say how much they
-  left out.
+  its group's list, a guide entry and a README row. Tools fail by throwing
+  `WebMcpToolError` with a message that says how to recover. Browsers reject a throwing
+  tool with a generic error that drops its message, so the core layer returns it as the
+  result `{"error": message}`; any other error returns as an unexpected failure and is
+  logged. Large results truncate and say how much they left out.
 - **The search guidance is deliberate.** The recipes and parameter descriptions say to widen
   the search (`neighbors`, `intermediate`) before loosening the evidence it requires
   (`matched`, `score`): loosened thresholds admit chance matches, while a wider window finds

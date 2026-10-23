@@ -107,6 +107,7 @@ export const CONCEPTS = [
   "Dot plots pair same-family genes between a track and the query: 'local' against the query track, 'global' against the whole query chromosome.",
   "Tools that read the view wait for it to finish loading. A search that fails leaves the view 'partial'; get_view_status lists the issues.",
   'Large results are truncated (maxTracks, maxTargets, maxFamilies, maxPairs) and say how much was left out.',
+  'A tool that fails returns {"error": message} as its result; the message says what went wrong and how to recover.',
 ];
 
 export const RECIPES = [

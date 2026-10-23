@@ -2,7 +2,9 @@
 // need on top of it: the spec's tool annotations (Angular's descriptor type
 // omits them, but its runtime passes them through), execution inside NgZone
 // (Angular doesn't, and router navigation outside the zone skips change
-// detection), and one serialization of results for the agent.
+// detection), and one serialization of results for the agent, failures
+// included: browsers reject a tool that throws with a generic error, dropping
+// its message, so a tool's error returns as the result {"error": message}.
 import {
   ApplicationInitStatus,
   EnvironmentInjector,
@@ -56,6 +58,17 @@ function serialize(result: unknown): string {
   return typeof result === 'string' ? result : JSON.stringify(result);
 }
 
+// A WebMcpToolError's message is written for the agent; any other error is a
+// fault in the tool, so it is also logged for developers.
+function errorMessage(name: string, error: unknown): string {
+  if (error instanceof WebMcpToolError) {
+    return error.message;
+  }
+  console.error(`WebMCP: ${name} failed`, error);
+  const message = error instanceof Error ? error.message : String(error);
+  return `${name} failed unexpectedly: ${message}`;
+}
+
 // Registers the tool until the injector (by default, the current injection
 // context) is destroyed. A no-op in browsers without WebMCP.
 export function declareGcvWebMcpTool<S extends WebMcpJsonSchema>(
@@ -63,9 +76,9 @@ export function declareGcvWebMcpTool<S extends WebMcpJsonSchema>(
   injector: Injector = inject(Injector),
 ): void {
   const zone = injector.get(NgZone);
-  // Settles the tool inside the zone but rejects outside it, so a tool's
-  // error reaches the agent rather than Angular's ErrorHandler.
-  const run = async (args, client): Promise<string> => {
+  // Settles the tool inside the zone but returns or rejects outside it, so a
+  // tool's error reaches the agent rather than Angular's ErrorHandler.
+  const run = async (args, client: WebMcpClient): Promise<string> => {
     // execute must start synchronously, inside the injection context
     const outcome = await zone.run(() => {
       let result: Promise<unknown>;
@@ -79,10 +92,14 @@ export function declareGcvWebMcpTool<S extends WebMcpJsonSchema>(
         (error) => ({ error }),
       );
     });
-    if ('error' in outcome) {
+    if (!('error' in outcome)) {
+      return serialize(outcome.value);
+    }
+    // a cancelled call has no one waiting for its result
+    if (client?.signal?.aborted) {
       throw outcome.error;
     }
-    return serialize(outcome.value);
+    return serialize({ error: errorMessage(tool.name, outcome.error) });
   };
   const wrapped: GcvWebMcpTool<S> = {
     ...tool,
@@ -126,7 +143,8 @@ export function provideGcvWebMcpTools(
   ]);
 }
 
-// An error whose message tells the agent how to recover.
+// An error whose message tells the agent how to recover; the agent gets it as
+// the tool's result.
 export class WebMcpToolError extends Error {
   constructor(message: string) {
     super(message);

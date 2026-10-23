@@ -12,6 +12,7 @@ import {
   declareGcvWebMcpTool,
   defineGcvWebMcpTool,
   provideGcvWebMcpTools,
+  WebMcpToolError,
   waitFor,
 } from './webmcp';
 
@@ -103,24 +104,54 @@ describe('GCV WebMCP tools', () => {
     );
   });
 
-  it("rejects with the tool's error", async () => {
+  // browsers drop a thrown error's message, so errors return as results
+  function declareFailing(error: unknown) {
     const fail = defineGcvWebMcpTool({
       name: 'fail',
       description: 'Fails.',
       inputSchema: { type: 'object', properties: {} },
-      execute: () => {
-        throw new Error('bad input');
+      execute: async () => {
+        throw error;
       },
     });
     declareGcvWebMcpTool(
       fail,
       createEnvironmentInjector([], TestBed.inject(EnvironmentInjector)),
     );
+  }
+
+  it("returns the tool's error for the agent as its result", async () => {
+    declareFailing(new WebMcpToolError('Pass the full name.'));
     await flush();
     const signal = new AbortController().signal;
-    await expect(registrations[0].tool.execute({}, { signal })).rejects.toThrow(
-      'bad input',
+    await expect(registrations[0].tool.execute({}, { signal })).resolves.toBe(
+      '{"error":"Pass the full name."}',
     );
+  });
+
+  it('reports and logs an unexpected error', async () => {
+    const log = jest.spyOn(console, 'error').mockImplementation(() => {});
+    declareFailing(new TypeError('x is undefined'));
+    await flush();
+    const signal = new AbortController().signal;
+    await expect(registrations[0].tool.execute({}, { signal })).resolves.toBe(
+      '{"error":"fail failed unexpectedly: x is undefined"}',
+    );
+    expect(log).toHaveBeenCalledWith(
+      'WebMCP: fail failed',
+      expect.any(TypeError),
+    );
+    log.mockRestore();
+  });
+
+  it('rejects a call the agent cancelled', async () => {
+    const controller = new AbortController();
+    controller.abort(new Error('cancelled'));
+    declareFailing(new Error('cancelled'));
+    await flush();
+    await expect(
+      registrations[0].tool.execute({}, { signal: controller.signal }),
+    ).rejects.toThrow('cancelled');
   });
 
   it('unregisters when its injector is destroyed', async () => {
