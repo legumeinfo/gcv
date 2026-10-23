@@ -28,8 +28,8 @@ function keywords(schema: object, path: string): string[] {
     if (key === 'properties') {
       return [
         ...here,
-        ...Object.entries(value).flatMap(([name, property]) =>
-          keywords(property, `${path}.${name}`),
+        ...Object.entries(value as Record<string, object>).flatMap(
+          ([name, property]) => keywords(property, `${path}.${name}`),
         ),
       ];
     }
