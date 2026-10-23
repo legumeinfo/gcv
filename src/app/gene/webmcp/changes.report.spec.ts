@@ -1,7 +1,7 @@
 import { Gene } from '@gcv/gene/models';
 import { geneID } from '@gcv/gene/store/reducers/gene.reducer';
 import { ClusterAlignment, clusterAlignments } from './alignment.report';
-import { trackChanges } from './changes.report';
+import { regionPresence, trackChanges } from './changes.report';
 import { AlignedTrack } from './view-state';
 
 function track(
@@ -29,12 +29,12 @@ const query = track({ name: 'Gm15', genes: ['q1', 'q2', 'q3'] });
 function view(
   results: AlignedTrack[],
   genes = new Map<string, Gene>(),
+  consensus = ['f', 'f', 'f'],
 ): ClusterAlignment[] {
-  const queries = Array.from(new Set(results.map((t) => t.cluster))).map(
-    (cluster) => ({ ...query, cluster }),
-  );
+  const clusters = Array.from(new Set(results.map((t) => t.cluster)));
+  const queries = clusters.map((cluster) => ({ ...query, cluster }));
   return clusterAlignments(
-    [['f', 'f', 'f']],
+    Array(Math.max(...clusters) + 1).fill(consensus),
     [...queries, ...results],
     new Set(queries),
     genes,
@@ -141,5 +141,73 @@ describe('trackChanges', () => {
       omittedAdded: 2,
       omittedRemoved: 1,
     });
+  });
+});
+
+describe('regionPresence', () => {
+  // single-copy families p, q and r follow the tandem family f
+  const at = (label: string, results: AlignedTrack[]) => ({
+    label,
+    clusters: view(results, new Map(), ['f', 'f', 'p', 'q', 'r']),
+  });
+
+  it('follows a region across views, through the genes its tracks share', () => {
+    const report = regionPresence(
+      [
+        at('current', [
+          track({ name: 'Chr20', genes: ['a2', 'a3'] }),
+          track({ name: 'Chr03', genes: ['c1', 'c2'], score: 20 }),
+        ]),
+        // a wider window: the Chr20 track grows, another region appears
+        at('set1', [
+          track({ name: 'Chr20', genes: ['a1', 'a2', 'a3', 'a4'], cluster: 1 }),
+          track({
+            name: 'NLL-09',
+            genus: 'Lupinus',
+            species: 'angustifolius',
+            genes: ['n1', 'n2', 'n3'],
+            families: ['p', 'q', 'r'],
+            alignment: [2, 3, 4],
+          }),
+        ]),
+        at('set2', [track({ name: 'Chr20', genes: ['a4', 'a5'] })]),
+      ],
+      10,
+    );
+    expect(
+      report.regions.map((r) => [
+        r.chromosome,
+        r.foundIn,
+        Object.keys(r.support),
+      ]),
+    ).toEqual([
+      ['Chr20', ['current', 'set1', 'set2'], ['current', 'set1', 'set2']],
+      ['NLL-09', ['set1'], ['set1']],
+      ['Chr03', ['current'], ['current']],
+    ]);
+    expect(report.regions[2].support.current).toMatchObject({ score: 20 });
+    expect(report.omittedRegions).toBe(0);
+  });
+
+  it('keeps the better-supported track of a view, and caps the regions', () => {
+    const report = regionPresence(
+      [
+        at('current', [
+          track({ name: 'Chr20', genes: ['a1', 'a2'] }),
+          // a second alignment of the same region, with single-copy matches
+          track({
+            name: 'Chr20',
+            genes: ['a2', 'a3'],
+            families: ['p', 'q'],
+            alignment: [2, 3],
+          }),
+          track({ name: 'Chr25', genes: ['b1'] }),
+        ]),
+      ],
+      1,
+    );
+    expect(report.regions).toHaveLength(1);
+    expect(report.omittedRegions).toBe(1);
+    expect(report.regions[0].support.current.singleCopyFamiliesMatched).toBe(2);
   });
 });

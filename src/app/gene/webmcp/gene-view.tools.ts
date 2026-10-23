@@ -25,9 +25,10 @@ import {
   syntenicCounterparts,
 } from './alignment.report';
 import { blockEndpointGenes, macroSyntenyReport } from './blocks.report';
-import { trackChanges } from './changes.report';
+import { regionPresence, trackChanges } from './changes.report';
 import {
   SETTLE_TIMEOUT_MS,
+  ViewContext,
   alignments,
   settledView,
   viewContext,
@@ -88,6 +89,67 @@ const getViewStatus = defineGcvWebMcpTool({
 
 // most added and removed tracks set_view_parameters reports
 const MAX_CHANGED_TRACKS = 25;
+const MAX_PARAMETER_SETS = 4;
+
+type ParameterChanges = Record<string, { from: unknown; to: unknown }>;
+
+// the update's parameters, checked with the URL guard's validators
+function validParameters(
+  update: Record<string, unknown>,
+  context: string,
+): Record<string, unknown> {
+  const { params, errors } = validateParameterUpdate(update);
+  if (errors.length > 0) {
+    throw new WebMcpToolError(`${context} Invalid: ${errors.join('; ')}`);
+  }
+  return params;
+}
+
+const sameValue = (a: unknown, b: unknown) =>
+  JSON.stringify(a) === JSON.stringify(b);
+
+function parameterChanges(
+  current: Params,
+  params: Record<string, unknown>,
+): ParameterChanges {
+  return Object.fromEntries(
+    Object.entries(params)
+      .filter(([key, value]) => !sameValue(current[key], value))
+      .map(([key, value]) => [key, { from: current[key], to: value }]),
+  );
+}
+
+// Applies the parameters through the URL and waits for the view to settle on
+// them.
+async function applyParameters(
+  { store }: ViewContext,
+  paramsService: ParamsService,
+  params: Record<string, unknown>,
+  signal: AbortSignal,
+) {
+  paramsService.updateParams(params as Params);
+  const applied = await waitFor(
+    store.select(fromParams.getParams),
+    (p) =>
+      Object.entries(params).every(([key, value]) => sameValue(p[key], value)),
+    { signal, timeoutMs: SETTLE_TIMEOUT_MS },
+  );
+  if (applied.timedOut) {
+    throw new WebMcpToolError(
+      'The parameters were not applied; the URL may have been rejected. Call get_view_status to see the current parameters.',
+    );
+  }
+  return waitForSettledGeneView(store, {
+    signal,
+    timeoutMs: SETTLE_TIMEOUT_MS,
+  });
+}
+
+const resultTrackCount = (clusters: ClusterAlignment[]) =>
+  clusters.flatMap((c) => c.tracks).filter((t) => t.role === 'result').length;
+
+const parameterProperties = () =>
+  parameterSchemas() as unknown as Record<string, WebMcpJsonSchema>;
 
 // built when tools register, once the configuration has loaded
 const setViewParameters = () =>
@@ -98,35 +160,21 @@ const setViewParameters = () =>
       'Changes analysis and display parameters of the gene view: the query neighborhood size, micro-synteny search sensitivity, clustering, alignment scoring, result filters and order, macro-synteny block criteria, and data sources. Parameters left out keep their values. The change is recorded in the URL, so the returned URL reproduces the view. Waits for the view to reload and returns the parameters that changed, the result tracks the change added and removed (a track that keeps any of its genes counts as kept), and the new view status.',
     inputSchema: {
       type: 'object',
-      properties: parameterSchemas() as unknown as Record<
-        string,
-        WebMcpJsonSchema
-      >,
+      properties: parameterProperties(),
       additionalProperties: false,
     },
     execute: async (args, { signal }) => {
       const context = viewContext();
       const { store, url } = context;
       const paramsService = inject(ParamsService);
-      const { params, errors } = validateParameterUpdate(
+      const params = validParameters(
         args as Record<string, unknown>,
+        'No parameters changed.',
       );
-      if (errors.length > 0) {
-        throw new WebMcpToolError(
-          `No parameters changed. Invalid: ${errors.join('; ')}`,
-        );
-      }
       const current: Params = await firstValueFrom(
         store.select(fromParams.getParams),
       );
-      const same = (key: string, value: unknown) =>
-        JSON.stringify(current[key]) === JSON.stringify(value);
-      const changed = {};
-      Object.entries(params)
-        .filter(([key, value]) => !same(key, value))
-        .forEach(([key, value]) => {
-          changed[key] = { from: current[key], to: value };
-        });
+      const changed = parameterChanges(current, params);
       if (Object.keys(changed).length === 0) {
         const view = await waitForSettledGeneView(store, {
           signal,
@@ -139,24 +187,12 @@ const setViewParameters = () =>
         timeoutMs: SETTLE_TIMEOUT_MS,
       });
       const before = await alignments(context, signal);
-      paramsService.updateParams(params as Params);
-      const applied = await waitFor(
-        store.select(fromParams.getParams),
-        (p) =>
-          Object.entries(params).every(
-            ([key, value]) => JSON.stringify(p[key]) === JSON.stringify(value),
-          ),
-        { signal, timeoutMs: SETTLE_TIMEOUT_MS },
-      );
-      if (applied.timedOut) {
-        throw new WebMcpToolError(
-          'The parameters were not applied; the URL may have been rejected. Call get_view_status to see the current parameters.',
-        );
-      }
-      const view = await waitForSettledGeneView(store, {
+      const view = await applyParameters(
+        context,
+        paramsService,
+        params,
         signal,
-        timeoutMs: SETTLE_TIMEOUT_MS,
-      });
+      );
       const tracks = trackChanges(
         before,
         await alignments(context, signal),
@@ -174,6 +210,109 @@ const setViewParameters = () =>
             }
           : tracks,
         view,
+      };
+    },
+  });
+
+// built when tools register, once the configuration has loaded
+const compareParameterSets = () =>
+  defineGcvWebMcpTool({
+    name: 'compare_parameter_sets',
+    title: 'Compare parameter sets',
+    description:
+      "Tests which result regions hold up across parameters. Runs the view's analysis again with each set of parameter changes in turn, each applied to the current parameters, then restores the current parameters. Reports every region (a stretch of one chromosome, followed across runs through the genes its tracks share) with the runs that found it ('current', 'set1', 'set2', …) and its support in each: alignment score, distinct and single-copy families matched, the genes the matches span and the largest gap between them. A region found only with loosened matched or score is weak evidence; one that a wider window (neighbors, intermediate) finds at strict thresholds is robust. Each run's URL reproduces it. Takes as long as reloading the view once per set.",
+    inputSchema: {
+      type: 'object',
+      properties: {
+        sets: {
+          type: 'array',
+          minItems: 1,
+          maxItems: MAX_PARAMETER_SETS,
+          items: {
+            type: 'object',
+            properties: parameterProperties(),
+            additionalProperties: false,
+          },
+          description:
+            'Parameter changes to try, each against the current parameters, e.g. [{"neighbors": 20, "intermediate": 15}, {"matched": 6, "score": 40}].',
+        },
+        maxRegions: {
+          type: 'integer',
+          minimum: 1,
+          maximum: 200,
+          description:
+            'Most regions to report, those found by the most runs first (default 50).',
+        },
+      },
+      required: ['sets'],
+      additionalProperties: false,
+    },
+    execute: async ({ sets, maxRegions = 50 }, { signal }) => {
+      const context = viewContext();
+      const { store, url } = context;
+      const paramsService = inject(ParamsService);
+      const updates = sets.map((set, i) =>
+        validParameters(
+          set as Record<string, unknown>,
+          `Nothing was run. set${i + 1}:`,
+        ),
+      );
+      await settledView(context, signal);
+      const current: Params = await firstValueFrom(
+        store.select(fromParams.getParams),
+      );
+      // every run starts from the current values of the parameters any set
+      // changes, which the end restores
+      const touched = new Set(updates.flatMap((u) => Object.keys(u)));
+      const base = Object.fromEntries(
+        [...touched].map((key) => [key, current[key]]),
+      );
+      const views = [
+        {
+          label: 'current',
+          url: url(),
+          clusters: await alignments(context, signal),
+        },
+      ];
+      const runs = [];
+      try {
+        for (const [i, update] of updates.entries()) {
+          const label = `set${i + 1}`;
+          const view = await applyParameters(
+            context,
+            paramsService,
+            { ...base, ...update },
+            signal,
+          );
+          const clusters = await alignments(context, signal);
+          views.push({ label, url: url(), clusters });
+          runs.push({
+            label,
+            changed: parameterChanges(current, update),
+            url: url(),
+            resultTracks: resultTrackCount(clusters),
+            ...(view.timedOut ? { timedOut: true } : {}),
+          });
+        }
+      } catch (error) {
+        // leave the user's view as it was, even when the agent cancels
+        paramsService.updateParams(base as Params);
+        throw error;
+      }
+      const restored = await applyParameters(
+        context,
+        paramsService,
+        base,
+        signal,
+      );
+      return {
+        current: {
+          url: views[0].url,
+          resultTracks: resultTrackCount(views[0].clusters),
+        },
+        runs,
+        ...regionPresence(views, maxRegions),
+        restored: { url: url(), status: restored.status },
       };
     },
   });
@@ -400,6 +539,7 @@ const getMacrosyntenyBlocks = defineGcvWebMcpTool({
 export const analysisWebMcpTools = (): GcvWebMcpTools => [
   getViewStatus,
   setViewParameters(),
+  compareParameterSets(),
   getMicrosyntenyAlignment,
   findSyntenicCounterparts,
   getMacrosyntenyBlocks,

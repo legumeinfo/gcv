@@ -47,6 +47,10 @@ export const TOOL_GUIDE: ToolGuide[] = [
         use: 'Change the neighborhood size, search sensitivity, alignment, filters or sources; reports the result tracks the change added and removed.',
       },
       {
+        name: 'compare_parameter_sets',
+        use: 'Run the analysis with several parameter sets and report which regions each finds, with their support; restores the view.',
+      },
+      {
         name: 'get_microsynteny_alignment',
         use: 'Read which genes correspond across tracks, per track or as a table.',
       },
@@ -138,12 +142,12 @@ export const RECIPES = [
     question:
       'The view misses a region you expect (e.g. a copy that other synteny data reports).',
     steps:
-      "set_view_parameters, widening the search before lowering the evidence it requires. Expect misses after a polyploidy (a whole-genome duplication or triplication in the query's or the result's lineage): fractionation, the loss of duplicate genes from one copy or the other, leaves each copy sharing fewer genes, farther apart. Raise neighbors first, so the query track brings enough families to reach matched despite the genes the result's copy lost, and intermediate, so the search bridges the genes the query's copy lost. Lower matched or score only if that fails, and treat tracks found only then as candidates, not findings. Change one thing at a time, counting neighbors with intermediate as one: set_view_parameters reports the result tracks each change added and removed. The tool waits for the new analysis.",
+      "set_view_parameters, widening the search before lowering the evidence it requires. Expect misses after a polyploidy (a whole-genome duplication or triplication in the query's or the result's lineage): fractionation, the loss of duplicate genes from one copy or the other, leaves each copy sharing fewer genes, farther apart. Raise neighbors first, so the query track brings enough families to reach matched despite the genes the result's copy lost, and intermediate, so the search bridges the genes the query's copy lost. Lower matched or score only if that fails, and treat tracks found only then as candidates, not findings. Change one thing at a time, counting neighbors with intermediate as one: set_view_parameters reports the result tracks each change added and removed, and compare_parameter_sets runs several changes side by side. The tool waits for the new analysis.",
   },
   {
     question: 'Is a result track real synteny or a chance match?',
     steps:
-      'Weigh what supports it. Strong: it survives a wider window (neighbors) at strict matched and score; it matches many single-copy families (get_microsynteny_alignment summary: support.singleCopyFamiliesMatched) in collinear order (get_dot_plot_pairs rankCorrelation); a macro-synteny block on its chromosome spans it (get_macrosynteny_blocks). Weak: it appears only with loosened matched or score; it rests on a few genes, or its matches are mostly families with several copies (familiesMatched well above singleCopyFamiliesMatched; get_family_summary shows their tandem arrays), whose members turn up in many places, so sharing them proves little.',
+      'Weigh what supports it; compare_parameter_sets shows it across settings, e.g. a wider window ({neighbors, intermediate} raised) and stricter thresholds ({matched, score} raised). Strong: it survives a wider window at strict matched and score; it matches many single-copy families (get_microsynteny_alignment summary: support.singleCopyFamiliesMatched) in collinear order (get_dot_plot_pairs rankCorrelation); a macro-synteny block on its chromosome spans it (get_macrosynteny_blocks). Weak: it appears only with loosened matched or score; it rests on a few genes, or its matches are mostly families with several copies (familiesMatched well above singleCopyFamiliesMatched; get_family_summary shows their tandem arrays), whose members turn up in many places, so sharing them proves little.',
   },
   {
     question: 'The view shows too much.',
