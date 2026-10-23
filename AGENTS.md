@@ -109,6 +109,8 @@ the tools don't register; nothing else changes. The README lists the tools.
   (`matched`, `score`): loosened thresholds admit chance matches, while a wider window finds
   the fractionated copies a polyploidy leaves. Keep that order, and check changes to such
   advice with someone who knows the biology.
+- **Measure guidance changes.** `evals/webmcp/` holds scenarios with answers known from the
+  data; run them before and after changing tool descriptions, results or the guide.
 - **Trying tools in a browser:** a Playwright init script can stand in for
   `document.modelContext` with an object whose `registerTool` keeps each tool, then call
   `tool.execute(args, { signal })` from `page.evaluate`.
