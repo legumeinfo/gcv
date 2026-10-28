@@ -7,7 +7,7 @@
 // chromosomes share a name apart from the prefix and their spans overlap. A
 // new assembly can reuse a name for another locus, so these are pairs to
 // check, not conclusions.
-import { ClusterAlignment, TrackAlignment } from './alignment.report';
+import { ClusterAlignment, TrackAlignment } from './alignment';
 
 export type SameLocus = {
   evidence: ('gene names' | 'coordinates')[];

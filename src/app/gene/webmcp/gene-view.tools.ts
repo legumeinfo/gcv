@@ -19,14 +19,10 @@ import {
   ParamsService,
   ProcessService,
 } from '@gcv/gene/services';
-import {
-  ClusterAlignment,
-  clusterAlignmentTsv,
-  syntenicCounterparts,
-} from './alignment.report';
+import { ClusterAlignment, sameLocusTracks } from '@gcv/gene/alignment';
+import { clusterAlignmentTsv, syntenicCounterparts } from './alignment.report';
 import { blockEndpointGenes, macroSyntenyReport } from './blocks.report';
 import { regionPresence, trackChanges } from './changes.report';
-import { sameLocusTracks } from './duplicates.report';
 import {
   SETTLE_TIMEOUT_MS,
   ViewContext,

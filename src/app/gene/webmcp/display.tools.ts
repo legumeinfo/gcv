@@ -26,7 +26,7 @@ import {
 } from './gene-view.context';
 import { AgentHighlight } from './highlight';
 import { matchGeneName, resolveTrack } from './lookup';
-import { AlignedTrack } from './view-state';
+import { AlignedTrack } from '@gcv/gene/alignment';
 
 // the panel types as agents know them, by layout component type
 const PANEL_TYPES: Record<string, string> = {

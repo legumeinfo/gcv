@@ -4,7 +4,7 @@
 // on one track form a tandem array. A track aligned several times counts
 // once.
 import { trackID } from '@gcv/gene/models';
-import { AlignedTrack } from './view-state';
+import { AlignedTrack } from '@gcv/gene/alignment';
 
 export type FamilyReport = {
   family: string;

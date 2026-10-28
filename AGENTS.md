@@ -77,7 +77,9 @@ the tools don't register; nothing else changes. The README lists the tools.
   the gene-view host and the guide. `gene/webmcp/` holds the gene view's tools
   (`*.tools.ts`) and the pure modules they're built on (`*.report.ts`, `lookup.ts`,
   `parameters.ts`, `view-state.ts`), each with a spec. Put the logic in the pure modules
-  and keep tools thin.
+  and keep tools thin. The alignment model the reports resolve against
+  (`clusterAlignments`, `sameLocusTracks`) lives in `gene/alignment/`, outside the agent
+  layer, so the rest of the app can use it without importing agent code.
 - **Every tool registers at startup,** once `ApplicationInitStatus` resolves (the
   configuration has loaded), so an agent sees the whole of GCV without discovery calls.
   The gene and search modules read `AppConfig` when they load, so app-level WebMCP code

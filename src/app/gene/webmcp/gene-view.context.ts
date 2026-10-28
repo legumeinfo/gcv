@@ -9,10 +9,13 @@ import * as geneActions from '@gcv/gene/store/actions/gene.actions';
 import * as fromMicroTracks from '@gcv/gene/store/selectors/micro-tracks';
 // app
 import { WebMcpToolError } from '@gcv/core/webmcp/webmcp';
-import { Gene } from '@gcv/gene/models';
-import { ClusterAlignment, clusterAlignments } from './alignment.report';
 import {
   AlignedTrack,
+  ClusterAlignment,
+  clusterAlignments,
+} from '@gcv/gene/alignment';
+import { Gene } from '@gcv/gene/models';
+import {
   GeneViewSummary,
   loadGenes,
   waitForSettledGeneView,

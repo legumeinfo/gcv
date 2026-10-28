@@ -1,6 +1,7 @@
 import { Params } from '@gcv/gene/models/params';
 import { initialState } from '@gcv/gene/store/reducers/params.reducer';
-import { AlignedTrack, GeneViewInputs, summarizeGeneView } from './view-state';
+import { AlignedTrack } from '@gcv/gene/alignment';
+import { GeneViewInputs, summarizeGeneView } from './view-state';
 
 const params = { ...initialState, sources: ['lis'] } as Params;
 

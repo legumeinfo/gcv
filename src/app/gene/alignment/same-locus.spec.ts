@@ -1,8 +1,7 @@
 import { Gene } from '@gcv/gene/models';
 import { geneID } from '@gcv/gene/store/reducers/gene.reducer';
-import { clusterAlignments } from './alignment.report';
-import { sameLocusTracks } from './duplicates.report';
-import { AlignedTrack } from './view-state';
+import { AlignedTrack, clusterAlignments } from './alignment';
+import { sameLocusTracks } from './same-locus';
 
 function track(
   name: string,

@@ -1,5 +1,5 @@
 import { familiesReport, familyMembers } from './families.report';
-import { AlignedTrack } from './view-state';
+import { AlignedTrack } from '@gcv/gene/alignment';
 
 function track(
   name: string,

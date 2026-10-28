@@ -1,8 +1,11 @@
 import { Gene } from '@gcv/gene/models';
 import { geneID } from '@gcv/gene/store/reducers/gene.reducer';
-import { ClusterAlignment, clusterAlignments } from './alignment.report';
+import {
+  AlignedTrack,
+  ClusterAlignment,
+  clusterAlignments,
+} from '@gcv/gene/alignment';
 import { regionPresence, trackChanges } from './changes.report';
-import { AlignedTrack } from './view-state';
 
 function track(
   overrides: Partial<AlignedTrack> & Pick<AlignedTrack, 'name' | 'genes'>,

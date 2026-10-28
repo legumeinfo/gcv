@@ -24,11 +24,9 @@ import {
 } from '@gcv/gene/services/process.selectors';
 // app
 import { waitFor } from '@gcv/core/webmcp/webmcp';
-import { Gene, Track } from '@gcv/gene/models';
-import { AlignmentMixin, ClusterMixin } from '@gcv/gene/models/mixins';
+import { AlignedTrack } from '@gcv/gene/alignment';
+import { Gene } from '@gcv/gene/models';
 import { Params, SourceParams } from '@gcv/gene/models/params';
-
-export type AlignedTrack = Track & ClusterMixin & AlignmentMixin;
 
 export type LoadStatus = 'loaded' | 'failed' | 'loading' | 'pending';
 

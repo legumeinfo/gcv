@@ -1,6 +1,6 @@
 import { WebMcpToolError } from '@gcv/core/webmcp/webmcp';
 import { matchGeneName, matchTracks, resolveTrack } from './lookup';
-import { AlignedTrack } from './view-state';
+import { AlignedTrack } from '@gcv/gene/alignment';
 
 function track(
   name: string,

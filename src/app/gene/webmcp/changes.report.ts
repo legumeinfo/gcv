@@ -8,7 +8,7 @@ import {
   ClusterAlignment,
   TrackAlignment,
   TrackSupport,
-} from './alignment.report';
+} from '@gcv/gene/alignment';
 
 export type ChangedTrack = {
   cluster: number;

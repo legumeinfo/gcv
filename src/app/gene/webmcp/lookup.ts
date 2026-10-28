@@ -4,7 +4,7 @@
 // suffix of a full name.
 import { WebMcpToolError } from '@gcv/core/webmcp/webmcp';
 import { clusteredTrackID } from '@gcv/gene/models';
-import { AlignedTrack } from './view-state';
+import { AlignedTrack } from '@gcv/gene/alignment';
 
 const matchesName = (full: string, name: string): boolean => {
   const f = full.toLowerCase();

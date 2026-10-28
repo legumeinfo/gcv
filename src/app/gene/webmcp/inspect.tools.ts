@@ -25,7 +25,7 @@ import {
 } from './gene-view.context';
 import { matchGeneName, resolveTrack, trackLabel } from './lookup';
 import { dotPlotReport } from './plots.report';
-import { AlignedTrack } from './view-state';
+import { AlignedTrack } from '@gcv/gene/alignment';
 
 type Link = { text: string; href: string };
 
