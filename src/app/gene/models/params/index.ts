@@ -41,6 +41,12 @@ import {
   microOrderParamValidators,
 } from './micro-order.model';
 import {
+  PinParams,
+  pinParamMembers,
+  pinParamParsers,
+  pinParamValidators,
+} from './pin.model';
+import {
   QueryParams,
   queryParamMembers,
   queryParamParsers,
@@ -60,6 +66,7 @@ export * from './macro-filters.model';
 export * from './macro-order.model';
 export * from './micro-filters.model';
 export * from './micro-order.model';
+export * from './pin.model';
 export * from './query.model';
 export * from './source.model';
 
@@ -108,4 +115,22 @@ export const paramParsers: { [key: string]: (...args: any[]) => any } = {
   ...microOrderParamParsers,
   ...queryParamParsers,
   ...sourceParamParsers,
+};
+
+// Parameters that mark the view without changing its analysis. They are kept
+// apart from the analysis parameters above, so getParams, and the agent tools
+// that change the analysis, never see them.
+export type AnnotationParams = PinParams;
+
+export const annotationParamMembers = [...pinParamMembers];
+
+export const annotationParamValidators = {
+  ...pinParamValidators,
+};
+
+export const annotationParamParsers: Record<
+  string,
+  (value: string | string[]) => unknown
+> = {
+  ...pinParamParsers,
 };

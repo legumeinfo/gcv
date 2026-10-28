@@ -2,14 +2,22 @@
 import { createSelector, createSelectorFactory } from '@ngrx/store';
 // store
 import { selectQueryParams } from '@gcv/store/selectors/router';
-import { initialState } from '@gcv/gene/store/reducers/params.reducer';
+import {
+  annotationInitialState,
+  initialState,
+} from '@gcv/gene/store/reducers/params.reducer';
 // app
 import { parseParams } from '@gcv/core/models/params';
 import { memoizeObject, pick } from '@gcv/core/utils';
 import {
+  AnnotationParams,
+  annotationParamMembers,
+  annotationParamParsers,
   Params,
   paramMembers,
   paramParsers,
+  PinParams,
+  pinParamMembers,
   AlignmentParams,
   alignmentParamMembers,
   BlockParams,
@@ -120,4 +128,20 @@ export const getSourceParams = createSelectorFactory(memoizeObject)(
 export const selectSourcesParam = createSelector(
   getSourceParams,
   (params: SourceParams): string[] => params.sources,
+);
+
+// the parameters that mark the view, apart from the analysis's (getParams)
+export const getAnnotationParams = createSelectorFactory(memoizeObject)(
+  selectQueryParams,
+  (queryParams): AnnotationParams => {
+    // assumes params from URL are valid (see QueryParamsGuard)
+    const annotationParams = pick(annotationParamMembers, queryParams);
+    const urlParams = parseParams(annotationParams, annotationParamParsers);
+    return Object.assign({}, annotationInitialState, urlParams);
+  },
+);
+
+export const getPinParams = createSelectorFactory(memoizeObject)(
+  getAnnotationParams,
+  (params: AnnotationParams): PinParams => pick(pinParamMembers, params),
 );

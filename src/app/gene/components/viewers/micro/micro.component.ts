@@ -19,10 +19,12 @@ import { GCV } from '@gcv-assets/js/gcv';
 import { saveFile } from '@gcv/core/utils';
 import { Track, Pipeline } from '@gcv/gene/models';
 import { AlignmentMixin, ClusterMixin } from '@gcv/gene/models/mixins';
+import { PinParams } from '@gcv/gene/models/params';
 import {
   FamilyService,
   GeneService,
   MicroTracksService,
+  ParamsService,
   ProcessService,
 } from '@gcv/gene/services';
 // component
@@ -81,6 +83,17 @@ import { microShim } from './micro.shim';
             }
           </li>
         }
+        @if (pinned | async) {
+          <li class="nav-item">
+            <button
+              type="button"
+              class="btn btn-outline-dark ms-1"
+              (click)="clearPins()"
+            >
+              Clear pins
+            </button>
+          </li>
+        }
       </ul>
       <gcv-pipeline
         [info]="info"
@@ -97,6 +110,7 @@ export class MicroComponent implements AfterViewInit, OnDestroy, OnInit {
   private _familyService = inject(FamilyService);
   private _geneService = inject(GeneService);
   private _microTracksService = inject(MicroTracksService);
+  private _paramsService = inject(ParamsService);
   private _processService = inject(ProcessService);
 
   @Input() clusterID: number;
@@ -118,6 +132,7 @@ export class MicroComponent implements AfterViewInit, OnDestroy, OnInit {
 
   private _destroy: Subject<boolean> = new Subject();
   private _viewer;
+  private _pins: PinParams;
 
   info = `<p>This is the micro synteny <i>pipeline</i>.
           It depicts the flow of data from one <i>process</i> to the next for
@@ -134,10 +149,14 @@ export class MicroComponent implements AfterViewInit, OnDestroy, OnInit {
   pipeline: Pipeline;
 
   queryTracks: Observable<(Track & ClusterMixin & AlignmentMixin)[]>;
+  pinned: Observable<boolean>;
 
   // Angular hooks
 
   ngOnInit() {
+    this.pinned = this._paramsService
+      .getPinParams()
+      .pipe(map(({ pingene, pinfam }) => pingene.length + pinfam.length > 0));
     this.queryTracks = this._microTracksService.getSelectedClusterTracks(
       this.clusterID,
     );
@@ -186,6 +205,14 @@ export class MicroComponent implements AfterViewInit, OnDestroy, OnInit {
           this.draw();
         },
       );
+    // pins change only marks, so the viewer applies them without redrawing
+    this._paramsService
+      .getPinParams()
+      .pipe(takeUntil(this._destroy))
+      .subscribe((pins) => {
+        this._pins = pins;
+        this._viewer?.setPins(...this._pinArgs());
+      });
   }
 
   ngOnDestroy() {
@@ -227,6 +254,10 @@ export class MicroComponent implements AfterViewInit, OnDestroy, OnInit {
     }
     saveFile('micro-synteny', this._viewer.xml(), 'image/svg+xml', 'svg');
     return true;
+  }
+
+  clearPins(): void {
+    this._paramsService.updatePins('clear');
   }
 
   showCircos(): boolean {
@@ -277,7 +308,15 @@ export class MicroComponent implements AfterViewInit, OnDestroy, OnInit {
     this.draw = this._draw.bind(this, data, options);
   }
 
+  private _pinArgs(): [{ genes: string[]; families: string[] }, string] {
+    const { pingene = [], pinfam = [], pinlabels } = this._pins ?? {};
+    return [{ genes: pingene, families: pinfam }, pinlabels];
+  }
+
   private _draw(data, options) {
+    // a redraw keeps the pins current when it happens
+    const [pins, pinLabels] = this._pinArgs();
+    options = { ...options, pins, pinLabels };
     let tempViewer: any;
     const dim = Math.min(
       this.container.nativeElement.clientWidth,

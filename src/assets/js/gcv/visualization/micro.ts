@@ -200,9 +200,33 @@ export class Micro extends Visualizer {
     if (this.options.autoResize) {
       this.autoResize();
     }
+    this.setPins(this.options.pins, this.options.pinLabels);
   }
 
   // Public
+
+  /**
+   * Marks the pinned genes and families: the rest of the viewer fades, as
+   * when hovering, which marks with other classes, so neither clears the
+   * other. A viewer with none of the pinned genes doesn't fade.
+   * @param {object} pins - Gene names and family IDs.
+   * @param {string} labels - 'full' keeps the track labels unfaded.
+   */
+  setPins(
+    pins: { genes?: string[]; families?: string[] } = {},
+    labels: 'full' | 'fade' = 'full',
+  ) {
+    const genes = new Set(pins.genes ?? []);
+    const families = new Set((pins.families ?? []).filter((f) => f !== ''));
+    const marked = this.viewer
+      .selectAll('.gene')
+      .classed('pin', (g) => genes.has(g.name) || families.has(g.family))
+      .filter('.pin');
+    const pinned = !marked.empty();
+    this.viewer
+      .classed('pinned', pinned)
+      .classed('pin-labels', pinned && labels === 'full');
+  }
 
   /** Makes a copy of the SVG and inlines external GCV styles. */
   protected inlineCopy() {

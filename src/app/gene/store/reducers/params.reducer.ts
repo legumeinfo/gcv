@@ -1,5 +1,5 @@
 import { AppConfig } from '@gcv/core/models';
-import { Params } from '@gcv/gene/models/params';
+import { AnnotationParams, Params } from '@gcv/gene/models/params';
 
 export const initialState: Params = {
   // alignment
@@ -31,4 +31,11 @@ export const initialState: Params = {
   // micro filters
   regexp: '',
   order: AppConfig.defaultParameters.gene.microSyntenyOrder,
+};
+
+export const annotationInitialState: AnnotationParams = {
+  // pins
+  pinfam: [],
+  pingene: [],
+  pinlabels: 'full',
 };

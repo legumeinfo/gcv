@@ -1,7 +1,7 @@
 // Angular
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { Observable } from 'rxjs';
+import { Observable, firstValueFrom } from 'rxjs';
 // store
 import { Store } from '@ngrx/store';
 import * as routerActions from '@gcv/store/actions/router.actions';
@@ -10,6 +10,7 @@ import * as fromParams from '@gcv/gene/store/selectors/params/';
 // app
 import {
   AlignmentParams,
+  AnnotationParams,
   BlockParams,
   ClusteringParams,
   MacroFilterParams,
@@ -17,7 +18,11 @@ import {
   MicroFilterParams,
   MicroOrderParams,
   Params,
+  PinChange,
+  PinMode,
+  PinParams,
   QueryParams,
+  changePins,
   SourceParams,
 } from '@gcv/gene/models/params';
 import { HttpService } from '@gcv/core/services/http.service';
@@ -71,13 +76,38 @@ export class ParamsService extends HttpService {
     return this._store.select(fromParams.getSourceParams);
   }
 
-  updateParams(params: Params): void {
+  getPinParams(): Observable<PinParams> {
+    return this._store.select(fromParams.getPinParams);
+  }
+
+  // changes the pins in the URL; returns the pins it set
+  async updatePins(mode: PinMode, change: PinChange = {}): Promise<PinParams> {
+    const pins = changePins(
+      await firstValueFrom(this.getPinParams()),
+      mode,
+      change,
+    );
+    // the default label setting stays out of the URL
+    const pinlabels = pins.pinlabels === 'full' ? null : pins.pinlabels;
+    this.updateParams({ ...pins, pinlabels });
+    return pins;
+  }
+
+  // Lists go in the URL comma-separated; an empty list or null removes its
+  // parameter.
+  updateParams(
+    params:
+      Params | { [K in keyof AnnotationParams]?: AnnotationParams[K] | null },
+  ): void {
     const path = [];
-    const sources: any = {};
-    if (params['sources'] !== undefined) {
-      sources['sources'] = params['sources'].join(',');
-    }
-    const query = Object.assign({}, params, sources);
+    const query = Object.fromEntries(
+      Object.entries(params).map(([key, value]) => {
+        if (!Array.isArray(value)) {
+          return [key, value];
+        }
+        return [key, value.length === 0 ? null : value.join(',')];
+      }),
+    );
     this._store.dispatch(routerActions.go({ path, query }));
   }
 }

@@ -21,6 +21,7 @@ import {
   FamilyService,
   GeneService,
   MicroTracksService,
+  ParamsService,
 } from '@gcv/gene/services';
 import { microLegendShim } from './micro-legend.shim';
 
@@ -38,6 +39,7 @@ export class MicroLegendComponent implements AfterViewInit, OnDestroy {
   private _familyService = inject(FamilyService);
   private _geneService = inject(GeneService);
   private _microTracksService = inject(MicroTracksService);
+  private _paramsService = inject(ParamsService);
   private _zone = inject(NgZone);
 
   @Input() options: any = {};
@@ -57,6 +59,7 @@ export class MicroLegendComponent implements AfterViewInit, OnDestroy {
 
   private _destroy: Subject<boolean> = new Subject();
   private _viewer;
+  private _pinnedFamilies: string[] = [];
 
   // Angular hooks
 
@@ -70,6 +73,14 @@ export class MicroLegendComponent implements AfterViewInit, OnDestroy {
       .subscribe(([tracks, queryGenes, omittedFamilies]) => {
         this._preDraw(tracks, queryGenes, omittedFamilies);
         this.draw();
+      });
+    // pins change only marks, so the viewer applies them without redrawing
+    this._paramsService
+      .getPinParams()
+      .pipe(takeUntil(this._destroy))
+      .subscribe(({ pinfam }) => {
+        this._pinnedFamilies = pinfam;
+        this._viewer?.setPins(pinfam);
       });
   }
 
@@ -133,6 +144,8 @@ export class MicroLegendComponent implements AfterViewInit, OnDestroy {
   }
 
   private _draw(data, options) {
+    // a redraw keeps the pins current when it happens
+    options = { ...options, pins: this._pinnedFamilies };
     let tempViewer: any;
     const dim = Math.min(
       this.container.nativeElement.clientWidth,

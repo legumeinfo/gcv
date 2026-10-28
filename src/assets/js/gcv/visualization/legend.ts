@@ -108,6 +108,25 @@ export class Legend extends Visualizer {
       this.autoResize();
     }
     this.resize();
+    this.setPins(this.options.pins);
+  }
+
+  /**
+   * Marks the keys of the pinned IDs, independently of hovering; a key of
+   * several IDs, such as the singletons', is marked for any of them.
+   * @param {string[]} ids - The pinned IDs, e.g. family IDs.
+   */
+  setPins(ids: string[] = []) {
+    const pinned = new Set(ids.filter((id) => id !== ''));
+    const attribute = 'data-' + this.options.selector;
+    const marked = this.viewer
+      .selectAll('.legend')
+      .classed('pin', function () {
+        const keyIDs = (this.getAttribute(attribute) ?? '').split(',');
+        return keyIDs.some((id) => pinned.has(id));
+      })
+      .filter('.pin');
+    this.viewer.classed('pinned', !marked.empty());
   }
 
   /**
