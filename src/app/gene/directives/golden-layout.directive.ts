@@ -329,6 +329,13 @@ export class GoldenLayoutDirective implements AfterContentInit, OnDestroy {
     return results;
   }
 
+  // closes a component item; returns whether it was open
+  removeItem(id: string): boolean {
+    const item = this._findItemsById(id).find((i) => i.isComponent);
+    item?.remove();
+    return item !== undefined;
+  }
+
   // brings a component item to the front of its stack
   activateItem(id: string): boolean {
     // a stack Golden Layout wraps a component in can share its ID

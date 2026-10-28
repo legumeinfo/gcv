@@ -7,14 +7,15 @@ import {
   ChangeDetectionStrategy,
   inject,
 } from '@angular/core';
-import { Observable, Subject } from 'rxjs';
-import { takeUntil } from 'rxjs/operators';
+import { Observable, Subject, combineLatest } from 'rxjs';
+import { map, takeUntil, tap } from 'rxjs/operators';
 // app
 import {
   GoldenLayoutDirective,
   TooltipFactoryDirective,
 } from '@gcv/gene/directives';
-import { MicroTracksService } from '@gcv/gene/services';
+import { figureCluster } from '@gcv/gene/figure';
+import { MicroTracksService, ParamsService } from '@gcv/gene/services';
 import { GeneViewHighlight } from '@gcv/gene/webmcp/display.tools';
 import { attachGeneViewToWebMcp } from '@gcv/webmcp/gene-view.host';
 import * as fromDetails from './details';
@@ -34,6 +35,7 @@ import * as fromViewers from './viewers';
 export class GeneComponent implements AfterViewInit, OnDestroy {
   private _microTracksService = inject(MicroTracksService);
   private _panelService = inject(PanelService);
+  private _paramsService = inject(ParamsService);
 
   @ViewChild(GoldenLayoutDirective, { static: true }) goldenLayoutDirective;
   @ViewChild(TooltipFactoryDirective, { static: true }) tooltipFactoryDirective;
@@ -83,10 +85,23 @@ export class GeneComponent implements AfterViewInit, OnDestroy {
       this.tooltipFactoryDirective,
       tipOptions,
     );
-    this._microTracksService
-      .selectClusterIDs()
+    // a reset replaces every panel, so the figure tab follows it, and the
+    // URL's fig: the tab is open exactly while fig is
+    combineLatest([
+      this._microTracksService
+        .selectClusterIDs()
+        .pipe(tap((IDs) => this._panelService.reset(IDs))),
+      this._paramsService.getFigureParams().pipe(map(({ fig }) => fig)),
+      this._microTracksService.getQueryAlignment(),
+    ])
       .pipe(takeUntil(this._destroy))
-      .subscribe((IDs) => this._panelService.reset(IDs));
+      .subscribe(([IDs, fig, query]) => {
+        if (fig === null) {
+          this._panelService.closeFigure();
+        } else if (IDs.length > 0 && query.tracks.length > 0) {
+          this._panelService.openFigure(figureCluster(fig.cl, query.tracks));
+        }
+      });
   }
 
   ngOnDestroy(): void {

@@ -12,7 +12,7 @@ import {
   ChangeDetectionStrategy,
   inject,
 } from '@angular/core';
-import { Observable, Subject, combineLatest } from 'rxjs';
+import { Observable, Subject, combineLatest, firstValueFrom } from 'rxjs';
 import { map, switchMap, takeUntil } from 'rxjs/operators';
 // app
 import { GCV } from '@gcv-assets/js/gcv';
@@ -83,6 +83,15 @@ import { microShim } from './micro.shim';
             }
           </li>
         }
+        <li class="nav-item">
+          <button
+            type="button"
+            class="btn btn-outline-dark ms-1"
+            (click)="emitFigure()"
+          >
+            Make figure
+          </button>
+        </li>
         @if (pinned | async) {
           <li class="nav-item">
             <button
@@ -123,6 +132,7 @@ export class MicroComponent implements AfterViewInit, OnDestroy, OnInit {
   // context menu
   @Output() circos = new EventEmitter();
   @Output() reference = new EventEmitter();
+  @Output() figure = new EventEmitter<{ gene: string }>();
 
   @ViewChild('container', { static: true }) container: ElementRef;
 
@@ -245,6 +255,21 @@ export class MicroComponent implements AfterViewInit, OnDestroy, OnInit {
 
   emitReference(track) {
     this.reference.emit({ track });
+  }
+
+  // names the figure's cluster by its query gene, or a gene of its first
+  // query track
+  async emitFigure() {
+    const [tracks, queryGenes] = await firstValueFrom(
+      combineLatest([this.queryTracks, this._geneService.getQueryGenes()]),
+    );
+    const names = new Set(tracks.flatMap((t) => t.genes));
+    const gene =
+      queryGenes.map((g) => g.name).find((g) => names.has(g)) ??
+      tracks[0]?.genes[Math.floor(tracks[0].genes.length / 2)];
+    if (gene !== undefined) {
+      this.figure.emit({ gene });
+    }
   }
 
   // returns whether there was a drawn viewer to save

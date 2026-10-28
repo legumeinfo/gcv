@@ -61,6 +61,33 @@ Imports use the path aliases in `tsconfig.json`: `@gcv/*` (`src/app`), `@gcv-ass
   and frozen. A new configuration field needs the model, its guard and its default, and is
   a change for every deployment's `config.json`: say so in the PR.
 
+## Figures
+
+The figure tab makes a publication figure of a micro-synteny cluster. Its state is the URL's
+`fig` (`gene/models/params/figure.model.ts`), so a link reproduces the figure; the tab is
+open exactly while `fig` is, names its cluster by a query gene (`cl`), since cluster numbers
+change with the clustering parameters, and closing it removes `fig`.
+
+- **Three stages.** `fig` holds the choices. `gene/figure/model.ts` turns the cluster's
+  drawn and aligned tracks and the spec into everything the figure claims, with notes on
+  whatever the spec asked for that it couldn't do; its manifest is what the caption, tests
+  and agents read. `visualization/figure/micro-figure.ts` in the engine draws the result as
+  a static SVG in mm, with inline styles, `data-*` attributes on every mark, and the same
+  output for the same input.
+- **The figure doesn't reuse the viewer.** It draws with the viewer's own layout functions
+  (`visualization/layout/micro-tracks.ts`), so a gene sits in the same column, but not with
+  `Micro` or the page's colors: `GCV.common.colors` assigns colors in the order viewers ask
+  for them and repeats after 100.
+- **Colors are claims.** `gene/figure/palette.ts` is Okabe and Ito's palette, with a neutral
+  grey and white; `palette.spec.ts` simulates the common color-vision deficiencies and
+  requires every pair to stay distinct, so check a palette change with it. A family's color
+  is never shared: past the palette, families go grey and are numbered with `famlabels`.
+- **Merging and labels.** Two tracks are merged as one locus only when `sameLocusTracks`
+  finds both kinds of evidence, or the user names the pair. A track's label spans exactly
+  the genes drawn.
+- **No scale bar.** Genes are placed by consensus column, not by position, so a figure has
+  no bp scale; rail thickness shows the distance between neighbors, as in the viewer.
+
 ## WebMCP
 
 GCV registers [WebMCP](https://webmachinelearning.github.io/webmcp/) tools on

@@ -1,5 +1,5 @@
 // Angular
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { ComponentItemConfig, StackItemConfig } from 'golden-layout';
 // app
 import {
@@ -8,6 +8,7 @@ import {
   TooltipFactoryDirective,
 } from '@gcv/gene/directives';
 import { Track } from '@gcv/gene/models';
+import { ParamsService } from '@gcv/gene/services/params.service';
 import { ClusterMixin } from '@gcv/gene/models/mixins';
 import * as fromDetails from './details';
 import * as fromTooltips from './tooltips';
@@ -27,6 +28,7 @@ const LEGEND_MARGIN = 0.25;
 // gene view provides it and attaches its layout once the layout exists.
 @Injectable()
 export class PanelService {
+  private _paramsService = inject(ParamsService);
   private _layout: GoldenLayoutDirective;
   private _tooltips: TooltipFactoryDirective;
   private _tipOptions: object;
@@ -38,6 +40,12 @@ export class PanelService {
   // the legend column's size, in percent, as last fitted; undefined until
   // the first fit, null once the user has resized the column
   private _fittedSize: number | null | undefined;
+  // the cluster of the open figure tab: undefined when none is open, null
+  // when its gene is in no one cluster
+  private _figureCluster: number | null | undefined;
+  // set while the service itself closes panels, so the figure tab's closing
+  // is told apart from the user's
+  private _closing = false;
 
   attach(
     layout: GoldenLayoutDirective,
@@ -58,7 +66,10 @@ export class PanelService {
   reset(clusterIDs: number[]): void {
     this._legendWidths.clear();
     this._fittedSize = undefined;
+    this._figureCluster = undefined;
+    this._closing = true;
     this._layout.reset();
+    this._closing = false;
     this._initializeLegends();
     this._addMicroViewers(clusterIDs);
   }
@@ -114,6 +125,50 @@ export class PanelService {
     const config = fromViewers.macroCircosConfigFactory(clusterID);
     this._stackItem(config, stackID);
     return config.id;
+  }
+
+  // Opens the figure tab in its cluster's micro-synteny stack, reopening it
+  // when the cluster changes. The figure's state is the URL's fig, so a user
+  // closing the tab removes fig, while the service closing it doesn't.
+  openFigure(clusterID: number | null): string {
+    const id = fromViewers.FIGURE_ID;
+    if (this._figureCluster === clusterID) {
+      return id;
+    }
+    this.closeFigure();
+    const stack =
+      clusterID === null
+        ? this.panels().find((p) => p.componentType === 'micro')?.id
+        : this.microViewerID(clusterID);
+    const config = fromViewers.figureConfigFactory(clusterID, {
+      closed: () => {
+        if (!this._closing) {
+          this._figureCluster = undefined;
+          this._paramsService.updateFigure(null);
+        }
+      },
+    });
+    this._stackItem(config, stack);
+    this._figureCluster = clusterID;
+    return id;
+  }
+
+  closeFigure(): void {
+    if (this._figureCluster === undefined) return;
+    this._closing = true;
+    this._layout.removeItem(fromViewers.FIGURE_ID);
+    this._closing = false;
+    this._figureCluster = undefined;
+  }
+
+  // the micro-synteny viewer's Make figure: shows its cluster's figure,
+  // starting one named by the gene when the open figure is another's
+  makeFigure(clusterID: number, gene: string): void {
+    if (this._figureCluster === clusterID) {
+      this.activate(fromViewers.FIGURE_ID);
+    } else {
+      this._paramsService.updateFigure({ cl: gene });
+    }
   }
 
   openReference(
@@ -264,6 +319,7 @@ export class PanelService {
       reference: (id, name, source, clusterID) => {
         this.openReference(id, name, source, clusterID);
       },
+      figure: (id, clusterID, gene) => this.makeFigure(clusterID, gene),
     };
     clusterIDs.forEach((id) => {
       const config = fromViewers.microConfigFactory(id, options);

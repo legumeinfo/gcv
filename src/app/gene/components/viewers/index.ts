@@ -1,4 +1,5 @@
 import { ContextMenuComponent } from './context-menu';
+import { figureLayoutComponent, FigureComponent } from './figure';
 import { macroLayoutComponent, MacroComponent } from './macro';
 import {
   macroCircosLayoutComponent,
@@ -17,6 +18,7 @@ import { plotLayoutComponent, PlotComponent } from './plot';
 
 export const components: any[] = [
   ContextMenuComponent,
+  FigureComponent,
   MacroCircosComponent,
   MacroComponent,
   MacroLegendComponent,
@@ -26,6 +28,7 @@ export const components: any[] = [
 ];
 
 export const layoutComponents: any[] = [
+  figureLayoutComponent,
   macroCircosLayoutComponent,
   macroLayoutComponent,
   macroLegendLayoutComponent,
@@ -35,6 +38,7 @@ export const layoutComponents: any[] = [
 ];
 
 export * from './context-menu';
+export * from './figure';
 export * from './macro';
 export * from './macro-circos';
 export * from './macro-legend';

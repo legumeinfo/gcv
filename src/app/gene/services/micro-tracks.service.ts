@@ -98,6 +98,16 @@ export class MicroTracksService extends HttpService {
     );
   }
 
+  // the clusters' consensuses and their aligned query tracks
+  getQueryAlignment(): Observable<{
+    consensuses: string[][];
+    tracks: (Track & ClusterMixin & AlignmentMixin)[];
+  }> {
+    return this._store.select(
+      fromMicroTracks.getClusteredAndAlignedSelectedMicroTracks,
+    );
+  }
+
   getAllTracks(): Observable<(Track & ClusterMixin & AlignmentMixin)[]> {
     return this._store.select(
       fromMicroTracks.getAllClusteredAndAlignedMicroTracks,

@@ -27,6 +27,9 @@ export function microConfigFactory(clusterID: number, outputs: any = {}) {
     reference: (id, name, source, clusterID) => {
       /* no-op */
     },
+    figure: (id, clusterID, gene) => {
+      /* no-op */
+    },
   };
   _outputs = Object.assign(_outputs, outputs);
   return {
@@ -51,6 +54,7 @@ export function microConfigFactory(clusterID: number, outputs: any = {}) {
         reference: ({ track }) => {
           _outputs.reference(id, track.name, track.source, clusterID);
         },
+        figure: ({ gene }) => _outputs.figure(id, clusterID, gene),
       },
     },
     isClosable: false,
