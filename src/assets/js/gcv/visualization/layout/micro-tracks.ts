@@ -22,8 +22,13 @@ export type MicroTrack = {
   genes: MicroGene[];
 };
 
+type Placed = Pick<MicroGene, 'x' | 'y'>;
+type Located = Pick<MicroGene, 'fmin' | 'fmax'>;
+
 // the rows each track occupies
-export function trackLevels(tracks: MicroTrack[]): number[] {
+export function trackLevels(
+  tracks: { genes: Pick<MicroGene, 'y'>[] }[],
+): number[] {
   return tracks.map((t) => Math.max(...t.genes.map((g) => g.y)) + 1);
 }
 
@@ -51,7 +56,7 @@ export function trackLabel(track: MicroTrack, prefix = ''): string {
 
 // the distance between each pair of consecutive genes, which sets the
 // thickness of the rail between them
-export function neighborDistances(track: MicroTrack): number[] {
+export function neighborDistances(track: { genes: Located[] }): number[] {
   return track.genes.slice(1).map((next, j) => {
     const { fmin, fmax } = track.genes[j];
     return Math.min(
@@ -72,8 +77,8 @@ export function columnDomain(tracks: MicroTrack[]): [number, number] {
 // A rail is drawn left to right from its left gene, inside a box of the given
 // height: these are its ends' offsets from the box's top.
 export function railOffsets(
-  a: MicroGene,
-  b: MicroGene,
+  a: Placed,
+  b: Placed,
   height: number,
 ): [number, number] {
   const descends = a.x <= b.x ? a.y < b.y : a.y > b.y;
@@ -83,13 +88,17 @@ export function railOffsets(
 // A triangle points the way the gene reads in the drawn track: right for the
 // forward strand, left for the reverse, flipped when the track is reversed. A
 // gene without a known strand, or whose family the search omitted, is a circle.
-export function glyphShape(gene: MicroGene): 'circle' | 'triangle' {
+export function glyphShape(
+  gene: Pick<MicroGene, 'glyph' | 'strand'>,
+): 'circle' | 'triangle' {
   return gene.glyph === 'circle' || gene.strand === undefined
     ? 'circle'
     : 'triangle';
 }
 
-export function glyphRotation(gene: MicroGene): 90 | -90 {
+export function glyphRotation(
+  gene: Pick<MicroGene, 'strand' | 'reversed'>,
+): 90 | -90 {
   const reverse =
     (gene.strand === -1 && !gene.reversed) ||
     (gene.strand === 1 && gene.reversed);
