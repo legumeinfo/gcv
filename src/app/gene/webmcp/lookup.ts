@@ -1,25 +1,10 @@
-// Finds what an agent names among the view's genes and tracks. Agents often
-// drop the assembly prefix of a name ('Glyma.12G040000' for
-// 'glyma.Wm82.gnm4.ann1.Glyma.12G040000'), so a name also matches as the
-// suffix of a full name.
+// Finds what an agent names among the view's tracks, matching gene names as
+// matchGeneName does.
 import { WebMcpToolError } from '@gcv/core/webmcp/webmcp';
 import { clusteredTrackID } from '@gcv/gene/models';
-import { AlignedTrack } from '@gcv/gene/alignment';
+import { AlignedTrack, matchGeneName, matchesName } from '@gcv/gene/alignment';
 
-const matchesName = (full: string, name: string): boolean => {
-  const f = full.toLowerCase();
-  const n = name.toLowerCase();
-  return f === n || f.endsWith(`.${n}`);
-};
-
-// the name itself if present, otherwise every name it is the suffix of
-export function matchGeneName(names: Iterable<string>, gene: string): string[] {
-  const all = Array.from(new Set(names));
-  if (all.includes(gene)) {
-    return [gene];
-  }
-  return all.filter((n) => matchesName(n, gene));
-}
+export { matchGeneName };
 
 export type TrackQuery = {
   chromosome: string;
