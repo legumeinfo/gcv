@@ -11,6 +11,8 @@ import * as fromParams from '@gcv/gene/store/selectors/params/';
 import {
   AlignmentParams,
   AnnotationParams,
+  FigureParams,
+  FigureSpec,
   BlockParams,
   ClusteringParams,
   MacroFilterParams,
@@ -23,6 +25,7 @@ import {
   PinParams,
   QueryParams,
   changePins,
+  serializeFigureSpec,
   SourceParams,
 } from '@gcv/gene/models/params';
 import { HttpService } from '@gcv/core/services/http.service';
@@ -38,6 +41,11 @@ export class ParamsService extends HttpService {
     super(_http);
 
     this._http = _http;
+  }
+
+  // the analysis parameters
+  getParams(): Observable<Params> {
+    return this._store.select(fromParams.getParams);
   }
 
   getAlignmentParams(): Observable<AlignmentParams> {
@@ -80,6 +88,15 @@ export class ParamsService extends HttpService {
     return this._store.select(fromParams.getPinParams);
   }
 
+  getFigureParams(): Observable<FigureParams> {
+    return this._store.select(fromParams.getFigureParams);
+  }
+
+  // opens, changes or (with null) closes the figure
+  updateFigure(spec: FigureSpec | null): void {
+    this.updateParams({ fig: spec });
+  }
+
   // changes the pins in the URL; returns the pins it set
   async updatePins(mode: PinMode, change: PinChange = {}): Promise<PinParams> {
     const pins = changePins(
@@ -102,6 +119,9 @@ export class ParamsService extends HttpService {
     const path = [];
     const query = Object.fromEntries(
       Object.entries(params).map(([key, value]) => {
+        if (key === 'fig' && value !== null && value !== undefined) {
+          return [key, serializeFigureSpec(value as FigureSpec)];
+        }
         if (!Array.isArray(value)) {
           return [key, value];
         }

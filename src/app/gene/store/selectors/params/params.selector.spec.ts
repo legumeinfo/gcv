@@ -24,14 +24,25 @@ describe('the gene view parameters', () => {
       pinfam: ['f1', 'f2'],
       pingene: ['g1'],
       pinlabels: 'fade',
+      fig: null,
     });
   });
 
-  it('default to no pins, with full labels', () => {
+  it('default to no pins, with full labels, and no figure', () => {
     expect(getAnnotationParams.projector({ neighbors: '12' })).toEqual({
       pinfam: [],
       pingene: [],
       pinlabels: 'full',
+      fig: null,
     });
+  });
+
+  it('read the figure from the URL, and keep it out of the analysis', () => {
+    const queryParams = { fig: 'cl:g1;w:85' };
+    expect(getAnnotationParams.projector(queryParams).fig).toEqual({
+      cl: 'g1',
+      w: 85,
+    });
+    expect(getParams.projector(queryParams)).not.toHaveProperty('fig');
   });
 });

@@ -17,6 +17,12 @@ import {
   clusteringParamValidators,
 } from './clustering.model';
 import {
+  FigureParams,
+  figureParamMembers,
+  figureParamParsers,
+  figureParamValidators,
+} from './figure.model';
+import {
   MacroFilterParams,
   macroFilterParamMembers,
   macroFilterParamParsers,
@@ -62,6 +68,7 @@ import {
 export * from './alignment.model';
 export * from './block.model';
 export * from './clustering.model';
+export * from './figure.model';
 export * from './macro-filters.model';
 export * from './macro-order.model';
 export * from './micro-filters.model';
@@ -120,12 +127,16 @@ export const paramParsers: { [key: string]: (...args: any[]) => any } = {
 // Parameters that mark the view without changing its analysis. They are kept
 // apart from the analysis parameters above, so getParams, and the agent tools
 // that change the analysis, never see them.
-export type AnnotationParams = PinParams;
+export type AnnotationParams = PinParams & FigureParams;
 
-export const annotationParamMembers = [...pinParamMembers];
+export const annotationParamMembers = [
+  ...pinParamMembers,
+  ...figureParamMembers,
+];
 
 export const annotationParamValidators = {
   ...pinParamValidators,
+  ...figureParamValidators,
 };
 
 export const annotationParamParsers: Record<
@@ -133,4 +144,5 @@ export const annotationParamParsers: Record<
   (value: string | string[]) => unknown
 > = {
   ...pinParamParsers,
+  ...figureParamParsers,
 };

@@ -12,6 +12,8 @@ import { memoizeObject, pick } from '@gcv/core/utils';
 import {
   AnnotationParams,
   annotationParamMembers,
+  FigureParams,
+  figureParamMembers,
   annotationParamParsers,
   Params,
   paramMembers,
@@ -144,4 +146,9 @@ export const getAnnotationParams = createSelectorFactory(memoizeObject)(
 export const getPinParams = createSelectorFactory(memoizeObject)(
   getAnnotationParams,
   (params: AnnotationParams): PinParams => pick(pinParamMembers, params),
+);
+
+export const getFigureParams = createSelectorFactory(memoizeObject)(
+  getAnnotationParams,
+  (params: AnnotationParams): FigureParams => pick(figureParamMembers, params),
 );
