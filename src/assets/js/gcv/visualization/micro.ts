@@ -319,6 +319,7 @@ export class Micro extends Visualizer {
       .attr('class', 'gene')
       .attr('data-gene', (g) => g.name)
       .attr('data-family', (g) => g.family)
+      .attr('data-column', (g) => g.x)
       .attr('transform', (g) => {
         return 'translate(' + obj.x(g.x) + ', ' + obj.y(y + g.y) + ')';
       })

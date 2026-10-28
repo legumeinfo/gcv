@@ -158,6 +158,61 @@ test.describe('micro synteny viewer', () => {
     ).toBe(true);
   });
 
+  // Vertical alignment is GCV's positional-homology encoding: genes in the same
+  // consensus column are drawn one above the other, and each gene group states
+  // its column as data-column (fractional for a gene inserted between columns).
+  // If a gene were drawn at another column than it claims, a figure or an agent
+  // reading data-column would misplace it. This asserts that every gene of a
+  // viewer with the same data-column has the same horizontal position, and that
+  // position rises with the column.
+  test('draws each gene at the consensus column it states', async ({
+    page,
+  }) => {
+    const viewers = await page.evaluate(() =>
+      Array.from(document.querySelectorAll('gcv-micro svg')).map((svg) =>
+        Array.from(svg.querySelectorAll<SVGGElement>('.gene')).map((g) => ({
+          column: Number(g.getAttribute('data-column')),
+          // the glyph's center; its bounding box shifts with its rotation
+          x: g.transform.baseVal.consolidate()?.matrix.e ?? NaN,
+        })),
+      ),
+    );
+
+    expect(
+      viewers.flat().length,
+      'micro genes should have rendered',
+    ).toBeGreaterThan(0);
+
+    for (const genes of viewers) {
+      expect(
+        genes.every((g) => Number.isFinite(g.column)),
+        'every gene must state its column',
+      ).toBe(true);
+      const xs = new Map<number, number[]>();
+      genes.forEach((g) =>
+        xs.set(g.column, [...(xs.get(g.column) ?? []), g.x]),
+      );
+      const columns = [...xs.keys()].sort((a, b) => a - b);
+      expect(
+        columns.length,
+        'genes should span several columns',
+      ).toBeGreaterThan(1);
+      for (const column of columns) {
+        const spread =
+          Math.max(...xs.get(column)) - Math.min(...xs.get(column));
+        expect(
+          spread,
+          `genes of column ${column} must be drawn one above the other`,
+        ).toBeLessThan(1);
+      }
+      const centers = columns.map((c) => xs.get(c)[0]);
+      expect(
+        centers.every((x, i) => i === 0 || x > centers[i - 1]),
+        'a later column must be drawn further right',
+      ).toBe(true);
+    }
+  });
+
   // Each track is labelled with the genomic region it represents,
   // "<chromosome>:<start>-<stop>", and carries the same interval as a
   // machine-readable data-extent. That interval is computed from the track's
