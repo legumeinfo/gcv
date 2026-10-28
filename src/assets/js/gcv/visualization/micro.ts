@@ -1,6 +1,17 @@
 import { d3 } from './d3';
 import { eventBus } from '../common';
 import { Visualizer } from './visualizer';
+import {
+  columnDomain,
+  glyphRotation,
+  glyphShape,
+  neighborDistances,
+  railOffsets,
+  trackInterval,
+  trackLabel,
+  trackLevels,
+  trackTicks,
+} from './layout/micro-tracks';
 
 /** The micro-synteny viewer. */
 export class Micro extends Visualizer {
@@ -110,73 +121,22 @@ export class Micro extends Visualizer {
     this.options.hoverDelay = this.options.hoverDelay || 500;
     this.options.prefix = this.options.prefix || ((t) => '');
     // create the viewer
-    const levels = data.map((group) => {
-      return (
-        Math.max.apply(
-          null,
-          group.genes.map((gene) => gene.y),
-        ) + 1
-      );
-    });
+    const levels = trackLevels(data);
     const numLevels = levels.reduce((a, b) => a + b, 0);
     const halfTrack = this.GLYPH_SIZE / 2;
     const top = this.PAD + halfTrack;
     const bottom = top + this.GLYPH_SIZE * numLevels;
     this.viewer.attr('height', bottom + halfTrack);
-    // compute the x scale, track names and locations, and line thickness
-    let minX = Infinity;
-    let maxX = -Infinity;
-    let minDistance = Infinity;
-    let maxDistance = -Infinity;
-    this.names = [];
-    this.intervals = [];
-    this.ticks = [];
-    let tick = 0;
-    this.distances = [];
-    for (let i = 0; i < this.data.length; i++) {
-      const group = this.data[i];
-      let fminI = Infinity;
-      let fmaxI = -Infinity;
-      this.ticks.push(tick);
-      tick += levels[i];
-      const distances = [];
-      for (let j = 0; j < group.genes.length; j++) {
-        const gene = group.genes[j];
-        const fmax = gene.fmax;
-        const fmin = gene.fmin;
-        const x = gene.x;
-        fminI = Math.min.apply(null, [fminI, fmax, fmin]);
-        fmaxI = Math.max.apply(null, [fmaxI, fmax, fmin]);
-        minX = Math.min(minX, x);
-        maxX = Math.max(maxX, x);
-        if (j < group.genes.length - 1) {
-          const nextGene = group.genes[j + 1];
-          const nextFmin = nextGene.fmin;
-          const nextFmax = nextGene.fmax;
-          const dist = Math.min.apply(null, [
-            Math.abs(fmin - nextFmin),
-            Math.abs(fmax - nextFmin),
-            Math.abs(fmin - nextFmax),
-            Math.abs(fmax - nextFmin),
-          ]);
-          distances.push(dist);
-          minDistance = Math.min(minDistance, dist);
-          maxDistance = Math.max(maxDistance, dist);
-        }
-      }
-      this.names.push(
-        this.options.prefix(group) +
-          group.chromosome_name +
-          ':' +
-          fminI +
-          '-' +
-          fmaxI,
-      );
-      this.intervals.push([fminI, fmaxI]);
-      this.distances.push(distances);
-    }
+    // compute the track names and locations, and line thickness
+    this.ticks = trackTicks(levels);
+    this.names = data.map((t) => trackLabel(t, this.options.prefix(t)));
+    this.intervals = data.map(trackInterval);
+    this.distances = data.map(neighborDistances);
+    const allDistances = this.distances.flat();
+    const minDistance = Math.min(Infinity, ...allDistances);
+    const maxDistance = Math.max(-Infinity, ...allDistances);
     // initialize the x, y, and line thickness scales
-    this.x = d3.scaleLinear().domain([minX, maxX]);
+    this.x = d3.scaleLinear().domain(columnDomain(data));
     this.y = d3
       .scaleLinear()
       .domain([0, numLevels - 1])
@@ -268,6 +228,7 @@ export class Micro extends Visualizer {
       .attr('data-chromosome', t.chromosome_name)
       .attr('data-organism', t.genus + ' ' + t.species);
     const neighbors = [];
+    const railHeight = (n) => Math.abs(obj.y(n.a.y) - obj.y(n.b.y));
     // add the lines
     for (let j = 0; j < t.genes.length - 1; j++) {
       neighbors.push({ a: t.genes[j], b: t.genes[j + 1] });
@@ -286,20 +247,8 @@ export class Micro extends Visualizer {
         return obj.thickness(obj.distances[i][j]);
       })
       .attr('x1', 0)
-      .attr('y1', (n) => {
-        const height = Math.abs(obj.y(n.a.y) - obj.y(n.b.y));
-        if (n.a.x <= n.b.x) {
-          return n.a.y < n.b.y ? 0 : height;
-        }
-        return n.a.y < n.b.y ? height : 0;
-      })
-      .attr('y2', (n) => {
-        const height = Math.abs(obj.y(n.a.y) - obj.y(n.b.y));
-        if (n.a.x <= n.b.x) {
-          return n.a.y < n.b.y ? height : 0;
-        }
-        return n.a.y < n.b.y ? 0 : height;
-      });
+      .attr('y1', (n) => railOffsets(n.a, n.b, railHeight(n))[0])
+      .attr('y2', (n) => railOffsets(n.a, n.b, railHeight(n))[1]);
     // make the gene groups
     const publishGeneEvent = (type, gene) => {
       return () =>
@@ -339,12 +288,11 @@ export class Micro extends Visualizer {
     // add genes to the gene groups
     geneGroups
       .append('path')
-      .attr('d', (g) => {
-        if (g.glyph === 'circle' || g.strand === undefined) {
-          return d3.symbol().type(d3.symbolCircle).size(50)();
-        }
-        return d3.symbol().type(d3.symbolTriangle).size(200)();
-      })
+      .attr('d', (g) =>
+        glyphShape(g) === 'circle'
+          ? d3.symbol().type(d3.symbolCircle).size(50)()
+          : d3.symbol().type(d3.symbolTriangle).size(200)(),
+      )
       .attr('class', (g) => {
         let c = 'point';
         if (obj.options.highlight.indexOf(g.name) !== -1) {
@@ -360,16 +308,7 @@ export class Micro extends Visualizer {
         }
         return c;
       })
-      .attr('transform', (g) => {
-        let sign = '';
-        if (
-          (g.strand === -1 && !g.reversed) ||
-          (g.strand === 1 && g.reversed)
-        ) {
-          sign = '-';
-        }
-        return 'rotate(' + sign + '90)';
-      })
+      .attr('transform', (g) => `rotate(${glyphRotation(g)})`)
       .style('fill', (g) => {
         if (
           g.family === '' ||
