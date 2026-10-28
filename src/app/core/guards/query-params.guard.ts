@@ -49,14 +49,17 @@ export class QueryParamsGuard {
         const rootSegmentGroup = tree.root.children[PRIMARY_OUTLET];
         // TODO: is there a better way to generate the path string?
         const path = rootSegmentGroup.segments.map((s) => s.path).join('/');
-        // replace invalid/missing params with those already in the store
+        // replace invalid/missing params with those already in the store,
+        // keeping the valid ones as the URL wrote them: a parsed value, such
+        // as an object, wouldn't serialize back
+        const validParams = {};
         paramMembers.forEach((key) => {
           const errors = paramsGroup.get(key).errors;
-          if (errors != null) {
-            delete routeParams[key];
+          if (errors == null && key in route.queryParams) {
+            validParams[key] = route.queryParams[key];
           }
         });
-        const queryParams = Object.assign({}, params, routeParams);
+        const queryParams = Object.assign({}, params, validParams);
         const commands = [path, route.params];
         const extras: NavigationExtras = {
           queryParams,
