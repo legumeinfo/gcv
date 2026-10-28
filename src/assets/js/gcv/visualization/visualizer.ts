@@ -150,7 +150,11 @@ export abstract class Visualizer {
 
   protected abstract draw(): void;
 
-  /** Makes a copy of the SVG and inlines external GCV styles. */
+  /**
+   * Makes a copy of the SVG and inlines external GCV styles. A rule applies to
+   * the matching elements of the copy, the SVG itself included, except for
+   * the properties an element sets inline, which win on screen too.
+   */
   protected inlineCopy(
     mod = (clone) => {
       /* noop */
@@ -159,6 +163,15 @@ export abstract class Visualizer {
     // clone the current view node
     const clone = d3.select(this.viewer.node().cloneNode(true));
     mod(clone);
+    const root: SVGElement = clone.node();
+    // the properties each element set inline before any rule was copied
+    const own = new Map<SVGElement, Set<string>>();
+    const ownProperties = (element: SVGElement) => {
+      if (!own.has(element)) {
+        own.set(element, new Set(Array.from(element.style)));
+      }
+      return own.get(element);
+    };
     // load the external styles
     const sheets: any = document.styleSheets;
     // inline GCV styles
@@ -173,10 +186,25 @@ export abstract class Visualizer {
         const rule = rules[r];
         const selector = rule.selectorText;
         if (selector !== undefined && selector.startsWith('.GCV')) {
-          const style = rule.style;
-          const selection = clone.selectAll(selector);
-          for (const prop of style) {
-            selection.style(prop, style[prop]);
+          const style: CSSStyleDeclaration = rule.style;
+          const elements = Array.from(
+            root.querySelectorAll<SVGElement>(selector),
+          );
+          if (root.matches(selector)) {
+            elements.unshift(root);
+          }
+          for (const element of elements) {
+            const skip = ownProperties(element);
+            for (let i = 0; i < style.length; i++) {
+              const prop = style[i];
+              if (!skip.has(prop)) {
+                element.style.setProperty(
+                  prop,
+                  style.getPropertyValue(prop),
+                  style.getPropertyPriority(prop),
+                );
+              }
+            }
           }
         }
       }
