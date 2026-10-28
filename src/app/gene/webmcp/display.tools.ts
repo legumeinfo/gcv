@@ -1,9 +1,11 @@
 // WebMCP tools that change what the user sees in the gene view without
-// changing its analysis: highlighting, panels, family emphasis and downloads.
+// changing its analysis: highlighting, pins, panels, family emphasis and
+// downloads. Of these, only pins change the URL, in parameters of their own.
 import { Injectable, OnDestroy, inject } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 // store
 import * as fromFamily from '@gcv/gene/store/selectors/family';
+import * as fromParams from '@gcv/gene/store/selectors/params';
 // app
 import { GCV } from '@gcv-assets/js/gcv';
 import { saveFile } from '@gcv/core/utils';
@@ -13,8 +15,10 @@ import {
   defineGcvWebMcpTool,
   waitFor,
 } from '@gcv/core/webmcp/webmcp';
+import { ClusterAlignment } from '@gcv/gene/alignment';
 import { PanelService } from '@gcv/gene/components/panel.service';
-import { FamilyService } from '@gcv/gene/services';
+import { PinParams } from '@gcv/gene/models/params';
+import { FamilyService, ParamsService } from '@gcv/gene/services';
 import { clusterAlignmentTsv } from './alignment.report';
 import {
   SETTLE_TIMEOUT_MS,
@@ -143,49 +147,192 @@ const highlightInView = defineGcvWebMcpTool({
     await settledView(context, signal);
     // the viewers redraw as gene positions load, which ends a highlight
     const clusters = await alignments(context, signal);
-    const names = clusters.flatMap((c) =>
-      c.tracks.flatMap((t) => t.genes.map((g) => g.name)),
+    const { resolved, knownFamilies, notInView, ambiguous } = resolveMarks(
+      viewNames(clusters),
+      genes,
+      families,
     );
-    const resolved: string[] = [];
-    const notInView: string[] = [];
-    const ambiguous: Record<string, string[]> = {};
-    genes.forEach((gene) => {
-      const matches = matchGeneName(names, gene);
-      if (matches.length === 1) {
-        resolved.push(matches[0]);
-      } else if (matches.length > 1) {
-        ambiguous[gene] = matches;
-      } else {
-        notInView.push(gene);
-      }
-    });
-    const present = new Set(
-      clusters.flatMap((c) =>
-        c.tracks.flatMap((t) => t.genes.map((g) => g.family)),
-      ),
-    );
-    const knownFamilies = families.filter((f) => f !== '' && present.has(f));
-    notInView.push(...families.filter((f) => !knownFamilies.includes(f)));
     highlight.show({ genes: resolved, families: knownFamilies });
-    // what the viewers mark now, which is what the user sees
-    const marked = Array.from(
+    const { marked, notDrawn } = drawnMarks(
       context.document.querySelectorAll('.GCV.hovering .active'),
+      resolved,
+      knownFamilies,
     );
-    const markedValues = (attribute: string) =>
-      new Set(marked.map((e) => e.getAttribute(attribute)));
-    const markedGenes = markedValues('data-gene');
-    const markedFamilies = markedValues('data-family');
-    return {
-      highlighted: {
-        genes: resolved.filter((g) => markedGenes.has(g)),
-        families: knownFamilies.filter((f) => markedFamilies.has(f)),
+    return { highlighted: marked, notDrawn, notInView, ambiguous };
+  },
+});
+
+// the genes and families of the view
+function viewNames(clusters: ClusterAlignment[]) {
+  const genes = clusters.flatMap((c) => c.tracks.flatMap((t) => t.genes));
+  return {
+    genes: genes.map((g) => g.name),
+    families: new Set(genes.map((g) => g.family).filter((f) => f !== '')),
+  };
+}
+
+// the full names of the genes, and the families, that names refer to
+function resolveMarks(
+  known: { genes: string[]; families: Set<string> },
+  genes: string[],
+  families: string[],
+) {
+  const resolved: string[] = [];
+  const notInView: string[] = [];
+  const ambiguous: Record<string, string[]> = {};
+  genes.forEach((gene) => {
+    const matches = matchGeneName(known.genes, gene);
+    if (matches.length === 1) {
+      resolved.push(matches[0]);
+    } else if (matches.length > 1) {
+      ambiguous[gene] = matches;
+    } else {
+      notInView.push(gene);
+    }
+  });
+  const knownFamilies = families.filter((f) => known.families.has(f));
+  notInView.push(...families.filter((f) => !knownFamilies.includes(f)));
+  return { resolved, knownFamilies, notInView, ambiguous };
+}
+
+// which genes and families the given marks show, which is what the user sees
+function drawnMarks(
+  elements: Iterable<Element>,
+  genes: string[],
+  families: string[],
+) {
+  const marks = Array.from(elements);
+  const values = (attribute: string) =>
+    new Set(marks.map((e) => e.getAttribute(attribute)));
+  const markedGenes = values('data-gene');
+  const markedFamilies = values('data-family');
+  return {
+    marked: {
+      genes: genes.filter((g) => markedGenes.has(g)),
+      families: families.filter((f) => markedFamilies.has(f)),
+    },
+    notDrawn: [
+      ...genes.filter((g) => !markedGenes.has(g)),
+      ...families.filter((f) => !markedFamilies.has(f)),
+    ],
+  };
+}
+
+const pinInView = defineGcvWebMcpTool({
+  name: 'pin_in_view',
+  title: 'Pin genes in the view',
+  description:
+    "Pins genes or gene families in the gene view's micro-synteny viewers and legend: everything else fades until they are unpinned, through hovering and redraws. Pins are part of the URL (pingene, pinfam, pinlabels), so a shared link shows them, and they never change the analysis. Use them to mark what a finding is about; highlight_in_view points briefly instead. mode 'replace' (default) sets the pins, 'add' and 'remove' change them, 'clear' removes them all, with the label setting. Returns the pins, which genes and families the viewers mark, and the view's URL.",
+  inputSchema: {
+    type: 'object',
+    properties: {
+      genes: {
+        type: 'array',
+        items: { type: 'string' },
+        description: 'Gene names; unprefixed names work when unambiguous.',
       },
-      notDrawn: [
-        ...resolved.filter((g) => !markedGenes.has(g)),
-        ...knownFamilies.filter((f) => !markedFamilies.has(f)),
-      ],
+      families: {
+        type: 'array',
+        items: { type: 'string' },
+        description: 'Gene family IDs.',
+      },
+      mode: {
+        type: 'string',
+        enum: ['replace', 'add', 'remove', 'clear'],
+        description: "Default 'replace'.",
+      },
+      labels: {
+        type: 'string',
+        enum: ['full', 'fade'],
+        description:
+          "'full' (default) keeps the track labels readable while pins are shown; 'fade' fades them too.",
+      },
+    },
+    additionalProperties: false,
+  },
+  execute: async (
+    { genes = [], families = [], mode = 'replace', labels },
+    { signal },
+  ) => {
+    const context = viewContext();
+    const params = inject(ParamsService);
+    if (
+      (mode === 'add' || mode === 'remove') &&
+      genes.length === 0 &&
+      families.length === 0
+    ) {
+      throw new WebMcpToolError(`Name genes or families to ${mode}.`);
+    }
+    await settledView(context, signal);
+    const clusters = await alignments(context, signal);
+    const pins$ = context.store.select(fromParams.getPinParams);
+    const current: PinParams = await firstValueFrom(pins$);
+    // pins can be removed when their genes have left the view
+    const known =
+      mode === 'remove'
+        ? {
+            genes: current.pingene,
+            families: new Set(current.pinfam),
+          }
+        : viewNames(clusters);
+    const { resolved, knownFamilies, notInView, ambiguous } =
+      mode === 'clear'
+        ? { resolved: [], knownFamilies: [], notInView: [], ambiguous: {} }
+        : resolveMarks(known, genes, families);
+    if (
+      mode !== 'clear' &&
+      genes.length + families.length > 0 &&
+      resolved.length + knownFamilies.length === 0
+    ) {
+      const problems = [
+        notInView.length > 0
+          ? `${mode === 'remove' ? 'not pinned' : 'not in the view'}: ${notInView.join(', ')}`
+          : '',
+        Object.keys(ambiguous).length > 0
+          ? `ambiguous, so pass full names: ${JSON.stringify(ambiguous)}`
+          : '',
+      ];
+      throw new WebMcpToolError(
+        `Nothing changed; ${problems.filter((p) => p !== '').join('; ')}.`,
+      );
+    }
+    const pins = await params.updatePins(mode, {
+      genes: resolved,
+      families: knownFamilies,
+      labels,
+    });
+    await waitFor(
+      pins$,
+      (p) =>
+        p.pinlabels === pins.pinlabels &&
+        p.pingene.join() === pins.pingene.join() &&
+        p.pinfam.join() === pins.pinfam.join(),
+      { signal, timeoutMs: SETTLE_TIMEOUT_MS },
+    );
+    // the viewers apply pins as the URL changes; give them a moment
+    let drawn = drawnMarks([], pins.pingene, pins.pinfam);
+    for (let i = 0; i < 10; i++) {
+      drawn = drawnMarks(
+        context.document.querySelectorAll('.GCV.pinned .pin'),
+        pins.pingene,
+        pins.pinfam,
+      );
+      if (drawn.notDrawn.length === 0) break;
+      signal.throwIfAborted();
+      await new Promise((resolve) => setTimeout(resolve, 100));
+    }
+    const { marked, notDrawn } = drawn;
+    return {
+      pins: {
+        genes: pins.pingene,
+        families: pins.pinfam,
+        labels: pins.pinlabels,
+      },
+      marked,
+      notDrawn,
       notInView,
       ambiguous,
+      url: context.url(),
     };
   },
 });
@@ -481,6 +628,7 @@ const exportFigure = defineGcvWebMcpTool({
 // the tools that change what the user sees, in the order agents use them
 export const displayWebMcpTools = (): GcvWebMcpTools => [
   highlightInView,
+  pinInView,
   openPanel,
   setFamilyEmphasis,
   exportFigure,

@@ -95,9 +95,12 @@ the tools don't register; nothing else changes. The README lists the tools.
 - **The URL stays the only analysis state.** `set_view_parameters` validates with the URL
   guard's validators and applies changes through `ParamsService`, and it reports the result
   tracks each change added and removed. A new URL parameter needs its entry in
-  `parameterSchemas` (`parameters.spec.ts` checks). Display tools never change the analysis
-  or the URL: highlighting publishes the viewers' own hover events on the GCV event bus,
-  and panels open through `PanelService`, which the viewers' callbacks share.
+  `parameterSchemas` (`parameters.spec.ts` checks). Display tools never change the
+  analysis: highlighting publishes the viewers' own hover events on the GCV event bus, and
+  panels open through `PanelService`, which the viewers' callbacks share. Pins are the one
+  display state in the URL, in parameters of their own (`annotationParamMembers`, kept
+  out of `paramMembers` and `getParams`), so the tools that change the analysis never
+  see them.
 - **Descriptions and the guide are the instructions.** `describe_gcv` returns `guide.ts`
   (overview, tool groups, concepts, recipes) with the instance's sources and parameter
   defaults; `guide.spec.ts` keeps its tool list in step with registration. A new tool needs

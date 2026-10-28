@@ -79,11 +79,15 @@ export const TOOL_GUIDE: ToolGuide[] = [
   {
     group: 'display',
     about:
-      "Change what the user sees in the open gene view, without changing the analysis or the URL; use them to show the user what you're describing.",
+      "Change what the user sees in the open gene view, without changing the analysis; use them to show the user what you're describing. Only pins change the URL, in parameters of their own.",
     tools: [
       {
         name: 'highlight_in_view',
-        use: 'Fade everything but the genes or families you are discussing.',
+        use: 'Fade everything but the genes or families you are discussing, until the user moves the pointer.',
+      },
+      {
+        name: 'pin_in_view',
+        use: 'Mark genes or families until unpinned, in the URL, so a shared link shows what a finding is about.',
       },
       {
         name: 'open_panel',
@@ -164,7 +168,7 @@ export const RECIPES = [
   {
     question: 'Show the user what you found.',
     steps:
-      'highlight_in_view to point at genes or families, open_panel for details, macro-synteny, circos or dot plots, and export_figure to download an SVG or the alignment TSV.',
+      'highlight_in_view to point at genes or families, pin_in_view to mark them in the link you give, open_panel for details, macro-synteny, circos or dot plots, and export_figure to download an SVG or the alignment TSV.',
   },
 ];
 
@@ -190,5 +194,5 @@ export const REPORTING = [
 export const SEEING_THE_VIEW = [
   "The viewers are SVG in the page. If you can take browser screenshots, call highlight_in_view or open_panel first so the screenshot shows what you're discussing.",
   "A screenshot shows only the visible part of a viewer, and a viewer behind another tab is not drawn. export_figure brings a panel to the front and downloads its full drawing as SVG, with styles inlined, to the user's computer; ask the user before downloading.",
-  'In the DOM, micro-synteny genes carry data-gene and data-family attributes and tracks carry data-chromosome; macro-synteny blocks carry data-locus, data-reference-locus and data-orientation.',
+  'In the DOM, micro-synteny genes carry data-gene, data-family and data-column (the consensus column, fractional for an insertion) and tracks carry data-chromosome; pinned genes have the class pin. Macro-synteny blocks carry data-locus, data-reference-locus and data-orientation.',
 ];

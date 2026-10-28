@@ -48,6 +48,7 @@ The gene view tools work on the open gene view; `show_gene_contexts` opens one.
 | `get_dot_plot_pairs`         | Tests a track's collinearity with the query, locally or across the chromosome.                                                  |
 | `get_gene_details`           | Gets a gene's family, coordinates and the data source's links for it.                                                           |
 | `highlight_in_view`          | Highlights genes or families in the viewers, fading the rest.                                                                   |
+| `pin_in_view`                | Pins genes or families in the viewers until unpinned; pins are in the URL, so shared links show them.                           |
 | `open_panel`                 | Opens gene, track or family details, a macro-synteny view, a Circos view or a dot plot.                                         |
 | `set_family_emphasis`        | Draws some families as strandless circles so the others stand out.                                                              |
 | `export_figure`              | Downloads a panel as SVG, or a cluster's alignment as TSV.                                                                      |
