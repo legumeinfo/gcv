@@ -8,6 +8,7 @@
 import type {
   FigureGene,
   FigureLegendEntry,
+  FigureMarks,
   FigureRail,
   FigureTrack,
   MicroFigure,
@@ -20,6 +21,7 @@ import {
 } from '@gcv/gene/alignment';
 import { ParsedFigureSpec } from '@gcv/gene/models/params';
 import { HOLLOW, NEUTRAL, PALETTE } from './palette';
+import { positionToColumn } from './position';
 
 // a track as the micro-synteny viewer draws it (micro.shim.ts): its aligned
 // genes, each at its consensus column and row
@@ -74,6 +76,23 @@ export type FigureManifest = {
   }[];
   columns: { from: number; to: number; crop?: [string, string] };
   colours: { family: string; colour: string | null; key: number }[];
+  // the author's marks drawn, by the genes and positions that anchor them
+  marks: {
+    emphasised: string[];
+    names: { gene: string; text: string }[];
+    spans: {
+      from: string;
+      to: string;
+      columns: [number, number];
+      text?: string;
+    }[];
+    positions: {
+      chromosome: string;
+      position: number;
+      text?: string;
+      tracks: number;
+    }[];
+  };
 };
 
 export type FigureModel = {
@@ -108,6 +127,121 @@ const reversed = (t: TrackAlignment) => {
 };
 
 const unique = <T>(items: T[]) => Array.from(new Set(items));
+
+// The author's marks, placed on the figure's tracks: each anchor gene is
+// found among the genes drawn, and each position through the genes of the
+// tracks on its chromosome. A mark that can't be placed is noted, never
+// drawn at a guess.
+function figureMarks(
+  spec: ParsedFigureSpec,
+  tracks: FigureTrack[],
+  chromosomes: string[][],
+  notes: string[],
+): { marks: FigureMarks; manifest: FigureManifest['marks'] } {
+  const drawn = tracks.flatMap((t, track) =>
+    t.genes.map((gene) => ({ track, gene })),
+  );
+  const names = unique(drawn.map((d) => d.gene.name));
+  // every drawing of the gene named, or why there is none
+  const find = (gene: string, what: string) => {
+    const matches = matchGeneName(names, gene);
+    if (matches.length === 0) {
+      notes.push(`Not drawn: ${what}; ${gene} is not in the figure.`);
+      return [];
+    }
+    if (matches.length > 1) {
+      notes.push(
+        `Not drawn: ${what}; ${gene} names several genes (${matches.join(', ')}), so use the full name.`,
+      );
+      return [];
+    }
+    return drawn.filter((d) => d.gene.name === matches[0]);
+  };
+  const manifest: FigureManifest['marks'] = {
+    emphasised: [],
+    names: [],
+    spans: [],
+    positions: [],
+  };
+  const marks: FigureMarks = { names: [], spans: [], positions: [] };
+  (spec.em ?? []).forEach((gene) => {
+    const found = find(gene, `the emphasis on ${gene}`);
+    found.forEach((d) => (d.gene.emphasis = true));
+    if (found.length > 0) manifest.emphasised.push(found[0].gene.name);
+  });
+  (spec.name ?? []).forEach(({ gene, text }) => {
+    // the topmost drawing of the gene
+    const [first] = find(gene, `the name “${text}”`);
+    if (first === undefined) return;
+    marks.names.push({
+      track: first.track,
+      x: first.gene.x,
+      y: first.gene.y,
+      text,
+    });
+    manifest.names.push({ gene: first.gene.name, text });
+  });
+  (spec.span ?? []).forEach(({ from, to, text }) => {
+    const what = text !== undefined ? `the span “${text}”` : 'a span';
+    const [a] = find(from, what);
+    const [b] = find(to, what);
+    if (a === undefined || b === undefined) return;
+    const columns = [a.gene.x, b.gene.x].sort((p, q) => p - q) as [
+      number,
+      number,
+    ];
+    marks.spans.push({
+      from: columns[0],
+      to: columns[1],
+      ...(text !== undefined ? { text } : {}),
+    });
+    manifest.spans.push({
+      from: a.gene.name,
+      to: b.gene.name,
+      columns,
+      ...(text !== undefined ? { text } : {}),
+    });
+  });
+  (spec.pos ?? []).forEach(({ chromosome, position, text }) => {
+    const what = `the position ${text !== undefined ? `“${text}” ` : ''}${chromosome}:${position}`;
+    let placed = 0;
+    tracks.forEach((t, track) => {
+      if (!chromosomes[track].includes(chromosome)) return;
+      const at = positionToColumn(t.genes, position);
+      if (at === undefined || at.clipped !== undefined) return;
+      const inside = t.genes.find(
+        (g) => g.fmin <= position && position <= g.fmax,
+      );
+      // the row of the gene it falls in, or of the nearest gene
+      const nearest =
+        inside ??
+        t.genes.reduce((p, q) =>
+          Math.abs(q.x - at.x) < Math.abs(p.x - at.x) ? q : p,
+        );
+      marks.positions.push({
+        track,
+        x: at.x,
+        y: nearest.y,
+        inGene: inside !== undefined,
+        ...(text !== undefined ? { text } : {}),
+      });
+      placed++;
+    });
+    if (placed === 0) {
+      notes.push(
+        `Not drawn: ${what}; no track in the figure on ${chromosome} has genes around it. Positions belong to one assembly, so name the chromosome as the figure's tracks do.`,
+      );
+      return;
+    }
+    manifest.positions.push({
+      chromosome,
+      position,
+      ...(text !== undefined ? { text } : {}),
+      tracks: placed,
+    });
+  });
+  return { marks, manifest };
+}
 
 function chooseTracks(
   tracks: Track[],
@@ -458,6 +592,17 @@ export function figureModel(inputs: FigureInputs): FigureModel {
     );
   }
 
+  const { marks, manifest: markManifest } = figureMarks(
+    spec,
+    figureTracks,
+    manifestTracks.map((t) =>
+      t.mergedWith !== undefined
+        ? [t.chromosome, t.mergedWith]
+        : [t.chromosome],
+    ),
+    notes,
+  );
+
   const figureGenes = figureTracks.flatMap((t) => t.genes);
   const has = (style: FigureGene['style']) =>
     figureGenes.some((g) => g.style === style);
@@ -511,6 +656,7 @@ export function figureModel(inputs: FigureInputs): FigureModel {
     figure: {
       columns: range,
       tracks: figureTracks,
+      marks,
       legend: spec.legend === false ? null : legend,
       legendTitle,
       size: {
@@ -540,6 +686,7 @@ export function figureModel(inputs: FigureInputs): FigureModel {
         colour: colourOf.get(family) ?? null,
         key: keys.get(family),
       })),
+      marks: markManifest,
     },
     notes,
     loading: missingCoordinates,

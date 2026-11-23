@@ -52,7 +52,7 @@ The gene view tools work on the open gene view; `show_gene_contexts` opens one.
 | `set_family_emphasis`        | Draws some families as strandless circles so the others stand out.                                                              |
 | `get_view_layout`            | Reports where a micro-synteny viewer drew its columns, tracks and labels, in screenshot coordinates.                            |
 | `export_figure`              | Downloads the figure as SVG or PNG, a panel as SVG, or a cluster's alignment as TSV.                                            |
-| `make_figure`                | Makes a publication figure of a cluster and returns what it claims; the figure's choices are in the URL.                        |
+| `make_figure`                | Makes a publication figure of a cluster, with its own marks, and returns what it claims; the figure's choices are in the URL.   |
 | `get_figure`                 | Reads the open figure: what it claims, or its SVG text.                                                                         |
 
 ## Running GCV

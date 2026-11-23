@@ -16,7 +16,7 @@ type Layout = {
   }[];
 };
 type Manifest = {
-  tracks: { role: string; fmin: number; score: number | null }[];
+  tracks: { role: string; fmin: number; fmax: number; score: number | null }[];
   columns: { from: number; to: number };
 };
 
@@ -158,5 +158,125 @@ test.describe('the agent figure tools', () => {
     expect((await download).suggestedFilename()).toBe(saved.file);
     expect(saved.file).toMatch(/\.png$/);
     expect(saved.bytes).toBeGreaterThan(0);
+  });
+
+  test('the author’s marks sit on the genes and positions they name', async ({
+    page,
+  }) => {
+    await page.goto(VIEW);
+    await waitForSettledMicroView(page);
+    const query = await queryGenes(page);
+    // a query gene's coordinates, for a position inside it
+    const alignment = await callTool<{
+      clusters: {
+        tracks: {
+          role: string;
+          chromosome: string;
+          genes: { name: string; fmin: number; fmax: number }[];
+        }[];
+      }[];
+    }>(page, 'get_microsynteny_alignment', { format: 'genes' });
+    const queryTrack = alignment.clusters[0].tracks.find(
+      (t) => t.role === 'query',
+    );
+    const inside = queryTrack.genes.find((g) => g.name === query[7]);
+    const result = await callTool<{ notes: string[] }>(page, 'make_figure', {
+      top: 3,
+      emphasise: [query[4]],
+      names: [{ gene: query[4], text: 'Abc1' }],
+      spans: [{ from: query[3], to: query[5], text: 'block' }],
+      positions: [
+        {
+          chromosome: queryTrack.chromosome,
+          position: Math.round((inside.fmin + inside.fmax) / 2),
+          text: 'SNP',
+        },
+      ],
+    });
+    expect(result.notes).toEqual([]);
+    const drawn = await page.evaluate(
+      ([named, spanned, from, to, holder]) => {
+        const svg = document.querySelector('gcv-figure svg[data-figure]');
+        const gene = (name: string) => {
+          const g = svg.querySelector(`[data-track="0"] [data-gene="${name}"]`);
+          const [x, y] = g
+            .getAttribute('transform')
+            .match(/translate\(([-\d.]+), ([-\d.]+)\)/)
+            .slice(1)
+            .map(Number);
+          return {
+            x,
+            y,
+            column: Number(g.getAttribute('data-column')),
+            style: g.firstElementChild.getAttribute('style'),
+          };
+        };
+        const numbers = (d: string) =>
+          d.match(/-?[\d.]+,-?[\d.]+/g).map((p) => p.split(',').map(Number));
+        const name = svg.querySelector('text[data-mark="name"]');
+        const leader = numbers(
+          svg.querySelector('[data-mark="leader"]').getAttribute('d'),
+        );
+        const rule = numbers(
+          svg.querySelector('path[data-mark="span"]').getAttribute('d'),
+        );
+        const stem = numbers(
+          svg.querySelector('path[data-mark="position"]').getAttribute('d'),
+        );
+        const columns = Array.from(
+          svg.querySelectorAll('[data-track="0"] [data-gene]'),
+        ).map((g) => ({
+          column: Number(g.getAttribute('data-column')),
+          x: Number(
+            g.getAttribute('transform').match(/translate\(([-\d.]+)/)[1],
+          ),
+        }));
+        return {
+          named: gene(named),
+          spanned: gene(spanned),
+          from: gene(from),
+          to: gene(to),
+          holder: gene(holder),
+          others: svg.querySelectorAll('[data-gene]').length,
+          emphasised: Array.from(svg.querySelectorAll('[data-gene]')).filter(
+            (g) =>
+              g.firstElementChild.getAttribute('style').includes('#000000'),
+          ).length,
+          name: {
+            x: Number(name.getAttribute('x')),
+            text: name.textContent,
+          },
+          leader,
+          rule,
+          stem,
+          columns,
+        };
+      },
+      [query[4], query[4], query[3], query[5], query[7]] as const,
+    );
+    const near = (a: number, b: number) =>
+      expect(Math.abs(a - b)).toBeLessThanOrEqual(0.5);
+    // the emphasised gene, and only its drawings, carry the black outline
+    expect(drawn.named.style).toContain('stroke: #000000');
+    expect(drawn.emphasised).toBeGreaterThanOrEqual(1);
+    expect(drawn.emphasised).toBeLessThan(drawn.others);
+    // the name's leader ends on its gene's column, above the gene
+    expect(drawn.name.text).toBe('Abc1');
+    const end = drawn.leader[drawn.leader.length - 1];
+    near(end[0], drawn.named.x);
+    expect(end[1]).toBeLessThan(drawn.named.y);
+    // the span's rule covers exactly its columns' genes
+    const [ruleFrom, ruleTo] = [drawn.rule[0][0], drawn.rule[1][0]];
+    for (const c of drawn.columns) {
+      const covered = c.x >= ruleFrom && c.x <= ruleTo;
+      expect(covered, `column ${c.column}`).toBe(
+        c.column >= drawn.from.column && c.column <= drawn.to.column,
+      );
+    }
+    // the position stands on the gene it falls in
+    near(drawn.stem[0][0], drawn.holder.x);
+    expect(Math.max(drawn.stem[0][1], drawn.stem[1][1])).toBeLessThan(
+      drawn.holder.y,
+    );
   });
 });

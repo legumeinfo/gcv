@@ -30,6 +30,8 @@ export type FigureGene = {
   fill: string;
   // the legend number of a colored family
   key?: number;
+  // the author emphasised it
+  emphasis?: boolean;
 };
 
 // A rail joins two of a track's genes, given by index, or runs from a gene to
@@ -61,10 +63,31 @@ export type FigureLegendEntry = {
   label: string;
 };
 
+// The author's marks, placed on the figure's tracks (indices into tracks),
+// columns and rows. They are drawn in black, set apart from the colors,
+// which mean families.
+export type FigureMarks = {
+  // a gene's name: over the figure in a band when the gene is in the first
+  // track, led to it by a hairline; else just above its glyph
+  names: { track: number; x: number; y: number; text: string }[];
+  // a rule over the columns from one to another
+  spans: { from: number; to: number; text?: string }[];
+  // a genomic position on a track: a dot on a stem above the row, from the
+  // gene it falls in, or from the rail between two genes
+  positions: {
+    track: number;
+    x: number;
+    y: number;
+    inGene: boolean;
+    text?: string;
+  }[];
+};
+
 export type MicroFigure = {
   // the consensus columns shown, as the drawn range
   columns: [number, number];
   tracks: FigureTrack[];
+  marks?: FigureMarks;
   legend: FigureLegendEntry[] | null;
   // what the key's entries name, e.g. 'Gene families (legfed_v1_0)'
   legendTitle?: string;

@@ -502,3 +502,104 @@ describe('the rest of the figure', () => {
     );
   });
 });
+
+describe('the author’s marks', () => {
+  const q = (n: string) => `glyma.Wm82.gnm4.ann1.Glyma.${n}`;
+
+  it('emphasises, names and spans genes the figure draws', () => {
+    const { figure, manifest, notes } = figureModel(
+      inputs({
+        em: [q('q2')],
+        name: [
+          { gene: q('q3'), text: 'Dt1' },
+          { gene: 'p4', text: 'P4' },
+        ],
+        span: [{ from: q('q4'), to: q('q2'), text: 'block' }],
+      }),
+    );
+    expect(notes).toEqual([]);
+    const emphasised = figure.tracks
+      .flatMap((t) => t.genes)
+      .filter((g) => g.emphasis)
+      .map((g) => g.name);
+    expect(emphasised).toEqual([q('q2')]);
+    const beanTrack = manifest.tracks.findIndex(
+      (t) => t.chromosome === bean.name,
+    );
+    expect(figure.marks.names).toEqual([
+      { track: 0, x: 2, y: 0, text: 'Dt1' },
+      { track: beanTrack, x: 3, y: 0, text: 'P4' },
+    ]);
+    expect(figure.marks.spans).toEqual([{ from: 1, to: 3, text: 'block' }]);
+    expect(manifest.marks.spans[0]).toMatchObject({ columns: [1, 3] });
+  });
+
+  it('places a position through the genes of each track on its chromosome', () => {
+    const { figure, manifest } = figureModel(
+      inputs({
+        pos: [
+          // inside q3, then between q2 and q3
+          { chromosome: query.name, position: 12_050, text: 'in' },
+          { chromosome: query.name, position: 11_550 },
+        ],
+      }),
+    );
+    expect(figure.marks.positions).toEqual([
+      { track: 0, x: 2, y: 0, inGene: true, text: 'in' },
+      { track: 0, x: 1.5, y: 0, inGene: false },
+    ]);
+    expect(manifest.marks.positions[0]).toMatchObject({ tracks: 1 });
+  });
+
+  it('notes the marks it can’t place, and draws none of them', () => {
+    const { figure, notes } = figureModel(
+      inputs({
+        em: ['nowhere'],
+        name: [{ gene: 'Glyma.q2', text: 'two' }],
+        pos: [
+          { chromosome: 'glyma.Wm82.gnm6.Gm15', position: 12_050 },
+          { chromosome: query.name, position: 99_000 },
+        ],
+      }),
+    );
+    expect(figure.marks).toEqual({ names: [], spans: [], positions: [] });
+    expect(notes).toEqual([
+      'Not drawn: the emphasis on nowhere; nowhere is not in the figure.',
+      expect.stringMatching(
+        /^Not drawn: the name “two”; Glyma\.q2 names several genes .*use the full name\.$/,
+      ),
+      expect.stringMatching(
+        /^Not drawn: the position glyma\.Wm82\.gnm6\.Gm15:12050; no track in the figure on glyma\.Wm82\.gnm6\.Gm15 has genes around it\./,
+      ),
+      expect.stringMatching(
+        /^Not drawn: the position glyma\.Wm82\.gnm4\.Gm15:99000;/,
+      ),
+    ]);
+  });
+
+  it('says in the caption what each mark marks', () => {
+    const { manifest } = figureModel(
+      inputs({
+        em: [q('q2')],
+        name: [{ gene: q('q3'), text: 'Dt1' }],
+        span: [{ from: q('q2'), to: q('q4'), text: 'block' }],
+        pos: [{ chromosome: query.name, position: 12_050, text: 'R166W' }],
+      }),
+    );
+    const caption = figureCaption(manifest, {
+      queryGenes: [q('q3')],
+      params: { sources: ['lis'] } as never,
+      url: 'http://gcv/gene',
+      version: '2.7.1',
+      date: '2026-11-23',
+    });
+    expect(caption).toContain(`Heavier outlines mark ${q('q2')}.`);
+    expect(caption).toContain(`Italic names label ${q('q3')} (Dt1).`);
+    expect(caption).toContain(
+      `A rule above the tracks marks “block” columns 1 to 3, from ${q('q2')} to ${q('q4')}.`,
+    );
+    expect(caption).toContain(
+      `A dot on a stem marks “R166W” ${query.name}:12,050, placed among the genes of each track on that chromosome.`,
+    );
+  });
+});

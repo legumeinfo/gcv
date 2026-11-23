@@ -87,6 +87,13 @@ change with the clustering parameters, and closing it removes `fig`.
   the genes drawn.
 - **No scale bar.** Genes are placed by consensus column, not by position, so a figure has
   no bp scale; rail thickness shows the distance between neighbors, as in the viewer.
+- **Hue is for families; black is the author's.** Following Tufte's data-ink and layering
+  principles, every non-data element (outlines, rails, labels' second lines, the key's
+  title) is grey and light, and the author's marks in `fig` (`em`, `name`, `span`, `pos`)
+  are black, set in the margins and anchored to genes or positions, never drawn at a
+  guessed place. A mark the figure can't
+  place goes into its notes. Positions are placed through a track's genes
+  (`gene/figure/position.ts`) and only on tracks of their own assembly.
 - **Agents read claims, not pixels.** `make_figure` sets `fig`, waits for the tab's
   `rendered` to match it, and returns the manifest; `get_figure` reads an open figure's
   manifest or SVG text. `get_view_layout` reports where the viewer drew things in viewport

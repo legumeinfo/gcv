@@ -338,3 +338,96 @@ describe('drawMicroFigure', () => {
     expect(serialize(draw())).toBe(serialize(draw()));
   });
 });
+
+describe('the author’s marks', () => {
+  const marked: MicroFigure = {
+    ...figure,
+    tracks: [
+      {
+        ...figure.tracks[0],
+        genes: figure.tracks[0].genes.map((g) =>
+          g.name === 'q2' ? { ...g, emphasis: true } : g,
+        ),
+      },
+      figure.tracks[1],
+    ],
+    marks: {
+      names: [
+        { track: 0, x: 1, y: 0, text: 'Dt1' },
+        { track: 1, x: 0, y: 0, text: 'P1' },
+      ],
+      spans: [{ from: 0, to: 1, text: 'block' }],
+      positions: [{ track: 0, x: 1, y: 0, inGene: true, text: 'R166W' }],
+    },
+  };
+  const svg = drawMicroFigure(marked, document, measure);
+  const of = (kind: string) =>
+    Array.from(svg.querySelectorAll(`[data-mark="${kind}"]`));
+  const geneAt = (name: string) => {
+    const [gx, gy] = position(svg.querySelector(`[data-gene="${name}"]`));
+    return { x: gx, y: gy };
+  };
+  const pathYs = (e: Element) =>
+    e
+      .getAttribute('d')
+      .match(/-?[\d.]+,-?[\d.]+/g)
+      .map((p) => Number(p.split(',')[1]));
+
+  it('emphasises a gene with a heavier black outline', () => {
+    const style = svg
+      .querySelector('[data-gene="q2"]')
+      .firstElementChild.getAttribute('style');
+    expect(style).toContain('stroke: #000000; stroke-width: 1.2px');
+  });
+
+  it('names a first-track gene above the tracks, led to the dot on it by a hairline', () => {
+    const q2 = geneAt('q2');
+    const [name] = of('name');
+    expect(name.getAttribute('style')).toContain('font-style: italic');
+    expect(Number(name.getAttribute('x'))).toBeCloseTo(q2.x, 1);
+    const [leader] = of('leader');
+    const ys = pathYs(leader);
+    const dot = svg.querySelector('circle[data-mark="position"]');
+    const dotTop =
+      Number(dot.getAttribute('cy')) - Number(dot.getAttribute('r'));
+    expect(Math.min(...ys)).toBeGreaterThan(Number(name.getAttribute('y')));
+    // it stops short of the dot, which stands on the gene
+    expect(Math.max(...ys)).toBeLessThan(dotTop);
+    expect(dotTop).toBeLessThan(q2.y);
+  });
+
+  it('names a gene in another track just above it, without a leader', () => {
+    const p1 = geneAt('p1');
+    const name = of('name').find((n) => n.textContent === 'P1');
+    expect(Number(name.getAttribute('x'))).toBeCloseTo(p1.x, 1);
+    expect(Number(name.getAttribute('y'))).toBeLessThan(p1.y);
+    expect(of('leader')).toHaveLength(1);
+  });
+
+  it('rules a span over its columns above the names, its text above the rule', () => {
+    const [rule, text] = of('span');
+    const [x1, x2] = rule
+      .getAttribute('d')
+      .match(/M(-?[\d.]+),[\d.]+L(-?[\d.]+)/)
+      .slice(1)
+      .map(Number);
+    expect(x1).toBeLessThan(geneAt('q1').x);
+    expect(x2).toBeGreaterThan(geneAt('q2').x);
+    const ruleY = pathYs(rule)[0];
+    expect(Number(text.getAttribute('y'))).toBeLessThan(ruleY);
+    expect(ruleY).toBeLessThan(Number(of('name')[0].getAttribute('y')));
+  });
+
+  it('marks a position with a dot on a stem that stands above its gene', () => {
+    const q2 = geneAt('q2');
+    const stem = of('position').find((e) => e.tagName === 'path');
+    expect(Math.max(...pathYs(stem))).toBeLessThan(q2.y);
+    const label = of('position').find((e) => e.tagName === 'text');
+    expect(label.textContent).toBe('R166W');
+    expect(Number(label.getAttribute('x'))).toBeGreaterThan(q2.x);
+  });
+
+  it('draws no marks layer for a figure without marks', () => {
+    expect(draw().querySelector('[data-marks]')).toBeNull();
+  });
+});

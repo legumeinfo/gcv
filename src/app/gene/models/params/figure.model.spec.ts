@@ -73,4 +73,42 @@ describe('the fig parameter', () => {
       rejected: ['top:x'],
     });
   });
+
+  it('reads back the author’s marks, whatever their text holds', () => {
+    const spec = {
+      em: ['Glyma.19G194300', 'Glyma.19G194500'],
+      name: [
+        { gene: 'Glyma.19G194300', text: 'Dt1' },
+        { gene: 'Glyma.19G194500', text: 'a;b+c=d~e%f, ü' },
+      ],
+      span: [
+        { from: 'Glyma.19G194300', to: 'Glyma.19G194500', text: 'Dt1–GmSW19' },
+        { from: 'g1', to: 'g2' },
+      ],
+      pos: [
+        {
+          chromosome: 'glyma.Wm82.gnm2.Gm19',
+          position: 45183701,
+          text: 'R166W',
+        },
+        { chromosome: 'Pv01', position: 7 },
+      ],
+    };
+    const written = serializeFigureSpec(spec);
+    expect(written).toContain('pos:glyma.Wm82.gnm2.Gm19:45183701=R166W');
+    expect(parseFigureSpec(written)).toEqual({ spec, rejected: [] });
+  });
+
+  it('rejects a mark it can’t read, keeping the rest', () => {
+    const { spec, rejected } = parseFigureSpec(
+      'name:g1;span:g1=x;pos:Gm19:abc;em:g2;name:g3=',
+    );
+    expect(spec).toEqual({ em: ['g2'] });
+    expect(rejected).toEqual([
+      'name:g1',
+      'span:g1=x',
+      'pos:Gm19:abc',
+      'name:g3=',
+    ]);
+  });
 });

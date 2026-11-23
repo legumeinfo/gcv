@@ -188,7 +188,7 @@ export const RECIPES = [
   {
     question: 'Make a publication figure.',
     steps:
-      "Settle the view first (get_view_status), at the parameters the figure should show. make_figure with the tracks, order, columns and size, then check its manifest against what the figure should claim (the tracks kept and their order, the columns, each family's color) and read its notes for anything it couldn't do; change the choices and repeat until it does. export_figure (figure: true) downloads it, SVG or PNG; give the user the URL too, since its fig reproduces the figure.",
+      "Settle the view first (get_view_status), at the parameters the figure should show. make_figure with the tracks, order, columns and size, and marks only for what the caption discusses (emphasise, names, spans, positions), then check its manifest against what the figure should claim (the tracks kept and their order, the columns, each family's color, the marks drawn) and read its notes for anything it couldn't do; change the choices and repeat until it does. export_figure (figure: true) downloads it, SVG or PNG; give the user the URL too, since its fig reproduces the figure.",
   },
 ];
 

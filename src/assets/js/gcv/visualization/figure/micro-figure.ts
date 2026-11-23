@@ -13,6 +13,7 @@ import {
 import {
   FigureGene,
   FigureLegendEntry,
+  FigureMarks,
   FigureTrack,
   MicroFigure,
 } from './micro-figure.model';
@@ -40,6 +41,16 @@ const SECONDARY = '#595959';
 const RAIL = '#8c8c8c';
 // the watermark, light enough to recede beside the data
 const WATERMARK_FILL = '#8c8c8c';
+// the author's marks are black; their leaders are hairlines in grey
+const LEADER = '#7f7f7f';
+// line weights of the marks in pt, and their dot's radius in mm
+const EMPHASIS_PT = 0.9;
+const LEADER_PT = 0.3;
+const SPAN_PT = 0.6;
+const STEM_PT = 0.5;
+const DOT_MM = 0.4;
+// a name's leader bends this far below the names, in mm
+const KNEE_MM = 1.2;
 // the largest fitted glyph, in mm, and its share of a column
 const MAX_GLYPH = 2.2;
 const GLYPH_SHARE = 0.65;
@@ -90,9 +101,12 @@ function text(
 }
 
 function glyph(b: Builder, gene: FigureGene, size: number): Element {
-  const stroke = OUTLINE_PT * PX_PER_PT;
+  // emphasis is the smallest effective difference: a heavier black outline
+  const [ink, stroke] = gene.emphasis
+    ? [STROKE, EMPHASIS_PT * PX_PER_PT]
+    : [OUTLINE, OUTLINE_PT * PX_PER_PT];
   const style =
-    `fill: ${gene.fill}; stroke: ${OUTLINE}; stroke-width: ${r(stroke)}px;` +
+    `fill: ${gene.fill}; stroke: ${ink}; stroke-width: ${r(stroke)}px;` +
     (gene.style === 'orphan' ? ' stroke-dasharray: 1.5 1;' : '');
   if (glyphShape(gene) === 'circle') {
     return b.el('circle', { cx: 0, cy: 0, r: size * 0.32, style });
@@ -182,6 +196,45 @@ function wrap(
   return lines;
 }
 
+// Labels on one baseline, each as near its anchor as the others allow:
+// centers pushed apart until neighbors clear each other by gap, and kept
+// within [lo, hi].
+function spread(
+  labels: { x: number; width: number }[],
+  gap: number,
+  lo: number,
+  hi: number,
+): number[] {
+  const order = labels
+    .map((_, i) => i)
+    .sort((a, b) => labels[a].x - labels[b].x);
+  const centers = labels.map((l) => l.x);
+  let edge = lo;
+  order.forEach((i) => {
+    const half = labels[i].width / 2;
+    centers[i] = Math.max(centers[i], edge + half);
+    edge = centers[i] + half + gap;
+  });
+  edge = hi;
+  [...order].reverse().forEach((i) => {
+    const half = labels[i].width / 2;
+    centers[i] = Math.min(centers[i], edge - half);
+    edge = centers[i] - half - gap;
+  });
+  return centers;
+}
+
+// each span's lane in the band, packed so no two overlap, lane 0 lowest
+function spanLanes(extents: [number, number][], gap: number): number[] {
+  const used: [number, number][][] = [];
+  return extents.map(([l, r]) => {
+    let k = 0;
+    while (used[k]?.some(([a, b]) => l < b + gap && r > a - gap)) k++;
+    (used[k] ??= []).push([l, r]);
+    return k;
+  });
+}
+
 export function drawMicroFigure(
   figure: MicroFigure,
   document: Document,
@@ -237,6 +290,48 @@ export function drawMicroFigure(
       ? font * 0.15
       : font * 0.9;
   const levels = trackLevels(figure.tracks);
+
+  // The author's marks need room: a band above the first track for the
+  // spans and the first track's names, and space above any other track
+  // with a name or a position on it.
+  const marks: FigureMarks = figure.marks ?? {
+    names: [],
+    spans: [],
+    positions: [],
+  };
+  const mm = PX_PER_MM;
+  const glyphTop = size * 0.45;
+  const stem = size * 0.9;
+  const dot = DOT_MM * mm;
+  const positionZone = size * 0.15 + stem + dot * 2 + 1;
+  const nameZone = second * 1.3;
+  const topNames = marks.names.filter((n) => n.track === 0);
+  const nameWidths = topNames.map((n) => measure(n.text, font, true));
+  const nameCenters = spread(
+    topNames.map((n, i) => ({ x: x(n.x), width: nameWidths[i] })),
+    pad,
+    left,
+    width - pad,
+  );
+  const spanExtents = marks.spans.map((sp): [number, number] => {
+    const [a, b] = [x(sp.from) - size / 2, x(sp.to) + size / 2];
+    const half = sp.text !== undefined ? measure(sp.text, second) / 2 : 0;
+    const mid = (a + b) / 2;
+    return [Math.min(a, mid - half), Math.max(b, mid + half)];
+  });
+  const lanes = spanLanes(spanExtents, pad);
+  const spanLane = second * 1.6;
+  const spanBand = (Math.max(-1, ...lanes) + 1) * spanLane;
+  const nameBand = topNames.length > 0 ? font * 1.2 + KNEE_MM * mm : 0;
+  const band = spanBand + nameBand;
+  // the space above each track for its own names and positions
+  const extra = figure.tracks.map((_, i) =>
+    Math.max(
+      marks.positions.some((p) => p.track === i) ? positionZone : 0,
+      i > 0 && marks.names.some((n) => n.track === i) ? nameZone : 0,
+    ),
+  );
+
   // rail thickness spans the figure's distances
   const distances = figure.tracks.flatMap((t) =>
     t.rails.map((rail) => neighborDistances({ genes: rail.ends })[0]),
@@ -264,15 +359,20 @@ export function drawMicroFigure(
   });
   svg.appendChild(background);
 
-  let top = pad;
+  let top = pad + band;
+  // where each track's rows are, for the marks drawn over them
+  const rowYs: ((y: number) => number)[] = [];
   figure.tracks.forEach((track: FigureTrack, i) => {
+    top += extra[i];
     const g = b.el('g', {
       'data-track': i,
       'data-role': track.role,
     });
     // a row's glyph sits in the middle of the space between its number and
     // its name
-    const rowY = (y: number) => top + y * row + above + core / 2;
+    const trackTop = top;
+    const rowY = (y: number) => trackTop + y * row + above + core / 2;
+    rowYs.push(rowY);
     // the label, beside the track's first row: the taxon, then the locus in
     // smaller grey type, both right-aligned against the tracks
     const label = b.el('g', { 'data-label': '' });
@@ -384,6 +484,132 @@ export function drawMicroFigure(
     svg.appendChild(g);
     top += levels[i] * row + gap(i);
   });
+
+  // the author's marks, over the tracks
+  const hasMarks =
+    marks.names.length + marks.spans.length + marks.positions.length > 0;
+  if (hasMarks) {
+    const layer = b.el('g', { 'data-marks': '' });
+    const mark = (kind: string, e: Element, text?: string): Element => {
+      e.setAttribute('data-mark', kind);
+      if (text !== undefined) e.setAttribute('data-mark-text', text);
+      layer.appendChild(e);
+      return e;
+    };
+    const label = (
+      content: string,
+      x0: number,
+      y0: number,
+      size: number,
+      anchor: 'start' | 'middle',
+      italic = false,
+    ) => {
+      const t = text(b, content, x0, y0, size, anchor);
+      if (italic) {
+        t.setAttribute(
+          'style',
+          `${t.getAttribute('style')} font-style: italic;`,
+        );
+      }
+      return t;
+    };
+    const line = (d: string, pt: number, ink: string) =>
+      b.el('path', {
+        d,
+        style: `fill: none; stroke: ${ink}; stroke-width: ${r(pt * PX_PER_PT)}px;`,
+      });
+    // positions: a dot on a stem above the row, its text beside the dot
+    const stemTops: { track: number; x: number; top: number }[] = [];
+    marks.positions.forEach((p) => {
+      const px = x(p.x);
+      const base = rowYs[p.track](p.y) - (p.inGene ? glyphTop + 1 : 0);
+      const tip = rowYs[p.track](p.y) - glyphTop - size * 0.15 - stem;
+      mark(
+        'position',
+        line(`M${r(px)},${r(base)}L${r(px)},${r(tip)}`, STEM_PT, STROKE),
+        p.text,
+      );
+      mark(
+        'position',
+        b.el('circle', {
+          cx: px,
+          cy: tip - dot,
+          r: dot,
+          style: `fill: ${STROKE};`,
+        }),
+        p.text,
+      );
+      if (p.text !== undefined) {
+        mark(
+          'position',
+          label(p.text, px + dot + 0.6 * mm, tip - dot, second, 'start'),
+          p.text,
+        );
+      }
+      stemTops.push({ track: p.track, x: px, top: tip - dot * 2 });
+    });
+    // spans: a rule over their columns, the text above it, in lanes
+    marks.spans.forEach((sp, i) => {
+      const ruleY = pad + spanBand - lanes[i] * spanLane - second * 0.3;
+      const [a, b0] = [x(sp.from) - size / 2, x(sp.to) + size / 2];
+      mark(
+        'span',
+        line(`M${r(a)},${r(ruleY)}L${r(b0)},${r(ruleY)}`, SPAN_PT, STROKE),
+        sp.text,
+      );
+      if (sp.text !== undefined) {
+        mark(
+          'span',
+          label(sp.text, (a + b0) / 2, ruleY - second * 0.7, second, 'middle'),
+          sp.text,
+        );
+      }
+    });
+    // the first track's names, on one baseline, led down to their genes
+    const nameY = pad + spanBand + font * 0.6;
+    topNames.forEach((n, i) => {
+      const cx = nameCenters[i];
+      mark('name', label(n.text, cx, nameY, font, 'middle', true), n.text);
+      const gx = x(n.x);
+      const from = nameY + font * 0.6;
+      const knee = from + KNEE_MM * mm;
+      // to the gene, or to a position's dot standing on it
+      const dotOn = stemTops.find(
+        (st) => st.track === 0 && Math.abs(st.x - gx) < size / 2,
+      );
+      const to =
+        (dotOn !== undefined ? dotOn.top : rowYs[0](n.y) - glyphTop) - 0.5 * mm;
+      mark(
+        'leader',
+        line(
+          Math.abs(cx - gx) < 0.5
+            ? `M${r(gx)},${r(from)}L${r(gx)},${r(to)}`
+            : `M${r(cx)},${r(from)}L${r(gx)},${r(knee)}L${r(gx)},${r(to)}`,
+          LEADER_PT,
+          LEADER,
+        ),
+        n.text,
+      );
+    });
+    // other tracks' names, just above their glyphs
+    marks.names
+      .filter((n) => n.track > 0)
+      .forEach((n) =>
+        mark(
+          'name',
+          label(
+            n.text,
+            x(n.x),
+            rowYs[n.track](n.y) - glyphTop - second * 0.6,
+            second,
+            'middle',
+            true,
+          ),
+          n.text,
+        ),
+      );
+    svg.appendChild(layer);
+  }
 
   // the last line of text below the tracks: its middle and where it ends,
   // so the watermark can share it

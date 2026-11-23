@@ -6,6 +6,12 @@
 // Genes are named as the view shows them, or unprefixed when unambiguous,
 // and lists join their items with '+'. Parsing keeps every pair it can read
 // and reports the rest, so one bad pair in a shared link costs only itself.
+//
+// The figure's own marks are the author's, drawn in black: em emphasises
+// genes, name names a gene (gene=text), span marks the columns between two
+// genes (gene~gene=text), and pos marks a genomic position
+// (chromosome:position=text). Their text percent-encodes %;+=~ so any
+// label reads back as written.
 
 export type FigureOrder = 'view' | 'score' | { genera: string[] };
 
@@ -40,7 +46,57 @@ export type FigureSpec = {
   legend?: boolean;
   // the caption printed under the figure, not only in its metadata
   cap?: boolean;
+  // the author's marks
+  em?: string[];
+  name?: FigureName[];
+  span?: FigureSpan[];
+  pos?: FigurePosition[];
 };
+
+export type FigureName = { gene: string; text: string };
+export type FigureSpan = { from: string; to: string; text?: string };
+export type FigurePosition = {
+  chromosome: string;
+  position: number;
+  text?: string;
+};
+
+// a mark's text, with the grammar's own characters percent-encoded
+const encode = (text: string) =>
+  text.replace(
+    /[%;+=~]/g,
+    (c) => `%${c.charCodeAt(0).toString(16).toUpperCase().padStart(2, '0')}`,
+  );
+const decode = (text: string): string | undefined => {
+  try {
+    return decodeURIComponent(text);
+  } catch {
+    return undefined;
+  }
+};
+
+// a list's items, each read by item; undefined if any can't be
+function items<T>(value: string, item: (v: string) => T | undefined) {
+  const read = list(value).map(item);
+  return read.length > 0 && read.every((i) => i !== undefined)
+    ? (read as T[])
+    : undefined;
+}
+
+// 'head=text', the text optional unless required
+function labelled(
+  value: string,
+  required: boolean,
+): { head: string; text?: string } | undefined {
+  const i = value.indexOf('=');
+  const head = (i === -1 ? value : value.slice(0, i)).trim();
+  const text = i === -1 ? undefined : decode(value.slice(i + 1));
+  if (head === '' || (i !== -1 && (text === undefined || text === ''))) {
+    return undefined;
+  }
+  if (required && text === undefined) return undefined;
+  return text === undefined ? { head } : { head, text };
+}
 
 export const FIGURE_LIMITS = {
   w: [40, 250],
@@ -108,6 +164,34 @@ const readers: {
   glyph: number(...FIGURE_LIMITS.glyph),
   legend: flag,
   cap: flag,
+  em: (v) => nonEmpty(list(v)),
+  name: (v) =>
+    items(v, (item) => {
+      const l = labelled(item, true);
+      return l && { gene: l.head, text: l.text };
+    }),
+  span: (v) =>
+    items(v, (item) => {
+      const l = labelled(item, false);
+      const ends = l?.head.split('~').map((g) => g.trim());
+      if (ends?.length !== 2 || ends.some((g) => g === '')) return undefined;
+      return {
+        from: ends[0],
+        to: ends[1],
+        ...(l.text !== undefined ? { text: l.text } : {}),
+      };
+    }),
+  pos: (v) =>
+    items(v, (item) => {
+      const l = labelled(item, false);
+      const m = l?.head.match(/^(.+):(\d+)$/);
+      if (m === null || m === undefined || Number(m[2]) < 1) return undefined;
+      return {
+        chromosome: m[1],
+        position: Number(m[2]),
+        ...(l.text !== undefined ? { text: l.text } : {}),
+      };
+    }),
 };
 
 export const FIGURE_KEYS = Object.keys(readers) as (keyof FigureSpec)[];
@@ -155,6 +239,22 @@ const writers: {
   glyph: String,
   legend: (v) => (v ? '1' : '0'),
   cap: (v) => (v ? '1' : '0'),
+  em: (v) => v.join('+'),
+  name: (v) => v.map((n) => `${n.gene}=${encode(n.text)}`).join('+'),
+  span: (v) =>
+    v
+      .map(
+        (s) =>
+          `${s.from}~${s.to}${s.text !== undefined ? `=${encode(s.text)}` : ''}`,
+      )
+      .join('+'),
+  pos: (v) =>
+    v
+      .map(
+        (p) =>
+          `${p.chromosome}:${p.position}${p.text !== undefined ? `=${encode(p.text)}` : ''}`,
+      )
+      .join('+'),
 };
 
 // the spec as the fig parameter, its keys in a fixed order

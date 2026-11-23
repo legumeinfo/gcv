@@ -308,7 +308,56 @@ export type FigureRender = {
                 >Print the caption</label
               >
             </div>
-            <h6>Size</h6>
+            <h6>Marks</h6>
+            <label class="form-label mb-1" for="figure-mark-em"
+              >Emphasise genes, comma-separated</label
+            >
+            <input
+              id="figure-mark-em"
+              class="form-control form-control-sm mb-1"
+              placeholder="none"
+              [value]="(spec.em ?? []).join(', ')"
+              (change)="setEmphasis($event)"
+            />
+            <label class="form-label mb-1" for="figure-mark-names"
+              >Names, one per line: gene = name</label
+            >
+            <textarea
+              id="figure-mark-names"
+              class="form-control form-control-sm mb-1"
+              rows="2"
+              placeholder="Glyma.19G194300 = Dt1"
+              [value]="markLines('name')"
+              (change)="setMarks('name', $event)"
+            ></textarea>
+            <label class="form-label mb-1" for="figure-mark-spans"
+              >Spans, one per line: gene ~ gene = label</label
+            >
+            <textarea
+              id="figure-mark-spans"
+              class="form-control form-control-sm mb-1"
+              rows="2"
+              [value]="markLines('span')"
+              (change)="setMarks('span', $event)"
+            ></textarea>
+            <label class="form-label mb-1" for="figure-mark-positions"
+              >Positions, one per line: chromosome:position = label</label
+            >
+            <textarea
+              id="figure-mark-positions"
+              class="form-control form-control-sm mb-1"
+              rows="2"
+              [value]="markLines('pos')"
+              (change)="setMarks('pos', $event)"
+            ></textarea>
+            @if (markErrors.length > 0) {
+              <ul class="text-danger small ps-3 mb-1" data-mark-errors>
+                @for (error of markErrors; track error) {
+                  <li>{{ error }}</li>
+                }
+              </ul>
+            }
+            <h6 class="mt-2">Size</h6>
             <label class="form-label mb-1" for="figure-w">Width (mm)</label>
             <input
               id="figure-w"
@@ -386,6 +435,8 @@ export class FigureComponent implements AfterViewInit, OnDestroy {
   // genes' coordinates are still loading, so the figure isn't final
   loading = false;
   clusterChoices: { cluster: number; gene: string }[] = [];
+  // the lines of the marks' fields that couldn't be read
+  markErrors: string[] = [];
   // each drawing, for agents to wait on and read
   readonly rendered = new BehaviorSubject<FigureRender | null>(null);
 
@@ -581,6 +632,79 @@ export class FigureComponent implements AfterViewInit, OnDestroy {
     ];
     crop[end] = this.value(event);
     this.update({ crop: crop.every((g) => g !== '') ? crop : undefined });
+  }
+
+  // the marks
+
+  setEmphasis(event: Event): void {
+    const genes = this.value(event)
+      .split(',')
+      .map((g) => g.trim())
+      .filter((g) => g !== '');
+    this.update({ em: genes.length > 0 ? genes : undefined });
+  }
+
+  // a kind of mark as its field shows it, one per line
+  markLines(kind: 'name' | 'span' | 'pos'): string {
+    const label = (text?: string) => (text !== undefined ? ` = ${text}` : '');
+    switch (kind) {
+      case 'name':
+        return (this.spec.name ?? [])
+          .map((n) => `${n.gene}${label(n.text)}`)
+          .join('\n');
+      case 'span':
+        return (this.spec.span ?? [])
+          .map((sp) => `${sp.from} ~ ${sp.to}${label(sp.text)}`)
+          .join('\n');
+      case 'pos':
+        return (this.spec.pos ?? [])
+          .map((p) => `${p.chromosome}:${p.position}${label(p.text)}`)
+          .join('\n');
+    }
+  }
+
+  setMarks(kind: 'name' | 'span' | 'pos', event: Event): void {
+    const errors: string[] = [];
+    const lines = (event.target as HTMLTextAreaElement).value
+      .split('\n')
+      .map((l) => l.trim())
+      .filter((l) => l !== '');
+    // 'head = text', the text optional
+    const split = (line: string) => {
+      const i = line.indexOf('=');
+      return i === -1
+        ? { head: line, text: undefined }
+        : {
+            head: line.slice(0, i).trim(),
+            text: line.slice(i + 1).trim() || undefined,
+          };
+    };
+    const marks = lines.flatMap((line): object[] => {
+      const { head, text } = split(line);
+      if (kind === 'name') {
+        if (head !== '' && text !== undefined) return [{ gene: head, text }];
+      } else if (kind === 'span') {
+        const ends = head.split('~').map((g) => g.trim());
+        if (ends.length === 2 && ends.every((g) => g !== '')) {
+          return [{ from: ends[0], to: ends[1], ...(text ? { text } : {}) }];
+        }
+      } else {
+        const m = head.match(/^(.+):(\d+)$/);
+        if (m !== null && Number(m[2]) >= 1) {
+          return [
+            {
+              chromosome: m[1],
+              position: Number(m[2]),
+              ...(text ? { text } : {}),
+            },
+          ];
+        }
+      }
+      errors.push(`Couldn't read “${line}”.`);
+      return [];
+    });
+    this.markErrors = errors;
+    this.update({ [kind]: marks.length > 0 ? marks : undefined });
   }
 
   setFlag(key: 'famlabels' | 'legend' | 'names' | 'cap', event: Event): void {
