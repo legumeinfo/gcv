@@ -39,20 +39,27 @@ export function openFigure(panels: PanelService): FigureComponent | undefined {
   return item?.instance as FigureComponent | undefined;
 }
 
-// waits until the figure tab has drawn the figure fig describes
+// waits until the figure tab has drawn the figure fig describes, with every
+// gene's coordinates; past the deadline, a figure still loading will do,
+// since its notes say so
 async function renderOf(
   panels: PanelService,
   fig: string,
   signal: AbortSignal,
 ): Promise<{ figure: FigureComponent; render: FigureRender }> {
   const deadline = Date.now() + FIGURE_TIMEOUT_MS;
+  let drawn: { figure: FigureComponent; render: FigureRender } | undefined;
   while (Date.now() < deadline) {
     signal.throwIfAborted();
     const figure = openFigure(panels);
     const render = figure?.rendered.value;
-    if (render?.fig === fig) return { figure, render };
+    if (render?.fig === fig) {
+      drawn = { figure, render };
+      if (!render.loading) return drawn;
+    }
     await new Promise((resolve) => setTimeout(resolve, 100));
   }
+  if (drawn !== undefined) return drawn;
   throw new WebMcpToolError(
     'The figure tab did not draw the figure; check that the gene view shows the cluster, then try again.',
   );

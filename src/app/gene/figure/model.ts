@@ -66,6 +66,8 @@ export type FigureModel = {
   figure: Omit<MicroFigure, 'caption' | 'metadata'>;
   manifest: FigureManifest;
   notes: string[];
+  // some genes' coordinates are still loading, so spans are incomplete
+  loading: boolean;
 };
 
 type Track = { drawn: DrawnTrack; aligned: TrackAlignment };
@@ -606,5 +608,6 @@ export function figureModel(inputs: FigureInputs): FigureModel {
       })),
     },
     notes,
+    loading: missingCoordinates,
   };
 }

@@ -61,6 +61,8 @@ export type FigureRender = {
   manifest?: FigureManifest;
   notes: string[];
   caption?: string;
+  // some genes' coordinates are still loading
+  loading?: boolean;
   // when the figure's gene is in several clusters, a query gene of each
   choices?: { cluster: number; gene: string }[];
 };
@@ -121,7 +123,10 @@ export type FigureRender = {
           <button
             type="button"
             class="btn btn-sm btn-outline-dark me-1"
-            [disabled]="svg === undefined"
+            [disabled]="svg === undefined || loading"
+            [title]="
+              loading ? 'Waiting for genes’ coordinates' : 'Download SVG'
+            "
             (click)="downloadSvg()"
           >
             SVG
@@ -129,7 +134,10 @@ export type FigureRender = {
           <button
             type="button"
             class="btn btn-sm btn-outline-dark"
-            [disabled]="svg === undefined"
+            [disabled]="svg === undefined || loading"
+            [title]="
+              loading ? 'Waiting for genes’ coordinates' : 'Download PNG'
+            "
             (click)="downloadPng()"
           >
             PNG
@@ -377,6 +385,8 @@ export class FigureComponent implements AfterViewInit, OnDestroy {
   svg: SVGSVGElement | undefined;
   manifest: FigureManifest | undefined;
   notes: string[] = [];
+  // genes' coordinates are still loading, so the figure isn't final
+  loading = false;
   clusterChoices: { cluster: number; gene: string }[] = [];
   // each drawing, for agents to wait on and read
   readonly rendered = new BehaviorSubject<FigureRender | null>(null);
@@ -488,6 +498,7 @@ export class FigureComponent implements AfterViewInit, OnDestroy {
           });
           this.manifest = model.manifest;
           this.notes = model.notes;
+          this.loading = model.loading;
           this.svg = GCV.visualization.drawMicroFigure(
             {
               ...model.figure,
@@ -507,6 +518,7 @@ export class FigureComponent implements AfterViewInit, OnDestroy {
             manifest: model.manifest,
             notes: model.notes,
             caption,
+            loading: model.loading,
           });
         },
       );

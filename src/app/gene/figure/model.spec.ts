@@ -436,6 +436,14 @@ describe('the rest of the figure', () => {
     expect(figure.tracks[0].genes[0].label).toBe('Glyma.q1');
   });
 
+  it('says when genes’ coordinates are still loading', () => {
+    expect(figureModel(inputs({})).loading).toBe(false);
+    const { data } = microShim(0, [query], tracks, [], []);
+    const loading = figureModel({ ...inputs({}), drawn: data });
+    expect(loading.loading).toBe(true);
+    expect(loading.notes.join(' ')).toContain("coordinates haven't loaded");
+  });
+
   it('reports the parts of the parameter it couldn’t read', () => {
     expect(figureModel(inputs({ rejected: ['w:900'] })).notes).toEqual([
       "The figure's parameter had unreadable parts, left out: w:900.",
