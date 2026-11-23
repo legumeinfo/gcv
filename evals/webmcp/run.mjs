@@ -1,6 +1,7 @@
 // Runs the WebMCP scenarios: checks each scenario's premises with the tools,
-// then has agents answer it with only GCV's tools, and judges each answer
-// against the scenario's rubric. See README.md.
+// then has agents answer it with only GCV's tools, judges each answer
+// against the scenario's rubric, and checks the view the agent ends on with
+// the scenario's outcome checks. See README.md.
 //
 //   node evals/webmcp/run.mjs [--base URL] [--scenario ID] [--runs N]
 //     [--model MODEL] [--judge-model MODEL] [--premises-only]
@@ -18,7 +19,7 @@ const CHROME = {
   channel: 'chrome',
   args: ['--enable-features=WebMCP,WebMCPTesting'],
 };
-const TOOL_COUNT = 20;
+const TOOL_COUNT = 23;
 
 const { values: options } = parseArgs({
   options: {
@@ -75,18 +76,30 @@ async function withTools(url, use) {
   }
 }
 
-async function checkPremises(scenario) {
-  return withTools(options.base + scenario.url, async (call) => {
+// runs checks in order; each may return facts for the rubric and the
+// checks after it
+async function runChecks(url, checks, facts = {}) {
+  return withTools(url, async (call) => {
     const failed = [];
-    for (const premise of scenario.premises) {
+    for (const check of checks) {
       try {
-        await premise.check(call);
+        Object.assign(facts, (await check.check(call, facts)) ?? {});
       } catch (error) {
-        failed.push(`${premise.about}: ${error.message}`);
+        failed.push(`${check.about}: ${error.message}`);
       }
     }
-    return failed;
+    return { failed, facts };
   });
+}
+
+const FINAL_URL =
+  'End your answer with the URL of the view you leave the browser on, on a line of its own: URL: <the URL>';
+
+// the URL the agent's answer ends on, on this run's GCV
+function finalUrl(answer) {
+  const urls = answer.match(/https?:\/\/\S+/g) ?? [];
+  const url = urls.reverse().find((u) => u.startsWith(options.base));
+  return url?.replace(/[)>.,`*]+$/, '');
 }
 
 function claude(prompt, args) {
@@ -157,14 +170,19 @@ function agentConfig(dir) {
 }
 
 async function runAgent(scenario, dir) {
-  const prompt = `Open ${options.base}${scenario.url} in the browser and use the GCV tools the page provides. ${scenario.prompt}`;
+  const ending = scenario.outcome ? ` ${FINAL_URL}` : '';
+  const prompt = `Open ${options.base}${scenario.url} in the browser and use the GCV tools the page provides. ${scenario.prompt}${ending}`;
   const args = agentConfig(dir);
   if (options.model) args.push('--model', options.model);
   return claude(prompt, args);
 }
 
-async function judge(scenario, answer) {
-  const items = scenario.rubric.map((r, i) => `${i + 1}. ${r}`).join('\n');
+// rubric items may be written from the premises' facts
+const rubricOf = (scenario, facts) =>
+  scenario.rubric.map((r) => (typeof r === 'function' ? r(facts) : r));
+
+async function judge(scenario, rubric, answer) {
+  const items = rubric.map((r, i) => `${i + 1}. ${r}`).join('\n');
   const prompt = `You grade an answer against a rubric. Judge only what the answer says, not whether it is true. For each rubric item, decide whether the answer satisfies it and quote the passage that decides it (an empty quote if none).
 
 Question: ${scenario.prompt}
@@ -190,7 +208,7 @@ Reply with only a JSON array, one object per rubric item, in order: [{"item": 1,
   );
   return JSON.parse(json).map((verdict, i) => ({
     ...verdict,
-    rubric: scenario.rubric[i],
+    rubric: rubric[i],
   }));
 }
 
@@ -199,7 +217,10 @@ const chosen = scenarios.filter(
 );
 const summary = [];
 for (const scenario of chosen) {
-  const failed = await checkPremises(scenario);
+  const { failed, facts } = await runChecks(
+    options.base + scenario.url,
+    scenario.premises,
+  );
   if (failed.length > 0) {
     console.log(`${scenario.id}: STALE, a premise no longer holds`);
     failed.forEach((f) => console.log(`  ${f}`));
@@ -212,19 +233,38 @@ for (const scenario of chosen) {
     const dir = join(results, `${scenario.id}-${run}`);
     mkdirSync(dir, { recursive: true });
     const agent = await runAgent(scenario, dir);
-    const verdicts = agent.is_error ? [] : await judge(scenario, agent.result);
+    const rubric = rubricOf(scenario, facts);
+    const verdicts = agent.is_error
+      ? []
+      : await judge(scenario, rubric, agent.result);
+    // the outcome checks count as rubric items, judged on the final view
+    if (scenario.outcome && !agent.is_error) {
+      const url = finalUrl(agent.result);
+      const outcome = url
+        ? (await runChecks(url, scenario.outcome, { ...facts })).failed
+        : ['the answer gives no URL of the view'];
+      scenario.outcome.forEach((check) => {
+        const failure = outcome.find((f) => f.startsWith(`${check.about}:`));
+        verdicts.push({
+          pass: url !== undefined && failure === undefined,
+          rubric: `The final view: ${check.about}`,
+          quote: failure ?? url ?? outcome[0],
+        });
+      });
+    }
+    const of = rubric.length + (scenario.outcome?.length ?? 0);
     const passed = verdicts.filter((v) => v.pass).length;
     writeFileSync(
       join(dir, 'result.json'),
       JSON.stringify({ scenario: scenario.id, agent, verdicts }, null, 2),
     );
     console.log(
-      `  run ${run}: ${agent.is_error ? 'agent error' : `${passed}/${scenario.rubric.length}`} (${dir})`,
+      `  run ${run}: ${agent.is_error ? 'agent error' : `${passed}/${of}`} (${dir})`,
     );
     verdicts
       .filter((v) => !v.pass)
       .forEach((v) => console.log(`    failed: ${v.rubric}`));
-    summary.push({ id: scenario.id, run, passed, of: scenario.rubric.length });
+    summary.push({ id: scenario.id, run, passed, of });
   }
 }
 if (!options['premises-only']) {

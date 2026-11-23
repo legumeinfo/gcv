@@ -1,8 +1,11 @@
 // Questions with answers known from the data, for measuring how well agents
 // use GCV's WebMCP tools. Each scenario's premises check, with the tools
 // themselves, the facts its rubric relies on, so a scenario whose data has
-// changed reports itself stale rather than failing agents. The rubric is
-// judged against the agent's final answer.
+// changed reports itself stale rather than failing agents; a premise may
+// return facts, which rubric items written as functions use. The rubric is
+// judged against the agent's final answer. A scenario's outcome checks,
+// made with the tools on the view the agent ends on, test what it wrote
+// into the URL.
 
 const QUERY = 'glyma.Wm82.gnm4.ann1.Glyma.15G255600';
 
@@ -11,6 +14,13 @@ const DEFAULTS =
   '&bmatched=20&bintermediate=10&bmask=10&bchrgenes=1&bchrlength=100000' +
   '&linkage=average&cthreshold=20&neighbors=10&matched=4&intermediate=5' +
   '&sources=lis&bregexp=&border=distance&order=distance';
+
+const gene = (name) => `glyma.Wm82.gnm4.ann1.Glyma.${name}`;
+
+const BOX_FAMILY = 'legfed_v1_0.L_49J6VT';
+
+const FIGURE_GENERA = ['Phaseolus', 'Vigna'];
+// the view lists Phaseolus first, so asking for Vigna first tests the order
 
 const view = (regexp = '') => `/gene;lis=${QUERY}?${DEFAULTS}&regexp=${regexp}`;
 
@@ -140,6 +150,134 @@ export const scenarios = [
       'Reports that the family has no gene in the lupin tracks GCV shows at these settings.',
       'Does not conclude that the family was lost from the lupin genomes on that basis alone: it says this is only not found, or names what would need checking (a wider search, the genome-wide family members, unplaced scaffolds), or reports having checked it.',
       'States the settings or gives the URL of the view it searched.',
+    ],
+  },
+  {
+    id: 'box-family-count',
+    url: view(),
+    prompt: `Box the consensus columns from ${gene('15G255100')} to ${gene('15G255400')} across every track, labelled "block", then tell me how many tracks have a gene of the family ${BOX_FAMILY} inside the box.`,
+    premises: [
+      {
+        about: `the box's genes are in one cluster, in columns 5 to 8, and some track has ${BOX_FAMILY} only outside them`,
+        async check(call) {
+          const report = await call('get_microsynteny_alignment', {
+            format: 'genes',
+            maxTracks: 200,
+          });
+          expect(!report.error, report.error);
+          expect(report.clusters.length === 1, 'the view has one cluster');
+          const [cluster] = report.clusters;
+          const query = cluster.tracks.find((t) => t.role === 'query');
+          const column = (name) =>
+            query.genes.find((g) => g.name === gene(name))?.column;
+          const [from, to] = [column('15G255100'), column('15G255400')];
+          expect(from === 5 && to === 8, `the box spans ${from} to ${to}`);
+          // a gene inside the box: in its columns, or inserted between them
+          const inside = (g) =>
+            g.column !== null
+              ? g.column >= from && g.column <= to
+              : g.insertedAfter >= from && g.insertedAfter < to;
+          const has = (t, where) =>
+            t.genes.some((g) => g.family === BOX_FAMILY && where(g));
+          const count = cluster.tracks.filter((t) => has(t, inside)).length;
+          const elsewhere = cluster.tracks.filter(
+            (t) => !has(t, inside) && has(t, () => true),
+          ).length;
+          expect(count > 1, 'several tracks have the family in the box');
+          expect(elsewhere > 0, 'a track has the family only outside it');
+          return { from, to, count, tracks: cluster.tracks.length };
+        },
+      },
+    ],
+    rubric: [
+      (f) =>
+        `Reports that ${f.count} tracks (the query track and ${f.count - 1} result tracks) have a gene of the family inside the box; a count of ${f.count - 1} that says it counts result tracks only also passes.`,
+      'Does not count a track whose gene of the family lies outside the boxed columns.',
+    ],
+    outcome: [
+      {
+        about:
+          'a box labelled "block" spans exactly the columns of Glyma.15G255100 to Glyma.15G255400, over every track',
+        async check(call, facts) {
+          const listed = await call('list_annotations');
+          expect(!listed.error, listed.error);
+          const box = listed.annotations.find(
+            (a) =>
+              a.kind === 'box' &&
+              a.placed &&
+              /x=block/.test(a.annot) &&
+              a.at.some(
+                (p) =>
+                  p.columns.from === facts.from &&
+                  p.columns.to === facts.to &&
+                  p.tracks.length === facts.tracks,
+              ),
+          );
+          expect(
+            box,
+            `no such box among ${JSON.stringify(listed.annotations.map((a) => a.annot))}`,
+          );
+        },
+      },
+    ],
+  },
+  {
+    id: 'figure-two-genera',
+    url: view(),
+    prompt:
+      'Make a publication figure of the ten best-scoring result tracks from Phaseolus and Vigna, with the Vigna tracks first, 120 mm wide.',
+    premises: [
+      {
+        about: 'the view has more than ten Phaseolus and Vigna result tracks',
+        async check(call) {
+          const report = await call('get_microsynteny_alignment', {
+            maxTracks: 200,
+          });
+          expect(!report.error, report.error);
+          const scores = report.clusters
+            .flatMap((c) => c.tracks)
+            .filter(
+              (t) => t.role === 'result' && FIGURE_GENERA.includes(t.genus),
+            )
+            .map((t) => t.score)
+            .sort((a, b) => b - a);
+          expect(scores.length > 10, `${scores.length} tracks`);
+          return { best: scores.slice(0, 10) };
+        },
+      },
+    ],
+    rubric: [
+      "Gives the figure's URL, or says the figure is open in the figure tab and how to download it.",
+    ],
+    outcome: [
+      {
+        about:
+          'the figure shows the ten best-scoring Phaseolus and Vigna result tracks, Vigna first, 120 mm wide',
+        async check(call, facts) {
+          const figure = await call('get_figure', { format: 'manifest' });
+          expect(!figure.error, figure.error);
+          const results = figure.manifest.tracks.filter(
+            (t) => t.role === 'result',
+          );
+          expect(results.length === 10, `${results.length} result tracks`);
+          const genera = results.map((t) => t.genus);
+          expect(
+            genera.every((g) => FIGURE_GENERA.includes(g)),
+            `genera ${genera.join(', ')}`,
+          );
+          expect(
+            genera.lastIndexOf('Vigna') < genera.indexOf('Phaseolus') ||
+              !genera.includes('Phaseolus'),
+            `order ${genera.join(', ')}`,
+          );
+          const scores = results.map((t) => t.score).sort((a, b) => b - a);
+          expect(
+            scores.join() === facts.best.join(),
+            `scores ${scores.join()} are not the best ${facts.best.join()}`,
+          );
+          expect(/w:120\b/.test(figure.url), 'the width is 120 mm');
+        },
+      },
     ],
   },
 ];

@@ -13,7 +13,12 @@ Each scenario in `scenarios.mjs` has:
   tools.
 - **a rubric**: statements a separate judge checks against the agent's final answer. They
   test what the guide asks of agents: findings that hold up across parameters, claims tied to
-  views, absence reported as absence, nothing inferred that GCV can't show.
+  views, absence reported as absence, nothing inferred that GCV can't show. A premise can
+  return facts it found, such as a count, and a rubric item written as a function of them
+  states the expected answer.
+- **outcome checks**, for scenarios where the agent changes the view (annotations, figures):
+  the agent is asked to end its answer with its final URL, and the runner opens that URL in
+  its own browser and checks it with the tools. Each check counts as a rubric item.
 
 ## Running
 
