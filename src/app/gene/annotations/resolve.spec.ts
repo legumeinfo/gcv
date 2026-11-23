@@ -123,6 +123,9 @@ describe('resolveAnnotations', () => {
     expect(resolve('gap(c=Glyma.q4,t=p1)').unplaced[0].reason).toBe(
       "p1's track has p4 in that column, so it has no gap there.",
     );
+    expect(resolve('gap(c=Glyma.q4,t=p4)').unplaced[0].reason).toBe(
+      'p4 is in that column of its track, so the track has no gap there.',
+    );
   });
 
   it('notes a gene, an inserted one included, or a slot', () => {

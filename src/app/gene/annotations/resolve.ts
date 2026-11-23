@@ -10,6 +10,7 @@ import {
   ClusterAlignment,
   DrawnTrack,
   matchGeneName,
+  matchesName,
 } from '@gcv/gene/alignment';
 import { Annotation, GeneRef, annotationID } from './grammar';
 import { positionToColumn } from './position';
@@ -139,7 +140,9 @@ function place(
       const there = c.drawn[t].genes.find((g) => g.x === at);
       if (there !== undefined) {
         fail(
-          `${show(a.track)}'s track has ${there.name} in that column, so it has no gap there.`,
+          matchesName(there.name, a.track.name)
+            ? `${show(a.track)} is in that column of its track, so the track has no gap there.`
+            : `${show(a.track)}'s track has ${there.name} in that column, so it has no gap there.`,
         );
       }
       return { ...base, column: at, track: t };

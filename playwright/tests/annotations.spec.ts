@@ -78,8 +78,9 @@ test.describe('annotations', () => {
     await page.goto(VIEW);
     await waitForSettledMicroView(page);
     const { genes } = await queryTrack(page);
+    // the track is named by a neighbor, the column by the gene there
     const gene = genes[3].name;
-    await annotate(page, `gap(c=${gene},t=${gene})`);
+    await annotate(page, `gap(c=${gene},t=${genes[2].name})`);
     await expect(
       page.locator('gcv-micro [data-annotation-kind="gap"]'),
     ).toHaveCount(0);
