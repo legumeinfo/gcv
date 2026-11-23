@@ -219,6 +219,19 @@ describe('cropping columns', () => {
     expect(rails.map((r) => r.to)).toEqual(['left', 1, 'right']);
   });
 
+  it('leaves out a gene inserted past the last column, ending its rail at the edge', () => {
+    // p3 is inserted after q2's column, the crop's last
+    const narrow = figureModel(inputs({ crop: ['Glyma.q2', 'Glyma.q2'] }));
+    const i = narrow.manifest.tracks.findIndex(
+      (t) => t.chromosome === bean.name,
+    );
+    expect(narrow.figure.tracks[i].genes.map((g) => g.name)).toEqual(['p2']);
+    expect(narrow.figure.tracks[i].rails.map((r) => r.to)).toEqual([
+      'left',
+      'right',
+    ]);
+  });
+
   it('leaves out a track with no gene in the columns, saying so', () => {
     const narrow = figureModel(inputs({ crop: ['Glyma.q5', 'Glyma.q5'] }));
     expect(narrow.manifest.tracks.map((t) => t.chromosome)).not.toContain(

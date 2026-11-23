@@ -261,15 +261,25 @@ function mergePairs(
   });
 }
 
-// the columns shown, as the drawn range, and the crop's ends when it applied
+// the columns shown, as the drawn range; the genes shown, from the first
+// column's to the last's, so genes inserted beyond the ends are left out;
+// and the crop's ends when it applied
 function columnRange(
   kept: Track[],
   spec: ParsedFigureSpec,
   notes: string[],
-): { range: [number, number]; crop?: [string, string] } {
+): {
+  range: [number, number];
+  genes: [number, number];
+  crop?: [string, string];
+} {
   const xs = kept.flatMap((t) => t.drawn.genes.map((g) => g.x));
-  const all: [number, number] = [Math.min(...xs) - 0.5, Math.max(...xs) + 0.5];
-  if (spec.crop === undefined) return { range: all };
+  const [min, max] = [Math.min(...xs), Math.max(...xs)];
+  const all = { range: [min - 0.5, max + 0.5], genes: [min, max] } as {
+    range: [number, number];
+    genes: [number, number];
+  };
+  if (spec.crop === undefined) return all;
   // an end's column, from a query track where it can
   const column = (gene: string): number | undefined => {
     const ordered = [
@@ -291,10 +301,10 @@ function columnRange(
     notes.push(
       `Not cropped: ${spec.crop.filter((_, i) => ends[i] === undefined).join(' and ')} must be a shown gene in a consensus column.`,
     );
-    return { range: all };
+    return all;
   }
   const [a, b] = [Math.min(...ends), Math.max(...ends)];
-  return { range: [a - 0.5, b + 0.5], crop: spec.crop };
+  return { range: [a - 0.5, b + 0.5], genes: [a, b], crop: spec.crop };
 }
 
 export function figureModel(inputs: FigureInputs): FigureModel {
@@ -323,8 +333,8 @@ export function figureModel(inputs: FigureInputs): FigureModel {
     }
   });
 
-  const { range, crop } = columnRange(kept, spec, notes);
-  const inRange = (x: number) => x >= range[0] && x <= range[1];
+  const { range, genes: geneRange, crop } = columnRange(kept, spec, notes);
+  const inRange = (x: number) => x >= geneRange[0] && x <= geneRange[1];
 
   // the families' genes among the genes shown
   const shownGenes = kept.flatMap((t) =>
@@ -446,7 +456,7 @@ export function figureModel(inputs: FigureInputs): FigureModel {
         { fmin: prev.fmin, fmax: prev.fmax },
         { fmin: next.fmin, fmax: next.fmax },
       ];
-      const side = (x: number) => (x < range[0] ? 'left' : 'right');
+      const side = (x: number) => (x < geneRange[0] ? 'left' : 'right');
       if (a !== -1 && b !== -1) rails.push({ from: a, to: b, ends });
       else if (a !== -1) rails.push({ from: a, to: side(next.x), ends });
       else if (b !== -1) rails.push({ from: b, to: side(prev.x), ends });
