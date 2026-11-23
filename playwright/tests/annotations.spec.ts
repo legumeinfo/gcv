@@ -143,4 +143,40 @@ test.describe('annotations', () => {
       'Annotations: a box and header “Dt1”.',
     );
   });
+
+  test('Clear annotations removes every pin and annotation in one step, and Back restores them', async ({
+    page,
+  }) => {
+    await page.goto(VIEW);
+    await waitForSettledMicroView(page);
+    const { genes } = await queryTrack(page);
+    const clear = page.getByRole('button', { name: 'Clear annotations' });
+    await expect(clear).toHaveCount(0);
+    const annot = `box(c=${genes[2].name}~${genes[4].name},x=block)`;
+    await page.goto(
+      `${VIEW}&pingene=${genes[3].name}&annot=${encodeURIComponent(annot)}`,
+    );
+    await waitForSettledMicroView(page);
+    const marked = new URL(page.url()).search;
+    await expect(page.locator('gcv-micro [data-annotation]')).not.toHaveCount(
+      0,
+    );
+    await clear.click();
+    await expect
+      .poll(() => {
+        const params = new URL(page.url()).searchParams;
+        return ['pingene', 'pinfam', 'pinlabels', 'annot'].filter((p) =>
+          params.has(p),
+        );
+      })
+      .toEqual([]);
+    await expect(page.locator('gcv-micro [data-annotation]')).toHaveCount(0);
+    await expect(page.locator('gcv-micro .gene.pin')).toHaveCount(0);
+    await expect(clear).toHaveCount(0);
+    await page.goBack();
+    await expect.poll(() => new URL(page.url()).search).toBe(marked);
+    await expect(page.locator('gcv-micro [data-annotation]')).not.toHaveCount(
+      0,
+    );
+  });
 });

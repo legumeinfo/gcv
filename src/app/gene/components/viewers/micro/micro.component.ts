@@ -126,14 +126,15 @@ import { microShim } from './micro.shim';
             </li>
           }
         }
-        @if (pinned | async) {
+        @if (annotated | async) {
           <li class="nav-item">
             <button
               type="button"
               class="btn btn-outline-dark ms-1"
-              (click)="clearPins()"
+              title="Remove every pin and annotation from the view"
+              (click)="clearAnnotations()"
             >
-              Clear pins
+              Clear annotations
             </button>
           </li>
         }
@@ -196,7 +197,8 @@ export class MicroComponent implements AfterViewInit, OnDestroy, OnInit {
   pipeline: Pipeline;
 
   queryTracks: Observable<(Track & ClusterMixin & AlignmentMixin)[]>;
-  pinned: Observable<boolean>;
+  // whether the view has pins or annotations, even unreadable ones
+  annotated: Observable<boolean>;
   notShown: Observable<Unplaced[]>;
 
   // Angular hooks
@@ -205,9 +207,19 @@ export class MicroComponent implements AfterViewInit, OnDestroy, OnInit {
     this.notShown = this._annotationService
       .getResolution()
       .pipe(map(({ unplaced }) => unplaced));
-    this.pinned = this._paramsService
-      .getPinParams()
-      .pipe(map(({ pingene, pinfam }) => pingene.length + pinfam.length > 0));
+    this.annotated = combineLatest([
+      this._paramsService.getPinParams(),
+      this._paramsService.getAnnotationListParams(),
+    ]).pipe(
+      map(
+        ([{ pingene, pinfam }, { annot }]) =>
+          pingene.length +
+            pinfam.length +
+            annot.items.length +
+            annot.rejected.length >
+          0,
+      ),
+    );
     this.queryTracks = this._microTracksService.getSelectedClusterTracks(
       this.clusterID,
     );
@@ -349,8 +361,8 @@ export class MicroComponent implements AfterViewInit, OnDestroy, OnInit {
     };
   }
 
-  clearPins(): void {
-    this._paramsService.updatePins('clear');
+  clearAnnotations(): void {
+    this._paramsService.clearAnnotations();
   }
 
   showCircos(): boolean {

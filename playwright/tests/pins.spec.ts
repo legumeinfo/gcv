@@ -73,7 +73,7 @@ test.describe('pins', () => {
     expect(await genePins(page)).toEqual(genes);
   });
 
-  test("a gene's Pin changes only the pins in the URL, and Clear pins removes them", async ({
+  test("a gene's Pin changes only the pins in the URL, and Clear annotations removes them", async ({
     page,
   }) => {
     await page.goto(VIEW);
@@ -116,7 +116,7 @@ test.describe('pins', () => {
     await page.waitForTimeout(1000);
     expect(requests, 'pinning must not rerun the analysis').toEqual([]);
 
-    await page.getByRole('button', { name: 'Clear pins' }).click();
+    await page.getByRole('button', { name: 'Clear annotations' }).click();
     await expect.poll(() => queryParams(page)).toEqual(before);
     await expect(page.locator('gcv-micro .gene.pin')).toHaveCount(0);
     await expect(page.locator('gcv-micro svg.pinned')).toHaveCount(0);

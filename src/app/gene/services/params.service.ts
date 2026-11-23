@@ -105,6 +105,17 @@ export class ParamsService extends HttpService {
     });
   }
 
+  // removes every pin and annotation in one change, so Back restores them;
+  // the figure, if open, stays
+  clearAnnotations(): void {
+    this.updateParams({
+      pingene: null,
+      pinfam: null,
+      pinlabels: null,
+      annot: null,
+    });
+  }
+
   getFigureParams(): Observable<FigureParams> {
     return this._store.select(fromParams.getFigureParams);
   }
