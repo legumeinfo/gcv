@@ -19,6 +19,28 @@ const list = (items: string[]) =>
     ? items.join('')
     : `${items.slice(0, -1).join(', ')} and ${items[items.length - 1]}`;
 
+// how the caption names each kind of annotation, unlabelled and labelled
+const UNLABELLED = {
+  box: 'a box',
+  gap: 'a dashed empty slot',
+  note: 'a note',
+  head: 'a column header',
+  site: 'a site',
+};
+const LABELLED = {
+  box: 'box',
+  gap: 'dashed slot',
+  note: 'note',
+  head: 'header',
+  site: 'site',
+};
+
+const annotationPhrase = ({
+  kind,
+  text,
+}: FigureManifest['annotations'][number]) =>
+  text === undefined ? UNLABELLED[kind] : `${LABELLED[kind]} “${text}”`;
+
 export function figureCaption(
   manifest: FigureManifest,
   { queryGenes, params, url, version, date }: CaptionContext,
@@ -35,6 +57,9 @@ export function figureCaption(
     'Colors mark gene families of the data source: each colored family has its own color; grey genes belong to other families with genes in several tracks; white genes have no other gene of their family in the figure; dashed outlines mark genes without a family.',
     ...(manifest.pinned.genes.length + manifest.pinned.families.length > 0
       ? ['Thick outlines mark pinned genes.']
+      : []),
+    ...(manifest.annotations.length > 0
+      ? [`Annotations: ${list(manifest.annotations.map(annotationPhrase))}.`]
       : []),
     ...(merged.length > 0
       ? [

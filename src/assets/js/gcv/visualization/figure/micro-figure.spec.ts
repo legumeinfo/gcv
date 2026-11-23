@@ -86,6 +86,7 @@ const figure: MicroFigure = {
       rails: [],
     },
   ],
+  annotations: [],
   legend: [
     { style: 'colour', fill: '#E69F00', key: 1, label: 'a' },
     { style: 'colour', fill: '#56B4E9', key: 2, label: 'b' },
@@ -242,5 +243,42 @@ describe('drawMicroFigure', () => {
     const serialize = (svg: Element) =>
       new XMLSerializer().serializeToString(svg);
     expect(serialize(draw())).toBe(serialize(draw()));
+  });
+
+  it('draws annotations over the tracks, making room for headers and notes', () => {
+    const plain = draw();
+    const annotated = draw({
+      ...figure,
+      annotations: [
+        { id: 'b', kind: 'box', columns: [0, 1], tracks: [0, 1] },
+        { id: 'h', kind: 'head', columns: [1, 1], text: 'Dt1' },
+        { id: 'n', kind: 'note', x: 0.5, track: 1, text: 'inserted' },
+      ],
+    });
+    expect(
+      Array.from(annotated.querySelectorAll('[data-annotation]')).map(
+        (m) => `${m.getAttribute('data-annotation')} ${m.tagName}`,
+      ),
+    ).toEqual(['b rect', 'h text', 'n path', 'n text']);
+    // the header band moves the tracks down, and the gutter narrows them
+    const position = (svg: SVGSVGElement, gene: string) =>
+      svg
+        .querySelector(`[data-gene="${gene}"]`)
+        .getAttribute('transform')
+        .match(/translate\(([-\d.]+), ([-\d.]+)\)/)
+        .slice(1)
+        .map(Number);
+    const [x0, y0] = position(plain, 'q3');
+    const [x1, y1] = position(annotated, 'q3');
+    expect(y1).toBeGreaterThan(y0);
+    expect(x1).toBeLessThan(x0);
+    // the box encloses its columns' genes in both tracks
+    const box = annotated.querySelector('[data-annotation="b"]');
+    const left = Number(box.getAttribute('x'));
+    const right = left + Number(box.getAttribute('width'));
+    const [qx] = position(annotated, 'q1');
+    const [px] = position(annotated, 'p2');
+    expect(left).toBeLessThan(qx);
+    expect(right).toBeGreaterThan(px);
   });
 });

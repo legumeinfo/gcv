@@ -1,6 +1,7 @@
 // A micro-synteny figure as the renderer draws it: every track, gene, rail,
 // color and label already chosen, so drawing makes no decision about the
 // data. The app builds it from the view and the figure's spec.
+import type { PlacedAnnotation } from '../annotations/annotation-marks';
 
 export type FigureGeneStyle =
   // a family with its own color
@@ -62,6 +63,8 @@ export type MicroFigure = {
   // the consensus columns shown, as the drawn range
   columns: [number, number];
   tracks: FigureTrack[];
+  // placed on the figure's tracks, as indices into tracks
+  annotations: PlacedAnnotation[];
   legend: FigureLegendEntry[] | null;
   // width in mm, label size in pt, glyph size in mm (fitted when absent)
   size: { width: number; font: number; glyph?: number };

@@ -5,6 +5,7 @@
 // the rules are strict: a track label spans exactly the genes drawn, a
 // family's color is never shared, and tracks are merged only when two kinds
 // of evidence say they are one locus, or the user says so.
+import type { PlacedAnnotation } from '@gcv-assets/js/gcv/visualization/annotations/annotation-marks';
 import type {
   FigureGene,
   FigureLegendEntry,
@@ -19,6 +20,7 @@ import {
   TrackAlignment,
   matchGeneName,
 } from '@gcv/gene/alignment';
+import { Resolution } from '@gcv/gene/annotations/resolve';
 import { ParsedFigureSpec, PinParams } from '@gcv/gene/models/params';
 import { HOLLOW, NEUTRAL, PALETTE } from './palette';
 
@@ -29,6 +31,8 @@ export type FigureInputs = {
   sameLocus: SameLocus[];
   spec: ParsedFigureSpec;
   pins: PinParams;
+  // the view's annotations, placed on its clusters
+  annotations?: Resolution;
 };
 
 export const FIGURE_DEFAULTS = { w: 180, font: 7 };
@@ -52,6 +56,7 @@ export type FigureManifest = {
   columns: { from: number; to: number; crop?: [string, string] };
   colours: { family: string; colour: string | null; key: number }[];
   pinned: { genes: string[]; families: string[] };
+  annotations: { id: string; kind: PlacedAnnotation['kind']; text?: string }[];
 };
 
 export type FigureModel = {
@@ -72,6 +77,80 @@ const shortName = (name: string, pattern: RegExp) =>
   name.match(pattern)?.[1] ?? name;
 
 const position = (n: number) => n.toLocaleString('en-US');
+
+const KIND_NAMES: Record<PlacedAnnotation['kind'], string> = {
+  box: 'box',
+  gap: 'gap',
+  note: 'note',
+  head: 'header',
+  site: 'site',
+};
+
+const describe = (a: { kind: PlacedAnnotation['kind']; text?: string }) =>
+  a.text === undefined
+    ? KIND_NAMES[a.kind]
+    : `${KIND_NAMES[a.kind]} “${a.text}”`;
+
+// Annotations placed on the view's tracks, moved onto the figure's: tracks
+// renumbered and columns clipped to those shown. One left with nothing to
+// mark is noted, not drawn.
+function figureAnnotations(
+  placed: PlacedAnnotation[],
+  index: (track: number) => number | undefined,
+  [from, to]: [number, number],
+  notes: string[],
+): PlacedAnnotation[] {
+  const [lo, hi] = [from + 0.5, to - 0.5];
+  const shown = (x: number) => x >= from && x <= to;
+  const clip = ([a, b]: [number, number]): [number, number] | undefined =>
+    b < lo || a > hi ? undefined : [Math.max(a, lo), Math.min(b, hi)];
+  return placed.flatMap((p): PlacedAnnotation[] => {
+    const left = (why: string) => {
+      notes.push(`Not drawn: the ${describe(p)}, ${why}.`);
+      return [];
+    };
+    switch (p.kind) {
+      case 'box': {
+        const columns = clip(p.columns);
+        const tracks = p.tracks.map(index).filter((t) => t !== undefined);
+        if (columns === undefined) return left('its columns are not shown');
+        if (tracks.length === 0) return left('its tracks are not shown');
+        return [{ ...p, columns, tracks }];
+      }
+      case 'head': {
+        const columns = clip(p.columns);
+        return columns === undefined
+          ? left('its columns are not shown')
+          : [{ ...p, columns }];
+      }
+      case 'gap':
+      case 'note': {
+        const track = index(p.track);
+        const x = p.x ?? p.column;
+        if (track === undefined) return left('its track is not shown');
+        if (!shown(x)) return left('its column is not shown');
+        return [{ ...p, track }];
+      }
+      case 'site': {
+        const sites = p.sites.flatMap((s) => {
+          const track = index(s.track);
+          if (track === undefined) return [];
+          const [a, b] = [Math.min(s.x0, s.x1), Math.max(s.x0, s.x1)];
+          if (b < from || a > to) return [];
+          const x0 = Math.max(a, from);
+          const x1 = Math.min(b, to);
+          const clipped = a < from ? 'left' : b > to ? 'right' : s.clipped;
+          return [
+            { track, x0, x1, ...(clipped !== undefined ? { clipped } : {}) },
+          ];
+        });
+        return sites.length === 0
+          ? left('none of its tracks are shown where it lies')
+          : [{ ...p, sites }];
+      }
+    }
+  });
+}
 
 const unique = <T>(items: T[]) => Array.from(new Set(items));
 
@@ -312,6 +391,7 @@ export function figureModel(inputs: FigureInputs): FigureModel {
   let missingCoordinates = false;
   const figureTracks: FigureTrack[] = [];
   const manifestTracks: FigureManifest['tracks'] = [];
+  const figureIndex = new Map<Track, number>();
   kept.forEach((t) => {
     const all = t.drawn.genes;
     const shown = all.filter((g) => inRange(g.x));
@@ -385,6 +465,7 @@ export function figureModel(inputs: FigureInputs): FigureModel {
     }
     // GCV's species can carry the strain, which isn't italicized
     const [species, strain] = t.aligned.species.split(':');
+    figureIndex.set(t, figureTracks.length);
     figureTracks.push({
       role: t.aligned.role,
       binomial: `${t.aligned.genus} ${species}`,
@@ -405,6 +486,22 @@ export function figureModel(inputs: FigureInputs): FigureModel {
       ...(other !== undefined ? { mergedWith: other.aligned.chromosome } : {}),
     });
   });
+  // a merged track's annotations go on the track it merged into
+  mergedWith.forEach((drop, keep) => {
+    if (figureIndex.has(keep)) figureIndex.set(drop, figureIndex.get(keep));
+  });
+  (inputs.annotations?.unplaced ?? []).forEach((u) =>
+    notes.push(`Not drawn: the ${describe(u.annotation)}: ${u.reason}`),
+  );
+  const annotations = figureAnnotations(
+    (inputs.annotations?.placed ?? []).filter(
+      (p) => p.cluster === alignment.cluster,
+    ),
+    (i) => figureIndex.get(tracks[i]),
+    range,
+    notes,
+  );
+
   if (missingCoordinates) {
     notes.push(
       "Some genes' coordinates haven't loaded, so their tracks' spans are incomplete; wait for the view to finish loading.",
@@ -450,6 +547,7 @@ export function figureModel(inputs: FigureInputs): FigureModel {
     figure: {
       columns: range,
       tracks: figureTracks,
+      annotations,
       legend: spec.legend === false ? null : legend,
       size: {
         width: spec.w ?? FIGURE_DEFAULTS.w,
@@ -487,6 +585,11 @@ export function figureModel(inputs: FigureInputs): FigureModel {
             .map((g) => g.family),
         ),
       },
+      annotations: annotations.map(({ id, kind, text }) => ({
+        id,
+        kind,
+        ...(text !== undefined ? { text } : {}),
+      })),
     },
     notes,
   };

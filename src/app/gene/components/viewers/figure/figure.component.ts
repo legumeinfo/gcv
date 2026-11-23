@@ -34,6 +34,7 @@ import {
   ParsedFigureSpec,
 } from '@gcv/gene/models/params';
 import {
+  AnnotationService,
   FamilyService,
   GeneService,
   MicroTracksService,
@@ -345,6 +346,7 @@ const PNG_DPI = 300;
   standalone: false,
 })
 export class FigureComponent implements AfterViewInit, OnDestroy {
+  private _annotationService = inject(AnnotationService);
   private _cd = inject(ChangeDetectorRef);
   private _familyService = inject(FamilyService);
   private _geneService = inject(GeneService);
@@ -387,10 +389,21 @@ export class FigureComponent implements AfterViewInit, OnDestroy {
       this._paramsService.getPinParams(),
       this._paramsService.getParams(),
       this._geneService.getQueryGenes(),
+      this._annotationService.getResolution(),
     ])
       .pipe(debounceTime(100), takeUntil(this._destroy))
       .subscribe(
-        ([query, all, genes, omitted, fig, pins, params, queryGenes]) => {
+        ([
+          query,
+          all,
+          genes,
+          omitted,
+          fig,
+          pins,
+          params,
+          queryGenes,
+          annotations,
+        ]) => {
           this.spec = fig ?? {};
           this.clusterChoices = Array.from(
             new Set(query.tracks.map((t) => t.cluster)),
@@ -428,6 +441,7 @@ export class FigureComponent implements AfterViewInit, OnDestroy {
             sameLocus: sameLocusTracks([alignment]),
             spec: this.spec,
             pins,
+            annotations,
           });
           const queryNames = new Set(
             alignment.tracks

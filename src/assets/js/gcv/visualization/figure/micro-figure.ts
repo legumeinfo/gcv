@@ -16,6 +16,12 @@ import {
   FigureTrack,
   MicroFigure,
 } from './micro-figure.model';
+import {
+  annotationMarks,
+  needsHeaderBand,
+  headerBand,
+  noteGutter,
+} from '../annotations/annotation-marks';
 
 // the width of text at a font size in px, italic or not
 export type MeasureText = (
@@ -148,7 +154,11 @@ export function drawMicroFigure(
   );
   const [c0, c1] = figure.columns;
   const left = pad + labelWidth + pad;
-  const right = width - pad;
+  // notes need a gutter right of the tracks
+  const right =
+    width -
+    pad -
+    noteGutter(figure.annotations, small, (t, s) => measure(t, s));
   const columnWidth = (right - left) / Math.max(c1 - c0, 1);
   const size = Math.max(
     2,
@@ -196,7 +206,11 @@ export function drawMicroFigure(
   });
   svg.appendChild(background);
 
-  let top = pad;
+  // headers, and labels over the first track, need a band above it
+  let top = pad + (needsHeaderBand(figure.annotations) ? headerBand(small) : 0);
+  const header = pad;
+  // each track's extent, for the annotations drawn over them
+  const extents: { top: number; bottom: number; middle: number }[] = [];
   figure.tracks.forEach((track: FigureTrack, i) => {
     const g = b.el('g', {
       'data-track': i,
@@ -299,8 +313,37 @@ export function drawMicroFigure(
       g.appendChild(geneGroup);
     });
     svg.appendChild(g);
+    extents.push({
+      top: rowY(0) - size / 2 - pad / 2,
+      bottom: rowY(levels[i] - 1) + size / 2 + pad / 2,
+      middle: rowY(0),
+    });
     top += levels[i] * row + pad;
   });
+
+  // annotations over the tracks
+  if (figure.annotations.length > 0) {
+    const layer = b.el('g', { 'data-annotations': '' });
+    annotationMarks(figure.annotations, {
+      x,
+      top: (t) => extents[t].top,
+      bottom: (t) => extents[t].bottom,
+      middle: (t) => extents[t].middle,
+      glyph: size,
+      font: small,
+      header,
+      gutter: right + pad,
+    }).forEach((m) => {
+      const e = b.el(m.tag, {
+        ...m.attributes,
+        'data-annotation': m.annotation,
+        'data-annotation-kind': m.kind,
+      });
+      if (m.text !== undefined) e.textContent = m.text;
+      layer.appendChild(e);
+    });
+    svg.appendChild(layer);
+  }
 
   // the legend, wrapped into lines
   if (figure.legend !== null && figure.legend.length > 0) {
