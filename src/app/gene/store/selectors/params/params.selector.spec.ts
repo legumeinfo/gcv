@@ -24,6 +24,7 @@ describe('the gene view parameters', () => {
       pinfam: ['f1', 'f2'],
       pingene: ['g1'],
       pinlabels: 'fade',
+      annot: { items: [], rejected: [] },
       fig: null,
     });
   });
@@ -33,6 +34,7 @@ describe('the gene view parameters', () => {
       pinfam: [],
       pingene: [],
       pinlabels: 'full',
+      annot: { items: [], rejected: [] },
       fig: null,
     });
   });

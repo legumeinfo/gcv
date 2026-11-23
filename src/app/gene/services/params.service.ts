@@ -10,6 +10,7 @@ import * as fromParams from '@gcv/gene/store/selectors/params/';
 // app
 import {
   AlignmentParams,
+  AnnotationListParams,
   AnnotationParams,
   FigureParams,
   FigureSpec,
@@ -20,6 +21,7 @@ import {
   MicroFilterParams,
   MicroOrderParams,
   Params,
+  ParsedAnnotations,
   PinChange,
   PinMode,
   PinParams,
@@ -29,6 +31,10 @@ import {
   SourceParams,
 } from '@gcv/gene/models/params';
 import { HttpService } from '@gcv/core/services/http.service';
+import {
+  Annotation,
+  serializeAnnotations,
+} from '@gcv/gene/annotations/grammar';
 
 @Injectable()
 export class ParamsService extends HttpService {
@@ -88,6 +94,17 @@ export class ParamsService extends HttpService {
     return this._store.select(fromParams.getPinParams);
   }
 
+  getAnnotationListParams(): Observable<AnnotationListParams> {
+    return this._store.select(fromParams.getAnnotationListParams);
+  }
+
+  // sets the annotations; none removes the parameter
+  updateAnnotations(items: Annotation[]): void {
+    this.updateParams({
+      annot: items.length === 0 ? null : { items, rejected: [] },
+    });
+  }
+
   getFigureParams(): Observable<FigureParams> {
     return this._store.select(fromParams.getFigureParams);
   }
@@ -121,6 +138,12 @@ export class ParamsService extends HttpService {
       Object.entries(params).map(([key, value]) => {
         if (key === 'fig' && value !== null && value !== undefined) {
           return [key, serializeFigureSpec(value as FigureSpec)];
+        }
+        if (key === 'annot' && value !== null && value !== undefined) {
+          return [
+            key,
+            serializeAnnotations((value as ParsedAnnotations).items),
+          ];
         }
         if (!Array.isArray(value)) {
           return [key, value];

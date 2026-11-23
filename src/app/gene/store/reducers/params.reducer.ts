@@ -38,6 +38,8 @@ export const annotationInitialState: AnnotationParams = {
   pinfam: [],
   pingene: [],
   pinlabels: 'full',
+  // annotations
+  annot: { items: [], rejected: [] },
   // figure
   fig: null,
 };

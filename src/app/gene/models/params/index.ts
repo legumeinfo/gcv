@@ -5,6 +5,12 @@ import {
   alignmentParamValidators,
 } from './alignment.model';
 import {
+  AnnotationListParams,
+  annotationListParamMembers,
+  annotationListParamParsers,
+  annotationListParamValidators,
+} from './annotation.model';
+import {
   BlockParams,
   blockParamMembers,
   blockParamParsers,
@@ -66,6 +72,7 @@ import {
 } from './source.model';
 
 export * from './alignment.model';
+export * from './annotation.model';
 export * from './block.model';
 export * from './clustering.model';
 export * from './figure.model';
@@ -127,15 +134,17 @@ export const paramParsers: { [key: string]: (...args: any[]) => any } = {
 // Parameters that mark the view without changing its analysis. They are kept
 // apart from the analysis parameters above, so getParams, and the agent tools
 // that change the analysis, never see them.
-export type AnnotationParams = PinParams & FigureParams;
+export type AnnotationParams = PinParams & AnnotationListParams & FigureParams;
 
 export const annotationParamMembers = [
   ...pinParamMembers,
+  ...annotationListParamMembers,
   ...figureParamMembers,
 ];
 
 export const annotationParamValidators = {
   ...pinParamValidators,
+  ...annotationListParamValidators,
   ...figureParamValidators,
 };
 
@@ -144,5 +153,6 @@ export const annotationParamParsers: Record<
   (value: string | string[]) => unknown
 > = {
   ...pinParamParsers,
+  ...annotationListParamParsers,
   ...figureParamParsers,
 };
