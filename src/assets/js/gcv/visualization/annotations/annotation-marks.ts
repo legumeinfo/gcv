@@ -42,11 +42,21 @@ export type AnnotationGeometry = {
   middle: (track: number) => number;
   glyph: number;
   font: number;
-  // the top of the band above the first track that holds headers
+  // the width of text at a font size
+  measure: (text: string, size: number) => number;
+  // the top of the band above the first track, and the lanes the renderer
+  // reserved there (bandLanes)
   header: number;
+  lanes: number;
   // where notes' text starts, right of the tracks
   gutter: number;
 };
+
+// what packing the band's labels needs
+export type BandGeometry = Pick<
+  AnnotationGeometry,
+  'x' | 'glyph' | 'font' | 'measure'
+>;
 
 export type AnnotationMark = {
   tag: 'rect' | 'line' | 'path' | 'text';
@@ -58,8 +68,98 @@ export type AnnotationMark = {
 
 const INK = '#000000';
 
-// the height of the band headers need above the first track
-export const headerBand = (font: number) => font * 2.6;
+// The band above the first track holds headers, and the labels of boxes and
+// sites on the first track, in lanes, so that none overlap: a lane holds a
+// line of text and a header's bracket. Lane 0 is nearest the tracks.
+const laneHeight = (font: number) => font * 1.6;
+const bandMargin = (font: number) => font * 0.4;
+
+// the height of a band of lanes
+export const headerBand = (font: number, lanes: number) =>
+  lanes === 0 ? 0 : lanes * laneHeight(font) + bandMargin(font);
+
+// a label in the band; a site's label sits in the lanes nearest the
+// tracks, right above the pointer it names, and the rest pack above those
+type BandLabel = { id: string; extent: [number, number]; site: boolean };
+
+// each annotation's label in the band, with the horizontal extent it needs:
+// sites, then headers, so they line up, then boxes
+function bandLabels(
+  annotations: PlacedAnnotation[],
+  g: BandGeometry,
+): BandLabel[] {
+  const small = g.font * 0.85;
+  const centered = (x: number, text: string, size: number) => {
+    const w = g.measure(text, size);
+    return [x - w / 2, x + w / 2] as [number, number];
+  };
+  const heads = annotations
+    .filter((a) => a.kind === 'head')
+    .map((a) => {
+      const [c0, c1] = a.columns;
+      const [l, r] = centered((g.x(c0) + g.x(c1)) / 2, a.text, g.font);
+      const span: [number, number] =
+        c1 > c0 ? [g.x(c0) - g.glyph / 2, g.x(c1) + g.glyph / 2] : [l, r];
+      return {
+        id: a.id,
+        extent: [Math.min(l, span[0]), Math.max(r, span[1])] as [
+          number,
+          number,
+        ],
+        site: false,
+      };
+    });
+  const sites = annotations
+    .filter(
+      (a) =>
+        a.kind === 'site' && a.text !== undefined && a.sites[0]?.track === 0,
+    )
+    .map((a) => {
+      const { x0, x1 } = a.sites[0];
+      return {
+        id: a.id,
+        extent: centered((g.x(x0) + g.x(x1)) / 2, a.text, small),
+        site: true,
+      };
+    });
+  const boxes = annotations
+    .filter(
+      (a) => a.kind === 'box' && a.text !== undefined && a.tracks.includes(0),
+    )
+    .map((a) => {
+      const left = g.x(a.columns[0]) - g.glyph / 2 - g.glyph * 0.25;
+      return {
+        id: a.id,
+        extent: [left, left + g.measure(a.text, small)] as [number, number],
+        site: false,
+      };
+    });
+  return [...sites, ...heads, ...boxes];
+}
+
+// each band label's lane, packed greedily, and how many lanes they need
+function packBand(
+  annotations: PlacedAnnotation[],
+  g: BandGeometry,
+): { lanes: number; lane: Map<string, number> } {
+  const gap = g.font * 0.5;
+  const used: [number, number][][] = [];
+  const lane = new Map<string, number>();
+  // the lanes sites' labels took, which the others start above
+  let sites = 0;
+  bandLabels(annotations, g).forEach(({ id, extent: [l, r], site }) => {
+    let k = site ? 0 : sites;
+    while (used[k]?.some(([a, b]) => l < b + gap && r > a - gap)) k++;
+    if (site) sites = Math.max(sites, k + 1);
+    (used[k] ??= []).push([l, r]);
+    lane.set(id, k);
+  });
+  return { lanes: used.length, lane };
+}
+
+// the lanes the band above the first track needs
+export const bandLanes = (annotations: PlacedAnnotation[], g: BandGeometry) =>
+  packBand(annotations, g).lanes;
 
 const stroke = (a: PlacedAnnotation, dashed = false) =>
   `fill: none; stroke: ${INK}; stroke-width: ${a.style === 'accent' ? 2.2 : 1}px;` +
@@ -92,6 +192,16 @@ export function annotationMarks(
   const marks: AnnotationMark[] = [];
   const pad = g.glyph * 0.25;
   const small = g.font * 0.85;
+  // labels in the band take their packed lane, or the top lane past those
+  // the renderer reserved, as after it narrows
+  const { lane } = packBand(annotations, g);
+  const laneTop = (id: string) => {
+    const k = Math.min(lane.get(id) ?? 0, Math.max(g.lanes - 1, 0));
+    const bottom = g.header + headerBand(g.font, g.lanes) - bandMargin(g.font);
+    return bottom - (k + 1) * laneHeight(g.font);
+  };
+  // text in a lane sits on the same baseline whatever its size
+  const laneText = (id: string) => laneTop(id) + g.font * 0.95;
   // notes stack in the gutter so their text doesn't overlap
   const noteRows: number[] = [];
   annotations.forEach((a) => {
@@ -115,11 +225,8 @@ export function annotationMarks(
             style: stroke(a),
           });
           if (a.text !== undefined && i === 0) {
-            mark(
-              'text',
-              { x: left, y: top - small * 0.4, style: textStyle(small) },
-              a.text,
-            );
+            const y = run[0] === 0 ? laneText(a.id) : top - small * 0.4;
+            mark('text', { x: left, y, style: textStyle(small) }, a.text);
           }
         });
         break;
@@ -175,12 +282,13 @@ export function annotationMarks(
       case 'head': {
         const [c0, c1] = a.columns;
         const middle = (g.x(c0) + g.x(c1)) / 2;
-        const base = g.header + headerBand(g.font) - pad;
+        // the bracket under the text, its ticks reaching down
+        const base = laneTop(a.id) + laneHeight(g.font) - g.font * 0.1;
         mark(
           'text',
           {
             x: middle,
-            y: g.header + g.font,
+            y: laneText(a.id),
             style: textStyle(g.font, 'middle'),
           },
           a.text,
@@ -188,7 +296,7 @@ export function annotationMarks(
         if (c1 > c0) {
           const left = g.x(c0) - g.glyph / 2;
           const right = g.x(c1) + g.glyph / 2;
-          const tick = g.font * 0.4;
+          const tick = g.font * 0.3;
           mark('path', {
             d: `M${left},${base}L${left},${base - tick}L${right},${base - tick}L${right},${base}`,
             style: stroke(a),
@@ -197,32 +305,31 @@ export function annotationMarks(
         break;
       }
       case 'site': {
+        // a pointer above the gene, or a bar over an interval, so the mark
+        // never covers a glyph and its label sits right above it
+        const size = g.glyph * (a.style === 'accent' ? 0.45 : 0.35);
         a.sites.forEach((site, i) => {
-          const y = g.middle(site.track);
-          const reach = g.glyph * 0.8;
+          const tip = g.middle(site.track) - g.glyph / 2 - g.glyph * 0.08;
           const [x0, x1] = [g.x(site.x0), g.x(site.x1)];
           if (x0 === x1) {
-            mark('line', {
-              x1: x0,
-              y1: y - reach,
-              x2: x0,
-              y2: y + reach,
-              style: stroke(a),
+            mark('path', {
+              d: `M${x0},${tip}L${x0 - size * 0.6},${tip - size}L${x0 + size * 0.6},${tip - size}Z`,
+              style: `fill: ${INK};`,
             });
           } else {
             mark('rect', {
               x: Math.min(x0, x1),
-              y: y + g.glyph / 2,
+              y: tip - size * 0.6,
               width: Math.abs(x1 - x0),
-              height: g.glyph * 0.25,
-              style: stroke(a),
+              height: size * 0.6,
+              style: `fill: ${INK};`,
             });
           }
           if (site.clipped !== undefined) {
             const edge =
               site.clipped === 'left' ? Math.min(x0, x1) : Math.max(x0, x1);
             mark('path', {
-              d: arrow(edge, y - reach, site.clipped, g.glyph * 0.3),
+              d: arrow(edge, tip - size * 0.3, site.clipped, g.glyph * 0.3),
               style: `fill: ${INK};`,
             });
           }
@@ -231,7 +338,7 @@ export function annotationMarks(
               'text',
               {
                 x: (x0 + x1) / 2,
-                y: y - reach - small * 0.5,
+                y: site.track === 0 ? laneText(a.id) : tip - size - small * 0.4,
                 style: textStyle(small, 'middle'),
               },
               a.text,
@@ -255,13 +362,3 @@ export function noteGutter(
   if (notes.length === 0) return 0;
   return Math.max(...notes.map((n) => measure(n.text, font))) + font * 3;
 }
-
-// whether anything is drawn above the first track: a header, a box's label,
-// or a site's tick and label
-export const needsHeaderBand = (annotations: PlacedAnnotation[]) =>
-  annotations.some(
-    (a) =>
-      a.kind === 'head' ||
-      (a.kind === 'box' && a.text !== undefined && a.tracks.includes(0)) ||
-      (a.kind === 'site' && a.sites.some((s) => s.track === 0)),
-  );

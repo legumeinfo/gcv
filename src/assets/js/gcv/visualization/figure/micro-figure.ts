@@ -18,7 +18,7 @@ import {
 } from './micro-figure.model';
 import {
   annotationMarks,
-  needsHeaderBand,
+  bandLanes,
   headerBand,
   noteGutter,
 } from '../annotations/annotation-marks';
@@ -206,8 +206,14 @@ export function drawMicroFigure(
   });
   svg.appendChild(background);
 
-  // headers, and labels over the first track, need a band above it
-  let top = pad + (needsHeaderBand(figure.annotations) ? headerBand(small) : 0);
+  // headers, and labels over the first track, need a band of lanes above it
+  const lanes = bandLanes(figure.annotations, {
+    x,
+    glyph: size,
+    font: small,
+    measure: (t, s) => measure(t, s),
+  });
+  let top = pad + headerBand(small, lanes);
   const header = pad;
   // each track's extent, for the annotations drawn over them
   const extents: { top: number; bottom: number; middle: number }[] = [];
@@ -331,7 +337,9 @@ export function drawMicroFigure(
       middle: (t) => extents[t].middle,
       glyph: size,
       font: small,
+      measure: (t, s) => measure(t, s),
       header,
+      lanes,
       gutter: right + pad,
     }).forEach((m) => {
       const e = b.el(m.tag, {

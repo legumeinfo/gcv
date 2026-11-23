@@ -98,9 +98,10 @@ test.describe('annotations', () => {
     const { chromosome, extent } = await queryTrack(page);
     const at = Math.round((extent[0] + extent[1]) / 2);
     await annotate(page, `site(at=${chromosome}:${at},x=here)`);
-    const sites = page.locator('gcv-micro line[data-annotation-kind="site"]');
+    const sites = page.locator('gcv-micro path[data-annotation-kind="site"]');
     await expect(sites).not.toHaveCount(0);
-    // each tick lies within the vertical extent of a track on the chromosome
+    // each pointer's tip sits just above the genes of a track on the
+    // chromosome
     const misplaced = await page.evaluate((chromosome) => {
       const tracks = Array.from(
         document.querySelectorAll('gcv-micro g[data-micro-track]'),
@@ -110,14 +111,13 @@ test.describe('annotations', () => {
       }));
       return Array.from(
         document.querySelectorAll(
-          'gcv-micro line[data-annotation-kind="site"]',
+          'gcv-micro path[data-annotation-kind="site"]',
         ),
-      ).filter((line) => {
-        const y =
-          (Number(line.getAttribute('y1')) + Number(line.getAttribute('y2'))) /
-          2;
+      ).filter((pointer) => {
+        const box = (pointer as SVGPathElement).getBBox();
+        const tip = box.y + box.height;
         const holder = tracks.find(
-          (t) => y >= t.box.y && y <= t.box.y + t.box.height,
+          (t) => tip >= t.box.y - 5 && tip <= t.box.y + t.box.height,
         );
         return holder?.chromosome !== chromosome;
       }).length;

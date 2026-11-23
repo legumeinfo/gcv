@@ -15,7 +15,7 @@ import {
 import {
   PlacedAnnotation,
   annotationMarks,
-  needsHeaderBand,
+  bandLanes,
   headerBand,
   noteGutter,
 } from './annotations/annotation-marks';
@@ -50,6 +50,7 @@ export class Micro extends Visualizer {
   private names: any[];
   private intervals: any[];
   private levels: number[];
+  private lanes: number;
   private gutter: number;
   private right: number;
   private thickness: any;
@@ -157,16 +158,21 @@ export class Micro extends Visualizer {
     this.levels = levels;
     const numLevels = levels.reduce((a, b) => a + b, 0);
     const halfTrack = this.GLYPH_SIZE / 2;
-    // headers, and labels over the first track, need a band above it
-    const band = needsHeaderBand(this.options.annotations)
-      ? headerBand(ANNOTATION_FONT)
-      : 0;
-    const top = this.PAD + band + halfTrack;
-    const bottom = top + this.GLYPH_SIZE * numLevels;
-    this.viewer.attr('height', bottom + halfTrack);
     // compute the track names and locations, and line thickness
     this.ticks = trackTicks(levels);
     this.names = data.map((t) => trackLabel(t, this.options.prefix(t)));
+    // headers, and labels over the first track, need a band of lanes above
+    // it, packed at the width the viewer opens at
+    this.lanes = bandLanes(this.options.annotations, {
+      x: this.estimatedX(data),
+      glyph: this.GLYPH_SIZE * 0.7,
+      font: ANNOTATION_FONT,
+      measure: (text, size) => this.measureText(text, size),
+    });
+    const band = headerBand(ANNOTATION_FONT, this.lanes);
+    const top = this.PAD + band + halfTrack;
+    const bottom = top + this.GLYPH_SIZE * numLevels;
+    this.viewer.attr('height', bottom + halfTrack);
     this.intervals = data.map(trackInterval);
     this.distances = data.map(neighborDistances);
     const allDistances = this.distances.flat();
@@ -251,6 +257,30 @@ export class Micro extends Visualizer {
     this.setPins(this.options.pins, this.options.pinLabels);
   }
 
+  // the x scale draw() will set, from the labels' and the gutter's widths,
+  // before anything is drawn
+  private estimatedX(data) {
+    const half = this.GLYPH_SIZE / 2;
+    // the axis's labels, a bold query label among them, and its ticks
+    const labels =
+      Math.max(0, ...this.names.map((n) => this.measureText(n, 10))) * 1.1 + 6;
+    const left = labels + 2 * this.PAD;
+    const plot =
+      this.options.plotClick !== undefined
+        ? this.measureText('plot', 10) + 6 + this.PAD
+        : 0;
+    const gutter = noteGutter(
+      this.options.annotations,
+      ANNOTATION_FONT,
+      (t, s) => this.measureText(t, s),
+    );
+    const right = this.PAD + gutter + plot;
+    return d3
+      .scaleLinear()
+      .domain(columnDomain(data))
+      .range([left + half, this.container.clientWidth - right - half]);
+  }
+
   // the width of a text at a font size, measured in the viewer
   private measureText(text: string, size: number): number {
     const t = this.viewer
@@ -280,7 +310,9 @@ export class Micro extends Visualizer {
       middle: (t) => this.y(this.ticks[t]),
       glyph: this.GLYPH_SIZE * 0.7,
       font: ANNOTATION_FONT,
+      measure: (text, size) => this.measureText(text, size),
       header: this.PAD,
+      lanes: this.lanes,
       // past the plot links, at the viewer's right edge
       gutter: this.viewer.attr('width') - this.gutter + ANNOTATION_FONT,
     });
