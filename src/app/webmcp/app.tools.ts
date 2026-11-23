@@ -364,10 +364,11 @@ const showGeneContexts = defineGcvWebMcpTool({
 
 // every tool, in the order of the guide
 export async function appWebMcpTools(): Promise<GcvWebMcpTools> {
-  const [analysis, inspect, display] = await Promise.all([
+  const [analysis, inspect, display, annotation] = await Promise.all([
     import('@gcv/gene/webmcp/gene-view.tools'),
     import('@gcv/gene/webmcp/inspect.tools'),
     import('@gcv/gene/webmcp/display.tools'),
+    import('@gcv/gene/webmcp/annotation.tools'),
   ]);
   return [
     describeGcv,
@@ -377,6 +378,7 @@ export async function appWebMcpTools(): Promise<GcvWebMcpTools> {
       ...analysis.analysisWebMcpTools(),
       ...inspect.inspectWebMcpTools(),
       ...display.displayWebMcpTools(),
+      ...annotation.annotationWebMcpTools(),
     ].map((tool) => inGeneView(tool)),
   ];
 }

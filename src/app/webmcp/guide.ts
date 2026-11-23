@@ -103,6 +103,25 @@ export const TOOL_GUIDE: ToolGuide[] = [
       },
     ],
   },
+  {
+    group: 'annotate',
+    about:
+      'Mark the view with boxes, gaps, notes, column headers and sites, anchored to genes and positions; they live in the URL (annot), are drawn in the viewers and in figures, and never change the analysis.',
+    tools: [
+      {
+        name: 'add_annotation',
+        use: 'Box columns, mark an empty slot, add a note or a column header, or mark a genomic position.',
+      },
+      {
+        name: 'list_annotations',
+        use: 'See every annotation, where it is drawn, and why any is not.',
+      },
+      {
+        name: 'remove_annotation',
+        use: 'Remove an annotation by its ID, or all of them.',
+      },
+    ],
+  },
 ];
 
 export const CONCEPTS = [
@@ -168,7 +187,7 @@ export const RECIPES = [
   {
     question: 'Show the user what you found.',
     steps:
-      'highlight_in_view to point at genes or families, pin_in_view to mark them in the link you give, open_panel for details, macro-synteny, circos or dot plots, and export_figure to download an SVG or the alignment TSV.',
+      'highlight_in_view to point at genes or families, pin_in_view to mark them in the link you give, add_annotation to box the columns or mark the slots and positions a finding is about, open_panel for details, macro-synteny, circos or dot plots, and export_figure to download an SVG or the alignment TSV.',
   },
 ];
 

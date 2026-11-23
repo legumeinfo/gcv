@@ -52,6 +52,9 @@ The gene view tools work on the open gene view; `show_gene_contexts` opens one.
 | `open_panel`                 | Opens gene, track or family details, a macro-synteny view, a Circos view or a dot plot.                                         |
 | `set_family_emphasis`        | Draws some families as strandless circles so the others stand out.                                                              |
 | `export_figure`              | Downloads a panel as SVG, or a cluster's alignment as TSV.                                                                      |
+| `add_annotation`             | Boxes columns, marks an empty slot, adds a note or a column header, or marks a genomic position; annotations are in the URL.    |
+| `list_annotations`           | Lists the annotations, where each is drawn, and why any is not.                                                                 |
+| `remove_annotation`          | Removes an annotation, or all of them.                                                                                          |
 
 ## Running GCV
 
