@@ -256,10 +256,12 @@ describe('drawMicroFigure', () => {
   it('credits GCV in small grey text in the bottom right corner', () => {
     const svg = draw({
       ...figure,
-      watermark: 'Made by GCV: gcv.legumeinfo.org',
+      watermark: 'Made with the Genome Context Viewer: gcv.legumeinfo.org',
     });
     const mark = svg.querySelector('[data-watermark]');
-    expect(mark.textContent).toBe('Made by GCV: gcv.legumeinfo.org');
+    expect(mark.textContent).toBe(
+      'Made with the Genome Context Viewer: gcv.legumeinfo.org',
+    );
     expect(mark.getAttribute('text-anchor')).toBe('end');
     expect(mark.getAttribute('style')).toContain('fill: #8c8c8c');
     const [, , width, height] = svg

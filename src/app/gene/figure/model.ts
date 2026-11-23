@@ -53,7 +53,8 @@ export type FigureInputs = {
 export const FIGURE_DEFAULTS = { w: 180, font: 7 };
 
 // the credit every figure carries
-export const WATERMARK = 'Made by GCV: gcv.legumeinfo.org';
+export const WATERMARK =
+  'Made with the Genome Context Viewer: gcv.legumeinfo.org';
 
 // what the figure shows, for its caption, its notes and agents
 export type FigureManifest = {
