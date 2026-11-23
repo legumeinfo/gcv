@@ -206,7 +206,7 @@ describe('cropping columns', () => {
     const q = model.manifest.tracks[0];
     expect([q.fmin, q.fmax]).toEqual([11_000, 12_100]);
     // the species and strain are the label's binomial
-    expect(model.figure.tracks[0].locus).toBe('gnm4.Gm15:11,000–12,100');
+    expect(model.figure.tracks[0].locus).toBe('gnm4.Gm15: 0.011–0.012 Mb');
   });
 
   it('ends a rail at the edge toward a neighbor outside the columns', () => {
@@ -371,7 +371,11 @@ describe('the rest of the figure', () => {
       sameLocus: [],
       spec: { labels: 'short' },
     }).figure.tracks;
-    expect([label.binomial, label.locus]).toEqual(['Glycine max', 'Wm82 Gm01']);
+    expect([label.binomial, label.strain, label.locus]).toEqual([
+      'Glycine max',
+      'Wm82',
+      'Gm01',
+    ]);
   });
 
   it('shortens LIS chromosome names whose species abbreviation has digits', () => {
@@ -399,8 +403,48 @@ describe('the rest of the figure', () => {
         sameLocus: [],
         spec: { labels },
       }).figure.tracks[0].locus;
-    expect(label('short')).toBe('G1403 Chr16');
-    expect(label('full')).toMatch(/^G1403 gnm1\.Chr16:/);
+    expect(label('short')).toBe('Chr16');
+    expect(label('full')).toMatch(/^gnm1\.Chr16: /);
+  });
+
+  it('gives a reversed track’s span high to low, and says so', () => {
+    const { figure, manifest } = figureModel(inputs({}));
+    const i = manifest.tracks.findIndex((t) => t.chromosome === cowpea.name);
+    expect(figure.tracks[i].locus).toBe('gnm1.Vu01: 0.012–0.010 Mb (rev.)');
+    expect(figure.tracks[0].locus).not.toContain('rev.');
+  });
+
+  it('groups tracks of one genome, as two assemblies of it', () => {
+    const { figure } = figureModel(inputs({}));
+    expect(figure.tracks[0].genome).toBe(figure.tracks[1].genome);
+    expect(figure.tracks[1].genome).not.toBe(figure.tracks[2].genome);
+  });
+
+  it('names the families in the key by their IDs, the shared prefix once', () => {
+    const families = (fs: string[]) => {
+      const rename = (f: string) =>
+        f === '' ? f : (fs[['a', 'b', 'c', 'd', 'e'].indexOf(f)] ?? f);
+      const named = tracks.map((t) => ({
+        ...t,
+        families: t.families.map(rename),
+      }));
+      const renamed = genes.map((g) => ({ ...g, family: rename(g.family) }));
+      const { data } = microShim(0, [named[0]], named, renamed, []);
+      const [alignment] = clusterAlignments(
+        [fs],
+        named,
+        new Set([named[0]]),
+        new Map(),
+      );
+      return figureModel({ drawn: data, alignment, sameLocus: [], spec: {} })
+        .figure;
+    };
+    const prefixed = families(['fam.A', 'fam.B', 'fam.C', 'fam.D', 'fam.E']);
+    expect(prefixed.legendTitle).toBe('Gene families (fam):');
+    expect(prefixed.legend[0].label).toBe('A');
+    const plain = families(['A', 'B', 'C', 'D', 'E']);
+    expect(plain.legendTitle).toBe('Gene families:');
+    expect(plain.legend[0].label).toBe('A');
   });
 
   it('shortens LIS names for short labels and gene names', () => {

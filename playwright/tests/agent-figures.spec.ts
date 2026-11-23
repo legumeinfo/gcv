@@ -123,11 +123,12 @@ test.describe('the agent figure tools', () => {
     expect(figure.tracks.map((t) => t.role)).toEqual(
       manifest.tracks.map((t) => t.role),
     );
-    figure.tracks.forEach((t, i) =>
-      expect(t.label).toContain(
-        manifest.tracks[i].fmin.toLocaleString('en-US'),
-      ),
-    );
+    // each label states its span, in Mb, whichever way it reads
+    const mb = (n: number) => (n / 1e6).toFixed(3);
+    figure.tracks.forEach((t, i) => {
+      expect(t.label).toContain(mb(manifest.tracks[i].fmin));
+      expect(t.label).toContain(mb(manifest.tracks[i].fmax));
+    });
     expect(figure.columns.length).toBeGreaterThan(0);
     for (const c of figure.columns) {
       expect(c).toBeGreaterThanOrEqual(manifest.columns.from - 1);

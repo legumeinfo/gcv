@@ -28,11 +28,28 @@ const SVG = 'http://www.w3.org/2000/svg';
 const PX_PER_MM = 96 / 25.4;
 const PX_PER_PT = 96 / 72;
 const FONT = 'sans-serif';
+// Ink, from the loudest to the quietest. Hue is kept for gene families;
+// everything else is black or grey, so nothing else reads as homology.
 const STROKE = '#000000';
-// the watermark's grey, light enough to recede beside the data
+// every glyph's outline: enough to hold white and yellow glyphs, quieter
+// than the colors inside it
+const OUTLINE = '#4d4d4d';
+// the secondary line of a track's label, and the key's title
+const SECONDARY = '#595959';
+// rails, lighter than any outline so they stay the background layer
+const RAIL = '#8c8c8c';
+// the watermark, light enough to recede beside the data
 const WATERMARK_FILL = '#8c8c8c';
-// the largest fitted glyph, in mm
-const MAX_GLYPH = 3;
+// the largest fitted glyph, in mm, and its share of a column
+const MAX_GLYPH = 2.2;
+const GLYPH_SHARE = 0.65;
+// line weights in pt: outlines, and the range of rail thickness
+const OUTLINE_PT = 0.3;
+const RAIL_PT: [number, number] = [0.3, 1];
+// where a rail continues past the columns shown, its last stretch is
+// dotted, in mm; and the gap between labels and the first column
+const CONTINUES_MM = 1.5;
+const LABEL_GAP_MM = 1.5;
 
 // coordinates to 0.01 px, so the output doesn't depend on float noise
 const r = (n: number) => Math.round(n * 100) / 100;
@@ -73,9 +90,9 @@ function text(
 }
 
 function glyph(b: Builder, gene: FigureGene, size: number): Element {
-  const stroke = 0.6;
+  const stroke = OUTLINE_PT * PX_PER_PT;
   const style =
-    `fill: ${gene.fill}; stroke: ${STROKE}; stroke-width: ${stroke}px;` +
+    `fill: ${gene.fill}; stroke: ${OUTLINE}; stroke-width: ${r(stroke)}px;` +
     (gene.style === 'orphan' ? ' stroke-dasharray: 1.5 1;' : '');
   if (glyphShape(gene) === 'circle') {
     return b.el('circle', { cx: 0, cy: 0, r: size * 0.32, style });
@@ -97,7 +114,7 @@ function legendSwatch(
   size: number,
 ): Element {
   const style =
-    `fill: ${entry.fill}; stroke: ${STROKE}; stroke-width: 0.6px;` +
+    `fill: ${entry.fill}; stroke: ${OUTLINE}; stroke-width: ${r(OUTLINE_PT * PX_PER_PT)}px;` +
     (entry.style === 'orphan' ? ' stroke-dasharray: 1.5 1;' : '');
   return b.el('rect', {
     x: 0,
@@ -172,30 +189,37 @@ export function drawMicroFigure(
 ): SVGSVGElement {
   const b = builder(document);
   const width = figure.size.width * PX_PER_MM;
+  // the type: labels' first line, their second line and the key, and the
+  // small text of gene names and family numbers
   const font = figure.size.font * PX_PER_PT;
+  const second = font * (6 / 7);
   const small = font * 0.8;
   const pad = font * 0.6;
-  // the label column fits the widest label
+  // the label column fits the widest label, right-aligned against the tracks
+  const firstLine = (t: FigureTrack) =>
+    measure(t.binomial, font, true) +
+    (t.strain !== undefined ? measure(` ${t.strain}`, font, false) : 0);
   const labelWidth = Math.max(
     0,
-    ...figure.tracks.map(
-      (t) =>
-        measure(t.binomial, font, true) + measure(` ${t.locus}`, font, false),
+    ...figure.tracks.map((t) =>
+      Math.max(firstLine(t), measure(t.locus, second, false)),
     ),
   );
+  const labelEnd = pad + labelWidth;
   const [c0, c1] = figure.columns;
-  const left = pad + labelWidth + pad;
+  const left = labelEnd + LABEL_GAP_MM * PX_PER_MM;
   const right = width - pad;
   const columnWidth = (right - left) / Math.max(c1 - c0, 1);
   const size = Math.max(
     2,
     figure.size.glyph !== undefined
       ? figure.size.glyph * PX_PER_MM
-      : Math.min(columnWidth * 0.7, MAX_GLYPH * PX_PER_MM),
+      : Math.min(columnWidth * GLYPH_SHARE, MAX_GLYPH * PX_PER_MM),
   );
   const x = (column: number) =>
     left + ((column - c0) / (c1 - c0)) * (right - left);
-  // rows: a glyph, the legend number above it, the gene name below it
+  // rows: a glyph and its two-line label, the legend number above it, the
+  // gene name below it
   const above = figure.famlabels ? small * 1.2 : 0;
   const below = figure.names
     ? Math.max(
@@ -205,15 +229,22 @@ export function drawMicroFigure(
         ),
       ) + pad
     : 0;
-  const row = Math.max(size * 1.5, font * 1.5) + above + below;
+  const core = Math.max(size * 1.6, (font + second) * 1.15);
+  const row = core + above + below;
+  // two levels of spacing: tracks of one genome sit closer than genomes
+  const gap = (i: number) =>
+    figure.tracks[i + 1]?.genome === figure.tracks[i].genome
+      ? font * 0.15
+      : font * 0.9;
   const levels = trackLevels(figure.tracks);
   // rail thickness spans the figure's distances
   const distances = figure.tracks.flatMap((t) =>
     t.rails.map((rail) => neighborDistances({ genes: rail.ends })[0]),
   );
   const [dMin, dMax] = [Math.min(...distances), Math.max(...distances)];
+  const [thin, thick] = RAIL_PT.map((pt) => pt * PX_PER_PT);
   const thickness = (d: number) =>
-    dMax > dMin ? 0.4 + ((d - dMin) / (dMax - dMin)) * 1.6 : 1;
+    dMax > dMin ? thin + ((d - dMin) / (dMax - dMin)) * (thick - thin) : thin;
 
   const svg = b.el('svg', {
     xmlns: SVG,
@@ -239,28 +270,41 @@ export function drawMicroFigure(
       'data-track': i,
       'data-role': track.role,
     });
-    const rowY = (y: number) => top + y * row + above + size * 0.75;
-    // the label, beside the track's first row
-    const label = text(b, '', pad, rowY(0), font);
+    // a row's glyph sits in the middle of the space between its number and
+    // its name
+    const rowY = (y: number) => top + y * row + above + core / 2;
+    // the label, beside the track's first row: the taxon, then the locus in
+    // smaller grey type, both right-aligned against the tracks
+    const label = b.el('g', { 'data-label': '' });
+    const taxon = text(b, '', labelEnd, rowY(0) - second * 0.55, font, 'end');
     const binomial = b.el('tspan', { style: 'font-style: italic;' });
     binomial.textContent = track.binomial;
-    const locus = b.el('tspan');
-    locus.textContent = ` ${track.locus}`;
-    label.appendChild(binomial);
-    label.appendChild(locus);
-    label.setAttribute('data-label', '');
-    if (track.role === 'query') {
-      label.setAttribute(
-        'style',
-        `${label.getAttribute('style')} font-weight: bold;`,
-      );
+    taxon.appendChild(binomial);
+    if (track.strain !== undefined) {
+      const strain = b.el('tspan');
+      strain.textContent = ` ${track.strain}`;
+      taxon.appendChild(strain);
     }
+    const locus = text(
+      b,
+      track.locus,
+      labelEnd,
+      rowY(0) + font * 0.55,
+      second,
+      'end',
+    );
+    locus.setAttribute(
+      'style',
+      `font-family: ${FONT}; font-size: ${r(second)}px; fill: ${SECONDARY};`,
+    );
+    label.appendChild(taxon);
+    label.appendChild(locus);
     g.appendChild(label);
     // rails under the genes
     track.rails.forEach((rail) => {
       const a = track.genes[rail.from];
       const width = thickness(neighborDistances({ genes: rail.ends })[0]);
-      const style = `stroke: ${STROKE}; stroke-width: ${r(width)}px;`;
+      const style = `stroke: ${RAIL}; stroke-width: ${r(width)}px;`;
       if (typeof rail.to === 'number') {
         const bGene = track.genes[rail.to];
         const [first, second] = a.x <= bGene.x ? [a, bGene] : [bGene, a];
@@ -278,26 +322,29 @@ export function drawMicroFigure(
           }),
         );
       } else {
-        // a neighbor outside the columns shown: the rail ends in an arrow at
-        // the figure's edge
+        // a neighbor outside the columns shown: the rail runs to the
+        // figure's edge, its last stretch dotted, for "continues"
         const edge = rail.to === 'left' ? left : right;
+        const d = rail.to === 'left' ? -1 : 1;
+        const dots = edge - d * CONTINUES_MM * PX_PER_MM;
         const y = rowY(a.y);
         g.appendChild(
           b.el('line', {
             x1: x(a.x),
             y1: y,
-            x2: edge,
+            x2: dots,
             y2: y,
             style,
             'data-rail': `${rail.from}-${rail.to}`,
           }),
         );
-        const d = rail.to === 'left' ? -1 : 1;
-        const tip = size * 0.25;
         g.appendChild(
-          b.el('path', {
-            d: `M${r(edge)},${r(y)}L${r(edge - d * tip)},${r(y - tip * 0.6)}L${r(edge - d * tip)},${r(y + tip * 0.6)}Z`,
-            style: `fill: ${STROKE};`,
+          b.el('line', {
+            x1: dots,
+            y1: y,
+            x2: edge,
+            y2: y,
+            style: `stroke: ${RAIL}; stroke-width: ${r(Math.max(width, 0.8))}px; stroke-dasharray: 0.8 1.2;`,
             'data-rail-end': rail.to,
           }),
         );
@@ -335,7 +382,7 @@ export function drawMicroFigure(
       g.appendChild(geneGroup);
     });
     svg.appendChild(g);
-    top += levels[i] * row + pad;
+    top += levels[i] * row + gap(i);
   });
 
   // the last line of text below the tracks: its middle and where it ends,
@@ -345,14 +392,32 @@ export function drawMicroFigure(
   // the legend, wrapped into lines
   if (figure.legend !== null && figure.legend.length > 0) {
     top += pad;
-    const swatch = font;
+    const swatch = second * 0.9;
     let lineX = pad;
-    const lineHeight = font * 1.6;
+    const lineHeight = second * 1.7;
     const legend = b.el('g', { 'data-legend': '' });
+    // the key's title starts its first line, in the labels' grey
+    if (figure.legendTitle !== undefined) {
+      const title = text(
+        b,
+        figure.legendTitle,
+        lineX,
+        top + lineHeight / 2,
+        second,
+      );
+      title.setAttribute(
+        'style',
+        `font-family: ${FONT}; font-size: ${r(second)}px; fill: ${SECONDARY};`,
+      );
+      title.setAttribute('data-legend-title', '');
+      legend.appendChild(title);
+      lineX += measure(figure.legendTitle, second) + pad;
+    }
     figure.legend.forEach((entry) => {
       const content =
         entry.key !== undefined ? `${entry.key} ${entry.label}` : entry.label;
-      const entryWidth = swatch + pad / 2 + measure(content, font) + pad * 2;
+      const entryWidth =
+        swatch + pad / 2 + measure(content, second) + pad * 1.5;
       if (lineX > pad && lineX + entryWidth > width - pad) {
         lineX = pad;
         top += lineHeight;
@@ -362,10 +427,10 @@ export function drawMicroFigure(
         'data-legend-style': entry.style,
       });
       item.appendChild(legendSwatch(b, entry, swatch));
-      item.appendChild(text(b, content, swatch + pad / 2, 0, font));
+      item.appendChild(text(b, content, swatch + pad / 2, 0, second));
       legend.appendChild(item);
       lineX += entryWidth;
-      last = { y: top + lineHeight / 2, end: lineX - pad * 2 };
+      last = { y: top + lineHeight / 2, end: lineX - pad * 1.5 };
     });
     svg.appendChild(legend);
     top += lineHeight;
@@ -387,7 +452,7 @@ export function drawMicroFigure(
   // the watermark, small and grey in the bottom right corner: on the last
   // line when there's room, else on a line of its own
   if (figure.watermark !== undefined) {
-    const size = font * 0.7;
+    const size = font * (5 / 7);
     const end = width - pad;
     let y: number;
     if (

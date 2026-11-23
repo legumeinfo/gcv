@@ -31,8 +31,9 @@ export function figureCaption(
     : 'every consensus column';
   const sentences = [
     `Micro-synteny of the genomic context of ${list(queryGenes)}: ${manifest.tracks.length - shown} query ${manifest.tracks.length - shown === 1 ? 'track' : 'tracks'} and ${shown} of the cluster's ${of} result tracks, showing ${columns}.`,
-    'Each row is a genomic region; genes are drawn at the consensus column they aligned to, so genes one above the other correspond, and a triangle points the way a gene reads relative to the alignment (a circle where its strand is unknown or its family was omitted from the search). Line thickness shows the distance between neighboring genes, and a line ending in an arrow continues to genes outside the columns shown.',
-    'Colors mark gene families of the data source: each colored family has its own color; grey genes belong to other families with genes in several tracks; white genes have no other gene of their family in the figure; dashed outlines mark genes without a family.',
+    'Each row is a genomic region, the query first, labeled with its chromosome and the span drawn in Mb, given high to low where the region aligned in reverse (rev.).',
+    'Genes are placed by aligned position, not to scale: genes one above the other aligned to the same consensus column, and a triangle points the way a gene reads relative to the alignment (a circle where its strand is unknown or its family was omitted from the search). Line thickness shows the distance between neighboring genes, and a line ending in dots continues to genes outside the columns shown.',
+    'Colors mark gene families of the data source: each colored family has its own color; grey genes belong to other families shared between tracks; white genes are the only gene of their family in the figure; dashed outlines mark genes without a family.',
     ...(merged.length > 0
       ? [
           `Tracks merged as one locus: ${list(merged.map((t) => `${t.chromosome} and ${t.mergedWith}`))}.`,

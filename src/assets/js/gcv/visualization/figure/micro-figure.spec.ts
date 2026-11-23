@@ -27,7 +27,9 @@ const figure: MicroFigure = {
     {
       role: 'query',
       binomial: 'Glycine max',
-      locus: 'Gm15:1,000–3,100',
+      strain: 'Wm82',
+      locus: 'Gm15: 0.001–0.003 Mb',
+      genome: 'lis:Glycine max:Wm82',
       genes: [
         gene({ name: 'q1', x: 0, key: 1 }),
         gene({ name: 'q2', x: 1, family: 'b', fill: '#56B4E9', key: 2 }),
@@ -69,7 +71,8 @@ const figure: MicroFigure = {
     {
       role: 'result',
       binomial: 'Phaseolus vulgaris',
-      locus: 'Chr05:5,000–7,100',
+      locus: 'Chr05: 0.005–0.007 Mb',
+      genome: 'lis:Phaseolus vulgaris',
       genes: [
         gene({ name: 'p1', x: 0, strand: -1, key: 1 }),
         gene({ name: 'p2', x: 1, y: 1, family: 'b', fill: '#56B4E9', key: 2 }),
@@ -167,7 +170,8 @@ describe('drawMicroFigure', () => {
         .firstElementChild.getAttribute('style');
     expect(style('q1')).toContain('fill: #E69F00');
     expect(style('q3')).toContain('stroke-dasharray');
-    expect(style('q1')).toContain('stroke-width: 0.6px');
+    // one thin grey outline for every glyph
+    expect(style('q1')).toContain('stroke: #4d4d4d; stroke-width: 0.4px');
   });
 
   it('turns a reverse gene and draws an unknown strand as a circle', () => {
@@ -179,23 +183,68 @@ describe('drawMicroFigure', () => {
     expect(glyph('pi').tagName).toBe('circle');
   });
 
-  it('ends a rail to a gene outside the columns in an arrow at the edge', () => {
+  it('draws rails grey, and dots a rail’s end where it continues past the columns', () => {
     const svg = draw();
     expect(svg.querySelectorAll('[data-rail]')).toHaveLength(3);
-    expect(svg.querySelector('[data-rail-end="right"]')).not.toBeNull();
+    svg
+      .querySelectorAll('[data-rail]')
+      .forEach((l) => expect(l.getAttribute('style')).toContain('#8c8c8c'));
+    const end = svg.querySelector('[data-rail-end="right"]');
+    expect(end.tagName).toBe('line');
+    expect(end.getAttribute('style')).toContain('stroke-dasharray');
+    expect(svg.querySelectorAll('path[data-rail-end]')).toHaveLength(0);
   });
 
-  it('labels each track, the binomial in italics and the query in bold', () => {
-    const labels = Array.from(draw().querySelectorAll('[data-label]'));
-    expect(labels.map((l) => l.textContent)).toEqual([
-      'Glycine max Gm15:1,000–3,100',
-      'Phaseolus vulgaris Chr05:5,000–7,100',
+  it("titles the key, in the labels' grey", () => {
+    const title = draw({
+      ...figure,
+      legendTitle: 'Gene families (fam):',
+    }).querySelector('[data-legend-title]');
+    expect(title.textContent).toBe('Gene families (fam):');
+    expect(title.getAttribute('style')).toContain('fill: #595959');
+  });
+
+  it('labels each track in two lines against the tracks: the taxon, then the locus in grey', () => {
+    const svg = draw();
+    const labels = Array.from(svg.querySelectorAll('[data-label]')).map((l) =>
+      Array.from(l.querySelectorAll('text')),
+    );
+    expect(labels.map((l) => l.map((t) => t.textContent))).toEqual([
+      ['Glycine max Wm82', 'Gm15: 0.001–0.003 Mb'],
+      ['Phaseolus vulgaris', 'Chr05: 0.005–0.007 Mb'],
     ]);
-    expect(labels[0].firstElementChild.getAttribute('style')).toBe(
+    const [taxon, locus] = labels[0];
+    expect(taxon.firstElementChild.getAttribute('style')).toBe(
       'font-style: italic;',
     );
-    expect(labels[0].getAttribute('style')).toContain('font-weight: bold');
-    expect(labels[1].getAttribute('style')).not.toContain('bold');
+    expect(taxon.lastElementChild.getAttribute('style')).toBeNull();
+    expect(locus.getAttribute('style')).toContain('fill: #595959');
+    // right-aligned, ending left of the first column, and nothing bold
+    labels.flat().forEach((t) => {
+      expect(t.getAttribute('text-anchor')).toBe('end');
+      expect(t.getAttribute('style') ?? '').not.toContain('bold');
+    });
+    const firstGene = Math.min(
+      ...Array.from(svg.querySelectorAll('[data-gene]')).map((g) =>
+        Number(g.getAttribute('transform').match(/translate\(([-\d.]+)/)[1]),
+      ),
+    );
+    expect(Number(taxon.getAttribute('x'))).toBeLessThan(firstGene);
+  });
+
+  it('sets tracks of one genome closer than tracks of different genomes', () => {
+    const three = {
+      ...figure,
+      tracks: [
+        figure.tracks[0],
+        { ...figure.tracks[0], role: 'result' as const },
+        { ...figure.tracks[1] },
+      ],
+    };
+    const ys = Array.from(
+      draw(three).querySelectorAll('[data-label] text:first-child'),
+    ).map((t) => Number(t.getAttribute('y')));
+    expect(ys[1] - ys[0]).toBeLessThan(ys[2] - ys[1]);
   });
 
   it('sets the font size on every text', () => {
@@ -204,7 +253,7 @@ describe('drawMicroFigure', () => {
     texts.forEach((t) =>
       expect(t.getAttribute('style')).toMatch(/font-size: [\d.]+px/),
     );
-    const label = draw().querySelector('[data-label]');
+    const label = draw().querySelector('[data-label] text');
     expect(label.getAttribute('style')).toContain(
       `font-size: ${Math.round(((7 * 96) / 72) * 100) / 100}px`,
     );

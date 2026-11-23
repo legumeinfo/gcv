@@ -95,7 +95,17 @@ const LIS_ASSEMBLY_CHROMOSOME = /^[a-z0-9]+\.[^.]+\.(gnm\d+\..+)$/;
 const shortName = (name: string, pattern: RegExp) =>
   name.match(pattern)?.[1] ?? name;
 
-const position = (n: number) => n.toLocaleString('en-US');
+// a position in Mb to the kb, as the label's span; the exact coordinates
+// are in the manifest and the figure's metadata
+const megabases = (n: number) => (n / 1e6).toFixed(3);
+
+// a track aligned mostly in reverse reads right to left on the chromosome
+const reversed = (t: TrackAlignment) => {
+  const aligned = t.genes.filter((g) => g.orientation !== null);
+  return (
+    aligned.filter((g) => g.orientation === '-').length > aligned.length / 2
+  );
+};
 
 const unique = <T>(items: T[]) => Array.from(new Set(items));
 
@@ -408,9 +418,13 @@ export function figureModel(inputs: FigureInputs): FigureModel {
       short
         ? shortName(c, LIS_CHROMOSOME)
         : shortName(c, LIS_ASSEMBLY_CHROMOSOME);
+    // the span as drawn, left to right: high to low for a reversed track,
+    // which says so in words
+    const reverse = reversed(t.aligned);
+    const [from, to] = reverse ? [fmax, fmin] : [fmin, fmax];
     let locus = short
       ? name(chromosome)
-      : `${name(chromosome)}:${position(fmin)}–${position(fmax)}`;
+      : `${name(chromosome)}: ${megabases(from)}–${megabases(to)} Mb${reverse ? ' (rev.)' : ''}`;
     if (other !== undefined) {
       locus += ` = ${name(other.aligned.chromosome)}`;
     }
@@ -419,7 +433,9 @@ export function figureModel(inputs: FigureInputs): FigureModel {
     figureTracks.push({
       role: t.aligned.role,
       binomial: `${t.aligned.genus} ${species}`,
-      locus: strain === undefined ? locus : `${strain} ${locus}`,
+      ...(strain !== undefined ? { strain } : {}),
+      locus,
+      genome: `${t.aligned.source}:${t.aligned.genus} ${t.aligned.species}`,
       genes,
       rails,
     });
@@ -445,6 +461,18 @@ export function figureModel(inputs: FigureInputs): FigureModel {
   const figureGenes = figureTracks.flatMap((t) => t.genes);
   const has = (style: FigureGene['style']) =>
     figureGenes.some((g) => g.style === style);
+  // The key names families by their IDs, in the order the figure's columns
+  // meet them; a prefix every family shares, as the data source's family
+  // set, is said once in the key's title.
+  const prefixes = unique(requested.map((f) => f.split('.')[0]));
+  const shared =
+    requested.length > 0 &&
+    prefixes.length === 1 &&
+    requested.every((f) => f.includes('.'))
+      ? prefixes[0]
+      : undefined;
+  const familyLabel = (family: string) =>
+    shared === undefined ? family : family.slice(shared.length + 1);
   const legend: FigureLegendEntry[] = [
     ...requested.map((family) => ({
       style: (colourOf.has(family)
@@ -452,14 +480,14 @@ export function figureModel(inputs: FigureInputs): FigureModel {
         : 'neutral') as FigureGene['style'],
       fill: colourOf.get(family) ?? NEUTRAL,
       key: famlabels ? keys.get(family) : undefined,
-      label: family,
+      label: familyLabel(family),
     })),
     ...(figureGenes.some((g) => g.style === 'neutral' && !keys.has(g.family))
       ? [
           {
             style: 'neutral' as const,
             fill: NEUTRAL,
-            label: 'other families with genes in several tracks',
+            label: 'other shared families',
           },
         ]
       : []),
@@ -468,20 +496,23 @@ export function figureModel(inputs: FigureInputs): FigureModel {
           {
             style: 'hollow' as const,
             fill: HOLLOW,
-            label: 'no other gene of its family in the figure',
+            label: 'one gene in the figure',
           },
         ]
       : []),
     ...(has('orphan')
-      ? [{ style: 'orphan' as const, fill: HOLLOW, label: 'no gene family' }]
+      ? [{ style: 'orphan' as const, fill: HOLLOW, label: 'no family' }]
       : []),
   ];
+  const legendTitle =
+    shared === undefined ? 'Gene families:' : `Gene families (${shared}):`;
 
   return {
     figure: {
       columns: range,
       tracks: figureTracks,
       legend: spec.legend === false ? null : legend,
+      legendTitle,
       size: {
         width: spec.w ?? FIGURE_DEFAULTS.w,
         font: spec.font ?? FIGURE_DEFAULTS.font,

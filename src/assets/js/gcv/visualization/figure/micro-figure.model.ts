@@ -43,9 +43,13 @@ export type FigureRail = {
 
 export type FigureTrack = {
   role: 'query' | 'result';
-  // drawn in italics, then the rest of the label
+  // the label's first line: the binomial in italics, then the strain
   binomial: string;
+  strain?: string;
+  // its second line: the chromosome and the span drawn
   locus: string;
+  // tracks of one genome share it, and are set closer together
+  genome: string;
   genes: FigureGene[];
   rails: FigureRail[];
 };
@@ -62,6 +66,8 @@ export type MicroFigure = {
   columns: [number, number];
   tracks: FigureTrack[];
   legend: FigureLegendEntry[] | null;
+  // what the key's entries name, e.g. 'Gene families (legfed_v1_0)'
+  legendTitle?: string;
   // width in mm, label size in pt, glyph size in mm (fitted when absent)
   size: { width: number; font: number; glyph?: number };
   names: boolean;
