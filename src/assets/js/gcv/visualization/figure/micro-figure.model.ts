@@ -72,6 +72,8 @@ export type MicroFigure = {
   famlabels: boolean;
   caption: string;
   printCaption: boolean;
+  // a small credit in the figure's bottom right corner
+  watermark?: string;
   // written into the SVG's metadata, e.g. the view's URL and parameters
   metadata: Record<string, unknown>;
 };

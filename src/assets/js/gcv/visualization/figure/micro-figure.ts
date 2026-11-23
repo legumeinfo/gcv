@@ -35,6 +35,8 @@ const PX_PER_MM = 96 / 25.4;
 const PX_PER_PT = 96 / 72;
 const FONT = 'sans-serif';
 const STROKE = '#000000';
+// the watermark's grey, light enough to recede beside the data
+const WATERMARK_FILL = '#8c8c8c';
 // the largest fitted glyph, in mm
 const MAX_GLYPH = 3;
 
@@ -112,7 +114,35 @@ function legendSwatch(
   });
 }
 
-// words wrapped into lines no wider than width
+// a word too wide for a line, as a URL can be, split into pieces that fit:
+// after its separators where it can be, else between characters
+function pieces(
+  word: string,
+  width: number,
+  fontSize: number,
+  measure: MeasureText,
+): string[] {
+  if (measure(word, fontSize) <= width) return [word];
+  const parts = word.split(/(?<=[&;?,/])/);
+  const result: string[] = [];
+  let piece = '';
+  const units = parts.flatMap((part) =>
+    measure(part, fontSize) <= width ? [part] : Array.from(part),
+  );
+  units.forEach((unit) => {
+    if (piece !== '' && measure(piece + unit, fontSize) > width) {
+      result.push(piece);
+      piece = unit;
+    } else {
+      piece += unit;
+    }
+  });
+  if (piece !== '') result.push(piece);
+  return result;
+}
+
+// words wrapped into lines no wider than width; a word wider than a line
+// starts a line of its own and continues on the next
 function wrap(
   content: string,
   width: number,
@@ -122,6 +152,13 @@ function wrap(
   const lines: string[] = [];
   let line = '';
   content.split(/\s+/).forEach((word) => {
+    const split = pieces(word, width, fontSize, measure);
+    if (split.length > 1) {
+      if (line !== '') lines.push(line);
+      lines.push(...split.slice(0, -1));
+      line = split[split.length - 1];
+      return;
+    }
     const next = line === '' ? word : `${line} ${word}`;
     if (line !== '' && measure(next, fontSize) > width) {
       lines.push(line);
@@ -353,6 +390,10 @@ export function drawMicroFigure(
     svg.appendChild(layer);
   }
 
+  // the last line of text below the tracks: its middle and where it ends,
+  // so the watermark can share it
+  let last: { y: number; end: number } | undefined;
+
   // the legend, wrapped into lines
   if (figure.legend !== null && figure.legend.length > 0) {
     top += pad;
@@ -376,6 +417,7 @@ export function drawMicroFigure(
       item.appendChild(text(b, content, swatch + pad / 2, 0, font));
       legend.appendChild(item);
       lineX += entryWidth;
+      last = { y: top + lineHeight / 2, end: lineX - pad * 2 };
     });
     svg.appendChild(legend);
     top += lineHeight;
@@ -388,9 +430,35 @@ export function drawMicroFigure(
     const caption = b.el('g', { 'data-caption': '' });
     wrap(figure.caption, width - 2 * pad, small, measure).forEach((line) => {
       caption.appendChild(text(b, line, pad, top + lineHeight / 2, small));
+      last = { y: top + lineHeight / 2, end: pad + measure(line, small) };
       top += lineHeight;
     });
     svg.appendChild(caption);
+  }
+
+  // the watermark, small and grey in the bottom right corner: on the last
+  // line when there's room, else on a line of its own
+  if (figure.watermark !== undefined) {
+    const size = font * 0.7;
+    const end = width - pad;
+    let y: number;
+    if (
+      last !== undefined &&
+      last.end + pad * 3 + measure(figure.watermark, size) <= end
+    ) {
+      y = last.y;
+    } else {
+      top += pad / 2;
+      y = top + size * 0.7;
+      top += size * 1.4;
+    }
+    const mark = text(b, figure.watermark, end, y, size, 'end');
+    mark.setAttribute(
+      'style',
+      `font-family: ${FONT}; font-size: ${r(size)}px; fill: ${WATERMARK_FILL};`,
+    );
+    mark.setAttribute('data-watermark', '');
+    svg.appendChild(mark);
   }
 
   const height = top + pad;

@@ -239,6 +239,51 @@ describe('drawMicroFigure', () => {
     ).toBeNull();
   });
 
+  it('wraps a printed caption to the figure, breaking a long URL at its separators', () => {
+    const url = `http://gcv/gene;lis=${'g'.repeat(40)}?${Array.from({ length: 30 }, (_, i) => `p${i}=${i}`).join('&')}`;
+    const svg = draw({ ...figure, caption: `A caption. Made at ${url}` });
+    const [, , width] = svg.getAttribute('viewBox').split(' ').map(Number);
+    const lines = Array.from(svg.querySelectorAll('[data-caption] text'));
+    expect(lines.length).toBeGreaterThan(2);
+    lines.forEach((line) =>
+      expect(
+        Number(line.getAttribute('x')) +
+          measure(line.textContent, 7 * 0.8 * (96 / 72)),
+      ).toBeLessThanOrEqual(width),
+    );
+    // the URL reads back whole, its pieces unspaced
+    expect(lines.map((l) => l.textContent).join(' ')).toContain('p0=0&p1=1&');
+    expect(lines.map((l) => l.textContent).join('')).toContain(url);
+  });
+
+  it('credits GCV in small grey text in the bottom right corner', () => {
+    const svg = draw({
+      ...figure,
+      watermark: 'Made by GCV: gcv.legumeinfo.org',
+    });
+    const mark = svg.querySelector('[data-watermark]');
+    expect(mark.textContent).toBe('Made by GCV: gcv.legumeinfo.org');
+    expect(mark.getAttribute('text-anchor')).toBe('end');
+    expect(mark.getAttribute('style')).toContain('fill: #8c8c8c');
+    const [, , width, height] = svg
+      .getAttribute('viewBox')
+      .split(' ')
+      .map(Number);
+    expect(Number(mark.getAttribute('x'))).toBeCloseTo(
+      width - 7 * 0.6 * (96 / 72),
+      1,
+    );
+    // below everything else
+    const lowest = Math.max(
+      ...Array.from(svg.querySelectorAll('text:not([data-watermark])')).map(
+        (t) => Number(t.getAttribute('y')),
+      ),
+    );
+    expect(Number(mark.getAttribute('y'))).toBeGreaterThanOrEqual(lowest);
+    expect(Number(mark.getAttribute('y'))).toBeLessThan(height);
+    expect(draw().querySelector('[data-watermark]')).toBeNull();
+  });
+
   it('draws the same SVG for the same figure', () => {
     const serialize = (svg: Element) =>
       new XMLSerializer().serializeToString(svg);

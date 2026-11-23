@@ -37,6 +37,9 @@ export type FigureInputs = {
 
 export const FIGURE_DEFAULTS = { w: 180, font: 7 };
 
+// the credit every figure carries
+export const WATERMARK = 'Made by GCV: gcv.legumeinfo.org';
+
 // what the figure shows, for its caption, its notes and agents
 export type FigureManifest = {
   cluster: number;
@@ -557,6 +560,7 @@ export function figureModel(inputs: FigureInputs): FigureModel {
       names: spec.names ?? false,
       famlabels,
       printCaption: spec.cap ?? false,
+      watermark: WATERMARK,
     },
     manifest: {
       cluster: alignment.cluster,
