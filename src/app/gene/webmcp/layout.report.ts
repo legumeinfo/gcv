@@ -1,5 +1,5 @@
 // The micro-synteny viewer's layout as agents read it: where each consensus
-// column, track, label and annotation is drawn, in the page's viewport
+// column, track and label is drawn, in the page's viewport
 // coordinates, with what each column and track holds, so an agent can point
 // at a screenshot without measuring it.
 import type { MicroLayout } from '@gcv-assets/js/gcv/visualization/micro';
@@ -28,7 +28,6 @@ export type ViewLayout = {
     height: number;
     label: Box | null;
   }[];
-  annotations: { id: string; kind: string; box: Box }[];
 };
 
 const round = (n: number) => Math.round(n * 10) / 10;
@@ -75,9 +74,5 @@ export function viewLayout(
         label: t.label === null ? null : roundBox(t.label),
       };
     }),
-    annotations: layout.annotations.map((a) => ({
-      ...a,
-      box: roundBox(a.box),
-    })),
   };
 }

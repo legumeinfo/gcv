@@ -1,18 +1,11 @@
 import { AppConfig, Server } from '@gcv/core/models';
-import { annotationParamMembers, paramMembers } from '@gcv/gene/models/params';
+import { paramMembers } from '@gcv/gene/models/params';
 import { parameterSchemas, validateParameterUpdate } from './parameters';
 
 describe('parameterSchemas', () => {
   it('describes every URL parameter of the gene view', () => {
     expect(Object.keys(parameterSchemas()).sort()).toEqual(
       [...paramMembers].sort(),
-    );
-  });
-
-  it('leaves out the parameters that mark the view, such as pins', () => {
-    const schemas = parameterSchemas();
-    annotationParamMembers.forEach((member) =>
-      expect(schemas).not.toHaveProperty(member),
     );
   });
 });

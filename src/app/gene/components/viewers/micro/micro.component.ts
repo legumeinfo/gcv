@@ -20,14 +20,10 @@ import type { MicroLayout } from '@gcv-assets/js/gcv/visualization/micro';
 import { saveFile } from '@gcv/core/utils';
 import { Track, Pipeline } from '@gcv/gene/models';
 import { AlignmentMixin, ClusterMixin } from '@gcv/gene/models/mixins';
-import { PinParams } from '@gcv/gene/models/params';
-import { Unplaced } from '@gcv/gene/annotations/resolve';
 import {
-  AnnotationService,
   FamilyService,
   GeneService,
   MicroTracksService,
-  ParamsService,
   ProcessService,
 } from '@gcv/gene/services';
 // component
@@ -95,49 +91,6 @@ import { microShim } from './micro.shim';
             Make figure
           </button>
         </li>
-        @if (notShown | async; as unplaced) {
-          @if (unplaced.length > 0) {
-            <li class="nav-item dropdown" data-annotations-not-shown>
-              <a
-                class="btn btn-outline-danger dropdown-toggle ms-1"
-                href="#"
-                role="button"
-                data-bs-toggle="dropdown"
-                aria-expanded="false"
-              >
-                {{ unplaced.length }} not shown
-              </a>
-              <ul class="dropdown-menu" style="max-width: 30rem">
-                @for (u of unplaced; track u.id) {
-                  <li
-                    class="dropdown-item-text small"
-                    style="white-space: normal"
-                  >
-                    <b
-                      >{{ u.annotation.kind
-                      }}{{
-                        u.annotation.text ? ' ' + u.annotation.text : ''
-                      }}</b
-                    >:
-                    {{ u.reason }}
-                  </li>
-                }
-              </ul>
-            </li>
-          }
-        }
-        @if (annotated | async) {
-          <li class="nav-item">
-            <button
-              type="button"
-              class="btn btn-outline-dark ms-1"
-              title="Remove every pin and annotation from the view"
-              (click)="clearAnnotations()"
-            >
-              Clear annotations
-            </button>
-          </li>
-        }
       </ul>
       <gcv-pipeline
         [info]="info"
@@ -151,11 +104,9 @@ import { microShim } from './micro.shim';
   standalone: false,
 })
 export class MicroComponent implements AfterViewInit, OnDestroy, OnInit {
-  private _annotationService = inject(AnnotationService);
   private _familyService = inject(FamilyService);
   private _geneService = inject(GeneService);
   private _microTracksService = inject(MicroTracksService);
-  private _paramsService = inject(ParamsService);
   private _processService = inject(ProcessService);
 
   @Input() clusterID: number;
@@ -178,9 +129,6 @@ export class MicroComponent implements AfterViewInit, OnDestroy, OnInit {
 
   private _destroy: Subject<boolean> = new Subject();
   private _viewer;
-  private _pins: PinParams;
-  // the annotations placed on this cluster, in the viewer's track indices
-  private _annotations = [];
 
   info = `<p>This is the micro synteny <i>pipeline</i>.
           It depicts the flow of data from one <i>process</i> to the next for
@@ -197,29 +145,10 @@ export class MicroComponent implements AfterViewInit, OnDestroy, OnInit {
   pipeline: Pipeline;
 
   queryTracks: Observable<(Track & ClusterMixin & AlignmentMixin)[]>;
-  // whether the view has pins or annotations, even unreadable ones
-  annotated: Observable<boolean>;
-  notShown: Observable<Unplaced[]>;
 
   // Angular hooks
 
   ngOnInit() {
-    this.notShown = this._annotationService
-      .getResolution()
-      .pipe(map(({ unplaced }) => unplaced));
-    this.annotated = combineLatest([
-      this._paramsService.getPinParams(),
-      this._paramsService.getAnnotationListParams(),
-    ]).pipe(
-      map(
-        ([{ pingene, pinfam }, { annot }]) =>
-          pingene.length +
-            pinfam.length +
-            annot.items.length +
-            annot.rejected.length >
-          0,
-      ),
-    );
     this.queryTracks = this._microTracksService.getSelectedClusterTracks(
       this.clusterID,
     );
@@ -268,22 +197,6 @@ export class MicroComponent implements AfterViewInit, OnDestroy, OnInit {
           this.draw();
         },
       );
-    // annotations change the layout, so the viewer redraws
-    this._annotationService
-      .getResolution()
-      .pipe(takeUntil(this._destroy))
-      .subscribe(({ placed }) => {
-        this._annotations = placed.filter((p) => p.cluster === this.clusterID);
-        this.draw();
-      });
-    // pins change only marks, so the viewer applies them without redrawing
-    this._paramsService
-      .getPinParams()
-      .pipe(takeUntil(this._destroy))
-      .subscribe((pins) => {
-        this._pins = pins;
-        this._viewer?.setPins(...this._pinArgs());
-      });
   }
 
   ngOnDestroy() {
@@ -342,7 +255,7 @@ export class MicroComponent implements AfterViewInit, OnDestroy, OnInit {
     return true;
   }
 
-  // where the drawn viewer put its columns, tracks and annotations, and the
+  // where the drawn viewer put its columns, tracks and labels, and the
   // area its scrolling container shows; undefined while it isn't drawn, as
   // behind another tab
   layout():
@@ -359,10 +272,6 @@ export class MicroComponent implements AfterViewInit, OnDestroy, OnInit {
       layout: this._viewer.layout(),
       visible: { x: r.left, y: r.top, width: r.width, height: r.height },
     };
-  }
-
-  clearAnnotations(): void {
-    this._paramsService.clearAnnotations();
   }
 
   showCircos(): boolean {
@@ -413,15 +322,7 @@ export class MicroComponent implements AfterViewInit, OnDestroy, OnInit {
     this.draw = this._draw.bind(this, data, options);
   }
 
-  private _pinArgs(): [{ genes: string[]; families: string[] }, string] {
-    const { pingene = [], pinfam = [], pinlabels } = this._pins ?? {};
-    return [{ genes: pingene, families: pinfam }, pinlabels];
-  }
-
   private _draw(data, options) {
-    // a redraw keeps the pins current when it happens
-    const [pins, pinLabels] = this._pinArgs();
-    options = { ...options, pins, pinLabels, annotations: this._annotations };
     let tempViewer: any;
     const dim = Math.min(
       this.container.nativeElement.clientWidth,

@@ -16,7 +16,7 @@ Each scenario in `scenarios.mjs` has:
   views, absence reported as absence, nothing inferred that GCV can't show. A premise can
   return facts it found, such as a count, and a rubric item written as a function of them
   states the expected answer.
-- **outcome checks**, for scenarios where the agent changes the view (annotations, figures):
+- **outcome checks**, for scenarios where the agent changes the view (as by making a figure):
   the agent is asked to end its answer with its final URL, and the runner opens that URL in
   its own browser and checks it with the tools. Each check counts as a rubric item.
 

@@ -70,26 +70,6 @@
 .GCV .synteny-tip {
   display: none;
 }
-/* pins fade the rest of a viewer until unpinned; hovering still marks
-   through them */
-.GCV.pinned {
-  stroke-opacity: 0.25;
-  fill-opacity: 0.25;
-}
-.GCV.pinned .pin,
-.GCV.hovering .pin {
-  stroke-opacity: 1;
-  fill-opacity: 1;
-}
-.GCV.pinned.pin-labels .axis text {
-  fill-opacity: 1;
-}
-/* annotations stay readable through pins and hovering */
-.GCV.pinned .annotations,
-.GCV.hovering .annotations {
-  stroke-opacity: 1;
-  fill-opacity: 1;
-}
 .GCV.hovering {
   stroke-opacity: 0.2;
   fill-opacity: 0.2;

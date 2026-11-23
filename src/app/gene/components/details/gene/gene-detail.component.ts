@@ -7,11 +7,11 @@ import {
   ChangeDetectionStrategy,
   inject,
 } from '@angular/core';
-import { Observable, Subject, firstValueFrom } from 'rxjs';
+import { Subject } from 'rxjs';
 import { filter, map, switchMap, take, takeUntil } from 'rxjs/operators';
 // App
 import { AppConfig } from '@gcv/core/models';
-import { GeneService, ParamsService, RegionService } from '@gcv/gene/services';
+import { GeneService, RegionService } from '@gcv/gene/services';
 
 @Component({
   selector: 'gcv-gene-detail',
@@ -19,16 +19,6 @@ import { GeneService, ParamsService, RegionService } from '@gcv/gene/services';
   template: `
     <div class="details">
       <h4>{{ gene }}</h4>
-      <p>
-        <button
-          type="button"
-          class="btn btn-sm btn-outline-dark"
-          [attr.aria-pressed]="pinned | async"
-          (click)="togglePin()"
-        >
-          {{ (pinned | async) ? 'Unpin' : 'Pin' }}
-        </button>
-      </p>
       <p>
         <a
           [routerLink]="['/gene', singleGeneMatrix]"
@@ -61,7 +51,6 @@ import { GeneService, ParamsService, RegionService } from '@gcv/gene/services';
 export class GeneDetailComponent implements OnDestroy, OnInit {
   private _appConfig = inject(AppConfig);
   private _geneService = inject(GeneService);
-  private _paramsService = inject(ParamsService);
   private _regionService = inject(RegionService);
 
   @Input() gene: string;
@@ -75,7 +64,6 @@ export class GeneDetailComponent implements OnDestroy, OnInit {
   regionLinks: any[] = [];
   singleGeneMatrix = {};
   familyTreeLink: string = '';
-  pinned: Observable<boolean>;
 
   constructor() {
     const _appConfig = this._appConfig;
@@ -91,10 +79,6 @@ export class GeneDetailComponent implements OnDestroy, OnInit {
   }
 
   ngOnInit(): void {
-    this.pinned = this._paramsService
-      .getPinParams()
-      .pipe(map(({ pingene }) => pingene.includes(this.gene)));
-
     const server = this._appConfig.getServer(this.source);
 
     // set the tree link
@@ -129,15 +113,6 @@ export class GeneDetailComponent implements OnDestroy, OnInit {
         take(1),
       )
       .subscribe((links) => this._processRegionLinks(links));
-  }
-
-  // public
-
-  async togglePin(): Promise<void> {
-    const pinned = await firstValueFrom(this.pinned);
-    await this._paramsService.updatePins(pinned ? 'remove' : 'add', {
-      genes: [this.gene],
-    });
   }
 
   // private

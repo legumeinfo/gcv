@@ -5,12 +5,6 @@ import {
   alignmentParamValidators,
 } from './alignment.model';
 import {
-  AnnotationListParams,
-  annotationListParamMembers,
-  annotationListParamParsers,
-  annotationListParamValidators,
-} from './annotation.model';
-import {
   BlockParams,
   blockParamMembers,
   blockParamParsers,
@@ -22,12 +16,6 @@ import {
   clusteringParamParsers,
   clusteringParamValidators,
 } from './clustering.model';
-import {
-  FigureParams,
-  figureParamMembers,
-  figureParamParsers,
-  figureParamValidators,
-} from './figure.model';
 import {
   MacroFilterParams,
   macroFilterParamMembers,
@@ -53,12 +41,6 @@ import {
   microOrderParamValidators,
 } from './micro-order.model';
 import {
-  PinParams,
-  pinParamMembers,
-  pinParamParsers,
-  pinParamValidators,
-} from './pin.model';
-import {
   QueryParams,
   queryParamMembers,
   queryParamParsers,
@@ -72,7 +54,6 @@ import {
 } from './source.model';
 
 export * from './alignment.model';
-export * from './annotation.model';
 export * from './block.model';
 export * from './clustering.model';
 export * from './figure.model';
@@ -80,7 +61,6 @@ export * from './macro-filters.model';
 export * from './macro-order.model';
 export * from './micro-filters.model';
 export * from './micro-order.model';
-export * from './pin.model';
 export * from './query.model';
 export * from './source.model';
 
@@ -129,30 +109,4 @@ export const paramParsers: { [key: string]: (...args: any[]) => any } = {
   ...microOrderParamParsers,
   ...queryParamParsers,
   ...sourceParamParsers,
-};
-
-// Parameters that mark the view without changing its analysis. They are kept
-// apart from the analysis parameters above, so getParams, and the agent tools
-// that change the analysis, never see them.
-export type AnnotationParams = PinParams & AnnotationListParams & FigureParams;
-
-export const annotationParamMembers = [
-  ...pinParamMembers,
-  ...annotationListParamMembers,
-  ...figureParamMembers,
-];
-
-export const annotationParamValidators = {
-  ...pinParamValidators,
-  ...annotationListParamValidators,
-  ...figureParamValidators,
-};
-
-export const annotationParamParsers: Record<
-  string,
-  (value: string | string[]) => unknown
-> = {
-  ...pinParamParsers,
-  ...annotationListParamParsers,
-  ...figureParamParsers,
 };

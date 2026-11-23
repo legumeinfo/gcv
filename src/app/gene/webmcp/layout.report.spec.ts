@@ -44,7 +44,6 @@ const drawn: MicroLayout = {
     { index: 0, y: 130, top: 115, height: 30, label: box(5, 125) },
     { index: 1, y: 160, top: 145, height: 30, label: null },
   ],
-  annotations: [{ id: 'a1', kind: 'box', box: box(90, 110) }],
 };
 
 describe('viewLayout', () => {
@@ -64,7 +63,7 @@ describe('viewLayout', () => {
       lastGene: 'r2',
       label: null,
     });
-    expect(layout.annotations[0].box.width).toBe(10);
+    expect(layout.tracks[0].label.width).toBe(10);
     expect(layout).toMatchObject({ panel: 'micro0', cluster: 0 });
   });
 

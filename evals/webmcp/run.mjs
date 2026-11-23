@@ -19,7 +19,7 @@ const CHROME = {
   channel: 'chrome',
   args: ['--enable-features=WebMCP,WebMCPTesting'],
 };
-const TOOL_COUNT = 23;
+const TOOL_COUNT = 19;
 
 const { values: options } = parseArgs({
   options: {

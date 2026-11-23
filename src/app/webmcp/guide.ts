@@ -79,15 +79,11 @@ export const TOOL_GUIDE: ToolGuide[] = [
   {
     group: 'display',
     about:
-      "Change what the user sees in the open gene view, without changing the analysis; use them to show the user what you're describing. Only pins change the URL, in parameters of their own.",
+      "Change what the user sees in the open gene view, without changing the analysis or the URL; use them to show the user what you're describing.",
     tools: [
       {
         name: 'highlight_in_view',
-        use: 'Fade everything but the genes or families you are discussing, until the user moves the pointer.',
-      },
-      {
-        name: 'pin_in_view',
-        use: 'Mark genes or families until unpinned, in the URL, so a shared link shows what a finding is about.',
+        use: 'Fade everything but the genes or families you are discussing.',
       },
       {
         name: 'open_panel',
@@ -108,28 +104,9 @@ export const TOOL_GUIDE: ToolGuide[] = [
     ],
   },
   {
-    group: 'annotate',
-    about:
-      'Mark the view with boxes, gaps, notes, column headers and sites, anchored to genes and positions; they live in the URL (annot), are drawn in the viewers and in figures, and never change the analysis.',
-    tools: [
-      {
-        name: 'add_annotation',
-        use: 'Box columns, mark an empty slot, add a note or a column header, or mark a genomic position.',
-      },
-      {
-        name: 'list_annotations',
-        use: 'See every annotation, where it is drawn, and why any is not.',
-      },
-      {
-        name: 'remove_annotation',
-        use: 'Remove an annotation by its ID, or all of them.',
-      },
-    ],
-  },
-  {
     group: 'figures',
     about:
-      "Make a publication figure of a micro-synteny cluster in the figure tab: the figure's choices are the URL's fig, so a link reproduces it, and it draws the view's pins and annotations.",
+      "Make a publication figure of a micro-synteny cluster in the figure tab: the figure's choices are the URL's fig, so a link reproduces it.",
     tools: [
       {
         name: 'make_figure',
@@ -206,12 +183,12 @@ export const RECIPES = [
   {
     question: 'Show the user what you found.',
     steps:
-      'highlight_in_view to point at genes or families, pin_in_view to mark them in the link you give, add_annotation to box the columns or mark the slots and positions a finding is about, open_panel for details, macro-synteny, circos or dot plots, and export_figure to download an SVG or the alignment TSV.',
+      'highlight_in_view to point at genes or families, open_panel for details, macro-synteny, circos or dot plots, and export_figure to download an SVG or the alignment TSV.',
   },
   {
     question: 'Make a publication figure.',
     steps:
-      "Settle the view first (get_view_status), at the parameters the figure should show. pin_in_view the genes or families it is about; add_annotation the boxes, headers, gaps and sites it needs. make_figure with the tracks, order, columns and size, then check its manifest against what the figure should claim (the tracks kept and their order, the columns, each family's color, the annotations drawn) and read its notes for anything it couldn't do; change the choices and repeat until it does. export_figure (figure: true) downloads it, SVG or PNG; give the user the URL too, since its fig reproduces the figure.",
+      "Settle the view first (get_view_status), at the parameters the figure should show. make_figure with the tracks, order, columns and size, then check its manifest against what the figure should claim (the tracks kept and their order, the columns, each family's color) and read its notes for anything it couldn't do; change the choices and repeat until it does. export_figure (figure: true) downloads it, SVG or PNG; give the user the URL too, since its fig reproduces the figure.",
   },
 ];
 
@@ -237,6 +214,6 @@ export const REPORTING = [
 export const SEEING_THE_VIEW = [
   "The viewers are SVG in the page. If you can take browser screenshots, call highlight_in_view or open_panel first so the screenshot shows what you're discussing.",
   "A screenshot shows only the visible part of a viewer, and a viewer behind another tab is not drawn. export_figure brings a panel to the front and downloads its full drawing as SVG, with styles inlined, to the user's computer; ask the user before downloading.",
-  'get_view_layout gives where a micro-synteny viewer drew each column, track, label and annotation, in the coordinates of a screenshot of the page, so you can point at them without measuring.',
-  'In the DOM, micro-synteny genes carry data-gene, data-family and data-column (the consensus column, fractional for an insertion) and tracks carry data-chromosome; pinned genes have the class pin. Macro-synteny blocks carry data-locus, data-reference-locus and data-orientation.',
+  'get_view_layout gives where a micro-synteny viewer drew each column, track and label, in the coordinates of a screenshot of the page, so you can point at them without measuring.',
+  'In the DOM, micro-synteny genes carry data-gene, data-family and data-column (the consensus column, fractional for an insertion) and tracks carry data-chromosome. Macro-synteny blocks carry data-locus, data-reference-locus and data-orientation.',
 ];

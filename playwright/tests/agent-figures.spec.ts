@@ -14,7 +14,6 @@ type Layout = {
     height: number;
     label: Box;
   }[];
-  annotations: { id: string; box: Box }[];
 };
 type Manifest = {
   tracks: { role: string; fmin: number; score: number | null }[];
@@ -36,14 +35,10 @@ test.beforeEach(async ({ page }) => {
 // What the tools report is a claim about what the page draws; these check
 // the claims against the drawn elements and the drawn figure.
 test.describe('the agent figure tools', () => {
-  test('get_view_layout locates every column, track, label and annotation within a pixel', async ({
+  test('get_view_layout locates every column, track and label within a pixel', async ({
     page,
   }) => {
     await page.goto(VIEW);
-    await waitForSettledMicroView(page);
-    const query = await queryGenes(page);
-    const annot = `box(c=${query[2]}~${query[5]},x=block);head(c=${query[3]},x=h)`;
-    await page.goto(`${VIEW}&annot=${encodeURIComponent(annot)}`);
     await waitForSettledMicroView(page);
     const layout = await callTool<Layout>(page, 'get_view_layout');
     const drawn = await page.evaluate(() => {
@@ -71,10 +66,7 @@ test.describe('the agent figure tools', () => {
         track: Number(t.getAttribute('data-micro-track')),
         box: box(t),
       }));
-      const marks = Array.from(
-        document.querySelectorAll('gcv-micro .annotations [data-annotation]'),
-      ).map((e) => ({ id: e.getAttribute('data-annotation'), box: box(e) }));
-      return { genes, labels, marks };
+      return { genes, labels };
     });
     const near = (a: number, b: number, what: string) =>
       expect(Math.abs(a - b), `${what}: ${a} vs ${b}`).toBeLessThanOrEqual(1);
@@ -93,17 +85,6 @@ test.describe('the agent figure tools', () => {
       const label = drawn.labels.find((l) => l.track === t.index).box;
       near(t.label.x, label.x, `track ${t.index}'s label x`);
       near(t.label.y, label.y, `track ${t.index}'s label y`);
-    }
-    expect(layout.annotations).toHaveLength(2);
-    for (const a of layout.annotations) {
-      const boxes = drawn.marks.filter((m) => m.id === a.id).map((m) => m.box);
-      near(a.box.x, Math.min(...boxes.map((b) => b.x)), `${a.id} x`);
-      near(a.box.y, Math.min(...boxes.map((b) => b.y)), `${a.id} y`);
-      near(
-        a.box.x + a.box.width,
-        Math.max(...boxes.map((b) => b.x + b.width)),
-        `${a.id} right`,
-      );
     }
   });
 

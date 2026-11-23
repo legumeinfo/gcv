@@ -48,14 +48,10 @@ The gene view tools work on the open gene view; `show_gene_contexts` opens one.
 | `get_dot_plot_pairs`         | Tests a track's collinearity with the query, locally or across the chromosome.                                                  |
 | `get_gene_details`           | Gets a gene's family, coordinates and the data source's links for it.                                                           |
 | `highlight_in_view`          | Highlights genes or families in the viewers, fading the rest.                                                                   |
-| `pin_in_view`                | Pins genes or families in the viewers until unpinned; pins are in the URL, so shared links show them.                           |
 | `open_panel`                 | Opens gene, track or family details, a macro-synteny view, a Circos view or a dot plot.                                         |
 | `set_family_emphasis`        | Draws some families as strandless circles so the others stand out.                                                              |
-| `get_view_layout`            | Reports where a micro-synteny viewer drew its columns, tracks, labels and annotations, in screenshot coordinates.               |
+| `get_view_layout`            | Reports where a micro-synteny viewer drew its columns, tracks and labels, in screenshot coordinates.                            |
 | `export_figure`              | Downloads the figure as SVG or PNG, a panel as SVG, or a cluster's alignment as TSV.                                            |
-| `add_annotation`             | Boxes columns, marks an empty slot, adds a note or a column header, or marks a genomic position; annotations are in the URL.    |
-| `list_annotations`           | Lists the annotations, where each is drawn, and why any is not.                                                                 |
-| `remove_annotation`          | Removes an annotation, or all of them.                                                                                          |
 | `make_figure`                | Makes a publication figure of a cluster and returns what it claims; the figure's choices are in the URL.                        |
 | `get_figure`                 | Reads the open figure: what it claims, or its SVG text.                                                                         |
 

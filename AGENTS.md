@@ -126,19 +126,11 @@ the tools don't register; nothing else changes. The README lists the tools.
 - **The URL stays the only analysis state.** `set_view_parameters` validates with the URL
   guard's validators and applies changes through `ParamsService`, and it reports the result
   tracks each change added and removed. A new URL parameter needs its entry in
-  `parameterSchemas` (`parameters.spec.ts` checks). Display tools never change the
-  analysis: highlighting publishes the viewers' own hover events on the GCV event bus, and
-  panels open through `PanelService`, which the viewers' callbacks share. Pins,
-  annotations (`annot`) and the figure (`fig`) mark the view in parameters of their own
-  (`annotationParamMembers`, kept out of `paramMembers` and `getParams`), so the tools
-  that change the analysis never see them.
-- **Annotations name genes, never screen positions.** `gene/annotations/` parses `annot`
-  (`grammar.ts`), places each annotation on the clusters' drawn tracks every time the view
-  draws (`resolve.ts`, through `AnnotationService`, since an anchor gene can be in several
-  clusters) or gives the reason it can't, and places genomic positions through a track's
-  genes (`position.ts`). The engine's `annotationMarks` draws the placements the same way
-  in the viewer and in figures. An annotation that can't be placed is listed, never drawn
-  at a guessed position.
+  `parameterSchemas` (`parameters.spec.ts` checks). Display tools never change the analysis
+  or the URL: highlighting publishes the viewers' own hover events on the GCV event bus,
+  and panels open through `PanelService`, which the viewers' callbacks share. The figure's
+  `fig` is a parameter of its own (`figureParamMembers`), kept out of `paramMembers` and
+  `getParams`, so the tools that change the analysis never see it.
 - **Descriptions and the guide are the instructions.** `describe_gcv` returns `guide.ts`
   (overview, tool groups, concepts, recipes) with the instance's sources and parameter
   defaults; `guide.spec.ts` keeps its tool list in step with registration. A new tool needs

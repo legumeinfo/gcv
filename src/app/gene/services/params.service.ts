@@ -1,7 +1,7 @@
 // Angular
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { Observable, firstValueFrom } from 'rxjs';
+import { Observable } from 'rxjs';
 // store
 import { Store } from '@ngrx/store';
 import * as routerActions from '@gcv/store/actions/router.actions';
@@ -10,8 +10,6 @@ import * as fromParams from '@gcv/gene/store/selectors/params/';
 // app
 import {
   AlignmentParams,
-  AnnotationListParams,
-  AnnotationParams,
   FigureParams,
   FigureSpec,
   BlockParams,
@@ -21,20 +19,11 @@ import {
   MicroFilterParams,
   MicroOrderParams,
   Params,
-  ParsedAnnotations,
-  PinChange,
-  PinMode,
-  PinParams,
   QueryParams,
-  changePins,
   serializeFigureSpec,
   SourceParams,
 } from '@gcv/gene/models/params';
 import { HttpService } from '@gcv/core/services/http.service';
-import {
-  Annotation,
-  serializeAnnotations,
-} from '@gcv/gene/annotations/grammar';
 
 @Injectable()
 export class ParamsService extends HttpService {
@@ -90,32 +79,6 @@ export class ParamsService extends HttpService {
     return this._store.select(fromParams.getSourceParams);
   }
 
-  getPinParams(): Observable<PinParams> {
-    return this._store.select(fromParams.getPinParams);
-  }
-
-  getAnnotationListParams(): Observable<AnnotationListParams> {
-    return this._store.select(fromParams.getAnnotationListParams);
-  }
-
-  // sets the annotations; none removes the parameter
-  updateAnnotations(items: Annotation[]): void {
-    this.updateParams({
-      annot: items.length === 0 ? null : { items, rejected: [] },
-    });
-  }
-
-  // removes every pin and annotation in one change, so Back restores them;
-  // the figure, if open, stays
-  clearAnnotations(): void {
-    this.updateParams({
-      pingene: null,
-      pinfam: null,
-      pinlabels: null,
-      annot: null,
-    });
-  }
-
   getFigureParams(): Observable<FigureParams> {
     return this._store.select(fromParams.getFigureParams);
   }
@@ -125,36 +88,14 @@ export class ParamsService extends HttpService {
     this.updateParams({ fig: spec });
   }
 
-  // changes the pins in the URL; returns the pins it set
-  async updatePins(mode: PinMode, change: PinChange = {}): Promise<PinParams> {
-    const pins = changePins(
-      await firstValueFrom(this.getPinParams()),
-      mode,
-      change,
-    );
-    // the default label setting stays out of the URL
-    const pinlabels = pins.pinlabels === 'full' ? null : pins.pinlabels;
-    this.updateParams({ ...pins, pinlabels });
-    return pins;
-  }
-
   // Lists go in the URL comma-separated; an empty list or null removes its
   // parameter.
-  updateParams(
-    params:
-      Params | { [K in keyof AnnotationParams]?: AnnotationParams[K] | null },
-  ): void {
+  updateParams(params: Params | { fig?: FigureSpec | null }): void {
     const path = [];
     const query = Object.fromEntries(
       Object.entries(params).map(([key, value]) => {
         if (key === 'fig' && value !== null && value !== undefined) {
           return [key, serializeFigureSpec(value as FigureSpec)];
-        }
-        if (key === 'annot' && value !== null && value !== undefined) {
-          return [
-            key,
-            serializeAnnotations((value as ParsedAnnotations).items),
-          ];
         }
         if (!Array.isArray(value)) {
           return [key, value];

@@ -35,7 +35,6 @@ import {
   serializeFigureSpec,
 } from '@gcv/gene/models/params';
 import {
-  AnnotationService,
   FamilyService,
   GeneService,
   MicroTracksService,
@@ -367,7 +366,6 @@ export type FigureRender = {
   standalone: false,
 })
 export class FigureComponent implements AfterViewInit, OnDestroy {
-  private _annotationService = inject(AnnotationService);
   private _cd = inject(ChangeDetectorRef);
   private _familyService = inject(FamilyService);
   private _geneService = inject(GeneService);
@@ -411,117 +409,101 @@ export class FigureComponent implements AfterViewInit, OnDestroy {
       genes,
       this._familyService.selectOmittedFamilies(),
       this._paramsService.getFigureParams().pipe(map(({ fig }) => fig)),
-      this._paramsService.getPinParams(),
       this._paramsService.getParams(),
       this._geneService.getQueryGenes(),
-      this._annotationService.getResolution(),
     ])
       .pipe(debounceTime(100), takeUntil(this._destroy))
-      .subscribe(
-        ([
-          query,
+      .subscribe(([query, all, genes, omitted, fig, params, queryGenes]) => {
+        this.spec = fig ?? {};
+        this.clusterChoices = Array.from(
+          new Set(query.tracks.map((t) => t.cluster)),
+        ).map((c) => ({
+          cluster: c,
+          gene: query.tracks.find((t) => t.cluster === c).genes[0],
+        }));
+        const drawnFor = serializeFigureSpec(this.spec);
+        if (this.clusterID === null) {
+          this._cd.detectChanges();
+          this.rendered.next({
+            fig: drawnFor,
+            cluster: null,
+            notes: [],
+            choices: this.clusterChoices,
+          });
+          return;
+        }
+        const clusterTracks = cluster(all);
+        const { data } = microShim(
+          this.clusterID,
+          query.tracks,
           all,
           genes,
           omitted,
-          fig,
-          pins,
-          params,
-          queryGenes,
-          annotations,
-        ]) => {
-          this.spec = fig ?? {};
-          this.clusterChoices = Array.from(
-            new Set(query.tracks.map((t) => t.cluster)),
-          ).map((c) => ({
-            cluster: c,
-            gene: query.tracks.find((t) => t.cluster === c).genes[0],
-          }));
-          const drawnFor = serializeFigureSpec(this.spec);
-          if (this.clusterID === null) {
-            this._cd.detectChanges();
-            this.rendered.next({
-              fig: drawnFor,
-              cluster: null,
-              notes: [],
-              choices: this.clusterChoices,
-            });
-            return;
-          }
-          const clusterTracks = cluster(all);
-          const { data } = microShim(
-            this.clusterID,
-            query.tracks,
-            all,
-            genes,
-            omitted,
-          );
-          const [alignment] = clusterAlignments(
-            query.consensuses,
-            clusterTracks,
-            new Set(query.tracks),
-            new Map(genes.map((g) => [geneID(g.name, g.source), g])),
-          );
-          if (alignment === undefined) {
-            this.svg = undefined;
-            this.notes = [`The view has no cluster ${this.clusterID}.`];
-            this._cd.detectChanges();
-            this.rendered.next({
-              fig: drawnFor,
-              cluster: this.clusterID,
-              notes: this.notes,
-            });
-            return;
-          }
-          const model = figureModel({
-            drawn: data,
-            alignment,
-            sameLocus: sameLocusTracks([alignment]),
-            spec: this.spec,
-            pins,
-            annotations,
-          });
-          const queryNames = new Set(
-            alignment.tracks
-              .filter((t) => t.role === 'query')
-              .flatMap((t) => t.genes.map((g) => g.name)),
-          );
-          const url = document.location.href;
-          const date = new Date().toISOString().slice(0, 10);
-          const caption = figureCaption(model.manifest, {
-            queryGenes: queryGenes
-              .map((g) => g.name)
-              .filter((g) => queryNames.has(g)),
-            params,
-            url,
-            version: GCV_VERSION,
-            date,
-          });
-          this.manifest = model.manifest;
-          this.notes = model.notes;
-          this.loading = model.loading;
-          this.svg = GCV.visualization.drawMicroFigure(
-            {
-              ...model.figure,
-              caption,
-              metadata: { url, parameters: params, version: GCV_VERSION, date },
-            },
-            document,
-            measureText,
-          );
+        );
+        const [alignment] = clusterAlignments(
+          query.consensuses,
+          clusterTracks,
+          new Set(query.tracks),
+          new Map(genes.map((g) => [geneID(g.name, g.source), g])),
+        );
+        if (alignment === undefined) {
+          this.svg = undefined;
+          this.notes = [`The view has no cluster ${this.clusterID}.`];
           this._cd.detectChanges();
-          this.preview?.nativeElement.replaceChildren(this.svg);
-          this.svg.style.width = '100%';
-          this.svg.style.height = 'auto';
           this.rendered.next({
             fig: drawnFor,
             cluster: this.clusterID,
-            manifest: model.manifest,
-            notes: model.notes,
-            caption,
-            loading: model.loading,
+            notes: this.notes,
           });
-        },
-      );
+          return;
+        }
+        const model = figureModel({
+          drawn: data,
+          alignment,
+          sameLocus: sameLocusTracks([alignment]),
+          spec: this.spec,
+        });
+        const queryNames = new Set(
+          alignment.tracks
+            .filter((t) => t.role === 'query')
+            .flatMap((t) => t.genes.map((g) => g.name)),
+        );
+        const url = document.location.href;
+        const date = new Date().toISOString().slice(0, 10);
+        const caption = figureCaption(model.manifest, {
+          queryGenes: queryGenes
+            .map((g) => g.name)
+            .filter((g) => queryNames.has(g)),
+          params,
+          url,
+          version: GCV_VERSION,
+          date,
+        });
+        this.manifest = model.manifest;
+        this.notes = model.notes;
+        this.loading = model.loading;
+        this.svg = GCV.visualization.drawMicroFigure(
+          {
+            ...model.figure,
+            caption,
+            metadata: { url, parameters: params, version: GCV_VERSION, date },
+          },
+          document,
+          measureText,
+        );
+        this._cd.detectChanges();
+        this.preview?.nativeElement.replaceChildren(this.svg);
+        this.svg.style.width = '100%';
+        this.svg.style.height = 'auto';
+        this.rendered.next({
+          fig: drawnFor,
+          cluster: this.clusterID,
+          manifest: model.manifest,
+          notes: model.notes,
+          caption,
+          loading: model.loading,
+        });
+      });
   }
 
   ngOnDestroy(): void {

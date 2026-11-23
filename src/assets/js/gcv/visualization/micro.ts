@@ -12,22 +12,11 @@ import {
   trackLevels,
   trackTicks,
 } from './layout/micro-tracks';
-import {
-  PlacedAnnotation,
-  annotationMarks,
-  bandLanes,
-  headerBand,
-  noteGutter,
-} from './annotations/annotation-marks';
-
-// the size of annotations' text, as the track labels'
-const ANNOTATION_FONT = 10;
 
 type Box = { x: number; y: number; width: number; height: number };
 
 // what the viewer drew where, in viewport CSS pixels: each consensus
-// column's center, each track's first row (y) and extent, its label, and
-// the box around each annotation's marks
+// column's center, and each track's first row (y), extent and label
 export type MicroLayout = {
   svg: Box;
   glyphSize: number;
@@ -39,7 +28,6 @@ export type MicroLayout = {
     height: number;
     label: Box | null;
   }[];
-  annotations: { id: string; kind: string; box: Box }[];
 };
 
 /** The micro-synteny viewer. */
@@ -50,8 +38,6 @@ export class Micro extends Visualizer {
   private names: any[];
   private intervals: any[];
   private levels: number[];
-  private lanes: number;
-  private gutter: number;
   private right: number;
   private thickness: any;
   private ticks: any[];
@@ -153,26 +139,16 @@ export class Micro extends Visualizer {
     this.options.hoverDelay = this.options.hoverDelay || 500;
     this.options.prefix = this.options.prefix || ((t) => '');
     // create the viewer
-    this.options.annotations = this.options.annotations || [];
     const levels = trackLevels(data);
     this.levels = levels;
     const numLevels = levels.reduce((a, b) => a + b, 0);
     const halfTrack = this.GLYPH_SIZE / 2;
+    const top = this.PAD + halfTrack;
+    const bottom = top + this.GLYPH_SIZE * numLevels;
+    this.viewer.attr('height', bottom + halfTrack);
     // compute the track names and locations, and line thickness
     this.ticks = trackTicks(levels);
     this.names = data.map((t) => trackLabel(t, this.options.prefix(t)));
-    // headers, and labels over the first track, need a band of lanes above
-    // it, packed at the width the viewer opens at
-    this.lanes = bandLanes(this.options.annotations, {
-      x: this.estimatedX(data),
-      glyph: this.GLYPH_SIZE * 0.7,
-      font: ANNOTATION_FONT,
-      measure: (text, size) => this.measureText(text, size),
-    });
-    const band = headerBand(ANNOTATION_FONT, this.lanes);
-    const top = this.PAD + band + halfTrack;
-    const bottom = top + this.GLYPH_SIZE * numLevels;
-    this.viewer.attr('height', bottom + halfTrack);
     this.intervals = data.map(trackInterval);
     this.distances = data.map(neighborDistances);
     const allDistances = this.distances.flat();
@@ -203,13 +179,7 @@ export class Micro extends Visualizer {
     };
     resizeYaxis();
     this.decorateResize(resizeYaxis);
-    // notes need a gutter right of the tracks
-    this.gutter = noteGutter(
-      this.options.annotations,
-      ANNOTATION_FONT,
-      (text, size) => this.measureText(text, size),
-    );
-    const setRight = () => (this.right = this.PAD + this.gutter);
+    const setRight = () => (this.right = this.PAD);
     setRight();
     this.decorateResize(setRight);
     if (this.options.plotClick !== undefined) {
@@ -245,114 +215,16 @@ export class Micro extends Visualizer {
     };
     resizeTracks();
     this.decorateResize(resizeTracks);
-    // annotations go over the tracks, and move with them
-    const annotations = this.viewer.append('g').attr('class', 'annotations');
-    const drawAnnotations = () => this.drawAnnotations(annotations);
-    drawAnnotations();
-    this.decorateResize(drawAnnotations);
     // create an auto resize listener, if necessary
     if (this.options.autoResize) {
       this.autoResize();
     }
-    this.setPins(this.options.pins, this.options.pinLabels);
-  }
-
-  // the x scale draw() will set, from the labels' and the gutter's widths,
-  // before anything is drawn
-  private estimatedX(data) {
-    const half = this.GLYPH_SIZE / 2;
-    // the axis's labels, a bold query label among them, and its ticks
-    const labels =
-      Math.max(0, ...this.names.map((n) => this.measureText(n, 10))) * 1.1 + 6;
-    const left = labels + 2 * this.PAD;
-    const plot =
-      this.options.plotClick !== undefined
-        ? this.measureText('plot', 10) + 6 + this.PAD
-        : 0;
-    const gutter = noteGutter(
-      this.options.annotations,
-      ANNOTATION_FONT,
-      (t, s) => this.measureText(t, s),
-    );
-    const right = this.PAD + gutter + plot;
-    return d3
-      .scaleLinear()
-      .domain(columnDomain(data))
-      .range([left + half, this.container.clientWidth - right - half]);
-  }
-
-  // the width of a text at a font size, measured in the viewer
-  private measureText(text: string, size: number): number {
-    const t = this.viewer
-      .append('text')
-      .style('font-size', `${size}px`)
-      .text(text);
-    const width = t.node().getComputedTextLength();
-    t.remove();
-    return width;
-  }
-
-  /** Draws the annotations, already placed on columns and tracks. */
-  private drawAnnotations(layer) {
-    layer.selectAll('*').remove();
-    const half = this.GLYPH_SIZE / 2;
-    // placements made for other data, as while the view updates, wait
-    const placed = (this.options.annotations as PlacedAnnotation[]).filter(
-      (a) =>
-        [a.track, ...(a.tracks ?? []), ...(a.sites ?? []).map((s) => s.track)]
-          .filter((t) => t !== undefined)
-          .every((t) => t < this.data.length),
-    );
-    const marks = annotationMarks(placed, {
-      x: (c) => this.x(c),
-      top: (t) => this.y(this.ticks[t]) - half,
-      bottom: (t) => this.y(this.ticks[t] + this.levels[t] - 1) + half,
-      middle: (t) => this.y(this.ticks[t]),
-      glyph: this.GLYPH_SIZE * 0.7,
-      font: ANNOTATION_FONT,
-      measure: (text, size) => this.measureText(text, size),
-      header: this.PAD,
-      lanes: this.lanes,
-      // past the plot links, at the viewer's right edge
-      gutter: this.viewer.attr('width') - this.gutter + ANNOTATION_FONT,
-    });
-    marks.forEach((m) => {
-      const e = layer
-        .append(m.tag)
-        .attr('data-annotation', m.annotation)
-        .attr('data-annotation-kind', m.kind);
-      Object.entries(m.attributes).forEach(([k, v]) => e.attr(k, v));
-      if (m.text !== undefined) e.text(m.text);
-    });
   }
 
   // Public
 
   /**
-   * Marks the pinned genes and families: the rest of the viewer fades, as
-   * when hovering, which marks with other classes, so neither clears the
-   * other. A viewer with none of the pinned genes doesn't fade.
-   * @param {object} pins - Gene names and family IDs.
-   * @param {string} labels - 'full' keeps the track labels unfaded.
-   */
-  setPins(
-    pins: { genes?: string[]; families?: string[] } = {},
-    labels: 'full' | 'fade' = 'full',
-  ) {
-    const genes = new Set(pins.genes ?? []);
-    const families = new Set((pins.families ?? []).filter((f) => f !== ''));
-    const marked = this.viewer
-      .selectAll('.gene')
-      .classed('pin', (g) => genes.has(g.name) || families.has(g.family))
-      .filter('.pin');
-    const pinned = !marked.empty();
-    this.viewer
-      .classed('pinned', pinned)
-      .classed('pin-labels', pinned && labels === 'full');
-  }
-
-  /**
-   * Where the viewer drew its columns, tracks and annotations, in the
+   * Where the viewer drew its columns, tracks and labels, in the
    * page's viewport coordinates (CSS pixels), as getBoundingClientRect
    * reports them, so they match a screenshot of the page.
    */
@@ -384,36 +256,11 @@ export class Micro extends Visualizer {
         label: labels.has(i) ? rect(labels.get(i)) : null,
       };
     });
-    const marks = new Map<string, { kind: string; boxes: Box[] }>();
-    this.viewer.selectAll('.annotations [data-annotation]').each(function () {
-      const id = this.getAttribute('data-annotation');
-      const entry = marks.get(id) ?? {
-        kind: this.getAttribute('data-annotation-kind'),
-        boxes: [],
-      };
-      entry.boxes.push(rect(this));
-      marks.set(id, entry);
-    });
-    const annotations = Array.from(marks, ([id, { kind, boxes }]) => {
-      const x = Math.min(...boxes.map((b) => b.x));
-      const y = Math.min(...boxes.map((b) => b.y));
-      return {
-        id,
-        kind,
-        box: {
-          x,
-          y,
-          width: Math.max(...boxes.map((b) => b.x + b.width)) - x,
-          height: Math.max(...boxes.map((b) => b.y + b.height)) - y,
-        },
-      };
-    });
     return {
       svg: rect(svg),
       glyphSize: this.GLYPH_SIZE,
       columns,
       tracks,
-      annotations,
     };
   }
 

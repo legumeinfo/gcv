@@ -17,8 +17,6 @@ const DEFAULTS =
 
 const gene = (name) => `glyma.Wm82.gnm4.ann1.Glyma.${name}`;
 
-const BOX_FAMILY = 'legfed_v1_0.L_49J6VT';
-
 const FIGURE_GENERA = ['Phaseolus', 'Vigna'];
 // the view lists Phaseolus first, so asking for Vigna first tests the order
 
@@ -150,75 +148,6 @@ export const scenarios = [
       'Reports that the family has no gene in the lupin tracks GCV shows at these settings.',
       'Does not conclude that the family was lost from the lupin genomes on that basis alone: it says this is only not found, or names what would need checking (a wider search, the genome-wide family members, unplaced scaffolds), or reports having checked it.',
       'States the settings or gives the URL of the view it searched.',
-    ],
-  },
-  {
-    id: 'box-family-count',
-    url: view(),
-    prompt: `Box the consensus columns from ${gene('15G255100')} to ${gene('15G255400')} across every track, labelled "block", then tell me how many tracks have a gene of the family ${BOX_FAMILY} inside the box.`,
-    premises: [
-      {
-        about: `the box's genes are in one cluster, in columns 5 to 8, and some track has ${BOX_FAMILY} only outside them`,
-        async check(call) {
-          const report = await call('get_microsynteny_alignment', {
-            format: 'genes',
-            maxTracks: 200,
-          });
-          expect(!report.error, report.error);
-          expect(report.clusters.length === 1, 'the view has one cluster');
-          const [cluster] = report.clusters;
-          const query = cluster.tracks.find((t) => t.role === 'query');
-          const column = (name) =>
-            query.genes.find((g) => g.name === gene(name))?.column;
-          const [from, to] = [column('15G255100'), column('15G255400')];
-          expect(from === 5 && to === 8, `the box spans ${from} to ${to}`);
-          // a gene inside the box: in its columns, or inserted between them
-          const inside = (g) =>
-            g.column !== null
-              ? g.column >= from && g.column <= to
-              : g.insertedAfter >= from && g.insertedAfter < to;
-          const has = (t, where) =>
-            t.genes.some((g) => g.family === BOX_FAMILY && where(g));
-          const count = cluster.tracks.filter((t) => has(t, inside)).length;
-          const elsewhere = cluster.tracks.filter(
-            (t) => !has(t, inside) && has(t, () => true),
-          ).length;
-          expect(count > 1, 'several tracks have the family in the box');
-          expect(elsewhere > 0, 'a track has the family only outside it');
-          return { from, to, count, tracks: cluster.tracks.length };
-        },
-      },
-    ],
-    rubric: [
-      (f) =>
-        `Reports that ${f.count} tracks (the query track and ${f.count - 1} result tracks) have a gene of the family inside the box; a count of ${f.count - 1} that says it counts result tracks only also passes.`,
-      'Does not count a track whose gene of the family lies outside the boxed columns.',
-    ],
-    outcome: [
-      {
-        about:
-          'a box labelled "block" spans exactly the columns of Glyma.15G255100 to Glyma.15G255400, over every track',
-        async check(call, facts) {
-          const listed = await call('list_annotations');
-          expect(!listed.error, listed.error);
-          const box = listed.annotations.find(
-            (a) =>
-              a.kind === 'box' &&
-              a.placed &&
-              /x=block/.test(a.annot) &&
-              a.at.some(
-                (p) =>
-                  p.columns.from === facts.from &&
-                  p.columns.to === facts.to &&
-                  p.tracks.length === facts.tracks,
-              ),
-          );
-          expect(
-            box,
-            `no such box among ${JSON.stringify(listed.annotations.map((a) => a.annot))}`,
-          );
-        },
-      },
     ],
   },
   {

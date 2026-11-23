@@ -10,9 +10,9 @@ import {
   HeaderRightComponent,
 } from '@gcv/gene/components';
 import {
-  annotationParamMembers,
-  annotationParamParsers,
-  annotationParamValidators,
+  figureParamMembers,
+  figureParamParsers,
+  figureParamValidators,
   paramMembers,
   paramParsers,
   paramValidators,
@@ -25,11 +25,11 @@ export const routes: Routes = [
     path: '',
     component: GeneComponent,
     data: {
-      paramMembers: [...paramMembers, ...annotationParamMembers],
-      paramParsers: { ...paramParsers, ...annotationParamParsers },
-      paramValidators: { ...paramValidators, ...annotationParamValidators },
-      // fills only missing or invalid analysis parameters, so the defaults of
-      // the parameters that mark the view stay out of the URL
+      paramMembers: [...paramMembers, ...figureParamMembers],
+      paramParsers: { ...paramParsers, ...figureParamParsers },
+      paramValidators: { ...paramValidators, ...figureParamValidators },
+      // fills only missing or invalid analysis parameters, so fig stays out
+      // of the URL while no figure is open
       paramsSelector: fromParams.getParams,
     },
   },

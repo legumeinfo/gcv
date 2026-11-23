@@ -6,9 +6,7 @@ import {
 import { microShim } from '@gcv/gene/components/viewers/micro/micro.shim';
 import { Gene } from '@gcv/gene/models';
 import { geneID } from '@gcv/gene/store/reducers/gene.reducer';
-import { ParsedFigureSpec, PinParams } from '@gcv/gene/models/params';
-import { parseAnnotations } from '@gcv/gene/annotations/grammar';
-import { resolveAnnotations } from '@gcv/gene/annotations/resolve';
+import { ParsedFigureSpec } from '@gcv/gene/models/params';
 import { figureCaption } from './caption';
 import { FigureInputs, figureModel } from './model';
 import { HOLLOW, NEUTRAL, PALETTE } from './palette';
@@ -96,9 +94,7 @@ const genes: Gene[] = tracks.flatMap((t) =>
   })),
 );
 
-const noPins: PinParams = { pingene: [], pinfam: [], pinlabels: 'full' };
-
-function inputs(spec: ParsedFigureSpec, pins = noPins): FigureInputs {
+function inputs(spec: ParsedFigureSpec): FigureInputs {
   const { data } = microShim(0, [query], tracks, genes, []);
   const [alignment] = clusterAlignments(
     [['a', 'b', 'c', 'd', 'e']],
@@ -111,7 +107,6 @@ function inputs(spec: ParsedFigureSpec, pins = noPins): FigureInputs {
     alignment,
     sameLocus: sameLocusTracks([alignment]),
     spec,
-    pins,
   };
 }
 
@@ -325,7 +320,6 @@ describe('coloring families', () => {
         alignment,
         sameLocus: [],
         spec,
-        pins: noPins,
       });
     // by default, only as many as have colors, without a note
     expect(model({}).manifest.colours).toHaveLength(PALETTE.length);
@@ -348,25 +342,6 @@ describe('coloring families', () => {
 });
 
 describe('the rest of the figure', () => {
-  it('marks pinned genes and families', () => {
-    const { figure, manifest } = figureModel(
-      inputs({}, { pingene: ['p3'], pinfam: ['e'], pinlabels: 'full' }),
-    );
-    const pinned = figure.tracks
-      .flatMap((t) => t.genes)
-      .filter((g) => g.pinned)
-      .map((g) => g.name);
-    expect(pinned.sort()).toEqual(
-      [
-        'glyma.Wm82.gnm2.ann1.Glyma.q5',
-        'glyma.Wm82.gnm4.ann1.Glyma.q5',
-        'p3',
-        'v1',
-      ].sort(),
-    );
-    expect(manifest.pinned).toEqual({ genes: ['p3'], families: ['e'] });
-  });
-
   it('uses the spec’s size and options, with defaults', () => {
     expect(figureModel(inputs({})).figure).toMatchObject({
       size: { width: 180, font: 7 },
@@ -395,7 +370,6 @@ describe('the rest of the figure', () => {
       alignment,
       sameLocus: [],
       spec: { labels: 'short' },
-      pins: noPins,
     }).figure.tracks;
     expect([label.binomial, label.locus]).toEqual(['Glycine max', 'Wm82 Gm01']);
   });
@@ -424,7 +398,6 @@ describe('the rest of the figure', () => {
         alignment,
         sameLocus: [],
         spec: { labels },
-        pins: noPins,
       }).figure.tracks[0].locus;
     expect(label('short')).toBe('G1403 Chr16');
     expect(label('full')).toMatch(/^G1403 gnm1\.Chr16:/);
@@ -483,88 +456,5 @@ describe('the rest of the figure', () => {
     expect(caption).toMatch(
       /Made with GCV 2\.7\.1 on 2026-10-28: http:\/\/gcv\/gene;lis=Glyma\.q3\?fig=top:2$/,
     );
-  });
-});
-
-describe('annotations in a figure', () => {
-  const withAnnotations = (annot: string, spec: ParsedFigureSpec = {}) => {
-    const base = inputs(spec);
-    const annotations = resolveAnnotations(
-      parseAnnotations(annot).annotations,
-      [{ alignment: base.alignment, drawn: base.drawn }],
-    );
-    return figureModel({ ...base, annotations });
-  };
-
-  it("moves annotations onto the figure's tracks", () => {
-    // the best result track is the second assembly, then the bean track
-    const { figure } = withAnnotations(
-      'box(c=glyma.Wm82.gnm4.ann1.Glyma.q1~glyma.Wm82.gnm4.ann1.Glyma.q2,t=p1+v1)',
-      {
-        top: 2,
-      },
-    );
-    expect(figure.annotations[0]).toMatchObject({
-      kind: 'box',
-      columns: [0, 1],
-      tracks: [2],
-    });
-  });
-
-  it('clips columns to the crop, and notes what the crop leaves out', () => {
-    const { figure, notes } = withAnnotations(
-      'box(c=glyma.Wm82.gnm4.ann1.Glyma.q1~glyma.Wm82.gnm4.ann1.Glyma.q4,x=b);head(c=glyma.Wm82.gnm4.ann1.Glyma.q5,x=h);note(g=v3,x=n)',
-      {
-        crop: [
-          'glyma.Wm82.gnm4.ann1.Glyma.q2',
-          'glyma.Wm82.gnm4.ann1.Glyma.q3',
-        ],
-      },
-    );
-    expect(figure.annotations.map((a) => [a.kind, a.columns])).toEqual([
-      ['box', [1, 2]],
-      ['note', undefined],
-    ]);
-    expect(notes).toContain(
-      'Not drawn: the header “h”, its columns are not shown.',
-    );
-  });
-
-  it('puts a merged track’s annotations on the track it merged into', () => {
-    const { figure } = withAnnotations(
-      'gap(c=glyma.Wm82.gnm4.ann1.Glyma.q1,t=glyma.Wm82.gnm2.ann1.Glyma.q3)',
-      { merge: 'both' },
-    );
-    expect(figure.annotations).toEqual([]);
-    // the gap's track merged into the query's, which has q1 there
-    const { figure: noted } = withAnnotations(
-      'note(g=glyma.Wm82.gnm2.ann1.Glyma.q3,x=n)',
-      { merge: 'both' },
-    );
-    expect(noted.annotations[0]).toMatchObject({ track: 0 });
-  });
-
-  it('notes the annotations the view could not place', () => {
-    expect(withAnnotations('head(c=nowhere,x=h)').notes).toEqual([
-      'Not drawn: the header “h”: nowhere is not in the view; raise neighbors or remove this item.',
-    ]);
-  });
-
-  it('lists the annotations drawn, for the caption', () => {
-    const { manifest } = withAnnotations(
-      'box(c=glyma.Wm82.gnm4.ann1.Glyma.q1~glyma.Wm82.gnm4.ann1.Glyma.q2);head(c=glyma.Wm82.gnm4.ann1.Glyma.q1,x=Dt1)',
-    );
-    expect(manifest.annotations.map((a) => [a.kind, a.text])).toEqual([
-      ['box', undefined],
-      ['head', 'Dt1'],
-    ]);
-    const caption = figureCaption(manifest, {
-      queryGenes: [],
-      params: {} as never,
-      url: '',
-      version: '',
-      date: '',
-    });
-    expect(caption).toContain('Annotations: a box and header “Dt1”.');
   });
 });

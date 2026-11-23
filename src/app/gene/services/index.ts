@@ -1,4 +1,3 @@
-import { AnnotationService } from './annotation.service';
 import { ChromosomeService } from './chromosome.service';
 import { ComponentService } from './component.service';
 import { FamilyService } from './family.service';
@@ -13,7 +12,6 @@ import { ProcessService } from './process.service';
 import { RegionService } from './region.service';
 
 export const services: any[] = [
-  AnnotationService,
   ChromosomeService,
   ComponentService,
   FamilyService,
@@ -28,7 +26,6 @@ export const services: any[] = [
   RegionService,
 ];
 
-export * from './annotation.service';
 export * from './chromosome.service';
 export * from './component.service';
 export * from './family.service';

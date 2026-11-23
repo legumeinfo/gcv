@@ -3,25 +3,19 @@ import { createSelector, createSelectorFactory } from '@ngrx/store';
 // store
 import { selectQueryParams } from '@gcv/store/selectors/router';
 import {
-  annotationInitialState,
+  figureInitialState,
   initialState,
 } from '@gcv/gene/store/reducers/params.reducer';
 // app
 import { parseParams } from '@gcv/core/models/params';
 import { memoizeObject, pick } from '@gcv/core/utils';
 import {
-  AnnotationListParams,
-  annotationListParamMembers,
-  AnnotationParams,
-  annotationParamMembers,
   FigureParams,
   figureParamMembers,
-  annotationParamParsers,
+  figureParamParsers,
   Params,
   paramMembers,
   paramParsers,
-  PinParams,
-  pinParamMembers,
   AlignmentParams,
   alignmentParamMembers,
   BlockParams,
@@ -134,29 +128,14 @@ export const selectSourcesParam = createSelector(
   (params: SourceParams): string[] => params.sources,
 );
 
-// the parameters that mark the view, apart from the analysis's (getParams)
-export const getAnnotationParams = createSelectorFactory(memoizeObject)(
-  selectQueryParams,
-  (queryParams): AnnotationParams => {
-    // assumes params from URL are valid (see QueryParamsGuard)
-    const annotationParams = pick(annotationParamMembers, queryParams);
-    const urlParams = parseParams(annotationParams, annotationParamParsers);
-    return Object.assign({}, annotationInitialState, urlParams);
-  },
-);
-
-export const getPinParams = createSelectorFactory(memoizeObject)(
-  getAnnotationParams,
-  (params: AnnotationParams): PinParams => pick(pinParamMembers, params),
-);
-
+// the figure's parameter, apart from the analysis's (getParams), so the
+// analysis and the agent tools that change it never see it
 export const getFigureParams = createSelectorFactory(memoizeObject)(
-  getAnnotationParams,
-  (params: AnnotationParams): FigureParams => pick(figureParamMembers, params),
-);
-
-export const getAnnotationListParams = createSelectorFactory(memoizeObject)(
-  getAnnotationParams,
-  (params: AnnotationParams): AnnotationListParams =>
-    pick(annotationListParamMembers, params),
+  selectQueryParams,
+  (queryParams): FigureParams => {
+    // assumes params from URL are valid (see QueryParamsGuard)
+    const figureParams = pick(figureParamMembers, queryParams);
+    const urlParams = parseParams(figureParams, figureParamParsers);
+    return Object.assign({}, figureInitialState, urlParams);
+  },
 );

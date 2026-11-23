@@ -7,11 +7,11 @@ import {
   ChangeDetectionStrategy,
   inject,
 } from '@angular/core';
-import { Observable, Subject, firstValueFrom } from 'rxjs';
-import { map, takeUntil } from 'rxjs/operators';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 // App
 import { AppConfig } from '@gcv/core/models';
-import { MicroTracksService, ParamsService } from '@gcv/gene/services';
+import { MicroTracksService } from '@gcv/gene/services';
 
 @Component({
   selector: 'gcv-family-detail',
@@ -19,18 +19,6 @@ import { MicroTracksService, ParamsService } from '@gcv/gene/services';
   template: `
     <div class="details">
       <h4>{{ family.name }}</h4>
-      @if (pinnable) {
-        <p>
-          <button
-            type="button"
-            class="btn btn-sm btn-outline-dark"
-            [attr.aria-pressed]="pinned | async"
-            (click)="togglePin()"
-          >
-            {{ (pinned | async) ? 'Unpin' : 'Pin' }}
-          </button>
-        </p>
-      }
       <p>
         <a [routerLink]="['/gene', geneMatrix]" queryParamsHandling="merge"
           >View genes in multi-alignment view</a
@@ -65,7 +53,6 @@ import { MicroTracksService, ParamsService } from '@gcv/gene/services';
 export class FamilyDetailComponent implements OnDestroy, OnInit {
   private _appConfig = inject(AppConfig);
   private _microTracksService = inject(MicroTracksService);
-  private _paramsService = inject(ParamsService);
 
   @Input() family: { id: string; name: string };
 
@@ -75,10 +62,6 @@ export class FamilyDetailComponent implements OnDestroy, OnInit {
   genes: string[] = [];
   geneMatrix = {};
   familyTreeLinks: any[] = [];
-  // a key of several families, such as the singletons', or of genes without
-  // a family isn't one family to pin
-  pinnable = false;
-  pinned: Observable<boolean>;
 
   constructor() {
     const _appConfig = this._appConfig;
@@ -94,24 +77,10 @@ export class FamilyDetailComponent implements OnDestroy, OnInit {
   }
 
   ngOnInit() {
-    const { id } = this.family;
-    this.pinnable = id !== '' && !id.includes(',');
-    this.pinned = this._paramsService
-      .getPinParams()
-      .pipe(map(({ pinfam }) => pinfam.includes(id)));
     const tracks = this._microTracksService.getAllTracks();
     tracks
       .pipe(takeUntil(this._destroy))
       .subscribe((tracks) => this._process(tracks));
-  }
-
-  // public
-
-  async togglePin(): Promise<void> {
-    const pinned = await firstValueFrom(this.pinned);
-    await this._paramsService.updatePins(pinned ? 'remove' : 'add', {
-      families: [this.family.id],
-    });
   }
 
   // private

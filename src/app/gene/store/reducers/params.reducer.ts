@@ -1,5 +1,5 @@
 import { AppConfig } from '@gcv/core/models';
-import { AnnotationParams, Params } from '@gcv/gene/models/params';
+import { FigureParams, Params } from '@gcv/gene/models/params';
 
 export const initialState: Params = {
   // alignment
@@ -33,13 +33,6 @@ export const initialState: Params = {
   order: AppConfig.defaultParameters.gene.microSyntenyOrder,
 };
 
-export const annotationInitialState: AnnotationParams = {
-  // pins
-  pinfam: [],
-  pingene: [],
-  pinlabels: 'full',
-  // annotations
-  annot: { items: [], rejected: [] },
-  // figure
-  fig: null,
-};
+// the figure's parameter, apart from the analysis's: fig is absent while no
+// figure is open
+export const figureInitialState: FigureParams = { fig: null };

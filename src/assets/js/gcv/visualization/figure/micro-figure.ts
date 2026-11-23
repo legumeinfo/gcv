@@ -16,12 +16,6 @@ import {
   FigureTrack,
   MicroFigure,
 } from './micro-figure.model';
-import {
-  annotationMarks,
-  bandLanes,
-  headerBand,
-  noteGutter,
-} from '../annotations/annotation-marks';
 
 // the width of text at a font size in px, italic or not
 export type MeasureText = (
@@ -79,7 +73,7 @@ function text(
 }
 
 function glyph(b: Builder, gene: FigureGene, size: number): Element {
-  const stroke = gene.pinned ? 1.8 : 0.6;
+  const stroke = 0.6;
   const style =
     `fill: ${gene.fill}; stroke: ${STROKE}; stroke-width: ${stroke}px;` +
     (gene.style === 'orphan' ? ' stroke-dasharray: 1.5 1;' : '');
@@ -191,11 +185,7 @@ export function drawMicroFigure(
   );
   const [c0, c1] = figure.columns;
   const left = pad + labelWidth + pad;
-  // notes need a gutter right of the tracks
-  const right =
-    width -
-    pad -
-    noteGutter(figure.annotations, small, (t, s) => measure(t, s));
+  const right = width - pad;
   const columnWidth = (right - left) / Math.max(c1 - c0, 1);
   const size = Math.max(
     2,
@@ -243,17 +233,7 @@ export function drawMicroFigure(
   });
   svg.appendChild(background);
 
-  // headers, and labels over the first track, need a band of lanes above it
-  const lanes = bandLanes(figure.annotations, {
-    x,
-    glyph: size,
-    font: small,
-    measure: (t, s) => measure(t, s),
-  });
-  let top = pad + headerBand(small, lanes);
-  const header = pad;
-  // each track's extent, for the annotations drawn over them
-  const extents: { top: number; bottom: number; middle: number }[] = [];
+  let top = pad;
   figure.tracks.forEach((track: FigureTrack, i) => {
     const g = b.el('g', {
       'data-track': i,
@@ -331,7 +311,6 @@ export function drawMicroFigure(
         'data-column': String(gene.x),
         'data-style': gene.style,
       });
-      if (gene.pinned) geneGroup.setAttribute('data-pinned', '');
       geneGroup.appendChild(glyph(b, gene, size));
       if (figure.famlabels && gene.key !== undefined) {
         geneGroup.appendChild(
@@ -356,39 +335,8 @@ export function drawMicroFigure(
       g.appendChild(geneGroup);
     });
     svg.appendChild(g);
-    extents.push({
-      top: rowY(0) - size / 2 - pad / 2,
-      bottom: rowY(levels[i] - 1) + size / 2 + pad / 2,
-      middle: rowY(0),
-    });
     top += levels[i] * row + pad;
   });
-
-  // annotations over the tracks
-  if (figure.annotations.length > 0) {
-    const layer = b.el('g', { 'data-annotations': '' });
-    annotationMarks(figure.annotations, {
-      x,
-      top: (t) => extents[t].top,
-      bottom: (t) => extents[t].bottom,
-      middle: (t) => extents[t].middle,
-      glyph: size,
-      font: small,
-      measure: (t, s) => measure(t, s),
-      header,
-      lanes,
-      gutter: right + pad,
-    }).forEach((m) => {
-      const e = b.el(m.tag, {
-        ...m.attributes,
-        'data-annotation': m.annotation,
-        'data-annotation-kind': m.kind,
-      });
-      if (m.text !== undefined) e.textContent = m.text;
-      layer.appendChild(e);
-    });
-    svg.appendChild(layer);
-  }
 
   // the last line of text below the tracks: its middle and where it ends,
   // so the watermark can share it
