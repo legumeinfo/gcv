@@ -87,6 +87,10 @@ change with the clustering parameters, and closing it removes `fig`.
   the genes drawn.
 - **No scale bar.** Genes are placed by consensus column, not by position, so a figure has
   no bp scale; rail thickness shows the distance between neighbors, as in the viewer.
+- **Agents read claims, not pixels.** `make_figure` sets `fig`, waits for the tab's
+  `rendered` to match it, and returns the manifest; `get_figure` reads an open figure's
+  manifest or SVG text. `get_view_layout` reports where the viewer drew things in viewport
+  pixels, from `Micro.layout()`, and an e2e test holds it to the drawn elements.
 
 ## WebMCP
 

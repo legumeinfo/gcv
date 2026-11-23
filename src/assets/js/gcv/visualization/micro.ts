@@ -23,6 +23,25 @@ import {
 // the size of annotations' text, as the track labels'
 const ANNOTATION_FONT = 10;
 
+type Box = { x: number; y: number; width: number; height: number };
+
+// what the viewer drew where, in viewport CSS pixels: each consensus
+// column's center, each track's first row (y) and extent, its label, and
+// the box around each annotation's marks
+export type MicroLayout = {
+  svg: Box;
+  glyphSize: number;
+  columns: { column: number; x: number }[];
+  tracks: {
+    index: number;
+    y: number;
+    top: number;
+    height: number;
+    label: Box | null;
+  }[];
+  annotations: { id: string; kind: string; box: Box }[];
+};
+
 /** The micro-synteny viewer. */
 export class Micro extends Visualizer {
   // Private
@@ -298,6 +317,72 @@ export class Micro extends Visualizer {
     this.viewer
       .classed('pinned', pinned)
       .classed('pin-labels', pinned && labels === 'full');
+  }
+
+  /**
+   * Where the viewer drew its columns, tracks and annotations, in the
+   * page's viewport coordinates (CSS pixels), as getBoundingClientRect
+   * reports them, so they match a screenshot of the page.
+   */
+  layout(): MicroLayout {
+    const rect = (e: Element): Box => {
+      const r = e.getBoundingClientRect();
+      return { x: r.left, y: r.top, width: r.width, height: r.height };
+    };
+    const svg = this.viewer.node() as SVGSVGElement;
+    const box = svg.getBoundingClientRect();
+    const half = this.GLYPH_SIZE / 2;
+    const [from, to] = this.x.domain();
+    const columns: MicroLayout['columns'] = [];
+    for (let c = Math.ceil(from); c <= Math.floor(to); c++) {
+      columns.push({ column: c, x: box.left + this.x(c) });
+    }
+    const labels = new Map<number, Element>();
+    this.viewer.selectAll('.axis text[data-micro-track]').each(function () {
+      labels.set(Number(this.getAttribute('data-micro-track')), this);
+    });
+    const tracks = this.data.map((_, i) => {
+      const top = this.y(this.ticks[i]) - half;
+      const bottom = this.y(this.ticks[i] + this.levels[i] - 1) + half;
+      return {
+        index: i,
+        y: box.top + this.y(this.ticks[i]),
+        top: box.top + top,
+        height: bottom - top,
+        label: labels.has(i) ? rect(labels.get(i)) : null,
+      };
+    });
+    const marks = new Map<string, { kind: string; boxes: Box[] }>();
+    this.viewer.selectAll('.annotations [data-annotation]').each(function () {
+      const id = this.getAttribute('data-annotation');
+      const entry = marks.get(id) ?? {
+        kind: this.getAttribute('data-annotation-kind'),
+        boxes: [],
+      };
+      entry.boxes.push(rect(this));
+      marks.set(id, entry);
+    });
+    const annotations = Array.from(marks, ([id, { kind, boxes }]) => {
+      const x = Math.min(...boxes.map((b) => b.x));
+      const y = Math.min(...boxes.map((b) => b.y));
+      return {
+        id,
+        kind,
+        box: {
+          x,
+          y,
+          width: Math.max(...boxes.map((b) => b.x + b.width)) - x,
+          height: Math.max(...boxes.map((b) => b.y + b.height)) - y,
+        },
+      };
+    });
+    return {
+      svg: rect(svg),
+      glyphSize: this.GLYPH_SIZE,
+      columns,
+      tracks,
+      annotations,
+    };
   }
 
   /** Makes a copy of the SVG and inlines external GCV styles. */

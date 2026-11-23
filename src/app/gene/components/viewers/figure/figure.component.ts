@@ -12,7 +12,7 @@ import {
   ViewChild,
   inject,
 } from '@angular/core';
-import { Subject, combineLatest, of } from 'rxjs';
+import { BehaviorSubject, Subject, combineLatest, of } from 'rxjs';
 import { debounceTime, map, switchMap, takeUntil } from 'rxjs/operators';
 // store
 import { geneID } from '@gcv/gene/store/reducers/gene.reducer';
@@ -32,6 +32,7 @@ import {
   FIGURE_LIMITS,
   FigureSpec,
   ParsedFigureSpec,
+  serializeFigureSpec,
 } from '@gcv/gene/models/params';
 import {
   AnnotationService,
@@ -50,7 +51,19 @@ const measureText: MeasureText = (() => {
   };
 })();
 
-const PNG_DPI = 300;
+export const PNG_DPI = 300;
+
+// the figure as last drawn: the spec it was drawn for (as fig), and what it
+// claims, or why there is no figure
+export type FigureRender = {
+  fig: string;
+  cluster: number | null;
+  manifest?: FigureManifest;
+  notes: string[];
+  caption?: string;
+  // when the figure's gene is in several clusters, a query gene of each
+  choices?: { cluster: number; gene: string }[];
+};
 
 // A tab that makes a publication figure of its micro-synteny cluster. The
 // figure's choices live in the URL (fig), so the tab only reads and writes
@@ -365,6 +378,8 @@ export class FigureComponent implements AfterViewInit, OnDestroy {
   manifest: FigureManifest | undefined;
   notes: string[] = [];
   clusterChoices: { cluster: number; gene: string }[] = [];
+  // each drawing, for agents to wait on and read
+  readonly rendered = new BehaviorSubject<FigureRender | null>(null);
 
   private _destroy = new Subject<void>();
 
@@ -411,8 +426,15 @@ export class FigureComponent implements AfterViewInit, OnDestroy {
             cluster: c,
             gene: query.tracks.find((t) => t.cluster === c).genes[0],
           }));
+          const drawnFor = serializeFigureSpec(this.spec);
           if (this.clusterID === null) {
             this._cd.detectChanges();
+            this.rendered.next({
+              fig: drawnFor,
+              cluster: null,
+              notes: [],
+              choices: this.clusterChoices,
+            });
             return;
           }
           const clusterTracks = cluster(all);
@@ -433,6 +455,11 @@ export class FigureComponent implements AfterViewInit, OnDestroy {
             this.svg = undefined;
             this.notes = [`The view has no cluster ${this.clusterID}.`];
             this._cd.detectChanges();
+            this.rendered.next({
+              fig: drawnFor,
+              cluster: this.clusterID,
+              notes: this.notes,
+            });
             return;
           }
           const model = figureModel({
@@ -474,6 +501,13 @@ export class FigureComponent implements AfterViewInit, OnDestroy {
           this.preview?.nativeElement.replaceChildren(this.svg);
           this.svg.style.width = '100%';
           this.svg.style.height = 'auto';
+          this.rendered.next({
+            fig: drawnFor,
+            cluster: this.clusterID,
+            manifest: model.manifest,
+            notes: model.notes,
+            caption,
+          });
         },
       );
   }
@@ -481,6 +515,7 @@ export class FigureComponent implements AfterViewInit, OnDestroy {
   ngOnDestroy(): void {
     this._destroy.next();
     this._destroy.complete();
+    this.rendered.complete();
     this.closed.emit();
   }
 
@@ -560,18 +595,26 @@ export class FigureComponent implements AfterViewInit, OnDestroy {
 
   // downloads
 
-  downloadSvg(): void {
-    if (this.svg === undefined) return;
-    saveFile(
+  // the figure's SVG as a file holds it; undefined while there is none
+  svgText(): string | undefined {
+    if (this.svg === undefined) return undefined;
+    return new XMLSerializer().serializeToString(this._exported());
+  }
+
+  downloadSvg(): { name: string; bytes: number } | undefined {
+    if (this.svg === undefined) return undefined;
+    return saveFile(
       'micro-synteny-figure-',
-      new XMLSerializer().serializeToString(this._exported()),
+      this.svgText(),
       'image/svg+xml',
       'svg',
     );
   }
 
-  async downloadPng(): Promise<void> {
-    if (this.svg === undefined) return;
+  async downloadPng(
+    dpi = PNG_DPI,
+  ): Promise<{ name: string; bytes: number } | undefined> {
+    if (this.svg === undefined) return undefined;
     const svg = this._exported();
     const xml = new XMLSerializer().serializeToString(svg);
     const url = URL.createObjectURL(new Blob([xml], { type: 'image/svg+xml' }));
@@ -587,7 +630,7 @@ export class FigureComponent implements AfterViewInit, OnDestroy {
         .split(' ')
         .map(Number);
       // the viewBox is in px at 96 per inch
-      const scale = PNG_DPI / 96;
+      const scale = dpi / 96;
       const canvas = document.createElement('canvas');
       canvas.width = Math.round(width * scale);
       canvas.height = Math.round(height * scale);
@@ -597,7 +640,7 @@ export class FigureComponent implements AfterViewInit, OnDestroy {
       const blob = await new Promise<Blob>((resolve) =>
         canvas.toBlob(resolve, 'image/png'),
       );
-      saveFile('micro-synteny-figure-', blob, 'image/png', 'png');
+      return saveFile('micro-synteny-figure-', blob, 'image/png', 'png');
     } finally {
       URL.revokeObjectURL(url);
     }

@@ -51,10 +51,13 @@ The gene view tools work on the open gene view; `show_gene_contexts` opens one.
 | `pin_in_view`                | Pins genes or families in the viewers until unpinned; pins are in the URL, so shared links show them.                           |
 | `open_panel`                 | Opens gene, track or family details, a macro-synteny view, a Circos view or a dot plot.                                         |
 | `set_family_emphasis`        | Draws some families as strandless circles so the others stand out.                                                              |
-| `export_figure`              | Downloads a panel as SVG, or a cluster's alignment as TSV.                                                                      |
+| `get_view_layout`            | Reports where a micro-synteny viewer drew its columns, tracks, labels and annotations, in screenshot coordinates.               |
+| `export_figure`              | Downloads the figure as SVG or PNG, a panel as SVG, or a cluster's alignment as TSV.                                            |
 | `add_annotation`             | Boxes columns, marks an empty slot, adds a note or a column header, or marks a genomic position; annotations are in the URL.    |
 | `list_annotations`           | Lists the annotations, where each is drawn, and why any is not.                                                                 |
 | `remove_annotation`          | Removes an annotation, or all of them.                                                                                          |
+| `make_figure`                | Makes a publication figure of a cluster and returns what it claims; the figure's choices are in the URL.                        |
+| `get_figure`                 | Reads the open figure: what it claims, or its SVG text.                                                                         |
 
 ## Running GCV
 

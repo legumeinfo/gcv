@@ -16,6 +16,7 @@ import { Observable, Subject, combineLatest, firstValueFrom } from 'rxjs';
 import { map, switchMap, takeUntil } from 'rxjs/operators';
 // app
 import { GCV } from '@gcv-assets/js/gcv';
+import type { MicroLayout } from '@gcv-assets/js/gcv/visualization/micro';
 import { saveFile } from '@gcv/core/utils';
 import { Track, Pipeline } from '@gcv/gene/models';
 import { AlignmentMixin, ClusterMixin } from '@gcv/gene/models/mixins';
@@ -327,6 +328,25 @@ export class MicroComponent implements AfterViewInit, OnDestroy, OnInit {
     }
     saveFile('micro-synteny', this._viewer.xml(), 'image/svg+xml', 'svg');
     return true;
+  }
+
+  // where the drawn viewer put its columns, tracks and annotations, and the
+  // area its scrolling container shows; undefined while it isn't drawn, as
+  // behind another tab
+  layout():
+    | {
+        layout: MicroLayout;
+        visible: { x: number; y: number; width: number; height: number };
+      }
+    | undefined {
+    if (this._viewer === undefined) return undefined;
+    const r = (
+      this.container.nativeElement as HTMLElement
+    ).getBoundingClientRect();
+    return {
+      layout: this._viewer.layout(),
+      visible: { x: r.left, y: r.top, width: r.width, height: r.height },
+    };
   }
 
   clearPins(): void {

@@ -18,6 +18,8 @@ import {
 import { ClusterAlignment } from '@gcv/gene/alignment';
 import { PanelService } from '@gcv/gene/components/panel.service';
 import { PinParams } from '@gcv/gene/models/params';
+import { FIGURE_ID } from '@gcv/gene/components/viewers/figure';
+import { MicroComponent } from '@gcv/gene/components/viewers/micro/micro.component';
 import { FamilyService, ParamsService } from '@gcv/gene/services';
 import { clusterAlignmentTsv } from './alignment.report';
 import {
@@ -28,7 +30,9 @@ import {
   viewContext,
   viewTracks,
 } from './gene-view.context';
+import { downloadFigure } from './figure.tools';
 import { AgentHighlight } from './highlight';
+import { viewLayout } from './layout.report';
 import { matchGeneName, resolveTrack } from './lookup';
 import { AlignedTrack } from '@gcv/gene/alignment';
 
@@ -43,6 +47,7 @@ const PANEL_TYPES: Record<string, string> = {
   gene: 'gene',
   track: 'track',
   family: 'family',
+  figure: 'figure',
 };
 
 function panelList(panels: PanelService) {
@@ -50,7 +55,8 @@ function panelList(panels: PanelService) {
     id,
     type: PANEL_TYPES[componentType] ?? componentType,
     title,
-    exportable: typeof instance?.saveImage === 'function',
+    exportable:
+      typeof instance?.saveImage === 'function' || componentType === 'figure',
   }));
 }
 
@@ -541,6 +547,73 @@ async function saveDrawn(
   return false;
 }
 
+// waits until a micro-synteny viewer has drawn the cluster's alignment, for
+// at most two seconds
+async function drawnLayout(
+  instance: MicroComponent,
+  id: string,
+  alignment: ClusterAlignment,
+  signal: AbortSignal,
+) {
+  for (let i = 0; i < 20; i++) {
+    const drawn = instance.layout();
+    const layout =
+      drawn && viewLayout(id, drawn.layout, alignment, drawn.visible);
+    if (layout) return layout;
+    signal.throwIfAborted();
+    await new Promise((resolve) => setTimeout(resolve, 100));
+  }
+  return undefined;
+}
+
+const getViewLayout = defineGcvWebMcpTool({
+  name: 'get_view_layout',
+  title: 'Locate what the viewer drew',
+  description:
+    "Returns where a cluster's micro-synteny viewer drew things, in the page's viewport coordinates (CSS pixels, as a screenshot of the page shows them): each consensus column's center x and family, each track's role, chromosome, source, first and last genes, the y of its first row, its extent and its label's box, and the box around each annotation's marks. Use it to point at the view in a screenshot without measuring. It brings the viewer to the front of its stack, since a viewer behind another tab isn't drawn; what lies outside visible is scrolled out of view.",
+  inputSchema: {
+    type: 'object',
+    properties: {
+      cluster: {
+        type: 'integer',
+        minimum: 0,
+        description: 'The cluster (default: the only cluster).',
+      },
+    },
+    additionalProperties: false,
+  },
+  annotations: { readOnlyHint: true },
+  execute: async ({ cluster }, { signal }) => {
+    const context = viewContext();
+    const panels = inject(PanelService);
+    await settledView(context, signal);
+    attachedPanels(panels);
+    const { tracks } = await viewTracks(context);
+    const c = chooseCluster(tracks, cluster);
+    const [alignment] = await alignments(context, signal, c);
+    const id = panels.microViewerID(c);
+    const target = panels.panels().find((p) => p.id === id);
+    if (target === undefined) {
+      throw new WebMcpToolError(
+        `Cluster ${c}'s micro-synteny panel (${id}) is closed; reload the view to reopen it.`,
+      );
+    }
+    panels.activate(id);
+    const layout = await drawnLayout(
+      target.instance as MicroComponent,
+      id,
+      alignment,
+      signal,
+    );
+    if (layout === undefined) {
+      throw new WebMcpToolError(
+        `Panel ${id} has not drawn; it may be too small to draw in. Try again once it has.`,
+      );
+    }
+    return layout;
+  },
+});
+
 async function exportTsv(
   context: ViewContext,
   signal: AbortSignal,
@@ -568,14 +641,25 @@ const exportFigure = defineGcvWebMcpTool({
   name: 'export_figure',
   title: 'Download a figure',
   description:
-    "Downloads a figure from the gene view to the user's computer, as the panel's 'Save image' menu does: 'svg' saves a panel's drawing (a micro-synteny viewer, legend, macro-synteny viewer, circos or dot plot), with styles inlined for publication; 'tsv' saves a cluster's whole micro-synteny alignment, one row per track and one column per consensus position (the format of get_microsynteny_alignment). Name the panel by its ID from open_panel, or give a cluster for its micro-synteny viewer. Ask the user before downloading files they didn't request.",
+    "Downloads a figure from the gene view to the user's computer. figure: true saves the figure tab's publication figure (make_figure makes it) as 'svg' or 'png' (at dpi, default 300), as its SVG and PNG buttons do. Otherwise, as a panel's 'Save image' menu does: 'svg' saves a panel's drawing (a micro-synteny viewer, legend, macro-synteny viewer, circos or dot plot) as drawn, with styles inlined; 'tsv' saves a cluster's whole micro-synteny alignment, one row per track and one column per consensus position (the format of get_microsynteny_alignment). Name the panel by its ID from open_panel, or give a cluster for its micro-synteny viewer. For the figure, returns the file's name and size. Ask the user before downloading files they didn't request.",
   inputSchema: {
     type: 'object',
     properties: {
       format: {
         type: 'string',
-        enum: ['svg', 'tsv'],
-        description: "Default 'svg'.",
+        enum: ['svg', 'png', 'tsv'],
+        description: "Default 'svg'; 'png' only with figure.",
+      },
+      figure: {
+        type: 'boolean',
+        description: "Download the figure tab's figure.",
+      },
+      dpi: {
+        type: 'integer',
+        minimum: 72,
+        maximum: 1200,
+        description:
+          "For 'png': resolution at the figure's print size (default 300).",
       },
       panel: {
         type: 'string',
@@ -590,11 +674,31 @@ const exportFigure = defineGcvWebMcpTool({
     },
     additionalProperties: false,
   },
-  execute: async ({ format = 'svg', panel, cluster }, { signal }) => {
+  execute: async (
+    { format = 'svg', panel, cluster, figure, dpi },
+    { signal },
+  ) => {
     const context = viewContext();
     const panels = inject(PanelService);
+    const params = inject(ParamsService);
     await settledView(context, signal);
     attachedPanels(panels);
+    if (figure || panel === FIGURE_ID) {
+      if (format === 'tsv') {
+        throw new WebMcpToolError(
+          "A figure downloads as 'svg' or 'png'; 'tsv' is a cluster's alignment.",
+        );
+      }
+      return downloadFigure(panels, params, format, dpi, signal);
+    }
+    if (format === 'png') {
+      throw new WebMcpToolError(
+        "'png' is for the figure tab's figure: add figure: true (make_figure makes one), or use 'svg'.",
+      );
+    }
+    if (dpi !== undefined) {
+      throw new WebMcpToolError("dpi is for a figure's 'png'.");
+    }
     if (format === 'tsv') {
       return exportTsv(context, signal, cluster);
     }
@@ -631,5 +735,6 @@ export const displayWebMcpTools = (): GcvWebMcpTools => [
   pinInView,
   openPanel,
   setFamilyEmphasis,
+  getViewLayout,
   exportFigure,
 ];
