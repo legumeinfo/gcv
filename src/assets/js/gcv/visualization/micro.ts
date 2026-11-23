@@ -12,6 +12,16 @@ import {
   trackLevels,
   trackTicks,
 } from './layout/micro-tracks';
+import {
+  PlacedAnnotation,
+  annotationMarks,
+  needsHeaderBand,
+  headerBand,
+  noteGutter,
+} from './annotations/annotation-marks';
+
+// the size of annotations' text, as the track labels'
+const ANNOTATION_FONT = 10;
 
 /** The micro-synteny viewer. */
 export class Micro extends Visualizer {
@@ -20,6 +30,8 @@ export class Micro extends Visualizer {
   private left: number;
   private names: any[];
   private intervals: any[];
+  private levels: number[];
+  private gutter: number;
   private right: number;
   private thickness: any;
   private ticks: any[];
@@ -121,10 +133,16 @@ export class Micro extends Visualizer {
     this.options.hoverDelay = this.options.hoverDelay || 500;
     this.options.prefix = this.options.prefix || ((t) => '');
     // create the viewer
+    this.options.annotations = this.options.annotations || [];
     const levels = trackLevels(data);
+    this.levels = levels;
     const numLevels = levels.reduce((a, b) => a + b, 0);
     const halfTrack = this.GLYPH_SIZE / 2;
-    const top = this.PAD + halfTrack;
+    // headers, and labels over the first track, need a band above it
+    const band = needsHeaderBand(this.options.annotations)
+      ? headerBand(ANNOTATION_FONT)
+      : 0;
+    const top = this.PAD + band + halfTrack;
     const bottom = top + this.GLYPH_SIZE * numLevels;
     this.viewer.attr('height', bottom + halfTrack);
     // compute the track names and locations, and line thickness
@@ -160,7 +178,13 @@ export class Micro extends Visualizer {
     };
     resizeYaxis();
     this.decorateResize(resizeYaxis);
-    const setRight = () => (this.right = this.PAD);
+    // notes need a gutter right of the tracks
+    this.gutter = noteGutter(
+      this.options.annotations,
+      ANNOTATION_FONT,
+      (text, size) => this.measureText(text, size),
+    );
+    const setRight = () => (this.right = this.PAD + this.gutter);
     setRight();
     this.decorateResize(setRight);
     if (this.options.plotClick !== undefined) {
@@ -196,11 +220,59 @@ export class Micro extends Visualizer {
     };
     resizeTracks();
     this.decorateResize(resizeTracks);
+    // annotations go over the tracks, and move with them
+    const annotations = this.viewer.append('g').attr('class', 'annotations');
+    const drawAnnotations = () => this.drawAnnotations(annotations);
+    drawAnnotations();
+    this.decorateResize(drawAnnotations);
     // create an auto resize listener, if necessary
     if (this.options.autoResize) {
       this.autoResize();
     }
     this.setPins(this.options.pins, this.options.pinLabels);
+  }
+
+  // the width of a text at a font size, measured in the viewer
+  private measureText(text: string, size: number): number {
+    const t = this.viewer
+      .append('text')
+      .style('font-size', `${size}px`)
+      .text(text);
+    const width = t.node().getComputedTextLength();
+    t.remove();
+    return width;
+  }
+
+  /** Draws the annotations, already placed on columns and tracks. */
+  private drawAnnotations(layer) {
+    layer.selectAll('*').remove();
+    const half = this.GLYPH_SIZE / 2;
+    // placements made for other data, as while the view updates, wait
+    const placed = (this.options.annotations as PlacedAnnotation[]).filter(
+      (a) =>
+        [a.track, ...(a.tracks ?? []), ...(a.sites ?? []).map((s) => s.track)]
+          .filter((t) => t !== undefined)
+          .every((t) => t < this.data.length),
+    );
+    const marks = annotationMarks(placed, {
+      x: (c) => this.x(c),
+      top: (t) => this.y(this.ticks[t]) - half,
+      bottom: (t) => this.y(this.ticks[t] + this.levels[t] - 1) + half,
+      middle: (t) => this.y(this.ticks[t]),
+      glyph: this.GLYPH_SIZE * 0.7,
+      font: ANNOTATION_FONT,
+      header: this.PAD,
+      // past the plot links, at the viewer's right edge
+      gutter: this.viewer.attr('width') - this.gutter + ANNOTATION_FONT,
+    });
+    marks.forEach((m) => {
+      const e = layer
+        .append(m.tag)
+        .attr('data-annotation', m.annotation)
+        .attr('data-annotation-kind', m.kind);
+      Object.entries(m.attributes).forEach(([k, v]) => e.attr(k, v));
+      if (m.text !== undefined) e.text(m.text);
+    });
   }
 
   // Public

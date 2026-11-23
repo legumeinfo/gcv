@@ -84,6 +84,12 @@
 .GCV.pinned.pin-labels .axis text {
   fill-opacity: 1;
 }
+/* annotations stay readable through pins and hovering */
+.GCV.pinned .annotations,
+.GCV.hovering .annotations {
+  stroke-opacity: 1;
+  fill-opacity: 1;
+}
 .GCV.hovering {
   stroke-opacity: 0.2;
   fill-opacity: 0.2;
