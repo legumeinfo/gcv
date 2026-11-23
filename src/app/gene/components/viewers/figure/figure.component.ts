@@ -443,6 +443,15 @@ export class FigureComponent implements AfterViewInit, OnDestroy {
   private _destroy = new Subject<void>();
 
   ngAfterViewInit(): void {
+    // the form shows, and changes build on, the URL's spec from the start,
+    // not only once the view's data has drawn the figure
+    this._paramsService
+      .getFigureParams()
+      .pipe(takeUntil(this._destroy))
+      .subscribe(({ fig }) => {
+        this.spec = fig ?? {};
+        this._cd.detectChanges();
+      });
     const query = this._microTracksService.getQueryAlignment();
     const tracks = this._microTracksService.getAllTracks();
     const cluster = (all: AlignedTrack[]) =>
