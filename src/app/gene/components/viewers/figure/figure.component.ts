@@ -87,42 +87,58 @@ export type FigureRender = {
         height: 100%;
         overflow: hidden;
       }
-      .figure-body {
-        display: flex;
-        flex: 1;
-        min-height: 0;
-      }
       .figure-preview {
-        flex: 1;
-        overflow: auto;
+        flex: 3 1 0;
+        min-height: 8rem;
         padding: 0.5rem;
         background: #f3f3f3;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        /* the figure fits the preview both ways (see its sizing) */
+        container-type: size;
       }
       .figure-preview :first-child {
         background: #fff;
         box-shadow: 0 0 4px rgba(0, 0, 0, 0.2);
       }
       .figure-form {
-        width: 17rem;
-        flex: none;
+        flex: 2 1 0;
+        min-height: 10rem;
         overflow-y: auto;
-        padding: 0.5rem;
-        border-left: 1px solid #dee2e6;
+        padding: 0.5rem 0.75rem;
+        border-top: 1px solid #dee2e6;
         font-size: 0.875rem;
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+        gap: 0.5rem 1.25rem;
+        align-items: start;
+      }
+      .figure-section h6 {
+        font-size: 0.75rem;
+        font-weight: 600;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        color: #6c757d;
+        border-bottom: 1px solid #dee2e6;
+        padding-bottom: 0.2rem;
+        margin-bottom: 0.4rem;
       }
       .figure-tracks {
-        max-height: 12rem;
+        max-height: 9rem;
         overflow-y: auto;
         border: 1px solid #dee2e6;
         border-radius: 0.25rem;
         padding: 0.25rem 0.25rem 0.25rem 0.5rem;
       }
       .figure-notes {
+        flex: none;
         margin: 0;
         padding: 0.25rem 0.5rem 0.25rem 1.5rem;
         border-top: 1px solid #dee2e6;
         font-size: 0.8rem;
-        max-height: 6rem;
+        max-height: 4.5rem;
         overflow-y: auto;
       }
     `,
@@ -186,9 +202,16 @@ export type FigureRender = {
           }
         </div>
       } @else {
-        <div class="figure-body">
-          <div class="figure-preview" #preview></div>
-          <form class="figure-form" (submit)="$event.preventDefault()">
+        <div class="figure-preview" #preview></div>
+        @if (notes.length > 0) {
+          <ul class="figure-notes" data-figure-notes>
+            @for (note of notes; track note) {
+              <li>{{ note }}</li>
+            }
+          </ul>
+        }
+        <form class="figure-form" (submit)="$event.preventDefault()">
+          <section class="figure-section">
             <h6>Tracks</h6>
             <label class="form-label mb-1" for="figure-top"
               >Best result tracks</label
@@ -215,7 +238,7 @@ export type FigureRender = {
               (change)="setList('genus', $event)"
             />
             <fieldset class="mb-2" data-figure-tracks>
-              <legend class="form-label fs-6 mb-1">
+              <legend class="form-label mb-1" style="font-size: inherit">
                 Result tracks shown: {{ chosenTracks() }} of
                 {{ trackOptions.length }}
               </legend>
@@ -255,6 +278,9 @@ export type FigureRender = {
                 }
               </div>
             </fieldset>
+          </section>
+          <section class="figure-section">
+            <h6>Order and merging</h6>
             <label class="form-label mb-1" for="figure-order">Order</label>
             <select
               id="figure-order"
@@ -319,7 +345,8 @@ export type FigureRender = {
                 </ul>
               }
             }
-            <div class="mb-2"></div>
+          </section>
+          <section class="figure-section">
             <h6>Columns</h6>
             <label class="form-label mb-1" for="figure-crop-from"
               >From gene</label
@@ -339,6 +366,8 @@ export type FigureRender = {
               [value]="spec.crop?.[1] ?? ''"
               (change)="setCrop(1, $event)"
             />
+          </section>
+          <section class="figure-section">
             <h6>Families</h6>
             <label class="form-label mb-1" for="figure-colour"
               >Families to color, comma-separated</label
@@ -372,6 +401,8 @@ export type FigureRender = {
               />
               <label class="form-check-label" for="figure-legend">Legend</label>
             </div>
+          </section>
+          <section class="figure-section">
             <h6>Labels</h6>
             <select
               id="figure-labels"
@@ -413,6 +444,8 @@ export type FigureRender = {
                 >Print the caption</label
               >
             </div>
+          </section>
+          <section class="figure-section">
             <h6>Marks</h6>
             <label class="form-label mb-1" for="figure-mark-em"
               >Emphasise genes, comma-separated</label
@@ -462,7 +495,9 @@ export type FigureRender = {
                 }
               </ul>
             }
-            <h6 class="mt-2">Size</h6>
+          </section>
+          <section class="figure-section">
+            <h6>Size</h6>
             <label class="form-label mb-1" for="figure-w">Width (mm)</label>
             <input
               id="figure-w"
@@ -504,15 +539,8 @@ export type FigureRender = {
               [value]="spec.glyph ?? ''"
               (change)="setNumber('glyph', $event)"
             />
-          </form>
-        </div>
-        @if (notes.length > 0) {
-          <ul class="figure-notes" data-figure-notes>
-            @for (note of notes; track note) {
-              <li>{{ note }}</li>
-            }
-          </ul>
-        }
+          </section>
+        </form>
       }
     </div>
   `,
@@ -667,7 +695,12 @@ export class FigureComponent implements AfterViewInit, OnDestroy {
         );
         this._cd.detectChanges();
         this.preview?.nativeElement.replaceChildren(this.svg);
-        this.svg.style.width = '100%';
+        // as large as fits the preview, in the figure's proportions
+        const [, , width, height] = this.svg
+          .getAttribute('viewBox')
+          .split(' ')
+          .map(Number);
+        this.svg.style.width = `min(100cqw, calc(100cqh * ${width / height}))`;
         this.svg.style.height = 'auto';
         this.rendered.next({
           fig: drawnFor,
