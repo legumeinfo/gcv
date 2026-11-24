@@ -27,7 +27,12 @@ import {
   sameLocusTracks,
 } from '@gcv/gene/alignment';
 import { microShim } from '@gcv/gene/components/viewers/micro/micro.shim';
-import { FigureManifest, figureCaption, figureModel } from '@gcv/gene/figure';
+import {
+  FigureManifest,
+  TrackOption,
+  figureCaption,
+  figureModel,
+} from '@gcv/gene/figure';
 import {
   FIGURE_LIMITS,
   FigureSpec,
@@ -51,6 +56,7 @@ const measureText: MeasureText = (() => {
 })();
 
 export const PNG_DPI = 300;
+export const PNG_DPI_LIMITS = [72, 1200] as const;
 
 // the figure as last drawn: the spec it was drawn for (as fig), and what it
 // claims, or why there is no figure
@@ -104,6 +110,13 @@ export type FigureRender = {
         border-left: 1px solid #dee2e6;
         font-size: 0.875rem;
       }
+      .figure-tracks {
+        max-height: 12rem;
+        overflow-y: auto;
+        border: 1px solid #dee2e6;
+        border-radius: 0.25rem;
+        padding: 0.25rem 0.25rem 0.25rem 0.5rem;
+      }
       .figure-notes {
         margin: 0;
         padding: 0.25rem 0.5rem 0.25rem 1.5rem;
@@ -137,10 +150,23 @@ export type FigureRender = {
             [title]="
               loading ? 'Waiting for genes’ coordinates' : 'Download PNG'
             "
-            (click)="downloadPng()"
+            (click)="downloadPng(dpi)"
           >
             PNG
           </button>
+          <label class="ms-1 small" for="figure-dpi">at</label>
+          <input
+            id="figure-dpi"
+            class="form-control form-control-sm d-inline-block mx-1"
+            style="width: 4.5rem"
+            type="number"
+            step="1"
+            [min]="dpiLimits[0]"
+            [max]="dpiLimits[1]"
+            [value]="dpi"
+            (change)="setDpi($event)"
+          />
+          <label class="small" for="figure-dpi">dpi</label>
         </div>
       </nav>
       @if (clusterID === null) {
@@ -173,6 +199,7 @@ export type FigureRender = {
               type="number"
               min="1"
               placeholder="all"
+              [disabled]="spec.tracks !== undefined"
               [value]="spec.top ?? ''"
               (change)="setNumber('top', $event)"
             />
@@ -183,9 +210,51 @@ export type FigureRender = {
               id="figure-genus"
               class="form-control form-control-sm mb-2"
               placeholder="all"
+              [disabled]="spec.tracks !== undefined"
               [value]="(spec.genus ?? []).join(', ')"
               (change)="setList('genus', $event)"
             />
+            <fieldset class="mb-2" data-figure-tracks>
+              <legend class="form-label fs-6 mb-1">
+                Result tracks shown: {{ chosenTracks() }} of
+                {{ trackOptions.length }}
+              </legend>
+              @if (spec.tracks !== undefined) {
+                <p class="small text-muted mb-1">
+                  Ticked tracks replace the best tracks and genera above.
+                  <button
+                    type="button"
+                    class="btn btn-link btn-sm p-0 align-baseline"
+                    (click)="update({ tracks: undefined })"
+                  >
+                    Use them again
+                  </button>
+                </p>
+              }
+              <div class="figure-tracks">
+                @for (option of trackOptions; track option.gene) {
+                  <div class="form-check">
+                    <input
+                      class="form-check-input"
+                      type="checkbox"
+                      [id]="'figure-track-' + $index"
+                      [attr.data-track-gene]="option.gene"
+                      [checked]="option.chosen"
+                      [disabled]="option.chosen && chosenTracks() === 1"
+                      (change)="setTrack(option, $event)"
+                    />
+                    <label
+                      class="form-check-label"
+                      [for]="'figure-track-' + $index"
+                      >{{ option.label }}
+                      <span class="text-muted"
+                        >({{ option.score }})</span
+                      ></label
+                    >
+                  </div>
+                }
+              </div>
+            </fieldset>
             <label class="form-label mb-1" for="figure-order">Order</label>
             <select
               id="figure-order"
@@ -202,19 +271,55 @@ export type FigureRender = {
                 By genus, as listed
               </option>
             </select>
-            <div class="form-check mb-2">
-              <input
-                id="figure-merge"
-                class="form-check-input"
-                type="checkbox"
-                [checked]="spec.merge === 'both'"
-                (change)="setMerge($event)"
-              />
-              <label class="form-check-label" for="figure-merge"
-                >Merge tracks that names and coordinates show are one
-                locus</label
+            @if (orderChoice() === 'genus') {
+              <label class="form-label mb-1" for="figure-order-genera"
+                >Genera in order, comma-separated</label
               >
-            </div>
+              <input
+                id="figure-order-genera"
+                class="form-control form-control-sm mb-2"
+                [value]="orderGenera().join(', ')"
+                (change)="setOrderGenera($event)"
+              />
+            }
+            <label class="form-label mb-1" for="figure-merge"
+              >Merge tracks of one locus</label
+            >
+            <select
+              id="figure-merge"
+              class="form-select form-select-sm mb-1"
+              (change)="setMerge($event)"
+            >
+              <option value="none" [selected]="mergeChoice() === 'none'">
+                None
+              </option>
+              <option value="both" [selected]="mergeChoice() === 'both'">
+                Where names and coordinates both show it
+              </option>
+              <option value="pairs" [selected]="mergeChoice() === 'pairs'">
+                These pairs
+              </option>
+            </select>
+            @if (mergeChoice() === 'pairs') {
+              <label class="form-label mb-1" for="figure-merge-pairs"
+                >Pairs, one per line: gene / gene, a gene of each track</label
+              >
+              <textarea
+                id="figure-merge-pairs"
+                class="form-control form-control-sm mb-1"
+                rows="2"
+                [value]="mergeLines()"
+                (change)="setMergePairs($event)"
+              ></textarea>
+              @if (mergeErrors.length > 0) {
+                <ul class="text-danger small ps-3 mb-1" data-merge-errors>
+                  @for (error of mergeErrors; track error) {
+                    <li>{{ error }}</li>
+                  }
+                </ul>
+              }
+            }
+            <div class="mb-2"></div>
             <h6>Columns</h6>
             <label class="form-label mb-1" for="figure-crop-from"
               >From gene</label
@@ -437,6 +542,14 @@ export class FigureComponent implements AfterViewInit, OnDestroy {
   clusterChoices: { cluster: number; gene: string }[] = [];
   // the lines of the marks' fields that couldn't be read
   markErrors: string[] = [];
+  // the cluster's result tracks, ticked as the spec chooses them
+  trackOptions: TrackOption[] = [];
+  // merging named pairs, before any pair is named
+  choosingPairs = false;
+  mergeErrors: string[] = [];
+  // the PNG's resolution, an export choice rather than the figure's
+  dpi = PNG_DPI;
+  readonly dpiLimits = PNG_DPI_LIMITS;
   // each drawing, for agents to wait on and read
   readonly rendered = new BehaviorSubject<FigureRender | null>(null);
 
@@ -540,6 +653,7 @@ export class FigureComponent implements AfterViewInit, OnDestroy {
           date,
         });
         this.manifest = model.manifest;
+        this.trackOptions = model.trackOptions;
         this.notes = model.notes;
         this.loading = model.loading;
         this.svg = GCV.visualization.drawMicroFigure(
@@ -598,14 +712,22 @@ export class FigureComponent implements AfterViewInit, OnDestroy {
       .split(/[,+]/)
       .map((i) => i.trim())
       .filter((i) => i !== '');
-    const change: Partial<FigureSpec> = {
-      [key]: items.length > 0 ? items : undefined,
-    };
-    // ordering by genus follows the genera listed
-    if (key === 'genus' && this.orderChoice() === 'genus') {
-      change.order = items.length > 0 ? { genera: items } : undefined;
-    }
-    this.update(change);
+    this.update({ [key]: items.length > 0 ? items : undefined });
+  }
+
+  // the tracks
+
+  chosenTracks(): number {
+    return this.trackOptions.filter((o) => o.chosen).length;
+  }
+
+  // ticking a track names every ticked track, which replaces top and genus
+  setTrack(option: TrackOption, event: Event): void {
+    const checked = (event.target as HTMLInputElement).checked;
+    const tracks = this.trackOptions
+      .filter((o) => (o === option ? checked : o.chosen))
+      .map((o) => o.gene);
+    this.update({ tracks: tracks.length > 0 ? tracks : undefined });
   }
 
   orderChoice(): 'view' | 'score' | 'genus' {
@@ -617,21 +739,81 @@ export class FigureComponent implements AfterViewInit, OnDestroy {
         : 'genus';
   }
 
+  // the genera to order by: the spec's, or else the genera kept, as shown
+  orderGenera(): string[] {
+    const order = this.spec.order;
+    if (order !== undefined && order !== 'view' && order !== 'score') {
+      return order.genera;
+    }
+    return (
+      this.spec.genus ??
+      Array.from(
+        new Set(this.trackOptions.filter((o) => o.chosen).map((o) => o.genus)),
+      )
+    );
+  }
+
   setOrder(event: Event): void {
     const choice = this.value(event);
+    const genera = this.orderGenera();
     this.update({
       order:
         choice === 'score'
           ? 'score'
-          : choice === 'genus'
-            ? { genera: this.spec.genus ?? [] }
+          : choice === 'genus' && genera.length > 0
+            ? { genera }
             : undefined,
     });
   }
 
+  setOrderGenera(event: Event): void {
+    const genera = this.value(event)
+      .split(/[,+]/)
+      .map((g) => g.trim())
+      .filter((g) => g !== '');
+    this.update({ order: genera.length > 0 ? { genera } : undefined });
+  }
+
+  mergeChoice(): 'none' | 'both' | 'pairs' {
+    const merge = this.spec.merge;
+    return merge === 'both'
+      ? 'both'
+      : merge !== undefined || this.choosingPairs
+        ? 'pairs'
+        : 'none';
+  }
+
   setMerge(event: Event): void {
-    const checked = (event.target as HTMLInputElement).checked;
-    this.update({ merge: checked ? 'both' : undefined });
+    const choice = this.value(event);
+    this.choosingPairs = choice === 'pairs';
+    this.mergeErrors = [];
+    this.update({ merge: choice === 'both' ? 'both' : undefined });
+  }
+
+  mergeLines(): string {
+    const merge = this.spec.merge;
+    return Array.isArray(merge)
+      ? merge.map(([a, b]) => `${a} / ${b}`).join('\n')
+      : '';
+  }
+
+  setMergePairs(event: Event): void {
+    const errors: string[] = [];
+    const pairs = (event.target as HTMLTextAreaElement).value
+      .split('\n')
+      .map((l) => l.trim())
+      .filter((l) => l !== '')
+      .flatMap((line): [string, string][] => {
+        const genes = line.split('/').map((g) => g.trim());
+        if (genes.length === 2 && genes.every((g) => g !== '')) {
+          return [genes as [string, string]];
+        }
+        errors.push(`Couldn't read “${line}”.`);
+        return [];
+      });
+    this.mergeErrors = errors;
+    this.choosingPairs = true;
+    this.update({ merge: pairs.length > 0 ? pairs : undefined });
   }
 
   setCrop(end: 0 | 1, event: Event): void {
@@ -718,6 +900,14 @@ export class FigureComponent implements AfterViewInit, OnDestroy {
 
   setFlag(key: 'famlabels' | 'legend' | 'names' | 'cap', event: Event): void {
     this.update({ [key]: (event.target as HTMLInputElement).checked });
+  }
+
+  setDpi(event: Event): void {
+    const dpi = Number(this.value(event));
+    const [min, max] = PNG_DPI_LIMITS;
+    this.dpi =
+      Number.isInteger(dpi) && dpi >= min && dpi <= max ? dpi : PNG_DPI;
+    (event.target as HTMLInputElement).value = String(this.dpi);
   }
 
   // downloads

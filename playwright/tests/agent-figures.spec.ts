@@ -1,4 +1,5 @@
 import { test, expect, Page } from '@playwright/test';
+import { FIGURE_KEYS } from '../../src/app/gene/models/params/figure.model';
 import { callTool, standInForWebMcp, waitForSettledMicroView } from '../utils';
 
 const QUERY = 'glyma.Wm82.gnm4.ann1.Glyma.09G134900';
@@ -278,5 +279,103 @@ test.describe('the agent figure tools', () => {
     expect(Math.max(drawn.stem[0][1], drawn.stem[1][1])).toBeLessThan(
       drawn.holder.y,
     );
+  });
+
+  test('a person and an agent make the same figures: each setting has a control in the tab and an argument of the tools', async ({
+    page,
+  }) => {
+    // each of fig's settings, with the figure tab's controls and the tool
+    // arguments that set it; the PNG's resolution is an export choice, not
+    // the figure's, so it is outside fig
+    const settings: Record<
+      string,
+      { controls: string[]; args: string[]; tool?: string }
+    > = {
+      // the viewer's Make figure names the cluster, and the tab offers a
+      // choice when its gene is in several
+      cl: { controls: [], args: ['cluster', 'clusterGene'] },
+      top: { controls: ['#figure-top'], args: ['top'] },
+      tracks: { controls: ['[data-figure-tracks] input'], args: ['tracks'] },
+      genus: { controls: ['#figure-genus'], args: ['genera'] },
+      order: {
+        controls: ['#figure-order', '#figure-order-genera'],
+        args: ['order', 'genusOrder'],
+      },
+      merge: {
+        controls: ['#figure-merge', '#figure-merge-pairs'],
+        args: ['merge', 'mergePairs'],
+      },
+      crop: {
+        controls: ['#figure-crop-from', '#figure-crop-to'],
+        args: ['crop'],
+      },
+      colour: { controls: ['#figure-colour'], args: ['families'] },
+      famlabels: { controls: ['#figure-famlabels'], args: ['familyNumbers'] },
+      labels: { controls: ['#figure-labels'], args: ['labels'] },
+      names: { controls: ['#figure-names'], args: ['geneNames'] },
+      w: { controls: ['#figure-w'], args: ['width'] },
+      font: { controls: ['#figure-font'], args: ['font'] },
+      glyph: { controls: ['#figure-glyph'], args: ['glyph'] },
+      legend: { controls: ['#figure-legend'], args: ['legend'] },
+      cap: { controls: ['#figure-cap'], args: ['caption'] },
+      em: { controls: ['#figure-mark-em'], args: ['emphasise'] },
+      name: { controls: ['#figure-mark-names'], args: ['names'] },
+      span: { controls: ['#figure-mark-spans'], args: ['spans'] },
+      pos: { controls: ['#figure-mark-positions'], args: ['positions'] },
+      dpi: { controls: ['#figure-dpi'], args: ['dpi'], tool: 'export_figure' },
+    };
+    expect(Object.keys(settings).filter((k) => k !== 'dpi')).toEqual(
+      FIGURE_KEYS,
+    );
+    // the fields shown only for some choices, shown
+    const fig = `cl:${QUERY};order:Vigna+Phaseolus;merge:a/b`;
+    await page.goto(`${VIEW}&fig=${encodeURIComponent(fig)}`);
+    await expect(page.locator('gcv-figure svg[data-figure]')).toHaveCount(1, {
+      timeout: 60000,
+    });
+    const selectors = Object.values(settings).flatMap((s) => s.controls);
+    for (const selector of selectors) {
+      await expect(
+        page.locator(`gcv-figure ${selector}`).first(),
+        selector,
+      ).toBeVisible();
+    }
+    // every control in the tab sets one of them
+    const unlisted = await page.evaluate(
+      (selectors) =>
+        Array.from(
+          document.querySelectorAll(
+            'gcv-figure input, gcv-figure select, gcv-figure textarea',
+          ),
+        )
+          .filter((e) => !selectors.some((s) => e.matches(`gcv-figure ${s}`)))
+          .map((e) => e.outerHTML.slice(0, 80)),
+      selectors,
+    );
+    expect(unlisted).toEqual([]);
+    // and the tools take exactly these arguments
+    const schemas = await page.evaluate(() => {
+      const tools = (
+        window as unknown as {
+          __gcvTools: Record<
+            string,
+            { inputSchema: { properties: Record<string, unknown> } }
+          >;
+        }
+      ).__gcvTools;
+      return Object.fromEntries(
+        ['make_figure', 'export_figure'].map((n) => [
+          n,
+          Object.keys(tools[n].inputSchema.properties),
+        ]),
+      );
+    });
+    const args = (tool: string) =>
+      Object.values(settings)
+        .filter((s) => (s.tool ?? 'make_figure') === tool)
+        .flatMap((s) => s.args)
+        .sort();
+    expect(schemas.make_figure.sort()).toEqual(args('make_figure'));
+    expect(schemas.export_figure).toContain('dpi');
   });
 });

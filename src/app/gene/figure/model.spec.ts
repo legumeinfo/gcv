@@ -149,6 +149,31 @@ describe('choosing tracks', () => {
     expect(model.notes).toEqual(['No result track has the gene nowhere.']);
   });
 
+  it('shows the named tracks in the view’s order, whatever order names them', () => {
+    expect(chromosomes({ tracks: ['v2', 'p2'] })).toEqual([
+      query.name,
+      bean.name,
+      cowpea.name,
+    ]);
+  });
+
+  it('offers each result track by a gene only it holds, ticked as chosen', () => {
+    const options = figureModel(inputs({ top: 2 })).trackOptions;
+    expect(options.map((o) => [o.label, o.score, o.chosen])).toEqual([
+      ['Glycine max, gnm2.Gm15', 50, true],
+      ['Phaseolus vulgaris, gnm2.Chr05', 40, true],
+      ['Vigna unguiculata, gnm1.Vu01', 35, false],
+      ['Lupinus albus, gnm1.Lalb_Chr03', 10, false],
+    ]);
+    // naming the offered genes chooses exactly the offered tracks
+    options.forEach((o, i) => {
+      const chosen = figureModel(inputs({ tracks: [o.gene] })).trackOptions;
+      expect(chosen.map((c) => c.chosen)).toEqual(
+        options.map((_, j) => j === i),
+      );
+    });
+  });
+
   it('counts the result tracks shown against the cluster’s', () => {
     expect(figureModel(inputs({ top: 1 })).manifest.resultTracks).toEqual({
       shown: 1,

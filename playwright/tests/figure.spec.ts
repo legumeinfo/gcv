@@ -135,4 +135,119 @@ test.describe('the figure tab', () => {
     const undated = (svg: string) => svg.replace(/\d{4}-\d{2}-\d{2}/g, '');
     expect(undated(second)).toBe(undated(first));
   });
+
+  test('ticking result tracks shows exactly the ticked tracks, in place of the filters', async ({
+    page,
+  }) => {
+    await openFigure(page);
+    const boxes = page.locator('[data-figure-tracks] input[type="checkbox"]');
+    const count = await boxes.count();
+    expect(count).toBeGreaterThan(2);
+    await page.locator('#figure-top').fill('2');
+    await page.locator('#figure-top').press('Enter');
+    await expect.poll(() => fig(page)).toBe(`cl:${QUERY};top:2`);
+    const ticked = boxes.and(page.locator(':checked'));
+    // a ticked track's gene is drawn, an unticked one's isn't
+    const agree = async () => {
+      const states = await boxes.evaluateAll((inputs) =>
+        inputs.map((i: HTMLInputElement) => ({
+          gene: i.getAttribute('data-track-gene'),
+          checked: i.checked,
+        })),
+      );
+      for (const { gene, checked } of states) {
+        await expect(
+          figure(page).locator(`[data-gene="${gene}"]`),
+          gene,
+        ).toHaveCount(checked ? 1 : 0);
+      }
+      return states.filter((s) => s.checked).map((s) => s.gene);
+    };
+    await expect(ticked).toHaveCount(2);
+    expect(await agree()).toHaveLength(2);
+    // ticking a third names all three, which override top, kept for later
+    const third = boxes.and(page.locator(':not(:checked)')).first();
+    const gene = await third.getAttribute('data-track-gene');
+    await third.check();
+    await expect.poll(() => fig(page)).toMatch(/;top:2;tracks:/);
+    expect(fig(page)).toContain(gene);
+    await expect(page.locator('#figure-top')).toBeDisabled();
+    await expect(page.locator('#figure-genus')).toBeDisabled();
+    await expect(figure(page).locator('[data-track]')).toHaveCount(4);
+    await expect(ticked).toHaveCount(3);
+    expect(await agree()).toHaveLength(3);
+    await page.getByRole('button', { name: 'Use them again' }).click();
+    await expect.poll(() => fig(page)).toBe(`cl:${QUERY};top:2`);
+    await expect(page.locator('#figure-top')).toBeEnabled();
+    await expect(ticked).toHaveCount(2);
+    expect(await agree()).toHaveLength(2);
+  });
+
+  test('ordering by genus follows the genera typed, and merging follows the pairs typed', async ({
+    page,
+  }) => {
+    await openFigure(page);
+    await page.locator('#figure-order').selectOption('genus');
+    await expect(page.locator('#figure-order-genera')).toBeVisible();
+    await page.locator('#figure-order-genera').fill('Vigna, Phaseolus');
+    await page.locator('#figure-order-genera').press('Enter');
+    await expect
+      .poll(() => fig(page))
+      .toBe(`cl:${QUERY};order:Vigna+Phaseolus`);
+    // the result tracks' labels, top to bottom, read Vigna, then Phaseolus,
+    // then the rest
+    const rank = (b: string) =>
+      b.startsWith('Vigna') ? 0 : b.startsWith('Phaseolus') ? 1 : 2;
+    const ranks = () =>
+      figure(page)
+        .locator('[data-track][data-role="result"] [data-label] text')
+        .evaluateAll((texts) =>
+          texts
+            .map((t) => t.textContent)
+            .filter((t) => /^[A-Z][a-z]+ [a-z]/.test(t)),
+        )
+        .then((binomials) => binomials.map(rank));
+    // the figure redraws a moment after the URL changes
+    await expect
+      .poll(async () => {
+        const r = await ranks();
+        return r.join('') === [...r].sort().join('');
+      })
+      .toBe(true);
+    const drawn = await ranks();
+    expect(new Set(drawn)).toEqual(new Set([0, 1, 2]));
+    await page.locator('#figure-merge').selectOption('pairs');
+    await page.locator('#figure-merge-pairs').fill('a / b\nnot a pair');
+    await page.locator('#figure-merge-pairs').blur();
+    await expect.poll(() => fig(page)).toMatch(/;merge:a\/b$/);
+    await expect(page.locator('[data-merge-errors] li')).toHaveText([
+      "Couldn't read “not a pair”.",
+    ]);
+    // the figure says it couldn't merge genes it doesn't show
+    await expect(
+      page.locator('[data-figure-notes] li', {
+        hasText: 'Not merged: a and b',
+      }),
+    ).toHaveCount(1);
+  });
+
+  test('the PNG downloads at the resolution chosen', async ({ page }) => {
+    await openFigure(page);
+    await settledFigure(page);
+    const width = async () => {
+      const [file] = await Promise.all([
+        page.waitForEvent('download'),
+        page.getByRole('button', { name: 'PNG' }).click(),
+      ]);
+      // a PNG's width is the big-endian integer at byte 16
+      return readFileSync(await file.path()).readUInt32BE(16);
+    };
+    const [, , w] = (await figure(page).getAttribute('viewBox'))
+      .split(' ')
+      .map(Number);
+    expect(await width()).toBe(Math.round((w * 300) / 96));
+    await page.locator('#figure-dpi').fill('150');
+    await page.locator('#figure-dpi').press('Enter');
+    expect(await width()).toBe(Math.round((w * 150) / 96));
+  });
 });

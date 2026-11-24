@@ -101,6 +101,19 @@ export type FigureModel = {
   notes: string[];
   // some genes' coordinates are still loading, so spans are incomplete
   loading: boolean;
+  // the cluster's result tracks, for the form that chooses them
+  trackOptions: TrackOption[];
+};
+
+// a result track the figure can show, named by a gene only it holds, so the
+// spec's tracks can name it
+export type TrackOption = {
+  gene: string;
+  genus: string;
+  label: string;
+  score: number | null;
+  // chosen by the spec, before merging
+  chosen: boolean;
 };
 
 type Track = { drawn: DrawnTrack; aligned: TrackAlignment };
@@ -264,7 +277,8 @@ function chooseTracks(
       }
       chosen.push(...holders);
     });
-    return unique(chosen);
+    // the view's order, which ordering then changes
+    return results.filter((t) => chosen.includes(t));
   }
   let kept = results;
   if (spec.genus !== undefined) {
@@ -407,7 +421,8 @@ export function figureModel(inputs: FigureInputs): FigureModel {
   }));
   const queries = tracks.filter((t) => t.aligned.role === 'query');
   const allResults = tracks.length - queries.length;
-  const results = orderTracks(chooseTracks(tracks, spec, notes), spec);
+  const chosen = chooseTracks(tracks, spec, notes);
+  const results = orderTracks(chosen, spec);
   let kept = [...queries, ...results];
 
   const merges = mergePairs(kept, inputs, notes);
@@ -690,5 +705,34 @@ export function figureModel(inputs: FigureInputs): FigureModel {
     },
     notes,
     loading: missingCoordinates,
+    trackOptions: trackOptions(tracks, chosen),
   };
+}
+
+// each result track, named by the gene nearest its middle that no other
+// result track holds, or its middle gene when every gene is shared
+function trackOptions(tracks: Track[], chosen: Track[]): TrackOption[] {
+  const results = tracks.filter((t) => t.aligned.role === 'result');
+  return results.map((t) => {
+    const names = t.aligned.genes.map((g) => g.name);
+    const others = new Set(
+      results
+        .filter((o) => o !== t)
+        .flatMap((o) => o.aligned.genes.map((g) => g.name)),
+    );
+    const middle = Math.floor(names.length / 2);
+    const byDistance = names
+      .map((name, i) => ({ name, d: Math.abs(i - middle) }))
+      .sort((a, b) => a.d - b.d);
+    const gene =
+      byDistance.find(({ name }) => !others.has(name))?.name ?? names[middle];
+    const [species, strain] = t.aligned.species.split(':');
+    return {
+      gene,
+      genus: t.aligned.genus,
+      label: `${t.aligned.genus} ${species}${strain !== undefined ? ` ${strain}` : ''}, ${shortName(t.aligned.chromosome, LIS_ASSEMBLY_CHROMOSOME)}`,
+      score: t.aligned.score,
+      chosen: chosen.includes(t),
+    };
+  });
 }

@@ -15,7 +15,7 @@ import {
 } from '@gcv/core/webmcp/webmcp';
 import { ClusterAlignment } from '@gcv/gene/alignment';
 import { PanelService } from '@gcv/gene/components/panel.service';
-import { FIGURE_ID } from '@gcv/gene/components/viewers/figure';
+import { FIGURE_ID, PNG_DPI_LIMITS } from '@gcv/gene/components/viewers/figure';
 import { MicroComponent } from '@gcv/gene/components/viewers/micro/micro.component';
 import { FamilyService, ParamsService } from '@gcv/gene/services';
 import { clusterAlignmentTsv } from './alignment.report';
@@ -510,8 +510,8 @@ const exportFigure = defineGcvWebMcpTool({
       },
       dpi: {
         type: 'integer',
-        minimum: 72,
-        maximum: 1200,
+        minimum: PNG_DPI_LIMITS[0],
+        maximum: PNG_DPI_LIMITS[1],
         description:
           "For 'png': resolution at the figure's print size (default 300).",
       },

@@ -143,7 +143,7 @@ const makeFigure = defineGcvWebMcpTool({
         items: { type: 'string' },
         minItems: 1,
         description:
-          'Keep only the result tracks holding these genes, one gene each; overrides top.',
+          'Keep only the result tracks holding these genes, one gene each, as the figure tab’s track checkboxes do; overrides top and genera as a filter.',
       },
       genera: {
         type: 'array',
@@ -155,7 +155,14 @@ const makeFigure = defineGcvWebMcpTool({
         type: 'string',
         enum: ['view', 'score', 'genus'],
         description:
-          'Track order: as in the view (default), by score, or by genus in the order genera lists them.',
+          "Track order: as in the view (default), by score, or 'genus': by genus in the order genusOrder lists them (default: genera's order).",
+      },
+      genusOrder: {
+        type: 'array',
+        items: { type: 'string' },
+        minItems: 1,
+        description:
+          "For order 'genus': the genera in order; genera not listed go last.",
       },
       merge: {
         type: 'string',
@@ -316,9 +323,7 @@ const makeFigure = defineGcvWebMcpTool({
       genus: args.genera,
       order:
         args.order === 'genus'
-          ? args.genera === undefined
-            ? undefined
-            : { genera: args.genera }
+          ? { genera: args.genusOrder ?? args.genera }
           : args.order,
       merge: args.merge ?? (args.mergePairs as [string, string][]),
       crop:
@@ -337,8 +342,17 @@ const makeFigure = defineGcvWebMcpTool({
       span: args.spans,
       pos: args.positions,
     };
-    if (args.order === 'genus' && args.genera === undefined) {
-      throw new WebMcpToolError("order 'genus' orders by genera; give genera.");
+    if (
+      args.order === 'genus' &&
+      args.genusOrder === undefined &&
+      args.genera === undefined
+    ) {
+      throw new WebMcpToolError(
+        "order 'genus' orders by genusOrder, or else genera; give one.",
+      );
+    }
+    if (args.genusOrder !== undefined && args.order !== 'genus') {
+      throw new WebMcpToolError("genusOrder is for order 'genus'.");
     }
     // the spec as the URL will read it back
     const { spec: read, rejected } = parseFigureSpec(serializeFigureSpec(spec));
