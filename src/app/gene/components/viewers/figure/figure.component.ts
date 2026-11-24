@@ -110,10 +110,26 @@ export type FigureRender = {
         padding: 0.5rem 0.75rem;
         border-top: 1px solid #dee2e6;
         font-size: 0.875rem;
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+        display: flex;
+        flex-wrap: wrap;
+        align-items: flex-start;
+        align-content: flex-start;
         gap: 0.5rem 1.25rem;
-        align-items: start;
+      }
+      /* Tracks and Marks hold lists, so they get twice the width of the
+         columns that stack the smaller groups */
+      .figure-form > * {
+        flex: 1 1 13rem;
+        min-width: 0;
+      }
+      .figure-form > .figure-wide {
+        flex: 2 1 26rem;
+      }
+      /* whitespace between the groups a column stacks */
+      .figure-stack {
+        display: flex;
+        flex-direction: column;
+        gap: 1.25rem;
       }
       .figure-section h6 {
         font-size: 0.75rem;
@@ -211,7 +227,7 @@ export type FigureRender = {
           </ul>
         }
         <form class="figure-form" (submit)="$event.preventDefault()">
-          <section class="figure-section">
+          <section class="figure-section figure-wide">
             <h6>Tracks</h6>
             <label class="form-label mb-1" for="figure-top"
               >Best result tracks</label
@@ -279,173 +295,228 @@ export type FigureRender = {
               </div>
             </fieldset>
           </section>
-          <section class="figure-section">
-            <h6>Order and merging</h6>
-            <label class="form-label mb-1" for="figure-order">Order</label>
-            <select
-              id="figure-order"
-              class="form-select form-select-sm mb-2"
-              (change)="setOrder($event)"
-            >
-              <option value="view" [selected]="orderChoice() === 'view'">
-                As in the view
-              </option>
-              <option value="score" [selected]="orderChoice() === 'score'">
-                By alignment score
-              </option>
-              <option value="genus" [selected]="orderChoice() === 'genus'">
-                By genus, as listed
-              </option>
-            </select>
-            @if (orderChoice() === 'genus') {
-              <label class="form-label mb-1" for="figure-order-genera"
-                >Genera in order, comma-separated</label
+          <div class="figure-stack">
+            <section class="figure-section">
+              <h6>Order and merging</h6>
+              <label class="form-label mb-1" for="figure-order">Order</label>
+              <select
+                id="figure-order"
+                class="form-select form-select-sm mb-2"
+                (change)="setOrder($event)"
               >
-              <input
-                id="figure-order-genera"
-                class="form-control form-control-sm mb-2"
-                [value]="orderGenera().join(', ')"
-                (change)="setOrderGenera($event)"
-              />
-            }
-            <label class="form-label mb-1" for="figure-merge"
-              >Merge tracks of one locus</label
-            >
-            <select
-              id="figure-merge"
-              class="form-select form-select-sm mb-1"
-              (change)="setMerge($event)"
-            >
-              <option value="none" [selected]="mergeChoice() === 'none'">
-                None
-              </option>
-              <option value="both" [selected]="mergeChoice() === 'both'">
-                Where names and coordinates both show it
-              </option>
-              <option value="pairs" [selected]="mergeChoice() === 'pairs'">
-                These pairs
-              </option>
-            </select>
-            @if (mergeChoice() === 'pairs') {
-              <label class="form-label mb-1" for="figure-merge-pairs"
-                >Pairs, one per line: gene / gene, a gene of each track</label
-              >
-              <textarea
-                id="figure-merge-pairs"
-                class="form-control form-control-sm mb-1"
-                rows="2"
-                [value]="mergeLines()"
-                (change)="setMergePairs($event)"
-              ></textarea>
-              @if (mergeErrors.length > 0) {
-                <ul class="text-danger small ps-3 mb-1" data-merge-errors>
-                  @for (error of mergeErrors; track error) {
-                    <li>{{ error }}</li>
-                  }
-                </ul>
+                <option value="view" [selected]="orderChoice() === 'view'">
+                  As in the view
+                </option>
+                <option value="score" [selected]="orderChoice() === 'score'">
+                  By alignment score
+                </option>
+                <option value="genus" [selected]="orderChoice() === 'genus'">
+                  By genus, as listed
+                </option>
+              </select>
+              @if (orderChoice() === 'genus') {
+                <label class="form-label mb-1" for="figure-order-genera"
+                  >Genera in order, comma-separated</label
+                >
+                <input
+                  id="figure-order-genera"
+                  class="form-control form-control-sm mb-2"
+                  [value]="orderGenera().join(', ')"
+                  (change)="setOrderGenera($event)"
+                />
               }
-            }
-          </section>
-          <section class="figure-section">
-            <h6>Columns</h6>
-            <label class="form-label mb-1" for="figure-crop-from"
-              >From gene</label
-            >
-            <input
-              id="figure-crop-from"
-              class="form-control form-control-sm mb-1"
-              placeholder="first column"
-              [value]="spec.crop?.[0] ?? ''"
-              (change)="setCrop(0, $event)"
-            />
-            <label class="form-label mb-1" for="figure-crop-to">To gene</label>
-            <input
-              id="figure-crop-to"
-              class="form-control form-control-sm mb-2"
-              placeholder="last column"
-              [value]="spec.crop?.[1] ?? ''"
-              (change)="setCrop(1, $event)"
-            />
-          </section>
-          <section class="figure-section">
-            <h6>Families</h6>
-            <label class="form-label mb-1" for="figure-colour"
-              >Families to color, comma-separated</label
-            >
-            <input
-              id="figure-colour"
-              class="form-control form-control-sm mb-1"
-              placeholder="the query's shared families"
-              [value]="(spec.colour ?? []).join(', ')"
-              (change)="setList('colour', $event)"
-            />
-            <div class="form-check">
-              <input
-                id="figure-famlabels"
-                class="form-check-input"
-                type="checkbox"
-                [checked]="spec.famlabels ?? false"
-                (change)="setFlag('famlabels', $event)"
-              />
-              <label class="form-check-label" for="figure-famlabels"
-                >Number the families</label
+              <label class="form-label mb-1" for="figure-merge"
+                >Merge tracks of one locus</label
               >
-            </div>
-            <div class="form-check mb-2">
-              <input
-                id="figure-legend"
-                class="form-check-input"
-                type="checkbox"
-                [checked]="spec.legend ?? true"
-                (change)="setFlag('legend', $event)"
-              />
-              <label class="form-check-label" for="figure-legend">Legend</label>
-            </div>
-          </section>
-          <section class="figure-section">
-            <h6>Labels</h6>
-            <select
-              id="figure-labels"
-              class="form-select form-select-sm mb-1"
-              (change)="
-                update({
-                  labels: value($event) === 'short' ? 'short' : undefined,
-                })
-              "
-            >
-              <option value="full" [selected]="spec.labels !== 'short'">
-                Chromosome and span
-              </option>
-              <option value="short" [selected]="spec.labels === 'short'">
-                Chromosome only
-              </option>
-            </select>
-            <div class="form-check">
-              <input
-                id="figure-names"
-                class="form-check-input"
-                type="checkbox"
-                [checked]="spec.names ?? false"
-                (change)="setFlag('names', $event)"
-              />
-              <label class="form-check-label" for="figure-names"
-                >Gene names</label
+              <select
+                id="figure-merge"
+                class="form-select form-select-sm mb-1"
+                (change)="setMerge($event)"
               >
-            </div>
-            <div class="form-check mb-2">
-              <input
-                id="figure-cap"
-                class="form-check-input"
-                type="checkbox"
-                [checked]="spec.cap ?? false"
-                (change)="setFlag('cap', $event)"
-              />
-              <label class="form-check-label" for="figure-cap"
-                >Print the caption</label
+                <option value="none" [selected]="mergeChoice() === 'none'">
+                  None
+                </option>
+                <option value="both" [selected]="mergeChoice() === 'both'">
+                  Where names and coordinates both show it
+                </option>
+                <option value="pairs" [selected]="mergeChoice() === 'pairs'">
+                  These pairs
+                </option>
+              </select>
+              @if (mergeChoice() === 'pairs') {
+                <label class="form-label mb-1" for="figure-merge-pairs"
+                  >Pairs, one per line: gene / gene, a gene of each track</label
+                >
+                <textarea
+                  id="figure-merge-pairs"
+                  wrap="off"
+                  class="form-control form-control-sm mb-1"
+                  rows="2"
+                  [value]="mergeLines()"
+                  (change)="setMergePairs($event)"
+                ></textarea>
+                @if (mergeErrors.length > 0) {
+                  <ul class="text-danger small ps-3 mb-1" data-merge-errors>
+                    @for (error of mergeErrors; track error) {
+                      <li>{{ error }}</li>
+                    }
+                  </ul>
+                }
+              }
+            </section>
+            <section class="figure-section">
+              <h6>Columns</h6>
+              <label class="form-label mb-1" for="figure-crop-from"
+                >From gene</label
               >
-            </div>
-          </section>
-          <section class="figure-section">
+              <input
+                id="figure-crop-from"
+                class="form-control form-control-sm mb-1"
+                placeholder="first column"
+                [value]="spec.crop?.[0] ?? ''"
+                (change)="setCrop(0, $event)"
+              />
+              <label class="form-label mb-1" for="figure-crop-to"
+                >To gene</label
+              >
+              <input
+                id="figure-crop-to"
+                class="form-control form-control-sm mb-2"
+                placeholder="last column"
+                [value]="spec.crop?.[1] ?? ''"
+                (change)="setCrop(1, $event)"
+              />
+            </section>
+          </div>
+          <div class="figure-stack">
+            <section class="figure-section">
+              <h6>Families</h6>
+              <label class="form-label mb-1" for="figure-colour"
+                >Families to color, comma-separated</label
+              >
+              <input
+                id="figure-colour"
+                class="form-control form-control-sm mb-1"
+                placeholder="the query's shared families"
+                [value]="(spec.colour ?? []).join(', ')"
+                (change)="setList('colour', $event)"
+              />
+              <div class="form-check">
+                <input
+                  id="figure-famlabels"
+                  class="form-check-input"
+                  type="checkbox"
+                  [checked]="spec.famlabels ?? false"
+                  (change)="setFlag('famlabels', $event)"
+                />
+                <label class="form-check-label" for="figure-famlabels"
+                  >Number the families</label
+                >
+              </div>
+              <div class="form-check mb-2">
+                <input
+                  id="figure-legend"
+                  class="form-check-input"
+                  type="checkbox"
+                  [checked]="spec.legend ?? true"
+                  (change)="setFlag('legend', $event)"
+                />
+                <label class="form-check-label" for="figure-legend"
+                  >Legend</label
+                >
+              </div>
+            </section>
+            <section class="figure-section">
+              <h6>Labels</h6>
+              <select
+                id="figure-labels"
+                class="form-select form-select-sm mb-1"
+                (change)="
+                  update({
+                    labels: value($event) === 'short' ? 'short' : undefined,
+                  })
+                "
+              >
+                <option value="full" [selected]="spec.labels !== 'short'">
+                  Chromosome and span
+                </option>
+                <option value="short" [selected]="spec.labels === 'short'">
+                  Chromosome only
+                </option>
+              </select>
+              <div class="form-check">
+                <input
+                  id="figure-names"
+                  class="form-check-input"
+                  type="checkbox"
+                  [checked]="spec.names ?? false"
+                  (change)="setFlag('names', $event)"
+                />
+                <label class="form-check-label" for="figure-names"
+                  >Gene names</label
+                >
+              </div>
+              <div class="form-check mb-2">
+                <input
+                  id="figure-cap"
+                  class="form-check-input"
+                  type="checkbox"
+                  [checked]="spec.cap ?? false"
+                  (change)="setFlag('cap', $event)"
+                />
+                <label class="form-check-label" for="figure-cap"
+                  >Print the caption</label
+                >
+              </div>
+            </section>
+            <section class="figure-section">
+              <h6>Size</h6>
+              <label class="form-label mb-1" for="figure-w">Width (mm)</label>
+              <input
+                id="figure-w"
+                class="form-control form-control-sm mb-1"
+                type="number"
+                list="figure-widths"
+                [min]="limits.w[0]"
+                [max]="limits.w[1]"
+                placeholder="180"
+                [value]="spec.w ?? ''"
+                (change)="setNumber('w', $event)"
+              />
+              <datalist id="figure-widths">
+                <option value="85"></option>
+                <option value="120"></option>
+                <option value="180"></option>
+              </datalist>
+              <label class="form-label mb-1" for="figure-font">Text (pt)</label>
+              <input
+                id="figure-font"
+                class="form-control form-control-sm mb-1"
+                type="number"
+                step="0.5"
+                [min]="limits.font[0]"
+                [max]="limits.font[1]"
+                placeholder="7"
+                [value]="spec.font ?? ''"
+                (change)="setNumber('font', $event)"
+              />
+              <label class="form-label mb-1" for="figure-glyph"
+                >Genes (mm)</label
+              >
+              <input
+                id="figure-glyph"
+                class="form-control form-control-sm"
+                type="number"
+                step="0.5"
+                [min]="limits.glyph[0]"
+                [max]="limits.glyph[1]"
+                placeholder="fitted"
+                [value]="spec.glyph ?? ''"
+                (change)="setNumber('glyph', $event)"
+              />
+            </section>
+          </div>
+          <section class="figure-section figure-wide">
             <h6>Marks</h6>
             <label class="form-label mb-1" for="figure-mark-em"
               >Emphasise genes, comma-separated</label
@@ -462,6 +533,7 @@ export type FigureRender = {
             >
             <textarea
               id="figure-mark-names"
+              wrap="off"
               class="form-control form-control-sm mb-1"
               rows="2"
               placeholder="Glyma.19G194300 = Dt1"
@@ -473,6 +545,7 @@ export type FigureRender = {
             >
             <textarea
               id="figure-mark-spans"
+              wrap="off"
               class="form-control form-control-sm mb-1"
               rows="2"
               [value]="markLines('span')"
@@ -483,6 +556,7 @@ export type FigureRender = {
             >
             <textarea
               id="figure-mark-positions"
+              wrap="off"
               class="form-control form-control-sm mb-1"
               rows="2"
               [value]="markLines('pos')"
@@ -495,50 +569,6 @@ export type FigureRender = {
                 }
               </ul>
             }
-          </section>
-          <section class="figure-section">
-            <h6>Size</h6>
-            <label class="form-label mb-1" for="figure-w">Width (mm)</label>
-            <input
-              id="figure-w"
-              class="form-control form-control-sm mb-1"
-              type="number"
-              list="figure-widths"
-              [min]="limits.w[0]"
-              [max]="limits.w[1]"
-              placeholder="180"
-              [value]="spec.w ?? ''"
-              (change)="setNumber('w', $event)"
-            />
-            <datalist id="figure-widths">
-              <option value="85"></option>
-              <option value="120"></option>
-              <option value="180"></option>
-            </datalist>
-            <label class="form-label mb-1" for="figure-font">Text (pt)</label>
-            <input
-              id="figure-font"
-              class="form-control form-control-sm mb-1"
-              type="number"
-              step="0.5"
-              [min]="limits.font[0]"
-              [max]="limits.font[1]"
-              placeholder="7"
-              [value]="spec.font ?? ''"
-              (change)="setNumber('font', $event)"
-            />
-            <label class="form-label mb-1" for="figure-glyph">Genes (mm)</label>
-            <input
-              id="figure-glyph"
-              class="form-control form-control-sm"
-              type="number"
-              step="0.5"
-              [min]="limits.glyph[0]"
-              [max]="limits.glyph[1]"
-              placeholder="fitted"
-              [value]="spec.glyph ?? ''"
-              (change)="setNumber('glyph', $event)"
-            />
           </section>
         </form>
       }
