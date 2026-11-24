@@ -250,4 +250,43 @@ test.describe('the figure tab', () => {
     await page.locator('#figure-dpi').press('Enter');
     expect(await width()).toBe(Math.round((w * 150) / 96));
   });
+
+  test('the splitter divides the height between the figure and its settings', async ({
+    page,
+  }) => {
+    await openFigure(page);
+    // the notes take height while genes' coordinates load
+    await settledFigure(page);
+    const height = (selector: string) =>
+      page.locator(selector).evaluate((e) => e.getBoundingClientRect().height);
+    const heights = async () => ({
+      preview: await height('.figure-preview'),
+      form: await height('.figure-form'),
+      svg: await height('gcv-figure svg[data-figure]'),
+    });
+    const before = await heights();
+    const splitter = page.locator('[data-figure-splitter]');
+    const box = await splitter.boundingBox();
+    const x = box.x + box.width / 2;
+    const y = box.y + box.height / 2;
+    // dragging up gives the settings the height the figure gives up
+    await page.mouse.move(x, y);
+    await page.mouse.down();
+    await page.mouse.move(x, y - 100, { steps: 5 });
+    await page.mouse.up();
+    const up = await heights();
+    expect(Math.abs(before.preview - up.preview - 100)).toBeLessThanOrEqual(2);
+    expect(Math.abs(up.form - before.form - 100)).toBeLessThanOrEqual(2);
+    // the figure shrinks to fit
+    expect(up.svg).toBeLessThan(before.svg);
+    expect(up.svg).toBeLessThanOrEqual(up.preview);
+    // the keyboard moves it too, and a double-click restores it
+    await splitter.focus();
+    await page.keyboard.press('ArrowDown');
+    expect(await height('.figure-preview')).toBeGreaterThan(up.preview);
+    await splitter.dblclick();
+    expect(
+      Math.abs((await height('.figure-preview')) - before.preview),
+    ).toBeLessThanOrEqual(1);
+  });
 });

@@ -103,12 +103,28 @@ export type FigureRender = {
         background: #fff;
         box-shadow: 0 0 4px rgba(0, 0, 0, 0.2);
       }
+      /* drags to divide the height between the figure and its settings,
+         and shows itself as the layout's splitters do */
+      .figure-splitter {
+        flex: none;
+        height: 6px;
+        border-top: 1px solid #dee2e6;
+        cursor: ns-resize;
+        touch-action: none;
+        user-select: none;
+        transition: background 200ms ease;
+      }
+      .figure-splitter:hover,
+      .figure-splitter:focus-visible,
+      .figure-splitter.dragging {
+        background: #bbbbbb;
+        outline: none;
+      }
       .figure-form {
         flex: 2 1 0;
-        min-height: 10rem;
+        min-height: 6rem;
         overflow-y: auto;
         padding: 0.5rem 0.75rem;
-        border-top: 1px solid #dee2e6;
         font-size: 0.875rem;
         display: flex;
         flex-wrap: wrap;
@@ -218,7 +234,11 @@ export type FigureRender = {
           }
         </div>
       } @else {
-        <div class="figure-preview" #preview></div>
+        <div
+          class="figure-preview"
+          #preview
+          [style.flex-grow]="previewShare"
+        ></div>
         @if (notes.length > 0) {
           <ul class="figure-notes" data-figure-notes>
             @for (note of notes; track note) {
@@ -226,7 +246,31 @@ export type FigureRender = {
             }
           </ul>
         }
-        <form class="figure-form" (submit)="$event.preventDefault()">
+        <div
+          class="figure-splitter"
+          role="separator"
+          aria-orientation="horizontal"
+          aria-label="Resize the figure and its settings"
+          aria-valuemin="15"
+          aria-valuemax="85"
+          [attr.aria-valuenow]="round(previewShare * 100)"
+          title="Drag to resize; double-click to reset"
+          tabindex="0"
+          data-figure-splitter
+          [class.dragging]="resizing !== undefined"
+          (pointerdown)="startResize($event)"
+          (pointermove)="resize($event)"
+          (pointerup)="resizing = undefined"
+          (pointercancel)="resizing = undefined"
+          (keydown)="resizeByKey($event)"
+          (dblclick)="previewShare = previewDefault"
+        ></div>
+        <form
+          class="figure-form"
+          #form
+          [style.flex-grow]="1 - previewShare"
+          (submit)="$event.preventDefault()"
+        >
           <section class="figure-section figure-wide">
             <h6>Tracks</h6>
             <label class="form-label mb-1" for="figure-top"
@@ -589,6 +633,7 @@ export class FigureComponent implements AfterViewInit, OnDestroy {
   @Output() closed = new EventEmitter<void>();
 
   @ViewChild('preview') preview: ElementRef<HTMLElement>;
+  @ViewChild('form') form: ElementRef<HTMLElement>;
 
   readonly limits = FIGURE_LIMITS;
   spec: ParsedFigureSpec = {};
@@ -608,6 +653,14 @@ export class FigureComponent implements AfterViewInit, OnDestroy {
   // the PNG's resolution, an export choice rather than the figure's
   dpi = PNG_DPI;
   readonly dpiLimits = PNG_DPI_LIMITS;
+  // the figure's share of the height it divides with its settings
+  readonly previewDefault = 0.6;
+  previewShare = this.previewDefault;
+  // the drag under way: where it began, the figure's height then, and the
+  // height the shares divide
+  resizing:
+    { y: number; preview: number; padding: number; shared: number } | undefined;
+  readonly round = Math.round;
   // each drawing, for agents to wait on and read
   readonly rendered = new BehaviorSubject<FigureRender | null>(null);
 
@@ -971,6 +1024,45 @@ export class FigureComponent implements AfterViewInit, OnDestroy {
     this.dpi =
       Number.isInteger(dpi) && dpi >= min && dpi <= max ? dpi : PNG_DPI;
     (event.target as HTMLInputElement).value = String(this.dpi);
+  }
+
+  // the split between the figure and its settings
+
+  // each pane keeps its padding and divides the rest by its share
+  startResize(event: PointerEvent): void {
+    const height = (e: HTMLElement) => e.getBoundingClientRect().height;
+    const padding = (e: HTMLElement) => {
+      const style = getComputedStyle(e);
+      return parseFloat(style.paddingTop) + parseFloat(style.paddingBottom);
+    };
+    const [preview, form] = [this.preview, this.form].map(
+      (r) => r.nativeElement,
+    );
+    this.resizing = {
+      y: event.clientY,
+      preview: height(preview),
+      padding: padding(preview),
+      shared: height(preview) + height(form) - padding(preview) - padding(form),
+    };
+    (event.target as HTMLElement).setPointerCapture(event.pointerId);
+    event.preventDefault();
+  }
+
+  resize(event: PointerEvent): void {
+    if (this.resizing === undefined) return;
+    const { y, preview, padding, shared } = this.resizing;
+    this._setShare((preview + event.clientY - y - padding) / shared);
+  }
+
+  resizeByKey(event: KeyboardEvent): void {
+    const step = { ArrowUp: -0.05, ArrowDown: 0.05 }[event.key];
+    if (step === undefined) return;
+    event.preventDefault();
+    this._setShare(this.previewShare + step);
+  }
+
+  private _setShare(share: number): void {
+    this.previewShare = Math.min(0.85, Math.max(0.15, share));
   }
 
   // downloads
