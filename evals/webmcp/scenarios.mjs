@@ -183,7 +183,7 @@ export const scenarios = [
         about:
           'the figure shows the ten best-scoring Phaseolus and Vigna result tracks, Vigna first, 120 mm wide',
         async check(call, facts) {
-          const figure = await call('get_figure', { format: 'manifest' });
+          const figure = await call('read_figure');
           expect(!figure.error, figure.error);
           const results = figure.manifest.tracks.filter(
             (t) => t.role === 'result',
@@ -205,6 +205,43 @@ export const scenarios = [
             `scores ${scores.join()} are not the best ${facts.best.join()}`,
           );
           expect(/w:120\b/.test(figure.url), 'the width is 120 mm');
+        },
+      },
+    ],
+  },
+  {
+    id: 'figure-png',
+    url: view(),
+    prompt:
+      'Make a figure of the five best-scoring result tracks and save it to my computer as a PNG at 600 dpi.',
+    premises: [
+      {
+        about: 'the view has more than five result tracks',
+        async check(call) {
+          const report = await call('get_microsynteny_alignment', {
+            maxTracks: 200,
+          });
+          expect(!report.error, report.error);
+          const results = report.clusters
+            .flatMap((c) => c.tracks)
+            .filter((t) => t.role === 'result');
+          expect(results.length > 5, `${results.length} tracks`);
+        },
+      },
+    ],
+    rubric: [
+      'Says the figure was saved as a PNG at 600 dpi, naming the file or its size.',
+    ],
+    outcome: [
+      {
+        about: 'the figure shows five result tracks',
+        async check(call) {
+          const figure = await call('read_figure');
+          expect(!figure.error, figure.error);
+          const results = figure.manifest.tracks.filter(
+            (t) => t.role === 'result',
+          );
+          expect(results.length === 5, `${results.length} result tracks`);
         },
       },
     ],

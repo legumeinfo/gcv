@@ -5,6 +5,7 @@
 
 type Schema = {
   type?: string | string[];
+  description?: string;
   enum?: unknown[];
   const?: unknown;
   minimum?: number;
@@ -82,9 +83,12 @@ function check(
       return;
     }
   }
+  // an enum's description says what its values mean, and where to go for a
+  // value it lacks
   if (schema.enum !== undefined && !schema.enum.includes(value)) {
     problem(
-      `must be one of ${schema.enum.map(show).join(', ')}, not ${show(value)}`,
+      `must be one of ${schema.enum.map(show).join(', ')}, not ${show(value)}` +
+        (schema.description !== undefined ? ` (${schema.description})` : ''),
     );
   }
   if (schema.const !== undefined && value !== schema.const) {

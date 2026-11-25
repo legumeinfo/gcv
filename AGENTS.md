@@ -95,12 +95,13 @@ change with the clustering parameters, and closing it removes `fig`.
   place goes into its notes. Positions are placed through a track's genes
   (`gene/figure/position.ts`) and only on tracks of their own assembly.
 - **A person and an agent make the same figures.** Every `fig` setting has a control in
-  the figure tab and an argument of `make_figure` (the PNG's resolution, an export
-  choice, is `export_figure`'s `dpi`); an e2e test in `agent-figures.spec.ts` lists them
+  the figure tab and an argument of `make_figure` (the PNG's resolution, a choice made on
+  saving, is `save_figure`'s `dpi`); an e2e test in `agent-figures.spec.ts` lists them
   and fails on a control or argument it doesn't list, so a new setting needs all three.
 - **Agents read claims, not pixels.** `make_figure` sets `fig`, waits for the tab's
-  `rendered` to match it, and returns the manifest; `get_figure` reads an open figure's
-  manifest or SVG text. `get_view_layout` reports where the viewer drew things in viewport
+  `rendered` to match it, and returns the manifest; `read_figure` reads an open figure's
+  manifest or SVG text and never saves a file, which is `save_figure`'s job, so a tool's
+  name says whether the user gets a file. `get_view_layout` reports where the viewer drew things in viewport
   pixels, from `Micro.layout()`, and an e2e test holds it to the drawn elements.
 
 ## WebMCP

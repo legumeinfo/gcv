@@ -15,9 +15,9 @@ import {
 } from '@gcv/core/webmcp/webmcp';
 import { ClusterAlignment } from '@gcv/gene/alignment';
 import { PanelService } from '@gcv/gene/components/panel.service';
-import { FIGURE_ID, PNG_DPI_LIMITS } from '@gcv/gene/components/viewers/figure';
+import { FIGURE_ID } from '@gcv/gene/components/viewers/figure';
 import { MicroComponent } from '@gcv/gene/components/viewers/micro/micro.component';
-import { FamilyService, ParamsService } from '@gcv/gene/services';
+import { FamilyService } from '@gcv/gene/services';
 import { clusterAlignmentTsv } from './alignment.report';
 import {
   SETTLE_TIMEOUT_MS,
@@ -27,7 +27,6 @@ import {
   viewContext,
   viewTracks,
 } from './gene-view.context';
-import { downloadFigure } from './figure.tools';
 import { AgentHighlight } from './highlight';
 import { viewLayout } from './layout.report';
 import { matchGeneName, resolveTrack } from './lookup';
@@ -491,29 +490,19 @@ async function exportTsv(
   };
 }
 
-const exportFigure = defineGcvWebMcpTool({
-  name: 'export_figure',
-  title: 'Download a figure',
+const exportPanel = defineGcvWebMcpTool({
+  name: 'export_panel',
+  title: 'Download a panel',
   description:
-    "Downloads a figure from the gene view to the user's computer. figure: true saves the figure tab's publication figure (make_figure makes it) as 'svg' or 'png' (at dpi, default 300), as its SVG and PNG buttons do. Otherwise, as a panel's 'Save image' menu does: 'svg' saves a panel's drawing (a micro-synteny viewer, legend, macro-synteny viewer, circos or dot plot) as drawn, with styles inlined; 'tsv' saves a cluster's whole micro-synteny alignment, one row per track and one column per consensus position (the format of get_microsynteny_alignment). Name the panel by its ID from open_panel, or give a cluster for its micro-synteny viewer. For the figure, returns the file's name and size. Ask the user before downloading files they didn't request.",
+    "Downloads a panel of the gene view to the user's computer, as its 'Save image' menu does: 'svg' saves a panel's drawing (a micro-synteny viewer, legend, macro-synteny viewer, circos or dot plot) as drawn, with styles inlined; 'tsv' saves a cluster's whole micro-synteny alignment, one row per track and one column per consensus position (the format of get_microsynteny_alignment). Name the panel by its ID from open_panel, or give a cluster for its micro-synteny viewer. The figure tab's publication figure is saved by save_figure. Ask the user before downloading files they didn't request.",
   inputSchema: {
     type: 'object',
     properties: {
       format: {
         type: 'string',
-        enum: ['svg', 'png', 'tsv'],
-        description: "Default 'svg'; 'png' only with figure.",
-      },
-      figure: {
-        type: 'boolean',
-        description: "Download the figure tab's figure.",
-      },
-      dpi: {
-        type: 'integer',
-        minimum: PNG_DPI_LIMITS[0],
-        maximum: PNG_DPI_LIMITS[1],
+        enum: ['svg', 'tsv'],
         description:
-          "For 'png': resolution at the figure's print size (default 300).",
+          "Default 'svg'. The figure tab's figure is saved as SVG or PNG by save_figure.",
       },
       panel: {
         type: 'string',
@@ -528,30 +517,15 @@ const exportFigure = defineGcvWebMcpTool({
     },
     additionalProperties: false,
   },
-  execute: async (
-    { format = 'svg', panel, cluster, figure, dpi },
-    { signal },
-  ) => {
+  execute: async ({ format = 'svg', panel, cluster }, { signal }) => {
     const context = viewContext();
     const panels = inject(PanelService);
-    const params = inject(ParamsService);
     await settledView(context, signal);
     attachedPanels(panels);
-    if (figure || panel === FIGURE_ID) {
-      if (format === 'tsv') {
-        throw new WebMcpToolError(
-          "A figure downloads as 'svg' or 'png'; 'tsv' is a cluster's alignment.",
-        );
-      }
-      return downloadFigure(panels, params, format, dpi, signal);
-    }
-    if (format === 'png') {
+    if (panel === FIGURE_ID) {
       throw new WebMcpToolError(
-        "'png' is for the figure tab's figure: add figure: true (make_figure makes one), or use 'svg'.",
+        "The figure tab's figure is saved by save_figure, as SVG or PNG.",
       );
-    }
-    if (dpi !== undefined) {
-      throw new WebMcpToolError("dpi is for a figure's 'png'.");
     }
     if (format === 'tsv') {
       return exportTsv(context, signal, cluster);
@@ -589,5 +563,5 @@ export const displayWebMcpTools = (): GcvWebMcpTools => [
   openPanel,
   setFamilyEmphasis,
   getViewLayout,
-  exportFigure,
+  exportPanel,
 ];

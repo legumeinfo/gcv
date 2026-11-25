@@ -40,6 +40,22 @@ describe('argumentProblems', () => {
     ).toEqual([]);
   });
 
+  it("explains a value an enum lacks by the enum's description", () => {
+    const described = {
+      type: 'object',
+      properties: {
+        format: {
+          type: 'string',
+          enum: ['svg'],
+          description: 'A PNG is saved, not read.',
+        },
+      },
+    };
+    expect(argumentProblems(described, { format: 'png' })).toEqual([
+      'format: must be one of "svg", not "png" (A PNG is saved, not read.)',
+    ]);
+  });
+
   it('counts a call without arguments as {}', () => {
     expect(argumentProblems(schema, undefined)).toEqual(['gene: is required']);
     expect(

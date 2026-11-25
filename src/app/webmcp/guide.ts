@@ -98,8 +98,8 @@ export const TOOL_GUIDE: ToolGuide[] = [
         use: 'Locate columns, tracks, labels and annotations in a screenshot of a micro-synteny viewer.',
       },
       {
-        name: 'export_figure',
-        use: "Download the figure (SVG or PNG), a panel's SVG, or a cluster's alignment as TSV, for the user.",
+        name: 'export_panel',
+        use: "Download a panel's drawing as SVG, or a cluster's alignment as TSV, for the user.",
       },
     ],
   },
@@ -113,8 +113,12 @@ export const TOOL_GUIDE: ToolGuide[] = [
         use: 'Choose the tracks, order, merges, columns, colored families, labels and size; returns what the figure claims, to check.',
       },
       {
-        name: 'get_figure',
-        use: "Read what an open figure claims, as from a shared link, or its SVG text when the file itself is needed and can't be downloaded.",
+        name: 'read_figure',
+        use: "Read what an open figure claims, as from a shared link, or its SVG text when the file itself is needed and can't be downloaded. Never saves a file.",
+      },
+      {
+        name: 'save_figure',
+        use: "Save the figure to the user's computer as SVG or PNG (at a dpi); returns the file's name and size, not the file.",
       },
     ],
   },
@@ -183,12 +187,12 @@ export const RECIPES = [
   {
     question: 'Show the user what you found.',
     steps:
-      'highlight_in_view to point at genes or families, open_panel for details, macro-synteny, circos or dot plots, and export_figure to download an SVG or the alignment TSV.',
+      "highlight_in_view to point at genes or families, open_panel for details, macro-synteny, circos or dot plots, and export_panel to download a panel's SVG or the alignment TSV.",
   },
   {
     question: 'Make a publication figure.',
     steps:
-      "Settle the view first (get_view_status), at the parameters the figure should show. make_figure with the tracks, order, columns and size, and marks only for what the caption discusses (emphasise, names, spans, positions), then check its manifest against what the figure should claim (the tracks kept and their order, the columns, each family's color, the marks drawn) and read its notes for anything it couldn't do; change the choices and repeat until it does. export_figure (figure: true) downloads it, SVG or PNG; give the user the URL too, since its fig reproduces the figure.",
+      "Settle the view first (get_view_status), at the parameters the figure should show. make_figure with the tracks, order, columns and size, and marks only for what the caption discusses (emphasise, names, spans, positions), then check its manifest against what the figure should claim (the tracks kept and their order, the columns, each family's color, the marks drawn) and read its notes for anything it couldn't do; change the choices and repeat until it does. save_figure saves it for the user as SVG or PNG; give the user the URL too, since its fig reproduces the figure.",
   },
 ];
 
@@ -213,7 +217,7 @@ export const REPORTING = [
 
 export const SEEING_THE_VIEW = [
   "The viewers are SVG in the page. If you can take browser screenshots, call highlight_in_view or open_panel first so the screenshot shows what you're discussing.",
-  "A screenshot shows only the visible part of a viewer, and a viewer behind another tab is not drawn. export_figure brings a panel to the front and downloads its full drawing as SVG, with styles inlined, to the user's computer; ask the user before downloading.",
+  "A screenshot shows only the visible part of a viewer, and a viewer behind another tab is not drawn. export_panel brings a panel to the front and downloads its full drawing as SVG, with styles inlined, to the user's computer; ask the user before downloading.",
   'get_view_layout gives where a micro-synteny viewer drew each column, track and label, in the coordinates of a screenshot of the page, so you can point at them without measuring.',
   'In the DOM, micro-synteny genes carry data-gene, data-family and data-column (the consensus column, fractional for an insertion) and tracks carry data-chromosome. Macro-synteny blocks carry data-locus, data-reference-locus and data-orientation.',
 ];

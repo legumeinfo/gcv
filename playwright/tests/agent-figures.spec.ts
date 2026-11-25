@@ -137,28 +137,44 @@ test.describe('the agent figure tools', () => {
     }
   });
 
-  test('the figure reaches the agent as text or a download, and an oversized read says how to shrink it', async ({
+  test('the figure reaches the agent as its claims or text and the user as a file, and an oversized read says how to shrink it', async ({
     page,
   }) => {
     await page.goto(`${VIEW}&fig=${encodeURIComponent(`cl:${QUERY};top:3`)}`);
     await expect(page.locator('gcv-figure svg[data-figure]')).toHaveCount(1, {
       timeout: 60000,
     });
-    const svg = await callTool<string>(page, 'get_figure');
+    const read = await callTool<{ manifest: { tracks: unknown[] } }>(
+      page,
+      'read_figure',
+    );
+    expect(read.manifest.tracks.length).toBeGreaterThan(0);
+    const svg = await callTool<string>(page, 'read_figure', { format: 'svg' });
     expect(svg).toMatch(/^<svg [^>]*data-figure="micro-synteny"/);
-    const refused = await callTool<{ error: string }>(page, 'get_figure', {
+    const refused = await callTool<{ error: string }>(page, 'read_figure', {
+      format: 'svg',
       maxBytes: 1000,
     });
-    expect(refused.error).toMatch(/over maxBytes \(1000\).*crop/);
+    expect(refused.error).toMatch(/over maxBytes \(1000\).*crop.*save_figure/);
+    // asked for a PNG, the reader points to the tool that saves one
+    const png = await callTool<{ error: string }>(page, 'read_figure', {
+      format: 'png',
+    });
+    expect(png.error).toMatch(/save_figure/);
     const download = page.waitForEvent('download');
-    const saved = await callTool<{ file: string; bytes: number }>(
+    const saved = await callTool<{ file: string; bytes: number; dpi: number }>(
       page,
-      'export_figure',
-      { figure: true, format: 'png' },
+      'save_figure',
+      { format: 'png', dpi: 150 },
     );
     expect((await download).suggestedFilename()).toBe(saved.file);
     expect(saved.file).toMatch(/\.png$/);
     expect(saved.bytes).toBeGreaterThan(0);
+    expect(saved.dpi).toBe(150);
+    const panel = await callTool<{ error: string }>(page, 'export_panel', {
+      panel: 'figure',
+    });
+    expect(panel.error).toMatch(/save_figure/);
   });
 
   test('the author’s marks sit on the genes and positions they name', async ({
@@ -322,7 +338,7 @@ test.describe('the agent figure tools', () => {
       name: { controls: ['#figure-mark-names'], args: ['names'] },
       span: { controls: ['#figure-mark-spans'], args: ['spans'] },
       pos: { controls: ['#figure-mark-positions'], args: ['positions'] },
-      dpi: { controls: ['#figure-dpi'], args: ['dpi'], tool: 'export_figure' },
+      dpi: { controls: ['#figure-dpi'], args: ['dpi'], tool: 'save_figure' },
     };
     expect(Object.keys(settings).filter((k) => k !== 'dpi')).toEqual(
       FIGURE_KEYS,
@@ -364,7 +380,7 @@ test.describe('the agent figure tools', () => {
         }
       ).__gcvTools;
       return Object.fromEntries(
-        ['make_figure', 'export_figure'].map((n) => [
+        ['make_figure', 'save_figure'].map((n) => [
           n,
           Object.keys(tools[n].inputSchema.properties),
         ]),
@@ -376,6 +392,6 @@ test.describe('the agent figure tools', () => {
         .flatMap((s) => s.args)
         .sort();
     expect(schemas.make_figure.sort()).toEqual(args('make_figure'));
-    expect(schemas.export_figure).toContain('dpi');
+    expect(schemas.save_figure).toContain('dpi');
   });
 });
