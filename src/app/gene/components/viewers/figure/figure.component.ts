@@ -60,6 +60,12 @@ const measureText: MeasureText = (() => {
 
 export const PNG_DPI = 300;
 
+// the preview's zoom: fitted, up to ten times that, by steps of a quarter
+const ZOOM_LIMITS = [1, 10] as const;
+const ZOOM_STEP = 1.25;
+// how far a press moves before it pans rather than clicks, in px
+const PAN_THRESHOLD = 4;
+
 const DEFAULT_HINT =
   'Point at a gene to see its family; click it to color the family or not.';
 export const PNG_DPI_LIMITS = [72, 1200] as const;
@@ -99,15 +105,37 @@ export type FigureRender = {
         padding: 0.5rem;
         background: #f3f3f3;
         display: flex;
-        align-items: center;
-        justify-content: center;
         overflow: hidden;
         /* the figure fits the preview both ways (see its sizing) */
         container-type: size;
       }
-      .figure-preview :first-child {
+      /* zoomed past the fit, the figure scrolls, and drags, in its preview */
+      .figure-preview.zoomed {
+        overflow: auto;
+        cursor: grab;
+      }
+      .figure-preview.panning {
+        cursor: grabbing;
+        user-select: none;
+      }
+      /* the figure is drawn outside the template, so its rules pierce the
+         component's style scope */
+      .figure-preview ::ng-deep > svg {
+        flex: none;
+        /* centered while it fits, and scrollable to every edge once not */
+        margin: auto;
         background: #fff;
         box-shadow: 0 0 4px rgba(0, 0, 0, 0.2);
+      }
+      .figure-zoom {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+      }
+      .figure-zoom output {
+        min-width: 3rem;
+        text-align: center;
+        font-size: 0.8rem;
       }
       /* drags to divide the height between the figure and its settings,
          and shows itself as the layout's splitters do */
@@ -222,6 +250,40 @@ export type FigureRender = {
     <div class="figure">
       <nav class="navbar navbar-light bg-light border-bottom px-2 py-1">
         <span class="navbar-text">Figure of cluster {{ clusterID }}</span>
+        <div class="figure-zoom" role="group" aria-label="Zoom">
+          <button
+            type="button"
+            class="btn btn-sm btn-outline-dark"
+            aria-label="Zoom out"
+            title="Zoom out (−)"
+            [disabled]="zoom <= zoomLimits[0]"
+            (click)="zoomBy(1 / ZOOM_STEP)"
+          >
+            −
+          </button>
+          <output data-figure-zoom aria-live="polite">{{
+            zoom === 1 ? 'Fit' : round(zoom * 100) + '%'
+          }}</output>
+          <button
+            type="button"
+            class="btn btn-sm btn-outline-dark"
+            aria-label="Zoom in"
+            title="Zoom in (+)"
+            [disabled]="zoom >= zoomLimits[1]"
+            (click)="zoomBy(ZOOM_STEP)"
+          >
+            +
+          </button>
+          <button
+            type="button"
+            class="btn btn-sm btn-outline-dark"
+            title="Fit the figure to the panel (0)"
+            [disabled]="zoom === 1"
+            (click)="fit()"
+          >
+            Fit
+          </button>
+        </div>
         <div>
           <button
             type="button"
@@ -280,7 +342,17 @@ export type FigureRender = {
         <div
           class="figure-preview"
           #preview
+          tabindex="0"
+          aria-label="The figure: scroll the wheel, or press + and −, to zoom; 0 fits it"
+          [class.zoomed]="zoom > 1"
+          [class.panning]="panning?.moved"
           [style.flex-grow]="previewShare"
+          (wheel)="zoomByWheel($event)"
+          (keydown)="zoomByKey($event)"
+          (pointerdown)="startPan($event)"
+          (pointermove)="pan($event)"
+          (pointerup)="endPan()"
+          (pointercancel)="endPan()"
           (click)="clickGene($event)"
           (mouseover)="hoverGene($event)"
           (mouseleave)="hoverGene(undefined)"
@@ -795,6 +867,22 @@ export class FigureComponent implements AfterViewInit, OnDestroy {
   resizing:
     { y: number; preview: number; padding: number; shared: number } | undefined;
   readonly round = Math.round;
+  // the preview's zoom, relative to the figure fitted to it
+  zoom = 1;
+  readonly zoomLimits = ZOOM_LIMITS;
+  readonly ZOOM_STEP = ZOOM_STEP;
+  // a drag on the zoomed figure: where it began, and whether it has moved
+  // far enough to pan rather than click
+  panning:
+    | {
+        x: number;
+        y: number;
+        left: number;
+        top: number;
+        id: number;
+        moved: boolean;
+      }
+    | undefined;
   // each drawing, for agents to wait on and read
   readonly rendered = new BehaviorSubject<FigureRender | null>(null);
 
@@ -921,13 +1009,7 @@ export class FigureComponent implements AfterViewInit, OnDestroy {
         );
         this._cd.detectChanges();
         this.preview?.nativeElement.replaceChildren(this.svg);
-        // as large as fits the preview, in the figure's proportions
-        const [, , width, height] = this.svg
-          .getAttribute('viewBox')
-          .split(' ')
-          .map(Number);
-        this.svg.style.width = `min(100cqw, calc(100cqh * ${width / height}))`;
-        this.svg.style.height = 'auto';
+        this._size();
         this.rendered.next({
           fig: drawnFor,
           cluster: this.clusterID,
@@ -1274,6 +1356,113 @@ export class FigureComponent implements AfterViewInit, OnDestroy {
 
   private _setShare(share: number): void {
     this.previewShare = Math.min(0.85, Math.max(0.15, share));
+  }
+
+  // zoom
+
+  // The figure's size: as large as fits the preview, in its proportions,
+  // times the zoom, so a zoom keeps its meaning as the panel resizes.
+  private _size(): void {
+    if (this.svg === undefined) return;
+    const [, , width, height] = this.svg
+      .getAttribute('viewBox')
+      .split(' ')
+      .map(Number);
+    this.svg.style.width = `calc(min(100cqw, 100cqh * ${width / height}) * ${this.zoom})`;
+    this.svg.style.height = 'auto';
+  }
+
+  // zooms about a point of the preview, by default its middle, keeping the
+  // figure's point under it in place
+  zoomBy(factor: number, at?: { x: number; y: number }): void {
+    const zoom = Math.min(
+      this.zoomLimits[1],
+      Math.max(this.zoomLimits[0], this.zoom * factor),
+    );
+    const preview = this.preview?.nativeElement;
+    if (zoom === this.zoom || preview === undefined || this.svg === undefined) {
+      return;
+    }
+    const box = preview.getBoundingClientRect();
+    const point = at ?? {
+      x: box.left + box.width / 2,
+      y: box.top + box.height / 2,
+    };
+    const before = this.svg.getBoundingClientRect();
+    const fx = (point.x - before.left) / before.width;
+    const fy = (point.y - before.top) / before.height;
+    this.zoom = zoom;
+    // scrolling needs the overflow the zoomed class allows
+    preview.classList.toggle('zoomed', zoom > 1);
+    this._size();
+    const after = this.svg.getBoundingClientRect();
+    preview.scrollLeft += after.left + fx * after.width - point.x;
+    preview.scrollTop += after.top + fy * after.height - point.y;
+  }
+
+  // fitted, the figure doesn't overflow, so the preview scrolls back too
+  fit(): void {
+    this.zoom = 1;
+    this._size();
+  }
+
+  zoomByWheel(event: WheelEvent): void {
+    event.preventDefault();
+    // lines and pages as pixels, so every wheel zooms at one rate
+    const pixels =
+      event.deltaY *
+      [1, 16, this.preview.nativeElement.clientHeight][event.deltaMode];
+    this.zoomBy(Math.exp(-pixels * 0.002), {
+      x: event.clientX,
+      y: event.clientY,
+    });
+  }
+
+  zoomByKey(event: KeyboardEvent): void {
+    const keys: Record<string, () => void> = {
+      '+': () => this.zoomBy(ZOOM_STEP),
+      '=': () => this.zoomBy(ZOOM_STEP),
+      '-': () => this.zoomBy(1 / ZOOM_STEP),
+      '0': () => this.fit(),
+    };
+    const action = keys[event.key];
+    if (action === undefined || event.ctrlKey || event.metaKey) return;
+    event.preventDefault();
+    action();
+  }
+
+  // A drag pans a zoomed figure once it moves a few pixels; a shorter one
+  // stays a click, which colors a gene's family. A pan captures the pointer,
+  // so the click that ends it lands on the preview, not on a gene.
+  startPan(event: PointerEvent): void {
+    if (this.zoom === 1 || event.button !== 0) return;
+    const preview = this.preview.nativeElement;
+    this.panning = {
+      x: event.clientX,
+      y: event.clientY,
+      left: preview.scrollLeft,
+      top: preview.scrollTop,
+      id: event.pointerId,
+      moved: false,
+    };
+  }
+
+  pan(event: PointerEvent): void {
+    const panning = this.panning;
+    if (panning === undefined || event.pointerId !== panning.id) return;
+    const [dx, dy] = [event.clientX - panning.x, event.clientY - panning.y];
+    const preview = this.preview.nativeElement;
+    if (!panning.moved) {
+      if (Math.hypot(dx, dy) < PAN_THRESHOLD) return;
+      panning.moved = true;
+      preview.setPointerCapture(event.pointerId);
+    }
+    preview.scrollLeft = panning.left - dx;
+    preview.scrollTop = panning.top - dy;
+  }
+
+  endPan(): void {
+    this.panning = undefined;
   }
 
   // downloads

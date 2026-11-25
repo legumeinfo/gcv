@@ -391,6 +391,103 @@ test.describe('the figure tab', () => {
     expect(await width()).toBe(Math.round((w * 150) / 96));
   });
 
+  test('the wheel, buttons and keys zoom the figure about a point, a drag pans it, and Fit fits it again', async ({
+    page,
+  }) => {
+    await page.goto(`${VIEW}&fig=${encodeURIComponent(`cl:${QUERY}`)}`);
+    await settledFigure(page);
+    const preview = page.locator('gcv-figure .figure-preview');
+    const zoom = page.locator('[data-figure-zoom]');
+    const box = async () => (await figure(page).boundingBox())!;
+    const scroll = () =>
+      preview.evaluate((p) => ({ left: p.scrollLeft, top: p.scrollTop }));
+    // how far the preview can scroll each way
+    const room = () =>
+      preview.evaluate((p) => ({
+        left: p.scrollWidth - p.clientWidth,
+        top: p.scrollHeight - p.clientHeight,
+      }));
+    const fitted = await box();
+    await expect(zoom).toHaveText('Fit');
+    // the buttons step by a quarter
+    await page.getByRole('button', { name: 'Zoom in' }).click();
+    await expect(zoom).toHaveText('125%');
+    expect((await box()).width).toBeCloseTo(fitted.width * 1.25, 0);
+    // the wheel zooms about the pointer: the figure's point under it stays
+    const pane = (await preview.boundingBox())!;
+    const before = await box();
+    const at = {
+      x: before.x + before.width * 0.5,
+      y: pane.y + pane.height * 0.4,
+    };
+    const fraction = (b: typeof before) => [
+      (at.x - b.x) / b.width,
+      (at.y - b.y) / b.height,
+    ];
+    await page.mouse.move(at.x, at.y);
+    await page.mouse.wheel(0, -400);
+    await expect
+      .poll(async () => (await box()).width)
+      .toBeGreaterThan(before.width * 1.5);
+    const after = await box();
+    fraction(after).forEach((f, i) =>
+      expect(f).toBeCloseTo(fraction(before)[i], 2),
+    );
+    // the zoomed figure overflows its preview, and a drag pans it
+    expect(after.height).toBeGreaterThan(pane.height);
+    const start = await scroll();
+    await page.mouse.move(at.x, at.y);
+    await page.mouse.down();
+    await page.mouse.move(at.x - 60, at.y - 40, { steps: 5 });
+    await page.mouse.up();
+    const panned = await scroll();
+    const most = await room();
+    expect(most.top).toBeGreaterThan(start.top + 40);
+    expect(panned.top - start.top).toBeCloseTo(40, -1);
+    expect(panned.left - start.left).toBeCloseTo(
+      Math.min(60, most.left - start.left),
+      -1,
+    );
+    // a drag from a gene and back to it pans, and isn't a click on it
+    const [gx, gy] = await figure(page).evaluate((svg) => {
+      const pane = svg.parentElement.getBoundingClientRect();
+      for (const g of Array.from(
+        svg.querySelectorAll('[data-style="colour"]'),
+      )) {
+        const b = g.getBoundingClientRect();
+        const [x, y] = [b.x + b.width / 2, b.y + b.height / 2];
+        const inside =
+          x > pane.left + 40 &&
+          x < pane.right - 40 &&
+          y > pane.top + 40 &&
+          y < pane.bottom - 40;
+        if (inside && g.contains(document.elementFromPoint(x, y))) {
+          return [x, y];
+        }
+      }
+      throw new Error('no colored gene in view');
+    });
+    await page.mouse.move(gx, gy);
+    await page.mouse.down();
+    await page.mouse.move(gx + 30, gy + 30, { steps: 5 });
+    await page.mouse.move(gx, gy, { steps: 5 });
+    await page.mouse.up();
+    await page.waitForTimeout(500);
+    expect(fig(page)).toBe(`cl:${QUERY}`);
+    // keys zoom while the figure has focus, and 0 fits it
+    await preview.focus();
+    await page.keyboard.press('-');
+    expect((await box()).width).toBeCloseTo(after.width / 1.25, 0);
+    await page.keyboard.press('0');
+    await expect(zoom).toHaveText('Fit');
+    expect((await box()).width).toBeCloseTo(fitted.width, 0);
+    expect(await scroll()).toEqual({ left: 0, top: 0 });
+    // Fit, after zooming in, restores the fitted figure
+    await page.getByRole('button', { name: 'Zoom in' }).click();
+    await page.getByRole('button', { name: 'Fit', exact: true }).click();
+    expect(await box()).toEqual(fitted);
+  });
+
   test('the splitter divides the height between the figure and its settings', async ({
     page,
   }) => {
