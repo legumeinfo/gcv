@@ -231,6 +231,146 @@ test.describe('the figure tab', () => {
     ).toHaveCount(1);
   });
 
+  test('colors every shared family, as many as stay colorblind-safe, each its own way', async ({
+    page,
+  }) => {
+    await page.goto(`${VIEW}&fig=${encodeURIComponent(`cl:${QUERY}`)}`);
+    await settledFigure(page);
+    // each family's genes as drawn: style, and paint (color and pattern)
+    const drawn = await figure(page).evaluate((svg) => {
+      const families: Record<string, { style: string; paint: string }[]> = {};
+      svg.querySelectorAll('[data-gene]').forEach((g) => {
+        const glyph = g.firstElementChild;
+        (families[g.getAttribute('data-family')] ??= []).push({
+          style: g.getAttribute('data-style'),
+          paint: getComputedStyle(glyph).fill,
+        });
+      });
+      return families;
+    });
+    const families = Object.entries(drawn).filter(([f]) => f !== '');
+    // a family is drawn one way, and white exactly when it has one gene
+    for (const [family, genes] of families) {
+      expect(new Set(genes.map((g) => g.style)).size, family).toBe(1);
+      expect(genes[0].style === 'hollow', family).toBe(genes.length === 1);
+    }
+    const shared = families.filter(([, genes]) => genes.length > 1);
+    const coloured = shared.filter(([, genes]) => genes[0].style === 'colour');
+    expect(coloured).toHaveLength(Math.min(shared.length, 21));
+    // no two colored families painted alike
+    expect(new Set(coloured.map(([, genes]) => genes[0].paint)).size).toBe(
+      coloured.length,
+    );
+    // the tab says when some go grey, and its list ticks those colored
+    await expect(page.locator('[data-figure-overflow]')).toHaveCount(
+      shared.length > 21 ? 1 : 0,
+    );
+    await expect(page.locator('[data-family-option]')).toHaveCount(
+      shared.length,
+    );
+    await expect(page.locator('[data-family-option]:checked')).toHaveCount(
+      coloured.length,
+    );
+    // the key explains only the kinds of gene drawn
+    const kinds = new Set(families.flatMap(([, g]) => g.map((x) => x.style)));
+    for (const kind of ['neutral', 'hollow']) {
+      await expect(
+        figure(page).locator(`[data-legend-style="${kind}"]`),
+        kind,
+      ).toHaveCount(kinds.has(kind) ? 1 : 0);
+    }
+  });
+
+  test('a click on a gene colors its family or not, and the list follows', async ({
+    page,
+  }) => {
+    await page.goto(`${VIEW}&fig=${encodeURIComponent(`cl:${QUERY};top:3`)}`);
+    await settledFigure(page);
+    const target = figure(page).locator('[data-style="colour"]').first();
+    const family = await target.getAttribute('data-family');
+    const inFamily = (style: string) =>
+      figure(page).locator(`[data-family="${family}"][data-style="${style}"]`);
+    const option = page.locator(`[data-family-option="${family}"]`);
+    await expect(option).toBeChecked();
+    // pointing at a gene outlines its family and says what a click does
+    await target.hover();
+    await expect(page.locator('[data-figure-hint]')).toContainText(
+      'Click to stop coloring it',
+    );
+    await expect(figure(page).locator('.figure-hovered')).toHaveCount(
+      await figure(page).locator(`[data-family="${family}"]`).count(),
+    );
+    await target.click();
+    await expect(inFamily('colour')).toHaveCount(0);
+    await expect(inFamily('neutral').first()).toBeVisible();
+    await expect(option).not.toBeChecked();
+    expect(fig(page)).toMatch(/;colour:/);
+    expect(fig(page)).not.toContain(family);
+    // a click colors it again, and the list does the same
+    await inFamily('neutral').first().click();
+    await expect(inFamily('neutral')).toHaveCount(0);
+    await expect(option).toBeChecked();
+    await option.uncheck();
+    await expect(inFamily('colour')).toHaveCount(0);
+    // a gene alone in its family can't be colored, and says what to do
+    const alone = figure(page).locator('[data-style="hollow"]').first();
+    if ((await alone.count()) > 0) {
+      await alone.hover();
+      await expect(page.locator('[data-figure-hint]')).toContainText(
+        'emphasise it under Marks instead',
+      );
+    }
+    await page.getByRole('button', { name: 'Color them all again' }).click();
+    await expect.poll(() => fig(page)).toBe(`cl:${QUERY};top:3`);
+    await expect(inFamily('colour').first()).toBeVisible();
+  });
+
+  test('with colorblind-friendly colors off, every shared family takes the viewer’s color', async ({
+    page,
+  }) => {
+    await page.goto(`${VIEW}&fig=${encodeURIComponent(`cl:${QUERY}`)}`);
+    await settledFigure(page);
+    const callout = page.locator('[data-figure-overflow]');
+    if ((await callout.count()) > 0) {
+      await callout
+        .getByRole('button', { name: "use the viewer's colors" })
+        .click();
+    } else {
+      await page.locator('#figure-palette').uncheck();
+    }
+    await expect.poll(() => fig(page)).toBe(`cl:${QUERY};palette:view`);
+    await expect(callout).toHaveCount(0);
+    await expect(page.locator('#figure-palette')).not.toBeChecked();
+    await expect(figure(page).locator('[data-pattern]')).toHaveCount(0);
+    await expect(figure(page).locator('[data-style="neutral"]')).toHaveCount(0);
+    // each colored family's paint is the micro-synteny legend's
+    const mismatched = await page.evaluate(() => {
+      const paint = (e: Element) => getComputedStyle(e).fill;
+      const legend = new Map(
+        Array.from(
+          document.querySelectorAll('gcv-micro-legend [data-family]'),
+        ).map((k) => [
+          k.getAttribute('data-family'),
+          paint(k.querySelector('rect, circle')),
+        ]),
+      );
+      return Array.from(
+        document.querySelectorAll(
+          'gcv-figure svg [data-gene][data-style="colour"]',
+        ),
+      )
+        .filter(
+          (g) =>
+            legend.get(g.getAttribute('data-family')) !==
+            paint(g.firstElementChild),
+        )
+        .map((g) => g.getAttribute('data-gene'));
+    });
+    expect(mismatched).toEqual([]);
+    await page.locator('#figure-palette').check();
+    await expect.poll(() => fig(page)).toBe(`cl:${QUERY}`);
+  });
+
   test('the PNG downloads at the resolution chosen', async ({ page }) => {
     await openFigure(page);
     await settledFigure(page);

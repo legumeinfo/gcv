@@ -9,7 +9,7 @@ import { geneID } from '@gcv/gene/store/reducers/gene.reducer';
 import { ParsedFigureSpec } from '@gcv/gene/models/params';
 import { figureCaption } from './caption';
 import { FigureInputs, figureModel } from './model';
-import { HOLLOW, NEUTRAL, PALETTE } from './palette';
+import { ENCODINGS, HOLLOW, NEUTRAL, PALETTE } from './palette';
 
 // A cluster of five tracks, built as the viewer builds them: the soybean
 // query; the same locus in another soybean assembly; a common bean region;
@@ -277,8 +277,9 @@ describe('coloring families', () => {
         .map((g) => [g.name, [g.style, g.fill]]),
     );
 
-  it("colors the query's families that other tracks share, each its own color", () => {
+  it('colors every family with genes in more than one place, each its own color', () => {
     const { manifest } = figureModel(inputs({}));
+    expect(manifest.palette).toBe('safe');
     expect(manifest.colours).toEqual(
       ['a', 'b', 'c', 'd', 'e'].map((family, i) => ({
         family,
@@ -308,18 +309,75 @@ describe('coloring families', () => {
   });
 
   it('notes the families it can’t color', () => {
-    const { notes } = figureModel(inputs({ colour: ['x', 'zz'] }));
+    const { notes } = figureModel(inputs({ colour: ['x', 'zz', 'l2'] }));
     expect(notes).toEqual([
-      'Not colored: family zz has no gene in the figure.',
       'Not colored: family x has no other gene in the figure, so it is drawn hollow.',
+      'Not colored: zz is neither a family nor a gene in the figure.',
+      'Not colored: l2 has no family.',
     ]);
   });
 
-  it('never reuses a color when the families outnumber the palette', () => {
-    // a query of more shared families than the palette has colors
+  it('colors the family of a gene named in place of a family', () => {
+    const s = styles({ colour: ['p2'] });
+    expect(s['p2']).toEqual(['colour', PALETTE[0]]);
+    expect(s['l1']).toEqual(['colour', PALETTE[0]]);
+    expect(s['p1']).toEqual(['neutral', NEUTRAL]);
+    const { notes } = figureModel(inputs({ colour: ['Glyma.q2'] }));
+    expect(notes.join()).toMatch(/Glyma.q2 names several genes/);
+  });
+
+  it('offers each family it can color, by a gene of it, as chosen and drawn', () => {
+    const { familyOptions } = figureModel(inputs({ colour: ['d'] }));
+    expect(familyOptions.map((o) => o.family)).toEqual([
+      'a',
+      'b',
+      'c',
+      'd',
+      'e',
+    ]);
+    expect(familyOptions[3]).toEqual({
+      family: 'd',
+      label: 'd',
+      gene: 'Glyma.q4',
+      genes: 4,
+      chosen: true,
+      encoding: { fill: PALETTE[0] },
+    });
+    expect(familyOptions.filter((o) => o.chosen)).toHaveLength(1);
+  });
+
+  it('keys only the kinds of gene the figure draws', () => {
+    const kinds = (spec: ParsedFigureSpec) =>
+      figureModel(inputs(spec)).figure.legend.map((e) => e.style);
+    expect(kinds({})).toEqual([
+      'colour',
+      'colour',
+      'colour',
+      'colour',
+      'colour',
+      'hollow',
+      'orphan',
+    ]);
+    // the query and its other assembly share every family
+    const assembly = 'glyma.Wm82.gnm2.ann1.Glyma.q1';
+    expect(kinds({ tracks: [assembly] })).toEqual([
+      'colour',
+      'colour',
+      'colour',
+      'colour',
+      'colour',
+    ]);
+    expect(kinds({ tracks: [assembly], colour: ['a'] })).toEqual([
+      'colour',
+      'neutral',
+    ]);
+  });
+
+  describe('with more families than the palette has colors', () => {
+    // a query and a result sharing more families than there are encodings
     const families = Array.from(
-      { length: PALETTE.length + 2 },
-      (_, i) => `f${i}`,
+      { length: ENCODINGS.length + 2 },
+      (_, i) => `f${String(i).padStart(2, '0')}`,
     );
     const names = families.map((f) => `g${f}`);
     const many = [
@@ -339,30 +397,61 @@ describe('coloring families', () => {
       new Set([many[0]]),
       new Map(),
     );
+    // the viewer's colors, which repeat
+    const viewColour = (f: string) =>
+      f === families[1] ? '#000000' : `#0000${f.slice(1)}`;
     const model = (spec: ParsedFigureSpec) =>
-      figureModel({
-        drawn: data,
-        alignment,
-        sameLocus: [],
-        spec,
+      figureModel({ drawn: data, alignment, sameLocus: [], spec, viewColour });
+
+    it('repeats a color only under a different pattern, and draws the rest grey', () => {
+      const { manifest, notes, colouring, figure } = model({});
+      const encodings = manifest.colours
+        .filter((c) => c.colour !== null)
+        .map((c) => `${c.colour} ${c.pattern}`);
+      expect(encodings).toHaveLength(ENCODINGS.length);
+      expect(new Set(encodings).size).toBe(ENCODINGS.length);
+      expect(manifest.colours[PALETTE.length]).toMatchObject({
+        colour: PALETTE[0],
+        pattern: 'stripes',
       });
-    // by default, only as many as have colors, without a note
-    expect(model({}).manifest.colours).toHaveLength(PALETTE.length);
-    expect(model({}).notes.join()).not.toMatch(/distinct colors/);
-    const all = model({ colour: families, famlabels: true });
-    const used = all.manifest.colours
-      .map((c) => c.colour)
-      .filter((c) => c !== null);
-    expect(new Set(used).size).toBe(PALETTE.length);
-    expect(all.manifest.colours.slice(-2).map((c) => c.colour)).toEqual([
-      null,
-      null,
-    ]);
-    expect(all.notes.join()).toMatch(/drawn grey, with their legend numbers/);
-    // every grey gene is numbered, so the legend needs no unnumbered grey
-    expect(all.figure.legend.map((e) => e.key)).toEqual(
-      families.map((_, i) => i + 1),
-    );
+      expect(colouring).toMatchObject({
+        palette: 'safe',
+        chosen: families,
+        families: families.length,
+        coloured: ENCODINGS.length,
+        capacity: ENCODINGS.length,
+        overflow: families.slice(-2),
+      });
+      expect(notes.join()).toMatch(
+        /tell only 21 apart, so f21, f22 are drawn grey.*palette: view/,
+      );
+      // the grey ones share a row of the key unless they are numbered
+      expect(figure.legend.map((e) => e.style).slice(-2)).toEqual([
+        'colour',
+        'neutral',
+      ]);
+      const numbered = model({ famlabels: true }).figure.legend;
+      expect(numbered.map((e) => e.key)).toEqual(families.map((_, i) => i + 1));
+    });
+
+    it('colors the families chosen first, when more are chosen than it can', () => {
+      const chosen = [...families].reverse();
+      const { colouring } = model({ colour: chosen });
+      expect(colouring.overflow).toEqual(families.slice(0, 2));
+      expect(colouring.chosen).toEqual(chosen);
+    });
+
+    it("colors them all with the viewer's colors, and notes a repeated one", () => {
+      const { manifest, notes, colouring } = model({ palette: 'view' });
+      expect(manifest.colours.map((c) => c.colour)).toEqual(
+        families.map(viewColour),
+      );
+      expect(manifest.colours.every((c) => c.pattern === undefined)).toBe(true);
+      expect(colouring).toMatchObject({ capacity: null, overflow: [] });
+      expect(notes.join()).toMatch(
+        /Families f00 and f01 share a color in the viewer's palette/,
+      );
+    });
   });
 });
 
@@ -524,6 +613,24 @@ describe('the rest of the figure', () => {
     );
     expect(caption).toMatch(
       /Made with GCV 2\.7\.1 on 2026-10-28: http:\/\/gcv\/gene;lis=Glyma\.q3\?fig=top:2$/,
+    );
+  });
+  it('explains only the kinds of gene the figure draws', () => {
+    const context = {
+      queryGenes: ['Glyma.q3'],
+      params: {} as never,
+      url: 'http://gcv/gene',
+      version: '2.7.1',
+      date: '2026-10-28',
+    };
+    const caption = (spec: ParsedFigureSpec) =>
+      figureCaption(figureModel(inputs(spec)).manifest, context);
+    expect(caption({})).toContain(
+      'Colors mark gene families of the data source: each colored family has its own color; white genes are the only gene of their family in the figure; dashed outlines mark genes without a family.',
+    );
+    const assembly = 'glyma.Wm82.gnm2.ann1.Glyma.q1';
+    expect(caption({ tracks: [assembly], colour: ['a'] })).toContain(
+      'Colors mark gene families of the data source: each colored family has its own color; grey genes belong to other families shared between tracks.',
     );
   });
 });

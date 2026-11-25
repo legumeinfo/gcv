@@ -325,7 +325,11 @@ test.describe('the agent figure tools', () => {
         controls: ['#figure-crop-from', '#figure-crop-to'],
         args: ['crop'],
       },
-      colour: { controls: ['#figure-colour'], args: ['families'] },
+      colour: {
+        controls: ['[data-figure-family-list] input'],
+        args: ['families'],
+      },
+      palette: { controls: ['#figure-palette'], args: ['palette'] },
       famlabels: { controls: ['#figure-famlabels'], args: ['familyNumbers'] },
       labels: { controls: ['#figure-labels'], args: ['labels'] },
       names: { controls: ['#figure-names'], args: ['geneNames'] },

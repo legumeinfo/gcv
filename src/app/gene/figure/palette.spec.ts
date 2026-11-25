@@ -1,4 +1,4 @@
-import { HOLLOW, NEUTRAL, PALETTE } from './palette';
+import { ENCODINGS, HOLLOW, NEUTRAL, PALETTE, contrast } from './palette';
 
 // A figure's colors must stay unambiguous for readers with the common
 // color-vision deficiencies. This simulates them (Machado, Oliveira and
@@ -144,5 +144,28 @@ describe('the figure palette', () => {
       }),
     );
     expect(close).toEqual([]);
+  });
+});
+
+describe('the encodings past the palette', () => {
+  it('gives each of 21 families its own color and pattern', () => {
+    const keys = ENCODINGS.map((e) => `${e.fill} ${e.pattern?.kind}`);
+    expect(new Set(keys).size).toBe(3 * PALETTE.length);
+    expect(ENCODINGS.slice(0, PALETTE.length).map((e) => e.fill)).toEqual(
+      PALETTE,
+    );
+  });
+
+  // WCAG 1.4.11's 3:1 for graphics, so a pattern shows on its color
+  it('draws each pattern in ink that contrasts 3:1 with its color', () => {
+    const faint = ENCODINGS.filter(
+      (e) => e.pattern !== undefined && contrast(e.pattern.ink, e.fill) < 3,
+    ).map((e) => `${e.pattern.ink} on ${e.fill}`);
+    expect(faint).toEqual([]);
+  });
+
+  it('measures contrast as WCAG does', () => {
+    expect(contrast('#FFFFFF', '#000000')).toBeCloseTo(21);
+    expect(contrast('#777777', '#FFFFFF')).toBeCloseTo(4.48, 2);
   });
 });

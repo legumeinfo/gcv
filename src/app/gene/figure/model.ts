@@ -3,12 +3,14 @@
 // how each gene is colored, and notes on everything the spec asked for that
 // the figure couldn't do. Every choice here is a claim the figure makes, so
 // the rules are strict: a track label spans exactly the genes drawn, a
-// family's color is never shared, and tracks are merged only when two kinds
-// of evidence say they are one locus, or the user says so.
+// family's colorblind-safe encoding is never shared, and tracks are merged
+// only when two kinds of evidence say they are one locus, or the user says
+// so.
 import type {
   FigureGene,
   FigureLegendEntry,
   FigureMarks,
+  FigurePattern,
   FigureRail,
   FigureTrack,
   MicroFigure,
@@ -19,8 +21,8 @@ import {
   TrackAlignment,
   matchGeneName,
 } from '@gcv/gene/alignment';
-import { ParsedFigureSpec } from '@gcv/gene/models/params';
-import { HOLLOW, NEUTRAL, PALETTE } from './palette';
+import { FigurePalette, ParsedFigureSpec } from '@gcv/gene/models/params';
+import { ENCODINGS, FigureEncoding, HOLLOW, NEUTRAL } from './palette';
 import { positionToColumn } from './position';
 
 // a track as the micro-synteny viewer draws it (micro.shim.ts): its aligned
@@ -50,6 +52,9 @@ export type FigureInputs = {
   alignment: ClusterAlignment;
   sameLocus: SameLocus[];
   spec: ParsedFigureSpec;
+  // the micro-synteny viewer's color for a family, if it has drawn one, for
+  // the 'view' palette
+  viewColour?: (family: string) => string | undefined;
 };
 
 export const FIGURE_DEFAULTS = { w: 180, font: 7 };
@@ -75,7 +80,17 @@ export type FigureManifest = {
     mergedWith?: string;
   }[];
   columns: { from: number; to: number; crop?: [string, string] };
-  colours: { family: string; colour: string | null; key: number }[];
+  palette: FigurePalette;
+  // the families chosen to color, in the legend's order; a pattern marks a
+  // repeated color, and a null colour a family drawn grey
+  colours: {
+    family: string;
+    colour: string | null;
+    pattern?: FigurePattern['kind'];
+    key: number;
+  }[];
+  // the kinds of gene the figure draws, which its key and caption explain
+  styles: FigureGene['style'][];
   // the author's marks drawn, by the genes and positions that anchor them
   marks: {
     emphasised: string[];
@@ -103,6 +118,39 @@ export type FigureModel = {
   loading: boolean;
   // the cluster's result tracks, for the form that chooses them
   trackOptions: TrackOption[];
+  // the families the figure can color, for the form that chooses them
+  familyOptions: FamilyOption[];
+  colouring: Colouring;
+};
+
+// a family with genes in more than one place in the figure, so one it can
+// color, named by a gene of it
+export type FamilyOption = {
+  family: string;
+  label: string;
+  gene: string;
+  genes: number;
+  // chosen to color, by the spec or by default
+  chosen: boolean;
+  // how it is drawn: its encoding, or undefined when grey
+  encoding?: FigureEncoding;
+};
+
+// how many families the figure colors, and those it can't under its palette
+export type Colouring = {
+  palette: FigurePalette;
+  // the families chosen to color, as IDs in the order chosen, which decides
+  // who is colored when the palette can't color them all
+  chosen: string[];
+  // the families it could color
+  families: number;
+  coloured: number;
+  // the most the palette tells apart, null for no limit
+  capacity: number | null;
+  // families chosen but drawn grey, past the capacity, and the note that
+  // says so
+  overflow: string[];
+  note?: string;
 };
 
 // a result track the figure can show, named by a gene only it holds, so the
@@ -421,8 +469,8 @@ export function figureModel(inputs: FigureInputs): FigureModel {
   }));
   const queries = tracks.filter((t) => t.aligned.role === 'query');
   const allResults = tracks.length - queries.length;
-  const chosen = chooseTracks(tracks, spec, notes);
-  const results = orderTracks(chosen, spec);
+  const chosenTracks = chooseTracks(tracks, spec, notes);
+  const results = orderTracks(chosenTracks, spec);
   let kept = [...queries, ...results];
 
   const merges = mergePairs(kept, inputs, notes);
@@ -459,46 +507,99 @@ export function figureModel(inputs: FigureInputs): FigureModel {
       (a, b) => firstColumn.get(a) - firstColumn.get(b) || a.localeCompare(b),
     );
 
+  const palette = spec.palette ?? 'safe';
+  // The families chosen, in the order chosen: by ID or by a gene of each,
+  // or by default every family the figure can color.
   let requested: string[];
   if (spec.colour !== undefined) {
-    spec.colour
-      .filter((f) => !counts.has(f))
-      .forEach((f) =>
-        notes.push(`Not colored: family ${f} has no gene in the figure.`),
-      );
-    spec.colour
-      .filter((f) => counts.get(f) === 1)
-      .forEach((f) =>
+    const names = unique(shownGenes.map((g) => g.name));
+    const familyOf = new Map(shownGenes.map((g) => [g.name, g.family]));
+    requested = [];
+    spec.colour.forEach((item) => {
+      if (counts.has(item)) {
+        if (counts.get(item) === 1) {
+          notes.push(
+            `Not colored: family ${item} has no other gene in the figure, so it is drawn hollow.`,
+          );
+        } else requested.push(item);
+        return;
+      }
+      const matches = matchGeneName(names, item);
+      if (matches.length > 1) {
         notes.push(
-          `Not colored: family ${f} has no other gene in the figure, so it is drawn hollow.`,
-        ),
-      );
-    requested = stable(spec.colour.filter(matched));
+          `Not colored: ${item} names several genes (${matches.join(', ')}), so use the full name.`,
+        );
+      } else if (matches.length === 0) {
+        notes.push(
+          `Not colored: ${item} is neither a family nor a gene in the figure.`,
+        );
+      } else {
+        const family = familyOf.get(matches[0]);
+        if (family === '') {
+          notes.push(`Not colored: ${item} has no family.`);
+        } else if (!matched(family)) {
+          notes.push(
+            `Not colored: ${item}'s family, ${family}, has no other gene in the figure, so it is drawn hollow.`,
+          );
+        } else requested.push(family);
+      }
+    });
+    requested = unique(requested);
   } else {
-    // by default, as many as have distinct colors
-    requested = stable(
-      kept
-        .filter((t) => t.aligned.role === 'query')
-        .flatMap((t) =>
-          t.drawn.genes.filter((g) => inRange(g.x)).map((g) => g.family),
-        )
-        .filter((f) => f !== '' && matched(f)),
-    ).slice(0, PALETTE.length);
+    requested = stable(Array.from(counts.keys()).filter(matched));
   }
-  const keys = new Map(requested.map((f, i) => [f, i + 1]));
-  const colourOf = new Map(
-    requested.slice(0, PALETTE.length).map((f, i) => [f, PALETTE[i]]),
-  );
-  const uncoloured = requested.slice(PALETTE.length);
-  const famlabels = spec.famlabels ?? false;
-  if (uncoloured.length > 0) {
-    notes.push(
-      `Only ${PALETTE.length} families can have distinct colors; ${uncoloured.join(', ')} ${uncoloured.length === 1 ? 'is' : 'are'} drawn grey` +
-        (famlabels
-          ? ', with their legend numbers.'
-          : '. Turn on family numbers (famlabels) to tell them apart, or color fewer families.'),
+
+  // The safe palette colors the first 21 chosen, and grey the rest; the
+  // viewer's colors color them all. Either way colors run in the order the
+  // figure's columns meet the families.
+  const capacity = palette === 'safe' ? ENCODINGS.length : null;
+  const chosen = stable(requested.slice(0, capacity ?? requested.length));
+  const overflow = stable(requested.slice(chosen.length));
+  const encodingOf = new Map<string, FigureEncoding>();
+  if (palette === 'safe') {
+    chosen.forEach((f, i) => encodingOf.set(f, ENCODINGS[i]));
+  } else {
+    const uncoloured: string[] = [];
+    chosen.forEach((f) => {
+      const fill = inputs.viewColour?.(f);
+      if (fill === undefined) uncoloured.push(f);
+      else encodingOf.set(f, { fill });
+    });
+    if (uncoloured.length > 0) {
+      notes.push(
+        `The viewer has no color for ${uncoloured.join(', ')}, so ${uncoloured.length === 1 ? 'it is' : 'they are'} drawn grey.`,
+      );
+    }
+    const byFill = new Map<string, string[]>();
+    encodingOf.forEach(({ fill }, f) =>
+      byFill.set(fill.toUpperCase(), [
+        ...(byFill.get(fill.toUpperCase()) ?? []),
+        f,
+      ]),
     );
+    byFill.forEach((families) => {
+      if (families.length > 1) {
+        notes.push(
+          `Families ${families.join(' and ')} share a color in the viewer's palette, which repeats after 100 families; the colorblind-safe palette (palette: safe) keeps them apart.`,
+        );
+      }
+    });
   }
+  const famlabels = spec.famlabels ?? false;
+  let overflowNote: string | undefined;
+  if (overflow.length > 0) {
+    overflowNote =
+      `${requested.length} families are chosen to color, but colorblind-safe colors and patterns tell only ${capacity} apart, so ${overflow.join(', ')} ${overflow.length === 1 ? 'is' : 'are'} drawn grey` +
+      (famlabels ? ', with their legend numbers' : '') +
+      ". Choose fewer families to color (families), or use the viewer's colors (palette: view), which aren't colorblind-safe.";
+    notes.push(overflowNote);
+  }
+  const legendOrder = [
+    ...chosen.filter((f) => encodingOf.has(f)),
+    ...chosen.filter((f) => !encodingOf.has(f)),
+    ...overflow,
+  ];
+  const keys = new Map(legendOrder.map((f, i) => [f, i + 1]));
 
   let missingCoordinates = false;
   const figureTracks: FigureTrack[] = [];
@@ -523,10 +624,12 @@ export function figureModel(inputs: FigureInputs): FigureModel {
       } else if (!matched(g.family)) {
         style = 'hollow';
         fill = HOLLOW;
-      } else if (colourOf.has(g.family)) {
+      } else if (encodingOf.has(g.family)) {
         style = 'colour';
-        fill = colourOf.get(g.family);
+        fill = encodingOf.get(g.family).fill;
       }
+      const pattern =
+        style === 'colour' ? encodingOf.get(g.family).pattern : undefined;
       if (g.fmin === 0 && g.fmax === 0) missingCoordinates = true;
       return {
         name: g.name,
@@ -540,6 +643,7 @@ export function figureModel(inputs: FigureInputs): FigureModel {
         glyph: g.glyph,
         style,
         fill,
+        ...(pattern !== undefined ? { pattern } : {}),
         key: keys.get(g.family),
       };
     });
@@ -621,28 +725,37 @@ export function figureModel(inputs: FigureInputs): FigureModel {
   const figureGenes = figureTracks.flatMap((t) => t.genes);
   const has = (style: FigureGene['style']) =>
     figureGenes.some((g) => g.style === style);
-  // The key names families by their IDs, in the order the figure's columns
-  // meet them; a prefix every family shares, as the data source's family
-  // set, is said once in the key's title.
-  const prefixes = unique(requested.map((f) => f.split('.')[0]));
+  // The key names families by their IDs, coloured ones in the order the
+  // figure's columns meet them; a prefix every family shares, as the data
+  // source's family set, is said once in the key's title. Grey and white
+  // get a row only when the figure has them, grey families one each when
+  // they are numbered.
+  const prefixes = unique(legendOrder.map((f) => f.split('.')[0]));
   const shared =
-    requested.length > 0 &&
+    legendOrder.length > 0 &&
     prefixes.length === 1 &&
-    requested.every((f) => f.includes('.'))
+    legendOrder.every((f) => f.includes('.'))
       ? prefixes[0]
       : undefined;
   const familyLabel = (family: string) =>
     shared === undefined ? family : family.slice(shared.length + 1);
+  const listed = legendOrder.filter((f) => encodingOf.has(f) || famlabels);
   const legend: FigureLegendEntry[] = [
-    ...requested.map((family) => ({
-      style: (colourOf.has(family)
-        ? 'colour'
-        : 'neutral') as FigureGene['style'],
-      fill: colourOf.get(family) ?? NEUTRAL,
-      key: famlabels ? keys.get(family) : undefined,
-      label: familyLabel(family),
-    })),
-    ...(figureGenes.some((g) => g.style === 'neutral' && !keys.has(g.family))
+    ...listed.map((family): FigureLegendEntry => {
+      const encoding = encodingOf.get(family);
+      return {
+        style: encoding !== undefined ? 'colour' : 'neutral',
+        fill: encoding?.fill ?? NEUTRAL,
+        ...(encoding?.pattern !== undefined
+          ? { pattern: encoding.pattern }
+          : {}),
+        key: famlabels ? keys.get(family) : undefined,
+        label: familyLabel(family),
+      };
+    }),
+    ...(figureGenes.some(
+      (g) => g.style === 'neutral' && !listed.includes(g.family),
+    )
       ? [
           {
             style: 'neutral' as const,
@@ -696,16 +809,49 @@ export function figureModel(inputs: FigureInputs): FigureModel {
         to: range[1] - 0.5,
         ...(crop !== undefined ? { crop } : {}),
       },
-      colours: requested.map((family) => ({
-        family,
-        colour: colourOf.get(family) ?? null,
-        key: keys.get(family),
-      })),
+      palette,
+      colours: legendOrder.map((family) => {
+        const encoding = encodingOf.get(family);
+        return {
+          family,
+          colour: encoding?.fill ?? null,
+          ...(encoding?.pattern !== undefined
+            ? { pattern: encoding.pattern.kind }
+            : {}),
+          key: keys.get(family),
+        };
+      }),
+      styles: (['colour', 'neutral', 'hollow', 'orphan'] as const).filter(has),
       marks: markManifest,
     },
     notes,
     loading: missingCoordinates,
-    trackOptions: trackOptions(tracks, chosen),
+    trackOptions: trackOptions(tracks, chosenTracks),
+    familyOptions: stable(Array.from(counts.keys()).filter(matched)).map(
+      (family) => {
+        const genes = figureGenes.filter((g) => g.family === family);
+        return {
+          family,
+          label: familyLabel(family),
+          // the first in the figure, so the query's when it has one
+          gene: genes[0].label,
+          genes: genes.length,
+          chosen: requested.includes(family),
+          ...(encodingOf.has(family)
+            ? { encoding: encodingOf.get(family) }
+            : {}),
+        };
+      },
+    ),
+    colouring: {
+      palette,
+      chosen: requested,
+      families: Array.from(counts.keys()).filter(matched).length,
+      coloured: encodingOf.size,
+      capacity,
+      overflow,
+      ...(overflowNote !== undefined ? { note: overflowNote } : {}),
+    },
   };
 }
 

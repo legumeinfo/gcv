@@ -12,6 +12,10 @@ export type FigureGeneStyle =
   // a gene without a family
   | 'orphan';
 
+// a pattern over a glyph's color, in its ink, so families sharing a color
+// stay apart
+export type FigurePattern = { kind: 'stripes' | 'dots'; ink: string };
+
 export type FigureGene = {
   name: string;
   // the name drawn under the glyph
@@ -28,6 +32,7 @@ export type FigureGene = {
   glyph?: string;
   style: FigureGeneStyle;
   fill: string;
+  pattern?: FigurePattern;
   // the legend number of a colored family
   key?: number;
   // the author emphasised it
@@ -59,6 +64,7 @@ export type FigureTrack = {
 export type FigureLegendEntry = {
   style: FigureGeneStyle;
   fill: string;
+  pattern?: FigurePattern;
   key?: number;
   label: string;
 };

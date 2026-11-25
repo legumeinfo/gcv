@@ -246,4 +246,40 @@ export const scenarios = [
       },
     ],
   },
+  {
+    id: 'figure-one-family',
+    url: view(),
+    prompt:
+      "Make a figure of the three best-scoring result tracks in which only the query gene's family is colored.",
+    premises: [
+      {
+        about: 'the query gene has a family',
+        async check(call) {
+          const details = await call('get_gene_details', { gene: QUERY });
+          expect(!details.error, details.error);
+          expect(details.family, 'no family');
+          return { family: details.family };
+        },
+      },
+    ],
+    rubric: [
+      "Names the family colored, or says it is the query gene's family.",
+    ],
+    outcome: [
+      {
+        about: "the figure colors exactly the query gene's family",
+        async check(call, facts) {
+          const figure = await call('read_figure');
+          expect(!figure.error, figure.error);
+          const coloured = figure.manifest.colours
+            .filter((c) => c.colour !== null)
+            .map((c) => c.family);
+          expect(
+            coloured.length === 1 && coloured[0] === facts.family,
+            `colored ${coloured.join(', ')}, not ${facts.family}`,
+          );
+        },
+      },
+    ],
+  },
 ];

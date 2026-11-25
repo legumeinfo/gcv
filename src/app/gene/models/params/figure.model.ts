@@ -17,6 +17,8 @@ export type FigureOrder = 'view' | 'score' | { genera: string[] };
 
 export type FigureMerge = 'both' | [string, string][];
 
+export type FigurePalette = 'safe' | 'view';
+
 export type FigureSpec = {
   // a query gene of the figure's cluster
   cl?: string;
@@ -32,8 +34,14 @@ export type FigureSpec = {
   merge?: FigureMerge;
   // the columns to show, named by a gene in each end column
   crop?: [string, string];
-  // families to color; the rest are drawn neutral
+  // families to color, named by their IDs or by a gene of each; the rest
+  // are drawn neutral. Without it, every family with genes in more than one
+  // place in the figure is colored.
   colour?: string[];
+  // 'safe' colors families with Okabe and Ito's palette and patterns, which
+  // readers with color-vision deficiencies can tell apart, for at most 21;
+  // 'view' with the micro-synteny viewer's colors, for any number
+  palette?: FigurePalette;
   // label each colored glyph with its legend number
   famlabels?: boolean;
   labels?: 'full' | 'short';
@@ -156,6 +164,7 @@ const readers: {
       : undefined;
   },
   colour: (v) => nonEmpty(list(v)),
+  palette: (v) => (v === 'safe' || v === 'view' ? v : undefined),
   famlabels: flag,
   labels: (v) => (v === 'full' || v === 'short' ? v : undefined),
   names: flag,
@@ -231,6 +240,7 @@ const writers: {
   merge: (v) => (v === 'both' ? v : v.map((p) => p.join('/')).join('+')),
   crop: (v) => v.join('~'),
   colour: (v) => v.join('+'),
+  palette: (v) => v,
   famlabels: (v) => (v ? '1' : '0'),
   labels: (v) => v,
   names: (v) => (v ? '1' : '0'),

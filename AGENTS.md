@@ -76,12 +76,18 @@ change with the clustering parameters, and closing it removes `fig`.
   output for the same input.
 - **The figure doesn't reuse the viewer.** It draws with the viewer's own layout functions
   (`visualization/layout/micro-tracks.ts`), so a gene sits in the same column, but not with
-  `Micro` or the page's colors: `GCV.common.colors` assigns colors in the order viewers ask
-  for them and repeats after 100.
-- **Colors are claims.** `gene/figure/palette.ts` is Okabe and Ito's palette, with a neutral
-  grey and white; `palette.spec.ts` simulates the common color-vision deficiencies and
-  requires every pair to stay distinct, so check a palette change with it. A family's color
-  is never shared: past the palette, families go grey and are numbered with `famlabels`.
+  `Micro`, and by default not with the page's colors: `GCV.common.colors` assigns colors in
+  the order viewers ask for them and repeats after 100. `palette:view` reads a family's
+  color only if a viewer has drawn it, since asking assigns one.
+- **Colors are claims.** By default the figure colors every family with genes in more than
+  one place in it, as the viewer does; a person clicks genes, or ticks families, to choose.
+  `gene/figure/palette.ts` is Okabe and Ito's palette, with a neutral grey and white;
+  `palette.spec.ts` simulates the common color-vision deficiencies and requires every pair
+  to stay distinct, so check a palette change with it. Past seven families the colors
+  repeat under stripes, then dots, in ink of at least 3:1 contrast, so no encoding rests on
+  hue alone and none is shared; past 21, the families chosen last go grey, and the tab and
+  the notes say so. `palette:view` trades that for the viewer's colors, any number of them,
+  which can repeat: the notes name the families that share one.
 - **Merging and labels.** Two tracks are merged as one locus only when `sameLocusTracks`
   finds both kinds of evidence, or the user names the pair. A track's label spans exactly
   the genes drawn.

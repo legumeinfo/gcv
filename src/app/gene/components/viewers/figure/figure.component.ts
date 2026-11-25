@@ -28,7 +28,10 @@ import {
 } from '@gcv/gene/alignment';
 import { microShim } from '@gcv/gene/components/viewers/micro/micro.shim';
 import {
+  Colouring,
+  FamilyOption,
   FigureManifest,
+  NEUTRAL,
   TrackOption,
   figureCaption,
   figureModel,
@@ -56,6 +59,9 @@ const measureText: MeasureText = (() => {
 })();
 
 export const PNG_DPI = 300;
+
+const DEFAULT_HINT =
+  'Point at a gene to see its family; click it to color the family or not.';
 export const PNG_DPI_LIMITS = [72, 1200] as const;
 
 // the figure as last drawn: the spec it was drawn for (as fig), and what it
@@ -164,6 +170,43 @@ export type FigureRender = {
         border-radius: 0.25rem;
         padding: 0.25rem 0.25rem 0.25rem 0.5rem;
       }
+      /* the figure's genes answer the pointer: a family's genes outline
+         together, and a click colors the family or not */
+      .figure-preview ::ng-deep [data-gene] {
+        cursor: pointer;
+      }
+      .figure-preview ::ng-deep [data-gene].figure-hovered > :first-child {
+        stroke: #000 !important;
+        stroke-width: 1.5px !important;
+      }
+      .figure-hint {
+        flex: none;
+        margin: 0;
+        padding: 0.2rem 0.5rem;
+        border-top: 1px solid #dee2e6;
+        font-size: 0.8rem;
+        color: #495057;
+        /* one line, so a hint never resizes the figure under the pointer */
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .figure-callout {
+        flex: none;
+        margin: 0;
+        padding: 0.35rem 0.5rem;
+        border-top: 1px solid #e0c36a;
+        background: #fff8e1;
+        font-size: 0.8rem;
+      }
+      .figure-swatch {
+        display: inline-block;
+        width: 0.8rem;
+        height: 0.8rem;
+        margin-right: 0.3rem;
+        vertical-align: -0.1rem;
+        border: 1px solid #4d4d4d;
+      }
       .figure-notes {
         flex: none;
         margin: 0;
@@ -238,7 +281,36 @@ export type FigureRender = {
           class="figure-preview"
           #preview
           [style.flex-grow]="previewShare"
+          (click)="clickGene($event)"
+          (mouseover)="hoverGene($event)"
+          (mouseleave)="hoverGene(undefined)"
         ></div>
+        <p
+          class="figure-hint"
+          aria-live="polite"
+          data-figure-hint
+          [title]="hint"
+        >
+          {{ hint }}
+        </p>
+        @if (colouring?.overflow.length > 0) {
+          <div class="figure-callout" role="status" data-figure-overflow>
+            <strong
+              >{{ colouring.chosen.length }} families to color, but
+              colorblind-friendly colors and patterns tell only
+              {{ colouring.capacity }} apart, so
+              {{ colouring.overflow.length }} are grey.</strong
+            >
+            Click genes to choose which to color, or
+            <button
+              type="button"
+              class="btn btn-link btn-sm p-0 align-baseline"
+              (click)="update({ palette: 'view' })"
+            >
+              use the viewer's colors</button
+            >, which aren't colorblind-friendly.
+          </div>
+        }
         @if (notes.length > 0) {
           <ul class="figure-notes" data-figure-notes>
             @for (note of notes; track note) {
@@ -315,7 +387,7 @@ export type FigureRender = {
                 </p>
               }
               <div class="figure-tracks">
-                @for (option of trackOptions; track option.gene) {
+                @for (option of trackOptions; track $index) {
                   <div class="form-check">
                     <input
                       class="form-check-input"
@@ -338,6 +410,100 @@ export type FigureRender = {
                 }
               </div>
             </fieldset>
+          </section>
+          <section class="figure-section figure-wide" data-figure-families>
+            <h6>Families</h6>
+            <div class="form-check">
+              <input
+                id="figure-palette"
+                class="form-check-input"
+                type="checkbox"
+                [checked]="spec.palette !== 'view'"
+                (change)="
+                  update({ palette: checked($event) ? undefined : 'view' })
+                "
+              />
+              <label class="form-check-label" for="figure-palette"
+                >Colorblind-friendly colors and patterns</label
+              >
+            </div>
+            @if (spec.palette === 'view') {
+              <p class="small text-muted mb-1">
+                The viewer's colors: any number of families, but not
+                colorblind-friendly, and a color can repeat.
+              </p>
+            }
+            <fieldset class="mb-1" data-figure-family-list>
+              <legend class="form-label mb-1" style="font-size: inherit">
+                Families colored: {{ colouring?.coloured ?? 0 }} of
+                {{ familyOptions.length }}
+              </legend>
+              <p class="small text-muted mb-1">
+                Click a gene in the figure, or tick its family here, to color it
+                or not.
+                @if (spec.colour !== undefined) {
+                  <button
+                    type="button"
+                    class="btn btn-link btn-sm p-0 align-baseline"
+                    (click)="update({ colour: undefined })"
+                  >
+                    Color them all again
+                  </button>
+                }
+              </p>
+              <div class="figure-tracks">
+                @for (option of familyOptions; track option.family) {
+                  <div class="form-check">
+                    <input
+                      class="form-check-input"
+                      type="checkbox"
+                      [id]="'figure-family-' + $index"
+                      [attr.data-family-option]="option.family"
+                      [checked]="option.encoding !== undefined"
+                      [disabled]="
+                        option.encoding !== undefined &&
+                        colouring?.chosen.length === 1
+                      "
+                      (change)="setFamily(option.family, checked($event))"
+                    />
+                    <label
+                      class="form-check-label"
+                      [for]="'figure-family-' + $index"
+                      ><span
+                        class="figure-swatch"
+                        [style.background]="swatch(option)"
+                      ></span
+                      >{{ option.gene }}
+                      <span class="text-muted"
+                        >{{ option.label }}, {{ option.genes }} genes</span
+                      ></label
+                    >
+                  </div>
+                }
+              </div>
+            </fieldset>
+            <div class="form-check">
+              <input
+                id="figure-famlabels"
+                class="form-check-input"
+                type="checkbox"
+                [checked]="spec.famlabels ?? false"
+                (change)="setFlag('famlabels', $event)"
+              />
+              <label class="form-check-label" for="figure-famlabels"
+                >Number the families</label
+              >
+            </div>
+            <div class="form-check mb-2">
+              <input
+                id="figure-legend"
+                class="form-check-input"
+                type="checkbox"
+                [checked]="spec.legend ?? true"
+                (change)="setFlag('legend', $event)"
+              />
+              <label class="form-check-label" for="figure-legend">Legend</label>
+            </div>
           </section>
           <div class="figure-stack">
             <section class="figure-section">
@@ -433,43 +599,6 @@ export type FigureRender = {
             </section>
           </div>
           <div class="figure-stack">
-            <section class="figure-section">
-              <h6>Families</h6>
-              <label class="form-label mb-1" for="figure-colour"
-                >Families to color, comma-separated</label
-              >
-              <input
-                id="figure-colour"
-                class="form-control form-control-sm mb-1"
-                placeholder="the query's shared families"
-                [value]="(spec.colour ?? []).join(', ')"
-                (change)="setList('colour', $event)"
-              />
-              <div class="form-check">
-                <input
-                  id="figure-famlabels"
-                  class="form-check-input"
-                  type="checkbox"
-                  [checked]="spec.famlabels ?? false"
-                  (change)="setFlag('famlabels', $event)"
-                />
-                <label class="form-check-label" for="figure-famlabels"
-                  >Number the families</label
-                >
-              </div>
-              <div class="form-check mb-2">
-                <input
-                  id="figure-legend"
-                  class="form-check-input"
-                  type="checkbox"
-                  [checked]="spec.legend ?? true"
-                  (change)="setFlag('legend', $event)"
-                />
-                <label class="form-check-label" for="figure-legend"
-                  >Legend</label
-                >
-              </div>
-            </section>
             <section class="figure-section">
               <h6>Labels</h6>
               <select
@@ -647,6 +776,11 @@ export class FigureComponent implements AfterViewInit, OnDestroy {
   markErrors: string[] = [];
   // the cluster's result tracks, ticked as the spec chooses them
   trackOptions: TrackOption[] = [];
+  // the families the figure can color, ticked as it colors them
+  familyOptions: FamilyOption[] = [];
+  colouring: Colouring | undefined;
+  // what the gene under the pointer is, and what a click on it does
+  hint = DEFAULT_HINT;
   // merging named pairs, before any pair is named
   choosingPairs = false;
   mergeErrors: string[] = [];
@@ -746,6 +880,11 @@ export class FigureComponent implements AfterViewInit, OnDestroy {
           alignment,
           sameLocus: sameLocusTracks([alignment]),
           spec: this.spec,
+          // the viewer's color, without assigning one it hasn't drawn
+          viewColour: (family) =>
+            GCV.common.colors.domain().includes(family)
+              ? (GCV.common.colors(family) as string)
+              : undefined,
         });
         const queryNames = new Set(
           alignment.tracks
@@ -765,7 +904,11 @@ export class FigureComponent implements AfterViewInit, OnDestroy {
         });
         this.manifest = model.manifest;
         this.trackOptions = model.trackOptions;
-        this.notes = model.notes;
+        this.familyOptions = model.familyOptions;
+        this.colouring = model.colouring;
+        this.hint = DEFAULT_HINT;
+        // the callout says what the overflow note does
+        this.notes = model.notes.filter((n) => n !== model.colouring.note);
         this.loading = model.loading;
         this.svg = GCV.visualization.drawMicroFigure(
           {
@@ -823,7 +966,7 @@ export class FigureComponent implements AfterViewInit, OnDestroy {
     this.update({ [key]: value === '' ? undefined : Number(value) });
   }
 
-  setList(key: 'genus' | 'colour', event: Event): void {
+  setList(key: 'genus', event: Event): void {
     const items = this.value(event)
       .split(/[,+]/)
       .map((i) => i.trim())
@@ -844,6 +987,74 @@ export class FigureComponent implements AfterViewInit, OnDestroy {
       .filter((o) => (o === option ? checked : o.chosen))
       .map((o) => o.gene);
     this.update({ tracks: tracks.length > 0 ? tracks : undefined });
+  }
+
+  // the families
+
+  checked(event: Event): boolean {
+    return (event.target as HTMLInputElement).checked;
+  }
+
+  // A family colored or not, by the families chosen as IDs: one colored
+  // goes first, so it is colored even past the palette's capacity, at the
+  // cost of the last chosen.
+  setFamily(family: string, colour: boolean): void {
+    const rest = (this.colouring?.chosen ?? []).filter((f) => f !== family);
+    const chosen = colour ? [family, ...rest] : rest;
+    if (chosen.length > 0) this.update({ colour: chosen });
+  }
+
+  // a swatch as the figure draws the family: its color, under its pattern
+  swatch(option: FamilyOption): string {
+    const fill = option.encoding?.fill ?? NEUTRAL;
+    const pattern = option.encoding?.pattern;
+    if (pattern === undefined) return fill;
+    return pattern.kind === 'stripes'
+      ? `repeating-linear-gradient(45deg, ${pattern.ink} 0 1.5px, ${fill} 1.5px 4px)`
+      : `radial-gradient(${pattern.ink} 28%, transparent 32%) 0 0 / 4px 4px, ${fill}`;
+  }
+
+  private _geneAt(event: Event): Element | null {
+    return (event.target as Element).closest?.('[data-gene]') ?? null;
+  }
+
+  clickGene(event: MouseEvent): void {
+    const gene = this._geneAt(event);
+    const style = gene?.getAttribute('data-style');
+    if (style === 'colour' || style === 'neutral') {
+      this.setFamily(gene.getAttribute('data-family'), style === 'neutral');
+    }
+  }
+
+  // outlines the family of the gene under the pointer, and says what a click
+  // on it does
+  hoverGene(event: MouseEvent | undefined): void {
+    const preview = this.preview?.nativeElement;
+    preview
+      ?.querySelectorAll('.figure-hovered')
+      .forEach((g) => g.classList.remove('figure-hovered'));
+    const gene = event === undefined ? null : this._geneAt(event);
+    if (gene === null) {
+      this.hint = DEFAULT_HINT;
+      return;
+    }
+    const family = gene.getAttribute('data-family');
+    const name = gene.getAttribute('data-gene');
+    const style = gene.getAttribute('data-style');
+    const option = this.familyOptions.find((o) => o.family === family);
+    if (style === 'colour' || style === 'neutral') {
+      preview
+        .querySelectorAll(`[data-family="${CSS.escape(family)}"]`)
+        .forEach((g) => g.classList.add('figure-hovered'));
+    }
+    this.hint =
+      style === 'colour'
+        ? `${name}: family ${family}, ${option?.genes} genes in the figure. Click to stop coloring it.`
+        : style === 'neutral'
+          ? `${name}: family ${family}, ${option?.genes} genes in the figure, grey. Click to color it.`
+          : style === 'hollow'
+            ? `${name}: the only gene of family ${family} in the figure, so it has no color to share; emphasise it under Marks instead.`
+            : `${name} has no family; emphasise it under Marks instead.`;
   }
 
   orderChoice(): 'view' | 'score' | 'genus' {
@@ -1118,10 +1329,16 @@ export class FigureComponent implements AfterViewInit, OnDestroy {
     }
   }
 
-  // the figure as drawn, without the preview's sizing
+  // the figure as drawn, without the preview's sizing or hover
   private _exported(): SVGSVGElement {
     const svg = this.svg.cloneNode(true) as SVGSVGElement;
     svg.removeAttribute('style');
+    svg
+      .querySelectorAll('.figure-hovered')
+      .forEach((g) => g.classList.remove('figure-hovered'));
+    svg
+      .querySelectorAll('[class=""]')
+      .forEach((g) => g.removeAttribute('class'));
     return svg;
   }
 }

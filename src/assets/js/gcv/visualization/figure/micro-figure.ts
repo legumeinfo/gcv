@@ -14,6 +14,7 @@ import {
   FigureGene,
   FigureLegendEntry,
   FigureMarks,
+  FigurePattern,
   FigureTrack,
   MicroFigure,
 } from './micro-figure.model';
@@ -100,13 +101,69 @@ function text(
   return t;
 }
 
-function glyph(b: Builder, gene: FigureGene, size: number): Element {
+// A glyph's paint: its color, or a pattern of its color and ink defined once
+// in the figure's defs. A pattern's tile is a third of a glyph, so a glyph
+// shows a few stripes or dots at any size.
+type Paint = (fill: string, pattern?: FigurePattern) => string;
+
+function painter(b: Builder, svg: Element, size: number): Paint {
+  const defined = new Map<string, string>();
+  let defs: Element | undefined;
+  const tile = Math.max(size / 3, 1.5);
+  return (fill, pattern) => {
+    if (pattern === undefined) return fill;
+    const id = `gcv-figure-${pattern.kind}-${fill.slice(1)}-${pattern.ink.slice(1)}`;
+    if (!defined.has(id)) {
+      if (defs === undefined) {
+        defs = b.el('defs');
+        svg.insertBefore(defs, svg.firstChild);
+      }
+      const p = b.el('pattern', {
+        id,
+        patternUnits: 'userSpaceOnUse',
+        width: tile,
+        height: tile,
+        ...(pattern.kind === 'stripes'
+          ? { patternTransform: 'rotate(45)' }
+          : {}),
+        'data-pattern': pattern.kind,
+      });
+      p.appendChild(
+        b.el('rect', { width: tile, height: tile, style: `fill: ${fill};` }),
+      );
+      p.appendChild(
+        pattern.kind === 'stripes'
+          ? b.el('rect', {
+              width: tile * 0.4,
+              height: tile,
+              style: `fill: ${pattern.ink};`,
+            })
+          : b.el('circle', {
+              cx: tile / 2,
+              cy: tile / 2,
+              r: tile * 0.22,
+              style: `fill: ${pattern.ink};`,
+            }),
+      );
+      defs.appendChild(p);
+      defined.set(id, `url(#${id})`);
+    }
+    return defined.get(id);
+  };
+}
+
+function glyph(
+  b: Builder,
+  gene: FigureGene,
+  size: number,
+  paint: Paint,
+): Element {
   // emphasis is the smallest effective difference: a heavier black outline
   const [ink, stroke] = gene.emphasis
     ? [STROKE, EMPHASIS_PT * PX_PER_PT]
     : [OUTLINE, OUTLINE_PT * PX_PER_PT];
   const style =
-    `fill: ${gene.fill}; stroke: ${ink}; stroke-width: ${r(stroke)}px;` +
+    `fill: ${paint(gene.fill, gene.pattern)}; stroke: ${ink}; stroke-width: ${r(stroke)}px;` +
     (gene.style === 'orphan' ? ' stroke-dasharray: 1.5 1;' : '');
   if (glyphShape(gene) === 'circle') {
     return b.el('circle', { cx: 0, cy: 0, r: size * 0.32, style });
@@ -126,9 +183,10 @@ function legendSwatch(
   b: Builder,
   entry: FigureLegendEntry,
   size: number,
+  paint: Paint,
 ): Element {
   const style =
-    `fill: ${entry.fill}; stroke: ${OUTLINE}; stroke-width: ${r(OUTLINE_PT * PX_PER_PT)}px;` +
+    `fill: ${paint(entry.fill, entry.pattern)}; stroke: ${OUTLINE}; stroke-width: ${r(OUTLINE_PT * PX_PER_PT)}px;` +
     (entry.style === 'orphan' ? ' stroke-dasharray: 1.5 1;' : '');
   return b.el('rect', {
     x: 0,
@@ -358,6 +416,7 @@ export function drawMicroFigure(
     style: 'fill: #ffffff;',
   });
   svg.appendChild(background);
+  const paint = painter(b, svg, size);
 
   let top = pad + band;
   // where each track's rows are, for the marks drawn over them
@@ -457,8 +516,11 @@ export function drawMicroFigure(
         'data-family': gene.family,
         'data-column': String(gene.x),
         'data-style': gene.style,
+        ...(gene.pattern !== undefined
+          ? { 'data-pattern': gene.pattern.kind }
+          : {}),
       });
-      geneGroup.appendChild(glyph(b, gene, size));
+      geneGroup.appendChild(glyph(b, gene, size, paint));
       if (figure.famlabels && gene.key !== undefined) {
         geneGroup.appendChild(
           text(
@@ -651,8 +713,11 @@ export function drawMicroFigure(
       const item = b.el('g', {
         transform: `translate(${r(lineX)}, ${r(top + lineHeight / 2)})`,
         'data-legend-style': entry.style,
+        ...(entry.pattern !== undefined
+          ? { 'data-pattern': entry.pattern.kind }
+          : {}),
       });
-      item.appendChild(legendSwatch(b, entry, swatch));
+      item.appendChild(legendSwatch(b, entry, swatch, paint));
       item.appendChild(text(b, content, swatch + pad / 2, 0, second));
       legend.appendChild(item);
       lineX += entryWidth;

@@ -174,6 +174,43 @@ describe('drawMicroFigure', () => {
     expect(style('q1')).toContain('stroke: #4d4d4d; stroke-width: 0.4px');
   });
 
+  it('paints a patterned glyph and its key with one pattern of its color and ink', () => {
+    const pattern = { kind: 'stripes' as const, ink: '#FFFFFF' };
+    const striped: MicroFigure = {
+      ...figure,
+      tracks: figure.tracks.map((t, i) =>
+        i === 0
+          ? {
+              ...t,
+              genes: t.genes.map((g) =>
+                g.name === 'q2' ? { ...g, pattern } : g,
+              ),
+            }
+          : t,
+      ),
+      legend: [
+        { style: 'colour', fill: '#56B4E9', pattern, label: 'b', key: 2 },
+      ],
+    };
+    const svg = draw(striped);
+    const patterns = svg.querySelectorAll('defs > pattern');
+    expect(patterns).toHaveLength(1);
+    const id = patterns[0].getAttribute('id');
+    expect(patterns[0].innerHTML).toContain('fill: #56B4E9');
+    expect(patterns[0].innerHTML).toContain('fill: #FFFFFF');
+    const glyph = svg.querySelector('[data-gene="q2"]');
+    expect(glyph.getAttribute('data-pattern')).toBe('stripes');
+    expect(glyph.firstElementChild.getAttribute('style')).toContain(
+      `fill: url(#${id})`,
+    );
+    const key = svg.querySelector('[data-legend-style="colour"]');
+    expect(key.firstElementChild.getAttribute('style')).toContain(
+      `fill: url(#${id})`,
+    );
+    // a figure without patterns has no defs
+    expect(draw().querySelector('defs')).toBeNull();
+  });
+
   it('turns a reverse gene and draws an unknown strand as a circle', () => {
     const svg = draw();
     const glyph = (name: string) =>
